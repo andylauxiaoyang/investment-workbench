@@ -227,12 +227,13 @@ td input:focus,td select:focus{outline:none;border-color:var(--primary)}
   .sidebar{display:none}
   .bottom-tab{
     display:flex;position:fixed;bottom:0;left:0;right:0;background:var(--panel);
-    border-top:1px solid var(--border);z-index:30;overflow-x:auto;
+    border-top:1px solid var(--border);z-index:30;overflow:hidden;
     padding-bottom:env(safe-area-inset-bottom);
   }
-  .bottom-tab .nav-item{flex:1 0 auto;flex-direction:column;gap:3px;padding:8px 4px;border-radius:0;font-size:11px;min-width:58px;
-    justify-content:center;min-height:56px}
-  .bottom-tab .nav-item svg{width:22px;height:22px}
+  .bottom-tab .nav-item{flex:1 1 0;flex-direction:column;gap:2px;padding:7px 1px;border-radius:0;font-size:10px;min-width:0;
+    justify-content:center;min-height:54px;overflow:hidden;text-align:center}
+  .bottom-tab .nav-item span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;display:block}
+  .bottom-tab .nav-item svg{width:20px;height:20px}
   .content{padding:14px;padding-bottom:84px}
   .topbar{padding:10px 14px}
   .topbar h1{font-size:15px}
@@ -296,8 +297,13 @@ td input:focus,td select:focus{outline:none;border-color:var(--primary)}
 <div class="toast" id="toast"></div>
 <div class="modal-mask" id="modalMask"><div class="modal" id="modalBox"></div></div>
 
-<!-- 本地(file://)要闻源：通过 <script> 注入 window.__AUTO_NEWS_PAYLOAD__，突破 file:// 无法 fetch 的限制；缺失时自动降级 -->
-<script src="./news-data.js"></script>
+<!-- 本地(file://)要闻源：内联 SYNCED_NEWS，突破 file:// 无法 fetch 的限制；由每日自动化同步更新 -->
+<script>
+/*__SYNC_NEWS_START__*/
+const SYNCED_NEWS = [{"title": "央行8月5日开展5000亿元买断式逆回购，净投放2000亿元", "source": "每日经济新闻", "date": "2026-08-05", "url": "https://www.163.com/dy/article/L3IRBAGP0512B07B.html", "category": "macro", "impact": "up", "important": true}, {"title": "人民银行：下半年继续实施好适度宽松的货币政策", "source": "光明日报", "date": "2026-08-05", "url": "https://www.toutiao.com/article/7670073813614313999/", "category": "macro", "impact": "up", "important": false}, {"title": "A股放量普涨，科创50大涨4.78%，两市成交2.66万亿元", "source": "北京青年报", "date": "2026-08-05", "url": "https://new.qq.com/rain/a/20260805A0ASJO00", "category": "market", "impact": "up", "important": true}, {"title": "沪指涨1.47%逼近3900点，半导体、算力硬件领涨", "source": "新黄河", "date": "2026-08-05", "url": "https://new.qq.com/rain/a/20260805A0ASJO00", "category": "market", "impact": "up", "important": false}, {"title": "三重驱动助力港股回暖，机构称恒科具备进一步上行基础", "source": "财联社", "date": "2026-08-05", "url": "http://gu.qq.com/resources/shy/news/detail-v2/index.html#/?id=nesSN2026080514060694c9429b&s=b", "category": "market", "impact": "up", "important": false}, {"title": "美联储7月议息按兵不动，全球成长股承压", "source": "财联社", "date": "2026-08-05", "url": "http://gu.qq.com/resources/shy/news/detail-v2/index.html#/?id=nesSN2026080514060694c9429b&s=b", "category": "macro", "impact": "neutral", "important": false}, {"title": "美伊地缘冲突升级，国际原油暴涨超6%，避险情绪升温", "source": "金十数据", "date": "2026-08-05", "url": "https://jin10.com", "category": "macro", "impact": "down", "important": true}, {"title": "沪深两市成交额连续第252个交易日突破1.5万亿元", "source": "金十数据", "date": "2026-08-05", "url": "https://jin10.com", "category": "market", "impact": "neutral", "important": false}];
+const SYNCED_NEWS_AT = "2026-08-05 18:40";
+/*__SYNC_NEWS_END__*/
+</script>
 <script>
 "use strict";
 /* ============== I18N ============== */
@@ -684,13 +690,19 @@ function render(view){
   activeView=view;
   document.querySelectorAll(".nav-item").forEach(b=>b.classList.toggle("active",b.dataset.view===view));
   document.querySelectorAll(".view").forEach(v=>v.classList.remove("active"));
-  const sec=document.getElementById("view-"+view); sec.classList.add("active");
-  if(view==="dashboard") sec.innerHTML=renderDashboard();
-  else if(view==="news") sec.innerHTML=renderNewsCard();
-  else if(view==="holdings") sec.innerHTML=renderHoldings();
-  else if(view==="macro") sec.innerHTML=renderMacro();
-  else if(view==="research") sec.innerHTML=renderResearch();
-  else if(view==="tools") sec.innerHTML=renderTools();
+  const sec=document.getElementById("view-"+view); if(!sec) return; sec.classList.add("active");
+  let html="";
+  try{
+    if(view==="dashboard") html=renderDashboard();
+    else if(view==="news") html=renderNewsCard();
+    else if(view==="holdings") html=renderHoldings();
+    else if(view==="macro") html=renderMacro();
+    else if(view==="research") html=renderResearch();
+    else if(view==="tools") html=renderTools();
+  }catch(e){
+    html=`<div class="card"><h3>⚠️ 该模块渲染出错</h3><p class="muted">${esc(String((e&&e.message)||e))}</p></div>`;
+  }
+  sec.innerHTML=html;
 }
 
 function renderDashboard(){
@@ -1189,13 +1201,15 @@ function syncHoldings(){
   }
 }
 // 同步自动源要闻：
-//  - 本地(file://)版：通过 news-data.js（<script> 标签注入 window.__AUTO_NEWS_PAYLOAD__）读取，突破 file:// 无法 fetch 的限制
+//  - 本地(file://)与线上基线：读取内联 SYNCED_NEWS（每日自动化注入，不受 file:// 无法 fetch 的限制）
 //  - 部署版(http)：再 fetch news-data.json（每日自动化推送）拿最新覆盖，保证线上永远最新
 function applyAutoNews(j){
   if(j && Array.isArray(j.news)){ AUTO_NEWS=j.news; NEWS_UPDATED_AT=j.updatedAt||""; renderActive(); }
 }
 function syncNews(){
-  if(window.__AUTO_NEWS_PAYLOAD__) applyAutoNews(window.__AUTO_NEWS_PAYLOAD__);  // 本地/在线都可用（script 注入）
+  if(typeof SYNCED_NEWS!=="undefined" && SYNCED_NEWS && SYNCED_NEWS.length){
+    applyAutoNews({ updatedAt:(typeof SYNCED_NEWS_AT!=="undefined"?SYNCED_NEWS_AT:""), news:SYNCED_NEWS });
+  }
   if(location.protocol!=="file:"){
     fetch("./news-data.json?t="+Date.now(),{cache:"no-store"}).then(r=>{ if(!r.ok) throw new Error("net"); return r.json(); })
       .then(applyAutoNews)
