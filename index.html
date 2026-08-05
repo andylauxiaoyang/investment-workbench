@@ -216,10 +216,10 @@ td input:focus,td select:focus{outline:none;border-color:var(--primary)}
   .sidebar{display:none}
   .bottom-tab{
     display:flex;position:fixed;bottom:0;left:0;right:0;background:var(--panel);
-    border-top:1px solid var(--border);z-index:30;
+    border-top:1px solid var(--border);z-index:30;overflow-x:auto;
     padding-bottom:env(safe-area-inset-bottom);
   }
-  .bottom-tab .nav-item{flex:1;flex-direction:column;gap:3px;padding:8px 2px;border-radius:0;font-size:11px;
+  .bottom-tab .nav-item{flex:1 0 auto;flex-direction:column;gap:3px;padding:8px 4px;border-radius:0;font-size:11px;min-width:58px;
     justify-content:center;min-height:56px}
   .bottom-tab .nav-item svg{width:22px;height:22px}
   .content{padding:14px;padding-bottom:84px}
@@ -243,6 +243,7 @@ td input:focus,td select:focus{outline:none;border-color:var(--primary)}
       </div>
     </div>
     <button class="nav-item active" data-view="dashboard"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg><span data-i18n="nav.dashboard">概览</span></button>
+    <button class="nav-item" data-view="news"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 5h18M3 10h12M3 15h18M3 20h12"/></svg><span data-i18n="nav.news">财经要闻</span></button>
     <button class="nav-item" data-view="holdings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7h18M3 12h18M3 17h18"/><circle cx="7" cy="7" r="1.4" fill="currentColor"/><circle cx="12" cy="12" r="1.4" fill="currentColor"/><circle cx="17" cy="17" r="1.4" fill="currentColor"/></svg><span data-i18n="nav.holdings">我的持仓</span></button>
     <button class="nav-item" data-view="macro"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 17l5-5 4 3 8-8"/><path d="M21 7v5h-5"/></svg><span data-i18n="nav.macro">宏观 & 市场</span></button>
     <button class="nav-item" data-view="research"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg><span data-i18n="nav.research">基金 & 公司</span></button>
@@ -263,6 +264,7 @@ td input:focus,td select:focus{outline:none;border-color:var(--primary)}
     </div>
     <div class="content">
       <section class="view active" id="view-dashboard"></section>
+      <section class="view" id="view-news"></section>
       <section class="view" id="view-holdings"></section>
       <section class="view" id="view-macro"></section>
       <section class="view" id="view-research"></section>
@@ -272,6 +274,7 @@ td input:focus,td select:focus{outline:none;border-color:var(--primary)}
 
   <nav class="bottom-tab">
     <button class="nav-item active" data-view="dashboard"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg><span data-i18n="nav.dashboard">概览</span></button>
+    <button class="nav-item" data-view="news"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 5h18M3 10h12M3 15h18M3 20h12"/></svg><span data-i18n="nav.news">财经要闻</span></button>
     <button class="nav-item" data-view="holdings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7h18M3 12h18M3 17h18"/><circle cx="7" cy="7" r="1.4" fill="currentColor"/><circle cx="12" cy="12" r="1.4" fill="currentColor"/><circle cx="17" cy="17" r="1.4" fill="currentColor"/></svg><span data-i18n="nav.holdings">持仓</span></button>
     <button class="nav-item" data-view="macro"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 17l5-5 4 3 8-8"/><path d="M21 7v5h-5"/></svg><span data-i18n="nav.macro">市场</span></button>
     <button class="nav-item" data-view="research"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg><span data-i18n="nav.research">研究</span></button>
@@ -288,7 +291,7 @@ td input:focus,td select:focus{outline:none;border-color:var(--primary)}
 const I18N = {
   zh:{
     appName:"投资管理工作台", appSub:"Investment Workbench", sideFoot:"本地存储 · 离线可用",
-    nav:{dashboard:"概览",holdings:"我的持仓",macro:"宏观 & 市场",research:"基金 & 公司",tools:"工具方法"},
+    nav:{dashboard:"概览",news:"财经要闻",holdings:"我的持仓",macro:"宏观 & 市场",research:"基金 & 公司",tools:"工具方法"},
     btn:{export:"导出备份",import:"导入恢复",clear:"清空",addHome:"添加到主屏"},
     /* dashboard */
     dashKpiTotal:"总资产(¥)", dashKpiProfit:"总浮动盈亏(¥)", dashKpiRate:"总收益率", dashKpiCount:"持仓数量",
@@ -351,7 +354,7 @@ const I18N = {
   },
   en:{
     appName:"Investment Workbench", appSub:"投资管理工作台", sideFoot:"Local storage · Offline",
-    nav:{dashboard:"Dashboard",holdings:"Holdings",macro:"Macro & Market",research:"Funds & Co.",tools:"Tools"},
+    nav:{dashboard:"Dashboard",news:"Market News",holdings:"Holdings",macro:"Macro & Market",research:"Funds & Co.",tools:"Tools"},
     btn:{export:"Export",import:"Import",clear:"Clear",addHome:"Add to Home"},
     dashKpiTotal:"Total Assets (¥)", dashKpiProfit:"Total P/L (¥)", dashKpiRate:"Total Return", dashKpiCount:"Holdings",
     dashGrowth:"Net Asset Growth Curve", dashGrowthHint:"Record monthly portfolio index (base=100). Edit data points below.",
@@ -661,6 +664,7 @@ function render(view){
   document.querySelectorAll(".view").forEach(v=>v.classList.remove("active"));
   const sec=document.getElementById("view-"+view); sec.classList.add("active");
   if(view==="dashboard") sec.innerHTML=renderDashboard();
+  else if(view==="news") sec.innerHTML=renderNewsCard();
   else if(view==="holdings") sec.innerHTML=renderHoldings();
   else if(view==="macro") sec.innerHTML=renderMacro();
   else if(view==="research") sec.innerHTML=renderResearch();
@@ -769,7 +773,6 @@ function renderDashboard(){
         <div class="gauge-card">${svgGauge(gr.value,gr.min,gr.max,gaugeZones('graham'))}<div class="gl">${t('sent.graham')}</div></div>
       </div>
     </div>
-  ${renderNewsCard()}
   </div>`;
 }
 
