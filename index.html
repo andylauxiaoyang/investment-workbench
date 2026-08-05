@@ -126,8 +126,12 @@ td input:focus,td select:focus{outline:none;border-color:var(--primary)}
 .focus-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid var(--border);
   border-radius:12px;margin-bottom:10px;background:var(--panel2)}
 .focus-item.done{opacity:.55}
-.focus-item .txt{flex:1;font-size:14px}
+.focus-item .txt{flex:1;font-size:14px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .focus-item .txt s{color:var(--muted)}
+.focus-item .due{font-size:11.5px;color:var(--muted);background:var(--panel);border:1px solid var(--border);padding:1px 7px;border-radius:10px;font-variant-numeric:tabular-nums}
+.focus-item .due.over{color:#fff;background:#e5484d;border-color:#e5484d}
+.tag.auto{color:#8a5a00;background:#fff3d6}
+.tag.warn{color:#8a5a00;background:#fff3d6}
 
 /* gauge wrap */
 .gauge-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:14px}
@@ -271,8 +275,9 @@ const I18N = {
     dashHealth:"资产配置健康度", dashHealthHint:"各维度健康评分（0-100），进度条直观呈现强弱",
     dashFunnel:"投资决策漏斗", dashFunnelHint:"从候选池到买入决策的逐级转化，可编辑各级数量",
     dashSentiment:"市场情绪概览", dashSentimentHint:"恐贪指数与核心估值情绪指标快照",
-    dashFocus:"今日关注", dashFocusHint:"需要处理的提醒与待办，勾选即标记完成",
-    dashFocusEmpty:"暂无待处理事项，市场平稳 ✦",
+    dashFocus:"待办事项", dashFocusHint:"手动添加你的待办；后续满足条件会自动推送生成。勾选即标记完成",
+    dashFocusEmpty:"暂无待办事项，添加一条或等待条件自动推送 ✦",
+    dashFocusPending:"项待办", dashFocusAllDone:"全部完成 ✦", dashTodoAuto:"自动", dashTodoDue:"截止",
     weight:"权重",
     overall:"综合健康度", month:"月份", netValue:"净值",
     addRow:"+ 添加", del:"删除", save:"保存", cancel:"取消", confirm:"确认", close:"关闭",
@@ -467,11 +472,7 @@ function defaultState(){
       {name:"理杏仁",desc:"基本面数据终端",note:""},
       {name:"天天基金 SKILL",desc:"持仓/净值实时对接",note:""}
     ],
-    focus:[
-      {text:"001875 浮亏 8.6%，检查港股补仓信号",done:false},
-      {text:"7月定投日已到，执行稳健混合A 定投",done:false},
-      {text:"关注美联储 SOFR 是否突破 4.5%",done:true}
-    ]
+    focus:[]
   };
 }
 let state = loadState();
@@ -645,22 +646,30 @@ function renderDashboard(){
   const fg=state.sentiment.find(s=>s.key==="fearGreed");
   const bf=state.sentiment.find(s=>s.key==="buffett");
   const gr=state.sentiment.find(s=>s.key==="graham");
-  // focus (incomplete)
+  // focus -> 待办事项（手动添加 + 后期条件自动推送，支持截止日期）
   const focusList=state.focus;
-  const focusHtml = focusList.length? focusList.map((f,i)=>`
+  const pendingCount=focusList.filter(f=>!f.done).length;
+  const todayStr=new Date().toISOString().slice(0,10);
+  const focusHtml = focusList.length? focusList.map((f,i)=>{
+    const over = f.due && !f.done && f.due < todayStr;
+    return `
     <div class="focus-item ${f.done?'done':''}">
       <input type="checkbox" data-foc="${i}" ${f.done?'checked':''} style="width:18px;height:18px;accent-color:var(--primary)">
-      <div class="txt">${f.done?'<s>'+esc(f.text)+'</s>':esc(f.text)}</div>
+      <div class="txt">
+        ${f.done?'<s>'+esc(f.text)+'</s>':esc(f.text)}
+        ${f.due?`<span class="due ${over?'over':''}">${t('dashTodoDue')} ${esc(f.due)}</span>`:''}
+        ${f.source==='auto'?`<span class="tag auto">${t('dashTodoAuto')}</span>`:''}
+      </div>
       <button class="icon-btn" data-delfoc="${i}" title="${t('del')}"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg></button>
-    </div>`).join("") : `<div class="muted" style="padding:14px">${t('dashFocusEmpty')}</div>`;
+    </div>`; }).join("") : `<div class="muted" style="padding:14px">${t('dashFocusEmpty')}</div>`;
 
   return `
   <div class="card" style="margin-bottom:16px">
-    <h3>${t('dashFocus')} <span class="tag">TOP</span></h3>
+    <h3>${t('dashFocus')} <span class="tag ${pendingCount?'warn':''}">${pendingCount? pendingCount+' '+t('dashFocusPending') : t('dashFocusAllDone')}</span></h3>
     <div class="hint">${t('dashFocusHint')}</div>
     ${focusHtml}
     <div class="row" style="margin-top:8px">
-      <input id="focusInput" placeholder="添加今日关注…" style="flex:1;border:1px solid var(--border);background:var(--panel2);color:var(--text);border-radius:10px;padding:9px 12px;font-size:14px">
+      <input id="focusInput" placeholder="添加待办事项…" style="flex:1;border:1px solid var(--border);background:var(--panel2);color:var(--text);border-radius:10px;padding:9px 12px;font-size:14px">
       <button class="mini-btn primary" style="background:var(--primary);color:#fff" id="addFocus">${t('addRow')}</button>
     </div>
   </div>
@@ -1016,7 +1025,7 @@ function onContentClick(e){
   if(tgt.dataset.add){ const b=tgt.dataset.add; addItem(b); return; }
   if(tgt.dataset.foc!==undefined){ const i=+tgt.dataset.foc; state.focus[i].done=!state.focus[i].done; save(); renderActive(); return; }
   if(tgt.dataset.delfoc!==undefined){ const i=+tgt.dataset.delfoc; state.focus.splice(i,1); save(); renderActive(); return; }
-  if(tgt.id==="addFocus"){ const inp=document.getElementById("focusInput"); const v=inp.value.trim(); if(v){ state.focus.unshift({text:v,done:false}); inp.value=""; save(); renderActive(); toast(t('toastAdded')); } return; }
+  if(tgt.id==="addFocus"){ const inp=document.getElementById("focusInput"); const v=inp.value.trim(); if(v){ state.focus.unshift({text:v,done:false,source:"manual",createdAt:new Date().toISOString().slice(0,10)}); inp.value=""; save(); renderActive(); toast(t('toastAdded')); } return; }
   if(tgt.id==="holdAdd"){ const custom=loadCustom(); custom.push({name:"",code:"",cost:0,market:0,note:""}); saveCustom(custom); state.holdings=buildHoldings(); renderActive(); toast(t('toastAdded')); return; }
   if(tgt.id==="holdSync"){ syncHoldings(); return; }
   if(tgt.id==="holdCsv"){ exportCsv(); return; }
