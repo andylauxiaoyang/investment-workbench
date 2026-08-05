@@ -296,6 +296,8 @@ td input:focus,td select:focus{outline:none;border-color:var(--primary)}
 <div class="toast" id="toast"></div>
 <div class="modal-mask" id="modalMask"><div class="modal" id="modalBox"></div></div>
 
+<!-- 本地(file://)要闻源：通过 <script> 注入 window.__AUTO_NEWS_PAYLOAD__，突破 file:// 无法 fetch 的限制；缺失时自动降级 -->
+<script src="./news-data.js"></script>
 <script>
 "use strict";
 /* ============== I18N ============== */
@@ -1186,12 +1188,19 @@ function syncHoldings(){
     if(btn) btn.disabled=false;
   }
 }
-// 同步自动源要闻：部署版 fetch news-data.json（每日自动化推送），合并进财经要闻展示
+// 同步自动源要闻：
+//  - 本地(file://)版：通过 news-data.js（<script> 标签注入 window.__AUTO_NEWS_PAYLOAD__）读取，突破 file:// 无法 fetch 的限制
+//  - 部署版(http)：再 fetch news-data.json（每日自动化推送）拿最新覆盖，保证线上永远最新
+function applyAutoNews(j){
+  if(j && Array.isArray(j.news)){ AUTO_NEWS=j.news; NEWS_UPDATED_AT=j.updatedAt||""; renderActive(); }
+}
 function syncNews(){
-  if(location.protocol==="file:") return;   // 本地文件版无自动源
-  fetch("./news-data.json?t="+Date.now(),{cache:"no-store"}).then(r=>{ if(!r.ok) throw new Error("net"); return r.json(); })
-    .then(j=>{ if(j&&Array.isArray(j.news)){ AUTO_NEWS=j.news; NEWS_UPDATED_AT=j.updatedAt||""; renderActive(); } })
-    .catch(()=>{});
+  if(window.__AUTO_NEWS_PAYLOAD__) applyAutoNews(window.__AUTO_NEWS_PAYLOAD__);  // 本地/在线都可用（script 注入）
+  if(location.protocol!=="file:"){
+    fetch("./news-data.json?t="+Date.now(),{cache:"no-store"}).then(r=>{ if(!r.ok) throw new Error("net"); return r.json(); })
+      .then(applyAutoNews)
+      .catch(()=>{});
+  }
 }
 function addItem(b){
   if(b==="netWorth"){ const last=state.netWorth[state.netWorth.length-1]; const nm=last?incMonth(last.m):"2026-08"; state.netWorth.push({m:nm,v:last?last.v:100}); }
