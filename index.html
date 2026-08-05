@@ -1,0 +1,1119 @@
+<!DOCTYPE html>
+<html lang="zh" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=5.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#16a34a">
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%2316a34a'/%3E%3Cpath d='M20 34 L29 43 L45 24' stroke='white' stroke-width='6' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<link rel="manifest" href="data:application/manifest+json,%7B%22name%22%3A%22%E6%8A%95%E8%B5%84%E7%AE%A1%E7%90%86%E5%B7%A5%E4%BD%9C%E5%8F%B0%22%2C%22short_name%22%3A%22%E6%8A%95%E8%B5%84%E5%8F%B0%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%23f5f7f5%22%2C%22theme_color%22%3A%22%2316a34a%22%2C%22icons%22%3A%5B%7B%22src%22%3A%22data%3Aimage%2Fsvg%2Bxml%2C%253Csvg%2520xmlns%253D'http%253A%2F%2Fwww.w3.org%2F2000%2Fsvg'%2520viewBox%253D'0%25200%252064%252064'%253E%253Crect%2520width%253D'64'%2520height%253D'64'%2520rx%253D'14'%2520fill%253D'%252316a34a'%252F%253E%253Cpath%2520d%253D'M20%253034%2520L29%253043%2520L45%253024'%2520stroke%253D'white'%2520stroke-width%253D'6'%2520fill%253D'none'%2520stroke-linecap%253D'round'%2520stroke-linejoin%253D'round'%252F%253E%253C%2Fsvg%253E%22%2C%22sizes%22%3A%2264x64%22%2C%22type%22%3A%22image%2Fsvg%2Bxml%22%7D%5D%7D">
+<title>投资管理工作台</title>
+<style>
+:root[data-theme="light"]{
+  --bg:#eef3ef; --panel:#ffffff; --panel2:#f6faf7; --text:#15241c; --muted:#5f7268;
+  --primary:#15a34a; --primary-d:#0e7d38; --primary-weak:#d8f3e2; --primary-weak2:#eafaf1;
+  --border:#e1e9e4; --shadow:0 4px 18px rgba(20,60,40,.07); --danger:#d83a3a; --warn:#d99100;
+  --success:#15a34a; --info:#2b7de9; --grid:#eef2ef; --track:#e7eee9;
+}
+:root[data-theme="dark"]{
+  --bg:#0d1411; --panel:#15201a; --panel2:#1a2620; --text:#e7f0ea; --muted:#8ba296;
+  --primary:#28c46a; --primary-d:#1f9e54; --primary-weak:#13331f; --primary-weak2:#163a23;
+  --border:#26342c; --shadow:0 6px 22px rgba(0,0,0,.45); --danger:#f06a6a; --warn:#f3b53e;
+  --success:#28c46a; --info:#5aa0f2; --grid:#1d2a23; --track:#243229;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"PingFang SC","Microsoft YaHei",sans-serif;
+  background:var(--bg); color:var(--text); -webkit-text-size-adjust:100%;
+  line-height:1.5; font-size:15px;
+}
+button{font-family:inherit;cursor:pointer}
+input,select,textarea{font-family:inherit}
+a{color:var(--primary-d)}
+
+/* layout */
+.app{display:flex;min-height:100vh}
+.sidebar{
+  width:230px;flex:0 0 230px;background:var(--panel);border-right:1px solid var(--border);
+  padding:18px 14px;position:sticky;top:0;height:100vh;overflow-y:auto;
+  display:flex;flex-direction:column;gap:6px;
+}
+.brand{display:flex;align-items:center;gap:10px;padding:6px 8px 16px}
+.brand .logo{width:36px;height:36px;flex:0 0 36px;border-radius:10px;background:var(--primary);
+  display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:18px}
+.brand .name{font-weight:700;font-size:16px;line-height:1.2}
+.brand .sub{font-size:11px;color:var(--muted)}
+.nav-item{
+  display:flex;align-items:center;gap:11px;padding:11px 12px;border-radius:11px;color:var(--muted);
+  font-size:14.5px;font-weight:600;border:none;background:transparent;width:100%;text-align:left;
+  transition:background .15s,color .15s;
+}
+.nav-item svg{width:20px;height:20px;flex:0 0 20px}
+.nav-item:hover{background:var(--panel2);color:var(--text)}
+.nav-item.active{background:var(--primary-weak);color:var(--primary-d)}
+.sidebar .spacer{flex:1}
+.side-foot{font-size:11px;color:var(--muted);padding:8px;text-align:center}
+
+.main{flex:1;min-width:0;display:flex;flex-direction:column}
+.topbar{
+  display:flex;align-items:center;gap:10px;padding:12px 20px;background:var(--panel);
+  border-bottom:1px solid var(--border);position:sticky;top:0;z-index:20;flex-wrap:wrap;
+}
+.topbar h1{font-size:17px;margin:0;font-weight:700;flex:1;min-width:120px}
+.tbtn{
+  display:inline-flex;align-items:center;gap:6px;border:1px solid var(--border);background:var(--panel2);
+  color:var(--text);padding:8px 12px;border-radius:10px;font-size:13px;font-weight:600;min-height:40px;
+}
+.tbtn:hover{border-color:var(--primary);color:var(--primary-d)}
+.tbtn svg{width:17px;height:17px}
+.tbtn.primary{background:var(--primary);color:#fff;border-color:var(--primary)}
+.tbtn.primary:hover{background:var(--primary-d);color:#fff}
+
+.content{padding:20px;padding-bottom:40px}
+.view{display:none;animation:fade .25s ease}
+.view.active{display:block}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+/* cards / grid */
+.grid{display:grid;gap:16px}
+.cols-2{grid-template-columns:repeat(2,1fr)}
+.cols-3{grid-template-columns:repeat(3,1fr)}
+.cols-4{grid-template-columns:repeat(4,1fr)}
+.card{background:var(--panel);border:1px solid var(--border);border-radius:16px;padding:18px;box-shadow:var(--shadow)}
+.card h3{margin:0 0 14px;font-size:15px;display:flex;align-items:center;gap:8px}
+.card h3 .tag{font-size:11px;font-weight:600;color:var(--primary-d);background:var(--primary-weak);
+  padding:2px 8px;border-radius:20px}
+.card .hint{color:var(--muted);font-size:12.5px;margin:-6px 0 12px}
+.kpi{display:flex;flex-direction:column;gap:4px}
+.kpi .label{color:var(--muted);font-size:13px}
+.kpi .val{font-size:26px;font-weight:800;letter-spacing:-.5px}
+.kpi .delta{font-size:13px;font-weight:700}
+.up{color:var(--success)} .down{color:var(--danger)}
+.muted{color:var(--muted)}
+.tag.auto{font-size:10px;font-weight:700;color:var(--primary-d);background:var(--primary-weak);padding:1px 6px;border-radius:6px;vertical-align:middle}
+.sync-bar{font-size:12px;margin:-4px 0 10px;padding:7px 10px;border:1px dashed var(--border);border-radius:8px;background:var(--panel2)}
+tr.synced td:first-child{font-weight:600}
+.row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.right{margin-left:auto}
+.section-title{font-size:18px;font-weight:800;margin:6px 0 14px;display:flex;align-items:center;gap:8px}
+
+/* tables */
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{padding:10px 8px;text-align:left;border-bottom:1px solid var(--border)}
+th{color:var(--muted);font-weight:600;font-size:12.5px;text-transform:uppercase;letter-spacing:.3px}
+td input,td select{border:1px solid var(--border);background:var(--panel2);color:var(--text);
+  border-radius:8px;padding:7px 8px;width:100%;font-size:14px}
+td input:focus,td select:focus{outline:none;border-color:var(--primary)}
+.num{text-align:right;font-variant-numeric:tabular-nums}
+.mini-btn{border:1px solid var(--border);background:var(--panel2);border-radius:8px;padding:6px 10px;
+  font-size:13px;color:var(--text);min-height:36px}
+.mini-btn:hover{border-color:var(--primary);color:var(--primary-d)}
+.mini-btn.danger:hover{border-color:var(--danger);color:var(--danger)}
+.icon-btn{border:none;background:transparent;color:var(--muted);padding:6px;border-radius:8px;min-height:36px;min-width:36px}
+.icon-btn:hover{background:var(--panel2);color:var(--danger)}
+
+/* progress bar */
+.pbar{height:10px;border-radius:20px;background:var(--track);overflow:hidden;margin:6px 0}
+.pbar > i{display:block;height:100%;border-radius:20px;background:var(--primary);transition:width .4s}
+.health-row{display:flex;flex-direction:column;gap:2px;margin-bottom:14px}
+.health-row .top{display:flex;justify-content:space-between;font-size:13.5px}
+.health-row .top b{font-variant-numeric:tabular-nums}
+
+/* focus list */
+.focus-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid var(--border);
+  border-radius:12px;margin-bottom:10px;background:var(--panel2)}
+.focus-item.done{opacity:.55}
+.focus-item .txt{flex:1;font-size:14px}
+.focus-item .txt s{color:var(--muted)}
+
+/* gauge wrap */
+.gauge-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:14px}
+.gauge-card{background:var(--panel2);border:1px solid var(--border);border-radius:14px;padding:12px;text-align:center}
+.gauge-card .gv{font-size:22px;font-weight:800;margin-top:-6px}
+.gauge-card .gl{font-size:12.5px;color:var(--muted);margin-top:2px}
+.gauge-card .gz{font-size:11.5px;font-weight:700;margin-top:4px}
+
+/* indicator grid */
+.ind-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:12px}
+.ind-card{background:var(--panel2);border:1px solid var(--border);border-radius:14px;padding:12px}
+.ind-card .il{font-size:12.5px;color:var(--muted);min-height:34px}
+.ind-card .iv{display:flex;align-items:baseline;gap:6px;margin-top:6px}
+.ind-card input{border:1px solid var(--border);background:var(--panel);color:var(--text);border-radius:8px;
+  padding:7px 8px;width:100%;font-size:16px;font-variant-numeric:tabular-nums}
+.ind-card .iu{font-size:12px;color:var(--muted)}
+.ind-card .in{font-size:11.5px;color:var(--muted);margin-top:6px}
+.cat-title{font-size:14px;font-weight:700;color:var(--muted);margin:18px 0 8px;text-transform:uppercase;letter-spacing:.4px}
+
+/* funnel */
+.funnel-stage{display:flex;align-items:center;gap:14px;margin-bottom:8px}
+.funnel-bar{height:42px;border-radius:10px 10px 0 0;display:flex;align-items:center;justify-content:center;
+  color:#fff;font-weight:700;font-size:14px;transition:width .4s;min-width:60px}
+.funnel-meta{font-size:13px;color:var(--muted);white-space:nowrap}
+.funnel-meta b{color:var(--text);font-size:15px}
+
+/* list cards (funds/companies/tools) */
+.item-card{background:var(--panel2);border:1px solid var(--border);border-radius:14px;padding:14px;margin-bottom:12px}
+.item-card .ic-head{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.item-card .ic-title{font-weight:700;font-size:15px;flex:1}
+.fgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.fgrid label{display:block;font-size:12px;color:var(--muted);margin-bottom:3px}
+.fgrid input,.fgrid select,.fgrid textarea{border:1px solid var(--border);background:var(--panel);color:var(--text);
+  border-radius:8px;padding:8px;width:100%;font-size:14px}
+.fgrid textarea{min-height:60px;resize:vertical}
+.funnel-tool{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:8px}
+.funnel-tool input{border:1px solid var(--border);background:var(--panel2);color:var(--text);border-radius:8px;
+  padding:7px 8px;font-size:14px}
+.funnel-tool input.v{width:90px;text-align:right}
+
+/* toast */
+.toast{position:fixed;left:50%;bottom:80px;transform:translateX(-50%) translateY(20px);background:#15241c;
+  color:#fff;padding:12px 18px;border-radius:12px;font-size:14px;opacity:0;pointer-events:none;
+  transition:.25s;z-index:99;box-shadow:0 8px 30px rgba(0,0,0,.3);max-width:90vw;text-align:center}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* modal */
+.modal-mask{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;
+  justify-content:center;z-index:80;padding:20px}
+.modal-mask.show{display:flex}
+.modal{background:var(--panel);border:1px solid var(--border);border-radius:18px;max-width:440px;width:100%;
+  padding:22px;box-shadow:var(--shadow);max-height:85vh;overflow:auto}
+.modal h3{margin:0 0 12px;font-size:17px}
+.modal p{font-size:14px;color:var(--muted);line-height:1.6}
+.modal .steps{font-size:14px;line-height:1.9;padding-left:18px}
+.modal .actions{display:flex;gap:10px;justify-content:flex-end;margin-top:16px}
+
+/* bottom tab (mobile) */
+.bottom-tab{display:none}
+@media(max-width:820px){
+  .sidebar{display:none}
+  .bottom-tab{
+    display:flex;position:fixed;bottom:0;left:0;right:0;background:var(--panel);
+    border-top:1px solid var(--border);z-index:30;
+    padding-bottom:env(safe-area-inset-bottom);
+  }
+  .bottom-tab .nav-item{flex:1;flex-direction:column;gap:3px;padding:8px 2px;border-radius:0;font-size:11px;
+    justify-content:center;min-height:56px}
+  .bottom-tab .nav-item svg{width:22px;height:22px}
+  .content{padding:14px;padding-bottom:84px}
+  .topbar{padding:10px 14px}
+  .topbar h1{font-size:15px}
+  .tbtn{padding:7px 10px;font-size:12px}
+  .cols-2,.cols-3,.cols-4{grid-template-columns:1fr}
+  .kpi .val{font-size:22px}
+}
+@media(min-width:821px){ .bottom-tab{display:none!important} }
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="logo">投</div>
+      <div>
+        <div class="name" data-i18n="appName">投资管理工作台</div>
+        <div class="sub" data-i18n="appSub">Investment Workbench</div>
+      </div>
+    </div>
+    <button class="nav-item active" data-view="dashboard"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg><span data-i18n="nav.dashboard">概览</span></button>
+    <button class="nav-item" data-view="holdings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7h18M3 12h18M3 17h18"/><circle cx="7" cy="7" r="1.4" fill="currentColor"/><circle cx="12" cy="12" r="1.4" fill="currentColor"/><circle cx="17" cy="17" r="1.4" fill="currentColor"/></svg><span data-i18n="nav.holdings">我的持仓</span></button>
+    <button class="nav-item" data-view="macro"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 17l5-5 4 3 8-8"/><path d="M21 7v5h-5"/></svg><span data-i18n="nav.macro">宏观 & 市场</span></button>
+    <button class="nav-item" data-view="research"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg><span data-i18n="nav.research">基金 & 公司</span></button>
+    <button class="nav-item" data-view="tools"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 7l3 3-9 9-3 1 1-3z"/><path d="M14 4l6 6"/></svg><span data-i18n="nav.tools">工具方法</span></button>
+    <div class="spacer"></div>
+    <div class="side-foot" data-i18n="sideFoot">本地存储 · 离线可用</div>
+  </aside>
+
+  <div class="main">
+    <div class="topbar">
+      <h1 data-i18n="appName">投资管理工作台</h1>
+      <button class="tbtn" id="btnLang" title="Language"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a15 15 0 010 18M12 3a15 15 0 000 18"/></svg><span id="langLabel">EN</span></button>
+      <button class="tbtn" id="btnTheme" title="Theme"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M5 5l1.5 1.5M17.5 17.5L19 19M19 5l-1.5 1.5M6.5 17.5L5 19"/></svg></button>
+      <button class="tbtn" id="btnExport"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12M8 11l4 4 4-4"/><path d="M4 19h16"/></svg><span data-i18n="btn.export">导出备份</span></button>
+      <button class="tbtn" id="btnImport"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 15V3M8 7l4-4 4 4"/><path d="M4 19h16"/></svg><span data-i18n="btn.import">导入恢复</span></button>
+      <button class="tbtn danger" id="btnClear"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg><span data-i18n="btn.clear">清空</span></button>
+      <input type="file" id="fileInput" accept="application/json" style="display:none">
+    </div>
+    <div class="content">
+      <section class="view active" id="view-dashboard"></section>
+      <section class="view" id="view-holdings"></section>
+      <section class="view" id="view-macro"></section>
+      <section class="view" id="view-research"></section>
+      <section class="view" id="view-tools"></section>
+    </div>
+  </div>
+
+  <nav class="bottom-tab">
+    <button class="nav-item active" data-view="dashboard"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg><span data-i18n="nav.dashboard">概览</span></button>
+    <button class="nav-item" data-view="holdings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7h18M3 12h18M3 17h18"/><circle cx="7" cy="7" r="1.4" fill="currentColor"/><circle cx="12" cy="12" r="1.4" fill="currentColor"/><circle cx="17" cy="17" r="1.4" fill="currentColor"/></svg><span data-i18n="nav.holdings">持仓</span></button>
+    <button class="nav-item" data-view="macro"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 17l5-5 4 3 8-8"/><path d="M21 7v5h-5"/></svg><span data-i18n="nav.macro">市场</span></button>
+    <button class="nav-item" data-view="research"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg><span data-i18n="nav.research">研究</span></button>
+    <button class="nav-item" data-view="tools"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 7l3 3-9 9-3 1 1-3z"/><path d="M14 4l6 6"/></svg><span data-i18n="nav.tools">工具</span></button>
+  </nav>
+</div>
+
+<div class="toast" id="toast"></div>
+<div class="modal-mask" id="modalMask"><div class="modal" id="modalBox"></div></div>
+
+<script>
+"use strict";
+/* ============== I18N ============== */
+const I18N = {
+  zh:{
+    appName:"投资管理工作台", appSub:"Investment Workbench", sideFoot:"本地存储 · 离线可用",
+    nav:{dashboard:"概览",holdings:"我的持仓",macro:"宏观 & 市场",research:"基金 & 公司",tools:"工具方法"},
+    btn:{export:"导出备份",import:"导入恢复",clear:"清空",addHome:"添加到主屏"},
+    /* dashboard */
+    dashKpiTotal:"总资产(¥)", dashKpiProfit:"总浮动盈亏(¥)", dashKpiRate:"总收益率", dashKpiCount:"持仓数量",
+    dashGrowth:"资产净值成长曲线", dashGrowthHint:"按月记录组合净值指数（基准=100），可编辑下方数据点",
+    dashHealth:"资产配置健康度", dashHealthHint:"各维度健康评分（0-100），进度条直观呈现强弱",
+    dashFunnel:"投资决策漏斗", dashFunnelHint:"从候选池到买入决策的逐级转化，可编辑各级数量",
+    dashSentiment:"市场情绪概览", dashSentimentHint:"恐贪指数与核心估值情绪指标快照",
+    dashFocus:"今日关注", dashFocusHint:"需要处理的提醒与待办，勾选即标记完成",
+    dashFocusEmpty:"暂无待处理事项，市场平稳 ✦",
+    weight:"权重",
+    overall:"综合健康度", month:"月份", netValue:"净值",
+    addRow:"+ 添加", del:"删除", save:"保存", cancel:"取消", confirm:"确认", close:"关闭",
+    addDataPoint:"+ 添加数据点", addStage:"+ 添加层级",
+    /* holdings */
+    holdTitle:"我的持仓", holdHint:"持仓数据每日 10:00 自动从天天基金（ttskill）同步；同步项只读，仅备注可改，另可手动添加自定义持仓",
+    holdName:"名称", holdCode:"代码", holdCost:"成本(¥)", holdMarket:"市值(¥)", holdProfit:"浮动盈亏", holdRate:"收益率", holdNote:"备注",
+    holdTotal:"合计", holdAdd:"+ 添加自定义持仓", holdExportCsv:"导出 CSV",
+    holdSyncSrc:"数据源：天天基金（ttskill）", holdSyncAt:"上次同步", holdSyncBtn:"同步持仓", holdAuto:"自动", holdManual:"手动", holdSyncing:"同步中…", holdNoSync:"未连接数据源，使用本地缓存",
+    /* macro */
+    macroTitle:"宏观经济", macroMoney:"货币金融", macroPC:"生产消费",
+    macroMoneyHint:"利率、汇率、货币供应与储备等货币维度指标",
+    macroPCHint:"通胀、景气与全球贸易动能等实体维度指标",
+    macroUnit:{M2:"万亿",SOFR:"%",LPR1:"%",LPR5:"%",rateLong:"%",rateShort:"%",fx:"",reserves:"万亿",
+      CPI:"%",PPI:"%",PMI:"",BDI:"点",OECD:"指数"},
+    macroNotePh:"备注/变化",
+    macro:{M2:"M2 货币供应",SOFR:"SOFR 利率",LPR1:"LPR(1年)",LPR5:"LPR(5年)",rateLong:"长期利率",rateShort:"短期利率",fx:"美元兑人民币",reserves:"外汇储备",CPI:"CPI 通胀",PPI:"PPI 工业品",PMI:"PMI 制造业",BDI:"BDI 运价指数",OECD:"OECD 领先指标"},
+    sentTitle:"市场情绪", sentHint:"恐贪指数、巴菲特/格雷厄姆估值与股债性价比等情绪温度指标",
+    sent:{fearGreed:"恐贪指数",buffett:"巴菲特指数(总市值/GDP)",graham:"格雷厄姆指数",bondEquity:"股债性价比(沪深300)",bondSpread:"股债利差(沪深300)",earnYield:"盈利收益率(沪深300)",fundCoef:"资金系数",turnover:"成交金额",marginBal:"融资余额占比",marginBuy:"融资买入占比"},
+    sentFear:"恐贪指数", zone:{ef:"极度恐惧",f:"恐惧",n:"中性",g:"贪婪",eg:"极度贪婪",
+      cheap:"低估",low:"偏低",fair:"合理",high:"偏高",exp:"偏高/高估",rich:"高估",
+      over:"过热"},
+    /* research */
+    resWatch:"我的关注基金", resWatchHint:"持续跟踪的基金标的与观察要点",
+    resManager:"基金经理", resManagerHint:"重点基金经理与在管产品备注",
+    resCompany:"公司分析", resCompanyHint:"候选公司与基本面研究卡片",
+    resFunnel:"公司筛选漏斗", resFunnelHint:"按研究阶段统计公司在池中的转化漏斗",
+    resStages:{scr:"初筛池",fin:"财务优质",val:"估值合理",moat:"护城河深",buy:"买入候选"},
+    rName:"公司", rIndustry:"所处行业", rMoat:"护城河", rFinance:"财务指标", rValuation:"估值", rMgmt:"管理层", rStage:"阶段", rNote:"研究笔记",
+    wCode:"代码", wName:"名称", wNote:"关注要点", mName:"经理", mFund:"代表产品", mNote:"备注",
+    addWatch:"+ 添加关注", addManager:"+ 添加经理", addCompany:"+ 添加公司",
+    /* tools */
+    toolsTitle:"工具与方法论", toolsHint:"常用分析工具与个人的投资方法论沉淀",
+    tName:"工具/方法", tDesc:"说明", tNote:"我的笔记",
+    addTool:"+ 添加工具", defaultTools:["网格交易 grid","基金分析","理杏仁","天天基金 SKILL","估值方法论"],
+    /* clear / import */
+    clearTitle:"清空所有数据？", clearMsg:"此操作将删除全部本地投资数据，且无法撤销。建议先导出备份。",
+    clearConfirm:"确认清空", importTitle:"导入恢复", importMsg:"选择一个此前导出的 JSON 备份文件，将覆盖当前数据。",
+    importOk:"已导入备份", importFail:"文件解析失败，请检查格式",
+    exportOk:"已导出备份文件", sampleClearTitle:"清空示例数据", sampleClearMsg:"将移除预置的演示数据，保留你的设置。",
+    addHomeTitle:"添加到手机主屏", addHomeMsg:"在手机浏览器打开本页面后：",
+    addHomeIos:"iOS：点击底部「分享」→「添加到主屏幕」", addHomeAndroid:"Android：点击右上角「⋮」→「安装应用 / 添加到主屏幕」",
+    addHomeNote:"添加后即可像 App 一样离线使用，数据保存在本机浏览器。",
+    toastSaved:"已保存", toastDeleted:"已删除", toastAdded:"已添加",
+    profit:"浮盈", loss:"浮亏", noData:"暂无数据，点击添加",
+    companyStageDefault:"初筛池"
+  },
+  en:{
+    appName:"Investment Workbench", appSub:"投资管理工作台", sideFoot:"Local storage · Offline",
+    nav:{dashboard:"Dashboard",holdings:"Holdings",macro:"Macro & Market",research:"Funds & Co.",tools:"Tools"},
+    btn:{export:"Export",import:"Import",clear:"Clear",addHome:"Add to Home"},
+    dashKpiTotal:"Total Assets (¥)", dashKpiProfit:"Total P/L (¥)", dashKpiRate:"Total Return", dashKpiCount:"Holdings",
+    dashGrowth:"Net Asset Growth Curve", dashGrowthHint:"Record monthly portfolio index (base=100). Edit data points below.",
+    dashHealth:"Asset Allocation Health", dashHealthHint:"Health score per dimension (0-100), bars show strength",
+    dashFunnel:"Investment Decision Funnel", dashFunnelHint:"Candidates → buy decision, edit stage counts",
+    dashSentiment:"Market Sentiment Overview", dashSentimentHint:"Fear & Greed and core valuation sentiment snapshot",
+    dashFocus:"Today's Focus", dashFocusHint:"Reminders & to-dos needing action; tick to complete",
+    dashFocusEmpty:"Nothing pending — market calm ✦",
+    weight:"Weight",
+    overall:"Overall Health", month:"Month", netValue:"Index",
+    addRow:"+ Add", del:"Delete", save:"Save", cancel:"Cancel", confirm:"Confirm", close:"Close",
+    addDataPoint:"+ Add point", addStage:"+ Add stage",
+    holdTitle:"My Holdings", holdHint:"Holdings auto-sync daily at 10:00 from TianTian Fund (ttskill); synced rows are read-only (notes editable), manual custom rows allowed",
+    holdName:"Name", holdCode:"Code", holdCost:"Cost (¥)", holdMarket:"Value (¥)", holdProfit:"P/L", holdRate:"Return", holdNote:"Note",
+    holdTotal:"Total", holdAdd:"+ Add custom", holdExportCsv:"Export CSV",
+    holdSyncSrc:"Source: TianTian Fund (ttskill)", holdSyncAt:"Last sync", holdSyncBtn:"Sync", holdAuto:"AUTO", holdManual:"MANUAL", holdSyncing:"Syncing…", holdNoSync:"No data source — using local cache",
+    macroTitle:"Macroeconomy", macroMoney:"Money & Rates", macroPC:"Production & Consumption",
+    macroMoneyHint:"Interest rates, FX, money supply and reserves",
+    macroPCHint:"Inflation, sentiment and global trade momentum",
+    macroUnit:{M2:"T¥",SOFR:"%",LPR1:"%",LPR5:"%",rateLong:"%",rateShort:"%",fx:"",reserves:"T¥",
+      CPI:"%",PPI:"%",PMI:"",BDI:"pts",OECD:"idx"},
+    macroNotePh:"Note / change",
+    macro:{M2:"M2 Money Supply",SOFR:"SOFR Rate",LPR1:"LPR (1Y)",LPR5:"LPR (5Y)",rateLong:"Long Rate",rateShort:"Short Rate",fx:"USD/CNY",reserves:"FX Reserves",CPI:"CPI Inflation",PPI:"PPI Output",PMI:"PMI Mfg",BDI:"BDI Freight",OECD:"OECD CLI"},
+    sentTitle:"Market Sentiment", sentHint:"Fear & Greed, Buffett/Graham valuation and bond-equity yield",
+    sent:{fearGreed:"Fear & Greed",buffett:"Buffett Index (Mkt/GDP)",graham:"Graham Index",bondEquity:"Bond-Equity Yield Gap",bondSpread:"Bond-Equity Spread",earnYield:"Earnings Yield",fundCoef:"Fund Coefficient",turnover:"Turnover",marginBal:"Margin Balance %",marginBuy:"Margin Buy %"},
+    sentFear:"Fear & Greed", zone:{ef:"Extreme Fear",f:"Fear",n:"Neutral",g:"Greed",eg:"Extreme Greed",
+      cheap:"Undervalued",low:"Low",fair:"Fair",high:"High",exp:"Elevated",rich:"Overvalued",
+      over:"Overheated"},
+    resWatch:"Watched Funds", resWatchHint:"Funds tracked with observation notes",
+    resManager:"Fund Managers", resManagerHint:"Key managers and products notes",
+    resCompany:"Company Analysis", resCompanyHint:"Candidate companies and fundamentals",
+    resFunnel:"Company Screening Funnel", resFunnelHint:"Companies by research stage",
+    resStages:{scr:"Screening",fin:"Sound Finance",val:"Fair Valuation",moat:"Wide Moat",buy:"Buy Candidate"},
+    rName:"Company", rIndustry:"Industry", rMoat:"Moat", rFinance:"Financials", rValuation:"Valuation", rMgmt:"Management", rStage:"Stage", rNote:"Notes",
+    wCode:"Code", wName:"Name", wNote:"Notes", mName:"Manager", mFund:"Fund", mNote:"Notes",
+    addWatch:"+ Add fund", addManager:"+ Add manager", addCompany:"+ Add company",
+    toolsTitle:"Tools & Methodology", toolsHint:"Analysis tools and personal methodology",
+    tName:"Tool / Method", tDesc:"Description", tNote:"My Notes",
+    addTool:"+ Add tool", defaultTools:["Grid trading","Fund analysis","LiXinger","TianTian Fund SKILL","Valuation method"],
+    clearTitle:"Clear all data?", clearMsg:"This deletes all local investment data and cannot be undone. Export a backup first.",
+    clearConfirm:"Clear", importTitle:"Import Backup", importMsg:"Choose a previously exported JSON file; it will overwrite current data.",
+    importOk:"Backup imported", importFail:"Parse failed, check format",
+    exportOk:"Backup exported", sampleClearTitle:"Clear sample data", sampleClearMsg:"Remove preset demo data, keep your settings.",
+    addHomeTitle:"Add to Home Screen", addHomeMsg:"On your phone browser open this page, then:",
+    addHomeIos:"iOS: tap Share → Add to Home Screen", addHomeAndroid:"Android: tap ⋮ → Install app / Add to Home",
+    addHomeNote:"Then use it offline like an app; data stays in this browser.",
+    toastSaved:"Saved", toastDeleted:"Deleted", toastAdded:"Added",
+    profit:"Gain", loss:"Loss", noData:"No data, click to add",
+    companyStageDefault:"Screening"
+  }
+};
+let lang = "zh";
+function t(k){ const p=k.split("."); let o=I18N[lang]; for(const s of p){ if(o==null)break; o=o[s]; } if(o==null){ o=I18N.zh; for(const s of p){ if(o==null)break; o=o[s]; } } return o==null?k:o; }
+
+/* ============== Storage (Chinese keys) ============== */
+const LS_MAIN="wb_投资_数据", LS_THEME="wb_投资_主题", LS_LANG="wb_投资_语言";
+const LS_NOTES="wb_投资_持仓备注", LS_CUSTOM="wb_投资_自定义持仓";
+
+/* 持仓数据源：天天基金 ttskill（每日 10:00 自动化刷新此标记块）
+ * 浏览器无法直接调用 ttskill，故由 WorkBuddy 自动化写入此处（离线重开即用），
+ * 同时输出 holdings-data.json 供部署版自动 fetch。
+ * 不要手工修改标记块内部，交由 sync-holdings.js 维护。 */
+/*__SYNC_HOLDINGS_START__*/
+const SYNCED_AT = "2026-08-05T07:18:59.155Z";
+const SYNCED_HOLDINGS = [
+  {
+    "name": "易方达全球成长精选混合(QDII)人民币A",
+    "code": "012920",
+    "cost": 13200,
+    "market": 18347.81,
+    "profit": 5147.81,
+    "profitRate": 39,
+    "dailyProfit": 5.55,
+    "type": "fund"
+  }
+];
+/*__SYNC_HOLDINGS_END__*/
+
+// 内存中的同步数据（部署版 fetch 成功后覆盖文件内嵌值）
+let MEM_SYNCED=null, MEM_SYNCED_AT=null;
+
+function loadNotes(){ try{ return JSON.parse(localStorage.getItem(LS_NOTES)||"{}"); }catch(e){ return {}; } }
+function saveNotes(m){ try{ localStorage.setItem(LS_NOTES, JSON.stringify(m)); }catch(e){} }
+function loadCustom(){ try{ return JSON.parse(localStorage.getItem(LS_CUSTOM)||"[]"); }catch(e){ return []; } }
+function saveCustom(a){ try{ localStorage.setItem(LS_CUSTOM, JSON.stringify(a)); }catch(e){} }
+function defaultState(){
+  return {
+    holdings:[
+      {name:"稳健混合A",code:"160422",cost:100000,market:132400,note:"底仓+定投"},
+      {name:"沪港深精选",code:"001875",cost:60000,market:54800,note:"港股承压"},
+      {name:"中短债C",code:"003376",cost:80000,market:82600,note:"流动性"}
+    ],
+    netWorth:[
+      {m:"2026-01",v:100},{m:"2026-02",v:103},{m:"2026-03",v:101},
+      {m:"2026-04",v:108},{m:"2026-05",v:112},{m:"2026-06",v:117},{m:"2026-07",v:121}
+    ],
+    health:[
+      {label:"权益配置",zh:"权益配置",en:"Equity",value:72,target:"目标 60-75"},
+      {label:"债券配置",zh:"债券配置",en:"Bonds",value:18,target:"目标 15-30"},
+      {label:"现金类",zh:"现金类",en:"Cash",value:10,target:"目标 5-15"},
+      {label:"集中度",zh:"集中度",en:"Concentration",value:80,target:"单基<40%"},
+      {label:"流动性",zh:"流动性",en:"Liquidity",value:88,target:"可动用>8%"}
+    ],
+    funnel:[
+      {label:"候选标的",zh:"候选标的",en:"Candidates",value:120},
+      {label:"基本面合格",zh:"基本面合格",en:"Fundamentals OK",value:46},
+      {label:"估值合理",zh:"估值合理",en:"Fair Value",value:21},
+      {label:"买入候选",zh:"买入候选",en:"Buy Candidates",value:8}
+    ],
+    macro:{
+      money:[ {key:"M2",value:"312.4"},{key:"SOFR",value:"4.38"},{key:"LPR1",value:"3.00"},
+        {key:"LPR5",value:"3.50"},{key:"rateLong",value:"2.30"},{key:"rateShort",value:"1.65"},
+        {key:"fx",value:"7.18"},{key:"reserves",value:"3.22"} ],
+      pc:[ {key:"CPI",value:"0.3"},{key:"PPI",value:"-1.6"},{key:"PMI",value:"49.4"},
+        {key:"BDI",value:"1720"},{key:"OECD",value:"99.8"} ]
+    },
+    sentiment:[
+      {key:"fearGreed",value:62,min:0,max:100,gauge:true},
+      {key:"buffett",value:88,min:40,max:180,gauge:true},
+      {key:"graham",value:1.9,min:0,max:3,gauge:true},
+      {key:"bondEquity",value:5.8,min:0,max:8},
+      {key:"bondSpread",value:3.1,min:0,max:6},
+      {key:"earnYield",value:8.6,min:0,max:12},
+      {key:"fundCoef",value:1.12,min:0,max:2},
+      {key:"turnover",value:"0.92",unit:"万亿",min:0,max:3},
+      {key:"marginBal",value:7.8,min:0,max:12},
+      {key:"marginBuy",value:8.4,min:0,max:15}
+    ],
+    watch:[ {code:"160422",name:"稳健混合A",note:"定投双机制，CAP 10万"},
+      {code:"001875",name:"沪港深精选",note:"等港股企稳加仓"},
+      {code:"012348",name:"量化中性",note:"对冲底仓观察"} ],
+    managers:[ {name:"张坤",fund:"易方达蓝筹",note:"长期持有，白酒仓位重"},
+      {name:"谢治宇",fund:"兴全合宜",note:"均衡风格"} ],
+    companies:[
+      {name:"贵州茅台",industry:"白酒",moat:"品牌+心智",finance:"高ROE高现金流",valuation:"PE 22 合理",mgmt:"治理稳健",stage:"买入候选",note:"确定性溢价"},
+      {name:"宁德时代",industry:"动力电池",moat:"技术+规模",finance:"高毛利承压",valuation:"PE 18 偏低",mgmt:"扩张激进",stage:"估值合理",note:"等待格局清晰"},
+      {name:"招商银行",industry:"银行",moat:"零售护城河",finance:"高拨备",valuation:"PE 6 低估",mgmt:"稳健",stage:"财务优质",note:"高股息"}
+    ],
+    tools:[
+      {name:"网格交易 grid",desc:"波动区间内分批低买高卖，双机制补仓",note:"160422 回撤补+峰值补"},
+      {name:"基金分析",desc:"绩效/回本/情景推演",note:""},
+      {name:"理杏仁",desc:"基本面数据终端",note:""},
+      {name:"天天基金 SKILL",desc:"持仓/净值实时对接",note:""}
+    ],
+    focus:[
+      {text:"001875 浮亏 8.6%，检查港股补仓信号",done:false},
+      {text:"7月定投日已到，执行稳健混合A 定投",done:false},
+      {text:"关注美联储 SOFR 是否突破 4.5%",done:true}
+    ]
+  };
+}
+let state = loadState();
+function loadState(){
+  let s;
+  try{ const r=localStorage.getItem(LS_MAIN); if(r){ s=JSON.parse(r); } }catch(e){}
+  if(!s) s=defaultState();
+  s.holdings = buildHoldings();   // 持仓始终以同步源为准，合并备注与自定义行
+  return s;
+}
+// 以同步源（内存/文件内嵌）为基底，叠加用户备注与自定义行
+function buildHoldings(){
+  const synced = (MEM_SYNCED && MEM_SYNCED.length) ? MEM_SYNCED
+               : (typeof SYNCED_HOLDINGS!=="undefined" && SYNCED_HOLDINGS.length) ? SYNCED_HOLDINGS
+               : (state && state.holdings && state.holdings.length ? state.holdings : defaultState().holdings);
+  const notes = loadNotes();
+  const custom = loadCustom();
+  let res = (synced||[]).filter(x=>x && x.code && (x.code!=="hqb" || (parseFloat(x.market)||0)>0))
+    .map(h=>({ ...h, note:(h.code && notes[h.code]!=null)?notes[h.code]:(h.note||""), synced:true }));
+  res = res.concat((custom||[]).map(c=>({ ...c, synced:false })));
+  return res;
+}
+function syncedAtStr(){ return MEM_SYNCED_AT || SYNCED_AT || ""; }
+function persist(s){ try{ localStorage.setItem(LS_MAIN, JSON.stringify(s||state)); }catch(e){ toast("存储失败"); } }
+function save(){ persist(state); }
+
+/* ============== Theme & Lang ============== */
+function getTheme(){ return localStorage.getItem(LS_THEME) || "light"; }
+function setTheme(th){ document.documentElement.setAttribute("data-theme",th); localStorage.setItem(LS_THEME,th); }
+function initLang(){
+  const p=new URLSearchParams(location.search).get("lang");
+  if(p==="en"||p==="zh"){ lang=p; }
+  else { lang = localStorage.getItem(LS_LANG) || "zh"; }
+  document.documentElement.lang = lang;
+}
+function setLang(l){
+  lang=l; document.documentElement.lang=l; localStorage.setItem(LS_LANG,l);
+  applyStaticI18n(); renderActive();
+  document.getElementById("langLabel").textContent = (l==="zh")?"EN":"中";
+}
+function applyStaticI18n(){
+  document.querySelectorAll("[data-i18n]").forEach(el=>{ el.textContent=t(el.getAttribute("data-i18n")); });
+}
+
+/* ============== Charts (inline SVG) ============== */
+function svgLine(data){
+  const w=560,h=240,pl=44,pr=14,pt=18,pb=30;
+  const iw=w-pl-pr, ih=h-pt-pb;
+  if(!data||data.length<2) return '<div class="muted" style="padding:30px;text-align:center">'+t('noData')+'</div>';
+  const vals=data.map(d=>parseFloat(d.v)); let mn=Math.min(...vals), mx=Math.max(...vals);
+  if(mn===mx){mn-=5;mx+=5;}
+  const padR=(mx-mn)*0.12; mn-=padR; mx+=padR;
+  const X=i=>pl+(iw*i/(data.length-1));
+  const Y=v=>pt+ih-( (v-mn)/(mx-mn) )*ih;
+  let g="";
+  for(let s=0;s<=4;s++){ const yy=pt+ih*s/4; const vv=(mx-(mx-mn)*s/4); g+=`<line x1="${pl}" y1="${yy}" x2="${w-pr}" y2="${yy}" stroke="var(--grid)" stroke-width="1"/>`;
+    g+=`<text x="${pl-6}" y="${yy+4}" text-anchor="end" font-size="10" fill="var(--muted)">${vv.toFixed(0)}</text>`; }
+  let pts=data.map((d,i)=>`${X(i).toFixed(1)},${Y(parseFloat(d.v)).toFixed(1)}`).join(" ");
+  let area=`${pl},${pt+ih} `+pts+` ${w-pr},${pt+ih}`;
+  let dots="",labels="";
+  data.forEach((d,i)=>{ if(i%Math.ceil(data.length/7)===0||i===data.length-1){ labels+=`<text x="${X(i)}" y="${h-10}" text-anchor="middle" font-size="9.5" fill="var(--muted)">${d.m}</text>`; }
+    dots+=`<circle cx="${X(i)}" cy="${Y(parseFloat(d.v))}" r="3" fill="var(--primary)"/>`; });
+  return `<svg viewBox="0 0 ${w} ${h}" width="100%" preserveAspectRatio="xMidYMid meet" style="display:block">
+    <defs><linearGradient id="lg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="var(--primary)" stop-opacity="0.28"/><stop offset="1" stop-color="var(--primary)" stop-opacity="0"/></linearGradient></defs>
+    ${g}
+    <polygon points="${area}" fill="url(#lg)"/>
+    <polyline points="${pts}" fill="none" stroke="var(--primary)" stroke-width="2.5" stroke-linejoin="round"/>
+    ${dots}${labels}
+  </svg>`;
+}
+function svgFunnel(stages){
+  if(!stages||!stages.length) return '<div class="muted" style="padding:20px;text-align:center">'+t('noData')+'</div>';
+  const max=Math.max(...stages.map(s=>parseFloat(s.value)||0),1);
+  const W=520, gap=10, n=stages.length;
+  const bh=Math.floor((260-(n-1)*gap)/n);
+  let svg=`<svg viewBox="0 0 ${W} 260" width="100%" preserveAspectRatio="xMidYMid meet" style="display:block">`;
+  const colors=["#15a34a","#1f9e54","#34b36a","#5cc488","#86d4a8"];
+  let prevR=null;
+  stages.forEach((s,i)=>{
+    const val=parseFloat(s.value)||0;
+    const wTop=(val/max)*W;
+    const nextVal=i<n-1?(parseFloat(stages[i+1].value)||0):0;
+    const wBot=(nextVal/max)*W;
+    const y=i*(bh+gap);
+    const cx=W/2;
+    const x1=cx-wTop/2, x2=cx+wTop/2, x3=cx+wBot/2, x4=cx-wBot/2;
+    const c=colors[i%colors.length];
+    const lbl=(lang==="zh"? (s.zh||s.label) : (s.en||s.label)) ;
+    svg+=`<polygon points="${x1},${y} ${x2},${y} ${x3},${y+bh} ${x4},${y+bh}" fill="${c}" opacity="0.92"/>`;
+    svg+=`<text x="${cx}" y="${y+bh/2+5}" text-anchor="middle" font-size="13" font-weight="700" fill="#fff">${lbl} · ${val}</text>`;
+  });
+  svg+=`</svg>`;
+  return svg;
+}
+function svgGauge(value,min,max,zones){
+  const v=Math.max(min,Math.min(max,parseFloat(value)||0));
+  const pct=(v-min)/(max-min);
+  const cx=90,cy=90,r=72;
+  const a0=Math.PI, a1=0; // 180deg top semicircle
+  const ang=a0+(a1-a0)*pct;
+  const x1=cx+Math.cos(a0)*r, y1=cy-Math.sin(a0)*r;
+  const x2=cx+Math.cos(a1)*r, y2=cy-Math.sin(a1)*r;
+  const nx=cx+Math.cos(ang)*r, ny=cy-Math.sin(ang)*r;
+  let zoneColor=zones[zones.length-1].color;
+  for(const z of zones){ if(pct<=z.max){ zoneColor=z.color; break; } }
+  let zl=""; for(const z of zones){ if(pct<=z.max){ zl=z.label; break; } }
+  // background arc (over the top: sweep-flag 0)
+  const bpath=`M ${x1.toFixed(1)} ${y1.toFixed(1)} A ${r} ${r} 0 0 0 ${x2.toFixed(1)} ${y2.toFixed(1)}`;
+  // value arc (sweep from a0 to ang over the top)
+  const vx=cx+Math.cos(ang)*r, vy=cy-Math.sin(ang)*r;
+  const vpath=`M ${(cx+Math.cos(a0)*r).toFixed(1)} ${(cy-Math.sin(a0)*r).toFixed(1)} A ${r} ${r} 0 0 0 ${vx.toFixed(1)} ${vy.toFixed(1)}`;
+  return `<svg viewBox="0 0 180 110" width="100%" preserveAspectRatio="xMidYMid meet" style="display:block">
+    <path d="${bpath}" fill="none" stroke="var(--track)" stroke-width="12" stroke-linecap="round"/>
+    <path d="${vpath}" fill="none" stroke="${zoneColor}" stroke-width="12" stroke-linecap="round"/>
+    <line x1="${cx}" y1="${cy}" x2="${nx.toFixed(1)}" y2="${ny.toFixed(1)}" stroke="var(--text)" stroke-width="3" stroke-linecap="round"/>
+    <circle cx="${cx}" cy="${cy}" r="5" fill="var(--text)"/>
+    <text x="${cx}" y="${cy+34}" text-anchor="middle" font-size="22" font-weight="800" fill="var(--text)">${(+value).toFixed(value%1===0?0:1)}</text>
+  </svg><div class="gz" style="color:${zoneColor}">${zl}</div>`;
+}
+function gaugeZones(type){
+  if(type==="fearGreed") return [
+    {max:0.25,color:"#d83a3a",label:t('zone.ef')},{max:0.45,color:"#d99100",label:t('zone.f')},
+    {max:0.55,color:"#caa400",label:t('zone.n')},{max:0.75,color:"#15a34a",label:t('zone.g')},
+    {max:1,color:"#0e7d38",label:t('zone.eg')}];
+  if(type==="buffett") return [
+    {max:0.535,color:"#15a34a",label:t('zone.cheap')},{max:0.642,color:"#34b36a",label:t('zone.low')},
+    {max:0.857,color:"#caa400",label:t('zone.fair')},{max:1.071,color:"#d99100",label:t('zone.high')},
+    {max:1,color:"#d83a3a",label:t('zone.exp')}];
+  if(type==="graham") return [
+    {max:0.333,color:"#d83a3a",label:t('zone.rich')},{max:0.5,color:"#d99100",label:t('zone.high')},
+    {max:0.667,color:"#caa400",label:t('zone.fair')},{max:1,color:"#15a34a",label:t('zone.cheap')}];
+  return [{max:1,color:"var(--primary)",label:""}];
+}
+function barMeter(value,min,max){
+  const v=Math.max(min,Math.min(max,parseFloat(value)||0));
+  const pct=Math.max(2,Math.min(100,((v-min)/(max-min))*100));
+  return `<div class="pbar"><i style="width:${pct.toFixed(0)}%"></i></div>`;
+}
+
+/* ============== Helpers ============== */
+function fmt(n){ if(n==null||isNaN(n)) return "0"; return n.toLocaleString("zh-CN",{maximumFractionDigits:0}); }
+function money(n){ return "¥"+fmt(Math.round(n)); }
+function esc(s){ return String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+function toast(msg){ const el=document.getElementById("toast"); el.textContent=msg; el.classList.add("show"); clearTimeout(el._t); el._t=setTimeout(()=>el.classList.remove("show"),1800); }
+function stageKey(i){ return ["scr","fin","val","moat","buy"][i]||"scr"; }
+
+/* ============== Views ============== */
+let activeView="dashboard";
+function renderActive(){ render(activeView); }
+function render(view){
+  activeView=view;
+  document.querySelectorAll(".nav-item").forEach(b=>b.classList.toggle("active",b.dataset.view===view));
+  document.querySelectorAll(".view").forEach(v=>v.classList.remove("active"));
+  const sec=document.getElementById("view-"+view); sec.classList.add("active");
+  if(view==="dashboard") sec.innerHTML=renderDashboard();
+  else if(view==="holdings") sec.innerHTML=renderHoldings();
+  else if(view==="macro") sec.innerHTML=renderMacro();
+  else if(view==="research") sec.innerHTML=renderResearch();
+  else if(view==="tools") sec.innerHTML=renderTools();
+}
+
+function renderDashboard(){
+  const h=state.holdings;
+  const totalCost=h.reduce((a,b)=>a+(parseFloat(b.cost)||0),0);
+  const totalMkt=h.reduce((a,b)=>a+(parseFloat(b.market)||0),0);
+  const profit=totalMkt-totalCost;
+  const rate= totalCost>0 ? (profit/totalCost*100) : 0;
+  // health overall
+  const avgH=Math.round(state.health.reduce((a,b)=>a+(parseFloat(b.value)||0),0)/state.health.length);
+  // sentiment snapshot: fear&greed + Buffett + Graham gauges
+  const fg=state.sentiment.find(s=>s.key==="fearGreed");
+  const bf=state.sentiment.find(s=>s.key==="buffett");
+  const gr=state.sentiment.find(s=>s.key==="graham");
+  // focus (incomplete)
+  const focusList=state.focus;
+  const focusHtml = focusList.length? focusList.map((f,i)=>`
+    <div class="focus-item ${f.done?'done':''}">
+      <input type="checkbox" data-foc="${i}" ${f.done?'checked':''} style="width:18px;height:18px;accent-color:var(--primary)">
+      <div class="txt">${f.done?'<s>'+esc(f.text)+'</s>':esc(f.text)}</div>
+      <button class="icon-btn" data-delfoc="${i}" title="${t('del')}"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg></button>
+    </div>`).join("") : `<div class="muted" style="padding:14px">${t('dashFocusEmpty')}</div>`;
+
+  return `
+  <div class="card" style="margin-bottom:16px">
+    <h3>${t('dashFocus')} <span class="tag">TOP</span></h3>
+    <div class="hint">${t('dashFocusHint')}</div>
+    ${focusHtml}
+    <div class="row" style="margin-top:8px">
+      <input id="focusInput" placeholder="添加今日关注…" style="flex:1;border:1px solid var(--border);background:var(--panel2);color:var(--text);border-radius:10px;padding:9px 12px;font-size:14px">
+      <button class="mini-btn primary" style="background:var(--primary);color:#fff" id="addFocus">${t('addRow')}</button>
+    </div>
+  </div>
+
+  <div class="grid cols-4" style="margin-bottom:16px">
+    <div class="card kpi"><div class="label">${t('dashKpiTotal')}</div><div class="val">${money(totalMkt)}</div></div>
+    <div class="card kpi"><div class="label">${t('dashKpiProfit')}</div><div class="val ${profit>=0?'up':'down'}">${profit>=0?'+':''}${money(profit)}</div></div>
+    <div class="card kpi"><div class="label">${t('dashKpiRate')}</div><div class="val ${profit>=0?'up':'down'}">${profit>=0?'+':''}${rate.toFixed(1)}%</div></div>
+    <div class="card kpi"><div class="label">${t('dashKpiCount')}</div><div class="val">${h.length}</div></div>
+  </div>
+
+  <div class="grid cols-2" style="margin-bottom:16px">
+    <div class="card">
+      <h3>${t('dashGrowth')} <span class="tag">SVG</span></h3>
+      <div class="hint">${t('dashGrowthHint')}</div>
+      ${svgLine(state.netWorth)}
+      <table style="margin-top:10px">
+        <thead><tr><th>${t('month')}</th><th class="num">${t('netValue')}</th><th></th></tr></thead>
+        <tbody>
+        ${state.netWorth.map((d,i)=>`<tr>
+          <td><input data-bind="netWorth" data-i="${i}" data-f="m" value="${esc(d.m)}"></td>
+          <td class="num"><input data-bind="netWorth" data-i="${i}" data-f="v" value="${esc(d.v)}" style="text-align:right"></td>
+          <td class="num"><button class="icon-btn" data-del="netWorth" data-i="${i}"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg></button></td>
+        </tr>`).join("")}
+        </tbody>
+      </table>
+      <button class="mini-btn" data-add="netWorth">${t('addDataPoint')}</button>
+    </div>
+
+    <div class="card">
+      <h3>${t('dashHealth')} <span class="tag">${t('overall')} ${avgH}</span></h3>
+      <div class="hint">${t('dashHealthHint')}</div>
+      ${state.health.map((x,i)=>{ const lbl=lang==="zh"?x.zh:x.en; return `
+        <div class="health-row">
+          <div class="top"><span>${esc(lbl)}</span><b>${x.value}<span style="color:var(--muted);font-weight:400;font-size:11px"> ${esc(x.target||'')}</span></b></div>
+          <div class="pbar"><i style="width:${Math.max(2,Math.min(100,x.value))}%"></i></div>
+          <input type="range" min="0" max="100" value="${x.value}" data-bind="health" data-i="${i}" data-f="value" style="width:100%;accent-color:var(--primary)">
+        </div>`; }).join("")}
+    </div>
+  </div>
+
+  <div class="grid cols-2" style="margin-bottom:16px">
+    <div class="card">
+      <h3>${t('dashFunnel')} <span class="tag">SVG</span></h3>
+      <div class="hint">${t('dashFunnelHint')}</div>
+      ${svgFunnel(state.funnel)}
+      <div id="funnelEdit">
+      ${state.funnel.map((s,i)=>{ const lbl=lang==="zh"?s.zh:s.en; return `
+        <div class="funnel-tool">
+          <input value="${esc(lbl)}" data-bind="funnel" data-i="${i}" data-f="${lang==='zh'?'zh':'en'}">
+          <input class="v num" type="number" value="${esc(s.value)}" data-bind="funnel" data-i="${i}" data-f="value">
+          <button class="icon-btn" data-del="funnel" data-i="${i}"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg></button>
+        </div>`; }).join("")}
+      </div>
+      <button class="mini-btn" data-add="funnel">${t('addStage')}</button>
+    </div>
+
+    <div class="card">
+      <h3>${t('dashSentiment')}</h3>
+      <div class="hint">${t('dashSentimentHint')}</div>
+      <div class="gauge-grid">
+        <div class="gauge-card">${svgGauge(fg.value,fg.min,fg.max,gaugeZones('fearGreed'))}<div class="gl">${t('sent.fearGreed')}</div></div>
+        <div class="gauge-card">${svgGauge(bf.value,bf.min,bf.max,gaugeZones('buffett'))}<div class="gl">${t('sent.buffett')}</div></div>
+        <div class="gauge-card">${svgGauge(gr.value,gr.min,gr.max,gaugeZones('graham'))}<div class="gl">${t('sent.graham')}</div></div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function renderHoldings(){
+  const h=state.holdings;
+  const totalCost=h.reduce((a,b)=>a+(parseFloat(b.cost)||0),0);
+  const totalMkt=h.reduce((a,b)=>a+(parseFloat(b.market)||0),0);
+  const profit=totalMkt-totalCost;
+  const rows=h.map((b,i)=>{
+    const c=parseFloat(b.cost)||0, m=parseFloat(b.market)||0;
+    const p=m-c, r=c>0?(p/c*100):0, w=totalMkt>0?(m/totalMkt*100):0;
+    if(b.synced){
+      // 同步项：核心字段只读，仅备注可编辑，无删除（下次同步自动覆盖）
+      return `<tr class="synced">
+        <td>${esc(b.name)} <span class="tag auto">${t('holdAuto')}</span></td>
+        <td>${esc(b.code)}</td>
+        <td class="num">${money(c)}</td>
+        <td class="num">${money(m)}</td>
+        <td class="num ${p>=0?'up':'down'}">${p>=0?'+':''}${money(p)}</td>
+        <td class="num ${p>=0?'up':'down'}">${(+b.profitRate||r).toFixed(1)}%</td>
+        <td class="num">${w.toFixed(1)}%</td>
+        <td><input data-note-code="${esc(b.code)}" value="${esc(b.note)}" placeholder="—" style="min-width:90px"></td>
+        <td class="num"></td>
+      </tr>`;
+    }
+    return `<tr>
+      <td><input data-bind="custom" data-i="${i}" data-f="name" value="${esc(b.name)}"></td>
+      <td><input data-bind="custom" data-i="${i}" data-f="code" value="${esc(b.code)}"></td>
+      <td class="num"><input type="number" data-bind="custom" data-i="${i}" data-f="cost" value="${esc(b.cost)}" style="text-align:right"></td>
+      <td class="num"><input type="number" data-bind="custom" data-i="${i}" data-f="market" value="${esc(b.market)}" style="text-align:right"></td>
+      <td class="num ${p>=0?'up':'down'}">${p>=0?'+':''}${money(p)}</td>
+      <td class="num ${p>=0?'up':'down'}">${r.toFixed(1)}%</td>
+      <td class="num">${w.toFixed(1)}%</td>
+      <td><input data-bind="custom" data-i="${i}" data-f="note" value="${esc(b.note)}" placeholder="—"></td>
+      <td class="num"><button class="icon-btn" data-del="custom" data-i="${i}" title="${t('del')}"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg></button></td>
+    </tr>`;}).join("");
+  // 同步状态栏
+  const at=syncedAtStr();
+  const syncLine = (location.protocol==="file:")
+    ? `<span class="muted">${t('holdSyncSrc')} · ${t('holdSyncAt')} ${at?fmtSync(at):t('holdNoSync')}（本机文件）</span>`
+    : `<span class="muted">${t('holdSyncSrc')} · ${t('holdSyncAt')} ${at?fmtSync(at):'—'}</span>`;
+  return `
+  <div class="card">
+    <h3>${t('holdTitle')}</h3>
+    <div class="hint">${t('holdHint')}</div>
+    <div class="row" style="margin-bottom:12px;align-items:center">
+      <div class="kpi" style="flex:1"><div class="label">${t('holdTotal')} · ${t('dashKpiTotal')}</div><div class="val">${money(totalMkt)}</div></div>
+      <div class="kpi" style="flex:1"><div class="label">${t('dashKpiProfit')}</div><div class="val ${profit>=0?'up':'down'}">${profit>=0?'+':''}${money(profit)}</div></div>
+      <button class="mini-btn" id="holdCsv">${t('holdExportCsv')}</button>
+      <button class="mini-btn primary" style="background:var(--primary);color:#fff" id="holdSync">${t('holdSyncBtn')}</button>
+      <button class="mini-btn" id="holdAdd">${t('holdAdd')}</button>
+    </div>
+    <div class="sync-bar">${syncLine}</div>
+    <div style="overflow-x:auto">
+    <table>
+      <thead><tr>
+        <th>${t('holdName')}</th><th>${t('holdCode')}</th><th class="num">${t('holdCost')}</th>
+        <th class="num">${t('holdMarket')}</th><th class="num">${t('holdProfit')}</th><th class="num">${t('holdRate')}</th>
+        <th class="num">${t('weight')}</th><th>${t('holdNote')}</th><th></th>
+      </tr></thead>
+      <tbody>${rows}</tbody>
+      <tfoot><tr style="font-weight:700">
+        <td>${t('holdTotal')}</td><td></td><td class="num">${money(totalCost)}</td><td class="num">${money(totalMkt)}</td>
+        <td class="num ${profit>=0?'up':'down'}">${profit>=0?'+':''}${money(profit)}</td><td class="num ${profit>=0?'up':'down'}">${totalCost>0?(profit/totalCost*100).toFixed(1):0}%</td><td class="num">100%</td><td></td><td></td>
+      </tr></tfoot>
+    </table>
+    </div>
+  </div>`;
+}
+// 同步时间格式化
+function fmtSync(iso){
+  try{ const d=new Date(iso); const p=n=>String(n).padStart(2,"0");
+    return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`; }
+  catch(e){ return iso; }
+}
+
+function renderMacro(){
+  const mkGroup = (arr, hint)=>`
+    <div class="hint">${hint}</div>
+    <div class="ind-grid">
+    ${arr.map((it)=>{ const lbl=t('macro.'+it.key); const unit=t('macroUnit.'+it.key); return `
+      <div class="ind-card">
+        <div class="il">${esc(lbl)}</div>
+        <div class="iv"><input data-bind="macro" data-g="${it._g}" data-k="${it.key}" value="${esc(it.value)}"><span class="iu">${esc(unit)}</span></div>
+      </div>`; }).join("")}
+    </div>`;
+  const moneyArr=state.macro.money.map(x=>Object.assign({},x,{_g:"money"}));
+  const pcArr=state.macro.pc.map(x=>Object.assign({},x,{_g:"pc"}));
+
+  // sentiment
+  const gauges=state.sentiment.filter(s=>s.gauge);
+  const bars=state.sentiment.filter(s=>!s.gauge);
+  const gaugeHtml=gauges.map(s=>{
+    const type = s.key==="fearGreed"?"fearGreed":(s.key==="buffett"?"buffett":"graham");
+    return `<div class="gauge-card">${svgGauge(s.value,s.min,s.max,gaugeZones(type))}<div class="gl">${esc(t('sent.'+s.key))}</div></div>`;
+  }).join("");
+  const barHtml=bars.map(s=>{ const lbl=t('sent.'+s.key); return `
+    <div class="health-row">
+      <div class="top"><span>${esc(lbl)}</span><b>${esc(s.value)}${s.unit?(' '+s.unit):''}</b></div>
+      ${barMeter(s.value,s.min,s.max)}
+      <input type="range" min="${s.min}" max="${s.max}" step="0.1" value="${s.value}" data-bind="sentiment" data-k="${s.key}" data-f="value" style="width:100%;accent-color:var(--primary)">
+    </div>`; }).join("");
+
+  return `
+  <div class="card" style="margin-bottom:16px">
+    <h3>${t('macroTitle')} · ${t('macroMoney')}</h3>
+    ${mkGroup(moneyArr,t('macroMoneyHint'))}
+  </div>
+  <div class="card" style="margin-bottom:16px">
+    <h3>${t('macroTitle')} · ${t('macroPC')}</h3>
+    ${mkGroup(pcArr,t('macroPCHint'))}
+  </div>
+  <div class="card">
+    <h3>${t('sentTitle')}</h3>
+    <div class="hint">${t('sentHint')}</div>
+    <div class="gauge-grid" style="margin-bottom:16px">${gaugeHtml}</div>
+    <div class="grid cols-2">${barHtml}</div>
+  </div>`;
+}
+
+function renderResearch(){
+  // company screening funnel from stages
+  const counts=[0,0,0,0,0];
+  state.companies.forEach(c=>{ const idx=["scr","fin","val","moat","buy"].indexOf(c.stage); if(idx>=0) for(let j=0;j<=idx;j++) counts[j]++; });
+  const funnelStages=[
+    {zh:t('resStages.scr'),en:t('resStages.scr'),value:counts[0]},
+    {zh:t('resStages.fin'),en:t('resStages.fin'),value:counts[1]},
+    {zh:t('resStages.val'),en:t('resStages.val'),value:counts[2]},
+    {zh:t('resStages.moat'),en:t('resStages.moat'),value:counts[3]},
+    {zh:t('resStages.buy'),en:t('resStages.buy'),value:counts[4]}
+  ];
+  const watchHtml=state.watch.map((w,i)=>`
+    <div class="item-card">
+      <div class="ic-head"><div class="ic-title">${esc(w.name)}</div>
+        <button class="icon-btn" data-del="watch" data-i="${i}"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg></button></div>
+      <div class="fgrid">
+        <div><label>${t('wCode')}</label><input data-bind="watch" data-i="${i}" data-f="code" value="${esc(w.code)}"></div>
+        <div><label>${t('wName')}</label><input data-bind="watch" data-i="${i}" data-f="name" value="${esc(w.name)}"></div>
+        <div style="grid-column:1/-1"><label>${t('wNote')}</label><input data-bind="watch" data-i="${i}" data-f="note" value="${esc(w.note)}"></div>
+      </div>
+    </div>`).join("") || `<div class="muted" style="padding:14px">${t('noData')}</div>`;
+  const mgrHtml=state.managers.map((m,i)=>`
+    <div class="item-card">
+      <div class="ic-head"><div class="ic-title">${esc(m.name)}</div>
+        <button class="icon-btn" data-del="managers" data-i="${i}"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg></button></div>
+      <div class="fgrid">
+        <div><label>${t('mName')}</label><input data-bind="managers" data-i="${i}" data-f="name" value="${esc(m.name)}"></div>
+        <div><label>${t('mFund')}</label><input data-bind="managers" data-i="${i}" data-f="fund" value="${esc(m.fund)}"></div>
+        <div style="grid-column:1/-1"><label>${t('mNote')}</label><input data-bind="managers" data-i="${i}" data-f="note" value="${esc(m.note)}"></div>
+      </div>
+    </div>`).join("") || `<div class="muted" style="padding:14px">${t('noData')}</div>`;
+  const compHtml=state.companies.map((c,i)=>`
+    <div class="item-card">
+      <div class="ic-head"><div class="ic-title">${esc(c.name)}</div>
+        <button class="icon-btn" data-del="companies" data-i="${i}"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg></button></div>
+      <div class="fgrid">
+        <div><label>${t('rName')}</label><input data-bind="companies" data-i="${i}" data-f="name" value="${esc(c.name)}"></div>
+        <div><label>${t('rIndustry')}</label><input data-bind="companies" data-i="${i}" data-f="industry" value="${esc(c.industry)}"></div>
+        <div><label>${t('rMoat')}</label><input data-bind="companies" data-i="${i}" data-f="moat" value="${esc(c.moat)}"></div>
+        <div><label>${t('rFinance')}</label><input data-bind="companies" data-i="${i}" data-f="finance" value="${esc(c.finance)}"></div>
+        <div><label>${t('rValuation')}</label><input data-bind="companies" data-i="${i}" data-f="valuation" value="${esc(c.valuation)}"></div>
+        <div><label>${t('rMgmt')}</label><input data-bind="companies" data-i="${i}" data-f="mgmt" value="${esc(c.mgmt)}"></div>
+        <div><label>${t('rStage')}</label><select data-bind="companies" data-i="${i}" data-f="stage">
+          ${["scr","fin","val","moat","buy"].map(s=>`<option value="${s}" ${c.stage===s?'selected':''}>${t('resStages.'+s)}</option>`).join("")}
+        </select></div>
+        <div style="grid-column:1/-1"><label>${t('rNote')}</label><textarea data-bind="companies" data-i="${i}" data-f="note">${esc(c.note)}</textarea></div>
+      </div>
+    </div>`).join("") || `<div class="muted" style="padding:14px">${t('noData')}</div>`;
+
+  return `
+  <div class="grid cols-2" style="margin-bottom:16px">
+    <div class="card">
+      <h3>${t('resWatch')}</h3>
+      <div class="hint">${t('resWatchHint')}</div>
+      ${watchHtml}
+      <button class="mini-btn primary" style="background:var(--primary);color:#fff" data-add="watch">${t('addWatch')}</button>
+    </div>
+    <div class="card">
+      <h3>${t('resManager')}</h3>
+      <div class="hint">${t('resManagerHint')}</div>
+      ${mgrHtml}
+      <button class="mini-btn primary" style="background:var(--primary);color:#fff" data-add="managers">${t('addManager')}</button>
+    </div>
+  </div>
+  <div class="card" style="margin-bottom:16px">
+    <h3>${t('resFunnel')} <span class="tag">SVG</span></h3>
+    <div class="hint">${t('resFunnelHint')}</div>
+    ${svgFunnel(funnelStages)}
+  </div>
+  <div class="card">
+    <h3>${t('resCompany')}</h3>
+    <div class="hint">${t('resCompanyHint')}</div>
+    ${compHtml}
+    <button class="mini-btn primary" style="background:var(--primary);color:#fff" data-add="companies">${t('addCompany')}</button>
+  </div>`;
+}
+
+function renderTools(){
+  const html=state.tools.map((tl,i)=>`
+    <div class="item-card">
+      <div class="ic-head"><div class="ic-title">${esc(tl.name)}</div>
+        <button class="icon-btn" data-del="tools" data-i="${i}"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg></button></div>
+      <div class="fgrid">
+        <div style="grid-column:1/-1"><label>${t('tDesc')}</label><input data-bind="tools" data-i="${i}" data-f="desc" value="${esc(tl.desc)}"></div>
+        <div style="grid-column:1/-1"><label>${t('tNote')}</label><textarea data-bind="tools" data-i="${i}" data-f="note">${esc(tl.note)}</textarea></div>
+      </div>
+    </div>`).join("") || `<div class="muted" style="padding:14px">${t('noData')}</div>`;
+  return `
+  <div class="card">
+    <h3>${t('toolsTitle')}</h3>
+    <div class="hint">${t('toolsHint')}</div>
+    ${html}
+    <button class="mini-btn primary" style="background:var(--primary);color:#fff" data-add="tools">${t('addTool')}</button>
+  </div>`;
+}
+
+/* ============== Events ============== */
+function bindEvents(){
+  // nav
+  document.querySelectorAll(".nav-item").forEach(b=>b.addEventListener("click",()=>render(b.dataset.view)));
+  // input binding (delegated)
+  document.querySelector(".content").addEventListener("change",onFieldChange);
+  document.querySelector(".content").addEventListener("input",onFieldInput);
+  // clicks (add/del/buttons)
+  document.querySelector(".content").addEventListener("click",onContentClick);
+  // topbar
+  document.getElementById("btnLang").addEventListener("click",()=>setLang(lang==="zh"?"en":"zh"));
+  document.getElementById("btnTheme").addEventListener("click",()=>setTheme(getTheme()==="light"?"dark":"light"));
+  document.getElementById("btnExport").addEventListener("click",exportBackup);
+  document.getElementById("btnImport").addEventListener("click",()=>document.getElementById("fileInput").click());
+  document.getElementById("fileInput").addEventListener("change",importBackup);
+  document.getElementById("btnClear").addEventListener("click",confirmClear);
+  // modal
+  document.getElementById("modalMask").addEventListener("click",e=>{ if(e.target.id==="modalMask") closeModal(); });
+}
+
+function onFieldInput(e){
+  const el=e.target;
+  // live, focus-safe update only for the health sliders (avg header text only)
+  if(el.dataset.bind==="health" && el.type==="range"){
+    state.health[+el.dataset.i].value=+el.value; save(); updateHealthHeader();
+  }
+}
+function updateHealthHeader(){
+  const avgH=Math.round(state.health.reduce((a,b)=>a+(parseFloat(b.value)||0),0)/state.health.length);
+  const tag=document.querySelector('#view-dashboard .card .tag');
+  // find health card tag
+  const cards=document.querySelectorAll('#view-dashboard .card');
+  cards.forEach(c=>{ const h3=c.querySelector('h3'); if(h3 && h3.textContent.includes(t('dashHealth'))){ const tg=h3.querySelector('.tag'); if(tg) tg.textContent=t('overall')+' '+avgH; } });
+}
+function onFieldChange(e){
+  const el=e.target;
+  // 同步行备注：按基金代码存入备注表（不污染同步源）
+  if(el.dataset.noteCode){
+    const code=el.dataset.noteCode; const notes=loadNotes(); notes[code]=el.value; saveNotes(notes);
+    const row=state.holdings.find(x=>x.code===code); if(row) row.note=el.value;
+    return;
+  }
+  if(!el.dataset.bind) return;
+  const b=el.dataset.bind, i=+el.dataset.i, k=el.dataset.k, f=el.dataset.f, g=el.dataset.g;
+  if(b==="custom"){
+    const row=state.holdings[i]; if(!row) return;
+    let val=el.value; if(el.type==="number") val=parseFloat(val)||0;
+    row[f]=val; saveCustom(state.holdings.filter(x=>!x.synced)); save(); return;
+  }
+  if(b==="watch"||b==="managers"||b==="companies"||b==="tools"||b==="netWorth"){
+    const idx=i; if(!state[b][idx]) return;
+    let val=el.value; if(el.type==="number") val=parseFloat(val)||0;
+    state[b][idx][f]=val;
+  } else if(b==="macro"){
+    const it=state.macro[g].find(x=>x.key===k); if(it) it.value=el.value;
+  } else if(b==="sentiment"){
+    const s=state.sentiment.find(x=>x.key===k); if(s) s.value=el.value;
+  } else if(b==="health"){
+    state.health[+i][f]=+el.value;
+  } else if(b==="funnel"){
+    state.funnel[+i][f]=el.value;
+  }
+  save(); renderActive();
+}
+function onContentClick(e){
+  const tgt=e.target.closest("[data-del],[data-add],[data-foc],[data-delfoc],[id]");
+  if(!tgt) return;
+  if(tgt.dataset.del){ const b=tgt.dataset.del,i=+tgt.dataset.i;
+    if(b==="custom"){ state.holdings.splice(i,1); saveCustom(state.holdings.filter(x=>!x.synced)); save(); renderActive(); toast(t('toastDeleted')); return; }
+    if(state[b]){ state[b].splice(i,1); save(); renderActive(); toast(t('toastDeleted')); } return; }
+  if(tgt.dataset.add){ const b=tgt.dataset.add; addItem(b); return; }
+  if(tgt.dataset.foc!==undefined){ const i=+tgt.dataset.foc; state.focus[i].done=!state.focus[i].done; save(); renderActive(); return; }
+  if(tgt.dataset.delfoc!==undefined){ const i=+tgt.dataset.delfoc; state.focus.splice(i,1); save(); renderActive(); return; }
+  if(tgt.id==="addFocus"){ const inp=document.getElementById("focusInput"); const v=inp.value.trim(); if(v){ state.focus.unshift({text:v,done:false}); inp.value=""; save(); renderActive(); toast(t('toastAdded')); } return; }
+  if(tgt.id==="holdAdd"){ const custom=loadCustom(); custom.push({name:"",code:"",cost:0,market:0,note:""}); saveCustom(custom); state.holdings=buildHoldings(); renderActive(); toast(t('toastAdded')); return; }
+  if(tgt.id==="holdSync"){ syncHoldings(); return; }
+  if(tgt.id==="holdCsv"){ exportCsv(); return; }
+}
+// 同步持仓：部署版 fetch holdings-data.json；本地版从内嵌同步源重载
+function syncHoldings(){
+  const btn=document.getElementById("holdSync"); if(btn) btn.disabled=true;
+  if(location.protocol!=="file:"){
+    fetch("./holdings-data.json?t="+Date.now(),{cache:"no-store"}).then(r=>{ if(!r.ok) throw new Error("net"); return r.json(); })
+      .then(j=>{ if(j&&j.holdings){ MEM_SYNCED=j.holdings; MEM_SYNCED_AT=j.syncedAt||new Date().toISOString();
+        state.holdings=buildHoldings(); save(); renderActive(); toast(t('holdSyncBtn')+" ✓"); } })
+      .catch(()=>{ toast(t('holdNoSync')); })
+      .finally(()=>{ if(btn) btn.disabled=false; });
+  } else {
+    state.holdings=buildHoldings(); save(); renderActive(); toast(t('holdSyncBtn')+" ✓ ("+fmtSync(syncedAtStr())+")");
+    if(btn) btn.disabled=false;
+  }
+}
+function addItem(b){
+  if(b==="netWorth"){ const last=state.netWorth[state.netWorth.length-1]; const nm=last?incMonth(last.m):"2026-08"; state.netWorth.push({m:nm,v:last?last.v:100}); }
+  else if(b==="funnel"){ state.funnel.push({zh:"新层级",en:"New Stage",value:0}); }
+  else if(b==="watch"){ state.watch.push({code:"",name:"",note:""}); }
+  else if(b==="managers"){ state.managers.push({name:"",fund:"",note:""}); }
+  else if(b==="companies"){ state.companies.push({name:"",industry:"",moat:"",finance:"",valuation:"",mgmt:"",stage:"scr",note:""}); }
+  else if(b==="tools"){ state.tools.push({name:"新工具",desc:"",note:""}); }
+  save(); renderActive(); toast(t('toastAdded'));
+}
+function incMonth(ym){ const [y,m]=ym.split("-").map(Number); const nm=m===12?1:m+1; const ny=m===12?y+1:y; return ny+"-"+String(nm).padStart(2,"0"); }
+
+/* ============== Export / Import / Clear ============== */
+function exportBackup(){
+  const data={ _app:"投资管理工作台", _ver:1, _exported:new Date().toISOString(),
+    theme:getTheme(), lang:lang, data:state };
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"});
+  const url=URL.createObjectURL(blob); const a=document.createElement("a");
+  a.href=url; a.download="投资工作台备份_"+new Date().toISOString().slice(0,10)+".json"; a.click();
+  setTimeout(()=>URL.revokeObjectURL(url),1000); toast(t('exportOk'));
+}
+function importBackup(e){
+  const file=e.target.files[0]; if(!file) return;
+  const rd=new FileReader();
+  rd.onload=()=>{ try{
+    const obj=JSON.parse(rd.result);
+    let data = obj.data ? obj.data : obj;
+    state = (typeof data==="object" && !Array.isArray(data)) ? data : defaultState();
+    if(obj.theme) setTheme(obj.theme); if(obj.lang) setLang(obj.lang);
+    // 持仓：同步项由 ttskill 主导，仅保留导入中的自定义行与备注
+    const imp = (state.holdings||[]);
+    saveCustom(imp.filter(x=>x.synced===false).map(x=>({name:x.name,code:x.code,cost:x.cost,market:x.market,note:x.note})));
+    const notes=loadNotes(); imp.forEach(x=>{ if(x.note && x.code) notes[x.code]=x.note; }); saveNotes(notes);
+    state.holdings = buildHoldings();
+    persist(state);
+    renderActive(); applyStaticI18n(); toast(t('importOk'));
+  }catch(err){ toast(t('importFail')); } };
+  rd.readAsText(file); e.target.value="";
+}
+function exportCsv(){
+  const rows=[["名称","代码","成本","市值","浮动盈亏","收益率","备注"]];
+  state.holdings.forEach(b=>{ const c=+b.cost||0,m=+b.market||0,p=m-c,r=c>0?(p/c*100):0;
+    rows.push([b.name,b.code,c,m,p.toFixed(0),r.toFixed(1)+"%",b.note]); });
+  const csv="\uFEFF"+rows.map(r=>r.map(x=>'"'+String(x==null?"":x).replace(/"/g,'""')+'"').join(",")).join("\n");
+  const blob=new Blob([csv],{type:"text/csv;charset=utf-8"}); const url=URL.createObjectURL(blob);
+  const a=document.createElement("a"); a.href=url; a.download="持仓导出.csv"; a.click(); setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+function confirmClear(){
+  openModal(`<h3>${t('clearTitle')}</h3><p>${t('clearMsg')}</p>
+    <div class="actions"><button class="mini-btn" data-close>${t('cancel')}</button>
+    <button class="mini-btn danger" id="doClear" style="border-color:var(--danger);color:var(--danger)">${t('clearConfirm')}</button></div>`);
+  document.getElementById("doClear").addEventListener("click",()=>{
+    localStorage.removeItem(LS_MAIN); state=defaultState(); persist(state); renderActive(); closeModal(); toast(t('toastDeleted'));
+  });
+}
+
+/* ============== Modal / Add-to-home ============== */
+function openModal(html){ const box=document.getElementById("modalBox"); box.innerHTML=html; document.getElementById("modalMask").classList.add("show");
+  box.querySelectorAll("[data-close]").forEach(b=>b.addEventListener("click",closeModal)); }
+function closeModal(){ document.getElementById("modalMask").classList.remove("show"); }
+function showAddHome(){
+  openModal(`<h3>${t('addHomeTitle')}</h3><p>${t('addHomeMsg')}</p>
+    <div class="steps"><div>1. ${t('addHomeIos')}</div><div>2. ${t('addHomeAndroid')}</div></div>
+    <p style="margin-top:10px">${t('addHomeNote')}</p>
+    <div class="actions"><button class="mini-btn primary" style="background:var(--primary);color:#fff" data-close>${t('close')}</button></div>`);
+}
+
+/* ============== Init ============== */
+function init(){
+  initLang();
+  setTheme(getTheme());
+  document.getElementById("langLabel").textContent = (lang==="zh")?"EN":"中";
+  applyStaticI18n();
+  bindEvents();
+  render("dashboard");
+  if(location.protocol!=="file:"){ syncHoldings(); }   // 部署版：打开即拉取最新持仓
+  // long-press / dblclick brand to show add-home hint? add a small entry: press logo 2s
+  document.querySelector(".brand .logo").addEventListener("click",showAddHome);
+}
+init();
+</script>
+</body>
+</html>
