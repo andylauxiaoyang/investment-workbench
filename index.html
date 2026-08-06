@@ -314,7 +314,7 @@ const I18N = {
     btn:{export:"导出备份",import:"导入恢复",clear:"清空",addHome:"添加到主屏"},
     /* dashboard */
     dashKpiTotal:"总资产(¥)", dashKpiProfit:"总浮动盈亏(¥)", dashKpiRate:"总收益率", dashKpiCount:"持仓数量",
-    dashGrowth:"净资产成长曲线（上周一～今天）", dashGrowthHint:"窗口从上周一滚动到今天（每天1个真实点）；无记录日留白，随每天打开自动累积真实轨迹；末点=当前真实持仓总额", dashGrowthNoData:"暂无足够数据，将随每天打开自动累积真实资产轨迹",
+    dashGrowth:"净资产成长曲线（从上周一持续累积）", dashGrowthHint:"数据从上周一持续记录、向后延伸（每天1个真实点）；跨度≤5年前不滚动，仅当>5年才滚动为近5年窗口；无记录日留白，随每天打开自动累积真实轨迹；末点=当前真实持仓总额", dashGrowthNoData:"暂无足够数据，将随每天打开自动累积真实资产轨迹",
     dashHealth:"资产配置健康度", dashHealthHint:"各维度健康评分（0-100），进度条直观呈现强弱",
     dashFunnel:"投资决策漏斗", dashFunnelHint:"从候选池到买入决策的逐级转化，可编辑各级数量",
     dashSentiment:"市场情绪概览", dashSentimentHint:"恐贪指数与核心估值情绪指标快照",
@@ -477,6 +477,7 @@ function defaultState(){
     ],
     netWorth:[{d:todayStr(), v:realTotalAsset()}],
     _nwReal:true,
+    nwAnchor: lastMondayStr(),
     health:[
       {label:"权益配置",zh:"权益配置",en:"Equity",value:72,target:"目标 60-75"},
       {label:"债券配置",zh:"债券配置",en:"Bonds",value:18,target:"目标 15-30"},
@@ -553,6 +554,7 @@ function loadState(){
   const lastNW = s.netWorth[s.netWorth.length-1];
   const _today = todayStr();
   if(!lastNW || lastNW.d!==_today){ s.netWorth.push({d:_today, v:realTotalAsset()}); dirty=true; }
+  if(!s.nwAnchor){ s.nwAnchor = lastMondayStr(); dirty=true; }  // 固定锚点：上周一开始持续记录（不滚动）
   if(dirty) persist(s);
   return s;
 }
@@ -590,19 +592,24 @@ function applyStaticI18n(){
   document.querySelectorAll("[data-i18n]").forEach(el=>{ el.textContent=t(el.getAttribute("data-i18n")); });
 }
 
-/* ============== 净资产成长曲线（真实资产 · 上周一～今天 滚动） ============== */
+/* ============== 净资产成长曲线（真实资产 · 从上周一持续累积，>5年滚动） ============== */
 function realTotalAsset(){
   const arr = (typeof SYNCED_HOLDINGS!=="undefined" && SYNCED_HOLDINGS.length) ? SYNCED_HOLDINGS : (MEM_SYNCED||[]);
   return arr.reduce((a,b)=>a+(parseFloat(b.market)||0),0) || 0;
 }
 // 今天日期 YYYY-MM-DD
 function todayStr(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
-// 净资产成长曲线：窗口从「上周一」到今天（每天1点，滚动）；真实点填值，无记录日填 null（留白）
+// 上周一（固定锚点：本周一减7天）
+function lastMonday(){ const e=new Date(); e.setHours(0,0,0,0); const dow=e.getDay(); const thisMon=new Date(e); thisMon.setDate(e.getDate()-((dow+6)%7)); const lm=new Date(thisMon); lm.setDate(thisMon.getDate()-7); return lm; }
+function lastMondayStr(){ const d=lastMonday(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+// 净资产曲线固定锚点（优先取 state.nwAnchor，首次运行/缺失时用上周一）
+function nwAnchorDate(){ const a=(typeof state!=="undefined" && state && state.nwAnchor)? new Date(state.nwAnchor+'T00:00:00') : lastMonday(); return a; }
+// 净资产成长曲线：数据从「上周一」起持续记录、向后延伸（不滚动）；仅当跨度>5年才滚动（起点=今天-5年）
 function netWorthWindow(realPoints){
   const end=new Date(); end.setHours(0,0,0,0);
-  const dow=end.getDay();                       // 0=周日..6=周六
-  const thisMonday=new Date(end); thisMonday.setDate(end.getDate()-((dow+6)%7));
-  const start=new Date(thisMonday); start.setDate(thisMonday.getDate()-7);  // 上周一
+  let start=new Date(nwAnchorDate());            // 固定锚点：上周一（首次运行写入 state.nwAnchor 后不再变）
+  const cap=new Date(end); cap.setFullYear(cap.getFullYear()-5);
+  if(start < cap) start = cap;                   // 超过5年才滚动为「近5年」窗口
   const days=Math.max(1,Math.round((end-start)/86400000));
   const map={}; (realPoints||[]).forEach(p=>{ if(p && p.d!=null) map[p.d]=p.v; });
   const arr=[];
