@@ -794,7 +794,7 @@ function computeAllocation(){
   return {total,bucket,order,domMkt,domPct,ovPct,sorted,top1,hhi};
 }
 function svgPie(al){
-  const colors={"国内权益":"#3B82F6","国内债券":"#14B8A6","国内货币":"#F59E0B","另类":"#8B5CF6","境外":"#EC4899"};
+  const colors={"国内权益":"#3B82F6","国内债券":"#14B8A6","国内货币":"#F59E0B","另类":"#8B5CF6","境外":"#9DB4A0"};
   const total=al.total||0;
   const segs=al.order.filter(k=>al.bucket[k]>0).map(k=>({k,v:al.bucket[k],pct:total>0?al.bucket[k]/total:0,color:colors[k]}));
   const size=160,cx=80,cy=80,r=58,sw=22,C=2*Math.PI*r;
@@ -1070,7 +1070,7 @@ function renderDashboard(){
       <div style="display:flex;gap:16px;align-items:center;flex-wrap:wrap">
         ${svgPie(alloc)}
         <div style="flex:1;min-width:180px">
-          ${alloc.order.filter(k=>alloc.bucket[k]>0).map(k=>{ const v=alloc.bucket[k]; const p=alloc.total>0?Math.round(v/alloc.total*100):0; const dot={"国内权益":"#3B82F6","国内债券":"#14B8A6","国内货币":"#F59E0B","另类":"#8B5CF6","境外":"#EC4899"}[k]; return `
+          ${alloc.order.filter(k=>alloc.bucket[k]>0).map(k=>{ const v=alloc.bucket[k]; const p=alloc.total>0?Math.round(v/alloc.total*100):0; const dot={"国内权益":"#3B82F6","国内债券":"#14B8A6","国内货币":"#F59E0B","另类":"#8B5CF6","境外":"#9DB4A0"}[k]; return `
           <div class="health-row">
             <div class="top"><span><i style="width:9px;height:9px;border-radius:50%;background:${dot};display:inline-block;margin-right:6px"></i>${k}</span><b>${fmtYuan(v)}<span style="color:var(--muted);font-weight:400;font-size:11px"> ${p}%</span></b></div>
             <div class="pbar"><i style="width:${Math.max(2,p)}%;background:${dot}"></i></div>
