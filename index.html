@@ -105,6 +105,7 @@ tr.synced td:first-child{font-weight:600}
 
 /* tables */
 table{width:100%;border-collapse:collapse;font-size:14px}
+table.hold-table{min-width:720px}
 th,td{padding:10px 8px;text-align:left;border-bottom:1px solid var(--border)}
 th{color:var(--muted);font-weight:600;font-size:12.5px;text-transform:uppercase;letter-spacing:.3px}
 td input,td select{border:1px solid var(--border);background:var(--panel2);color:var(--text);
@@ -237,6 +238,18 @@ td input:focus,td select:focus{outline:none;border-color:var(--primary)}
   .tbtn{padding:7px 10px;font-size:12px}
   .cols-2,.cols-3,.cols-4{grid-template-columns:1fr}
   .kpi .val{font-size:22px}
+  /* 持仓表：窄屏改卡片列表，避免 9 列数字挤压贴死 */
+  table.hold-table{min-width:0;border:0}
+  table.hold-table thead{display:none}
+  table.hold-table tr{display:block;border:1px solid var(--border);border-radius:14px;margin-bottom:14px;padding:2px 6px;background:var(--panel2)}
+  table.hold-table tbody tr.synced{background:var(--panel2)}
+  table.hold-table tfoot tr{background:var(--panel);border:1px solid var(--primary);font-weight:700}
+  table.hold-table td{display:flex;justify-content:space-between;align-items:center;gap:12px;border-bottom:1px solid var(--border);padding:9px 8px;text-align:right}
+  table.hold-table td:last-child{border-bottom:none}
+  table.hold-table td::before{content:attr(data-label);color:var(--muted);font-size:12px;font-weight:600;text-align:left;flex:0 0 auto;margin-right:12px}
+  table.hold-table td[data-label=""]::before{display:none}
+  table.hold-table td[data-label=""]{justify-content:flex-end}
+  table.hold-table td input,table.hold-table td select{width:auto;min-width:120px;flex:1 1 auto;max-width:62%;text-align:right;font-size:16px}
 }
 @media(min-width:821px){ .bottom-tab{display:none!important} }
 .curve-wrap{margin:12px 0 4px}
@@ -1237,33 +1250,34 @@ function renderHoldings(){
   const totalCost=h.reduce((a,b)=>a+(parseFloat(b.cost)||0),0);
   const totalMkt=h.reduce((a,b)=>a+(parseFloat(b.market)||0),0);
   const profit=totalMkt-totalCost;
+  const L={name:t('holdName'),code:t('holdCode'),cost:t('holdCost'),market:t('holdMarket'),profit:t('holdProfit'),rate:t('holdRate'),weight:t('weight'),note:t('holdNote')};
   const rows=h.map((b,i)=>{
     const c=parseFloat(b.cost)||0, m=parseFloat(b.market)||0;
     const p=m-c, r=c>0?(p/c*100):0, w=totalMkt>0?(m/totalMkt*100):0;
     if(b.synced){
       // 同步项：核心字段只读，仅备注可编辑，无删除（下次同步自动覆盖）
       return `<tr class="synced">
-        <td>${esc(b.name)} <span class="tag auto">${t('holdAuto')}</span></td>
-        <td>${esc(b.code)}</td>
-        <td class="num">${money(c)}</td>
-        <td class="num">${money(m)}</td>
-        <td class="num ${p>=0?'up':'down'}">${p>=0?'+':''}${money(p)}</td>
-        <td class="num ${p>=0?'up':'down'}">${(+b.profitRate||r).toFixed(1)}%</td>
-        <td class="num">${w.toFixed(1)}%</td>
-        <td><input data-note-code="${esc(b.code)}" value="${esc(b.note)}" placeholder="—" style="min-width:90px"></td>
-        <td class="num"></td>
+        <td data-label="${L.name}">${esc(b.name)} <span class="tag auto">${t('holdAuto')}</span></td>
+        <td data-label="${L.code}">${esc(b.code)}</td>
+        <td class="num" data-label="${L.cost}">${money(c)}</td>
+        <td class="num" data-label="${L.market}">${money(m)}</td>
+        <td class="num ${p>=0?'up':'down'}" data-label="${L.profit}">${p>=0?'+':''}${money(p)}</td>
+        <td class="num ${p>=0?'up':'down'}" data-label="${L.rate}">${(+b.profitRate||r).toFixed(1)}%</td>
+        <td class="num" data-label="${L.weight}">${w.toFixed(1)}%</td>
+        <td data-label="${L.note}"><input data-note-code="${esc(b.code)}" value="${esc(b.note)}" placeholder="—" style="min-width:90px"></td>
+        <td data-label=""></td>
       </tr>`;
     }
     return `<tr>
-      <td><input data-bind="custom" data-i="${i}" data-f="name" value="${esc(b.name)}"></td>
-      <td><input data-bind="custom" data-i="${i}" data-f="code" value="${esc(b.code)}"></td>
-      <td class="num"><input type="number" data-bind="custom" data-i="${i}" data-f="cost" value="${esc(b.cost)}" style="text-align:right"></td>
-      <td class="num"><input type="number" data-bind="custom" data-i="${i}" data-f="market" value="${esc(b.market)}" style="text-align:right"></td>
-      <td class="num ${p>=0?'up':'down'}">${p>=0?'+':''}${money(p)}</td>
-      <td class="num ${p>=0?'up':'down'}">${r.toFixed(1)}%</td>
-      <td class="num">${w.toFixed(1)}%</td>
-      <td><input data-bind="custom" data-i="${i}" data-f="note" value="${esc(b.note)}" placeholder="—"></td>
-      <td class="num"><button class="icon-btn" data-del="custom" data-i="${i}" title="${t('del')}"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg></button></td>
+      <td data-label="${L.name}"><input data-bind="custom" data-i="${i}" data-f="name" value="${esc(b.name)}"></td>
+      <td data-label="${L.code}"><input data-bind="custom" data-i="${i}" data-f="code" value="${esc(b.code)}"></td>
+      <td class="num" data-label="${L.cost}"><input type="number" data-bind="custom" data-i="${i}" data-f="cost" value="${esc(b.cost)}" style="text-align:right"></td>
+      <td class="num" data-label="${L.market}"><input type="number" data-bind="custom" data-i="${i}" data-f="market" value="${esc(b.market)}" style="text-align:right"></td>
+      <td class="num ${p>=0?'up':'down'}" data-label="${L.profit}">${p>=0?'+':''}${money(p)}</td>
+      <td class="num ${p>=0?'up':'down'}" data-label="${L.rate}">${r.toFixed(1)}%</td>
+      <td class="num" data-label="${L.weight}">${w.toFixed(1)}%</td>
+      <td data-label="${L.note}"><input data-bind="custom" data-i="${i}" data-f="note" value="${esc(b.note)}" placeholder="—"></td>
+      <td data-label=""><button class="icon-btn" data-del="custom" data-i="${i}" title="${t('del')}"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg></button></td>
     </tr>`;}).join("");
   // 同步状态栏
   const at=syncedAtStr();
@@ -1283,7 +1297,7 @@ function renderHoldings(){
     </div>
     <div class="sync-bar">${syncLine}</div>
     <div style="overflow-x:auto">
-    <table>
+    <table class="hold-table">
       <thead><tr>
         <th>${t('holdName')}</th><th>${t('holdCode')}</th><th class="num">${t('holdCost')}</th>
         <th class="num">${t('holdMarket')}</th><th class="num">${t('holdProfit')}</th><th class="num">${t('holdRate')}</th>
@@ -1291,8 +1305,8 @@ function renderHoldings(){
       </tr></thead>
       <tbody>${rows}</tbody>
       <tfoot><tr style="font-weight:700">
-        <td>${t('holdTotal')}</td><td></td><td class="num">${money(totalCost)}</td><td class="num">${money(totalMkt)}</td>
-        <td class="num ${profit>=0?'up':'down'}">${profit>=0?'+':''}${money(profit)}</td><td class="num ${profit>=0?'up':'down'}">${totalCost>0?(profit/totalCost*100).toFixed(1):0}%</td><td class="num">100%</td><td></td><td></td>
+        <td data-label="">${t('holdTotal')}</td><td data-label=""></td><td class="num" data-label="${L.cost}">${money(totalCost)}</td><td class="num" data-label="${L.market}">${money(totalMkt)}</td>
+        <td class="num ${profit>=0?'up':'down'}" data-label="${L.profit}">${profit>=0?'+':''}${money(profit)}</td><td class="num ${profit>=0?'up':'down'}" data-label="${L.rate}">${totalCost>0?(profit/totalCost*100).toFixed(1):0}%</td><td class="num" data-label="${L.weight}">100%</td><td data-label=""></td><td data-label=""></td>
       </tr></tfoot>
     </table>
     </div>
