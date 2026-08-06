@@ -250,6 +250,10 @@ td input:focus,td select:focus{outline:none;border-color:var(--primary)}
 .curve-cur{font-size:18px;font-weight:800;color:var(--primary-d);font-variant-numeric:tabular-nums}
 .curve-cap{font-size:11.5px;color:var(--muted);margin-top:4px;line-height:1.5}
 .curve-empty{color:var(--muted);font-size:13px;padding:22px;text-align:center;background:var(--panel2);border:1px dashed var(--border);border-radius:12px;margin:10px 0}
+.curve-explain{margin-top:10px;padding:12px 14px;background:var(--panel2);border:1px solid var(--border);border-left:3px solid #e0683a;border-radius:10px;font-size:12.5px;line-height:1.75;color:var(--muted)}
+.curve-explain .ce-title{font-size:13px;font-weight:700;color:var(--text);margin-bottom:4px}
+.curve-explain .ce-body p{margin:6px 0}
+.curve-explain .ce-body b{color:var(--text)}
 .sync-note{font-size:11.5px;color:var(--muted);margin-top:10px}
 </style>
 </head>
@@ -353,7 +357,7 @@ const I18N = {
     macroNotePh:"备注/变化",
     macro:{M2:"M2 货币供应",SOFR:"SOFR 利率",LPR1:"LPR(1年)",LPR5:"LPR(5年)",rateLong:"长期利率",rateShort:"短期利率",fx:"美元兑人民币",reserves:"外汇储备",CPI:"CPI 通胀",PPI:"PPI 工业品",PMI:"PMI 制造业",BDI:"BDI 运价指数",OECD:"OECD 领先指标"},
     sentTitle:"市场情绪", sentHint:"巴菲特指标与破净率真实曲线（legulegu 自动同步）",
-    sent:{fearGreed:"恐贪指数",buffett:"巴菲特指数(总市值/GDP)",graham:"格雷厄姆指数",bondEquity:"股债性价比(沪深300)",bondSpread:"股债利差(沪深300)",earnYield:"盈利收益率(沪深300)",fundCoef:"资金系数",turnover:"成交金额",marginBal:"融资余额占比",marginBuy:"融资买入占比",fng:"破净率(全部A股)",buffettCap:"总市值/GDP，红线100%=历史危险区，橙线60%=低估区",fngCap:"破净股占比，越高代表市场越恐慌（替代恐贪指数）",sentNoData:"暂无曲线数据（每日10:00自动同步后显示）",sentSrc:"数据源：乐咕乐股 legulegu · 每日10:00自动同步"},
+    sent:{fearGreed:"恐贪指数",buffett:"巴菲特指数(总市值/GDP)",graham:"格雷厄姆指数",bondEquity:"股债性价比(沪深300)",bondSpread:"股债利差(沪深300)",earnYield:"盈利收益率(沪深300)",fundCoef:"资金系数",turnover:"成交金额",marginBal:"融资余额占比",marginBuy:"融资买入占比",fng:"破净率(全部A股)",buffettCap:"总市值/GDP，红线100%=历史危险区，橙线60%=低估区",fngCap:"破净股占比，越高代表市场越恐慌（替代恐贪指数）",fngExplainTitle:"为什么破净率越高，代表市场越恐慌？",fngExplain:"<p><b>破净</b>指公司股价跌破每股净资产——即便把公司清盘变卖，股东能拿回的钱都比当前市值高，说明市场对其资产质量、盈利前景极度悲观。</p><p><b>① 跌破账面价值</b>：常态下市场会给资产溢价（市净率＞1）。只有当恐慌蔓延、流动性枯竭、资金不计成本抛售时，大量公司才会跌穿净资产。</p><p><b>② 恐慌越广越深</b>：破净公司占比越高，意味着悲观情绪覆盖的面越广、程度越深，而非个别垃圾股的问题。</p><p><b>③ 历史验证</b>：A股历次大底（2005、2008、2018年底、2024年9月）破净率都冲到10%以上；牛市顶部往往低于2%。它是公认的“市场温度计”。</p><p><b>④ 反向指标</b>：破净率极高通常对应估值洼地，反而是长线资金的买点，所以它作为“恐贪”的反向代理——数值越高越恐惧、越低越贪婪。</p>",sentNoData:"暂无曲线数据（每日10:00自动同步后显示）",sentSrc:"数据源：乐咕乐股 legulegu · 每日10:00自动同步"},
     sentFear:"恐贪指数", zone:{ef:"极度恐惧",f:"恐惧",n:"中性",g:"贪婪",eg:"极度贪婪",
       cheap:"低估",low:"偏低",fair:"合理",high:"偏高",exp:"偏高/高估",rich:"高估",
       over:"过热"},
@@ -414,7 +418,7 @@ const I18N = {
     macroNotePh:"Note / change",
     macro:{M2:"M2 Money Supply",SOFR:"SOFR Rate",LPR1:"LPR (1Y)",LPR5:"LPR (5Y)",rateLong:"Long Rate",rateShort:"Short Rate",fx:"USD/CNY",reserves:"FX Reserves",CPI:"CPI Inflation",PPI:"PPI Output",PMI:"PMI Mfg",BDI:"BDI Freight",OECD:"OECD CLI"},
     sentTitle:"Market Sentiment", sentHint:"Buffett Index & Below-Net-Asset real curves (legulegu auto-sync)",
-    sent:{fearGreed:"Fear & Greed",buffett:"Buffett Index (Mkt/GDP)",graham:"Graham Index",bondEquity:"Bond-Equity Yield Gap",bondSpread:"Bond-Equity Spread",earnYield:"Earnings Yield",fundCoef:"Fund Coefficient",turnover:"Turnover",marginBal:"Margin Balance %",marginBuy:"Margin Buy %",fng:"Below-Net-Asset Ratio (All A-shares)",buffettCap:"Total mkt cap / GDP. Red 100% = danger zone, orange 60% = undervalued zone",fngCap:"Share of stocks below net asset — higher = more fear (replaces Fear & Greed)",sentNoData:"No curve data yet (appears after daily 10:00 auto-sync)",sentSrc:"Source: legulegu · auto-synced daily at 10:00"},
+    sent:{fearGreed:"Fear & Greed",buffett:"Buffett Index (Mkt/GDP)",graham:"Graham Index",bondEquity:"Bond-Equity Yield Gap",bondSpread:"Bond-Equity Spread",earnYield:"Earnings Yield",fundCoef:"Fund Coefficient",turnover:"Turnover",marginBal:"Margin Balance %",marginBuy:"Margin Buy %",fng:"Below-Net-Asset Ratio (All A-shares)",buffettCap:"Total mkt cap / GDP. Red 100% = danger zone, orange 60% = undervalued zone",fngCap:"Share of stocks below net asset — higher = more fear (replaces Fear & Greed)",fngExplainTitle:"Why a higher below-net-asset ratio means more panic?",fngExplain:"<p><b>Below net asset</b> means a stock's price fell below its book value per share — even liquidating the company would return more to shareholders than its market cap, signaling extreme pessimism about asset quality and earnings.</p><p><b>① Breaks book value</b>: Normally the market pays a premium (P/B > 1). Only when panic spreads, liquidity dries up and investors dump indiscriminately do many stocks fall below net asset.</p><p><b>② Broader &amp; deeper fear</b>: A higher share of below-net-asset stocks means pessimism is widespread and severe, not just a few junk names.</p><p><b>③ Historical proof</b>: At every major A-share bottom (2005, 2008, end-2018, Sep-2024) the ratio spiked above 10%; near bull tops it is often below 2%. It is a well-known “market thermometer”.</p><p><b>④ Contrarian signal</b>: An extreme ratio usually marks a valuation trough and a buying zone for long-term money, so it works as a reverse Fear &amp; Greed proxy — higher = more fear, lower = more greed.</p>",sentNoData:"No curve data yet (appears after daily 10:00 auto-sync)",sentSrc:"Source: legulegu · auto-synced daily at 10:00"},
     sentFear:"Fear & Greed", zone:{ef:"Extreme Fear",f:"Fear",n:"Neutral",g:"Greed",eg:"Extreme Greed",
       cheap:"Undervalued",low:"Low",fair:"Fair",high:"High",exp:"Elevated",rich:"Overvalued",
       over:"Overheated"},
@@ -1050,6 +1054,10 @@ function sentimentBlock(kind, opts){
   const series=kind==="buffett"?getBuffett():getFng();
   const title=kind==="buffett"?t("sent.buffett"):t("sent.fng");
   const cap=kind==="buffett"?t("sent.buffettCap"):t("sent.fngCap");
+  const explain=kind==="fng"?`<div class="curve-explain">
+    <div class="ce-title">${esc(t('sent.fngExplainTitle'))}</div>
+    <div class="ce-body">${t('sent.fngExplain')}</div>
+  </div>`:"";
   if(!series||series.length<2) return `<div class="curve-empty">${t("sentNoData")}</div>`;
   const last=series[series.length-1];
   const fmtY=opts.fmtY||(v=>v.toFixed(1));
@@ -1057,6 +1065,7 @@ function sentimentBlock(kind, opts){
     <div class="curve-title">${esc(title)} <span class="curve-cur">${fmtY(last.v)}</span></div>
     ${svgLineChart(series, opts)}
     <div class="curve-cap">${esc(cap)}</div>
+    ${explain}
   </div>`;
 }
 
