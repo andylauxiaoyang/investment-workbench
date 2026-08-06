@@ -318,9 +318,9 @@ const I18N = {
     dashHealth:"资产配置健康度", dashHealthHint:"各维度健康评分（0-100），进度条直观呈现强弱",
     dashFunnel:"投资决策漏斗", dashFunnelHint:"从候选池到买入决策的逐级转化，可编辑各级数量",
     dashSentiment:"市场情绪概览", dashSentimentHint:"恐贪指数与核心估值情绪指标快照",
-    dashFocus:"待办事项", dashFocusHint:"手动添加你的待办；后续满足条件会自动推送生成。勾选即标记完成",
-    dashFocusEmpty:"暂无待办事项，添加一条或等待条件自动推送 ✦",
-    dashFocusPending:"项待办", dashFocusAllDone:"全部完成 ✦", dashTodoAuto:"自动", dashTodoDue:"截止",
+    dashFocus:"待办事项", dashFocusHint:"满足条件时系统自动推送生成待办；无推送即表示当前无待办事项。也可手动添加，勾选标记完成",
+    dashFocusEmpty:"暂无待办事项 ✦ 无推送即表示当前无待办",
+    dashFocusPending:"项待办", dashFocusAllDone:"全部完成 ✦", dashTodoAuto:"自动", dashTodoDue:"截止", dashFocusClear:"清空待办",
     dashNews:"财经要闻", dashNewsHint:"手动收藏你关注的要闻；每日自动化也会把市场要闻推送至此（标「自动」）。点击标题可跳转原文", dashNewsEmpty:"暂无要闻，添加一条或等待自动推送 ✦",
     dashNewsSource:"来源", dashNewsDate:"日期", dashNewsUrl:"链接(可选)", dashNewsImp:"重要",
     dashNewsCat:"分类", dashNewsCatAll:"全部", newsCatMacro:"宏观政策", newsCatMarket:"市场动态", newsCatIndustry:"行业", newsCatCompany:"公司公告", newsCatOther:"其他",
@@ -541,10 +541,14 @@ let NEWS_UPDATED_AT = "";    // 自动要闻更新时间
 let newsFilter = "all";      // 财经要闻分类筛选（all/macro/market/industry/company/other）
 function loadState(){
   let s;
+  let dirty=false;
   try{ const r=localStorage.getItem(LS_MAIN); if(r){ s=JSON.parse(r); } }catch(e){}
   if(!s) s=defaultState();
   s.holdings = buildHoldings();   // 持仓始终以同步源为准，合并备注与自定义行
   if(!Array.isArray(s.news)) s.news=[];   // 财经要闻：兼容旧备份/导入
+  if(!Array.isArray(s.focus)) s.focus=[];  // 待办事项：兼容旧备份/导入
+  if(!s._focusCleared){ s.focus=[]; s._focusCleared=true; dirty=true; }  // 一次性清除旧「今日关注」虚拟种子
+  if(dirty) persist(s);
   return s;
 }
 // 以同步源（内存/文件内嵌）为基底，叠加用户备注与自定义行
@@ -736,7 +740,7 @@ function renderDashboard(){
 
   return `
   <div class="card" style="margin-bottom:16px">
-    <h3>${t('dashFocus')} <span class="tag ${pendingCount?'warn':''}">${pendingCount? pendingCount+' '+t('dashFocusPending') : t('dashFocusAllDone')}</span></h3>
+    <h3>${t('dashFocus')} <span class="tag ${pendingCount?'warn':''}">${pendingCount? pendingCount+' '+t('dashFocusPending') : t('dashFocusAllDone')}</span> ${focusList.length?`<button class="mini-btn" data-clearfoc="1" style="margin-left:auto">${t('dashFocusClear')}</button>`:''}</h3>
     <div class="hint">${t('dashFocusHint')}</div>
     ${focusHtml}
     <div class="row" style="margin-top:8px">
@@ -1177,6 +1181,7 @@ function onContentClick(e){
   if(tgt.dataset.foc!==undefined){ const i=+tgt.dataset.foc; state.focus[i].done=!state.focus[i].done; save(); renderActive(); return; }
   if(tgt.dataset.delfoc!==undefined){ const i=+tgt.dataset.delfoc; state.focus.splice(i,1); save(); renderActive(); return; }
   if(tgt.id==="addFocus"){ const inp=document.getElementById("focusInput"); const v=inp.value.trim(); if(v){ state.focus.unshift({text:v,done:false,source:"manual",createdAt:new Date().toISOString().slice(0,10)}); inp.value=""; save(); renderActive(); toast(t('toastAdded')); } return; }
+  if(tgt.dataset.clearfoc!==undefined){ if(confirm("确定清空所有待办事项？此操作不可撤销。")){ state.focus=[]; save(); renderActive(); toast(t('toastDeleted')); } return; }
   if(tgt.dataset.delnews!==undefined){ const i=+tgt.dataset.delnews; state.news.splice(i,1); save(); renderActive(); toast(t('toastDeleted')); return; }
   if(tgt.dataset.starnews!==undefined){ const i=+tgt.dataset.starnews; state.news[i].important=!state.news[i].important; save(); renderActive(); return; }
   if(tgt.dataset.clearnews!==undefined){ state.news=state.news.filter(n=>!n.sample); save(); renderActive(); toast(t('toastDeleted')); return; }
