@@ -95,6 +95,8 @@ a{color:var(--primary-d)}
 .kpi .delta{font-size:13px;font-weight:700}
 /* 持仓数值：强制单行不换行（兼容 Safari 匿名 flex 子项换行问题） */
 .hv{display:inline-block;white-space:nowrap}
+/* 持仓表格横向滚动（仅桌面端） */
+.hold-scroll{overflow-x:auto}
 /* 持仓头部：KPI 网格 + 按钮独立行 */
 .hold-kpis{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
 .hold-actions{flex-wrap:wrap;gap:8px}
@@ -250,17 +252,21 @@ td input:focus,td select:focus{outline:none;border-color:var(--primary)}
   .tbtn{padding:7px 10px;font-size:12px}
   .cols-2,.cols-3,.cols-4{grid-template-columns:1fr}
   .kpi .val{font-size:22px}
-  /* 持仓表：窄屏改卡片列表，避免 9 列数字挤压贴死 */
+  /* 持仓表：窄屏改卡片列表 */
+  .hold-scroll{overflow:visible}
   table.hold-table{min-width:0;border:0}
   table.hold-table thead{display:none}
   table.hold-table tr{display:block;border:1px solid var(--border);border-radius:14px;margin-bottom:14px;padding:2px 6px;background:var(--panel2)}
   table.hold-table tbody tr.synced{background:var(--panel2)}
   table.hold-table tfoot tr{background:var(--panel);border:1px solid var(--primary);font-weight:700}
-  table.hold-table td{display:flex;justify-content:space-between;align-items:center;gap:12px;border-bottom:1px solid var(--border);padding:9px 8px;text-align:right;white-space:nowrap}
+  table.hold-table td{display:flex;justify-content:space-between;align-items:center;gap:12px;border-bottom:1px solid var(--border);padding:9px 8px;text-align:right}
   table.hold-table td:last-child{border-bottom:none}
-  table.hold-table td::before{content:attr(data-label);color:var(--muted);font-size:12px;font-weight:600;text-align:left;flex:0 0 auto;margin-right:12px}
+  table.hold-table td::before{content:attr(data-label);color:var(--muted);font-size:12px;font-weight:600;text-align:left;flex:0 0 auto;margin-right:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:40%}
   table.hold-table td[data-label=""]::before{display:none}
   table.hold-table td[data-label=""]{justify-content:flex-end}
+  /* 数值强制不换行；长文本(名称/备注)可省略 */
+  table.hold-table td .hv,table.hold-table td.num{white-space:nowrap;flex:0 0 auto;min-width:0}
+  table.hold-table td:not(.num):not(:has(.hv)){word-break:break-all;line-height:1.4}
   table.hold-table td input,table.hold-table td select{width:auto;min-width:120px;flex:1 1 auto;max-width:62%;text-align:right;font-size:16px}
 }
 @media(min-width:821px){ .bottom-tab{display:none!important} }
@@ -1310,7 +1316,7 @@ function renderHoldings(){
       <button class="mini-btn" id="holdAdd">${t('holdAdd')}</button>
     </div>
     <div class="sync-bar">${syncLine}</div>
-    <div style="overflow-x:auto">
+    <div class="hold-scroll">
     <table class="hold-table">
       <thead><tr>
         <th>${t('holdName')}</th><th>${t('holdCode')}</th><th class="num">${t('holdCost')}</th>
