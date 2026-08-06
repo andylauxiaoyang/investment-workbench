@@ -764,6 +764,16 @@ function loadState(){
   const _today = todayStr();
   if(!lastNW || lastNW.d!==_today){ s.netWorth.push({d:_today, v:realTotalAsset()}); dirty=true; }
   if(!s.nwAnchor || s.nwAnchor > "2026-07-01"){ s.nwAnchor = "2026-07-01"; dirty=true; }  // 固定锚点：7月1日（旧的上周一锚点回拨到7/1）
+  // 宏观：兼容旧备份（新增 momentum 组 / 缺失 key）——避免 state.macro.momentum 为 undefined 导致渲染崩溃
+  const dm = defaultState().macro;
+  s.macro = s.macro || {};
+  ["money","pc","momentum"].forEach(g=>{
+    if(!Array.isArray(s.macro[g])){ s.macro[g] = dm[g].map(x=>({...x})); dirty=true; }
+    else {
+      const have = new Set(s.macro[g].map(x=>x && x.key));
+      dm[g].forEach(d=>{ if(!have.has(d.key)){ s.macro[g].push({...d}); dirty=true; } });
+    }
+  });
   if(dirty) persist(s);
   return s;
 }
