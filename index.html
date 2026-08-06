@@ -314,7 +314,7 @@ const I18N = {
     btn:{export:"导出备份",import:"导入恢复",clear:"清空",addHome:"添加到主屏"},
     /* dashboard */
     dashKpiTotal:"总资产(¥)", dashKpiProfit:"总浮动盈亏(¥)", dashKpiRate:"总收益率", dashKpiCount:"持仓数量",
-    dashGrowth:"净资产成长曲线（近5年）", dashGrowthHint:"按月记录真实净资产（¥）；默认展示近5年（60个月），末点为当前真实持仓总额。下方表格可逐月录入你的真实资产值",
+    dashGrowth:"净资产成长曲线（近5年）", dashGrowthHint:"近5年真实资产走势，末点=当前真实持仓总额，仅作曲线展示",
     dashHealth:"资产配置健康度", dashHealthHint:"各维度健康评分（0-100），进度条直观呈现强弱",
     dashFunnel:"投资决策漏斗", dashFunnelHint:"从候选池到买入决策的逐级转化，可编辑各级数量",
     dashSentiment:"市场情绪概览", dashSentimentHint:"恐贪指数与核心估值情绪指标快照",
@@ -613,7 +613,7 @@ function buildNetWorthSeries(end){
 /* ============== Charts (inline SVG) ============== */
 function fmtYuan(v){ return '¥'+Math.round(v).toLocaleString('en-US'); }
 function svgLine(data){
-  const w=560,h=260,pl=54,pr=14,pt=18,pb=34;
+  const w=560,h=240,pl=14,pr=12,pt=16,pb=16;
   const iw=w-pl-pr, ih=h-pt-pb;
   if(!data||data.length<2) return '<div class="muted" style="padding:30px;text-align:center">'+t('noData')+'</div>';
   const vals=data.map(d=>parseFloat(d.v)); let mn=Math.min(...vals), mx=Math.max(...vals);
@@ -621,22 +621,16 @@ function svgLine(data){
   const padR=(mx-mn)*0.12; mn-=padR; mx+=padR;
   const X=i=>pl+(iw*i/(data.length-1));
   const Y=v=>pt+ih-( (v-mn)/(mx-mn) )*ih;
+  // 仅保留极淡的参考网格线，无任何数字/月份/文字标注
   let g="";
-  for(let s=0;s<=4;s++){ const yy=pt+ih*s/4; const vv=(mx-(mx-mn)*s/4); g+=`<line x1="${pl}" y1="${yy}" x2="${w-pr}" y2="${yy}" stroke="var(--grid)" stroke-width="1"/>`;
-    g+=`<text x="${pl-6}" y="${yy+4}" text-anchor="end" font-size="10" fill="var(--muted)">${fmtYuan(vv)}</text>`; }
+  for(let s=1;s<=3;s++){ const yy=pt+ih*s/4; g+=`<line x1="${pl}" y1="${yy}" x2="${w-pr}" y2="${yy}" stroke="var(--grid)" stroke-width="1" opacity="0.5"/>`; }
   let pts=data.map((d,i)=>`${X(i).toFixed(1)},${Y(parseFloat(d.v)).toFixed(1)}`).join(" ");
   let area=`${pl},${pt+ih} `+pts+` ${w-pr},${pt+ih}`;
-  let dots="",labels="";
-  data.forEach((d,i)=>{ const isYear=(i===0)||(i===data.length-1)||(d.m.slice(5)==="01");
-    if(isYear){ labels+=`<text x="${X(i)}" y="${h-12}" text-anchor="middle" font-size="9.5" fill="var(--muted)">${d.m}</text>`;
-      dots+=`<circle cx="${X(i)}" cy="${Y(parseFloat(d.v))}" r="3" fill="var(--primary)"/>`; }
-    else { dots+=`<circle cx="${X(i)}" cy="${Y(parseFloat(d.v))}" r="1.6" fill="var(--primary)" opacity="0.45"/>`; } });
   return `<svg viewBox="0 0 ${w} ${h}" width="100%" preserveAspectRatio="xMidYMid meet" style="display:block">
     <defs><linearGradient id="lg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="var(--primary)" stop-opacity="0.28"/><stop offset="1" stop-color="var(--primary)" stop-opacity="0"/></linearGradient></defs>
     ${g}
     <polygon points="${area}" fill="url(#lg)"/>
     <polyline points="${pts}" fill="none" stroke="var(--primary)" stroke-width="2.5" stroke-linejoin="round"/>
-    ${dots}${labels}
   </svg>`;
 }
 function svgFunnel(stages){
@@ -789,17 +783,6 @@ function renderDashboard(){
       <h3>${t('dashGrowth')} <span class="tag">SVG</span></h3>
       <div class="hint">${t('dashGrowthHint')}</div>
       ${svgLine(state.netWorth)}
-      <table style="margin-top:10px">
-        <thead><tr><th>${t('month')}</th><th class="num">${t('netValue')}</th><th></th></tr></thead>
-        <tbody>
-        ${state.netWorth.map((d,i)=>`<tr>
-          <td><input data-bind="netWorth" data-i="${i}" data-f="m" value="${esc(d.m)}"></td>
-          <td class="num"><input data-bind="netWorth" data-i="${i}" data-f="v" value="${esc(d.v)}" style="text-align:right"></td>
-          <td class="num"><button class="icon-btn" data-del="netWorth" data-i="${i}"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg></button></td>
-        </tr>`).join("")}
-        </tbody>
-      </table>
-      <button class="mini-btn" data-add="netWorth">${t('addDataPoint')}</button>
     </div>
 
     <div class="card">
