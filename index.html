@@ -95,6 +95,9 @@ a{color:var(--primary-d)}
 .kpi .delta{font-size:13px;font-weight:700}
 /* 持仓数值：强制单行不换行（兼容 Safari 匿名 flex 子项换行问题） */
 .hv{display:inline-block;white-space:nowrap}
+/* 持仓头部：KPI 两列网格 + 按钮独立换行行，避免手机端横向滑动 */
+.hold-kpis{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+.hold-actions{flex-wrap:wrap;gap:8px}
 /* A股习惯：上涨/增加=红，下跌/减少=绿（与欧美相反）。仅用于收益/盈亏类数值 */
 .up{color:var(--danger)} .down{color:var(--success)}
 .muted{color:var(--muted)}
@@ -1290,9 +1293,11 @@ function renderHoldings(){
   <div class="card">
     <h3>${t('holdTitle')}</h3>
     <div class="hint">${t('holdHint')}</div>
-    <div class="row" style="margin-bottom:12px;align-items:center">
-      <div class="kpi" style="flex:1"><div class="label">${t('holdTotal')} · ${t('dashKpiTotal')}</div><div class="val">${money(totalMkt)}</div></div>
-      <div class="kpi" style="flex:1"><div class="label">${t('dashKpiProfit')}</div><div class="val ${profit>=0?'up':'down'}">${profit>=0?'+':''}${money(profit)}</div></div>
+    <div class="hold-kpis">
+      <div class="kpi"><div class="label">${t('holdTotal')} · ${t('dashKpiTotal')}</div><div class="val">${money(totalMkt)}</div></div>
+      <div class="kpi"><div class="label">${t('dashKpiProfit')}</div><div class="val ${profit>=0?'up':'down'}">${profit>=0?'+':''}${money(profit)}</div></div>
+    </div>
+    <div class="row hold-actions" style="margin-bottom:12px;align-items:center">
       <button class="mini-btn" id="holdCsv">${t('holdExportCsv')}</button>
       <button class="mini-btn primary" style="background:var(--primary);color:#fff" id="holdSync" title="本页仅重载已同步的持仓快照；要拉取天天基金最新净值，请在电脑运行 sync-holdings.js（每天10:00自动 / 或可手动运行）">${t('holdSyncBtn')}</button>
       <button class="mini-btn" id="holdAdd">${t('holdAdd')}</button>
