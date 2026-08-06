@@ -787,17 +787,14 @@ function computeAllocation(){
 }
 function svgPie(al){
   const total=al.total||0;
-  const dom=al.domMkt||0, ov=al.bucket["境外"]||0;
-  const segs=[];
-  if(dom>0) segs.push({pct:total>0?dom/total:0,color:"#3B82F6"});
-  if(ov>0)  segs.push({pct:total>0?ov/total:0, color:"#9DB4A0"});
-  const size=160,cx=80,cy=80,r=58,sw=22,C=2*Math.PI*r;
-  let off=0,arcs="";
-  if(total<=0){ arcs=`<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="#EAF1FE" stroke-width="${sw}"/>`; }
-  else if(segs.length===1){ arcs=`<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${segs[0].color}" stroke-width="${sw}"/>`; }
-  else { segs.forEach(s=>{ const len=s.pct*C; arcs+=`<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${s.color}" stroke-width="${sw}" stroke-dasharray="${len.toFixed(2)} ${(C-len).toFixed(2)}" stroke-dashoffset="${(-off).toFixed(2)}" transform="rotate(-90 ${cx} ${cy})"/>`; off+=len; }); }
-  const center=`<text x="${cx}" y="${cy-4}" text-anchor="middle" font-size="22" font-weight="800" fill="var(--text)">${al.domPct}%</text><text x="${cx}" y="${cy+16}" text-anchor="middle" font-size="11" fill="var(--muted)">国内资产占比</text>`;
-  return `<svg viewBox="0 0 ${size} ${size}" width="160" height="160" style="max-width:100%">${arcs}${center}</svg>`;
+  const colors={"国内权益":"#3B82F6","国内债券":"#14B8A6","国内货币":"#F59E0B","另类":"#8B5CF6","境外":"#9DB4A0"};
+  const segs=al.order.filter(k=>al.bucket[k]>0).map(k=>({k,v:al.bucket[k],pct:total>0?al.bucket[k]/total:0,color:colors[k]}));
+  const size=170,cx=85,cy=85,r=72;
+  let body="";
+  if(total<=0){ body=`<circle cx="${cx}" cy="${cy}" r="${r}" fill="#EAF1FE"/>`; }
+  else if(segs.length===1){ body=`<circle cx="${cx}" cy="${cy}" r="${r}" fill="${segs[0].color}"/>`; }
+  else { let ang=-Math.PI/2; segs.forEach(s=>{ const a1=ang+s.pct*2*Math.PI; const x0=cx+r*Math.cos(ang), y0=cy+r*Math.sin(ang); const x1=cx+r*Math.cos(a1), y1=cy+r*Math.sin(a1); const large=(a1-ang)>Math.PI?1:0; body+=`<path d="M ${cx} ${cy} L ${x0.toFixed(2)} ${y0.toFixed(2)} A ${r} ${r} 0 ${large} 1 ${x1.toFixed(2)} ${y1.toFixed(2)} Z" fill="${s.color}"/>`; ang=a1; }); }
+  return `<svg viewBox="0 0 ${size} ${size}" width="170" height="170" style="max-width:100%">${body}</svg>`;
 }
 // 今天日期 YYYY-MM-DD
 function todayStr(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
