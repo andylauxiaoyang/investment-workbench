@@ -475,7 +475,7 @@ function defaultState(){
       {name:"沪港深精选",code:"001875",cost:60000,market:54800,note:"港股承压"},
       {name:"中短债C",code:"003376",cost:80000,market:82600,note:"流动性"}
     ],
-    netWorth:[{m:"2026-08", v:realTotalAsset()}],
+    netWorth:[{d:todayStr(), v:realTotalAsset()}],
     _nwReal:true,
     health:[
       {label:"权益配置",zh:"权益配置",en:"Equity",value:72,target:"目标 60-75"},
@@ -540,17 +540,19 @@ let newsFilter = "all";      // 财经要闻分类筛选（all/macro/market/indu
 function loadState(){
   let s;
   let dirty=false;
-  const curYM = (new Date()).getFullYear()+'-'+String((new Date()).getMonth()+1).padStart(2,'0');
   try{ const r=localStorage.getItem(LS_MAIN); if(r){ s=JSON.parse(r); } }catch(e){}
   if(!s) s=defaultState();
   s.holdings = buildHoldings();   // 持仓始终以同步源为准，合并备注与自定义行
   if(!Array.isArray(s.news)) s.news=[];   // 财经要闻：兼容旧备份/导入
   if(!Array.isArray(s.focus)) s.focus=[];  // 待办事项：兼容旧备份/导入
   if(!s._focusCleared){ s.focus=[]; s._focusCleared=true; dirty=true; }  // 一次性清除旧「今日关注」虚拟种子
-  // 净资产曲线：真实累积（无历史则仅保留真实点，随月份自动追加）；_nwReal 标记区分已确认真实累积
-  if(!s._nwReal || !Array.isArray(s.netWorth)){ s.netWorth=[{m:curYM, v:realTotalAsset()}]; s._nwReal=true; dirty=true; }
+  // 净资产曲线：真实累积（无历史则仅保留真实点，随每天自动追加）；_nwReal 标记区分已确认真实累积
+  if(!s._nwReal || !Array.isArray(s.netWorth)){ s.netWorth=[{d:todayStr(), v:realTotalAsset()}]; s._nwReal=true; dirty=true; }
+  // 旧版月度点（含 m 无 d）迁移为日点
+  s.netWorth.forEach(p=>{ if(p && p.m!=null && p.d==null){ p.d=p.m+"-01"; delete p.m; } });
   const lastNW = s.netWorth[s.netWorth.length-1];
-  if(!lastNW || lastNW.m!==curYM){ s.netWorth.push({m:curYM, v:realTotalAsset()}); dirty=true; }
+  const _today = todayStr();
+  if(!lastNW || lastNW.d!==_today){ s.netWorth.push({d:_today, v:realTotalAsset()}); dirty=true; }
   if(dirty) persist(s);
   return s;
 }
@@ -593,15 +595,17 @@ function realTotalAsset(){
   const arr = (typeof SYNCED_HOLDINGS!=="undefined" && SYNCED_HOLDINGS.length) ? SYNCED_HOLDINGS : (MEM_SYNCED||[]);
   return arr.reduce((a,b)=>a+(parseFloat(b.market)||0),0) || 0;
 }
-// 净资产成长曲线：滚动5年窗口（固定60个月 [今天-5年, 今天]）；真实点填值，无记录月份填 null（留白）
+// 今天日期 YYYY-MM-DD
+function todayStr(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+// 净资产成长曲线：滚动5年窗口（每天1点 [今天-5年, 今天]）；真实点填值，无记录日填 null（留白）
 function netWorthWindow(realPoints){
-  const n=60;
-  const end=new Date(); end.setDate(1);
+  const days=365*5;
+  const end=new Date(); end.setHours(0,0,0,0);
+  const map={}; (realPoints||[]).forEach(p=>{ if(p && p.d!=null) map[p.d]=p.v; });
   const arr=[];
-  for(let i=n-1;i>=0;i--){ const d=new Date(end); d.setMonth(end.getMonth()-i);
-    const m=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
-    const hit=(realPoints||[]).find(p=>p && p.m===m);
-    arr.push(hit? {m, v:hit.v} : {m, v:null}); }
+  for(let i=days;i>=0;i--){ const d=new Date(end); d.setDate(end.getDate()-i);
+    const key=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+    arr.push(map[key]!=null? {d:key, v:map[key]} : {d:key, v:null}); }
   return arr;
 }
 
@@ -623,9 +627,12 @@ function svgLine(data){
   for(let s=0;s<=4;s++){ const yy=pt+ih*s/4; const vv=mx-(mx-mn)*s/4;
     g+=`<line x1="${pl}" y1="${yy}" x2="${w-pr}" y2="${yy}" stroke="var(--grid)" stroke-width="1"/>`;
     g+=`<text x="${pl-6}" y="${yy+4}" text-anchor="end" font-size="11" fill="var(--muted)">${fmtYuan(vv)}</text>`; }
-  // X轴年份标注（每年1月或首尾）
+  // X轴年份标注（每年一个刻度，含首尾）
   let labels="";
-  data.forEach((d,i)=>{ if(d && (i===0 || i===data.length-1 || d.m.slice(5)==="01")){ labels+=`<text x="${X(i)}" y="${h-10}" text-anchor="middle" font-size="11" fill="var(--muted)">${d.m.slice(0,4)}</text>`; } });
+  let lastYear=null;
+  data.forEach((d,i)=>{ if(d){ const yr=d.d.slice(0,4); if(i===0 || yr!==lastYear){ labels+=`<text x="${X(i)}" y="${h-10}" text-anchor="middle" font-size="11" fill="var(--muted)">${yr}</text>`; lastYear=yr; } } });
+  const li=data.length-1, ld=data[li];
+  if(ld && ld.d){ labels+=`<text x="${X(li)}" y="${h-24}" text-anchor="end" font-size="10" fill="var(--muted)">${ld.d.slice(5)}</text>`; }
   // 多段折线（跳过 null）
   let segs=[], cur=[];
   data.forEach((d,i)=>{ if(d && d.v!=null){ cur.push(i); } else { if(cur.length){segs.push(cur);cur=[];} } });
@@ -1246,7 +1253,7 @@ function syncNews(){
   }
 }
 function addItem(b){
-  if(b==="netWorth"){ const last=state.netWorth[state.netWorth.length-1]; const nm=last?incMonth(last.m):"2026-08"; state.netWorth.push({m:nm,v:last?last.v:100}); }
+  if(b==="netWorth"){ const last=state.netWorth[state.netWorth.length-1]; const nd=last?incDay(last.d):todayStr(); state.netWorth.push({d:nd, v:last?last.v:100}); }
   else if(b==="funnel"){ state.funnel.push({zh:"新层级",en:"New Stage",value:0}); }
   else if(b==="watch"){ state.watch.push({code:"",name:"",note:""}); }
   else if(b==="managers"){ state.managers.push({name:"",fund:"",note:""}); }
@@ -1255,6 +1262,7 @@ function addItem(b){
   save(); renderActive(); toast(t('toastAdded'));
 }
 function incMonth(ym){ const [y,m]=ym.split("-").map(Number); const nm=m===12?1:m+1; const ny=m===12?y+1:y; return ny+"-"+String(nm).padStart(2,"0"); }
+function incDay(dstr){ const d=new Date(dstr+"T00:00:00"); d.setDate(d.getDate()+1); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
 function addNewsFromForm(){
   const g=id=>{ const el=document.getElementById(id); return el?el.value:""; };
   const title=g("newsTitle").trim(), source=g("newsSource").trim(),
