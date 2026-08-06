@@ -461,6 +461,18 @@ const SYNCED_HOLDINGS = [
 ];
 /*__SYNC_HOLDINGS_END__*/
 
+/* 每日净资产点数据源：由每日 10:00 自动化（sync-networth.js）写入此标记块。
+ * 即使使用者当天未打开页面，10:00 自动化也会补上当日点，页面打开时合并进本地曲线。
+ * 不要手工修改标记块内部，交由 sync-networth.js 维护。 */
+/*__SYNC_NETWORTH_START__*/
+const SYNCED_NETWORTH = [
+  {
+    "d": "2026-08-06",
+    "v": 19424.95
+  }
+];
+/*__SYNC_NETWORTH_END__*/
+
 // 内存中的同步数据（部署版 fetch 成功后覆盖文件内嵌值）
 let MEM_SYNCED=null, MEM_SYNCED_AT=null;
 
@@ -551,6 +563,13 @@ function loadState(){
   if(!s._nwReal || !Array.isArray(s.netWorth)){ s.netWorth=[{d:todayStr(), v:realTotalAsset()}]; s._nwReal=true; dirty=true; }
   // 旧版月度点（含 m 无 d）迁移为日点
   s.netWorth.forEach(p=>{ if(p && p.m!=null && p.d==null){ p.d=p.m+"-01"; delete p.m; } });
+  // 合并每日自动化写入的净资产点（服务端权威，按日期去重覆盖）——即使当天未打开页面也累积
+  const syncedNW=(typeof SYNCED_NETWORTH!=="undefined" && Array.isArray(SYNCED_NETWORTH))?SYNCED_NETWORTH:[];
+  if(syncedNW.length){
+    const nmap={}; s.netWorth.forEach(p=>{ if(p&&p.d) nmap[p.d]=p; });
+    syncedNW.forEach(p=>{ if(p&&p.d) nmap[p.d]={d:p.d,v:p.v}; });
+    s.netWorth=Object.keys(nmap).sort().map(k=>nmap[k]); dirty=true;
+  }
   const lastNW = s.netWorth[s.netWorth.length-1];
   const _today = todayStr();
   if(!lastNW || lastNW.d!==_today){ s.netWorth.push({d:_today, v:realTotalAsset()}); dirty=true; }
