@@ -95,9 +95,16 @@ a{color:var(--primary-d)}
 .kpi .delta{font-size:13px;font-weight:700}
 /* 持仓数值：强制单行不换行（兼容 Safari 匿名 flex 子项换行问题） */
 .hv{display:inline-block;white-space:nowrap}
-/* 持仓头部：KPI 两列网格 + 按钮独立换行行，避免手机端横向滑动 */
+/* 持仓头部：KPI 网格 + 按钮独立行 */
 .hold-kpis{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
 .hold-actions{flex-wrap:wrap;gap:8px}
+/* 手机端：KPI 竖堆叠，内部左标签右数值横排 */
+@media(max-width:820px){
+  .hold-kpis{grid-template-columns:1fr;gap:8px}
+  .hold-kpis .kpi{flex-direction:row;justify-content:space-between;align-items:center;gap:8px}
+  .hold-kpis .kpi .label{font-size:12.5px;flex:0 0 auto}
+  .hold-kpis .kpi .val{font-size:20px;flex:0 0 auto}
+}
 /* A股习惯：上涨/增加=红，下跌/减少=绿（与欧美相反）。仅用于收益/盈亏类数值 */
 .up{color:var(--danger)} .down{color:var(--success)}
 .muted{color:var(--muted)}
