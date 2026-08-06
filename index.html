@@ -319,7 +319,6 @@ const I18N = {
     dashKpiTotal:"总资产(¥)", dashKpiProfit:"总浮动盈亏(¥)", dashKpiRate:"总收益率", dashKpiCount:"持仓数量",
     dashGrowth:"净资产成长曲线", dashGrowthHint:"真实每日净资产连线；末点=当前真实持仓总额；历史空白段留白", dashGrowthNoData:"暂无足够数据",
     dashHealth:"资产配置健康度", dashHealthHint:"各维度健康评分（0-100），进度条直观呈现强弱",
-    dashFunnel:"投资决策漏斗", dashFunnelHint:"从候选池到买入决策的逐级转化，可编辑各级数量",
     dashSentiment:"市场情绪概览", dashSentimentHint:"恐贪指数与核心估值情绪指标快照",
     dashFocus:"待办事项", dashFocusHint:"满足条件时系统自动推送生成待办；无推送即表示当前无待办事项。也可手动添加，勾选标记完成",
     dashFocusEmpty:"暂无待办事项 ✦ 无推送即表示当前无待办",
@@ -333,7 +332,7 @@ const I18N = {
     weight:"权重",
     overall:"综合健康度", month:"月份", netValue:"净资产(¥)",
     addRow:"+ 添加", del:"删除", save:"保存", cancel:"取消", confirm:"确认", close:"关闭",
-    addDataPoint:"+ 添加数据点", addStage:"+ 添加层级",
+    addDataPoint:"+ 添加数据点",
     /* holdings */
     holdTitle:"我的持仓", holdHint:"持仓数据每日 10:00 自动从天天基金（ttskill）同步；同步项只读，仅备注可改，另可手动添加自定义持仓",
     holdName:"名称", holdCode:"代码", holdCost:"成本(¥)", holdMarket:"市值(¥)", holdProfit:"浮动盈亏", holdRate:"收益率", holdNote:"备注",
@@ -384,7 +383,6 @@ const I18N = {
     dashKpiTotal:"Total Assets (¥)", dashKpiProfit:"Total P/L (¥)", dashKpiRate:"Total Return", dashKpiCount:"Holdings",
     dashGrowth:"Net Asset Growth Curve", dashGrowthHint:"Record monthly portfolio index (base=100). Edit data points below.",
     dashHealth:"Asset Allocation Health", dashHealthHint:"Health score per dimension (0-100), bars show strength",
-    dashFunnel:"Investment Decision Funnel", dashFunnelHint:"Candidates → buy decision, edit stage counts",
     dashSentiment:"Market Sentiment Overview", dashSentimentHint:"Fear & Greed and core valuation sentiment snapshot",
     dashFocus:"Today's Focus", dashFocusHint:"Reminders & to-dos needing action; tick to complete",
     dashFocusEmpty:"Nothing pending — market calm ✦",
@@ -397,7 +395,7 @@ const I18N = {
     weight:"Weight",
     overall:"Overall Health", month:"Month", netValue:"Index",
     addRow:"+ Add", del:"Delete", save:"Save", cancel:"Cancel", confirm:"Confirm", close:"Close",
-    addDataPoint:"+ Add point", addStage:"+ Add stage",
+    addDataPoint:"+ Add point",
     holdTitle:"My Holdings", holdHint:"Holdings auto-sync daily at 10:00 from TianTian Fund (ttskill); synced rows are read-only (notes editable), manual custom rows allowed",
     holdName:"Name", holdCode:"Code", holdCost:"Cost (¥)", holdMarket:"Value (¥)", holdProfit:"P/L", holdRate:"Return", holdNote:"Note",
     holdTotal:"Total", holdAdd:"+ Add custom", holdExportCsv:"Export CSV",
@@ -643,12 +641,6 @@ function defaultState(){
       {label:"现金类",zh:"现金类",en:"Cash",value:10,target:"目标 5-15"},
       {label:"集中度",zh:"集中度",en:"Concentration",value:80,target:"单基<40%"},
       {label:"流动性",zh:"流动性",en:"Liquidity",value:88,target:"可动用>8%"}
-    ],
-    funnel:[
-      {label:"候选标的",zh:"候选标的",en:"Candidates",value:120},
-      {label:"基本面合格",zh:"基本面合格",en:"Fundamentals OK",value:46},
-      {label:"估值合理",zh:"估值合理",en:"Fair Value",value:21},
-      {label:"买入候选",zh:"买入候选",en:"Buy Candidates",value:8}
     ],
     macro:{
       money:[ {key:"M2",value:"312.4"},{key:"SOFR",value:"4.38"},{key:"LPR1",value:"3.00"},
@@ -1084,20 +1076,6 @@ function renderDashboard(){
       </div>
     </div>
 
-    <div class="card">
-      <h3>${t('dashFunnel')} <span class="tag">SVG</span></h3>
-      <div class="hint">${t('dashFunnelHint')}</div>
-      ${svgFunnel(state.funnel)}
-      <div id="funnelEdit">
-      ${state.funnel.map((s,i)=>{ const lbl=lang==="zh"?s.zh:s.en; return `
-        <div class="funnel-tool">
-          <input value="${esc(lbl)}" data-bind="funnel" data-i="${i}" data-f="${lang==='zh'?'zh':'en'}">
-          <input class="v num" type="number" value="${esc(s.value)}" data-bind="funnel" data-i="${i}" data-f="value">
-          <button class="icon-btn" data-del="funnel" data-i="${i}"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg></button>
-        </div>`; }).join("")}
-      </div>
-      <button class="mini-btn" data-add="funnel">${t('addStage')}</button>
-    </div>
   </div>
 
   <div class="card" style="margin-bottom:16px">
@@ -1456,8 +1434,6 @@ function onFieldChange(e){
     const it=state.macro[g].find(x=>x.key===k); if(it) it.value=el.value;
   } else if(b==="sentiment"){
     const s=state.sentiment.find(x=>x.key===k); if(s) s.value=el.value;
-  } else if(b==="funnel"){
-    state.funnel[+i][f]=el.value;
   }
   save(); renderActive();
 }
@@ -1513,7 +1489,6 @@ function syncNews(){
 }
 function addItem(b){
   if(b==="netWorth"){ const last=state.netWorth[state.netWorth.length-1]; const nd=last?incDay(last.d):todayStr(); state.netWorth.push({d:nd, v:last?last.v:100}); }
-  else if(b==="funnel"){ state.funnel.push({zh:"新层级",en:"New Stage",value:0}); }
   else if(b==="watch"){ state.watch.push({code:"",name:"",note:""}); }
   else if(b==="managers"){ state.managers.push({name:"",fund:"",note:""}); }
   else if(b==="companies"){ state.companies.push({name:"",industry:"",moat:"",finance:"",valuation:"",mgmt:"",stage:"scr",note:""}); }
