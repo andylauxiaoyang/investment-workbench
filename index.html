@@ -91,7 +91,8 @@ a{color:var(--primary-d)}
 .kpi .label{color:var(--muted);font-size:13px}
 .kpi .val{font-size:26px;font-weight:800;letter-spacing:-.5px}
 .kpi .delta{font-size:13px;font-weight:700}
-.up{color:var(--success)} .down{color:var(--danger)}
+/* A股习惯：上涨/增加=红，下跌/减少=绿（与欧美相反）。仅用于收益/盈亏类数值 */
+.up{color:var(--danger)} .down{color:var(--success)}
 .muted{color:var(--muted)}
 .tag.auto{font-size:10px;font-weight:700;color:var(--primary-d);background:var(--primary-weak);padding:1px 6px;border-radius:6px;vertical-align:middle}
 .sync-bar{font-size:12px;margin:-4px 0 10px;padding:7px 10px;border:1px dashed var(--border);border-radius:8px;background:var(--panel2)}
@@ -828,7 +829,7 @@ function svgLine(data){
     // 仅 1 个真实点：画真实圆点 + ¥数值 + 日期，不连成线（等次日补点自动连线）
     const i=real[0].i, v=real[0].v, cx=X(i), cy=Y(v);
     markers=`<circle cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="5" fill="var(--primary)" stroke="#fff" stroke-width="2"/>`
-           +`<text x="${(cx+9).toFixed(1)}" y="${(cy-7).toFixed(1)}" font-size="12" font-weight="700" fill="var(--primary)">${fmtYuan(v)}</text>`
+           +`<text x="${(cx+9).toFixed(1)}" y="${(cy-7).toFixed(1)}" font-size="12" font-weight="700" fill="var(--text)">${fmtYuan(v)}</text>`
            +`<text x="${(cx+9).toFixed(1)}" y="${(cy+8).toFixed(1)}" font-size="10" fill="var(--muted)">${data[i].d.slice(5)}</text>`;
   }
   // 关键点数值标注：首点 / 末点 / 最高点 / 最低点（去重）
@@ -844,7 +845,11 @@ function svgLine(data){
       const ty = isMin ? cy+16 : cy-9;                 // 最低点标注放下方，避免压线
       const anchor = p.i===data.length-1 ? "end" : (p.i===0 ? "start" : "middle");
       const tx = p.i===data.length-1 ? cx-6 : (p.i===0 ? cx+6 : cx);
-      keyLabels+=`<text x="${tx.toFixed(1)}" y="${ty.toFixed(1)}" text-anchor="${anchor}" font-size="11" font-weight="700" fill="var(--primary)">${fmtYuan(p.v)}</text>`;
+      // A股习惯：较前一日涨=红、跌=绿；首点无前日则中性
+      const ri=real.indexOf(p); const prevV = ri>0 ? real[ri-1].v : null;
+      let col="var(--text)";
+      if(prevV!=null){ col = (p.v>prevV)?"var(--danger)":(p.v<prevV?"var(--success)":"var(--text)"); }
+      keyLabels+=`<text x="${tx.toFixed(1)}" y="${ty.toFixed(1)}" text-anchor="${anchor}" font-size="11" font-weight="700" fill="${col}">${fmtYuan(p.v)}</text>`;
     });
   }
   // 横竖坐标轴实线
@@ -1007,6 +1012,11 @@ function renderDashboard(){
     <h3>${t('dashGrowth')} <span class="tag">SVG</span></h3>
     <div class="hint">${t('dashGrowthHint')}</div>
     ${svgLine(netWorthWindow(state.netWorth))}
+    <div style="display:flex;gap:16px;align-items:center;margin-top:6px;font-size:12px;color:var(--muted)">
+      <span style="display:inline-flex;align-items:center;gap:5px"><i style="width:10px;height:10px;border-radius:50%;background:var(--danger);display:inline-block"></i>涨 / 增</span>
+      <span style="display:inline-flex;align-items:center;gap:5px"><i style="width:10px;height:10px;border-radius:50%;background:var(--success);display:inline-block"></i>跌 / 减</span>
+      <span style="margin-left:auto">红涨绿跌（A股习惯）</span>
+    </div>
   </div>
 
   <div class="grid cols-2" style="margin-bottom:16px">
