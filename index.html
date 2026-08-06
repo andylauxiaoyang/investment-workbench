@@ -645,7 +645,7 @@ function svgLine(data){
   const iw=w-pl-pr, ih=h-pt-pb;
   if(!data||data.length<2) return '<div class="muted" style="padding:30px;text-align:center">'+t('noData')+'</div>';
   const real = data.filter(d=>d && d.v!=null).map(d=>({i:data.indexOf(d), v:parseFloat(d.v)}));
-  if(real.length<2) return '<div class="muted" style="padding:42px;text-align:center">'+t('dashGrowthNoData')+'</div>';
+  if(real.length===0) return '<div class="muted" style="padding:42px;text-align:center">'+t('dashGrowthNoData')+'</div>';
   const vals=real.map(d=>d.v); let mn=Math.min(...vals), mx=Math.max(...vals);
   if(mn===mx){mn-=5;mx+=5;}
   const padR=(mx-mn)*0.15; mn-=padR; mx+=padR;
@@ -672,13 +672,21 @@ function svgLine(data){
   let segs=[], cur=[];
   data.forEach((d,i)=>{ if(d && d.v!=null){ cur.push(i); } else { if(cur.length){segs.push(cur);cur=[];} } });
   if(cur.length) segs.push(cur);
-  let lines="", areas="";
-  segs.forEach(seg=>{
-    const pts=seg.map(i=>`${X(i).toFixed(1)},${Y(parseFloat(data[i].v)).toFixed(1)}`).join(" ");
-    const area=`${X(seg[0])},${pt+ih} `+pts+` ${X(seg[seg.length-1])},${pt+ih}`;
-    lines+=`<polyline points="${pts}" fill="none" stroke="var(--primary)" stroke-width="2.5" stroke-linejoin="round"/>`;
-    areas+=`<polygon points="${area}" fill="url(#lg)"/>`;
-  });
+  let lines="", areas="", markers="";
+  if(real.length>=2){
+    segs.forEach(seg=>{
+      const pts=seg.map(i=>`${X(i).toFixed(1)},${Y(parseFloat(data[i].v)).toFixed(1)}`).join(" ");
+      const area=`${X(seg[0])},${pt+ih} `+pts+` ${X(seg[seg.length-1])},${pt+ih}`;
+      lines+=`<polyline points="${pts}" fill="none" stroke="var(--primary)" stroke-width="2.5" stroke-linejoin="round"/>`;
+      areas+=`<polygon points="${area}" fill="url(#lg)"/>`;
+    });
+  } else if(real.length===1){
+    // 仅 1 个真实点：画真实圆点 + ¥数值 + 日期，不连成线（等次日补点自动连线）
+    const i=real[0].i, v=real[0].v, cx=X(i), cy=Y(v);
+    markers=`<circle cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="5" fill="var(--primary)" stroke="#fff" stroke-width="2"/>`
+           +`<text x="${(cx+9).toFixed(1)}" y="${(cy-7).toFixed(1)}" font-size="12" font-weight="700" fill="var(--primary)">${fmtYuan(v)}</text>`
+           +`<text x="${(cx+9).toFixed(1)}" y="${(cy+8).toFixed(1)}" font-size="10" fill="var(--muted)">${data[i].d.slice(5)}</text>`;
+  }
   // 横竖坐标轴实线
   const axis=`<line x1="${pl}" y1="${pt+ih}" x2="${w-pr}" y2="${pt+ih}" stroke="var(--muted)" stroke-width="1.2"/>`
             +`<line x1="${pl}" y1="${pt}" x2="${pl}" y2="${pt+ih}" stroke="var(--muted)" stroke-width="1.2"/>`;
@@ -687,7 +695,7 @@ function svgLine(data){
   if(segs.length && segs[0][0]>0){ const cx=X(Math.floor(segs[0][0]/2)); note=`<text x="${cx}" y="${pt+ih/2}" text-anchor="middle" font-size="12" fill="var(--muted)" opacity="0.85">无历史数据</text>`; }
   return `<svg viewBox="0 0 ${w} ${h}" width="100%" preserveAspectRatio="xMidYMid meet" style="display:block">
     <defs><linearGradient id="lg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="var(--primary)" stop-opacity="0.28"/><stop offset="1" stop-color="var(--primary)" stop-opacity="0"/></linearGradient></defs>
-    ${g}${axis}${areas}${lines}${labels}${note}
+    ${g}${axis}${areas}${lines}${markers}${labels}${note}
   </svg>`;
 }
 function svgFunnel(stages){
