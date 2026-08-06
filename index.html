@@ -314,7 +314,7 @@ const I18N = {
     btn:{export:"导出备份",import:"导入恢复",clear:"清空",addHome:"添加到主屏"},
     /* dashboard */
     dashKpiTotal:"总资产(¥)", dashKpiProfit:"总浮动盈亏(¥)", dashKpiRate:"总收益率", dashKpiCount:"持仓数量",
-    dashGrowth:"净资产成长曲线（从7月1日持续累积）", dashGrowthHint:"数据从7月1日持续记录、向后延伸（每天1个真实点）；跨度≤5年前不滚动，仅当>5年才滚动为近5年窗口；无记录日留白，随每天打开自动累积真实轨迹；末点=当前真实持仓总额", dashGrowthNoData:"暂无足够数据，将随每天打开自动累积真实资产轨迹",
+    dashGrowth:"净资产成长曲线", dashGrowthHint:"真实每日净资产连线；末点=当前真实持仓总额；历史空白段留白", dashGrowthNoData:"暂无足够数据",
     dashHealth:"资产配置健康度", dashHealthHint:"各维度健康评分（0-100），进度条直观呈现强弱",
     dashFunnel:"投资决策漏斗", dashFunnelHint:"从候选池到买入决策的逐级转化，可编辑各级数量",
     dashSentiment:"市场情绪概览", dashSentimentHint:"恐贪指数与核心估值情绪指标快照",
@@ -703,7 +703,7 @@ function loadState(){
   if(!Array.isArray(s.news)) s.news=[];   // 财经要闻：兼容旧备份/导入
   if(!Array.isArray(s.focus)) s.focus=[];  // 待办事项：兼容旧备份/导入
   if(!s._focusCleared){ s.focus=[]; s._focusCleared=true; dirty=true; }  // 一次性清除旧「今日关注」虚拟种子
-  // 净资产曲线：真实累积（无历史则仅保留真实点，随每天自动追加）；_nwReal 标记区分已确认真实累积
+  // 净资产曲线：以每日真实点为准，末点=当前真实持仓总额
   if(!s._nwReal || !Array.isArray(s.netWorth)){ s.netWorth=[{d:todayStr(), v:realTotalAsset()}]; s._nwReal=true; dirty=true; }
   // 旧版月度点（含 m 无 d）迁移为日点
   s.netWorth.forEach(p=>{ if(p && p.m!=null && p.d==null){ p.d=p.m+"-01"; delete p.m; } });
@@ -717,7 +717,7 @@ function loadState(){
   const lastNW = s.netWorth[s.netWorth.length-1];
   const _today = todayStr();
   if(!lastNW || lastNW.d!==_today){ s.netWorth.push({d:_today, v:realTotalAsset()}); dirty=true; }
-  if(!s.nwAnchor || s.nwAnchor > "2026-07-01"){ s.nwAnchor = "2026-07-01"; dirty=true; }  // 固定锚点：7月1日开始持续记录（不滚动；旧的上周一锚点回拨到7/1）
+  if(!s.nwAnchor || s.nwAnchor > "2026-07-01"){ s.nwAnchor = "2026-07-01"; dirty=true; }  // 固定锚点：7月1日（旧的上周一锚点回拨到7/1）
   if(dirty) persist(s);
   return s;
 }
@@ -755,7 +755,7 @@ function applyStaticI18n(){
   document.querySelectorAll("[data-i18n]").forEach(el=>{ el.textContent=t(el.getAttribute("data-i18n")); });
 }
 
-/* ============== 净资产成长曲线（真实资产 · 从上周一持续累积，>5年滚动） ============== */
+/* ============== 净资产成长曲线（真实资产 · 锚点7/1，>5年滚动） ============== */
 function realTotalAsset(){
   const arr = (typeof SYNCED_HOLDINGS!=="undefined" && SYNCED_HOLDINGS.length) ? SYNCED_HOLDINGS : (MEM_SYNCED||[]);
   return arr.reduce((a,b)=>a+(parseFloat(b.market)||0),0) || 0;
@@ -816,7 +816,7 @@ function svgLine(data){
   let segs=[], cur=[];
   data.forEach((d,i)=>{ if(d && d.v!=null){ cur.push(i); } else { if(cur.length){segs.push(cur);cur=[];} } });
   if(cur.length) segs.push(cur);
-  let lines="", areas="", markers="";
+  let lines="", areas="", markers="", keyLabels="";
   if(real.length>=2){
     segs.forEach(seg=>{
       const pts=seg.map(i=>`${X(i).toFixed(1)},${Y(parseFloat(data[i].v)).toFixed(1)}`).join(" ");
@@ -831,6 +831,22 @@ function svgLine(data){
            +`<text x="${(cx+9).toFixed(1)}" y="${(cy-7).toFixed(1)}" font-size="12" font-weight="700" fill="var(--primary)">${fmtYuan(v)}</text>`
            +`<text x="${(cx+9).toFixed(1)}" y="${(cy+8).toFixed(1)}" font-size="10" fill="var(--muted)">${data[i].d.slice(5)}</text>`;
   }
+  // 关键点数值标注：首点 / 末点 / 最高点 / 最低点（去重）
+  if(real.length>=2){
+    const seen=new Set(); const keys=[];
+    const firstP=real[0], lastP=real[real.length-1];
+    let maxP=real[0], minP=real[0];
+    real.forEach(p=>{ if(p.v>maxP.v)maxP=p; if(p.v<minP.v)minP=p; });
+    [firstP,lastP,maxP,minP].forEach(p=>{ if(p && !seen.has(p.i)){ seen.add(p.i); keys.push(p); } });
+    keys.forEach(p=>{
+      const cx=X(p.i), cy=Y(p.v);
+      const isMin=(p===minP);
+      const ty = isMin ? cy+16 : cy-9;                 // 最低点标注放下方，避免压线
+      const anchor = p.i===data.length-1 ? "end" : (p.i===0 ? "start" : "middle");
+      const tx = p.i===data.length-1 ? cx-6 : (p.i===0 ? cx+6 : cx);
+      keyLabels+=`<text x="${tx.toFixed(1)}" y="${ty.toFixed(1)}" text-anchor="${anchor}" font-size="11" font-weight="700" fill="var(--primary)">${fmtYuan(p.v)}</text>`;
+    });
+  }
   // 横竖坐标轴实线
   const axis=`<line x1="${pl}" y1="${pt+ih}" x2="${w-pr}" y2="${pt+ih}" stroke="var(--muted)" stroke-width="1.2"/>`
             +`<line x1="${pl}" y1="${pt}" x2="${pl}" y2="${pt+ih}" stroke="var(--muted)" stroke-width="1.2"/>`;
@@ -839,7 +855,7 @@ function svgLine(data){
   if(segs.length && segs[0][0]>0){ const cx=X(Math.floor(segs[0][0]/2)); note=`<text x="${cx}" y="${pt+ih/2}" text-anchor="middle" font-size="12" fill="var(--muted)" opacity="0.85">无历史数据</text>`; }
   return `<svg viewBox="0 0 ${w} ${h}" width="100%" preserveAspectRatio="xMidYMid meet" style="display:block">
     <defs><linearGradient id="lg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="var(--primary)" stop-opacity="0.28"/><stop offset="1" stop-color="var(--primary)" stop-opacity="0"/></linearGradient></defs>
-    ${g}${axis}${areas}${lines}${markers}${labels}${note}
+    ${g}${axis}${areas}${lines}${markers}${keyLabels}${labels}${note}
   </svg>`;
 }
 function svgFunnel(stages){
