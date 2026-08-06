@@ -794,15 +794,17 @@ function computeAllocation(){
   return {total,bucket,order,domMkt,domPct,ovPct,sorted,top1,hhi};
 }
 function svgPie(al){
-  const colors={"国内权益":"#3B82F6","国内债券":"#14B8A6","国内货币":"#F59E0B","另类":"#8B5CF6","境外":"#9DB4A0"};
   const total=al.total||0;
-  const segs=al.order.filter(k=>al.bucket[k]>0).map(k=>({k,v:al.bucket[k],pct:total>0?al.bucket[k]/total:0,color:colors[k]}));
+  const dom=al.domMkt||0, ov=al.bucket["境外"]||0;
+  const segs=[];
+  if(dom>0) segs.push({pct:total>0?dom/total:0,color:"#3B82F6"});
+  if(ov>0)  segs.push({pct:total>0?ov/total:0, color:"#9DB4A0"});
   const size=160,cx=80,cy=80,r=58,sw=22,C=2*Math.PI*r;
   let off=0,arcs="";
   if(total<=0){ arcs=`<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="#EAF1FE" stroke-width="${sw}"/>`; }
   else if(segs.length===1){ arcs=`<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${segs[0].color}" stroke-width="${sw}"/>`; }
   else { segs.forEach(s=>{ const len=s.pct*C; arcs+=`<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${s.color}" stroke-width="${sw}" stroke-dasharray="${len.toFixed(2)} ${(C-len).toFixed(2)}" stroke-dashoffset="${(-off).toFixed(2)}" transform="rotate(-90 ${cx} ${cy})"/>`; off+=len; }); }
-  const center=`<text x="${cx}" y="${cy-4}" text-anchor="middle" font-size="15" font-weight="800" fill="var(--text)">${fmtYuan(al.total)}</text><text x="${cx}" y="${cy+15}" text-anchor="middle" font-size="11" fill="var(--muted)">总市值</text>`;
+  const center=`<text x="${cx}" y="${cy-4}" text-anchor="middle" font-size="22" font-weight="800" fill="var(--text)">${al.domPct}%</text><text x="${cx}" y="${cy+16}" text-anchor="middle" font-size="11" fill="var(--muted)">国内资产占比</text>`;
   return `<svg viewBox="0 0 ${size} ${size}" width="160" height="160" style="max-width:100%">${arcs}${center}</svg>`;
 }
 // 今天日期 YYYY-MM-DD
@@ -1065,7 +1067,7 @@ function renderDashboard(){
 
   <div class="grid cols-2" style="margin-bottom:16px">
     <div class="card">
-      <h3>${t('dashHealth')} <span class="tag">国内 ${alloc.domPct}%</span></h3>
+      <h3>${t('dashHealth')} <span class="tag" style="color:${alloc.top1>40?'var(--danger)':'var(--success)'}">集中度 ${alloc.top1.toFixed(0)}%</span></h3>
       <div class="hint">${t('dashHealthHint')}</div>
       <div style="display:flex;gap:16px;align-items:center;flex-wrap:wrap">
         ${svgPie(alloc)}
@@ -1076,19 +1078,8 @@ function renderDashboard(){
           </div>`; }).join("")}
         </div>
       </div>
-      <div style="margin-top:14px">
-        <div style="font-size:12px;color:var(--muted);margin-bottom:5px">国内 / 境外 资产分布</div>
-        <div style="display:flex;height:24px;border-radius:8px;overflow:hidden;background:var(--track)">
-          <div style="width:${alloc.domPct}%;background:#3B82F6;display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;font-weight:700">${alloc.domPct>8?alloc.domPct+'%':''}</div>
-          <div style="width:${alloc.ovPct}%;background:#9DB4A0;display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;font-weight:700">${alloc.ovPct>8?alloc.ovPct+'%':''}</div>
-        </div>
-        <div style="display:flex;justify-content:space-between;font-size:12px;margin-top:5px">
-          <span style="color:#3B82F6;font-weight:600">国内 ${fmtYuan(alloc.domMkt)}（${alloc.domPct}%）</span>
-          <span style="color:#5f8a6e;font-weight:600">境外 ${fmtYuan(alloc.bucket["境外"]||0)}（${alloc.ovPct}%）</span>
-        </div>
-      </div>
       <div style="margin-top:12px;font-size:12.5px;color:var(--muted);line-height:1.7">
-        <div>总市值 <b style="color:var(--text)">${fmtYuan(alloc.total)}</b></div>
+        <div>总市值 <b style="color:var(--text)">${fmtYuan(alloc.total)}</b>　|　国内 <b style="color:#3B82F6">${fmtYuan(alloc.domMkt)}</b>（${alloc.domPct}%）　|　境外 <b style="color:#5f8a6e">${fmtYuan(alloc.bucket["境外"]||0)}</b>（${alloc.ovPct}%）</div>
         <div style="margin-top:6px">单基最大占比 <b style="color:${alloc.top1>40?'var(--danger)':'var(--success)'}">${alloc.top1.toFixed(1)}%</b>${alloc.top1>40?'（偏高，建议&lt;40%）':''}　|　HHI <b style="color:var(--text)">${Math.round(alloc.hhi)}</b></div>
       </div>
     </div>
