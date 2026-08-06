@@ -763,6 +763,48 @@ function realTotalAsset(){
   const arr = (typeof SYNCED_HOLDINGS!=="undefined" && SYNCED_HOLDINGS.length) ? SYNCED_HOLDINGS : (MEM_SYNCED||[]);
   return arr.reduce((a,b)=>a+(parseFloat(b.market)||0),0) || 0;
 }
+// 资产配置自动归类（底层资产地：QDII投海外=境外）；返回 {cls}
+const CODE_CLASS={"012920":{cls:"境外"}};
+function classifyFund(h){
+  if(h && CODE_CLASS[h.code]) return CODE_CLASS[h.code];
+  const n=(h && h.name || "").toUpperCase();
+  if(/QDII|全球|海外|纳斯达克|标普|道琼斯|美元|港股|HK|SP500|境外|国际|环球/.test(n)) return {cls:"境外"};
+  if(/债券|转债|信用|国债|企业债|债基/.test(n)) return {cls:"国内债券"};
+  if(/货币|理财|活期宝|现金|钱包|余额|货基/.test(n)) return {cls:"国内货币"};
+  if(/黄金|商品|原油|大宗|REITs|不动产|另类/.test(n)) return {cls:"另类"};
+  return {cls:"国内权益"};
+}
+function getSyncedHoldings(){
+  const arr=(MEM_SYNCED && MEM_SYNCED.length) ? MEM_SYNCED
+           : (typeof SYNCED_HOLDINGS!=="undefined" && SYNCED_HOLDINGS.length) ? SYNCED_HOLDINGS : [];
+  return (arr||[]).filter(x=>x && (parseFloat(x.market)||0)>0);
+}
+function computeAllocation(){
+  const hs=getSyncedHoldings();
+  const order=["国内权益","国内债券","国内货币","另类","境外"];
+  const bucket={}; order.forEach(k=>bucket[k]=0);
+  let total=0;
+  hs.forEach(h=>{ const m=parseFloat(h.market)||0; if(m<=0) return; total+=m; const c=classifyFund(h).cls; bucket[c]=(bucket[c]||0)+m; });
+  const domMkt=total-(bucket["境外"]||0);
+  const domPct=total>0?Math.round(domMkt/total*100):0;
+  const ovPct=total>0?Math.round((bucket["境外"]||0)/total*100):0;
+  const sorted=hs.map(h=>({code:h.code,name:h.name,mkt:parseFloat(h.market)||0})).sort((a,b)=>b.mkt-a.mkt);
+  const top1=sorted.length?sorted[0].mkt/total*100:0;
+  const hhi=total>0?hs.reduce((a,h)=>{ const p=(parseFloat(h.market)||0)/total; return a+p*p; },0)*10000:0;
+  return {total,bucket,order,domMkt,domPct,ovPct,sorted,top1,hhi};
+}
+function svgPie(al){
+  const colors={"国内权益":"#3B82F6","国内债券":"#14B8A6","国内货币":"#F59E0B","另类":"#8B5CF6","境外":"#94A3B8"};
+  const total=al.total||0;
+  const segs=al.order.filter(k=>al.bucket[k]>0).map(k=>({k,v:al.bucket[k],pct:total>0?al.bucket[k]/total:0,color:colors[k]}));
+  const size=160,cx=80,cy=80,r=58,sw=22,C=2*Math.PI*r;
+  let off=0,arcs="";
+  if(total<=0){ arcs=`<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="#ECECEC" stroke-width="${sw}"/>`; }
+  else if(segs.length===1){ arcs=`<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${segs[0].color}" stroke-width="${sw}"/>`; }
+  else { segs.forEach(s=>{ const len=s.pct*C; arcs+=`<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${s.color}" stroke-width="${sw}" stroke-dasharray="${len.toFixed(2)} ${(C-len).toFixed(2)}" stroke-dashoffset="${(-off).toFixed(2)}" transform="rotate(-90 ${cx} ${cy})"/>`; off+=len; }); }
+  const center=`<text x="${cx}" y="${cy-4}" text-anchor="middle" font-size="22" font-weight="800" fill="var(--text)">${al.domPct}%</text><text x="${cx}" y="${cy+16}" text-anchor="middle" font-size="11" fill="var(--muted)">国内资产占比</text>`;
+  return `<svg viewBox="0 0 ${size} ${size}" width="160" height="160" style="max-width:100%">${arcs}${center}</svg>`;
+}
 // 今天日期 YYYY-MM-DD
 function todayStr(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
 // 上周一（固定锚点：本周一减7天）
@@ -969,8 +1011,8 @@ function renderDashboard(){
   const totalMkt=h.reduce((a,b)=>a+(parseFloat(b.market)||0),0);
   const profit=totalMkt-totalCost;
   const rate= totalCost>0 ? (profit/totalCost*100) : 0;
-  // health overall
-  const avgH=Math.round(state.health.reduce((a,b)=>a+(parseFloat(b.value)||0),0)/state.health.length);
+  // 资产配置：真实持仓自动归类（国内/境外 + 大类）
+  const alloc=computeAllocation();
   // sentiment snapshot: fear&greed + Buffett + Graham gauges
   const fg=state.sentiment.find(s=>s.key==="fearGreed");
   const bf=state.sentiment.find(s=>s.key==="buffett");
@@ -1023,14 +1065,22 @@ function renderDashboard(){
 
   <div class="grid cols-2" style="margin-bottom:16px">
     <div class="card">
-      <h3>${t('dashHealth')} <span class="tag">${t('overall')} ${avgH}</span></h3>
+      <h3>${t('dashHealth')} <span class="tag">国内 ${alloc.domPct}%</span></h3>
       <div class="hint">${t('dashHealthHint')}</div>
-      ${state.health.map((x,i)=>{ const lbl=lang==="zh"?x.zh:x.en; return `
-        <div class="health-row">
-          <div class="top"><span>${esc(lbl)}</span><b>${x.value}<span style="color:var(--muted);font-weight:400;font-size:11px"> ${esc(x.target||'')}</span></b></div>
-          <div class="pbar"><i style="width:${Math.max(2,Math.min(100,x.value))}%"></i></div>
-          <input type="range" min="0" max="100" value="${x.value}" data-bind="health" data-i="${i}" data-f="value" style="width:100%;accent-color:var(--primary)">
-        </div>`; }).join("")}
+      <div style="display:flex;gap:16px;align-items:center;flex-wrap:wrap">
+        ${svgPie(alloc)}
+        <div style="flex:1;min-width:180px">
+          ${alloc.order.filter(k=>alloc.bucket[k]>0).map(k=>{ const v=alloc.bucket[k]; const p=alloc.total>0?Math.round(v/alloc.total*100):0; const dot={"国内权益":"#3B82F6","国内债券":"#14B8A6","国内货币":"#F59E0B","另类":"#8B5CF6","境外":"#94A3B8"}[k]; return `
+          <div class="health-row">
+            <div class="top"><span><i style="width:9px;height:9px;border-radius:50%;background:${dot};display:inline-block;margin-right:6px"></i>${k}</span><b>${fmtYuan(v)}<span style="color:var(--muted);font-weight:400;font-size:11px"> ${p}%</span></b></div>
+            <div class="pbar"><i style="width:${Math.max(2,p)}%;background:${dot}"></i></div>
+          </div>`; }).join("")}
+        </div>
+      </div>
+      <div style="margin-top:12px;font-size:12.5px;color:var(--muted);line-height:1.7">
+        <div>总市值 <b style="color:var(--text)">${fmtYuan(alloc.total)}</b>　|　国内 <b style="color:var(--text)">${fmtYuan(alloc.domMkt)}</b>（${alloc.domPct}%）　|　境外 <b style="color:var(--text)">${fmtYuan(alloc.bucket["境外"]||0)}</b>（${alloc.ovPct}%）</div>
+        <div style="margin-top:6px">单基最大占比 <b style="color:${alloc.top1>40?'var(--danger)':'var(--success)'}">${alloc.top1.toFixed(1)}%</b>${alloc.top1>40?'（偏高，建议&lt;40%）':''}　|　HHI <b style="color:var(--text)">${Math.round(alloc.hhi)}</b></div>
+      </div>
     </div>
 
     <div class="card">
@@ -1375,17 +1425,12 @@ function bindEvents(){
 
 function onFieldInput(e){
   const el=e.target;
-  // live, focus-safe update only for the health sliders (avg header text only)
-  if(el.dataset.bind==="health" && el.type==="range"){
-    state.health[+el.dataset.i].value=+el.value; save(); updateHealthHeader();
-  }
+  // 资产配置已改为自动计算（真实持仓归类），无手动滑块输入
 }
 function updateHealthHeader(){
-  const avgH=Math.round(state.health.reduce((a,b)=>a+(parseFloat(b.value)||0),0)/state.health.length);
-  const tag=document.querySelector('#view-dashboard .card .tag');
-  // find health card tag
+  const alloc=computeAllocation();
   const cards=document.querySelectorAll('#view-dashboard .card');
-  cards.forEach(c=>{ const h3=c.querySelector('h3'); if(h3 && h3.textContent.includes(t('dashHealth'))){ const tg=h3.querySelector('.tag'); if(tg) tg.textContent=t('overall')+' '+avgH; } });
+  cards.forEach(c=>{ const h3=c.querySelector('h3'); if(h3 && h3.textContent.includes(t('dashHealth'))){ const tg=h3.querySelector('.tag'); if(tg) tg.textContent='国内 '+alloc.domPct+'%'; } });
 }
 function onFieldChange(e){
   const el=e.target;
@@ -1410,8 +1455,6 @@ function onFieldChange(e){
     const it=state.macro[g].find(x=>x.key===k); if(it) it.value=el.value;
   } else if(b==="sentiment"){
     const s=state.sentiment.find(x=>x.key===k); if(s) s.value=el.value;
-  } else if(b==="health"){
-    state.health[+i][f]=+el.value;
   } else if(b==="funnel"){
     state.funnel[+i][f]=el.value;
   }
