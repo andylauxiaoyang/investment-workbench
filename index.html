@@ -91,8 +91,10 @@ a{color:var(--primary-d)}
 .card .hint{color:var(--muted);font-size:12.5px;margin:-6px 0 12px}
 .kpi{display:flex;flex-direction:column;gap:4px}
 .kpi .label{color:var(--muted);font-size:13px}
-.kpi .val{font-size:26px;font-weight:800;letter-spacing:-.5px}
+.kpi .val{font-size:26px;font-weight:800;letter-spacing:-.5px;white-space:nowrap}
 .kpi .delta{font-size:13px;font-weight:700}
+/* 持仓数值：强制单行不换行（兼容 Safari 匿名 flex 子项换行问题） */
+.hv{display:inline-block;white-space:nowrap}
 /* A股习惯：上涨/增加=红，下跌/减少=绿（与欧美相反）。仅用于收益/盈亏类数值 */
 .up{color:var(--danger)} .down{color:var(--success)}
 .muted{color:var(--muted)}
@@ -1259,11 +1261,11 @@ function renderHoldings(){
       return `<tr class="synced">
         <td data-label="${L.name}">${esc(b.name)} <span class="tag auto">${t('holdAuto')}</span></td>
         <td data-label="${L.code}">${esc(b.code)}</td>
-        <td class="num" data-label="${L.cost}">${money(c)}</td>
-        <td class="num" data-label="${L.market}">${money(m)}</td>
-        <td class="num ${p>=0?'up':'down'}" data-label="${L.profit}">${p>=0?'+':''}${money(p)}</td>
-        <td class="num ${p>=0?'up':'down'}" data-label="${L.rate}">${(+b.profitRate||r).toFixed(1)}%</td>
-        <td class="num" data-label="${L.weight}">${w.toFixed(1)}%</td>
+        <td class="num" data-label="${L.cost}"><span class="hv">${money(c)}</span></td>
+        <td class="num" data-label="${L.market}"><span class="hv">${money(m)}</span></td>
+        <td class="num ${p>=0?'up':'down'}" data-label="${L.profit}"><span class="hv">${p>=0?'+':''}${money(p)}</span></td>
+        <td class="num ${p>=0?'up':'down'}" data-label="${L.rate}"><span class="hv">${(+b.profitRate||r).toFixed(1)}%</span></td>
+        <td class="num" data-label="${L.weight}"><span class="hv">${w.toFixed(1)}%</span></td>
         <td data-label="${L.note}"><input data-note-code="${esc(b.code)}" value="${esc(b.note)}" placeholder="—" style="min-width:90px"></td>
         <td data-label=""></td>
       </tr>`;
@@ -1273,9 +1275,9 @@ function renderHoldings(){
       <td data-label="${L.code}"><input data-bind="custom" data-i="${i}" data-f="code" value="${esc(b.code)}"></td>
       <td class="num" data-label="${L.cost}"><input type="number" data-bind="custom" data-i="${i}" data-f="cost" value="${esc(b.cost)}" style="text-align:right"></td>
       <td class="num" data-label="${L.market}"><input type="number" data-bind="custom" data-i="${i}" data-f="market" value="${esc(b.market)}" style="text-align:right"></td>
-      <td class="num ${p>=0?'up':'down'}" data-label="${L.profit}">${p>=0?'+':''}${money(p)}</td>
-      <td class="num ${p>=0?'up':'down'}" data-label="${L.rate}">${r.toFixed(1)}%</td>
-      <td class="num" data-label="${L.weight}">${w.toFixed(1)}%</td>
+        <td class="num ${p>=0?'up':'down'}" data-label="${L.profit}"><span class="hv">${p>=0?'+':''}${money(p)}</span></td>
+        <td class="num ${p>=0?'up':'down'}" data-label="${L.rate}"><span class="hv">${r.toFixed(1)}%</span></td>
+        <td class="num" data-label="${L.weight}"><span class="hv">${w.toFixed(1)}%</span></td>
       <td data-label="${L.note}"><input data-bind="custom" data-i="${i}" data-f="note" value="${esc(b.note)}" placeholder="—"></td>
       <td data-label=""><button class="icon-btn" data-del="custom" data-i="${i}" title="${t('del')}"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg></button></td>
     </tr>`;}).join("");
@@ -1305,8 +1307,8 @@ function renderHoldings(){
       </tr></thead>
       <tbody>${rows}</tbody>
       <tfoot><tr style="font-weight:700">
-        <td data-label="">${t('holdTotal')}</td><td data-label=""></td><td class="num" data-label="${L.cost}">${money(totalCost)}</td><td class="num" data-label="${L.market}">${money(totalMkt)}</td>
-        <td class="num ${profit>=0?'up':'down'}" data-label="${L.profit}">${profit>=0?'+':''}${money(profit)}</td><td class="num ${profit>=0?'up':'down'}" data-label="${L.rate}">${totalCost>0?(profit/totalCost*100).toFixed(1):0}%</td><td class="num" data-label="${L.weight}">100%</td><td data-label=""></td><td data-label=""></td>
+        <td data-label="">${t('holdTotal')}</td><td data-label=""></td>        <td class="num" data-label="${L.cost}"><span class="hv">${money(totalCost)}</span></td><td class="num" data-label="${L.market}"><span class="hv">${money(totalMkt)}</span></td>
+        <td class="num ${profit>=0?'up':'down'}" data-label="${L.profit}"><span class="hv">${profit>=0?'+':''}${money(profit)}</span></td><td class="num ${profit>=0?'up':'down'}" data-label="${L.rate}"><span class="hv">${totalCost>0?(profit/totalCost*100).toFixed(1):0}%</span></td><td class="num" data-label="${L.weight}"><span class="hv">100%</span></td><td data-label=""></td><td data-label=""></td>
       </tr></tfoot>
     </table>
     </div>
