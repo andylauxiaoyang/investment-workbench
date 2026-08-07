@@ -427,10 +427,13 @@ const I18N = {
       cheap:"低估",low:"偏低",fair:"合理",high:"偏高",exp:"偏高/高估",rich:"高估",
       over:"过热"},
     /* research */
-    resWatch:"我的关注基金", resWatchHint:"持续跟踪的基金标的与观察要点",
-    resManager:"基金经理", resManagerHint:"重点基金经理与在管产品备注",
-    resCompany:"公司分析", resCompanyHint:"候选公司与基本面研究卡片",
-    resFunnel:"公司筛选漏斗", resFunnelHint:"按研究阶段统计公司在池中的转化漏斗",
+    resWatch:"指数估值温度计", resWatchHint:"各宽基/行业指数 PE 历史百分位，低估(绿)/正常(黄)/高估(红)",
+    resManager:"基金净值与回撤", resManagerHint:"关注基金净值 vs 业绩基准，含水下回撤曲线",
+    resCompany:"", resCompanyHint:"",
+    resFunnel:"", resFunnelHint:"",
+    idxName:"指数名称", idxCode:"代码", idxPe:"PE", idxPb:"PB", idxPct:"历史分位%", idxSeries:"PE历史(CSV)",
+    idxLow:"低估", idxMid:"正常", idxHigh:"高估", addIdx:"+ 添加指数",
+    fundName:"基金名称", fundCode:"代码", fundNav:"净值历史", fundBench:"业绩基准", fundNeedBoth:"需同时填写净值与基准(CSV等长)才能画对比", addFund:"+ 添加基金",
     resStages:{scr:"初筛池",fin:"财务优质",val:"估值合理",moat:"护城河深",buy:"买入候选"},
     rName:"公司", rIndustry:"所处行业", rMoat:"护城河", rFinance:"财务指标", rValuation:"估值", rMgmt:"管理层", rStage:"阶段", rNote:"研究笔记",
     wCode:"代码", wName:"名称", wNote:"关注要点", mName:"经理", mFund:"代表产品", mNote:"备注",
@@ -489,10 +492,13 @@ const I18N = {
     sentFear:"Fear & Greed", zone:{ef:"Extreme Fear",f:"Fear",n:"Neutral",g:"Greed",eg:"Extreme Greed",
       cheap:"Undervalued",low:"Low",fair:"Fair",high:"High",exp:"Elevated",rich:"Overvalued",
       over:"Overheated"},
-    resWatch:"Watched Funds", resWatchHint:"Funds tracked with observation notes",
-    resManager:"Fund Managers", resManagerHint:"Key managers and products notes",
-    resCompany:"Company Analysis", resCompanyHint:"Candidate companies and fundamentals",
-    resFunnel:"Company Screening Funnel", resFunnelHint:"Companies by research stage",
+    resWatch:"Index Valuation Thermometer", resWatchHint:"PE historical percentile per index; undervalued(green)/normal(amber)/overvalued(red)",
+    resManager:"Fund NAV & Drawdown", resManagerHint:"Tracked funds NAV vs benchmark, with underwater drawdown chart",
+    resCompany:"", resCompanyHint:"",
+    resFunnel:"", resFunnelHint:"",
+    idxName:"Index", idxCode:"Code", idxPe:"PE", idxPb:"PB", idxPct:"Percentile%", idxSeries:"PE history (CSV)",
+    idxLow:"Undervalued", idxMid:"Normal", idxHigh:"Overvalued", addIdx:"+ Add index",
+    fundName:"Fund", fundCode:"Code", fundNav:"NAV history", fundBench:"Benchmark", fundNeedBoth:"Fill both NAV and benchmark (equal-length CSV) to compare", addFund:"+ Add fund",
     resStages:{scr:"Screening",fin:"Sound Finance",val:"Fair Valuation",moat:"Wide Moat",buy:"Buy Candidate"},
     rName:"Company", rIndustry:"Industry", rMoat:"Moat", rFinance:"Financials", rValuation:"Valuation", rMgmt:"Management", rStage:"Stage", rNote:"Notes",
     wCode:"Code", wName:"Name", wNote:"Notes", mName:"Manager", mFund:"Fund", mNote:"Notes",
@@ -727,7 +733,7 @@ const SYNCED_MOMENTUM = {"syncedAt": "2026-08-07T15:40:17", "bondEquity": {"valu
 /*__SYNCED_MOMENTUM_END__*/
 
 // 版本号：每次部署 bump 此值，并同步更新 version.json；旧版 HTML 检测到远程版本更新会弹横幅提示刷新
-const APP_VER = "20260807.10";
+const APP_VER = "20260807.11";
 
 // 内存中的同步数据（部署版 fetch 成功后覆盖文件内嵌值）
 let MEM_SYNCED=null, MEM_SYNCED_AT=null;
@@ -772,15 +778,15 @@ function defaultState(){
       {key:"marginBal",value:7.8,min:0,max:12},
       {key:"marginBuy",value:8.4,min:0,max:15}
     ],
-    watch:[ {code:"160422",name:"稳健混合A",note:"定投双机制，CAP 10万"},
-      {code:"001875",name:"沪港深精选",note:"等港股企稳加仓"},
-      {code:"012348",name:"量化中性",note:"对冲底仓观察"} ],
-    managers:[ {name:"张坤",fund:"易方达蓝筹",note:"长期持有，白酒仓位重"},
-      {name:"谢治宇",fund:"兴全合宜",note:"均衡风格"} ],
-    companies:[
-      {name:"贵州茅台",industry:"白酒",moat:"品牌+心智",finance:"高ROE高现金流",valuation:"PE 22 合理",mgmt:"治理稳健",stage:"买入候选",note:"确定性溢价"},
-      {name:"宁德时代",industry:"动力电池",moat:"技术+规模",finance:"高毛利承压",valuation:"PE 18 偏低",mgmt:"扩张激进",stage:"估值合理",note:"等待格局清晰"},
-      {name:"招商银行",industry:"银行",moat:"零售护城河",finance:"高拨备",valuation:"PE 6 低估",mgmt:"稳健",stage:"财务优质",note:"高股息"}
+    indices:[
+      {code:"000300",name:"沪深300",pe:12.3,pb:1.42,pct:28,peSeries:""},
+      {code:"000905",name:"中证500",pe:22.1,pb:1.78,pct:45,peSeries:""},
+      {code:"399006",name:"创业板指",pe:45.2,pb:4.10,pct:82,peSeries:""},
+      {code:"000922",name:"中证红利",pe:7.8,pb:0.92,pct:22,peSeries:""}
+    ],
+    funds:[
+      {code:"012920",name:"易方达全球成长精选",nav:_genSeries(60,1.0,0.0009,0.020,11).join(","),bench:_genSeries(60,1.0,0.0006,0.015,22).join(",")},
+      {code:"160422",name:"稳健混合A",nav:_genSeries(60,1.0,0.0003,0.025,33).join(","),bench:_genSeries(60,1.0,0.0006,0.015,22).join(",")}
     ],
     tools:[
       {name:"网格交易 grid",desc:"波动区间内分批低买高卖，双机制补仓",note:"160422 回撤补+峰值补"},
@@ -825,7 +831,8 @@ function loadState(){
   if(!lastNW || lastNW.d!==_today){ s.netWorth.push({d:_today, v:realTotalAsset()}); dirty=true; }
   if(!s.nwAnchor || s.nwAnchor > "2026-07-01"){ s.nwAnchor = "2026-07-01"; dirty=true; }  // 固定锚点：7月1日（旧的上周一锚点回拨到7/1）
   // 宏观：兼容旧备份（新增 momentum 组 / 缺失 key）——避免 state.macro.momentum 为 undefined 导致渲染崩溃
-  const dm = defaultState().macro;
+  const ds = defaultState();
+  const dm = ds.macro;
   s.macro = s.macro || {};
   ["money","pc","momentum"].forEach(g=>{
     const defKeys = new Set(dm[g].map(x=>x.key));
@@ -839,6 +846,10 @@ function loadState(){
       dm[g].forEach(d=>{ if(!have.has(d.key)){ s.macro[g].push({...d}); dirty=true; } });
     }
   });
+  // 指数&基金模块重构（替代旧 watch/managers/companies）：新结构 indices/funds，丢弃旧结构
+  if(!Array.isArray(s.indices)){ s.indices = ds.indices.map(x=>({...x})); dirty=true; }
+  if(!Array.isArray(s.funds)){ s.funds = ds.funds.map(x=>({...x})); dirty=true; }
+  delete s.watch; delete s.managers; delete s.companies;
   if(dirty) persist(s);
   return s;
 }
@@ -1776,80 +1787,133 @@ function renderSentiment(){
   </div>`;
 }
 
+// ===== 指数&基金模块 helper =====
+function _lcg(seed){ let s=(seed>>>0)||1; return ()=>{ s=(s*1664525+1013904223)>>>0; return s/4294967296; }; }
+function _genSeries(n, start, drift, vol, seed){
+  const r=_lcg(seed); let v=start; const a=[];
+  for(let i=0;i<n;i++){ v = v*(1+drift) + (r()-0.5)*vol; if(v<0.01)v=0.01; a.push(Math.round(v*1000)/1000); }
+  return a;
+}
+function _parseNums(csv){ return String(csv||"").split(/[\s,;]+/).map(s=>parseFloat(s)).filter(x=>!isNaN(x)&&isFinite(x)); }
+function _idxPct(idx){
+  const arr=_parseNums(idx.peSeries), pe=parseFloat(idx.pe);
+  if(arr.length>=2 && pe>0){ let c=0; arr.forEach(x=>{ if(x<=pe)c++; }); return Math.round(c/arr.length*100); }
+  return Math.max(0,Math.min(100, parseFloat(idx.pct)||0));
+}
+function _verdict(pct){
+  if(pct<30) return {color:"#3B6D11", bg:"#EAF3DE", label:t('idxLow')};
+  if(pct<=70) return {color:"#854F0B", bg:"#FAEEDA", label:t('idxMid')};
+  return {color:"#A32D2D", bg:"#FCEBEB", label:t('idxHigh')};
+}
+function _thermoHtml(pct){
+  return `<div style="position:relative; height:10px; border-radius:5px; display:flex; overflow:hidden; margin:6px 0 8px;">
+    <div style="flex:3; background:#C0DD97;"></div><div style="flex:4; background:#FAC775;"></div><div style="flex:3; background:#F7C1C1;"></div>
+    <div style="position:absolute; top:-3px; bottom:-3px; left:${Math.max(0,Math.min(100,pct))}%; width:2px; background:#26215C;"></div>
+  </div>`;
+}
+function _navBenchSvg(navArr, benchArr){
+  const n=Math.min(navArr.length, benchArr.length); if(n<2) return "";
+  const W=680,H=210,padL=46,padR=14,padT=16,padB=22, pw=W-padL-padR, ph=H-padT-padB;
+  const nn=navArr.map(v=>v/navArr[0]*100), bb=benchArr.map(v=>v/benchArr[0]*100);
+  let vmin=Math.min.apply(null,nn.concat(bb)), vmax=Math.max.apply(null,nn.concat(bb));
+  const vp=(vmax-vmin)*0.1||1; vmin-=vp; vmax+=vp;
+  const X=i=>padL+i/(n-1)*pw, Y=v=>padT+(1-(v-vmin)/(vmax-vmin))*ph;
+  const mk=(arr,col)=>arr.map((v,i)=>(i?"L":"M")+X(i).toFixed(1)+" "+Y(v).toFixed(1)+" ").join("");
+  return `<svg viewBox="0 0 ${W} ${H}" width="100%" preserveAspectRatio="xMidYMid meet" style="display:block">
+    <rect x="${padL}" y="${padT}" width="${pw}" height="${ph}" rx="6" fill="var(--track)" opacity="0.10"/>
+    <path d="${mk(nn)}" fill="none" stroke="var(--danger)" stroke-width="2" stroke-linejoin="round"/>
+    <path d="${mk(bb)}" fill="none" stroke="var(--muted)" stroke-width="1.8" stroke-dasharray="5 4"/>
+    <text x="${padL}" y="${padT-3}" font-size="11" fill="var(--danger)" font-weight="700">● 净值(基=100)</text>
+    <text x="${padL+96}" y="${padT-3}" font-size="11" fill="var(--muted)" font-weight="700">┄ 基准(基=100)</text>
+  </svg>`;
+}
+function _drawdownSvg(arr){
+  const n=arr.length; if(n<2) return "";
+  let peak=-Infinity, dd=[]; arr.forEach(v=>{ if(v>peak)peak=v; dd.push(peak>0?(v-peak)/peak*100:0); });
+  let mn=Math.min.apply(null,dd); if(mn>0)mn=0;
+  const W=680,H=130,padL=46,padR=14,padT=12,padB=14, pw=W-padL-padR, ph=H-padT-padB;
+  const yMin=Math.floor(mn)-1, yMax=2;
+  const X=i=>padL+i/(n-1)*pw, Y=v=>padT+(1-(v-yMin)/(yMax-yMin))*ph;
+  let line="", area="M "+X(0).toFixed(1)+" "+Y(0).toFixed(1);
+  dd.forEach((v,i)=>{ line+=(i?"L":"M")+X(i).toFixed(1)+" "+Y(v).toFixed(1)+" "; area+=" L"+X(i).toFixed(1)+" "+Y(v).toFixed(1); });
+  area+=" L "+X(n-1).toFixed(1)+" "+Y(0).toFixed(1)+" Z";
+  const maxdd=Math.min.apply(null,dd);
+  return `<svg viewBox="0 0 ${W} ${H}" width="100%" preserveAspectRatio="xMidYMid meet" style="display:block">
+    <rect x="${padL}" y="${padT}" width="${pw}" height="${ph}" rx="6" fill="var(--track)" opacity="0.10"/>
+    <path d="${area}" fill="var(--danger)" opacity="0.16"/>
+    <path d="${line}" fill="none" stroke="var(--danger)" stroke-width="1.8"/>
+    <line x1="${padL}" y1="${Y(0).toFixed(1)}" x2="${padL+pw}" y2="${Y(0).toFixed(1)}" stroke="var(--muted)" stroke-width="1" stroke-dasharray="3 3" opacity="0.6"/>
+    <text x="${padL+pw}" y="${(Y(maxdd)-4).toFixed(1)}" text-anchor="end" font-size="11" font-weight="700" fill="var(--danger)">最大回撤 ${maxdd.toFixed(1)}%</text>
+  </svg>`;
+}
 function renderResearch(){
-  // company screening funnel from stages
-  const counts=[0,0,0,0,0];
-  state.companies.forEach(c=>{ const idx=["scr","fin","val","moat","buy"].indexOf(c.stage); if(idx>=0) for(let j=0;j<=idx;j++) counts[j]++; });
-  const funnelStages=[
-    {zh:t('resStages.scr'),en:t('resStages.scr'),value:counts[0]},
-    {zh:t('resStages.fin'),en:t('resStages.fin'),value:counts[1]},
-    {zh:t('resStages.val'),en:t('resStages.val'),value:counts[2]},
-    {zh:t('resStages.moat'),en:t('resStages.moat'),value:counts[3]},
-    {zh:t('resStages.buy'),en:t('resStages.buy'),value:counts[4]}
-  ];
-  const watchHtml=state.watch.map((w,i)=>`
-    <div class="item-card">
-      <div class="ic-head"><div class="ic-title">${esc(w.name)}</div>
-        <button class="icon-btn" data-del="watch" data-i="${i}"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg></button></div>
+  const idxHtml = state.indices.map((x,i)=>{
+    const pct=_idxPct(x), v=_verdict(pct);
+    const peStr = (x.pe!==undefined && x.pe!=="" && !isNaN(parseFloat(x.pe))) ? parseFloat(x.pe).toFixed(1) : "—";
+    return `<div class="item-card">
+      <div class="ic-head"><div class="ic-title">${esc(x.name||"未命名指数")}</div>
+        <button class="icon-btn" data-del="indices" data-i="${i}"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg></button></div>
       <div class="fgrid">
-        <div><label>${t('wCode')}</label><input data-bind="watch" data-i="${i}" data-f="code" value="${esc(w.code)}"></div>
-        <div><label>${t('wName')}</label><input data-bind="watch" data-i="${i}" data-f="name" value="${esc(w.name)}"></div>
-        <div style="grid-column:1/-1"><label>${t('wNote')}</label><input data-bind="watch" data-i="${i}" data-f="note" value="${esc(w.note)}"></div>
+        <div><label>${t('idxName')}</label><input data-bind="indices" data-i="${i}" data-f="name" value="${esc(x.name)}"></div>
+        <div><label>${t('idxCode')}</label><input data-bind="indices" data-i="${i}" data-f="code" value="${esc(x.code)}"></div>
+        <div><label>${t('idxPe')}</label><input type="number" step="0.01" data-bind="indices" data-i="${i}" data-f="pe" value="${esc(x.pe)}"></div>
+        <div><label>${t('idxPb')}</label><input type="number" step="0.01" data-bind="indices" data-i="${i}" data-f="pb" value="${esc(x.pb)}"></div>
+        <div><label>${t('idxPct')}</label><input type="number" step="1" data-bind="indices" data-i="${i}" data-f="pct" value="${esc(x.pct)}"></div>
+        <div style="grid-column:1/-1"><label>${t('idxSeries')}</label><textarea data-bind="indices" data-i="${i}" data-f="peSeries" rows="2" placeholder="粘贴PE历史(CSV)，留空则用上面手动分位">${esc(x.peSeries)}</textarea></div>
       </div>
-    </div>`).join("") || `<div class="muted" style="padding:14px">${t('noData')}</div>`;
-  const mgrHtml=state.managers.map((m,i)=>`
-    <div class="item-card">
-      <div class="ic-head"><div class="ic-title">${esc(m.name)}</div>
-        <button class="icon-btn" data-del="managers" data-i="${i}"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg></button></div>
+      <div style="margin-top:10px">
+        <div style="display:flex; justify-content:space-between; align-items:baseline; gap:8px">
+          <div style="font-size:22px; font-weight:500">${peStr}<span style="font-size:12px;color:var(--muted);font-weight:400"> PE</span>${x.pb?`<span style="font-size:12px;color:var(--muted);font-weight:400;margin-left:6px">PB ${parseFloat(x.pb).toFixed(2)}</span>`:""}</div>
+          <div style="font-size:12px;color:${v.color};font-weight:700;background:${v.bg};padding:2px 8px;border-radius:10px;white-space:nowrap">${v.label} · 分位 ${pct}%</div>
+        </div>
+        ${_thermoHtml(pct)}
+      </div>
+    </div>`;
+  }).join("") || `<div class="muted" style="padding:14px">${t('noData')}</div>`;
+
+  const fundHtml = state.funds.map((f,i)=>{
+    const nav=_parseNums(f.nav), bench=_parseNums(f.bench);
+    const hasNav = nav.length>=2, hasBench = bench.length>=2;
+    let stats="";
+    if(hasNav){
+      const r=(nav[nav.length-1]/nav[0]-1)*100;
+      let peak=-Infinity, maxdd=0; nav.forEach(v=>{ if(v>peak)peak=v; const d=(v-peak)/peak*100; if(d<maxdd)maxdd=d; });
+      const br = hasBench ? (bench[bench.length-1]/bench[0]-1)*100 : null;
+      const ex = r-(br==null?0:br);
+      stats = `<div style="display:flex;gap:14px;flex-wrap:wrap;margin:8px 0 4px;font-size:12px;color:var(--muted)">
+        <span>区间收益 <b style="color:var(--danger)">${r.toFixed(1)}%</b></span>
+        <span>最大回撤 <b style="color:var(--danger)">${maxdd.toFixed(1)}%</b></span>
+        ${br!=null?`<span>基准收益 <b>${br.toFixed(1)}%</b></span>`:""}
+        <span>超额 <b style="color:${ex>=0?'var(--danger)':'var(--success)'}">${ex>=0?'+':''}${ex.toFixed(1)}%</b></span>
+      </div>`;
+    }
+    return `<div class="item-card">
+      <div class="ic-head"><div class="ic-title">${esc(f.name||"未命名基金")}</div>
+        <button class="icon-btn" data-del="funds" data-i="${i}"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg></button></div>
       <div class="fgrid">
-        <div><label>${t('mName')}</label><input data-bind="managers" data-i="${i}" data-f="name" value="${esc(m.name)}"></div>
-        <div><label>${t('mFund')}</label><input data-bind="managers" data-i="${i}" data-f="fund" value="${esc(m.fund)}"></div>
-        <div style="grid-column:1/-1"><label>${t('mNote')}</label><input data-bind="managers" data-i="${i}" data-f="note" value="${esc(m.note)}"></div>
+        <div><label>${t('fundName')}</label><input data-bind="funds" data-i="${i}" data-f="name" value="${esc(f.name)}"></div>
+        <div><label>${t('fundCode')}</label><input data-bind="funds" data-i="${i}" data-f="code" value="${esc(f.code)}"></div>
+        <div style="grid-column:1/-1"><label>${t('fundNav')}</label><textarea data-bind="funds" data-i="${i}" data-f="nav" rows="2" placeholder="净值历史(CSV)，首值基准=100">${esc(f.nav)}</textarea></div>
+        <div style="grid-column:1/-1"><label>${t('fundBench')}</label><textarea data-bind="funds" data-i="${i}" data-f="bench" rows="2" placeholder="业绩基准历史(CSV)，与净值等长">${esc(f.bench)}</textarea></div>
       </div>
-    </div>`).join("") || `<div class="muted" style="padding:14px">${t('noData')}</div>`;
-  const compHtml=state.companies.map((c,i)=>`
-    <div class="item-card">
-      <div class="ic-head"><div class="ic-title">${esc(c.name)}</div>
-        <button class="icon-btn" data-del="companies" data-i="${i}"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg></button></div>
-      <div class="fgrid">
-        <div><label>${t('rName')}</label><input data-bind="companies" data-i="${i}" data-f="name" value="${esc(c.name)}"></div>
-        <div><label>${t('rIndustry')}</label><input data-bind="companies" data-i="${i}" data-f="industry" value="${esc(c.industry)}"></div>
-        <div><label>${t('rMoat')}</label><input data-bind="companies" data-i="${i}" data-f="moat" value="${esc(c.moat)}"></div>
-        <div><label>${t('rFinance')}</label><input data-bind="companies" data-i="${i}" data-f="finance" value="${esc(c.finance)}"></div>
-        <div><label>${t('rValuation')}</label><input data-bind="companies" data-i="${i}" data-f="valuation" value="${esc(c.valuation)}"></div>
-        <div><label>${t('rMgmt')}</label><input data-bind="companies" data-i="${i}" data-f="mgmt" value="${esc(c.mgmt)}"></div>
-        <div><label>${t('rStage')}</label><select data-bind="companies" data-i="${i}" data-f="stage">
-          ${["scr","fin","val","moat","buy"].map(s=>`<option value="${s}" ${c.stage===s?'selected':''}>${t('resStages.'+s)}</option>`).join("")}
-        </select></div>
-        <div style="grid-column:1/-1"><label>${t('rNote')}</label><textarea data-bind="companies" data-i="${i}" data-f="note">${esc(c.note)}</textarea></div>
-      </div>
-    </div>`).join("") || `<div class="muted" style="padding:14px">${t('noData')}</div>`;
+      ${stats}
+      ${ (hasNav&&hasBench)? _navBenchSvg(nav,bench) : (hasNav? `<div class="muted" style="padding:8px 0;font-size:12px">${t('fundNeedBoth')}</div>` : "") }
+      ${ hasNav? _drawdownSvg(nav) : "" }
+    </div>`;
+  }).join("") || `<div class="muted" style="padding:14px">${t('noData')}</div>`;
 
   return `
-  <div class="grid cols-2" style="margin-bottom:16px">
-    <div class="card">
-      <h3>${t('resWatch')}</h3>
-      <div class="hint">${t('resWatchHint')}</div>
-      ${watchHtml}
-      <button class="mini-btn primary" style="background:var(--primary);color:#fff" data-add="watch">${t('addWatch')}</button>
-    </div>
-    <div class="card">
-      <h3>${t('resManager')}</h3>
-      <div class="hint">${t('resManagerHint')}</div>
-      ${mgrHtml}
-      <button class="mini-btn primary" style="background:var(--primary);color:#fff" data-add="managers">${t('addManager')}</button>
-    </div>
-  </div>
   <div class="card" style="margin-bottom:16px">
-    <h3>${t('resFunnel')} <span class="tag">SVG</span></h3>
-    <div class="hint">${t('resFunnelHint')}</div>
-    ${svgFunnel(funnelStages)}
+    <h3>${t('resWatch')} <span class="tag">SVG</span></h3>
+    <div class="hint">${t('resWatchHint')}</div>
+    <div class="grid cols-2" style="margin-top:8px">${idxHtml}</div>
+    <button class="mini-btn primary" style="background:var(--primary);color:#fff" data-add="indices">${t('addIdx')}</button>
   </div>
   <div class="card">
-    <h3>${t('resCompany')}</h3>
-    <div class="hint">${t('resCompanyHint')}</div>
-    ${compHtml}
-    <button class="mini-btn primary" style="background:var(--primary);color:#fff" data-add="companies">${t('addCompany')}</button>
+    <h3>${t('resManager')}</h3>
+    <div class="hint">${t('resManagerHint')}</div>
+    <div class="grid cols-2" style="margin-top:8px">${fundHtml}</div>
+    <button class="mini-btn primary" style="background:var(--primary);color:#fff" data-add="funds">${t('addFund')}</button>
   </div>`;
 }
 
@@ -1916,7 +1980,7 @@ function onFieldChange(e){
     let val=el.value; if(el.type==="number") val=parseFloat(val)||0;
     row[f]=val; saveCustom(state.holdings.filter(x=>!x.synced)); save(); return;
   }
-  if(b==="watch"||b==="managers"||b==="companies"||b==="tools"||b==="netWorth"){
+  if(b==="indices"||b==="funds"||b==="tools"||b==="netWorth"){
     const idx=i; if(!state[b][idx]) return;
     let val=el.value; if(el.type==="number") val=parseFloat(val)||0;
     state[b][idx][f]=val;
@@ -2009,9 +2073,8 @@ function getMacroReal(){
 }
 function addItem(b){
   if(b==="netWorth"){ const last=state.netWorth[state.netWorth.length-1]; const nd=last?incDay(last.d):todayStr(); state.netWorth.push({d:nd, v:last?last.v:100}); }
-  else if(b==="watch"){ state.watch.push({code:"",name:"",note:""}); }
-  else if(b==="managers"){ state.managers.push({name:"",fund:"",note:""}); }
-  else if(b==="companies"){ state.companies.push({name:"",industry:"",moat:"",finance:"",valuation:"",mgmt:"",stage:"scr",note:""}); }
+  else if(b==="indices"){ state.indices.push({code:"",name:"",pe:0,pb:0,pct:0,peSeries:""}); }
+  else if(b==="funds"){ state.funds.push({code:"",name:"",nav:"",bench:""}); }
   else if(b==="tools"){ state.tools.push({name:"新工具",desc:"",note:""}); }
   save(); renderActive(); toast(t('toastAdded'));
 }
