@@ -289,9 +289,26 @@ td input:focus,td select:focus{outline:none;border-color:var(--primary)}
 .curve-explain .ce-body p{margin:6px 0}
 .curve-explain .ce-body b{color:var(--text)}
 .sync-note{font-size:11.5px;color:var(--muted);margin-top:10px}
+.ver-banner{position:fixed;top:0;left:0;right:0;z-index:9999;display:none;align-items:center;gap:10px;
+  background:linear-gradient(90deg,#2563eb,#1d4ed8);color:#fff;padding:9px 16px;font-size:13px;
+  box-shadow:0 2px 10px rgba(0,0,0,.18);cursor:pointer;}
+.ver-banner.show{display:flex}
+.ver-banner svg{flex:0 0 auto}
+.ver-banner .vb-text{flex:1 1 auto;line-height:1.4}
+.ver-banner .vb-text b{font-weight:800}
+.ver-banner .vb-go{flex:0 0 auto;background:rgba(255,255,255,.22);border:1px solid rgba(255,255,255,.5);
+  border-radius:8px;padding:4px 12px;font-size:12.5px;font-weight:700;white-space:nowrap}
+.ver-banner .vb-x{flex:0 0 auto;opacity:.8;font-size:18px;line-height:1;padding:0 2px}
+@media (max-width:768px){ .ver-banner{font-size:12px;padding:8px 12px} .ver-banner .vb-text{font-size:12px} }
 </style>
 </head>
 <body>
+<div class="ver-banner" id="verBanner">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M12 3v12M8 11l4 4 4-4"/><path d="M4 19h16"/></svg>
+  <span class="vb-text">发现新版本（<b id="vbNew"></b>），当前页面 <b id="vbCur"></b> 为旧版缓存，<b>点击刷新</b>获取最新数据。</span>
+  <span class="vb-go" id="vbGo">立即刷新</span>
+  <span class="vb-x" id="vbX">×</span>
+</div>
 <div class="app">
   <aside class="sidebar">
     <div class="brand">
@@ -692,6 +709,9 @@ const SYNCED_FNG = [{"d":"2016-08-08","v":1.38},{"d":"2016-08-09","v":1.21},{"d"
 /*__SYNCED_MACRO_START__*/
 const SYNCED_MACRO = {"syncedAt": "2026-08-07T11:51:55", "money": [{"key": "M2", "value": "8.0", "date": "2026-06"}, {"key": "LPR1", "value": "3.00", "date": "2026-07"}, {"key": "LPR5", "value": "3.50", "date": "2026-07"}, {"key": "rateLong", "value": "1.71", "date": "2026-08"}, {"key": "rateShort", "value": "1.25", "date": "2026-08"}, {"key": "fx", "value": "6.7904", "date": "2026-08-07"}, {"key": "reserves", "value": "3.42", "date": "2026-06"}], "pc": [{"key": "CPI", "value": "1.0", "date": "2026-06"}, {"key": "PPI", "value": "4.1", "date": "2026-06"}, {"key": "PMI", "value": "50.9", "date": "2026-07-31"}, {"key": "BDI", "value": "3057", "date": "2026-08-06"}, {"key": "GDP", "value": "4.3", "date": "2026-06"}, {"key": "oecd", "value": "100.59", "date": "2026-05"}], "momentum": [{"key": "invest", "value": "-5.7", "date": "2026-06"}, {"key": "consume", "value": "1.3", "date": "2026-06"}, {"key": "export", "value": "27.0", "date": "2026-06"}]};
 /*__SYNCED_MACRO_END__*/////////////
+
+// 版本号：每次部署 bump 此值，并同步更新 version.json；旧版 HTML 检测到远程版本更新会弹横幅提示刷新
+const APP_VER = "20260807.2";
 
 // 内存中的同步数据（部署版 fetch 成功后覆盖文件内嵌值）
 let MEM_SYNCED=null, MEM_SYNCED_AT=null;
@@ -1815,10 +1835,27 @@ function init(){
   applyStaticI18n();
   bindEvents();
   render("dashboard");
-  if(location.protocol!=="file:"){ syncHoldings(); syncNews(); syncSentiment(); syncMacro(); }   // 部署版：打开即拉取最新持仓 + 自动源要闻 + 情绪曲线 + 宏观指标
+  if(location.protocol!=="file:"){ syncHoldings(); syncNews(); syncSentiment(); syncMacro(); checkVersion(); }   // 部署版：打开即拉取最新持仓 + 自动源要闻 + 情绪曲线 + 宏观指标 + 版本检测
   // long-press / dblclick brand to show add-home hint? add a small entry: press logo 2s
   document.querySelector(".brand .logo").addEventListener("click",showAddHome);
 }
+// 版本检测：远程 version.json 版本号高于内置 APP_VER → 弹横幅提示刷新（防旧版 HTML 缓存误导）
+function checkVersion(){
+  if(typeof APP_VER==="undefined") return;
+  fetch("version.json?_="+Date.now(),{cache:"no-store"}).then(r=>r.json()).then(j=>{
+    if(j && j.v && j.v!==APP_VER){
+      const b=document.getElementById("verBanner");
+      document.getElementById("vbNew").textContent=j.v;
+      document.getElementById("vbCur").textContent=APP_VER;
+      b.classList.add("show");
+    }
+  }).catch(()=>{});
+}
+function doVersionRefresh(){ try{ localStorage.setItem("wb_appver_seen", APP_VER); }catch(e){} location.reload(true); }
+(function(){
+  const b=document.getElementById("verBanner"); if(!b) return;
+  b.addEventListener("click",(e)=>{ if(e.target && e.target.id==="vbX"){ b.classList.remove("show"); } else { doVersionRefresh(); } });
+})();
 init();
 </script>
 </body>
