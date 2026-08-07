@@ -243,6 +243,12 @@ td input:focus,td select:focus{outline:none;border-color:var(--primary)}
 .ind-card .iu{font-size:13px;color:var(--muted);font-weight:600}
 .ind-card .rv{font-size:30px;font-weight:800;color:var(--text);letter-spacing:-.02em;font-variant-numeric:tabular-nums;line-height:1}
 .ind-card .in{font-size:11.5px;color:var(--muted);margin-top:6px}
+/* 指标来源渠道 + 数据日期（磁贴底部始终可见） */
+.src-line{display:flex;align-items:center;gap:5px;margin-top:9px;font-size:10.5px;line-height:1.4;color:var(--muted);font-variant-numeric:tabular-nums}
+.src-line .src-chan{color:var(--text);font-weight:600;opacity:.82}
+.src-line .src-sep{color:var(--border);font-weight:700}
+.src-line .src-date{color:var(--muted)}
+.src-line.muted .src-chan{color:var(--muted);font-weight:500}
 .ind-card .tile-arrow{font-size:12px;margin-top:9px;display:inline-flex;align-items:center;gap:4px;font-weight:600}
 /* 折叠释义：默认收起，点 ⓘ 展开 */
 .ind-card .ind-info,.ind-card .anomaly-analysis{display:none}
@@ -796,7 +802,7 @@ const SYNCED_INDEX = {"syncedAt": "2026-08-07T20:18:19", "indices": [{"code": "0
 
 
 // 版本号：每次部署 bump 此值，并同步更新 version.json；旧版 HTML 检测到远程版本更新会弹横幅提示刷新
-const APP_VER = "20260807.30";
+const APP_VER = "20260807.31";
 
 // 内存中的同步数据（部署版 fetch 成功后覆盖文件内嵌值）
 let MEM_SYNCED=null, MEM_SYNCED_AT=null;
@@ -1655,6 +1661,27 @@ function fmtSync(iso){
 }
 
 // 宏观指标释义卡：含义 / 对经济·市场的影响方向 / 合理参照区间 / 近几期趋势
+// 每个宏观指标的数据来源渠道（权威发布机构），与真实同步数据无关、作为指标固有元数据
+const MACRO_SOURCE = {
+  M2:"中国人民银行 · 国家统计局",
+  LPR1:"中国人民银行（贷款市场报价利率 LPR）",
+  LPR5:"中国人民银行（贷款市场报价利率 LPR）",
+  rateLong:"中债估值中心（10年期国债到期收益率）",
+  rateShort:"中债估值中心（2年期国债到期收益率）",
+  fx:"国家外汇管理局（人民币汇率中间价）",
+  reserves:"国家外汇管理局（外汇储备）",
+  sofr:"纽约联储（SOFR 担保隔夜融资利率）",
+  CPI:"国家统计局",
+  PPI:"国家统计局",
+  PMI:"国家统计局 · 中国物流与采购联合会",
+  BDI:"波罗的海交易所（BDI 干散货运价指数）",
+  GDP:"国家统计局",
+  oecd:"OECD（合成领先指标 CLI）",
+  invest:"国家统计局（固定资产投资）",
+  consume:"国家统计局（社会消费品零售总额）",
+  export:"海关总署（出口金额）"
+};
+
 const MACRO_INFO = {
   M2:{meaning:"广义货币供应量 M2 同比增长，反映实体经济货币总量与潜在购买力，是观测流动性松紧的核心总量指标。",
       impact:"上行→流动性宽松、利好风险资产；下行→信用收缩、市场承压。",
@@ -1762,12 +1789,16 @@ function trendSvg(d){
 function macroInfoHtml(key){
   const info = MACRO_INFO[key]; if(!info) return "";
   const tr = info.trend||{dir:"flat",text:""};
+  const rd = (getMacroReal())[key];
+  const srcCh = MACRO_SOURCE[key] || (rd && rd.source) || "";
   return `<div class="ind-info">
     <div class="ind-info-h">指标释义</div>
     <dl>
       <dt>含义</dt><dd>${esc(info.meaning)}</dd>
       <dt>影响</dt><dd>${esc(info.impact)}</dd>
       <dt>参照</dt><dd>${esc(info.range)}</dd>
+      <dt>数据来源</dt><dd>${esc(srcCh||"—")}</dd>
+      <dt>数据日期</dt><dd>${esc(rd?rd.date:"—（手动录入）")}</dd>
       <dt>趋势</dt><dd><span class="trend trend-${tr.dir}">${trendSvg(tr.dir)} ${esc(tr.text)}</span></dd>
     </dl>
     ${relAdviceHtml(key)}
@@ -1852,7 +1883,11 @@ function renderMacro(){
       const real = realMap[it.key];
       const isReal = real && real.value!=null && real.value!=="";
       const val = isReal ? real.value : it.value;
-      const tag = isReal ? `<span class="tag auto">自动·${esc(real.date||"")}</span>` : `<span class="muted" style="font-size:11px">手动</span>`;
+      const srcChannel = MACRO_SOURCE[it.key] || (real && real.source) || "";
+      const tag = isReal ? `<span class="tag auto">自动</span>` : `<span class="muted" style="font-size:11px">手动</span>`;
+      const srcLine = isReal
+        ? `<div class="src-line"><span class="src-chan">${esc(srcChannel||"—")}</span>${real.date?`<span class="src-sep">·</span><span class="src-date">${esc(real.date)}</span>`:""}</div>`
+        : `<div class="src-line muted"><span class="src-chan">${esc(srcChannel||"—")}</span><span class="src-sep">·</span>手动录入</div>`;
       const valHtml = isReal
         ? `<div class="iv"><span class="rv">${esc(val)}</span><span class="iu">${esc(unit)}</span></div>`
         : `<div class="iv"><input data-bind="macro" data-g="${it._g}" data-k="${it.key}" value="${esc(val)}"><span class="iu">${esc(unit)}</span></div>`;
@@ -1864,6 +1899,7 @@ function renderMacro(){
         <div class="il">${esc(lbl)} ${tag}</div>
         ${valHtml}
         ${arrow}
+        ${srcLine}
         <button class="ind-info-toggle" data-info-toggle aria-expanded="false">ⓘ 释义 / 投资参考</button>
         ${getAnomalyAnalysis(it.key, val)}
         ${macroInfoHtml(it.key)}
@@ -2435,7 +2471,7 @@ function getMacroReal(){
   const base = (typeof SYNCED_MACRO!=="undefined" && SYNCED_MACRO) ? SYNCED_MACRO : null;
   const src = MEM_MACRO || base;
   const map = {};
-  if(src){ (src.money||[]).concat(src.pc||[],src.momentum||[]).forEach(x=>{ map[x.key]={value:x.value,date:x.date}; }); }
+  if(src){ (src.money||[]).concat(src.pc||[],src.momentum||[]).forEach(x=>{ map[x.key]={value:x.value,date:x.date,source:MACRO_SOURCE[x.key]||""}; }); }
   return map;
 }
 function addItem(b){
