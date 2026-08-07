@@ -743,7 +743,7 @@ const SYNCED_INDEX = {"syncedAt": "2026-08-07T19:30:03", "indices": [{"code": "0
 
 
 // 版本号：每次部署 bump 此值，并同步更新 version.json；旧版 HTML 检测到远程版本更新会弹横幅提示刷新
-const APP_VER = "20260807.19";
+const APP_VER = "20260807.20";
 
 // 内存中的同步数据（部署版 fetch 成功后覆盖文件内嵌值）
 let MEM_SYNCED=null, MEM_SYNCED_AT=null;
@@ -865,6 +865,18 @@ function loadState(){
     s.indices = SYNCED_INDEX.indices;
     s.funds = SYNCED_INDEX.funds;
     dirty=true;
+  }
+  // 自动待办：指数/基金最新值跌破250日均线(年线) → 生成【风险】待办（保留用户已勾选状态，回升年线即自动清除）
+  {
+    const riskAuto = computeRiskAutoFocus(s.indices, s.funds);
+    const kept = s.focus.filter(f=>!(f.source==='auto' && (f.key||'').indexOf('risk-')===0));
+    const prev = {}; s.focus.forEach(f=>{ if(f.source==='auto' && (f.key||'').indexOf('risk-')===0) prev[f.key]=f; });
+    riskAuto.forEach(a=>{
+      const ex = prev[a.key];
+      kept.push(ex ? ex : {key:a.key, source:'auto', done:false, createdAt:todayStr(), risk:true, autoText:{zh:a.zh, en:a.en}});
+    });
+    s.focus = kept;
+    if(riskAuto.length) dirty=true;
   }
   if(dirty) persist(s);
   return s;
@@ -1375,12 +1387,14 @@ function renderDashboard(){
   const pendingCount=focusList.filter(f=>!f.done).length;
   const todayStr=new Date().toISOString().slice(0,10);
   const focusHtml = focusList.length? focusList.map((f,i)=>{
-    const over = f.due && !f.done && f.due < todayStr;
+    const over = f.due && !f.done && f.due < todayStr();
+    const txt = f.autoText ? (f.autoText[lang]||f.autoText.zh||f.text) : f.text;
     return `
     <div class="focus-item ${f.done?'done':''}">
       <input type="checkbox" data-foc="${i}" ${f.done?'checked':''} style="width:18px;height:18px;accent-color:var(--primary)">
       <div class="txt">
-        ${f.done?'<s>'+esc(f.text)+'</s>':esc(f.text)}
+        ${f.risk?`<span class="tag" style="background:var(--danger);color:#fff">风险</span>`:''}
+        ${f.done?'<s>'+esc(txt)+'</s>':esc(txt)}
         ${f.due?`<span class="due ${over?'over':''}">${t('dashTodoDue')} ${esc(f.due)}</span>`:''}
         ${f.source==='auto'?`<span class="tag auto">${t('dashTodoAuto')}</span>`:''}
       </div>
@@ -1826,6 +1840,40 @@ function _genSeries(n, start, drift, vol, seed){
   return a;
 }
 function _parseNums(csv){ return String(csv||"").split(/[\s,;]+/).map(s=>parseFloat(s)).filter(x=>!isNaN(x)&&isFinite(x)); }
+function _ma(arr, n){
+  if(!Array.isArray(arr) || arr.length < n) return null;
+  let s=0; for(let i=arr.length-n;i<arr.length;i++) s+=arr[i];
+  return s/n;
+}
+// 自动待办：指数/基金最新值跌破其250日均线(年线) → 风险 + 减仓提示
+function computeRiskAutoFocus(indices, funds){
+  const out=[];
+  (indices||[]).forEach(x=>{
+    const arr=_parseNums(x.peSeries);
+    if(arr.length>=250){
+      const ma=_ma(arr,250), cur=arr[arr.length-1];
+      if(cur!=null && ma!=null && cur < ma){
+        const dev=(cur/ma-1)*100;
+        out.push({key:'risk-idx-'+(x.code||x.name||''),
+          zh:`【风险】「${x.name||'指数'}」PE 跌破250日均线(年线)，当前 ${cur.toFixed(1)} 低于年线均值 ${ma.toFixed(1)}（偏离 ${dev.toFixed(1)}%），动能走弱，建议控制仓位、考虑减仓`,
+          en:`[RISK] ${x.name||'Index'} PE fell below its 250-day MA (currently ${cur.toFixed(1)} vs avg ${ma.toFixed(1)}); trend weakening — consider trimming`});
+      }
+    }
+  });
+  (funds||[]).forEach(f=>{
+    const arr=_parseNums(f.nav);
+    if(arr.length>=250){
+      const ma=_ma(arr,250), cur=arr[arr.length-1];
+      if(cur!=null && ma!=null && cur < ma){
+        const dev=(cur/ma-1)*100;
+        out.push({key:'risk-fund-'+(f.code||f.name||''),
+          zh:`【风险】「${f.name||'基金'}」(${f.code||''}) 净值跌破年线(MA250)，当前 ${cur.toFixed(3)} 低于年线均值 ${ma.toFixed(3)}（偏离 ${dev.toFixed(1)}%），趋势走弱，建议减仓 / 控制仓位`,
+          en:`[RISK] ${f.name||'Fund'} (${f.code||''}) NAV fell below its 250-day MA; trend weakening — consider reducing position`});
+      }
+    }
+  });
+  return out;
+}
 function _idxPct(idx){
   const arr=_parseNums(idx.peSeries), pe=parseFloat(idx.pe);
   if(arr.length>=2 && pe>0){ let c=0; arr.forEach(x=>{ if(x<=pe)c++; }); return Math.round(c/arr.length*100); }
