@@ -741,7 +741,7 @@ const SYNCED_INDEX = {"syncedAt": "2026-08-07T17:46:53", "indices": [{"code": "0
 
 
 // 版本号：每次部署 bump 此值，并同步更新 version.json；旧版 HTML 检测到远程版本更新会弹横幅提示刷新
-const APP_VER = "20260807.17";
+const APP_VER = "20260807.18";
 
 // 内存中的同步数据（部署版 fetch 成功后覆盖文件内嵌值）
 let MEM_SYNCED=null, MEM_SYNCED_AT=null;
@@ -1830,6 +1830,8 @@ function _peHistSvg(x){
   const arr=_parseNums(x.peSeries);
   if(arr.length<2) return "";
   const cur=parseFloat(x.pe);
+  const hi=Math.max.apply(null,arr), lo=Math.min.apply(null,arr);
+  const med=arr.slice().sort((a,b)=>a-b)[Math.floor(arr.length/2)];
   const now=Date.now();
   const start=now-10*365*24*3600*1000; // 近10年窗口
   const series=arr.map((v,i)=>{
@@ -1838,44 +1840,101 @@ function _peHistSvg(x){
     const ds=d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
     return {d:ds,v:v};
   });
-  const refs=[];
+  const refs=[
+    {y:hi, label:"10年高 "+hi.toFixed(1), color:"#d83a3a"},
+    {y:lo, label:"10年低 "+lo.toFixed(1), color:"#16a34a"},
+    {y:med,label:"中位 "+med.toFixed(1), color:"#888"}
+  ];
   if(cur>0 && !isNaN(cur)) refs.push({y:cur,label:"当前 "+cur.toFixed(1),color:"#26215C"});
-  return svgLineChart(series,{height:200,color:"#2f6fed",fill:true,refLines:refs,fmtY:v=>v.toFixed(0),noLabels:true});
+  return svgLineChart(series,{height:200,color:"#2f6fed",fill:true,refLines:refs,fmtY:v=>v.toFixed(0)});
 }
 function _navBenchSvg(navArr, benchArr){
   const n=Math.min(navArr.length, benchArr.length); if(n<2) return "";
-  const W=680,H=210,padL=46,padR=14,padT=16,padB=22, pw=W-padL-padR, ph=H-padT-padB;
+  const W=680,H=220,padL=46,padR=56,padT=18,padB=22, pw=W-padL-padR, ph=H-padT-padB;
   const nn=navArr.map(v=>v/navArr[0]*100), bb=benchArr.map(v=>v/benchArr[0]*100);
   let vmin=Math.min.apply(null,nn.concat(bb)), vmax=Math.max.apply(null,nn.concat(bb));
-  const vp=(vmax-vmin)*0.1||1; vmin-=vp; vmax+=vp;
+  const vp=(vmax-vmin)*0.12||1; vmin-=vp; vmax+=vp;
   const X=i=>padL+i/(n-1)*pw, Y=v=>padT+(1-(v-vmin)/(vmax-vmin))*ph;
-  const mk=(arr,col)=>arr.map((v,i)=>(i?"L":"M")+X(i).toFixed(1)+" "+Y(v).toFixed(1)+" ").join("");
+  const mk=(arr)=>arr.map((v,i)=>(i?"L":"M")+X(i).toFixed(1)+" "+Y(v).toFixed(1)+" ").join("");
+  // y 网格 + 数值刻度
+  let gy=""; const yTicks=4;
+  for(let i=0;i<=yTicks;i++){ const v=vmin+(vmax-vmin)*i/yTicks, y=Y(v);
+    gy+=`<line x1="${padL}" y1="${y.toFixed(1)}" x2="${padL+pw}" y2="${y.toFixed(1)}" stroke="var(--track)" stroke-width="1" opacity="0.5"/>`;
+    gy+=`<text x="${padL-6}" y="${(y+3.5).toFixed(1)}" text-anchor="end" font-size="10" fill="var(--muted)">${v.toFixed(0)}</text>`;
+  }
+  // 基准线 100
+  const yb=Y(100);
+  const baseLine=`<line x1="${padL}" y1="${yb.toFixed(1)}" x2="${padL+pw}" y2="${yb.toFixed(1)}" stroke="#888" stroke-width="1" stroke-dasharray="4 4" opacity="0.7"/>`;
+  const baseLabel=`<text x="${padL+pw}" y="${(yb-4).toFixed(1)}" text-anchor="end" font-size="10" font-weight="700" fill="#888">基准100</text>`;
+  // 末点数值
+  const lni=nn.length-1, lbi=bb.length-1;
+  const endLabels=`<circle cx="${X(lni).toFixed(1)}" cy="${Y(nn[lni]).toFixed(1)}" r="3" fill="var(--danger)"/>`+
+    `<text x="${(X(lni)+5).toFixed(1)}" y="${(Y(nn[lni])+3.5).toFixed(1)}" font-size="10.5" font-weight="800" fill="var(--danger)">${nn[lni].toFixed(0)}</text>`+
+    `<text x="${(X(lbi)+5).toFixed(1)}" y="${(Y(bb[lbi])+12).toFixed(1)}" font-size="10" font-weight="700" fill="var(--muted)">基准 ${bb[lbi].toFixed(0)}</text>`;
   return `<svg viewBox="0 0 ${W} ${H}" width="100%" preserveAspectRatio="xMidYMid meet" style="display:block">
     <rect x="${padL}" y="${padT}" width="${pw}" height="${ph}" rx="6" fill="var(--track)" opacity="0.10"/>
+    ${gy}${baseLine}${baseLabel}
     <path d="${mk(nn)}" fill="none" stroke="var(--danger)" stroke-width="2" stroke-linejoin="round"/>
     <path d="${mk(bb)}" fill="none" stroke="var(--muted)" stroke-width="1.8" stroke-dasharray="5 4"/>
-    <text x="${padL}" y="${padT-3}" font-size="11" fill="var(--danger)" font-weight="700">● 净值(基=100)</text>
-    <text x="${padL+96}" y="${padT-3}" font-size="11" fill="var(--muted)" font-weight="700">┄ 基准(基=100)</text>
+    ${endLabels}
+    <text x="${padL}" y="${padT-4}" font-size="11" fill="var(--danger)" font-weight="700">● 净值(基=100)</text>
+    <text x="${padL+96}" y="${padT-4}" font-size="11" fill="var(--muted)" font-weight="700">┄ 基准(基=100)</text>
   </svg>`;
 }
 function _drawdownSvg(arr){
   const n=arr.length; if(n<2) return "";
   let peak=-Infinity, dd=[]; arr.forEach(v=>{ if(v>peak)peak=v; dd.push(peak>0?(v-peak)/peak*100:0); });
   let mn=Math.min.apply(null,dd); if(mn>0)mn=0;
-  const W=680,H=130,padL=46,padR=14,padT=12,padB=14, pw=W-padL-padR, ph=H-padT-padB;
+  const W=680,H=130,padL=42,padR=46,padT=12,padB=14, pw=W-padL-padR, ph=H-padT-padB;
   const yMin=Math.floor(mn)-1, yMax=2;
   const X=i=>padL+i/(n-1)*pw, Y=v=>padT+(1-(v-yMin)/(yMax-yMin))*ph;
   let line="", area="M "+X(0).toFixed(1)+" "+Y(0).toFixed(1);
   dd.forEach((v,i)=>{ line+=(i?"L":"M")+X(i).toFixed(1)+" "+Y(v).toFixed(1)+" "; area+=" L"+X(i).toFixed(1)+" "+Y(v).toFixed(1); });
   area+=" L "+X(n-1).toFixed(1)+" "+Y(0).toFixed(1)+" Z";
-  const maxdd=Math.min.apply(null,dd);
+  const maxdd=Math.min.apply(null,dd), curdd=dd[n-1];
   return `<svg viewBox="0 0 ${W} ${H}" width="100%" preserveAspectRatio="xMidYMid meet" style="display:block">
     <rect x="${padL}" y="${padT}" width="${pw}" height="${ph}" rx="6" fill="var(--track)" opacity="0.10"/>
     <path d="${area}" fill="var(--danger)" opacity="0.16"/>
     <path d="${line}" fill="none" stroke="var(--danger)" stroke-width="1.8"/>
     <line x1="${padL}" y1="${Y(0).toFixed(1)}" x2="${padL+pw}" y2="${Y(0).toFixed(1)}" stroke="var(--muted)" stroke-width="1" stroke-dasharray="3 3" opacity="0.6"/>
+    <text x="${padL-5}" y="${(Y(0)+3.5).toFixed(1)}" text-anchor="end" font-size="10" fill="var(--muted)">0%</text>
     <text x="${padL+pw}" y="${(Y(maxdd)-4).toFixed(1)}" text-anchor="end" font-size="11" font-weight="700" fill="var(--danger)">最大回撤 ${maxdd.toFixed(1)}%</text>
+    <text x="${X(n-1).toFixed(1)}" y="${(Y(curdd)-5).toFixed(1)}" text-anchor="end" font-size="10" font-weight="700" fill="var(--danger)">当前 ${curdd.toFixed(1)}%</text>
   </svg>`;
+}
+// 指数卡：水位分析 + 投资建议
+function _idxAnalysisHtml(pct, x){
+  const v=_verdict(pct);
+  const pe=parseFloat(x.pe), pb=parseFloat(x.pb);
+  let advice;
+  if(pct<30) advice="估值处于历史偏低区间，安全边际较高。策略上以分批定投或逢回调布局为主，不因短期波动止损；长线持有等待估值向中枢修复，仓位可适度积极。";
+  else if(pct<=70) advice="估值处于历史中性区间，定价相对合理。以持有为主，出现明显回调可小幅加仓，避免追高；维持既定仓位节奏，等待趋势进一步明朗。";
+  else advice="估值处于历史偏高区间，性价比下降、回调风险上升。建议控制仓位、分批止盈、不追高；若已大幅盈利可逐步兑现锁定收益，保留弹药等待估值回归。";
+  const peTxt=(!isNaN(pe)&&pe>0)?`当前PE ${pe.toFixed(1)}`:"";
+  const pbTxt=(!isNaN(pb)&&pb>0)?` · PB ${pb.toFixed(2)}`:"";
+  return `<div class="rel-advice">
+    <div class="ra-h">水位分析与建议</div>
+    <div class="ra-row"><span class="ra-k">当前水位</span><span class="ra-v"><b style="color:${v.color}">${v.label}</b>（历史分位 ${pct}%${peTxt}${pbTxt}）</span></div>
+    <div class="ra-row"><span class="ra-k">建议</span><span class="ra-v">${advice}</span></div>
+  </div>`;
+}
+// 基金卡：表现分析 + 投资建议
+function _fundAnalysisHtml(s){
+  // s: {r, maxdd, br, ex, hasNav, hasBench}
+  if(!s||!s.hasNav) return "";
+  const r=s.r, maxdd=s.maxdd, br=s.br, ex=s.ex;
+  const exTxt = (br!=null)?`；相对业绩基准${ex>=0?"超额":"跑输"} <b style="color:${ex>=0?'var(--danger)':'var(--success)'}">${ex>=0?'+':''}${ex.toFixed(1)}%</b>`:"";
+  const benchTxt = (br!=null)?`（基准 ${br>=0?'+':''}${br.toFixed(1)}%）`:"（暂无基准对比）";
+  let advice;
+  if(ex!=null && ex>=0 && maxdd>=-20) advice="基金跑赢业绩基准且回撤可控，主动管理有效，可继续持有；后续关注市场风格切换，维持当前节奏。";
+  else if(ex!=null && ex>=0 && maxdd<-20) advice="虽跑赢基准但区间回撤偏大，需注意仓位与风控；可考虑分批止盈锁定部分收益，或设置回撤警戒线。";
+  else if(maxdd>=-20) advice="区间收益为正但跑输基准，主动管理未创造明显超额；若长期跑输可考虑换基或转投低费率指数产品，当前以持有观察为主。";
+  else advice="区间收益为负且跑输基准，产品当前劣势明显；建议审视基金经理与策略适配性，控制仓位、等待修复或考虑调仓。";
+  return `<div class="rel-advice">
+    <div class="ra-h">表现分析与建议</div>
+    <div class="ra-row"><span class="ra-k">区间表现</span><span class="ra-v">收益 <b style="color:var(--danger)">${r.toFixed(1)}%</b>${benchTxt}${exTxt} · 最大回撤 <b style="color:var(--danger)">${maxdd.toFixed(1)}%</b></span></div>
+    <div class="ra-row"><span class="ra-k">建议</span><span class="ra-v">${advice}</span></div>
+  </div>`;
 }
 function renderResearch(){
   const idxHtml = state.indices.map((x,i)=>{
@@ -1900,18 +1959,20 @@ function renderResearch(){
         ${_thermoHtml(pct)}
       </div>
       ${peCurve?`<div style="margin-top:12px"><div class="hint" style="margin-bottom:4px">近10年 PE 走势</div>${peCurve}</div>`:""}
+      ${_idxAnalysisHtml(pct, x)}
     </div>`;
   }).join("") || `<div class="muted" style="padding:14px">${t('noData')}</div>`;
 
   const fundHtml = state.funds.map((f,i)=>{
     const nav=_parseNums(f.nav), bench=_parseNums(f.bench);
     const hasNav = nav.length>=2, hasBench = bench.length>=2;
-    let stats="";
+    let stats="", statsObj=null;
     if(hasNav){
       const r=(nav[nav.length-1]/nav[0]-1)*100;
       let peak=-Infinity, maxdd=0; nav.forEach(v=>{ if(v>peak)peak=v; const d=(v-peak)/peak*100; if(d<maxdd)maxdd=d; });
       const br = hasBench ? (bench[bench.length-1]/bench[0]-1)*100 : null;
       const ex = r-(br==null?0:br);
+      statsObj={r:r,maxdd:maxdd,br:br,ex:ex,hasNav:hasNav,hasBench:hasBench};
       stats = `<div style="display:flex;gap:14px;flex-wrap:wrap;margin:8px 0 4px;font-size:12px;color:var(--muted)">
         <span>区间收益 <b style="color:var(--danger)">${r.toFixed(1)}%</b></span>
         <span>最大回撤 <b style="color:var(--danger)">${maxdd.toFixed(1)}%</b></span>
@@ -1932,6 +1993,7 @@ function renderResearch(){
       ${stats}
       ${ (hasNav&&hasBench)? _navBenchSvg(nav,bench) : (hasNav? `<div class="muted" style="padding:8px 0;font-size:12px">${t('fundNeedBoth')}</div>` : "") }
       ${ hasNav? _drawdownSvg(nav) : "" }
+      ${ _fundAnalysisHtml(statsObj) }
     </div>`;
   }).join("") || `<div class="muted" style="padding:14px">${t('noData')}</div>`;
 
