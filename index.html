@@ -198,6 +198,12 @@ td input:focus,td select:focus{outline:none;border-color:var(--primary)}
 .ind-info dd{margin:0;color:var(--text)}
 .ind-info .trend{display:inline-flex;align-items:center;gap:4px}
 .trend-up{color:var(--danger)} .trend-down{color:var(--success)} .trend-flat{color:var(--muted)}
+.rel-advice{margin-top:10px;padding:10px 12px;background:#fffaf0;border:1px solid #f0d9a8;border-radius:10px}
+.rel-advice .ra-h{font-size:11px;font-weight:700;color:#b8860b;letter-spacing:.04em;margin-bottom:6px;display:flex;align-items:center;gap:6px}
+.rel-advice .ra-h::before{content:"";width:3px;height:12px;background:#e0a93b;border-radius:2px}
+.rel-advice .ra-row{display:flex;gap:8px;font-size:12px;line-height:1.62;margin-top:6px}
+.rel-advice .ra-k{flex:0 0 56px;color:#9a6b00;font-weight:600;white-space:nowrap}
+.rel-advice .ra-v{flex:1;color:#5b4a2a}
 .anomaly-analysis{margin-top:8px;padding:8px 12px;background:#eff6ff;border-left:3px solid #2563eb;border-radius:0 6px 6px 0;font-size:12px;line-height:1.6;color:#1e40af}
 .anomaly-analysis .anomaly-title{font-weight:700;color:#1d4ed8;margin-bottom:2px;font-size:11.5px;letter-spacing:.03em}
 .anomaly-analysis .anomaly-body{color:#1e40af}
@@ -721,7 +727,7 @@ const SYNCED_MOMENTUM = {"syncedAt": "2026-08-07T15:40:17", "bondEquity": {"valu
 /*__SYNCED_MOMENTUM_END__*/
 
 // 版本号：每次部署 bump 此值，并同步更新 version.json；旧版 HTML 检测到远程版本更新会弹横幅提示刷新
-const APP_VER = "20260807.8";
+const APP_VER = "20260807.9";
 
 // 内存中的同步数据（部署版 fetch 成功后覆盖文件内嵌值）
 let MEM_SYNCED=null, MEM_SYNCED_AT=null;
@@ -1169,6 +1175,7 @@ function sentimentBlock(kind, opts){
     ${getAnomalyAnalysis(kind, last.v)}
     <div class="curve-cap">${esc(cap)}</div>
     ${explain}
+    ${relAdviceHtml(kind)}
   </div>`;
 }
 
@@ -1640,6 +1647,74 @@ function macroInfoHtml(key){
       <dt>参照</dt><dd>${esc(info.range)}</dd>
       <dt>趋势</dt><dd><span class="trend trend-${tr.dir}">${trendSvg(tr.dir)} ${esc(tr.text)}</span></dd>
     </dl>
+    ${relAdviceHtml(key)}
+  </div>`;
+}
+
+// 每个指标的投资相关性 + 投资建议（与 MACRO_INFO 解耦，避免改动既有释义卡结构）
+const INVEST_REF = {
+  M2:{rel:"货币总量领先指标，前瞻 6–12 个月权益估值与债券利率。宽松利好宽基指数、成长股与黄金；紧缩压制估值、利好货基/短债。",
+      advice:"货币中性偏宽时权益保持中性仓位、逢回调分批布局，不因单月波动过度反应；重点看 M2-社融剪刀差确认信用拐点后再加仓。"},
+  LPR1:{rel:"企业短贷与消费贷定价锚，直接决定实体融资成本和银行净息差。下调利好权益（消费/制造）与地产链，银行息差承压。",
+      advice:"降息通道、LPR 低位时，利率敏感板块（券商、地产、可选消费）有修复机会；银行股需等息差企稳信号再加配。"},
+  LPR5:{rel:"房贷与长期融资基准，决定居民购房成本与房企融资。下调托底地产链、利好家电/建材/银行资产质量；上调则压制。",
+      advice:"5 年期 LPR 低位且有继续下调预期时，地产链与顺周期有估值修复；但须同步观察销售数据是否企稳，避免只交易预期。"},
+  rateLong:{rel:"无风险利率之锚，与股票估值（分母）反向。下行利好债券、黄金、高股息与成长股估值；过低预示经济悲观、警惕资产荒。",
+      advice:"收益率处历史低位时，债券资本利得空间收窄、波动加大，久期不宜过长；权益侧重高股息与现金流稳定资产，勿迷信低利率必涨。"},
+  rateShort:{rel:"短端资金面与货币政策预期指针。走低→宽松、利好杠杆策略与风险偏好；曲线由平转陡通常预示复苏。",
+      advice:"关注收益率曲线形态：由平转陡是复苏早期信号，可逐步提升权益与周期仓位；持续平坦/倒挂则保持防御。"},
+  fx:{rel:"影响北向资金与进口/出口链条盈利。贬值利好出口制造与海外收入板块，但压制人民币资产与外资流入；升值反之。",
+      advice:"贬值压力期超配出口链（家电、机械、纺服）与外币资产；升值期关注外资偏好的核心资产与进口成本下降板块，并适度对冲汇率敞口。"},
+  reserves:{rel:"汇率维稳与国际收支健康度的兜底指标。充裕→汇率与资本流动稳定、利好外资信心；快速下降→贬值与流出压力。",
+      advice:"外储平稳时无需单独据此交易；若连续大幅下降，警惕汇率冲击，增配黄金/美元资产对冲，降低新兴市场敞口。"},
+  CPI:{rel:"通胀锚，决定货币政策空间与债券方向。温和上行（1–3%）利好消费与周期；过高触发收紧、压制估值；过低/负提示通缩、利空盈利。",
+      advice:"CPI 温和回升期持有消费与顺周期；若持续>3% 警惕政策收紧、减久期；若转负则关注宽松受益的利率债与红利资产。"},
+  PPI:{rel:"上游工业品价格与工业利润周期指针。上行利好资源/原材料（煤炭、有色、化工）盈利；深度负→工业通缩、中下游利润双杀。",
+      advice:"PPI 由负转正初期是周期股（上游、机械）的景气拐点信号，可左侧布局；高位过热则警惕成本向 CPI 传导引发的政策收紧。"},
+  PMI:{rel:"制造业景气同步/略领先指标。>50 扩张利好制造、周期、出口链；<50 收缩提示盈利下修风险。",
+      advice:"站上 50 且连续回升，加仓制造与中游；跌破 50 且下行，降低周期与出口敞口、转向防御与必选消费，待回升确认。"},
+  BDI:{rel:"全球贸易与大宗商品需求晴雨表，领先资源国与航运、大宗链条景气。上行利好航运、有色、原油链；下行提示全球需求走弱。",
+      advice:"BDI 持续走强时关注航运、资源与工业金属的顺周期机会；高位回落（尤其由>3000 转跌）需警惕全球需求见顶，减仓周期。"},
+  GDP:{rel:"经济总量增速，决定企业盈利大环境与政策基调。高增→盈利改善、风险偏好升；低增→稳增长预期升温、利好基建/消费刺激受益板块。",
+      advice:"低于预期时关注逆周期政策博弈（基建、地产链、消费补贴受益）；高于预期则顺周期与制造更具弹性，但需防政策退出。"},
+  invest:{rel:"资本形成侧需求，基建/地产/制造景气指针。上行利好建材、机械、钢铁；负增长（地产拖累）提示内需不足、相关链条承压。",
+      advice:"投资企稳回升初期布局建材/工程机械/地产链；若持续负增，回避强周期地产链，转向受益于设备更新、新基建的政策主线。"},
+  consume:{rel:"终端消费代表，上行利好消费股（白酒、家电、服务）；低位提示居民信心不足，必选消费相对占优。",
+      advice:"社零回升确认前，消费配置以必选+高股息防御为主；数据企稳后逐步加仓可选消费与服务消费，避免过早交易复苏。"},
+  export:{rel:"外需与出口链景气，上行利好机电、家电、纺服、航运；高增若由抢出口/低基数驱动则不可持续，警惕贸易摩擦反噬。",
+      advice:"出口高增且结构健康时超配出口链龙头；若增速含明显抢跑成分，宜逢高兑现、分散区域敞口，并跟踪海外补库周期拐点。"},
+  oecd:{rel:"发达国家经济拐点先行指标（领先 6–9 个月），影响外需与全球风险偏好，也间接牵动 A 股出口链与外资流向。",
+      advice:"CLI 上穿 100 且持续走高，预示外需改善，可前瞻布局出口与全球周期；跌破 100 预警海外放缓，提前降低外向型与风险资产敞口。"},
+  sofr:{rel:"全球无风险利率锚，走高→美元流动性收紧、压制全球权益估值与黄金；走低→宽松、利好风险资产与新兴市场。",
+      advice:"SOFR 降息通道时，新兴市场与成长股估值压力缓解、可适度增配；若降息预期反复、SOFR 反弹，则控制久期与高估值敞口。"},
+  bondEquity:{rel:"股票 vs 债券的相对吸引力，长线择时核心指标。高位→股票便宜、宜超配权益低配债券；低位→债券占优、减仓股市。",
+      advice:">2.5 的极度低估区是长线分批建仓权益的黄金窗口，可逐步提高股债比；<1 的偏高估区则兑现权益、增配债基与现金，不追高。"},
+  bondSpread:{rel:"股票风险补偿刻度，与权益预期收益正相关。走阔→安全边际厚、宜加仓；收窄/转负→股市定价充分、回调风险升。",
+      advice:"利差>4% 的市场恐慌期，逆向分批买入优质权益、别人恐惧我贪婪；利差<0 时降低仓位、提升防御，警惕无风险溢价的泡沫。"},
+  earnYield:{rel:"全市场静态估值刻度，与 PE 负相关。高 E/P（低 PE）→市场低估、长期回报可期；低 E/P（高 PE）→估值偏贵、追高风险大。",
+      advice:"E/P>5%（PE<20）的低估区，逢回调定投宽基指数性价比较高；E/P<3%（PE>33）的偏贵区，减少追涨、保留弹药等待估值回归。"},
+  fundCoef:{rel:"资金活跃度相对常态的倍数，量价配合的温度计。持续>1.5 倍→增量入场、趋势可参与；骤降<0.8 倍→存量博弈、缩量见底。",
+      advice:"温和放大伴随指数上行时顺势参与、持有趋势；单日爆量（>2.5 倍）而指数滞涨，减持而非追高；长期低于 0.8 倍且缩量是左侧布局区。"},
+  turnover:{rel:"真实资金参与度，最直观的情绪温度。放量上涨→趋势健康可持有；缩量上涨→动能存疑；极端天量（>3 万亿）常是阶段性见顶前兆。",
+      advice:"成交额稳居 1.5–2.5 万亿且指数上行，维持权益仓位；突增至 3 万亿以上若放量滞涨，分批减仓锁定利润；跌破 0.8 万亿地量往往是底部信号。"},
+  marginBal:{rel:"杠杆资金规模与风险偏好的极端情绪指针。快速攀升→趋势推升但脆弱；高位（>1.8 万亿）积累踩踏风险；冰点（<8000 亿）常是底部。",
+      advice:"融资余额高位仍在加速上升时，享受趋势但设好止盈、警惕反转去杠杆；接近历史高位（>2 万亿）宜逐步降杠杆、不借钱加仓；冰点区可逆向布局。"},
+  marginBuy:{rel:"激进资金单日进攻力度，短期动能的温度计。骤升→多头积极、动能强；骤降→杠杆撤退、可能是顶部预警。",
+      advice:"融资买入额温和放大配合放量上涨，可顺势持有；单日暴增至 2000 亿以上而指数不涨，是短期过热信号、减仓而非追；持续低于 600 亿的冰点区关注反转。"},
+  buffett:{rel:"股市整体估值贵贱的总开关，>100% 高估、<60% 低估，是巴菲特最看重的长期择时标尺。",
+      advice:">110% 的严重高估区，降低权益仓位、分批止盈、提升现金与债；<60% 的严重低估区，历史上是 5–10 年持有期的最佳买点，可重仓权益。"},
+  fng:{rel:"市场恐慌/乐观的极端情绪代理，破净率高→极度悲观（常对应底部）、低→过度乐观（常对应牛尾）。",
+      advice:"破净率>12% 的极度恐慌区，是长线逆向买入的良机，分批建仓并持有 1–2 年；<2% 的乐观区提高警惕、逐步兑现，避免牛市尾部接盘。"}
+};
+// 渲染「投资参考」卡片：投资相关性 + 投资建议
+function relAdviceHtml(key){
+  const r = INVEST_REF[key]; if(!r) return "";
+  const rel=r.rel, advice=r.advice;
+  if(!rel && !advice) return "";
+  return `<div class="rel-advice">
+    <div class="ra-h">投资参考</div>
+    ${rel?`<div class="ra-row"><span class="ra-k">相关性</span><span class="ra-v">${esc(rel)}</span></div>`:""}
+    ${advice?`<div class="ra-row"><span class="ra-k">建议</span><span class="ra-v">${esc(advice)}</span></div>`:""}
   </div>`;
 }
 
@@ -1668,6 +1743,7 @@ function renderMacro(){
     </div>`;
   const moneyArr=state.macro.money.map(x=>Object.assign({},x,{_g:"money"}));
   const pcArr=state.macro.pc.map(x=>Object.assign({},x,{_g:"pc"}));
+  const momentumArr=state.macro.momentum.map(x=>Object.assign({},x,{_g:"momentum"}));
 
   return `
   <div class="card" style="margin-bottom:16px">
@@ -1677,6 +1753,10 @@ function renderMacro(){
   <div class="card" style="margin-bottom:16px">
     <h3>${t('macroTitle')} · ${t('macroPC')}</h3>
     ${mkGroup(pcArr,t('macroPCHint'))}
+  </div>
+  <div class="card" style="margin-bottom:16px">
+    <h3>${t('macroTitle')} · ${t('macroMomentum')}</h3>
+    ${mkGroup(momentumArr,t('macroMomentumHint'))}
   </div>`;
 }
 
