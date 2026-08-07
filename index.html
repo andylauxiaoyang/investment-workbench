@@ -311,6 +311,9 @@ td input:focus,td select:focus{outline:none;border-color:var(--primary)}
   .topbar h1{font-size:15px}
   .tbtn{padding:7px 10px;font-size:12px}
   .cols-2,.cols-3,.cols-4{grid-template-columns:1fr}
+  /* 宏观指标磁贴手机端占满屏：卡片去左右内边距 + 负margin抵消内容区留白，网格两列宫格 */
+  .card.macro-card{margin-left:-14px;margin-right:-14px;padding-left:2px;padding-right:2px}
+  .ind-grid{grid-template-columns:repeat(2,1fr);gap:9px}
   .kpi .val{font-size:22px}
   .hold-scroll{overflow:visible}
   table.hold-table{min-width:0;border:0}
@@ -793,7 +796,7 @@ const SYNCED_INDEX = {"syncedAt": "2026-08-07T20:18:19", "indices": [{"code": "0
 
 
 // 版本号：每次部署 bump 此值，并同步更新 version.json；旧版 HTML 检测到远程版本更新会弹横幅提示刷新
-const APP_VER = "20260807.29";
+const APP_VER = "20260807.30";
 
 // 内存中的同步数据（部署版 fetch 成功后覆盖文件内嵌值）
 let MEM_SYNCED=null, MEM_SYNCED_AT=null;
@@ -1871,15 +1874,15 @@ function renderMacro(){
   const momentumArr=state.macro.momentum.map(x=>Object.assign({},x,{_g:"momentum"}));
 
   return `
-  <div class="card" style="margin-bottom:16px">
+  <div class="card macro-card" style="margin-bottom:16px">
     <h3>${t('macroTitle')} · ${t('macroMoney')}</h3>
     ${mkGroup(moneyArr,t('macroMoneyHint'))}
   </div>
-  <div class="card" style="margin-bottom:16px">
+  <div class="card macro-card" style="margin-bottom:16px">
     <h3>${t('macroTitle')} · ${t('macroPC')}</h3>
     ${mkGroup(pcArr,t('macroPCHint'))}
   </div>
-  <div class="card" style="margin-bottom:16px">
+  <div class="card macro-card" style="margin-bottom:16px">
     <h3>${t('macroTitle')} · ${t('macroMomentum')}</h3>
     ${mkGroup(momentumArr,t('macroMomentumHint'))}
   </div>`;
