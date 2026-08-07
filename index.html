@@ -741,7 +741,7 @@ const SYNCED_INDEX = {"syncedAt": "2026-08-07T17:46:53", "indices": [{"code": "0
 
 
 // 版本号：每次部署 bump 此值，并同步更新 version.json；旧版 HTML 检测到远程版本更新会弹横幅提示刷新
-const APP_VER = "20260807.14";
+const APP_VER = "20260807.15";
 
 // 内存中的同步数据（部署版 fetch 成功后覆盖文件内嵌值）
 let MEM_SYNCED=null, MEM_SYNCED_AT=null;
@@ -1880,7 +1880,6 @@ function _drawdownSvg(arr){
 function renderResearch(){
   const idxHtml = state.indices.map((x,i)=>{
     const pct=_idxPct(x), v=_verdict(pct);
-    const peStr = (x.pe!==undefined && x.pe!=="" && !isNaN(parseFloat(x.pe))) ? parseFloat(x.pe).toFixed(1) : "—";
     const peCurve=_peHistSvg(x);
     return `<div class="item-card">
       <div class="ic-head"><div class="ic-title">${esc(x.name||"未命名指数")}</div>
@@ -1894,9 +1893,8 @@ function renderResearch(){
         <div style="grid-column:1/-1"><label>${t('idxSeries')}</label><textarea data-bind="indices" data-i="${i}" data-f="peSeries" rows="2" placeholder="粘贴PE历史(CSV)，留空则用上面手动分位">${esc(x.peSeries)}</textarea></div>
       </div>
       <div style="margin-top:10px">
-        <div style="display:flex; justify-content:space-between; align-items:baseline; gap:8px">
-          <div style="font-size:22px; font-weight:500">${peStr}<span style="font-size:12px;color:var(--muted);font-weight:400"> PE</span>${x.pb?`<span style="font-size:12px;color:var(--muted);font-weight:400;margin-left:6px">PB ${parseFloat(x.pb).toFixed(2)}</span>`:""}</div>
-          <div style="font-size:12px;color:${v.color};font-weight:700;background:${v.bg};padding:2px 8px;border-radius:10px;white-space:nowrap">${v.label} · 分位 ${pct}%</div>
+        <div style="display:flex; justify-content:flex-end; align-items:baseline">
+          <div style="font-size:12px;color:${v.color};font-weight:700;background:${v.bg};padding:2px 8px;border-radius:10px;white-space:nowrap">${v.label}</div>
         </div>
         ${_thermoHtml(pct)}
       </div>
