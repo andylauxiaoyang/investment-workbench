@@ -753,7 +753,7 @@ const SYNCED_INDEX = {"syncedAt": "2026-08-07T20:18:19", "indices": [{"code": "0
 
 
 // 版本号：每次部署 bump 此值，并同步更新 version.json；旧版 HTML 检测到远程版本更新会弹横幅提示刷新
-const APP_VER = "20260807.23";
+const APP_VER = "20260807.24";
 
 // 内存中的同步数据（部署版 fetch 成功后覆盖文件内嵌值）
 let MEM_SYNCED=null, MEM_SYNCED_AT=null;
@@ -1196,9 +1196,25 @@ function svgLineChart(series, opts){
   series.forEach((p,i)=>{ line+=(i?"L":"M")+X(ts[i]).toFixed(1)+" "+Y(p.v).toFixed(1)+" "; });
   const area=`M ${X(ts[0]).toFixed(1)} ${(padT+ph).toFixed(1)} `+series.map((p,i)=>"L"+X(ts[i]).toFixed(1)+" "+Y(p.v).toFixed(1)).join(" ")+` L ${X(ts[ts.length-1]).toFixed(1)} ${(padT+ph).toFixed(1)} Z`;
   const color=opts.color||"var(--primary)";
-  const li=series.length-1, lx=X(ts[li]), ly=Y(series[li].v);
-  const lastLabel=noLabels?"":`<circle cx="${lx.toFixed(1)}" cy="${ly.toFixed(1)}" r="3.6" fill="${color}" stroke="#fff" stroke-width="1.6"/>
-    <text x="${lx.toFixed(1)}" y="${(ly-9).toFixed(1)}" text-anchor="end" font-size="11.5" font-weight="800" fill="${color}">${fmtY(series[li].v)}</text>`;
+  // 关键数据点标注：起点 / 高点 / 低点 / 最后一点（同索引去重，避免重叠）
+  const hiIdx = series.reduce((b,c,i,a)=>c.v>a[b].v?i:b, 0);
+  const loIdx = series.reduce((b,c,i,a)=>c.v<a[b].v?i:b, 0);
+  const ptGroup = {};
+  [["起",0],["高",hiIdx],["低",loIdx],["末",series.length-1]].forEach(([tag,i])=>{
+    (ptGroup[i]=ptGroup[i]||{i,tags:[]}).tags.push(tag);
+  });
+  let keyMarks="";
+  Object.values(ptGroup).forEach(g=>{
+    const x=X(ts[g.i]), y=Y(series[g.i].v);
+    const onlyLow = g.tags.length===1 && g.tags[0]==="低";
+    const dy = onlyLow ? 14 : -8;
+    let anchor="middle";
+    if(x < padL+30) anchor="start";
+    else if(x > padL+pw-30) anchor="end";
+    const tag = g.tags.sort((a,b)=>"起高低末".indexOf(a)-"起高低末".indexOf(b)).join("/");
+    keyMarks += `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="3.2" fill="${color}" stroke="#fff" stroke-width="1.4"/>`+
+      `<text x="${x.toFixed(1)}" y="${(y+dy).toFixed(1)}" text-anchor="${anchor}" font-size="10" font-weight="800" fill="${color}">${tag}${fmtY(series[g.i].v)}</text>`;
+  });
   // 第二条线：均线（如 MA250），日期须落在 [tmin,tmax]；v=null 处断开
   let maLine="", maLegend="";
   if(opts.maSeries && opts.maSeries.length){
@@ -1218,7 +1234,7 @@ function svgLineChart(series, opts){
     ${opts.fill?`<path d="${area}" fill="${color}" opacity="0.13"/>`:""}
     ${maLine}
     <path d="${line}" fill="none" stroke="${color}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
-    ${lastLabel}${maLegend}
+    ${keyMarks}${maLegend}
   </svg>`;
 }
 // 单个情绪曲线卡片（含标题与当前值 + 图注）
@@ -2026,11 +2042,27 @@ function _navBenchSvg(navArr, benchArr){
   const yb=Y(100);
   const baseLine=`<line x1="${padL}" y1="${yb.toFixed(1)}" x2="${padL+pw}" y2="${yb.toFixed(1)}" stroke="#888" stroke-width="1" stroke-dasharray="4 4" opacity="0.7"/>`;
   const baseLabel=`<text x="${padL+pw}" y="${(yb-4).toFixed(1)}" text-anchor="end" font-size="10" font-weight="700" fill="#888">基准100</text>`;
-  // 末点数值
-  const lni=nn.length-1, lbi=bb.length-1;
-  const endLabels=`<circle cx="${X(lni).toFixed(1)}" cy="${Y(nn[lni]).toFixed(1)}" r="3" fill="var(--danger)"/>`+
-    `<text x="${(X(lni)+5).toFixed(1)}" y="${(Y(nn[lni])+3.5).toFixed(1)}" font-size="10.5" font-weight="800" fill="var(--danger)">${nn[lni].toFixed(0)}</text>`+
-    `<text x="${(X(lbi)+5).toFixed(1)}" y="${(Y(bb[lbi])+12).toFixed(1)}" font-size="10" font-weight="700" fill="var(--muted)">基准 ${bb[lbi].toFixed(0)}</text>`;
+  // 净值线关键数据点：起点/高点/低点/最后一点
+  const nHi=nn.indexOf(Math.max.apply(null,nn)), nLo=nn.indexOf(Math.min.apply(null,nn));
+  const nGrp={};
+  [["起",0],["高",nHi],["低",nLo],["末",nn.length-1]].forEach(([tag,i])=>{
+    (nGrp[i]=nGrp[i]||{i,tags:[]}).tags.push(tag);
+  });
+  let navMarks="";
+  Object.values(nGrp).forEach(g=>{
+    const x=X(g.i), y=Y(nn[g.i]);
+    const onlyLow = g.tags.length===1 && g.tags[0]==="低";
+    const dy = onlyLow ? 14 : -8;
+    let anchor="middle";
+    if(x < padL+28) anchor="start";
+    else if(x > padL+pw-28) anchor="end";
+    const tag = g.tags.sort((a,b)=>"起高低末".indexOf(a)-"起高低末".indexOf(b)).join("/");
+    navMarks += `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="3" fill="var(--danger)" stroke="#fff" stroke-width="1.3"/>`+
+      `<text x="${x.toFixed(1)}" y="${(y+dy).toFixed(1)}" text-anchor="${anchor}" font-size="9.5" font-weight="800" fill="var(--danger)">${tag}${nn[g.i].toFixed(0)}</text>`;
+  });
+  // 末点数值（仅保留基准末点；净值末点已并入 navMarks）
+  const lbi=bb.length-1;
+  const endLabels=`<text x="${(X(lbi)+5).toFixed(1)}" y="${(Y(bb[lbi])+12).toFixed(1)}" font-size="10" font-weight="700" fill="var(--muted)">基准 ${bb[lbi].toFixed(0)}</text>`;
   // MA250 净值均线
   let maPath="";
   if(maNav){ let pen=false; for(let i=249;i<n;i++){ const x=X(i), y=Y(maNav[i-249]); maPath+=(pen?"L":"M")+x.toFixed(1)+" "+y.toFixed(1)+" "; pen=true; } }
@@ -2041,7 +2073,7 @@ function _navBenchSvg(navArr, benchArr){
     <path d="${mk(nn)}" fill="none" stroke="var(--danger)" stroke-width="2" stroke-linejoin="round"/>
     <path d="${mk(bb)}" fill="none" stroke="var(--muted)" stroke-width="1.8" stroke-dasharray="5 4"/>
     ${maPath?`<path d="${maPath}" fill="none" stroke="#e8a317" stroke-width="1.8" stroke-linejoin="round" opacity="0.95"/>`:""}
-    ${endLabels}
+    ${navMarks}${endLabels}
     <text x="${padL}" y="${padT-4}" font-size="11" fill="var(--danger)" font-weight="700">● 净值(基=100)</text>
     <text x="${padL+96}" y="${padT-4}" font-size="11" fill="var(--muted)" font-weight="700">┄ 基准(基=100)</text>
     ${maLegend}
