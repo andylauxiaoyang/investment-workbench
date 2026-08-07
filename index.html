@@ -741,7 +741,7 @@ const SYNCED_INDEX = {"syncedAt": "2026-08-07T17:46:53", "indices": [{"code": "0
 
 
 // 版本号：每次部署 bump 此值，并同步更新 version.json；旧版 HTML 检测到远程版本更新会弹横幅提示刷新
-const APP_VER = "20260807.12";
+const APP_VER = "20260807.13";
 
 // 内存中的同步数据（部署版 fetch 成功后覆盖文件内嵌值）
 let MEM_SYNCED=null, MEM_SYNCED_AT=null;
@@ -1825,6 +1825,22 @@ function _thermoHtml(pct){
     <div style="position:absolute; top:-3px; bottom:-3px; left:${Math.max(0,Math.min(100,pct))}%; width:2px; background:#26215C;"></div>
   </div>`;
 }
+function _peHistSvg(x){
+  const arr=_parseNums(x.peSeries);
+  if(arr.length<2) return "";
+  const cur=parseFloat(x.pe);
+  const now=Date.now();
+  const start=now-10*365*24*3600*1000; // 近10年窗口
+  const series=arr.map((v,i)=>{
+    const t=start+(now-start)*(arr.length<=1?0:i/(arr.length-1));
+    const d=new Date(t);
+    const ds=d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+    return {d:ds,v:v};
+  });
+  const refs=[];
+  if(cur>0 && !isNaN(cur)) refs.push({y:cur,label:"当前 "+cur.toFixed(1),color:"#26215C"});
+  return svgLineChart(series,{height:200,color:"#2f6fed",fill:true,refLines:refs,fmtY:v=>v.toFixed(0)});
+}
 function _navBenchSvg(navArr, benchArr){
   const n=Math.min(navArr.length, benchArr.length); if(n<2) return "";
   const W=680,H=210,padL=46,padR=14,padT=16,padB=22, pw=W-padL-padR, ph=H-padT-padB;
@@ -1864,6 +1880,7 @@ function renderResearch(){
   const idxHtml = state.indices.map((x,i)=>{
     const pct=_idxPct(x), v=_verdict(pct);
     const peStr = (x.pe!==undefined && x.pe!=="" && !isNaN(parseFloat(x.pe))) ? parseFloat(x.pe).toFixed(1) : "—";
+    const peCurve=_peHistSvg(x);
     return `<div class="item-card">
       <div class="ic-head"><div class="ic-title">${esc(x.name||"未命名指数")}</div>
         <button class="icon-btn" data-del="indices" data-i="${i}"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg></button></div>
@@ -1882,6 +1899,7 @@ function renderResearch(){
         </div>
         ${_thermoHtml(pct)}
       </div>
+      ${peCurve?`<div style="margin-top:12px"><div class="hint" style="margin-bottom:4px">近10年 PE 走势</div>${peCurve}</div>`:""}
     </div>`;
   }).join("") || `<div class="muted" style="padding:14px">${t('noData')}</div>`;
 
