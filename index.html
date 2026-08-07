@@ -753,7 +753,7 @@ const SYNCED_INDEX = {"syncedAt": "2026-08-07T20:18:19", "indices": [{"code": "0
 
 
 // 版本号：每次部署 bump 此值，并同步更新 version.json；旧版 HTML 检测到远程版本更新会弹横幅提示刷新
-const APP_VER = "20260807.22";
+const APP_VER = "20260807.23";
 
 // 内存中的同步数据（部署版 fetch 成功后覆盖文件内嵌值）
 let MEM_SYNCED=null, MEM_SYNCED_AT=null;
@@ -2119,7 +2119,7 @@ function _fundAnalysisHtml(s){
   </div>`;
 }
 function renderResearch(){
-  const idxHtml = state.indices.map((x,i)=>{
+  function idxCard(x,i){
     const isPrice = !!x.idxSeries && String(x.idxSeries).trim()!=="";
     const pct = isPrice ? _idxPricePct(x) : _idxPct(x);
     const v = _verdict(pct, isPrice?"price":"pe");
@@ -2147,7 +2147,12 @@ function renderResearch(){
       ${curve?`<div style="margin-top:12px"><div class="hint" style="margin-bottom:4px">${isPrice?"近10年 点位 走势":"近10年 PE 走势"}</div>${curve}</div>`:""}
       ${_idxAnalysisHtml(pct, x, isPrice)}
     </div>`;
-  }).join("") || `<div class="muted" style="padding:14px">${t('noData')}</div>`;
+  }
+  const idxEntries = state.indices.map((x,i)=>({x,i, isPrice: !!x.idxSeries && String(x.idxSeries).trim()!==""}));
+  const priceEntries = idxEntries.filter(e=>e.isPrice);
+  const peEntries = idxEntries.filter(e=>!e.isPrice);
+  const priceHtml = priceEntries.map(e=>idxCard(e.x,e.i)).join("");
+  const peHtml = peEntries.map(e=>idxCard(e.x,e.i)).join("");
 
   const fundHtml = state.funds.map((f,i)=>{
     const nav=_parseNums(f.nav), bench=_parseNums(f.bench);
@@ -2187,7 +2192,8 @@ function renderResearch(){
   <div class="card" style="margin-bottom:16px">
     <h3>${t('resWatch')} <span class="tag">SVG</span></h3>
     <div class="hint">${t('resWatchHint')}</div>
-    <div class="grid cols-2" style="margin-top:8px">${idxHtml}</div>
+    ${ priceHtml ? `<div style="display:grid;grid-template-columns:1fr;gap:16px;margin-top:8px">${priceHtml}</div>` : "" }
+    ${ peHtml ? `<div class="grid cols-2" style="margin-top:${priceHtml?'20px':'8px'}">${peHtml}</div>` : (priceHtml? "" : `<div class="muted" style="padding:14px">${t('noData')}</div>`) }
     <button class="mini-btn primary" style="background:var(--primary);color:#fff" data-add="indices">${t('addIdx')}</button>
   </div>
   <div class="card">
