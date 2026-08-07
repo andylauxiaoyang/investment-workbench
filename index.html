@@ -189,6 +189,15 @@ td input:focus,td select:focus{outline:none;border-color:var(--primary)}
 .ind-card{background:var(--panel2);border:1px solid var(--border);border-radius:14px;padding:12px}
 .ind-card .il{font-size:12.5px;color:var(--muted);min-height:34px}
 .ind-card .iv{display:flex;align-items:baseline;gap:6px;margin-top:6px}
+.ind-info-toggle{display:inline-flex;align-items:center;gap:4px;margin-top:10px;padding:4px 10px;border:1px solid var(--border);border-radius:999px;background:transparent;color:var(--muted);font-size:11.5px;cursor:pointer;line-height:1;font-family:inherit}
+.ind-info-toggle:hover{color:var(--primary);border-color:var(--primary)}
+.ind-info{max-height:0;overflow:hidden;transition:max-height .25s ease}
+.ind-card.open .ind-info{max-height:560px}
+.ind-info dl{margin:10px 0 2px;padding-top:10px;border-top:1px dashed var(--border);display:grid;grid-template-columns:auto 1fr;gap:6px 12px;font-size:12px;line-height:1.55}
+.ind-info dt{color:var(--muted);font-weight:600;white-space:nowrap}
+.ind-info dd{margin:0;color:var(--text)}
+.ind-info .trend{display:inline-flex;align-items:center;gap:4px}
+.trend-up{color:var(--danger)} .trend-down{color:var(--success)} .trend-flat{color:var(--muted)}
 .ind-card input{border:1px solid var(--border);background:var(--panel);color:var(--text);border-radius:8px;
   padding:7px 8px;width:100%;font-size:16px;font-variant-numeric:tabular-nums}
 .ind-card .iu{font-size:12px;color:var(--muted)}
@@ -1357,6 +1366,87 @@ function fmtSync(iso){
   catch(e){ return iso; }
 }
 
+// 宏观指标释义卡：含义 / 对经济·市场的影响方向 / 合理参照区间 / 近几期趋势
+const MACRO_INFO = {
+  M2:{meaning:"广义货币供应量 M2 同比增长，反映实体经济货币总量与潜在购买力，是观测流动性松紧的核心总量指标。",
+      impact:"上行→流动性宽松、利好风险资产；下行→信用收缩、市场承压。",
+      range:"合理区通常 8%–12%；>15% 易催生资产泡沫，<8% 偏紧。",
+      trend:{dir:"down",text:"近月温和回落至 8.0%（2026-06），货币中性偏宽。"}},
+  LPR1:{meaning:"贷款市场报价利率（1年期），企业短贷与多数消费贷的定价锚。",
+      impact:"下调→降低融资成本、提振经济与股市；上调→收紧。",
+      range:"历史区间 3.0%–4.3%；当前 3.00% 处历史低位。",
+      trend:{dir:"down",text:"2024 年以来多次下调，现 3.00%（2026-07）。"}},
+  LPR5:{meaning:"贷款市场报价利率（5年期以上），房贷与长期融资定价基准。",
+      impact:"下调→直接减轻房贷负担、托底地产；上调→抑制。",
+      range:"历史 3.5%–4.85%；当前 3.50%。",
+      trend:{dir:"down",text:"现 3.50%（2026-07），较 2024 高位累计下调约 135bp。"}},
+  rateLong:{meaning:"10年期国债收益率，无风险利率之锚，反映长期增长与通胀预期。",
+      impact:"上行→经济预期改善/通胀升温（债券价跌）；下行→避险/宽松、利好债、压制银行息差。",
+      range:"合理 2.0%–3.5%；<2% 极低（衰退/通缩预期），>3.5% 偏紧。",
+      trend:{dir:"down",text:"现约 1.71%（2026-08），处历史低位。"}},
+  rateShort:{meaning:"2年期国债收益率，短端利率，贴近货币政策与资金面。",
+      impact:"短端上行多因资金面收紧或降息预期降温；下行→宽松。",
+      range:"合理 1.5%–2.8%。",
+      trend:{dir:"down",text:"现约 1.25%（2026-08），收益率曲线平坦化。"}},
+  fx:{meaning:"美元兑人民币即期汇率，衡量人民币对外价值。",
+      impact:"人民币贬值（数值↑）→利好出口、输入性通胀；升值（数值↓）→利好进口、资本回流。",
+      range:"近年 6.3–7.3；7.2 以上偏贬、6.8 以下偏升。",
+      trend:{dir:"flat",text:"现 6.79（2026-08-07），近期小幅波动。"}},
+  reserves:{meaning:"央行持有的外汇资产总规模（美元计），反映国际收支与汇率维稳能力。",
+      impact:"下降→资本外流/干预汇率压力；上升→资金流入、底气足。",
+      range:"3.0–3.4 万亿美元为常态；<3.0 偏紧。",
+      trend:{dir:"up",text:"现 3.42 万亿（2026-06），总体平稳。"}},
+  CPI:{meaning:"居民消费价格指数同比，整体物价涨跌，央行通胀目标锚。",
+      impact:"过高（>3%）→通胀压力、可能收紧；过低/负→通缩风险、需宽松。",
+      range:"合理 1%–3%；<0 通缩，>3 偏热。",
+      trend:{dir:"up",text:"现 1.0%（2026-06），温和回升。"}},
+  PPI:{meaning:"工业生产者出厂价格指数同比，上游工业品价格与企业盈利周期。",
+      impact:"上行→上游盈利改善但挤压中下游；深度负→工业通缩、利润承压。",
+      range:"合理 0%–5%；持续为负提示工业通缩。",
+      trend:{dir:"up",text:"现 4.1%（2026-06），由负转正、景气修复。"}},
+  PMI:{meaning:"财新制造业采购经理指数，50 为荣枯线，>50 扩张、<50 收缩（偏中小企业/出口链）。",
+      impact:">50 且上行→景气扩张、利好制造/周期；<50→收缩。",
+      range:"荣枯线 50；48–52 为常态波动。",
+      trend:{dir:"up",text:"现 50.9（2026-07），连续处于扩张区。"}},
+  BDI:{meaning:"波罗的海干散货运价指数，全球大宗商品运输成本晴雨表，反映全球贸易活跃度。",
+      impact:"上行→全球贸易/大宗商品需求回暖；下行→需求走弱。",
+      range:"历史波动大，1000–2500 为近年中枢；>4000 过热。",
+      trend:{dir:"up",text:"现约 3063（2026-08-05），处高位、贸易活跃。"}},
+  GDP:{meaning:"国内生产总值同比增长，经济整体增速总量指标（此处取最新季度同比）。",
+      impact:"上行→经济走强、企业盈利改善；下行→放缓、政策刺激预期升温。",
+      range:"潜在增速约 4%–5%（近年）；<4 偏弱，>6 偏强（疫前）。",
+      trend:{dir:"down",text:"现 4.3%（2026 Q2），上半年 4.7%。"}},
+  invest:{meaning:"固定资产投资（基建+地产+制造）累计同比，资本形成侧需求动能。",
+      impact:"上行→稳增长发力、建材/机械受益；下行→内需不足。",
+      range:"合理 3%–8%；地产拖累下近年常低位甚至转负。",
+      trend:{dir:"down",text:"现 -5.7%（2026-06），地产深度调整拖累。"}},
+  consume:{meaning:"社会消费品零售总额同比，终端消费需求的代表指标。",
+      impact:"上行→内需回暖、消费股受益；下行→消费疲软。",
+      range:"合理 4%–10%；<3 偏弱。",
+      trend:{dir:"down",text:"现 1.3%（2026-06），低位徘徊、待修复。"}},
+  export:{meaning:"以美元计的出口金额同比，外需与制造业景气的重要指标。",
+      impact:"上行→外需强、出口链景气；下行→全球需求走弱。",
+      range:"合理 0%–15%；近年波动大。",
+      trend:{dir:"up",text:"现 27.0%（2026-06），低基数+外需修复拉动。"}},
+};
+function trendSvg(d){
+  if(d==="up") return '<svg viewBox="0 0 16 16" width="12" height="12" aria-hidden="true"><path d="M8 3l5 7H3z" fill="currentColor"/></svg>';
+  if(d==="down") return '<svg viewBox="0 0 16 16" width="12" height="12" aria-hidden="true"><path d="M8 13L3 6h10z" fill="currentColor"/></svg>';
+  return '<svg viewBox="0 0 16 16" width="12" height="12" aria-hidden="true"><path d="M3 8h10" stroke="currentColor" stroke-width="2" fill="none"/></svg>';
+}
+function macroInfoHtml(key){
+  const info = MACRO_INFO[key]; if(!info) return "";
+  const tr = info.trend||{dir:"flat",text:""};
+  return `<div class="ind-info">
+    <dl>
+      <dt>含义</dt><dd>${esc(info.meaning)}</dd>
+      <dt>影响</dt><dd>${esc(info.impact)}</dd>
+      <dt>参照</dt><dd>${esc(info.range)}</dd>
+      <dt>趋势</dt><dd><span class="trend trend-${tr.dir}">${trendSvg(tr.dir)} ${esc(tr.text)}</span></dd>
+    </dl>
+  </div>`;
+}
+
 function renderMacro(){
   // 真实同步数据（内联 SYNCED_MACRO 或部署版 fetch 覆盖）
   const realMap = getMacroReal();
@@ -1376,6 +1466,11 @@ function renderMacro(){
       <div class="ind-card">
         <div class="il">${esc(lbl)} ${tag}</div>
         ${valHtml}
+        <button type="button" class="ind-info-toggle" data-info-toggle="${it.key}" aria-expanded="false">
+          <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></svg>
+          <span>释义</span>
+        </button>
+        ${macroInfoHtml(it.key)}
       </div>`; }).join("")}
     </div>`;
   const moneyArr=state.macro.money.map(x=>Object.assign({},x,{_g:"money"}));
@@ -1565,6 +1660,8 @@ function onFieldChange(e){
   save(); renderActive();
 }
 function onContentClick(e){
+  const infoBtn=e.target.closest("[data-info-toggle]");
+  if(infoBtn){ const card=infoBtn.closest(".ind-card"); if(card){ const open=card.classList.toggle("open"); infoBtn.setAttribute("aria-expanded", open?"true":"false"); } return; }
   const tgt=e.target.closest("[data-del],[data-add],[data-foc],[data-delfoc],[id]");
   if(!tgt) return;
   if(tgt.dataset.del){ const b=tgt.dataset.del,i=+tgt.dataset.i;
