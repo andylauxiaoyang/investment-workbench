@@ -191,8 +191,8 @@ td input:focus,td select:focus{outline:none;border-color:var(--primary)}
 .ind-card .iv{display:flex;align-items:baseline;gap:6px;margin-top:6px}
 .ind-info-toggle{display:inline-flex;align-items:center;gap:4px;margin-top:10px;padding:4px 10px;border:1px solid var(--border);border-radius:999px;background:transparent;color:var(--muted);font-size:11.5px;cursor:pointer;line-height:1;font-family:inherit}
 .ind-info-toggle:hover{color:var(--primary);border-color:var(--primary)}
-.ind-info{max-height:0;overflow:hidden;transition:max-height .25s ease}
-.ind-card.open .ind-info{max-height:560px}
+.ind-info{margin-top:10px}
+.ind-info-h{font-size:11px;font-weight:700;color:var(--primary);letter-spacing:.04em;margin-bottom:2px}
 .ind-info dl{margin:10px 0 2px;padding-top:10px;border-top:1px dashed var(--border);display:grid;grid-template-columns:auto 1fr;gap:6px 12px;font-size:12px;line-height:1.55}
 .ind-info dt{color:var(--muted);font-weight:600;white-space:nowrap}
 .ind-info dd{margin:0;color:var(--text)}
@@ -1448,6 +1448,7 @@ function macroInfoHtml(key){
   const info = MACRO_INFO[key]; if(!info) return "";
   const tr = info.trend||{dir:"flat",text:""};
   return `<div class="ind-info">
+    <div class="ind-info-h">指标释义</div>
     <dl>
       <dt>含义</dt><dd>${esc(info.meaning)}</dd>
       <dt>影响</dt><dd>${esc(info.impact)}</dd>
@@ -1476,10 +1477,6 @@ function renderMacro(){
       <div class="ind-card">
         <div class="il">${esc(lbl)} ${tag}</div>
         ${valHtml}
-        <button type="button" class="ind-info-toggle" data-info-toggle="${it.key}" aria-expanded="false">
-          <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></svg>
-          <span>释义</span>
-        </button>
         ${macroInfoHtml(it.key)}
       </div>`; }).join("")}
     </div>`;
