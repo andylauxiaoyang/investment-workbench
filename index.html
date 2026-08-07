@@ -213,11 +213,12 @@ td input:focus,td select:focus{outline:none;border-color:var(--primary)}
 .gauge-card .gz{font-size:11.5px;font-weight:700;margin-top:4px}
 
 /* indicator grid */
-.ind-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:12px}
-.ind-card{background:var(--panel2);border:none;border-radius:var(--r);padding:14px;box-shadow:var(--shadow-tile)}
-.ind-card .il{font-size:12.5px;color:var(--muted);min-height:34px}
-.ind-card .iv{display:flex;align-items:baseline;gap:6px;margin-top:6px}
-.ind-info-toggle{display:inline-flex;align-items:center;gap:4px;margin-top:10px;padding:4px 11px;border:1px solid var(--border);border-radius:var(--r-pill);background:transparent;color:var(--muted);font-size:11.5px;cursor:pointer;line-height:1;font-family:inherit;
+.ind-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px;align-items:start}
+.ind-card{background:var(--panel);border:1px solid var(--border);border-radius:var(--r-lg);padding:16px;box-shadow:var(--shadow-card);transition:transform .14s cubic-bezier(.32,.72,0,1),box-shadow .18s}
+.ind-card:hover{transform:translateY(-2px);box-shadow:0 4px 8px rgba(0,0,0,.05),0 14px 34px rgba(0,0,0,.07)}
+.ind-card .il{font-size:13px;color:var(--muted);font-weight:600;line-height:1.4;min-height:36px;display:flex;align-items:flex-start;gap:6px;flex-wrap:wrap}
+.ind-card .iv{display:flex;align-items:baseline;gap:5px;margin-top:10px}
+.ind-info-toggle{display:inline-flex;align-items:center;gap:4px;margin-top:12px;padding:5px 12px;border:1px solid var(--border);border-radius:var(--r-pill);background:transparent;color:var(--muted);font-size:11.5px;cursor:pointer;line-height:1;font-family:inherit;
   transition:transform .12s ease,color .15s,border-color .15s}
 .ind-info-toggle:hover{color:var(--primary);border-color:var(--primary)}
 .ind-info-toggle:active{transform:scale(.96)}
@@ -237,11 +238,16 @@ td input:focus,td select:focus{outline:none;border-color:var(--primary)}
 .anomaly-analysis{margin-top:8px;padding:9px 13px;background:var(--primary-weak);border-left:3px solid var(--primary);border-radius:0 var(--r-sm) var(--r-sm) 0;font-size:12px;line-height:1.6;color:var(--text)}
 .anomaly-analysis .anomaly-title{font-weight:700;color:var(--primary-d);margin-bottom:2px;font-size:11.5px;letter-spacing:.03em}
 .anomaly-analysis .anomaly-body{color:var(--muted)}
-.ind-card input{border:1px solid var(--border);background:var(--panel);color:var(--text);border-radius:var(--r-sm);
-  padding:7px 8px;width:100%;font-size:16px;font-variant-numeric:tabular-nums}
-.ind-card .iu{font-size:12px;color:var(--muted)}
-.ind-card .rv{font-size:18px;font-weight:800;color:var(--text);letter-spacing:-.01em;font-variant-numeric:tabular-nums}
+.ind-card input{border:1px solid var(--border);background:var(--panel2);color:var(--text);border-radius:var(--r-sm);
+  padding:6px 8px;width:120px;font-size:18px;font-variant-numeric:tabular-nums}
+.ind-card .iu{font-size:13px;color:var(--muted);font-weight:600}
+.ind-card .rv{font-size:30px;font-weight:800;color:var(--text);letter-spacing:-.02em;font-variant-numeric:tabular-nums;line-height:1}
 .ind-card .in{font-size:11.5px;color:var(--muted);margin-top:6px}
+.ind-card .tile-arrow{font-size:12px;margin-top:9px;display:inline-flex;align-items:center;gap:4px;font-weight:600}
+/* 折叠释义：默认收起，点 ⓘ 展开 */
+.ind-card .ind-info,.ind-card .anomaly-analysis{display:none}
+.ind-card.open .ind-info{display:block;margin-top:12px;padding-top:12px;border-top:1px dashed var(--border)}
+.ind-card.open .anomaly-analysis{display:block;margin-top:12px}
 .cat-title{font-size:13px;font-weight:700;color:var(--muted);margin:18px 0 8px;text-transform:uppercase;letter-spacing:.5px}
 
 /* funnel */
@@ -787,7 +793,7 @@ const SYNCED_INDEX = {"syncedAt": "2026-08-07T20:18:19", "indices": [{"code": "0
 
 
 // 版本号：每次部署 bump 此值，并同步更新 version.json；旧版 HTML 检测到远程版本更新会弹横幅提示刷新
-const APP_VER = "20260807.26";
+const APP_VER = "20260807.27";
 
 // 内存中的同步数据（部署版 fetch 成功后覆盖文件内嵌值）
 let MEM_SYNCED=null, MEM_SYNCED_AT=null;
@@ -1849,10 +1855,15 @@ function renderMacro(){
       const valHtml = isReal
         ? `<div class="iv"><span class="rv">${esc(val)}</span><span class="iu">${esc(unit)}</span></div>`
         : `<div class="iv"><input data-bind="macro" data-g="${it._g}" data-k="${it.key}" value="${esc(val)}"><span class="iu">${esc(unit)}</span></div>`;
+      const mi = MACRO_INFO[it.key];
+      const tr = mi && mi.trend ? mi.trend : {dir:"flat",text:""};
+      const arrow = `<div class="tile-arrow trend-${tr.dir}">${trendSvg(tr.dir)} <span class="ta-txt">${esc(tr.text)}</span></div>`;
       return `
       <div class="ind-card">
         <div class="il">${esc(lbl)} ${tag}</div>
         ${valHtml}
+        ${arrow}
+        <button class="ind-info-toggle" data-info-toggle aria-expanded="false">ⓘ 释义 / 投资参考</button>
         ${getAnomalyAnalysis(it.key, val)}
         ${macroInfoHtml(it.key)}
       </div>`; }).join("")}
