@@ -711,7 +711,7 @@ const SYNCED_MACRO = {"syncedAt": "2026-08-07T11:51:55", "money": [{"key": "M2",
 /*__SYNCED_MACRO_END__*/////////////
 
 // 版本号：每次部署 bump 此值，并同步更新 version.json；旧版 HTML 检测到远程版本更新会弹横幅提示刷新
-const APP_VER = "20260807.2";
+const APP_VER = "20260807.3";
 
 // 内存中的同步数据（部署版 fetch 成功后覆盖文件内嵌值）
 let MEM_SYNCED=null, MEM_SYNCED_AT=null;
@@ -811,8 +811,13 @@ function loadState(){
   const dm = defaultState().macro;
   s.macro = s.macro || {};
   ["money","pc","momentum"].forEach(g=>{
+    const defKeys = new Set(dm[g].map(x=>x.key));
     if(!Array.isArray(s.macro[g])){ s.macro[g] = dm[g].map(x=>({...x})); dirty=true; }
     else {
+      // 丢弃旧版残留的指标（如已删除的 SOFR / 旧占位 oecd），仅保留当前规范集内的 key
+      const before = s.macro[g].length;
+      s.macro[g] = s.macro[g].filter(x=>x && defKeys.has(x.key));
+      if(s.macro[g].length !== before) dirty=true;
       const have = new Set(s.macro[g].map(x=>x && x.key));
       dm[g].forEach(d=>{ if(!have.has(d.key)){ s.macro[g].push({...d}); dirty=true; } });
     }
