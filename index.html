@@ -2407,13 +2407,128 @@ function renderTools(){
         <div style="grid-column:1/-1"><label>${t('tNote')}</label><textarea data-bind="tools" data-i="${i}" data-f="note">${esc(tl.note)}</textarea></div>
       </div>
     </div>`).join("") || `<div class="muted" style="padding:14px">${t('noData')}</div>`;
-  return `
+  const gcFundsOpts = (typeof SYNCED_INDEX!=="undefined"&&SYNCED_INDEX&&SYNCED_INDEX.funds) ? SYNCED_INDEX.funds.map(f=>'<option value="'+f.code+'">'+f.name+'</option>').join("") : "";
+  const calcCard=`
+<div class="card">
+  <h3>网格 / 定投收益计算器</h3>
+  <div class="hint">移植自「网格投资跟踪表」skill 核心算法（定投展开 + 收益/年化精算）。输入基金代码与计划，秒出总投资、收益、收益率、年化。净值取自页面已同步真实数据（012920 / 001015）；其它代码可粘贴净值序列。</div>
+  <div class="fgrid">
+    <div><label>基金代码</label><input id="gc-code" list="gc-funds" placeholder="如 012920"><datalist id="gc-funds">${gcFundsOpts}</datalist></div>
+    <div><label>投资方式</label><select id="gc-mode">
+      <option value="lump">一次性建仓</option>
+      <option value="monthly" selected>月定投</option>
+      <option value="weekly">周定投</option>
+      <option value="lumponce_monthly">底仓 + 月定投</option>
+      <option value="lumponce_weekly">底仓 + 周定投</option>
+    </select></div>
+    <div><label>底仓金额 (¥)</label><input id="gc-base" type="number" value="100000" min="0"></div>
+    <div><label>每期定投 (¥)</label><input id="gc-dca" type="number" value="3000" min="0"></div>
+    <div><label>投资期间起</label><input id="gc-start" type="date"></div>
+    <div><label>投资期间止</label><input id="gc-end" type="date"></div>
+    <div><label>定投日(每月)</label><input id="gc-day" type="number" value="1" min="1" max="28"></div>
+    <div style="display:flex;align-items:flex-end"><button class="mini-btn primary" style="background:var(--primary);color:#fff" data-action="calcGrid">计算</button></div>
+  </div>
+  <div id="gc-paste" style="display:none;margin-top:10px">
+    <label>粘贴净值序列（每行：日期,净值；非内置代码必填）</label>
+    <textarea id="gc-nav" rows="4" placeholder="2024-06-19,1.2358&#10;2024-06-20,1.2410"></textarea>
+  </div>
+  <div id="gc-result"></div>
+</div>`;
+  return calcCard + `
   <div class="card">
     <h3>${t('toolsTitle')}</h3>
     <div class="hint">${t('toolsHint')}</div>
     ${html}
     <button class="mini-btn primary" style="background:var(--primary);color:#fff" data-add="tools">${t('addTool')}</button>
   </div>`;
+}
+
+// ============ 网格/定投收益计算器（移植自 grid-investment-tracker skill 核心算法） ============
+function gcGetNav(code){
+  if(typeof SYNCED_INDEX!=="undefined" && SYNCED_INDEX && Array.isArray(SYNCED_INDEX.funds)){
+    const f=SYNCED_INDEX.funds.find(x=>x.code===code);
+    if(f){
+      const nav=String(f.nav).split(",").map(Number);
+      const nd=String(f.navDates).split(",");
+      const arr=nd.map((d,i)=>[d,nav[i]]).filter(p=>p[0]&&isFinite(p[1])).sort((a,b)=>a[0]<b[0]?-1:1);
+      if(arr.length>=2) return {src:"synced", name:f.name, data:arr};
+    }
+  }
+  const ta=document.getElementById("gc-nav");
+  if(ta && ta.value.trim()){
+    const arr=ta.value.trim().split(/\r?\n/).map(l=>l.trim()).filter(Boolean).map(l=>{
+      const p=l.split(/[,\t\s]+/); return [p[0], parseFloat(p[1])];
+    }).filter(p=>p[0]&&isFinite(p[1])).sort((a,b)=>a[0]<b[0]?-1:1);
+    if(arr.length>=2) return {src:"paste", name:code, data:arr};
+  }
+  return null;
+}
+function gcPrefill(){
+  const code=document.getElementById("gc-code").value.trim();
+  if(!code) return;
+  const nav=gcGetNav(code); if(!nav) return;
+  const s=document.getElementById("gc-start"), e=document.getElementById("gc-end");
+  if(s && !s.value) s.value=nav.data[0][0];
+  if(e && !e.value) e.value=nav.data[nav.data.length-1][0];
+}
+function fmtMoney(x){ return "¥"+Number(x).toLocaleString("zh-CN",{maximumFractionDigits:2,minimumFractionDigits:2}); }
+function fmtPct(x){ return (x*100).toFixed(2)+"%"; }
+function calcGrid(){
+  const res=document.getElementById("gc-result");
+  const code=document.getElementById("gc-code").value.trim();
+  if(!code){ res.innerHTML='<div class="muted" style="padding:10px">请填写基金代码</div>'; return; }
+  const nav=gcGetNav(code);
+  if(!nav){
+    document.getElementById("gc-paste").style.display="block";
+    res.innerHTML='<div class="muted" style="padding:10px">未找到该基金已同步净值，请在下方粘贴净值序列（每行：日期,净值）</div>';
+    return;
+  }
+  document.getElementById("gc-paste").style.display = nav.src==="synced" ? "none" : "block";
+  const mode=document.getElementById("gc-mode").value;
+  const base=Math.max(0,parseFloat(document.getElementById("gc-base").value)||0);
+  const dca=Math.max(0,parseFloat(document.getElementById("gc-dca").value)||0);
+  let start=document.getElementById("gc-start").value, end=document.getElementById("gc-end").value;
+  if(!start) start=nav.data[0][0];
+  if(!end) end=nav.data[nav.data.length-1][0];
+  const day=Math.min(28,Math.max(1,parseInt(document.getElementById("gc-day").value)||1));
+  let rows=nav.data.filter(p=>(!start||p[0]>=start)&&(!end||p[0]<=end));
+  if(rows.length<2){ res.innerHTML='<div class="muted" style="padding:10px">区间内净值数据不足（需≥2个交易日）</div>'; return; }
+  const monthPlan={};
+  for(let i=0;i<rows.length;i++){ const ym=rows[i][0].slice(0,7); (monthPlan[ym]=monthPlan[ym]||[]).push(i); }
+  const monthlyDate=(ym)=>{ const idxs=monthPlan[ym]; let pick=idxs.find(i=>parseInt(rows[i][0].slice(8,10))>=day); if(pick===undefined) pick=idxs[idxs.length-1]; return pick; };
+  const isMonthly=new Set((mode==="monthly"||mode==="lumponce_monthly")?Object.keys(monthPlan).map(monthlyDate):[]);
+  const isWeekly=new Set((mode==="weekly"||mode==="lumponce_weekly")?rows.map((_,i)=>i).filter(i=>i%5===0):[]);
+  let shares=0, invested=0, lumpDone=false; const curve=[];
+  for(let i=0;i<rows.length;i++){
+    let amt=0;
+    if(mode==="lump"){ if(i===0) amt=base; }
+    else if(mode.startsWith("lumponce")){ if(!lumpDone && i===0){ amt+=base; lumpDone=true; } }
+    if(isMonthly.has(i)) amt+=dca;
+    if(isWeekly.has(i)) amt+=dca;
+    if(amt>0){ shares+=amt/rows[i][1]; invested+=amt; }
+    curve.push(shares*rows[i][1]);
+  }
+  const lastNav=rows[rows.length-1][1];
+  const curVal=shares*lastNav;
+  const profit=curVal-invested;
+  const ret=invested>0?profit/invested:0;
+  const d0=new Date(rows[0][0]), d1=new Date(rows[rows.length-1][0]);
+  const days=Math.max(1,Math.round((d1-d0)/86400000));
+  const ann=invested>0?Math.pow(curVal/invested,365/days)-1:0;
+  let peak=curve[0], mdd=0;
+  for(const v of curve){ if(v>peak) peak=v; const dd=peak>0?(peak-v)/peak:0; if(dd>mdd) mdd=dd; }
+  const col=x=>x>=0?"var(--danger)":"var(--success)";
+  const cell=(k,v,c)=>'<div style="background:var(--card2,#f4f6f8);border-radius:10px;padding:10px 12px"><div style="font-size:12px;color:var(--muted,#8a94a6)">'+k+'</div><div style="font-size:18px;font-weight:700;margin-top:4px;color:'+(c||"inherit")+'">'+v+'</div></div>';
+  res.innerHTML='<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;margin-top:12px">'+
+    cell("总投资金额",fmtMoney(invested))+
+    cell("当前市值",fmtMoney(curVal))+
+    cell("投资收益",fmtMoney(profit),col(profit))+
+    cell("投资收益率",fmtPct(ret),col(ret))+
+    cell("年化收益率",fmtPct(ann),col(ann))+
+    cell("最大回撤",fmtPct(mdd),"var(--success)")+
+    cell("持有天数",days+" 天")+
+    cell("累计份额",shares.toFixed(2))+
+    '</div><div class="hint" style="margin-top:10px">净值来源：'+(nav.src==="synced"?"页面已同步真实数据 · "+esc(nav.name):"粘贴序列")+' ｜ '+rows.length+' 个交易日 ｜ 口径：买入持有含定投，未计申赎费</div>';
 }
 
 /* ============== Events ============== */
@@ -2438,7 +2553,7 @@ function bindEvents(){
 
 function onFieldInput(e){
   const el=e.target;
-  // 资产配置已改为自动计算（真实持仓归类），无手动滑块输入
+  if(el && el.id==="gc-code"){ gcPrefill(); }
 }
 function updateHealthHeader(){
   const alloc=computeAllocation();
@@ -2472,6 +2587,8 @@ function onFieldChange(e){
   save(); renderActive();
 }
 function onContentClick(e){
+  const calcBtn=e.target.closest('[data-action="calcGrid"]');
+  if(calcBtn){ calcGrid(); return; }
   const infoBtn=e.target.closest("[data-info-toggle]");
   if(infoBtn){ const card=infoBtn.closest(".ind-card"); if(card){ const open=card.classList.toggle("open"); infoBtn.setAttribute("aria-expanded", open?"true":"false"); } return; }
   const tgt=e.target.closest("[data-del],[data-add],[data-foc],[data-delfoc],[id]");
