@@ -562,7 +562,7 @@ const I18N = {
     /* tools */
     toolsTitle:"工具与方法论", toolsHint:"常用分析工具与个人的投资方法论沉淀",
     tName:"工具/方法", tDesc:"说明", tNote:"我的笔记",
-    addTool:"+ 添加工具", defaultTools:["估值方法论"],
+    addTool:"+ 添加工具",
     /* clear / import */
     clearTitle:"清空所有数据？", clearMsg:"此操作将删除全部本地投资数据，且无法撤销。建议先导出备份。",
     clearConfirm:"确认清空", importTitle:"导入恢复", importMsg:"选择一个此前导出的 JSON 备份文件，将覆盖当前数据。",
@@ -626,7 +626,7 @@ const I18N = {
     addWatch:"+ Add fund", addManager:"+ Add manager", addCompany:"+ Add company",
     toolsTitle:"Tools & Methodology", toolsHint:"Analysis tools and personal methodology",
     tName:"Tool / Method", tDesc:"Description", tNote:"My Notes",
-    addTool:"+ Add tool", defaultTools:["Grid trading","Fund analysis","LiXinger","TianTian Fund SKILL","Valuation method"],
+    addTool:"+ Add tool",
     clearTitle:"Clear all data?", clearMsg:"This deletes all local investment data and cannot be undone. Export a backup first.",
     clearConfirm:"Clear", importTitle:"Import Backup", importMsg:"Choose a previously exported JSON file; it will overwrite current data.",
     importOk:"Backup imported", importFail:"Parse failed, check format",
@@ -884,7 +884,7 @@ const SYNCED_INDEX = {"syncedAt": "2026-08-08T16:25:47", "indices": [{"code": "0
 
 
 // 版本号：每次部署 bump 此值，并同步更新 version.json；旧版 HTML 检测到远程版本更新会弹横幅提示刷新
-const APP_VER = "20260808.16";
+const APP_VER = "20260808.24";
 
 // 内存中的同步数据（部署版 fetch 成功后覆盖文件内嵌值）
 let MEM_SYNCED=null, MEM_SYNCED_AT=null;
@@ -960,6 +960,7 @@ function loadState(){
   if(!Array.isArray(s.news)) s.news=[];   // 财经要闻：兼容旧备份/导入
   if(!Array.isArray(s.focus)) s.focus=[];  // 待办事项：兼容旧备份/导入
   if(!s._focusCleared){ s.focus=[]; s._focusCleared=true; dirty=true; }  // 一次性清除旧「今日关注」虚拟种子
+  if(!s._toolsCleared20260808){ s.tools=[]; s._toolsCleared20260808=true; dirty=true; }  // 一次性清除旧版预置工具（用户要求不再显示）
   // 净资产曲线：以每日真实点为准，末点=当前真实持仓总额
   if(!s._nwReal || !Array.isArray(s.netWorth)){ s.netWorth=[{d:todayStr(), v:realTotalAsset()}]; s._nwReal=true; dirty=true; }
   // 旧版月度点（含 m 无 d）迁移为日点
@@ -2410,7 +2411,7 @@ function renderTools(){
   const calcCard=`
 <div class="card">
   <h3>网格 / 定投收益计算器</h3>
-  <div class="hint">移植自「网格投资跟踪表」skill 核心算法（定投展开 + 收益/年化精算）。输入基金代码与计划，秒出总投资、收益、收益率、年化。净值来源：① 页面已同步真实数据（012920 / 001015 / 160422）；② 未同步代码自动从天天基金在线拉取全历史净值；③ 仍支持粘贴净值序列。</div>
+  <div class="hint">移植自「网格投资跟踪表」skill 核心算法（定投展开 + 收益/年化精算）。输入基金代码与计划，秒出总投资、收益、收益率、年化。净值来源：① 页面已同步真实数据（012920 / 001015 / 160422）；② 未同步代码自动从天天基金在线拉取全历史净值。</div>
   <div class="fgrid">
     <div><label>基金代码</label><input id="gc-code" list="gc-funds" placeholder="如 012920"><datalist id="gc-funds">${gcFundsOpts}</datalist></div>
     <div><label>投资方式</label><select id="gc-mode">
@@ -2428,10 +2429,6 @@ function renderTools(){
     <div style="display:flex;align-items:flex-end"><button id="gc-calc" class="mini-btn primary" style="background:var(--primary);color:#fff" data-action="calcGrid">计算</button></div>
   </div>
   <div id="gc-range-hint" class="hint" style="margin-top:8px"></div>
-  <div id="gc-paste" style="display:none;margin-top:10px">
-    <label>粘贴净值序列（每行：日期,净值；非内置代码必填）</label>
-    <textarea id="gc-nav" rows="4" placeholder="2024-06-19,1.2358&#10;2024-06-20,1.2410"></textarea>
-  </div>
   <div id="gc-result"></div>
 </div>`;
   return calcCard + `
@@ -2454,13 +2451,6 @@ function gcGetNav(code){
       if(arr.length>=2) return {src:"synced", name:f.name, data:arr};
     }
   }
-  const ta=document.getElementById("gc-nav");
-  if(ta && ta.value.trim()){
-    const arr=ta.value.trim().split(/\r?\n/).map(l=>l.trim()).filter(Boolean).map(l=>{
-      const p=l.split(/[,\t\s]+/); return [p[0], parseFloat(p[1])];
-    }).filter(p=>p[0]&&isFinite(p[1])).sort((a,b)=>a[0]<b[0]?-1:1);
-    if(arr.length>=2) return {src:"paste", name:code, data:arr};
-  }
   return null;
 }
 
@@ -2470,7 +2460,7 @@ function gcFetchNavOnline(code){
     const script = document.createElement('script');
     script.src = `https://fund.eastmoney.com/pingzhongdata/${encodeURIComponent(code)}.js?t=${Date.now()}`;
     script.async = true;
-    const tid = setTimeout(()=>{ cleanup(); reject(new Error('净值接口超时，请尝试粘贴净值序列')); }, 15000);
+    const tid = setTimeout(()=>{ cleanup(); reject(new Error('净值接口超时，请稍后重试')); }, 15000);
     function cleanup(){ clearTimeout(tid); script.remove(); }
     script.onload = ()=>{
       try {
@@ -2490,7 +2480,7 @@ function gcFetchNavOnline(code){
         resolve({src:"online", name:`${name}(${code})`, data});
       } catch(e){ cleanup(); reject(e); }
     };
-    script.onerror = ()=>{ cleanup(); reject(new Error('净值接口加载失败，请尝试粘贴净值序列')); };
+    script.onerror = ()=>{ cleanup(); reject(new Error('净值接口加载失败，请稍后重试')); };
     document.head.appendChild(script);
   });
 }
@@ -2515,23 +2505,19 @@ async function calcGrid(){
   const code=document.getElementById("gc-code").value.trim();
   if(!code){ res.innerHTML='<div class="muted" style="padding:10px">请填写基金代码</div>'; return; }
   let nav=gcGetNav(code);
-  // 本地无数据且未粘贴 -> 尝试在线拉取
+  // 本地无数据 -> 尝试在线拉取
   if(!nav){
-    const paste=document.getElementById("gc-paste");
-    if(paste) paste.style.display="none";
     const btn=document.getElementById("gc-calc");
     if(btn){ btn.disabled=true; btn.textContent="拉取净值中..."; }
     res.innerHTML='<div class="muted" style="padding:14px;display:flex;align-items:center;gap:8px"><svg width="18" height="18" viewBox="0 0 24 24" style="vertical-align:middle"><path fill="currentColor" d="M12 2a10 10 0 1 0 10 10" opacity=".25"/><path fill="currentColor" d="M12 2a10 10 0 0 1 10 10"><animateTransform attributeName="transform" type="rotate" from="0 12 12" to="360 12 12" dur="1s" repeatCount="indefinite"/></path></svg>正在从天天基金拉取 '+esc(code)+' 历史净值…</div>';
     try {
       nav = await gcFetchNavOnline(code);
     } catch(err){
-      if(paste) paste.style.display="block";
-      res.innerHTML='<div class="muted" style="padding:10px">'+esc(err.message)+'，请在下方粘贴净值序列（每行：日期,净值）</div>';
+      res.innerHTML='<div class="muted" style="padding:10px">'+esc(err.message)+'</div>';
       if(btn){ btn.disabled=false; btn.textContent="计算"; }
       return;
     }
   }
-  document.getElementById("gc-paste").style.display = nav.src==="synced" ? "none" : "block";
   const btn=document.getElementById("gc-calc");
   if(btn){ btn.disabled=true; btn.textContent="计算中..."; }
   res.innerHTML='<div class="muted" style="padding:14px;display:flex;align-items:center;gap:8px"><svg width="18" height="18" viewBox="0 0 24 24" style="vertical-align:middle"><path fill="currentColor" d="M12 2a10 10 0 1 0 10 10" opacity=".25"/><path fill="currentColor" d="M12 2a10 10 0 0 1 10 10"><animateTransform attributeName="transform" type="rotate" from="0 12 12" to="360 12 12" dur="1s" repeatCount="indefinite"/></path></svg>正在回测网格策略，请稍候…</div>';
@@ -2568,9 +2554,12 @@ function expandPlan(rows, mode, baseAmt, dcaAmt, day, useDca, trackExcess) {
     for (const t of DCA.tiers) { if (chg >= t.min && chg < t.max) return t.multiple; }
     return 1.0;
   }
-  const isLump = (mode === "lump" || mode === "lumponce");
-  if (isLump) {
-    amounts[0] = baseAmt;
+  const hasBase = (mode === "lump" || mode.startsWith("lumponce"));
+  if (hasBase) {
+    amounts[0] = baseAmt; // 升序 i=0 最旧日 = 建仓日（底仓+定投/底仓+周定投 也要有底仓）
+  }
+  if (mode === "lump") {
+    // 仅底仓，已在上一步加入
   } else if (mode === "monthly" || mode === "lumponce_monthly") {
     const byMonth = {};
     for (let i = 0; i < n; i++) { const ym = dates[i].slice(0,7); (byMonth[ym] = byMonth[ym] || []).push(i); }
@@ -2729,12 +2718,13 @@ function runBacktest(rows, mode, base, dca, day) {
   const netGrid = curValGrid + c.total_tp - redGrid - totalGrid;
   const retGrid = totalGrid > 0 ? netGrid/totalGrid : 0;
   const annGrid = totalGrid > 0 ? Math.pow(1+retGrid, 365/days) - 1 : 0;
+  const qGrid = c.Q[n-1];   // skill Excel「累计本金(不含费)」网格列 = Q[最新日]
   const grid = {
     applicable: true,
-    principalInvested: principalGrid, totalInvestedWithFee: totalGrid,
+    principalInvested: qGrid, totalInvestedWithFee: totalGrid,
     maxPrincipal: c.max_holding_cost, curVal: curValGrid, netProfit: netGrid,
     returnPct: retGrid, ann: annGrid,
-    principalReturnPct: principalGrid > 0 ? (curValGrid + c.total_tp - principalGrid)/principalGrid : 0,
+    principalReturnPct: qGrid > 0 ? (curValGrid - qGrid)/qGrid : 0,
     peakReturnPct: c.T[n-1]/100, currentDD,
     tpTotal: c.total_tp, mdd: c.max_strat_dd/100, annVol,
     sharpe: annVol > 0 ? (annGrid - rf)/(annVol/100) : 0,
@@ -2742,25 +2732,28 @@ function runBacktest(rows, mode, base, dca, day) {
     firstNav: navs[0], lastNav: navs[n-1], addTotal: c.total_add,
     tpCount: c.total_tp > 0 ? 1 : 0, days, shares: navs[n-1] > 0 ? curValGrid/navs[n-1] : 0
   };
-  // HOLD (bh_F 同现金流含补仓，与 SKILL buy_and_hold 一致)
-  const bhF = c.bh_F;
-  let _bhc = 0; const bhc = new Array(n);
-  for (let i = 0; i < n; i++) { _bhc += c.D[i] + c.N_add[i]; bhc[i] = _bhc; }
-  let bhPeakPct = 0; for (let i = 0; i < n; i++) { if (bhc[i] > 0) { const rp = (bhF[i]-bhc[i])/bhc[i]*100; if (rp > bhPeakPct) bhPeakPct = rp; } }
-  const bhPk = new Array(n); bhPk[0] = bhF[0];
-  for (let i = 1; i < n; i++) { bhPk[i] = Math.max(bhF[i], bhPk[i-1]); }
-  let bhMaxDd = 0; for (let i = 0; i < n; i++) { if (bhPk[i] > 0) { const dd = (bhPk[i]-bhF[i])/bhPk[i]*100; if (dd > bhMaxDd) bhMaxDd = dd; } }
-  const principalHold = principalGrid, subHold = principalHold*sub;
-  const totalHold = principalHold + subHold, curValHold = bhF[n-1];
+  // HOLD（买入持有对照：与网格完全相同的现金流 D+N_add 买入并持有、不卖出；与 skill compute_values 口径一致）
+  const principalHold = c.total_in + c.total_add;
+  const subHold = principalHold * sub;
+  const totalHold = principalHold + subHold;
+  const hold_F = c.bh_F;   // computeValues 已按 D[i]+N_add[i] 正确计算的内部持仓市值
+  const hold_cost = new Array(n); let _hc = 0;
+  for (let i = 0; i < n; i++) { _hc += c.D[i] + c.N_add[i]; hold_cost[i] = _hc; }
+  const curValHold = hold_F[n-1];
+  let bhPeakPct = 0; for (let i = 0; i < n; i++) { if (hold_cost[i] > 0) { const rp = (hold_F[i]-hold_cost[i])/hold_cost[i]*100; if (rp > bhPeakPct) bhPeakPct = rp; } }
+  const bhPk = new Array(n); bhPk[0] = hold_F[0];
+  for (let i = 1; i < n; i++) { bhPk[i] = Math.max(hold_F[i], bhPk[i-1]); }
+  let bhMaxDd = 0; for (let i = 0; i < n; i++) { if (bhPk[i] > 0) { const dd = (bhPk[i]-hold_F[i])/bhPk[i]*100; if (dd > bhMaxDd) bhMaxDd = dd; } }
   const netHold = curValHold - totalHold;
-  const retHold = principalHold > 0 ? (curValHold - principalHold*(1+sub))/principalHold : 0;
-  const annHold = Math.pow(1+retHold, 365/days) - 1;
+  const retHold = principalHold > 0 ? netHold/principalHold : 0;   // 费后口径，分母=本金（与 skill 一致）
+  const retHoldPrincipal = principalHold > 0 ? (curValHold - principalHold)/principalHold : 0; // 本金口径，不计费
+  const annHold = Math.pow(1+retHold, 365/days) - 1;               // 年化用费后口径（与 skill 一致）
   const hold = {
     applicable: true,
     principalInvested: principalHold, totalInvestedWithFee: totalHold,
-    maxPrincipal: principalHold, curVal: curValHold, netProfit: netHold,
+    maxPrincipal: totalHold, curVal: curValHold, netProfit: netHold,
     returnPct: retHold, ann: annHold,
-    principalReturnPct: principalHold > 0 ? (curValHold - principalHold)/principalHold : 0,
+    principalReturnPct: retHoldPrincipal,
     peakReturnPct: bhPeakPct/100, currentDD,
     tpTotal: 0, mdd: bhMaxDd/100, annVol,
     sharpe: annVol > 0 ? (annHold - rf)/(annVol/100) : 0,
@@ -2768,16 +2761,18 @@ function runBacktest(rows, mode, base, dca, day) {
     firstNav: navs[0], lastNav: navs[n-1], addTotal: c.total_add,
     tpCount: 0, days, shares: navs[n-1] > 0 ? curValHold/navs[n-1] : 0
   };
-  // PURE DCA (基础额 = 网格累计本金 / 期数，无底仓) —— 仅 DCA 模式适用（lump 类比无意义，与 SKILL 一致）
+  // PURE DCA (基础额 = 投资计划原定额投金额 dca，无底仓/无补仓/无网格) —— 与 SKILL v2.0.27 _build_pure_dca 同口径
   const _dcaModes = ["monthly", "weekly", "lumponce_monthly", "lumponce_weekly"];
   let pureDca = { applicable: false, principalInvested:0, totalInvestedWithFee:0, maxPrincipal:0, curVal:0, netProfit:0,
     returnPct:0, ann:0, principalReturnPct:0, peakReturnPct:0, currentDD, tpTotal:0, mdd:0, annVol,
     sharpe:0, purchaseFee:0, redeemFee:0, firstNav:navs[0], lastNav:navs[n-1], addTotal:0, tpCount:0, days, shares:0 };
   if (_dcaModes.includes(mode)) {
-    const mask = expandPlan(rows, mode, hasBase ? 1 : 0, (mode === "lump") ? 0 : 1, day, false);
+    // 纯定投对照：与 skill _build_pure_dca 同口径——仅用定投计划（不含 lump_sum 底仓）
+    const mask = expandPlan(rows, mode, 0, (mode === "lump") ? 0 : 1, day, false);
     const num = mask.reduce((a,b)=>a + (b > 0 ? 1 : 0), 0);
     if (num > 0) {
-      const basic = c.Q[n-1] / num;
+      // 基础额 = 投资计划原定额投金额（skill _build_pure_dca: basic = investment_plan.amount；无底仓/无网格买卖；关闭 dca_multiplier）
+      const basic = dca;
       const pdcaInv = mask.map(m => basic * m);
       const pd = computePureDca(dates, navs, pdcaInv);
       const pTotal = pd.pdca_X[n-1], pSub = pTotal*sub, pTotalIncl = pTotal + pSub;
@@ -2846,20 +2841,20 @@ function calcGridImpl(nav){
     <tbody>
       ${sec("投入与市值")}
       ${row("总投入(含费用)", [fmt(grid.totalInvestedWithFee), fmt(hold.totalInvestedWithFee), fmt(pure.totalInvestedWithFee)], "申购费0.15%+赎回费0.5%", {num:false})}
-      ${row("累计本金(不含费)", [fmt(grid.principalInvested), fmt(hold.principalInvested), fmt(pure.principalInvested)], "实际净申购金额", {num:false})}
+      ${row("累计本金(不含费)", [fmt(grid.principalInvested), fmt(hold.principalInvested), fmt(pure.principalInvested)], "本金/净在场本金（不含费）", {num:false})}
       ${row("当前市值", [fmt(grid.curVal), fmt(hold.curVal), fmt(pure.curVal)], "剩余份额×最新净值", {num:false})}
       ${row("最大持仓成本", [fmt(grid.maxPrincipal), fmt(hold.maxPrincipal), fmt(pure.maxPrincipal)], "本金投入峰值", {num:false})}
       ${sec("收益")}
       ${row("净收益", [fmt(grid.netProfit), fmt(hold.netProfit), fmt(pure.netProfit)], "市值+止盈-总投入")}
       ${row("总回报率%(费后)", [fp(grid.returnPct), fp(hold.returnPct), fp(pure.returnPct)], "净收益/总投入")}
       ${row("年化收益率%", [fp(grid.ann), fp(hold.ann), fp(pure.ann)], "复利年化")}
-      ${row("总收益率%(本金口径)", [fp(grid.principalReturnPct), fp(hold.principalReturnPct), fp(pure.principalReturnPct)], "(市值+止盈-本金)/本金")}
+      ${row("总收益率%(本金口径)", [fp(grid.principalReturnPct), fp(hold.principalReturnPct), fp(pure.principalReturnPct)], "(市值-本金)/本金")}
       ${row("收益峰值%", [fp(grid.peakReturnPct), fp(hold.peakReturnPct), fp(pure.peakReturnPct)], "历史最高收益率")}
       ${row("当前回撤%", [fp(grid.currentDD), fp(hold.currentDD), fp(pure.currentDD)], "自收益峰值回撤", {num:false})}
       ${sec("风险")}
       ${row("累计已实现止盈(毛)", [fmt(grid.tpTotal), fmt(hold.tpTotal), fmt(pure.tpTotal)], "网格减仓落袋金额", {num:false})}
       ${row("最大回撤%", [fp(grid.mdd), fp(hold.mdd), fp(pure.mdd)], "权益曲线最大回撤")}
-      ${row("年化波动%", [fp(grid.annVol), fp(hold.annVol), fp(pure.annVol)], "日收益年化标准差")}
+      ${row("年化波动%", [fp(grid.annVol/100), fp(hold.annVol/100), fp(pure.annVol/100)], "日收益年化标准差")}
       ${row("夏普", [grid.sharpe.toFixed(2), hold.sharpe.toFixed(2), pure.sharpe.toFixed(2)], "(年化-2.5%无风险)/波动", {num:false})}
       ${sec("费用")}
       ${row("申购费", [fmt(grid.purchaseFee), fmt(hold.purchaseFee), fmt(pure.purchaseFee)], "本金×0.15%", {num:false})}
