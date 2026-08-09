@@ -236,6 +236,7 @@ td input:focus,td select:focus{outline:none;border-color:var(--primary)}
 .rel-advice .ra-row{display:flex;gap:8px;font-size:12px;line-height:1.62;margin-top:6px}
 .rel-advice .ra-k{flex:0 0 56px;color:var(--warn);opacity:.85;font-weight:600;white-space:nowrap}
 .rel-advice .ra-v{flex:1;color:var(--text)}
+.rel-advice.rot .ra-k{flex:0 0 66px}
 .anomaly-analysis{margin-top:8px;padding:9px 13px;background:var(--primary-weak);border-left:3px solid var(--primary);border-radius:0 var(--r-sm) var(--r-sm) 0;font-size:12px;line-height:1.6;color:var(--text)}
 .anomaly-analysis .anomaly-title{font-weight:700;color:var(--primary-d);margin-bottom:2px;font-size:11.5px;letter-spacing:.03em}
 .anomaly-analysis .anomaly-body{color:var(--muted)}
@@ -1707,6 +1708,7 @@ function rotationChartCard(key, title, hint){
     <div class="curve-title">${esc(title)} <span class="curve-cur">${cfg.fmtY(last.v)}${cfg.unit?" "+esc(cfg.unit):""}</span> <span class="${ud}" style="font-size:12px">${arrow} ${Math.abs(pct).toFixed(2)}%</span> <span class="muted" style="font-size:10px;font-weight:400">${spanNote}</span></div>
     ${svgLineChart(series, cfg)}
     <div class="curve-explain">${esc(hint)}</div>
+    ${rotAdviceHtml(key)}
   </div>`;
 }
 function renderRotation(){
@@ -2005,6 +2007,34 @@ function relAdviceHtml(key){
     <div class="ra-h">投资参考</div>
     ${rel?`<div class="ra-row"><span class="ra-k">相关性</span><span class="ra-v">${esc(rel)}</span></div>`:""}
     ${advice?`<div class="ra-row"><span class="ra-k">建议</span><span class="ra-v">${esc(advice)}</span></div>`:""}
+  </div>`;
+}
+
+// 行业轮动「参考与建议」：相关性 + 投资参考 + 建议
+const ROT_INVEST_REF = {
+  north:{rel:"与 A 股大盘（尤沪深300、外资核心资产）短期走势正相关，是外资风险偏好的高频代理；中长期与人民币汇率、中美利差相关。",
+         ref:"持续大额净流入通常领先或同步于外资重仓股（消费、新能源、医药）的估值修复；连续净流出往往预示外资避险，需警惕核心资产承压。单日波动受调仓与交易日影响，应看 5~20 日滚动趋势而非单日。",
+         advice:"北向连续 5 日以上净流入且处历史中高位 → 适度关注外资偏好板块、可提升仓位；北向持续净流出且破位 → 降低高估值核心资产敞口、控制仓位。"},
+  south:{rel:"与港股（恒生科技、国企指数）走势正相关，反映内资对港股估值洼地的认可度；与 A/H 溢价指数反向相关。",
+         ref:"南向持续大额净流入常先于港股阶段底部，是内资抄底港股的信号；南向流入放缓或转流出则反映风险偏好回落。",
+         advice:"南向连续净流入且恒指处低位 → 可关注港股通标的/港股相关基金；南向明显转弱 → 减配港股敞口。"},
+  margin:{rel:"融资余额与市场杠杆水位、风险偏好正相关，与指数点位同步度高，是散户情绪的温度计。",
+          ref:"余额持续攀升（斜率陡）往往对应行情后期亢奋，需警惕增量资金衰竭；余额快速回落（去杠杆）常伴随急跌，但充分出清后易现阶段性底部。",
+          advice:"融资余额高位加速 + 指数高位放量 → 提防回调、分批止盈；余额低位企稳回升 → 可能是情绪冰点转暖信号，可左侧布局。"},
+  crowd:{rel:"拥挤度与热门行业/赛道交易热度正相关，与未来超额收益负相关——越拥挤，超额收益越薄、回撤风险越大。",
+         ref:">70 代表短期交易过度集中，追高性价比低、易发生踩踏；30~70 为常态区间；<30 冷清，常是错杀或潜在反弹窗口。",
+         advice:"拥挤度>70 的行业 → 不宜追涨、可逢高减仓；<30 且基本面未恶化 → 关注左侧机会；须结合行业基本面，不可单看拥挤度。"},
+  heat:{rel:"交易热度与全市场成交额、换手率正相关，是市场情绪的总量温度计；过热常对应阶段顶部区域，冰点常对应底部区域。",
+        ref:">70 过热（放量滞涨、量价背离需警惕）；30~70 常态；<30 冰点（地量见地价，常为阶段底）。",
+        advice:"热度>70 且指数处高位 → 控制仓位、不追高；<30 且政策/基本面无恶化 → 可逐步建仓；宜作逆向情绪指标，非唯一择时依据。"}
+};
+function rotAdviceHtml(key){
+  const r = ROT_INVEST_REF[key]; if(!r) return "";
+  return `<div class="rel-advice rot">
+    <div class="ra-h">参考与建议</div>
+    <div class="ra-row"><span class="ra-k">相关性</span><span class="ra-v">${esc(r.rel)}</span></div>
+    <div class="ra-row"><span class="ra-k">投资参考</span><span class="ra-v">${esc(r.ref)}</span></div>
+    <div class="ra-row"><span class="ra-k">建议</span><span class="ra-v">${esc(r.advice)}</span></div>
   </div>`;
 }
 
