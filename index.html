@@ -1533,19 +1533,89 @@ function render(view){
   sec.innerHTML=html;
 }
 
+function dashOverviewCard(totalMkt, profit, rate, count){
+  const up = profit>=0;
+  return `<div class="card" style="margin-bottom:16px">
+    <div class="curve-title">资产概览 <span class="muted" style="font-size:11px;font-weight:400">${count} 只持仓</span></div>
+    <div style="display:flex;flex-wrap:wrap;align-items:flex-end;gap:26px;margin-top:8px">
+      <div>
+        <div style="font-size:12px;color:var(--muted)">${t('dashKpiTotal')}</div>
+        <div style="font-size:30px;font-weight:800;color:var(--text);letter-spacing:-.02em;font-variant-numeric:tabular-nums">${money(totalMkt)}</div>
+      </div>
+      <div style="display:flex;gap:24px;flex-wrap:wrap">
+        <div><div style="font-size:12px;color:var(--muted)">${t('dashKpiProfit')}</div><div class="val ${up?'up':'down'}" style="font-size:21px;font-weight:700">${up?'+':''}${money(profit)}</div></div>
+        <div><div style="font-size:12px;color:var(--muted)">${t('dashKpiRate')}</div><div class="val ${up?'up':'down'}" style="font-size:21px;font-weight:700">${up?'+':''}${rate.toFixed(1)}%</div></div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function dashNetWorthCard(){
+  const raw = netWorthWindow(state.netWorth).filter(p=>p && p.v!=null);
+  const fmtY = v=> '¥'+(v/10000).toFixed(0)+'万';
+  if(raw.length<2){
+    return `<div class="card" style="margin-bottom:16px">
+      <div class="curve-title">净资产走势</div>
+      <div class="curve-empty">${t('dashGrowthNoData')||'暂无足够净值数据'}</div>
+    </div>`;
+  }
+  const first=raw[0], last=raw[raw.length-1];
+  const chg=last.v-first.v, chgPct=first.v>0?chg/first.v*100:0;
+  const up = chg>=0;
+  let peak=raw[0].v, maxDD=0;
+  raw.forEach(p=>{ if(p.v>peak)peak=p.v; const dd=peak>0?(peak-p.v)/peak*100:0; if(dd>maxDD)maxDD=dd; });
+  const color = up?'var(--danger)':'var(--success)';
+  const ddNote = maxDD>=8 ? `期间最大回撤达 ${maxDD.toFixed(1)}%，波动偏大，需关注仓位与现金流安排。`
+    : (maxDD>=3 ? `期间最大回撤 ${maxDD.toFixed(1)}%，整体波动可控。`
+    : `期间回撤极小（最大仅 ${maxDD.toFixed(1)}%），净值平稳上行。`);
+  return `<div class="card" style="margin-bottom:16px">
+    <div class="curve-title">净资产走势 <span class="curve-cur">${fmtY(last.v)}</span> <span class="muted" style="font-size:10px;font-weight:400">${first.d} ~ ${last.d}</span></div>
+    ${svgLineChart(raw, {height:240, color:color, fill:true, fmtY:fmtY, refLines:[]})}
+    <div style="display:flex;gap:16px;align-items:center;margin-top:6px;font-size:12px;color:var(--muted);flex-wrap:wrap">
+      <span>区间 <b class="${up?'up':'down'}">${up?'+':'-'}${fmtY(Math.abs(chg))}</b>（<b class="${up?'up':'down'}">${chgPct.toFixed(1)}%</b>）</span>
+      <span>最大回撤 <b>${maxDD.toFixed(1)}%</b></span>
+      <span style="margin-left:auto">红涨绿跌（A股习惯）</span>
+    </div>
+    <div class="curve-explain">
+      <div class="ce-title">走势解读</div>
+      <div class="ce-body">
+        <p>自 <b>${first.d}</b> 以来，账户净资产由 ${fmtY(first.v)} 变动至 ${fmtY(last.v)}，区间${up?'上升':'下降'} <b class="${up?'up':'down'}">${chgPct.toFixed(1)}%</b>。</p>
+        <p>${ddNote}</p>
+      </div>
+    </div>
+  </div>`;
+}
+
+function dashAllocCard(alloc){
+  const dot={"国内权益":"#3B82F6","国内债券":"#14B8A6","国内货币":"#F59E0B","另类":"#8B5CF6","境外":"#9DB4A0"};
+  const rows = alloc.order.filter(k=>alloc.bucket[k]>0).map(k=>{ const v=alloc.bucket[k]; const p=alloc.total>0?Math.round(v/alloc.total*100):0; return `<div class="health-row"><div class="top"><span><i style="width:9px;height:9px;border-radius:50%;background:${dot[k]};display:inline-block;margin-right:6px"></i>${k}</span><b>${fmtYuan(v)}<span style="color:var(--muted);font-weight:400;font-size:11px"> ${p}%</span></b></div></div>`; }).join("");
+  const concLabel = alloc.top1>40?'偏高，建议压降至 40% 以内':'处于合理区间';
+  const hhiLabel = alloc.hhi>2500?'偏高':(alloc.hhi>1800?'中等':'较低');
+  return `<div class="card" style="margin-bottom:16px">
+    <div class="curve-title">资产配置 <span class="muted" style="font-size:11px;font-weight:400">集中度 ${alloc.top1.toFixed(0)}%</span></div>
+    <div style="display:flex;gap:16px;align-items:center;flex-wrap:wrap">
+      ${svgPie(alloc)}
+      <div style="flex:1;min-width:180px">${rows}</div>
+    </div>
+    <div class="curve-explain">
+      <div class="ce-title">配置分析</div>
+      <div class="ce-body">
+        <p>总市值 <b>${fmtYuan(alloc.total)}</b>｜境内 <b style="color:#3B82F6">${fmtYuan(alloc.domMkt)}</b>（${alloc.domPct}%）｜境外 <b style="color:#5f8a6e">${fmtYuan(alloc.bucket["境外"]||0)}</b>（${alloc.ovPct}%）。</p>
+        <p>单基最大占比 <b style="color:${alloc.top1>40?'var(--danger)':'var(--success)'}">${alloc.top1.toFixed(1)}%</b>（${concLabel}）｜HHI <b>${Math.round(alloc.hhi)}</b>，集中度${hhiLabel}。</p>
+      </div>
+    </div>
+  </div>`;
+}
+
 function renderDashboard(){
   const h=state.holdings;
   const totalCost=h.reduce((a,b)=>a+(parseFloat(b.cost)||0),0);
   const totalMkt=h.reduce((a,b)=>a+(parseFloat(b.market)||0),0);
   const profit=totalMkt-totalCost;
   const rate= totalCost>0 ? (profit/totalCost*100) : 0;
-  // 资产配置：真实持仓自动归类（国内/境外 + 大类）
   const alloc=computeAllocation();
-  // sentiment：真实曲线（非示例表盘）
-  // focus -> 待办事项（手动添加 + 后期条件自动推送，支持截止日期）
   const focusList=state.focus;
   const pendingCount=focusList.filter(f=>!f.done).length;
-  const todayStr=new Date().toISOString().slice(0,10);
   const focusHtml = focusList.length? focusList.map((f,i)=>{
     const over = f.due && !f.done && f.due < todayStr();
     const txt = f.autoText ? (f.autoText[lang]||f.autoText.zh||f.text) : f.text;
@@ -1572,44 +1642,11 @@ function renderDashboard(){
     </div>
   </div>
 
-  <div class="grid cols-4" style="margin-bottom:16px">
-    <div class="card kpi"><div class="label">${t('dashKpiTotal')}</div><div class="val">${money(totalMkt)}</div></div>
-    <div class="card kpi"><div class="label">${t('dashKpiProfit')}</div><div class="val ${profit>=0?'up':'down'}">${profit>=0?'+':''}${money(profit)}</div></div>
-    <div class="card kpi"><div class="label">${t('dashKpiRate')}</div><div class="val ${profit>=0?'up':'down'}">${profit>=0?'+':''}${rate.toFixed(1)}%</div></div>
-    <div class="card kpi"><div class="label">${t('dashKpiCount')}</div><div class="val">${h.length}</div></div>
-  </div>
+  ${dashOverviewCard(totalMkt,profit,rate,h.length)}
 
-  <div class="card" style="margin-bottom:16px">
-    <h3>${t('dashGrowth')} <span class="tag">SVG</span></h3>
-    <div class="hint">${t('dashGrowthHint')}</div>
-    ${svgLine(netWorthWindow(state.netWorth))}
-    <div style="display:flex;gap:16px;align-items:center;margin-top:6px;font-size:12px;color:var(--muted)">
-      <span style="display:inline-flex;align-items:center;gap:5px"><i style="width:10px;height:10px;border-radius:50%;background:var(--danger);display:inline-block"></i>涨 / 增</span>
-      <span style="display:inline-flex;align-items:center;gap:5px"><i style="width:10px;height:10px;border-radius:50%;background:var(--success);display:inline-block"></i>跌 / 减</span>
-      <span style="margin-left:auto">红涨绿跌（A股习惯）</span>
-    </div>
-  </div>
+  ${dashNetWorthCard()}
 
-  <div class="grid cols-2" style="margin-bottom:16px">
-    <div class="card">
-      <h3>${t('dashHealth')} <span class="tag" style="color:${alloc.top1>40?'var(--danger)':'var(--success)'}">集中度 ${alloc.top1.toFixed(0)}%</span></h3>
-      <div class="hint">${t('dashHealthHint')}</div>
-      <div style="display:flex;gap:16px;align-items:center;flex-wrap:wrap">
-        ${svgPie(alloc)}
-        <div style="flex:1;min-width:180px">
-          ${alloc.order.filter(k=>alloc.bucket[k]>0).map(k=>{ const v=alloc.bucket[k]; const p=alloc.total>0?Math.round(v/alloc.total*100):0; const dot={"国内权益":"#3B82F6","国内债券":"#14B8A6","国内货币":"#F59E0B","另类":"#8B5CF6","境外":"#9DB4A0"}[k]; return `
-          <div class="health-row">
-            <div class="top"><span><i style="width:9px;height:9px;border-radius:50%;background:${dot};display:inline-block;margin-right:6px"></i>${k}</span><b>${fmtYuan(v)}<span style="color:var(--muted);font-weight:400;font-size:11px"> ${p}%</span></b></div>
-          </div>`; }).join("")}
-        </div>
-      </div>
-      <div style="margin-top:12px;font-size:12.5px;color:var(--muted);line-height:1.7">
-        <div>总市值 <b style="color:var(--text)">${fmtYuan(alloc.total)}</b>　|　国内 <b style="color:#3B82F6">${fmtYuan(alloc.domMkt)}</b>（${alloc.domPct}%）　|　境外 <b style="color:#5f8a6e">${fmtYuan(alloc.bucket["境外"]||0)}</b>（${alloc.ovPct}%）</div>
-        <div style="margin-top:6px">单基最大占比 <b style="color:${alloc.top1>40?'var(--danger)':'var(--success)'}">${alloc.top1.toFixed(1)}%</b>${alloc.top1>40?'（偏高,建议&lt;40%）':''}　|　HHI <b style="color:var(--text)">${Math.round(alloc.hhi)}</b></div>
-      </div>
-    </div>
-
-  </div>
+  ${dashAllocCard(alloc)}
 
   <div class="card" style="margin-bottom:16px">
     <h3>${t('dashSentiment')}</h3>
