@@ -916,7 +916,7 @@ const SYNCED_ROTATION = {"syncedAt":"2026-08-09T15:02:03.739Z","series":{"south"
 
 
 // 版本号：每次部署 bump 此值，并同步更新 version.json；旧版 HTML 检测到远程版本更新会弹横幅提示刷新
-const APP_VER = "20260809.10";
+const APP_VER = "20260809.11";
 
 // 内存中的同步数据（部署版 fetch 成功后覆盖文件内嵌值）
 let MEM_SYNCED=null, MEM_SYNCED_AT=null;
@@ -1415,7 +1415,25 @@ function sentimentBlock(kind, opts){
     <div class="curve-cap">${esc(cap)}</div>
     ${explain}
     ${relAdviceHtml(kind)}
+    ${sentFoot(kind, last.d)}
   </div>`;
+}
+// 市场情绪曲线统一脚注：来源渠道 + 数据截至（取曲线最后一个真实数据点日期，最诚实可靠）
+function sentFoot(kind, lastD){
+  const src = kind==="buffett"
+    ? "乐咕乐股 legulegu · 巴菲特指标（全A总市值 ÷ GDP）"
+    : "乐咕乐股 legulegu · A股破净率（跌破净资产个股占比）";
+  return `<div class="sync-note">数据来源：${esc(src)} · 数据截至：${esc(lastD||"—")}</div>`;
+}
+// 市场情绪 tab 内 7 个动量/情绪指标卡的统一脚注（数据截至取任一序列的最新真实数据点）
+function momentumFoot(){
+  const keys = ["bondEquity","bondSpread","earnYield","fundCoef","turnover","marginBal","marginBuy"];
+  let lastD = "—";
+  for(const k of keys){
+    const s = getMomentumSeries(k);
+    if(s && s.length && s[s.length-1].d > lastD) lastD = s[s.length-1].d;
+  }
+  return `<div class="sync-note">数据来源：乐咕乐股 legulegu · 动量/情绪指标近10年真实曲线 · 数据截至：${esc(lastD)}</div>`;
 }
 
 // ===== 动量/市场情绪指标曲线图（近10年+真实时间序列）=====
@@ -1679,7 +1697,6 @@ function renderDashboard(){
     <div class="hint">${t('dashSentimentHint')} · 真实数据</div>
     ${sentimentBlock('buffett', {height:200, color:"#2f6fed", fill:true, refLines:[{y:60,label:"60% 低估",color:"#caa400"},{y:100,label:"100% 危险",color:"#d83a3a"}], fmtY:v=>v.toFixed(0)+"%"})}
     ${sentimentBlock('fng', {height:200, color:"#e0683a", fill:true, refLines:[{y:10,label:"10% 恐慌线",color:"#caa400"}], fmtY:v=>v.toFixed(1)+"%"})}
-    <div class="sync-note">${t('sentSrc')}</div>
   </div>`;
 }
 
@@ -2158,6 +2175,7 @@ function renderSentiment(){
     ${sentimentBlock('fng', {height:240, color:"#e0683a", fill:true, refLines:[{y:10,label:"10% 恐慌线",color:"#caa400"}], fmtY:v=>v.toFixed(1)+"%"})}
     <div class="hint" style="margin-top:14px">${t('sentMomentumHint')}</div>
     <div class="grid cols-1">${momentumCharts}</div>
+    ${momentumFoot()}
   </div>`;
 }
 
