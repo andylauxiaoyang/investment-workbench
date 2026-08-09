@@ -916,7 +916,7 @@ const SYNCED_ROTATION = {"syncedAt":"2026-08-09T15:02:03.739Z","series":{"south"
 
 
 // 版本号：每次部署 bump 此值，并同步更新 version.json；旧版 HTML 检测到远程版本更新会弹横幅提示刷新
-const APP_VER = "20260809.11";
+const APP_VER = "20260809.12";
 
 // 内存中的同步数据（部署版 fetch 成功后覆盖文件内嵌值）
 let MEM_SYNCED=null, MEM_SYNCED_AT=null;
@@ -1576,6 +1576,12 @@ function render(view){
   sec.innerHTML=html;
 }
 
+// 持仓派生数据（概览/持仓模块）统一脚注：来源渠道 + 数据截至（取天天基金同步时间）
+function holdFoot(){
+  const at = syncedAtStr();
+  const d = at ? fmtSync(at) : "—（未连接数据源）";
+  return `<div class="sync-note">数据来源：天天基金（账户真实持仓，ttskill 每日 10:00 自动化同步） · 数据截至：${esc(d)}</div>`;
+}
 function dashOverviewCard(totalMkt, profit, rate, count){
   const up = profit>=0;
   return `<div class="card" style="margin-bottom:16px">
@@ -1590,6 +1596,7 @@ function dashOverviewCard(totalMkt, profit, rate, count){
         <div><div style="font-size:12px;color:var(--muted)">${t('dashKpiRate')}</div><div class="val ${up?'up':'down'}" style="font-size:21px;font-weight:700">${up?'+':''}${rate.toFixed(1)}%</div></div>
       </div>
     </div>
+    ${holdFoot()}
   </div>`;
 }
 
@@ -1648,6 +1655,7 @@ function dashAllocCard(alloc){
         <p>单基最大占比 <b style="color:${alloc.top1>40?'var(--danger)':'var(--success)'}">${alloc.top1.toFixed(1)}%</b>（${concLabel}）｜HHI <b>${Math.round(alloc.hhi)}</b>，集中度${hhiLabel}。</p>
       </div>
     </div>
+    ${holdFoot()}
   </div>`;
 }
 
@@ -1829,6 +1837,7 @@ function renderHoldings(){
       <tbody>${rows}</tbody>
     </table>
     </div>
+    ${holdFoot()}
   </div>`;
 }
 // 同步时间格式化
@@ -2473,6 +2482,11 @@ function _fundAnalysisHtml(s){
 }
 function renderResearch(){
   const idxSync = (typeof SYNCED_INDEX!=="undefined" && SYNCED_INDEX && SYNCED_INDEX.syncedAt) ? String(SYNCED_INDEX.syncedAt).slice(0,10) : "—";
+  // 基金跟踪：取各基金净值最新日期，作为「数据截至」（无净值日期则提示自行录入）
+  const fundNavDates = (typeof SYNCED_INDEX!=="undefined"&&SYNCED_INDEX&&SYNCED_INDEX.funds)
+    ? SYNCED_INDEX.funds.map(f=>{ const ds=_parseDates(f.navDates); return ds.length?ds[ds.length-1]:""; }).filter(Boolean)
+    : [];
+  const fundNavLatest = fundNavDates.length ? fundNavDates.sort().pop() : "—（自行录入，未见净值日期）";
   function idxCard(x,i){
     const isPrice = !!x.idxSeries && String(x.idxSeries).trim()!=="";
     const pct = isPrice ? _idxPricePct(x) : _idxPct(x);
@@ -2556,7 +2570,7 @@ function renderResearch(){
     <div class="hint">${t('resManagerHint')}</div>
     <div class="grid cols-1" style="margin-top:8px">${fundHtml}</div>
     <button class="mini-btn primary" style="background:var(--primary);color:#fff" data-add="funds">${t('addFund')}</button>
-    <div class="sync-note">数据来源：基金净值来自天天基金（手动录入或 sync-index.js 同步） · 本模块为自选跟踪，非实时行情</div>
+    <div class="sync-note">数据来源：基金净值来自天天基金（手动录入或 sync-index.js 同步） · 数据截至：${esc(fundNavLatest)} · 本模块为自选跟踪，非实时行情</div>
   </div>`;
 }
 
