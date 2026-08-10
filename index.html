@@ -377,6 +377,11 @@ td input:focus,td select:focus{outline:none;border-color:var(--primary)}
 
 .gc-real-sel,.mini-sel{font-size:13px;padding:5px 8px;border:1px solid var(--border);border-radius:8px;background:#fff}
 .fund-profile{font-size:13px;line-height:1.7;background:#f7fafc;border:1px solid #e8ecf1;border-radius:8px;padding:8px 10px;margin-top:8px}
+.chart-wrap{position:relative}
+.chart-svg{cursor:crosshair}
+.chart-tip{position:fixed;pointer-events:none;display:none;z-index:9999;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 9px;font-size:11px;line-height:1.5;color:var(--text);box-shadow:0 6px 18px rgba(0,0,0,.22);white-space:nowrap;transform:translate(-50%,-118%)}
+.chart-tip b{font-weight:800;color:var(--muted)}
+.chart-tip .tv{font-weight:800;color:var(--primary);font-size:12px}
 </style>
 </head>
 <body>
@@ -860,7 +865,7 @@ const SYNCED_ROTATION = {"syncedAt":"2026-08-09T15:02:03.739Z","series":{"south"
 
 
 // 版本号：每次部署 bump 此值，并同步更新 version.json；旧版 HTML 检测到远程版本更新会弹横幅提示刷新
-const APP_VER = "20260810.3";
+const APP_VER = "20260810.4";
 
 // 内存中的同步数据（部署版 fetch 成功后覆盖文件内嵌值）
 let MEM_SYNCED=null, MEM_SYNCED_AT=null;
@@ -1347,6 +1352,7 @@ function getBuffett(){ return (MEM_BUFFETT&&MEM_BUFFETT.length)?MEM_BUFFETT:(typ
 function getFng(){ return (MEM_FNG&&MEM_FNG.length)?MEM_FNG:(typeof SYNCED_FNG!=="undefined"&&SYNCED_FNG.length)?SYNCED_FNG:[]; }
 
 // 通用折线图：series=[{d:"YYYY-MM-DD", v:Number}]；opts: {height,color,fill,refLines:[{y,label,color}],fmtY,yMin,yMax}
+var CHART_SEQ=0; var CHARTS={};
 function svgLineChart(series, opts){
   opts=opts||{};
   const W=680, H=opts.height||240;
@@ -1366,6 +1372,7 @@ function svgLineChart(series, opts){
   const X=t=>padL+(tmax===tmin?0:(t-tmin)/(tmax-tmin)*pw);
   const Y=v=>padT+(1-(v-yMin)/(yMax-yMin))*ph;
   const fmtY=opts.fmtY||(v=>v.toFixed(0));
+  const cid=opts.id||("ch"+(CHART_SEQ++));
   const noLabels=!!opts.noLabels;
   // y 网格 + 刻度
   let gy=""; const yTicks=4;
@@ -1437,16 +1444,59 @@ function svgLineChart(series, opts){
     maLine=`<path d="${mpath}" fill="none" stroke="${maColor}" stroke-width="1.8" stroke-linejoin="round" opacity="0.95"/>`;
     if(opts.maLegend) maLegend=`<text x="${padL+pw}" y="${(padT+11).toFixed(1)}" text-anchor="end" font-size="10.5" font-weight="700" fill="${maColor}">${opts.maLegend}</text>`;
   }
-  return `<svg viewBox="0 0 ${W} ${H}" width="100%" preserveAspectRatio="xMidYMid meet" style="display:block">
-    <rect x="${padL}" y="${padT}" width="${pw}" height="${ph}" rx="6" fill="var(--track)" opacity="0.10"/>
-    ${gy}${rl}${xt}
-    ${opts.fill?`<path d="${area}" fill="${color}" opacity="0.13"/>`:""}
-    ${ddBand}
-    ${maLine}
-    <path d="${line}" fill="none" stroke="${color}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
-    ${keyMarks}${maLegend}
-  </svg>`;
+  const cross=`<g id="cross-${cid}" style="display:none"><line x1="0" y1="${padT}" x2="0" y2="${(padT+ph).toFixed(1)}" stroke="var(--muted)" stroke-width="1" stroke-dasharray="4 3"/><circle r="4" fill="var(--surface)" stroke="${color}" stroke-width="2"/></g>`;
+  CHARTS[cid]={series:series,ts:ts,tmin:tmin,tmax:tmax,W:W,H:H,padL:padL,padR:padR,padT:padT,padB:padB,pw:pw,ph:ph,fmtY:fmtY,opts:opts,color:color,yMin:yMin,yMax:yMax};
+  return `<div class="chart-wrap" id="cw-${cid}"><span class="chart-tip" id="tip-${cid}"></span>`+
+    `<svg id="svg-${cid}" class="chart-svg" viewBox="0 0 ${W} ${H}" width="100%" preserveAspectRatio="xMidYMid meet" style="display:block">`+
+    `<rect x="${padL}" y="${padT}" width="${pw}" height="${ph}" rx="6" fill="var(--track)" opacity="0.10"/>`+
+    `${gy}${rl}${xt}`+
+    `${opts.fill?`<path d="${area}" fill="${color}" opacity="0.13"/>`:""}`+
+    `${ddBand}${maLine}`+
+    `<path d="${line}" fill="none" stroke="${color}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>`+
+    `${keyMarks}${maLegend}${cross}`+
+    `</svg></div>`;
 }
+
+// ===== 图表悬浮 tooltip（折线图统一交互层）=====
+var _lastCid=null;
+function _hideOneChart(cid){
+  const t=document.getElementById("tip-"+cid); if(t)t.style.display="none";
+  const c=document.getElementById("cross-"+cid); if(c)c.style.display="none";
+}
+function _onChartHover(e){
+  if(Object.keys(CHARTS).length>200){ for(const k in CHARTS){ if(!document.getElementById("cw-"+k)) delete CHARTS[k]; } }
+  const wrap=(e.target&&e.target.closest)?e.target.closest(".chart-wrap"):null;
+  if(!wrap){ if(_lastCid){_hideOneChart(_lastCid);_lastCid=null;} return; }
+  const cid=wrap.id.replace(/^cw-/,"");
+  if(cid!==_lastCid){ if(_lastCid)_hideOneChart(_lastCid); _lastCid=cid; }
+  const info=CHARTS[cid]; const svg=document.getElementById("svg-"+cid);
+  const tip=document.getElementById("tip-"+cid); const cross=document.getElementById("cross-"+cid);
+  if(!info||!svg||!tip||!cross) return;
+  const rect=svg.getBoundingClientRect();
+  const vx=(e.clientX-rect.left)/rect.width*info.W;
+  let t=info.tmin+(vx-info.padL)/info.pw*(info.tmax-info.tmin);
+  if(t<info.tmin)t=info.tmin; if(t>info.tmax)t=info.tmax;
+  const n=info.series.length;
+  let idx=Math.round((t-info.tmin)/(info.tmax-info.tmin)*(n-1));
+  if(idx<0)idx=0; if(idx>n-1)idx=n-1;
+  const p=info.series[idx];
+  const X=info.padL+((info.tmax===info.tmin)?0:(new Date(p.d+"T00:00:00").getTime()-info.tmin)/(info.tmax-info.tmin)*info.pw);
+  const Yv=info.padT+(1-(p.v-info.yMin)/(info.yMax-info.yMin))*info.ph;
+  const ln=cross.querySelector("line"); ln.setAttribute("x1",X.toFixed(1)); ln.setAttribute("x2",X.toFixed(1));
+  const cc=cross.querySelector("circle"); cc.setAttribute("cx",X.toFixed(1)); cc.setAttribute("cy",Yv.toFixed(1));
+  cross.style.display="";
+  let html=`<b>${p.d}</b><br><span class="tv">${info.fmtY(p.v)}${info.opts.unit||""}</span>`;
+  if(info.opts.maSeries&&info.opts.maSeries.length){
+    const mp=info.opts.maSeries.find(m=>m&&m.d===p.d&&m.v!=null);
+    if(mp) html+=`<br><span style="color:${info.opts.maColor||'#e8a317'}">${info.opts.maLegend||'MA'}: ${info.fmtY(mp.v)}</span>`;
+  }
+  tip.innerHTML=html; tip.style.display="block";
+  tip.style.left=e.clientX+"px"; tip.style.top=e.clientY+"px";
+}
+if(!window.__chartTipBound){ window.__chartTipBound=true;
+  document.addEventListener("mousemove",_onChartHover,{passive:true});
+}
+
 // 单个情绪曲线卡片（含标题与当前值 + 图注）
 function sentimentBlock(kind, opts){
   const series=kind==="buffett"?getBuffett():getFng();
