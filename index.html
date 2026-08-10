@@ -893,7 +893,7 @@ const SYNCED_SECTORS = {"syncedAt":"","asOf":"","source":"\u4e1c\u65b9\u8d22\u5b
 
 
 // 版本号：每次部署 bump 此值，并同步更新 version.json；旧版 HTML 检测到远程版本更新会弹横幅提示刷新
-const APP_VER = "20260810.8";
+const APP_VER = "20260810.9";
 
 // 内存中的同步数据（部署版 fetch 成功后覆盖文件内嵌值）
 let MEM_SYNCED=null, MEM_SYNCED_AT=null;
@@ -2489,26 +2489,32 @@ function macroChartCard(key){
   const unit = cfg.unit||"";
   const real = (getMacroReal())[key];
   const realVal = (real && real.value!=null && real.value!=="") ? real.value : (series.length?series[series.length-1].v:"—");
+  const realValNum = (realVal!=="—" && !isNaN(parseFloat(realVal))) ? parseFloat(realVal) : null;
   const realDate = real?real.date:"";
   const fmtY = cfg.fmtY||(v=>v.toFixed(1));
-  if(!series || series.length<2){
+  // 把 SYNCED_MACRO 的当前值接到序列末尾（若日期更新），让曲线连到最新真实值
+  let plotSeries = series;
+  if(realValNum!=null && realDate && series.length && realDate > (series[series.length-1].d||"")){
+    plotSeries = series.concat([{d:realDate, v:realValNum}]);
+  }
+  if(!plotSeries || plotSeries.length<2){
     return `<div class="curve-wrap" style="opacity:0.95">
-      <div class="curve-title">${esc(lbl)} <span class="curve-cur">${esc(realVal)}${unit?' '+esc(unit):''}</span>${realDate?` <span class="muted" style="font-size:10px;font-weight:400">${esc(realDate)}</span>`:""}</div>
+      <div class="curve-title">${esc(lbl)} <span class="curve-cur">${realValNum!=null?fmtY(realValNum):esc(realVal)}${unit?' '+esc(unit):''}</span>${realDate?` <span class="muted" style="font-size:10px;font-weight:400">${esc(realDate)}</span>`:""}</div>
       <div class="curve-empty" style="height:88px;display:flex;align-items:center;justify-content:center">暂无历史序列 · 仅展示最新值</div>
       ${getAnomalyAnalysis(key, realVal)}
       ${macroInfoHtml(key)}
     </div>`;
   }
-  const last = series[series.length-1];
-  const firstD = series[0].d||"", lastD = last.d||"";
-  const spanNote = `${firstD.split('-')[0]}~${lastD.split('-')[0]} (${series.length}期)`;
+  const last = plotSeries[plotSeries.length-1];
+  const firstD = plotSeries[0].d||"", lastD = last.d||"";
+  const spanNote = `${firstD.split('-')[0]}~${lastD.split('-')[0]} (${plotSeries.length}期)`;
   const opts = Object.assign({}, cfg, {refLines: macroRefLines(key)});
-  const _mpct = (realVal!=null && series.length>=2) ? pctInSeries(series, parseFloat(realVal)) : null;
+  const _mpct = (realValNum!=null && series.length>=2) ? pctInSeries(series, realValNum) : null;
   return `<div class="curve-wrap">
-    <div class="curve-title">${esc(lbl)} <span class="curve-cur">${fmtY(last.v)}${unit?' '+esc(unit):''}</span> <span class="muted" style="font-size:10px;font-weight:400">${esc(spanNote)}</span>${realDate?` <span class="muted" style="font-size:10px;font-weight:400">·${esc(realDate)}</span>`:""}</div>
-    ${svgLineChart(series, opts)}
+    <div class="curve-title">${esc(lbl)} <span class="curve-cur">${realValNum!=null?fmtY(realValNum):esc(realVal)}${unit?' '+esc(unit):''}</span> <span class="muted" style="font-size:10px;font-weight:400">${esc(spanNote)}</span>${realDate?` <span class="muted" style="font-size:10px;font-weight:400">·${esc(realDate)}</span>`:""}</div>
+    ${svgLineChart(plotSeries, opts)}
     ${_mpct!=null? `<div class="rot-stat">历史分位 <b style="color:${_verdict(_mpct,'macro').color}">${_mpct}%</b> · 当前值处于过去 ${series.length} 期（约 ${(series.length/12).toFixed(0)} 年）序列的位置，越高越接近历史高位</div>`:""}
-    ${getAnomalyAnalysis(key, last.v)}
+    ${getAnomalyAnalysis(key, realVal)}
     ${macroInfoHtml(key)}
   </div>`;
 }
