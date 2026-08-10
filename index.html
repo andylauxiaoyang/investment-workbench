@@ -359,6 +359,21 @@ td input:focus,td select:focus{outline:none;border-color:var(--primary)}
 .ver-banner .vb-x{flex:0 0 auto;opacity:.8;font-size:18px;line-height:1;padding:0 2px}
 @media (max-width:768px){ .ver-banner{font-size:12px;padding:8px 12px} .ver-banner .vb-text{font-size:12px} }
 @media (prefers-reduced-motion:reduce){ *{animation:none!important;transition:none!important} }
+
+/* ===== 数据新鲜度 / 过期感知（P0：直击「数据准确性+时效性」盲区）===== */
+.fresh-badge{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;
+  padding:2px 9px;border-radius:999px;border:1px solid transparent;vertical-align:middle;margin-left:8px;
+  font-variant-numeric:tabular-nums;white-space:nowrap;line-height:1.5}
+.fresh-badge::before{content:"●";font-size:8px;line-height:1}
+.fresh-badge.ok{color:#0a7d33;background:#e7f6ec;border-color:#b6e3c5}
+.fresh-badge.warn{color:#9a6b00;background:#fff6e0;border-color:#f0dca0}
+.fresh-badge.stale{color:#b42318;background:#fdecec;border-color:#f5b5ad}
+.card.stale{box-shadow:inset 0 0 0 2px #f5b5ad}
+.stale-banner{display:block;margin:8px 0 0;padding:7px 11px;border-radius:8px;background:#fdecec;
+  color:#b42318;font-size:12px;font-weight:600;border:1px solid #f5b5ad}
+
+.rot-stat{font-size:12px;color:var(--text);margin:2px 0 8px;display:flex;align-items:baseline;gap:6px;flex-wrap:wrap}
+.rot-stat .muted{font-size:11px}
 </style>
 </head>
 <body>
@@ -423,86 +438,6 @@ td input:focus,td select:focus{outline:none;border-color:var(--primary)}
 <div class="toast" id="toast"></div>
 <div class="modal-mask" id="modalMask"><div class="modal" id="modalBox"></div></div>
 
-<!-- 本地(file://)要闻源：内联 SYNCED_NEWS，突破 file:// 无法 fetch 的限制；由每日自动化同步更新 -->
-<script>
-/*__SYNC_NEWS_START__*/
-const SYNCED_NEWS = [
-  {
-    "title": "科技股强势反弹领涨 8月A股修复行情可期",
-    "source": "Wind资讯",
-    "date": "2026-08-08",
-    "url": "https://t.wind.com.cn/mobwftweb/M/news.html?share=wechat&show=wft&code=3303579C7FB2&newsopenstyle=&lan=cn&device=pc&gateway=news&related=true&terminaltype=COM.WINDRAG&version=&useless=0.301551#/3A594B1FD89651CACD5366FCA18A2C25",
-    "category": "市场",
-    "impact": "创业板指涨6.55%、科创100涨14%，科技板块强势反弹，8月修复行情可期",
-    "important": true
-  },
-  {
-    "title": "2026年A股半年度业绩预告盘点（8月8日）",
-    "source": "Wind资讯",
-    "date": "2026-08-08",
-    "url": "https://t.wind.com.cn/mobwftweb/M/news.html?share=wechat&show=wft&code=587ECCB21850&newsopenstyle=&lan=cn&device=pc&gateway=news&related=true&terminaltype=COM.WINDRAG&version=&useless=0.433219#/4496E392840B039F4E3E57FB6DA9E518",
-    "category": "业绩",
-    "impact": "截至8月8日1817家披露中报预告，835家报喜占45.95%，533家净利超亿元",
-    "important": false
-  },
-  {
-    "title": "A股“应退尽退”生态持续完善",
-    "source": "Wind资讯",
-    "date": "2026-08-08",
-    "url": "https://t.wind.com.cn/mobwftweb/M/news.html?share=wechat&show=wft&code=5B8DE4DBD45E&newsopenstyle=&lan=cn&device=pc&gateway=news&related=true&terminaltype=COM.WINDRAG&version=&useless=0.444265#/C3F4EC2AF5CCC929D5B6D6076996E2C4",
-    "category": "监管",
-    "impact": "年内21家摘牌退市，4家涉重大违法强制退市，退市监管前置",
-    "important": false
-  },
-  {
-    "title": "周末，交易所重磅！A股三件大事",
-    "source": "Wind资讯",
-    "date": "2026-08-08",
-    "url": "https://t.wind.com.cn/mobwftweb/M/news.html?share=wechat&show=wft&code=2B6A65B6AA1A&newsopenstyle=&lan=cn&device=pc&gateway=news&related=true&terminaltype=COM.WINDRAG&version=&useless=0.912556#/0C536E7ECFC88A8A66A65DFFA34F65D0",
-    "category": "政策",
-    "impact": "LOF高溢价监管、8/9公布CPI/PPI、长鑫科技纳入MSCI中国全股票指数",
-    "important": true
-  },
-  {
-    "title": "房地产行业每日简报2026年8月8日",
-    "source": "Wind资讯",
-    "date": "2026-08-08",
-    "url": "https://t.wind.com.cn/mobwftweb/M/news.html?share=wechat&show=wft&code=587E6165A942&newsopenstyle=&lan=cn&device=pc&gateway=news&related=true&terminaltype=COM.WINDRAG&version=&useless=0.408338#/77BD8130452EBB748D46CCAA5BFB7C03",
-    "category": "行业",
-    "impact": "北上政策松绑，二手房成交占比首超新房达50.4%，楼市进入存量时代",
-    "important": false
-  },
-  {
-    "title": "非银金融行业每日简报2026年8月8日",
-    "source": "Wind资讯",
-    "date": "2026-08-08",
-    "url": "https://t.wind.com.cn/mobwftweb/M/news.html?share=wechat&show=wft&code=587E671E3EA5&newsopenstyle=&lan=cn&device=pc&gateway=news&related=true&terminaltype=COM.WINDRAG&version=&useless=0.006166#/793DDF05BEB984DC4D64D60E488B9790",
-    "category": "行业",
-    "impact": "中信证券上半年净利233亿增69.6%，券商整合加速",
-    "important": false
-  },
-  {
-    "title": "渣打2026年8月中国市场展望 | 穿越波动，迎接真正考验",
-    "source": "Wind资讯",
-    "date": "2026-08-08",
-    "url": "https://t.wind.com.cn/mobwftweb/M/news.html?share=wechat&show=wft&code=986305C6F664&newsopenstyle=&lan=cn&device=pc&gateway=news&related=true&terminaltype=COM.WINDRAG&version=&useless=0.060800#/6FF8655074A67A25EA7CE68E0677AC93",
-    "category": "策略",
-    "impact": "维持中国股票超配，估值折让+AI主线贯穿与产业升级",
-    "important": false
-  },
-  {
-    "title": "资金情绪持续回暖 A股市场稳健上行",
-    "source": "Wind资讯",
-    "date": "2026-08-08",
-    "url": "https://t.wind.com.cn/mobwftweb/M/news.html?share=wechat&show=wft&code=44A54809EF4D&newsopenstyle=&lan=cn&device=pc&gateway=news&related=true&terminaltype=COM.WINDRAG&version=&useless=0.508532#/C9B91E22770AFB39AA25D8A8EB189F8B",
-    "category": "市场",
-    "impact": "沪指站上3940点，本周放量反弹，4200+股上涨",
-    "important": true
-  }
-];
-const SYNCED_NEWS_AT = "2026-08-08 23:15";
-/*__SYNC_NEWS_END__*/
-</script>
 <script>
 "use strict";
 /* ============== I18N ============== */
@@ -916,7 +851,7 @@ const SYNCED_ROTATION = {"syncedAt":"2026-08-09T15:02:03.739Z","series":{"south"
 
 
 // 版本号：每次部署 bump 此值，并同步更新 version.json；旧版 HTML 检测到远程版本更新会弹横幅提示刷新
-const APP_VER = "20260809.13";
+const APP_VER = "20260810.1";
 
 // 内存中的同步数据（部署版 fetch 成功后覆盖文件内嵌值）
 let MEM_SYNCED=null, MEM_SYNCED_AT=null;
@@ -1063,6 +998,72 @@ function buildHoldings(){
   return res;
 }
 function syncedAtStr(){ return MEM_SYNCED_AT || SYNCED_AT || ""; }
+
+/* ===== 数据新鲜度 / 过期感知（P0：直击「数据准确性 + 时效性」盲区）=====
+ * 每张卡标题处显示「数据截至 X · 已 N 天」彩色角标；超过阈值自动置灰 + 过期横幅。
+ * 颜色：ok=绿(新鲜) / warn=黄(偏旧) / stale=红(已过期)。
+ */
+function _parseDate(s){ if(!s) return null; const m=String(s).slice(0,10); const p=m.split("-"); if(p.length<3) return null; const y=+p[0],mo=+p[1],d=+p[2]; if(!y||!mo||!d) return null; return new Date(y, mo-1, d); }
+function _daysAgo(dStr){
+  const d=_parseDate(dStr); if(!d) return null;
+  const t=new Date(); t.setHours(0,0,0,0);
+  const diff=Math.round((t-d)/86400000);
+  return diff<0?0:diff;
+}
+function _lastDateOf(series){
+  if(Array.isArray(series) && series.length){
+    let best=series[0].d;
+    for(const p of series){ if(p && p.d && p.d>best) best=p.d; }
+    return best;
+  }
+  return null;
+}
+// 各数据源「最后真实数据点日期」解析器（按真实数据末点，而非同步时间）
+const SRC_DATE = {
+  networth: ()=> _lastDateOf(typeof SYNCED_NETWORTH!=="undefined" ? SYNCED_NETWORTH : []),
+  holdings: ()=> { const at=syncedAtStr(); return at? String(at).slice(0,10) : _lastDateOf(typeof SYNCED_HOLDINGS!=="undefined" ? SYNCED_HOLDINGS : []); },
+  index:    ()=> (typeof SYNCED_INDEX!=="undefined" && SYNCED_INDEX && SYNCED_INDEX.syncedAt) ? String(SYNCED_INDEX.syncedAt).slice(0,10) : null,
+  buffett:  ()=> _lastDateOf(typeof SYNCED_BUFFETT!=="undefined" ? SYNCED_BUFFETT : []),
+  fng:      ()=> _lastDateOf(typeof SYNCED_FNG!=="undefined" ? SYNCED_FNG : []),
+  rotation: ()=> { let best=null;
+    const S = (typeof SYNCED_ROTATION!=="undefined" && SYNCED_ROTATION && SYNCED_ROTATION.series) ? SYNCED_ROTATION.series : {};
+    for(const k of ["south","margin","marginBuy","crowd"]){ const d=_lastDateOf(S[k]); if(d && (!best||d>best)) best=d; }
+    return best; },
+  macro:    ()=> (typeof MEM_MACRO!=="undefined" && MEM_MACRO && MEM_MACRO.syncedAt) ? String(MEM_MACRO.syncedAt).slice(0,10) : null,
+  momentum: ()=> { let best=null;
+    for(const k of ["bondEquity","bondSpread","earnYield","fundCoef","turnover","marginBal","marginBuy"]){ const s=getMomentumSeries(k); const d=_lastDateOf(s); if(d && (!best||d>best)) best=d; }
+    return best; },
+  sentiment: ()=> { // 取三条主线中最旧的（最该警惕的）日期
+    let worst=null;
+    for(const k of ["buffett","fng","momentum"]){ const d=freshInfo(k).d; if(d && (!worst||d<worst)) worst=d; }
+    return worst; }
+};
+// 各数据源允许的最大新鲜天数（超过即判过期）；T+1 行情类给 3 天余量，宏观月频给 45 天
+const SRC_MAXAGE = { networth:3, holdings:3, index:3, buffett:3, fng:3, rotation:3, macro:45, momentum:3, sentiment:3 };
+function freshInfo(srcKey){
+  const get = SRC_DATE[srcKey];
+  const d = get ? get() : null;
+  const age = _daysAgo(d);
+  if(!d || age==null) return { d:null, age:null, cls:"stale", label:"无数据", stale:true };
+  const th = SRC_MAXAGE[srcKey] || 7;
+  let cls="ok", stale=false;
+  if(age > th) { cls="stale"; stale=true; }
+  else if(age > Math.ceil(th/2)) cls="warn";
+  const label = age===0 ? "今天" : (age===1 ? "昨天" : age+" 天前");
+  return { d, age, cls, label, stale, th };
+}
+// 标题角标：数据截至 + 已 N 天（彩色）
+function freshBadge(srcKey){
+  const fi = freshInfo(srcKey);
+  return `<span class="fresh-badge ${fi.cls}">数据截至 ${fi.d||"—"} · ${fi.label}</span>`;
+}
+// 过期横幅（stale 时调用）
+function staleBanner(srcKey, what){
+  const fi = freshInfo(srcKey);
+  if(!fi.stale) return "";
+  const w = what || "该模块数据";
+  return `<div class="stale-banner">⚠️ ${esc(w)}已 ${fi.age} 天未更新（数据截至 ${fi.d||"—"}），可能已失真，请先运行对应同步脚本刷新。</div>`;
+}
 function persist(s){ try{ localStorage.setItem(LS_MAIN, JSON.stringify(s||state)); }catch(e){ toast("存储失败"); } }
 function save(){ persist(state); }
 
@@ -1354,6 +1355,15 @@ function svgLineChart(series, opts){
   let line="";
   series.forEach((p,i)=>{ line+=(i?"L":"M")+X(ts[i]).toFixed(1)+" "+Y(p.v).toFixed(1)+" "; });
   const area=`M ${X(ts[0]).toFixed(1)} ${(padT+ph).toFixed(1)} `+series.map((p,i)=>"L"+X(ts[i]).toFixed(1)+" "+Y(p.v).toFixed(1)).join(" ")+` L ${X(ts[ts.length-1]).toFixed(1)} ${(padT+ph).toFixed(1)} Z`;
+  // 回撤带：填充「价格线」与「历史峰值线」之间的区域（价格低于峰值时显红，直观展示回撤坑）
+  let ddBand="";
+  if(opts.ddBand){
+    let pk=series[0].v; const peaks=series.map(p=>{ if(p.v>pk)pk=p.v; return pk; });
+    let above="", below="";
+    series.forEach((p,i)=>{ above+=(i?"L":"M")+X(ts[i]).toFixed(1)+" "+Y(peaks[i]).toFixed(1)+" "; });
+    for(let i=series.length-1;i>=0;i--){ below+="L"+X(ts[i]).toFixed(1)+" "+Y(series[i].v).toFixed(1)+" "; }
+    ddBand=`<path d="${above}${below}Z" fill="var(--danger)" opacity="0.13"/>`;
+  }
   const color=opts.color||"var(--primary)";
   // 关键数据点标注：起点 / 高点 / 低点 / 最后一点（同索引去重，避免重叠）
   const hiIdx = series.reduce((b,c,i,a)=>c.v>a[b].v?i:b, 0);
@@ -1391,6 +1401,7 @@ function svgLineChart(series, opts){
     <rect x="${padL}" y="${padT}" width="${pw}" height="${ph}" rx="6" fill="var(--track)" opacity="0.10"/>
     ${gy}${rl}${xt}
     ${opts.fill?`<path d="${area}" fill="${color}" opacity="0.13"/>`:""}
+    ${ddBand}
     ${maLine}
     <path d="${line}" fill="none" stroke="${color}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
     ${keyMarks}${maLegend}
@@ -1551,6 +1562,15 @@ function stageKey(i){ return ["scr","fin","val","moat","buy"][i]||"scr"; }
 
 /* ============== Views ============== */
 let activeView="dashboard";
+let nwRange="all"; // 净资产曲线区间：1w/2w/1m/all
+function sliceByRange(raw, range){
+  if(range==="all" || !raw || raw.length===0) return raw;
+  const days = {"1w":7,"2w":14,"1m":30}[range] || 0;
+  if(!days) return raw;
+  const end = new Date(raw[raw.length-1].d+"T00:00:00").getTime();
+  const start = end - days*86400000;
+  return raw.filter(p=> new Date(p.d+"T00:00:00").getTime() >= start);
+}
 function renderActive(){ render(activeView); }
 function render(view){
   activeView=view;
@@ -1580,8 +1600,9 @@ function holdFoot(){
 }
 function dashOverviewCard(totalMkt, profit, rate, count){
   const up = profit>=0;
-  return `<div class="card" style="margin-bottom:16px">
-    <div class="curve-title">资产概览 <span class="muted" style="font-size:11px;font-weight:400">${count} 只持仓</span></div>
+  const fi = freshInfo("holdings");
+  return `<div class="card ${fi.stale?'stale':''}" style="margin-bottom:16px">
+    <div class="curve-title">资产概览 <span class="muted" style="font-size:11px;font-weight:400">${count} 只持仓</span> ${freshBadge("holdings")}</div>
     <div style="display:flex;flex-wrap:wrap;align-items:flex-end;gap:26px;margin-top:8px">
       <div>
         <div style="font-size:12px;color:var(--muted)">${t('dashKpiTotal')}</div>
@@ -1597,12 +1618,19 @@ function dashOverviewCard(totalMkt, profit, rate, count){
 }
 
 function dashNetWorthCard(){
-  const raw = netWorthWindow(state.netWorth).filter(p=>p && p.v!=null);
+  const full = netWorthWindow(state.netWorth).filter(p=>p && p.v!=null);
+  const raw = sliceByRange(full, nwRange);
   const fmtY = v=> '¥'+(v/10000).toFixed(0)+'万';
+  const fi = freshInfo("networth");
+  const RANGES=[["1w","近1周"],["2w","近2周"],["1m","近1月"],["all","全部"]];
+  const rangeBtns = `<div class="range-toggle" style="display:flex;gap:6px;margin:8px 0 2px;flex-wrap:wrap">`+
+    RANGES.map(([k,lab])=>`<button class="mini-btn ${nwRange===k?'':''}" data-nwrange="${k}" style="padding:4px 10px;font-size:12px;${nwRange===k?'background:var(--primary);color:#fff;border-color:var(--primary)':''}">${lab}</button>`).join("")+`</div>`;
   if(raw.length<2){
-    return `<div class="card" style="margin-bottom:16px">
-      <div class="curve-title">净资产走势</div>
+    return `<div class="card ${fi.stale?'stale':''}" style="margin-bottom:16px">
+      <div class="curve-title">净资产走势 ${freshBadge("networth")}</div>
+      ${rangeBtns}
       <div class="curve-empty">${t('dashGrowthNoData')||'暂无足够净值数据'}</div>
+      ${staleBanner("networth","净资产曲线")}
     </div>`;
   }
   const first=raw[0], last=raw[raw.length-1];
@@ -1614,9 +1642,10 @@ function dashNetWorthCard(){
   const ddNote = maxDD>=8 ? `期间最大回撤达 ${maxDD.toFixed(1)}%，波动偏大，需关注仓位与现金流安排。`
     : (maxDD>=3 ? `期间最大回撤 ${maxDD.toFixed(1)}%，整体波动可控。`
     : `期间回撤极小（最大仅 ${maxDD.toFixed(1)}%），净值平稳上行。`);
-  return `<div class="card" style="margin-bottom:16px">
-    <div class="curve-title">净资产走势 <span class="curve-cur">${fmtY(last.v)}</span> <span class="muted" style="font-size:10px;font-weight:400">${first.d} ~ ${last.d}</span></div>
-    ${svgLineChart(raw, {height:240, color:color, fill:true, fmtY:fmtY, refLines:[]})}
+  return `<div class="card ${fi.stale?'stale':''}" style="margin-bottom:16px">
+    <div class="curve-title">净资产走势 <span class="curve-cur">${fmtY(last.v)}</span> <span class="muted" style="font-size:10px;font-weight:400">${first.d} ~ ${last.d}</span> ${freshBadge("networth")}</div>
+    ${rangeBtns}
+    ${svgLineChart(raw, {height:240, color:color, fill:true, fmtY:fmtY, refLines:[], ddBand:true})}
     <div style="display:flex;gap:16px;align-items:center;margin-top:6px;font-size:12px;color:var(--muted);flex-wrap:wrap">
       <span>区间 <b class="${up?'up':'down'}">${up?'+':'-'}${fmtY(Math.abs(chg))}</b>（<b class="${up?'up':'down'}">${chgPct.toFixed(1)}%</b>）</span>
       <span>最大回撤 <b>${maxDD.toFixed(1)}%</b></span>
@@ -1630,16 +1659,18 @@ function dashNetWorthCard(){
       </div>
     </div>
     <div class="sync-note">数据来源：天天基金（账户真实净资产，每日 10:00 自动化回填） · 数据截至：${esc(last.d)}</div>
+    ${staleBanner("networth","净资产曲线")}
   </div>`;
 }
 
 function dashAllocCard(alloc){
   const dot={"国内权益":"#3B82F6","国内债券":"#14B8A6","国内货币":"#F59E0B","另类":"#8B5CF6","境外":"#9DB4A0"};
+  const fi = freshInfo("holdings");
   const rows = alloc.order.filter(k=>alloc.bucket[k]>0).map(k=>{ const v=alloc.bucket[k]; const p=alloc.total>0?Math.round(v/alloc.total*100):0; return `<div class="health-row"><div class="top"><span><i style="width:9px;height:9px;border-radius:50%;background:${dot[k]};display:inline-block;margin-right:6px"></i>${k}</span><b>${fmtYuan(v)}<span style="color:var(--muted);font-weight:400;font-size:11px"> ${p}%</span></b></div></div>`; }).join("");
   const concLabel = alloc.top1>40?'偏高，建议压降至 40% 以内':'处于合理区间';
   const hhiLabel = alloc.hhi>2500?'偏高':(alloc.hhi>1800?'中等':'较低');
-  return `<div class="card" style="margin-bottom:16px">
-    <div class="curve-title">资产配置 <span class="muted" style="font-size:11px;font-weight:400">集中度 ${alloc.top1.toFixed(0)}%</span></div>
+  return `<div class="card ${fi.stale?'stale':''}" style="margin-bottom:16px">
+    <div class="curve-title">资产配置 <span class="muted" style="font-size:11px;font-weight:400">集中度 ${alloc.top1.toFixed(0)}%</span> ${freshBadge("holdings")}</div>
     <div style="display:flex;gap:16px;align-items:center;flex-wrap:wrap">
       ${svgPie(alloc)}
       <div style="flex:1;min-width:180px">${rows}</div>
@@ -1732,6 +1763,12 @@ function rotFootnote(key, series){
   const latest = (series&&series.length)? series[series.length-1].d : "";
   return `<div class="sync-note">数据来源：${esc(src)} · 数据截至：${esc(latest||"—")}</div>`;
 }
+// 当前值在自身历史序列中的百分分位（0-100）：越高表示越处于历史高位（拥挤/亢奋）
+function pctInSeries(series, v){
+  if(!series || series.length<2 || v==null) return null;
+  let c=0; series.forEach(p=>{ if(p.v<=v) c++; });
+  return Math.round(c/series.length*100);
+}
 function rotationChartCard(key, title, hint){
   const cfg=ROTATION_CHART_CFG[key];
   const series=getRotationSeries(key);
@@ -1751,8 +1788,13 @@ function rotationChartCard(key, title, hint){
   const arrow=change>=0?"↑":"↓";
   const firstD=series[0].d, lastD=last.d;
   const spanNote=`${firstD} ~ ${lastD} (${series.length}日)`;
+  const pctHist = pctInSeries(series, last.v);
+  const histColor = pctHist==null?"var(--muted)":(pctHist>=70?"var(--danger)":pctHist<=30?"var(--success)":"var(--text)");
+  const heatWord = key==="crowd"?"拥挤":(key==="margin"||key==="marginBuy")?"亢奋":"热";
+  const histStat = pctHist==null? "" : `<div class="rot-stat">历史分位 <b style="color:${histColor}">${pctHist}%</b><span class="muted">（当前值处过去 ${series.length} 日序列的 ${(pctHist>=70?"高":pctHist<=30?"低":"中")}位，越高压/${heatWord}）</span></div>`;
   return `<div class="curve-wrap">
     <div class="curve-title">${esc(title)} <span class="curve-cur">${cfg.fmtY(last.v)}${cfg.unit?" "+esc(cfg.unit):""}</span> <span class="${ud}" style="font-size:12px">${arrow} ${Math.abs(pct).toFixed(2)}%</span> <span class="muted" style="font-size:10px;font-weight:400">${spanNote}</span></div>
+    ${histStat}
     ${svgLineChart(series, cfg)}
     <div class="curve-explain">${esc(hint)}</div>
     ${rotAdviceHtml(key)}
@@ -1760,14 +1802,16 @@ function rotationChartCard(key, title, hint){
   </div>`;
 }
 function renderRotation(){
+  const fi = freshInfo("rotation");
   return `
-  <div class="card">
-    <h3>${t('rotTitle')}</h3>
+  <div class="card ${fi.stale?'stale':''}">
+    <h3>${t('rotTitle')} ${freshBadge("rotation")}</h3>
     <div class="hint">${t('rotHint')}</div>
     ${rotationChartCard('south', t('rotSouth'), t('rotSouthHint'))}
     ${rotationChartCard('margin', t('rotMargin'), t('rotMarginHint'))}
     ${rotationChartCard('marginBuy', t('rotMarginBuy'), t('rotMarginBuyHint'))}
     ${rotationChartCard('crowd', t('rotCrowd'), t('rotCrowdHint'))}
+    ${staleBanner("rotation","行业轮动数据")}
   </div>`;
 }
 function renderHoldings(){
@@ -1776,9 +1820,11 @@ function renderHoldings(){
   const totalMkt=h.reduce((a,b)=>a+(parseFloat(b.market)||0),0);
   const profit=totalMkt-totalCost;
   const L={name:t('holdName'),code:t('holdCode'),cost:t('holdCost'),market:t('holdMarket'),profit:t('holdProfit'),rate:t('holdRate'),weight:t('weight'),note:t('holdNote')};
+  const sumAbs = h.reduce((a,b)=>a+Math.abs((parseFloat(b.market)||0)-(parseFloat(b.cost)||0)),0);
   const rows=h.map((b,i)=>{
     const c=parseFloat(b.cost)||0, m=parseFloat(b.market)||0;
     const p=m-c, r=c>0?(p/c*100):0, w=totalMkt>0?(m/totalMkt*100):0;
+    const contrib = sumAbs>0 ? Math.abs(p)/sumAbs*100 : 0;
     if(b.synced){
       // 同步项：核心字段只读，仅备注可编辑，无删除（下次同步自动覆盖）
       return `<tr class="synced">
@@ -1788,7 +1834,7 @@ function renderHoldings(){
         <td class="num" data-label="${L.market}"><span class="hv">${money(m)}</span></td>
         <td class="num ${p>=0?'up':'down'}" data-label="${L.profit}"><span class="hv">${p>=0?'+':''}${money(p)}</span></td>
         <td class="num ${p>=0?'up':'down'}" data-label="${L.rate}"><span class="hv">${(+b.profitRate||r).toFixed(1)}%</span></td>
-        <td class="num" data-label="${L.weight}"><span class="hv">${w.toFixed(1)}%</span></td>
+        <td class="num" data-label="${L.weight}"><span class="hv">${w.toFixed(1)}%</span></td><td class="num" data-label="利润占比"><span class="hv">${contrib.toFixed(1)}%</span></td>
         <td data-label="${L.note}"><input data-note-code="${esc(b.code)}" value="${esc(b.note)}" placeholder="—" style="min-width:90px"></td>
         <td data-label=""></td>
       </tr>`;
@@ -1800,7 +1846,7 @@ function renderHoldings(){
       <td class="num" data-label="${L.market}"><input type="number" data-bind="custom" data-i="${i}" data-f="market" value="${esc(b.market)}" style="text-align:right"></td>
         <td class="num ${p>=0?'up':'down'}" data-label="${L.profit}"><span class="hv">${p>=0?'+':''}${money(p)}</span></td>
         <td class="num ${p>=0?'up':'down'}" data-label="${L.rate}"><span class="hv">${r.toFixed(1)}%</span></td>
-        <td class="num" data-label="${L.weight}"><span class="hv">${w.toFixed(1)}%</span></td>
+        <td class="num" data-label="${L.weight}"><span class="hv">${w.toFixed(1)}%</span></td><td class="num" data-label="利润占比"><span class="hv">${contrib.toFixed(1)}%</span></td>
       <td data-label="${L.note}"><input data-bind="custom" data-i="${i}" data-f="note" value="${esc(b.note)}" placeholder="—"></td>
       <td data-label=""><button class="icon-btn" data-del="custom" data-i="${i}" title="${t('del')}"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg></button></td>
     </tr>`;}).join("");
@@ -1809,9 +1855,10 @@ function renderHoldings(){
   const syncLine = (location.protocol==="file:")
     ? `<span class="muted">${t('holdSyncSrc')} · ${t('holdSyncAt')} ${at?fmtSync(at):t('holdNoSync')}（本机文件）</span>`
     : `<span class="muted">${t('holdSyncSrc')} · ${t('holdSyncAt')} ${at?fmtSync(at):'—'}</span>`;
+  const fi = freshInfo("holdings");
   return `
-  <div class="card">
-    <h3>${t('holdTitle')}</h3>
+  <div class="card ${fi.stale?'stale':''}">
+    <h3>${t('holdTitle')} ${freshBadge("holdings")}</h3>
     <div class="hint">${t('holdHint')}</div>
     <div class="hold-kpis">
       <div class="kpi"><div class="label">${t('holdTotal')} · ${t('dashKpiTotal')}</div><div class="val">${money(totalMkt)}</div></div>
@@ -1828,12 +1875,13 @@ function renderHoldings(){
       <thead><tr>
         <th>${t('holdName')}</th><th>${t('holdCode')}</th><th class="num">${t('holdCost')}</th>
         <th class="num">${t('holdMarket')}</th><th class="num">${t('holdProfit')}</th><th class="num">${t('holdRate')}</th>
-        <th class="num">${t('weight')}</th><th>${t('holdNote')}</th><th></th>
+        <th class="num">${t('weight')}</th><th class="num">利润占比</th><th>${t('holdNote')}</th><th></th>
       </tr></thead>
       <tbody>${rows}</tbody>
     </table>
     </div>
     ${holdFoot()}
+    ${staleBanner("holdings","持仓数据")}
   </div>`;
 }
 // 同步时间格式化
@@ -2152,44 +2200,77 @@ function renderMacro(){
   const mkCards = (keys, hint)=>`
     <div class="hint">${hint}</div>
     ${keys.map(k=>macroChartCard(k)).join("")}`;
+  const fi = freshInfo("macro");
   return `
-  <div class="card macro-card" style="margin-bottom:16px">
-    <h3>${t('macroTitle')} · ${t('macroMoney')}</h3>
+  <div class="card macro-card ${fi.stale?'stale':''}" style="margin-bottom:16px">
+    <h3>${t('macroTitle')} · ${t('macroMoney')} ${freshBadge("macro")}</h3>
     ${mkCards(moneyKeys,t('macroMoneyHint'))}
+    ${staleBanner("macro","宏观经济数据")}
   </div>
-  <div class="card macro-card" style="margin-bottom:16px">
-    <h3>${t('macroTitle')} · ${t('macroPC')}</h3>
+  <div class="card macro-card ${fi.stale?'stale':''}" style="margin-bottom:16px">
+    <h3>${t('macroTitle')} · ${t('macroPC')} ${freshBadge("macro")}</h3>
     ${mkCards(pcKeys,t('macroPCHint'))}
   </div>
-  <div class="card macro-card" style="margin-bottom:16px">
-    <h3>${t('macroTitle')} · ${t('macroMomentum')}</h3>
+  <div class="card macro-card ${fi.stale?'stale':''}" style="margin-bottom:16px">
+    <h3>${t('macroTitle')} · ${t('macroMomentum')} ${freshBadge("macro")}</h3>
     ${mkCards(momentumKeys,t('macroMomentumHint'))}
+    ${staleBanner("macro","宏观动量数据")}
   </div>`;
 }
 
+function sentimentThermoCard(){
+  const b=getBuffett(), f=getFng();
+  if((!b||!b.length) && (!f||!f.length)) return "";
+  const bv = (b&&b.length)? b[b.length-1].v : null;
+  const fv = (f&&f.length)? f[f.length-1].v : null;
+  const giB = (bv==null)?null: Math.max(0,Math.min(100,(bv-55)/(115-55)*100));
+  const giF = (fv==null)?null: 100 - Math.max(0,Math.min(100, fv/14*100)); // 破净率高→恐惧→贪婪分量低
+  const parts=[giB,giF].filter(x=>x!=null);
+  if(!parts.length) return "";
+  const score = Math.round(parts.reduce((a,c)=>a+c,0)/parts.length);
+  const label = score<20?"极度恐惧":score<40?"恐惧":score<60?"中性":score<80?"贪婪":"极度贪婪";
+  const color = score<20?"#3B6D11":score<40?"#5a8f2b":score<60?"#854F0B":score<80?"#C2541B":"#A32D2D";
+  const interpret = score<20? "市场处于极度恐惧区（估值极低、破净弥漫），历史上是长线逆向买入的黄金窗口，可分批建仓、别人恐惧我贪婪。"
+    : score<40? "市场偏恐惧，估值已有吸引力，可逢低分批布局，并保留部分弹药。"
+    : score<60? "市场情绪中性，估值不贵不便宜，维持中性仓位、按既定策略执行即可。"
+    : score<80? "市场偏贪婪，估值抬升，注意控制仓位、避免追高。"
+    : "市场处于极度贪婪区（估值偏高、破净稀少），警惕牛尾风险，宜分批止盈、提升现金与债基占比。";
+  const lastD = (b&&b.length)? b[b.length-1].d : ((f&&f.length)? f[f.length-1].d : "—");
+  const detail = (bv!=null&&fv!=null)? `<p class="muted">合成分量：巴菲特指标 ${bv.toFixed(1)}% → ${Math.round(giB)} ｜ 破净率 ${fv.toFixed(1)}% → ${Math.round(giF)}（贪婪 0~100，越高越贵/越贪婪）</p>` : "";
+  return `<div class="card" style="margin-bottom:16px">
+    <h3>市场恐贪温度计 <span class="muted" style="font-size:11px;font-weight:400">巴菲特指标 + 破净率 合成</span></h3>
+    <div style="display:flex;align-items:center;gap:18px;flex-wrap:wrap">
+      <div style="font-size:48px;font-weight:800;color:${color};font-variant-numeric:tabular-nums;line-height:1">${score}</div>
+      <div style="flex:1;min-width:200px">
+        ${_thermoHtml(score)}
+        <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--muted)"><span>极度恐惧·买入</span><span>中性</span><span>极度贪婪·卖出</span></div>
+      </div>
+      <div style="font-size:13px;font-weight:700;color:${color};background:#fff;padding:4px 12px;border-radius:20px;border:1px solid ${color}">${label}</div>
+    </div>
+    <div class="curve-explain"><div class="ce-body"><p>${interpret}</p>${detail}</div></div>
+    <div class="sync-note">数据来源：乐咕乐股 legulegu（巴菲特指标 + A股破净率）· 数据截至：${esc(lastD)}</div>
+  </div>`;
+}
 function renderSentiment(){
   // 市场情绪：巴菲特指标 + 破净率真实曲线 + 7 个动量/情绪指标近10年曲线
   const momKeys = ["bondEquity","bondSpread","earnYield","fundCoef","turnover","marginBal","marginBuy"];
   const momentumCharts = momKeys.map(k=>momentumChartCard(k)).join("");
 
+  const fi = freshInfo("sentiment");
   return `
-  <div class="card">
-    <h3>${t('sentTitle')}</h3>
+  <div class="card ${fi.stale?'stale':''}">
+    <h3>${t('sentTitle')} ${freshBadge("sentiment")}</h3>
     <div class="hint">${t('sentHint')}</div>
+    ${sentimentThermoCard()}
     ${sentimentBlock('buffett', {height:260, color:"#2f6fed", fill:true, refLines:[{y:60,label:"60% 低估",color:"#caa400"},{y:100,label:"100% 危险",color:"#d83a3a"}], fmtY:v=>v.toFixed(0)+"%"})}
     ${sentimentBlock('fng', {height:240, color:"#e0683a", fill:true, refLines:[{y:10,label:"10% 恐慌线",color:"#caa400"}], fmtY:v=>v.toFixed(1)+"%"})}
     <div class="hint" style="margin-top:14px">${t('sentMomentumHint')}</div>
     <div class="grid cols-1">${momentumCharts}</div>
+    ${staleBanner("sentiment","市场情绪数据")}
   </div>`;
 }
 
 // ===== 指数&基金模块 helper =====
-function _lcg(seed){ let s=(seed>>>0)||1; return ()=>{ s=(s*1664525+1013904223)>>>0; return s/4294967296; }; }
-function _genSeries(n, start, drift, vol, seed){
-  const r=_lcg(seed); let v=start; const a=[];
-  for(let i=0;i<n;i++){ v = v*(1+drift) + (r()-0.5)*vol; if(v<0.01)v=0.01; a.push(Math.round(v*1000)/1000); }
-  return a;
-}
 function _parseNums(csv){ return String(csv||"").split(/[\s,;]+/).map(s=>parseFloat(s)).filter(x=>!isNaN(x)&&isFinite(x)); }
 function _ma(arr, n){
   if(!Array.isArray(arr) || arr.length < n) return null;
@@ -2551,21 +2632,24 @@ function renderResearch(){
     </div>`;
   }).join("") || `<div class="muted" style="padding:14px">${t('noData')}</div>`;
 
+  const fiRes = freshInfo("index");
   return `
-  <div class="card" style="margin-bottom:16px">
-    <h3>${t('resWatch')} <span class="tag">SVG</span></h3>
+  <div class="card ${fiRes.stale?'stale':''}" style="margin-bottom:16px">
+    <h3>${t('resWatch')} <span class="tag">SVG</span> ${freshBadge("index")}</h3>
     <div class="hint">${t('resWatchHint')}</div>
     ${ peHtml ? `<div class="grid cols-1" style="margin-top:8px">${peHtml}</div>` : (priceHtml? "" : `<div class="muted" style="padding:14px">${t('noData')}</div>`) }
     ${ priceHtml ? `<div style="display:grid;grid-template-columns:1fr;gap:16px;margin-top:${peHtml?'20px':'8px'}">${priceHtml}</div>` : "" }
     <button class="mini-btn primary" style="background:var(--primary);color:#fff" data-add="indices">${t('addIdx')}</button>
     <div class="sync-note">数据来源：乐咕乐股（指数行情/估值）、天天基金（基金净值）；行情经 sync-index.js 同步 · 数据同步于：${esc(idxSync)}</div>
+    ${staleBanner("index","指数估值数据")}
   </div>
-  <div class="card">
-    <h3>${t('resManager')}</h3>
+  <div class="card ${fiRes.stale?'stale':''}">
+    <h3>${t('resManager')} ${freshBadge("index")}</h3>
     <div class="hint">${t('resManagerHint')}</div>
     <div class="grid cols-1" style="margin-top:8px">${fundHtml}</div>
     <button class="mini-btn primary" style="background:var(--primary);color:#fff" data-add="funds">${t('addFund')}</button>
     <div class="sync-note">数据来源：基金净值来自天天基金（手动录入或 sync-index.js 同步） · 数据截至：${esc(fundNavLatest)} · 本模块为自选跟踪，非实时行情</div>
+    ${staleBanner("index","基金跟踪数据")}
   </div>`;
 }
 
@@ -2582,7 +2666,7 @@ function renderTools(){
   const gcFundsOpts = (typeof SYNCED_INDEX!=="undefined"&&SYNCED_INDEX&&SYNCED_INDEX.funds) ? SYNCED_INDEX.funds.map(f=>'<option value="'+f.code+'">'+f.name+'</option>').join("") : "";
   const calcCard=`
 <div class="card">
-  <h3>网格 / 定投收益计算器</h3>
+  <h3>网格 / 定投收益计算器 <span class="fresh-badge ok">本地自定义 · 实时计算</span></h3>
   <div class="hint">移植自「网格投资跟踪表」skill 核心算法（定投展开 + 收益/年化精算）。输入基金代码与计划，秒出总投资、收益、收益率、年化。净值来源：① 页面已同步真实数据（012920 / 001015 / 160422）；② 未同步代码自动从天天基金在线拉取全历史净值。</div>
   <div class="fgrid">
     <div><label>基金代码</label><input id="gc-code" list="gc-funds" placeholder="如 012920"><datalist id="gc-funds">${gcFundsOpts}</datalist></div>
@@ -3122,6 +3206,7 @@ function onContentClick(e){
   if(infoBtn){ const card=infoBtn.closest(".ind-card"); if(card){ const open=card.classList.toggle("open"); infoBtn.setAttribute("aria-expanded", open?"true":"false"); } return; }
   const tgt=e.target.closest("[data-del],[data-add],[data-foc],[data-delfoc],[id]");
   if(!tgt) return;
+  if(tgt.dataset.nwrange){ nwRange=tgt.dataset.nwrange; renderActive(); return; }
   if(tgt.dataset.del){ const b=tgt.dataset.del,i=+tgt.dataset.i;
     if(b==="custom"){ state.holdings.splice(i,1); saveCustom(state.holdings.filter(x=>!x.synced)); save(); renderActive(); toast(t('toastDeleted')); return; }
     if(state[b]){ state[b].splice(i,1); save(); renderActive(); toast(t('toastDeleted')); } return; }
