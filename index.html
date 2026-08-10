@@ -464,6 +464,10 @@ td input:focus,td select:focus{outline:none;border-color:var(--primary)}
 
 <script>
 "use strict";
+/* ---- 四笔钱配置常量（须在任何函数/顶层调用前声明，避免 const TDZ 导致 boot 白屏）---- */
+const BUCKET_ORDER=["活钱","稳钱","长钱","保障"];
+const BUCKET_COLORS={"活钱":"#F59E0B","稳钱":"#14B8A6","长钱":"#3B82F6","保障":"#8B5CF6"};
+const BUCKET_TARGET={"活钱":10,"稳钱":30,"长钱":50,"保障":10};
 /* ============== I18N ============== */
 const I18N = {
   zh:{
@@ -888,7 +892,7 @@ const SYNCED_SECTORS = {"syncedAt":"","asOf":"","source":"\u4e1c\u65b9\u8d22\u5b
 
 
 // 版本号：每次部署 bump 此值，并同步更新 version.json；旧版 HTML 检测到远程版本更新会弹横幅提示刷新
-const APP_VER = "20260810.6";
+const APP_VER = "20260810.7";
 
 // 内存中的同步数据（部署版 fetch 成功后覆盖文件内嵌值）
 let MEM_SYNCED=null, MEM_SYNCED_AT=null;
@@ -1155,10 +1159,6 @@ function computeAllocation(){
   const hhi=total>0?hs.reduce((a,h)=>{ const p=(parseFloat(h.market)||0)/total; return a+p*p; },0)*10000:0;
   return {total,bucket,order,domMkt,domPct,ovPct,sorted,top1,hhi};
 }
-/* ---- 四笔钱配置（且慢式：按投资目的/流动性久期归类）---- */
-const BUCKET_ORDER=["活钱","稳钱","长钱","保障"];
-const BUCKET_COLORS={"活钱":"#F59E0B","稳钱":"#14B8A6","长钱":"#3B82F6","保障":"#8B5CF6"};
-const BUCKET_TARGET={"活钱":10,"稳钱":30,"长钱":50,"保障":10};
 function classifyBucket(h){
   const n=(h&&h.name||"").toUpperCase();
   if(/保险|年金|养老|保障|重疾|医疗|寿险|意外|人寿险/.test(n)) return "保障";
