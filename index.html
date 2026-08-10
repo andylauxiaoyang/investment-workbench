@@ -472,6 +472,8 @@ const I18N = {
     holdName:"名称", holdCode:"代码", holdCost:"成本(¥)", holdMarket:"市值(¥)", holdProfit:"浮动盈亏", holdRate:"收益率", holdNote:"备注",
     holdTotal:"合计", holdAdd:"+ 添加自定义持仓", holdExportCsv:"导出 CSV",
     holdSyncSrc:"数据源：天天基金（ttskill）", holdSyncAt:"上次同步", holdSyncBtn:"同步持仓", holdAuto:"自动", holdManual:"手动", holdSyncing:"同步中…", holdNoSync:"未连接数据源，使用本地缓存",
+    fbHint:"按投资目的/流动性久期，将真实持仓归为四笔钱：活钱(随时可用)、稳钱(1-3年稳健)、长钱(3年以上权益)、保障(保险)。基于天天基金真实市值自动归类；目标中枢为且慢式通用参考，非行情数据。",
+    fbEmpty:"暂无同步持仓，无法计算四笔钱配置。请先运行 sync-holdings.js 同步天天基金持仓（每日10:00自动）。",
     /* macro */
     macroTitle:"宏观经济", macroMoney:"货币金融", macroPC:"生产消费", macroMomentum:"经济动能",
     macroMoneyHint:"利率、汇率、货币供应与储备等货币维度指标",
@@ -547,6 +549,8 @@ const I18N = {
     holdName:"Name", holdCode:"Code", holdCost:"Cost (¥)", holdMarket:"Value (¥)", holdProfit:"P/L", holdRate:"Return", holdNote:"Note",
     holdTotal:"Total", holdAdd:"+ Add custom", holdExportCsv:"Export CSV",
     holdSyncSrc:"Source: TianTian Fund (ttskill)", holdSyncAt:"Last sync", holdSyncBtn:"Sync", holdAuto:"AUTO", holdManual:"MANUAL", holdSyncing:"Syncing…", holdNoSync:"No data source — using local cache",
+    fbHint:"Classify real holdings into four buckets by purpose/liquidity horizon: Cash (ready), Stable (1-3y steady), Long (3y+ equity), Protection (insurance). Auto-classified from TianTian real market value; target weights are 且慢-style references, not market data.",
+    fbEmpty:"No synced holdings yet — four-bucket allocation unavailable. Run sync-holdings.js to sync TianTian Fund holdings (daily 10:00 auto).",
     macroTitle:"Macroeconomy", macroMoney:"Money & Rates", macroPC:"Production & Consumption", macroMomentum:"Economic Momentum",
     macroMoneyHint:"Interest rates, FX, money supply and reserves",
     macroPCHint:"Inflation, sentiment and global trade momentum",
@@ -856,7 +860,7 @@ const SYNCED_ROTATION = {"syncedAt":"2026-08-09T15:02:03.739Z","series":{"south"
 
 
 // 版本号：每次部署 bump 此值，并同步更新 version.json；旧版 HTML 检测到远程版本更新会弹横幅提示刷新
-const APP_VER = "20260810.2";
+const APP_VER = "20260810.3";
 
 // 内存中的同步数据（部署版 fetch 成功后覆盖文件内嵌值）
 let MEM_SYNCED=null, MEM_SYNCED_AT=null;
@@ -1125,9 +1129,40 @@ function computeAllocation(){
   const hhi=total>0?hs.reduce((a,h)=>{ const p=(parseFloat(h.market)||0)/total; return a+p*p; },0)*10000:0;
   return {total,bucket,order,domMkt,domPct,ovPct,sorted,top1,hhi};
 }
-function svgPie(al){
+/* ---- 四笔钱配置（且慢式：按投资目的/流动性久期归类）---- */
+const BUCKET_ORDER=["活钱","稳钱","长钱","保障"];
+const BUCKET_COLORS={"活钱":"#F59E0B","稳钱":"#14B8A6","长钱":"#3B82F6","保障":"#8B5CF6"};
+const BUCKET_TARGET={"活钱":10,"稳钱":30,"长钱":50,"保障":10};
+function classifyBucket(h){
+  const n=(h&&h.name||"").toUpperCase();
+  if(/保险|年金|养老|保障|重疾|医疗|寿险|意外|人寿险/.test(n)) return "保障";
+  if(/货币|活期宝|现金|钱包|余额|货基|同业存单|短债|理财|货币型/.test(n)) return "活钱";
+  if(/债券|转债|信用|国债|企业债|债基|固收|稳健|信用增强|中短债|纯债/.test(n)) return "稳钱";
+  return "长钱";
+}
+function computeFourBucket(){
+  const hs=getSyncedHoldings();
+  const bucket={}; BUCKET_ORDER.forEach(k=>bucket[k]=0);
+  const items={}; BUCKET_ORDER.forEach(k=>items[k]=[]);
+  let total=0;
+  hs.forEach(h=>{ const m=parseFloat(h.market)||0; if(m<=0) return; total+=m; const c=classifyBucket(h); bucket[c]+=m; items[c].push({code:h.code,name:h.name,mkt:m}); });
+  BUCKET_ORDER.forEach(k=>items[k].sort((a,b)=>b.mkt-a.mkt));
+  const drift={}; BUCKET_ORDER.forEach(k=>{ const p=total>0?bucket[k]/total*100:0; drift[k]=p-(BUCKET_TARGET[k]||0); });
+  return {total,bucket,order:BUCKET_ORDER,items,drift};
+}
+function rebalHint(fb){
+  const over=BUCKET_ORDER.filter(k=>fb.drift[k]>10);
+  const under=BUCKET_ORDER.filter(k=>fb.drift[k]<-10);
+  const os=over.reduce((a,k)=>a+fb.drift[k],0), us=under.reduce((a,k)=>a+fb.drift[k],0);
+  if(!over.length && !under.length) return "各笔钱占比均在目标中枢 ±10pp 内，配置均衡，无需大幅再平衡。";
+  const parts=[];
+  if(over.length) parts.push("\u003cb style=\"color:var(--danger)\"\u003e"+over.join("、")+"\u003c/b\u003e 占比偏高（共超目标 "+os.toFixed(0)+"pp）");
+  if(under.length) parts.push("\u003cb style=\"color:var(--success)\"\u003e"+under.join("、")+"\u003c/b\u003e 占比偏低（共缺 "+Math.abs(us).toFixed(0)+"pp）");
+  return "当前"+parts.join("；")+"。建议：将偏高的「"+(over.join("、")||"—")+"」逐步止盈减仓，补入偏低的「"+(under.join("、")||"—")+"」，使组合更稳健、降低单一久期暴露。";
+}
+function svgPie(al, colors){
   const total=al.total||0;
-  const colors={"国内权益":"#3B82F6","国内债券":"#14B8A6","国内货币":"#F59E0B","另类":"#8B5CF6","境外":"#9DB4A0"};
+  colors = colors || {"国内权益":"#3B82F6","国内债券":"#14B8A6","国内货币":"#F59E0B","另类":"#8B5CF6","境外":"#9DB4A0"};
   const segs=al.order.filter(k=>al.bucket[k]>0).map(k=>({k,v:al.bucket[k],pct:total>0?al.bucket[k]/total:0,color:colors[k]}));
   const size=170,cx=85,cy=85,r=72;
   let body="";
@@ -1691,6 +1726,24 @@ function dashAllocCard(alloc){
   </div>`;
 }
 
+function fourBucketCard(){
+  const fb=computeFourBucket();
+  const fi=freshInfo("holdings");
+  if(fb.total<=0) return '<div class="card" style="margin-top:16px"><div class="curve-title">四笔钱配置 · 且慢式资产规划</div><div class="hint muted">'+t('fbEmpty')+'</div></div>';
+  const legend=fb.order.map(k=>{ const v=fb.bucket[k]; const p=fb.total>0?Math.round(v/fb.total*100):0; const tg=BUCKET_TARGET[k]||0; const dr=fb.drift[k]; const drTxt=(dr>=0?"+":"")+dr.toFixed(0)+"pp"; const drCls=Math.abs(dr)>=10?"style=\"color:var(--danger)\"":"style=\"color:var(--muted)\""; return '<div class="health-row"><div class="top"><span><i style="width:9px;height:9px;border-radius:50%;background:'+BUCKET_COLORS[k]+';display:inline-block;margin-right:6px"></i>'+k+'<span class="muted" style="font-size:11px;margin-left:4px">目标 '+tg+'%</span></span><b>'+fmtYuan(v)+'<span style="color:var(--muted);font-weight:400;font-size:11px"> '+p+'% · 偏离 <span '+drCls+'>'+drTxt+'</span></span></b></div></div>'; }).join("");
+  const detail=fb.order.filter(k=>fb.items[k].length).map(k=>'<div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:6px 0"><span style="font-weight:600;font-size:12px;color:'+BUCKET_COLORS[k]+';margin-right:6px">'+k+'</span>'+fb.items[k].map(it=>'<span style="display:inline-flex;align-items:center;gap:5px;background:#f1f5f9;border:1px solid #e2e8f0;border-radius:20px;padding:3px 10px;font-size:11px">'+esc(it.name)+' <b style="color:#64748b;font-weight:600">'+fmtYuan(it.mkt)+'</b></span>').join("")+'</div>').join("");
+  const pieAl={total:fb.total,bucket:fb.bucket,order:fb.order};
+  return '<div class="card '+(fi.stale?'stale':'')+'" style="margin-top:16px">'
+    +'<div class="curve-title">四笔钱配置 · 且慢式资产规划 '+freshBadge("holdings")+'</div>'
+    +'<div class="hint">'+t('fbHint')+'</div>'
+    +'<div style="display:flex;gap:16px;align-items:center;flex-wrap:wrap">'+svgPie(pieAl, BUCKET_COLORS)+'<div style="flex:1;min-width:200px">'+legend+'</div></div>'
+    +'<div style="margin-top:12px;border-top:1px dashed #e2e8f0;padding-top:10px">'+detail+'</div>'
+    +'<div class="curve-explain"><div class="ce-title">再平衡参考</div><div class="ce-body"><p>'+rebalHint(fb)+'</p>'
+    +'<p class="muted" style="font-size:11px">目标中枢为且慢式通用参考（活钱10 / 稳钱30 / 长钱50 / 保障10），非行情数据，可按个人风险偏好在源文件调整。</p></div></div>'
+    +holdFoot()
+  +'</div>';
+}
+
 function renderDashboard(){
   const h=state.holdings;
   const totalCost=h.reduce((a,b)=>a+(parseFloat(b.cost)||0),0);
@@ -2009,7 +2062,8 @@ function renderHoldings(){
     </div>
     ${holdFoot()}
     ${staleBanner("holdings","持仓数据")}
-  </div>`;
+  </div>
+  ${fourBucketCard()}`;
 }
 // 同步时间格式化
 function fmtSync(iso){
