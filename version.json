@@ -1,5 +1,5 @@
 {
-  "v": "20260810.7",
+  "v": "20260810.8",
   "date": "2026-08-10",
-  "changelog": "紧急修复 v20260810.6 引入的严重白屏 Bug：四笔钱常量 BUCKET_ORDER/BUCKET_COLORS/BUCKET_TARGET 原声明于 1159 行，晚于 early-boot 顶层调用 loadState()（约 1009 行），触发 const 暂时性死区(TDZ)，脚本在渲染前崩溃、整个主体空白。已将三常量上移至 <script> 顶部（use strict 之后、所有函数与顶层调用之前）。已用 jsdom 真实 boot 复现并验证：捕获错误 1→0，概览正常渲染(view-dashboard 148KB)。功能面同 v20260810.6（自动风险待办多规则 / 全量数据导出导入 / 死代码清理 / 真实持仓vs回测标签）。"
+  "changelog": "新增 PWA 离线能力：注册 service worker（仅缓存应用壳 index.html，数据类请求仍走网络保证实时），手机断网也能打开并打卡；补 iOS 独立模式标题 meta。手机浏览器打开链接→添加到主屏幕即装成 APP（图标=绿色对勾）。跨设备打卡自动同步（GitHub Gist PAT）待接入。"
 }
