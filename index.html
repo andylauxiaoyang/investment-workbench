@@ -396,6 +396,8 @@ td input:focus,td select:focus{outline:none;border-color:var(--primary)}
 .mover-h{font-weight:800;font-size:12px;margin-bottom:4px}
 .mover{display:inline-block;margin:2px 10px 2px 0;font-size:12px}
 .mover b{font-weight:700}
+  .badge-real{display:inline-block;margin-left:8px;font-size:11px;font-weight:700;color:#0f7a3d;background:#e3f6ea;padding:2px 7px;border-radius:9px;vertical-align:middle}
+  .badge-back{display:inline-block;margin-left:8px;font-size:11px;font-weight:700;color:#7a7a7a;background:#eeeeee;padding:2px 7px;border-radius:9px;vertical-align:middle}
 </style>
 </head>
 <body>
@@ -886,7 +888,7 @@ const SYNCED_SECTORS = {"syncedAt":"","asOf":"","source":"\u4e1c\u65b9\u8d22\u5b
 
 
 // 版本号：每次部署 bump 此值，并同步更新 version.json；旧版 HTML 检测到远程版本更新会弹横幅提示刷新
-const APP_VER = "20260810.5";
+const APP_VER = "20260810.6";
 
 // 内存中的同步数据（部署版 fetch 成功后覆盖文件内嵌值）
 let MEM_SYNCED=null, MEM_SYNCED_AT=null;
@@ -951,9 +953,6 @@ function defaultState(){
   };
 }
 let state = loadState();
-let AUTO_NEWS = [];          // 自动源要闻（来自 news-data.json，每日自动化推送）
-let NEWS_UPDATED_AT = "";    // 自动要闻更新时间
-let newsFilter = "all";      // 财经要闻分类筛选（all/macro/market/industry/company/other）
 function loadState(){
   let s;
   let dirty=false;
@@ -1007,7 +1006,7 @@ function loadState(){
   }
   // 自动待办：指数/基金最新值跌破250日均线(年线) → 生成【风险】待办（保留用户已勾选状态，回升年线即自动清除）
   {
-    const riskAuto = computeRiskAutoFocus(s.indices, s.funds);
+    const riskAuto = computeRiskAutoFocus(s);
     const kept = s.focus.filter(f=>!(f.source==='auto' && (f.key||'').indexOf('risk-')===0));
     const prev = {}; s.focus.forEach(f=>{ if(f.source==='auto' && (f.key||'').indexOf('risk-')===0) prev[f.key]=f; });
     riskAuto.forEach(a=>{
@@ -1166,6 +1165,14 @@ function classifyBucket(h){
   if(/货币|活期宝|现金|钱包|余额|货基|同业存单|短债|理财|货币型/.test(n)) return "活钱";
   if(/债券|转债|信用|国债|企业债|债基|固收|稳健|信用增强|中短债|纯债/.test(n)) return "稳钱";
   return "长钱";
+}
+function realFundSet(){ const s=new Set(); (state.holdings||[]).forEach(h=>{ if(h&&h.code&&h.synced) s.add(h.code); }); return s; }
+function computeFourBucketFrom(hs){
+  const bucket={}; BUCKET_ORDER.forEach(k=>bucket[k]=0);
+  let total=0;
+  (hs||[]).forEach(h=>{ const m=parseFloat(h.market)||0; if(m<=0) return; total+=m; const c=classifyBucket(h); bucket[c]+=m; });
+  const drift={}; BUCKET_ORDER.forEach(k=>{ const p=total>0?bucket[k]/total*100:0; drift[k]=p-(BUCKET_TARGET[k]||0); });
+  return {total,bucket,drift};
 }
 function computeFourBucket(){
   const hs=getSyncedHoldings();
@@ -2609,7 +2616,7 @@ function _belowRun(arr, n){
   return run>0 ? {days:run, breachIdx:firstIdx} : null;
 }
 // 自动待办：指数/基金最新值跌破其250日均线(年线) → 风险 + 减仓提示（含跌破日期与持续天数）
-function computeRiskAutoFocus(indices, funds){
+function computeRiskAutoFocus(st){ const indices=st.indices||[], funds=st.funds||[], holdings=st.holdings||[];
   const out=[];
   (indices||[]).forEach(x=>{
     const isPrice = !!x.idxSeries && String(x.idxSeries).trim()!=="";
@@ -2646,6 +2653,49 @@ function computeRiskAutoFocus(indices, funds){
         zh:`【风险】「${f.name||'基金'}」(${f.code||''}) 净值已于 ${breachDate||'近期'} 跌破250日均线（年线），截至 ${lastDate||'最新'} 已连续 ${durTxt}低于年线（当前净值 ${cur.toFixed(3)}，年线 ${maLast.toFixed(3)}，偏离 ${dev.toFixed(1)}%）。趋势走弱，建议减仓 / 控制仓位`,
         en:`[RISK] ${f.name||'Fund'} (${f.code||''}) NAV broke below 250-day MA on ${breachDate||'recently'}; ${durTxt} below line (NAV ${cur.toFixed(3)} vs avg ${maLast.toFixed(3)}, ${dev.toFixed(1)}%). Reduce position`});
     }
+  });
+  // —— 多规则自动风险待办（在原有「跌破年线」之上新增）——
+  // 1) 单一持仓集中度（>50%）
+  {
+    const ms=holdings.filter(h=>h.code && (parseFloat(h.market)||0)>0).map(h=>({code:h.code,name:h.name,m:parseFloat(h.market)||0}));
+    const tot=ms.reduce((a,h)=>a+h.m,0);
+    if(tot>0){ ms.sort((a,b)=>b.m-a.m); const top=ms[0]; const pct=top.m/tot*100;
+      if(pct>=50){ out.push({key:'risk-conc-'+top.code,
+        zh:`【风险】单一持仓过度集中：「${top.name||top.code}」(${top.code}) 占组合市值 ${pct.toFixed(1)}%（${money(top.m)} / 合计 ${money(tot)}）。一旦该标的出现黑天鹅，回撤难以通过分散化解，建议将单一占比控制在 40% 以内，增配低相关资产`,
+        en:`[RISK] Over-concentration: ${top.name||top.code} (${top.code}) is ${pct.toFixed(1)}% of portfolio (${money(top.m)}/${money(tot)}). Trim below 40% and diversify`}); }
+    }
+  }
+  // 2) 四笔钱配置偏离（±10pp）→ 再平衡待办 + 应急现金不足
+  {
+    const fb=computeFourBucketFrom(holdings);
+    const over=BUCKET_ORDER.filter(k=>fb.drift[k]>10), under=BUCKET_ORDER.filter(k=>fb.drift[k]<-10);
+    if(over.length||under.length){
+      const parts=[];
+      if(over.length) parts.push("「"+over.join("、")+"」占比偏高（共超目标 "+over.reduce((a,k)=>a+fb.drift[k],0).toFixed(0)+"pp）");
+      if(under.length) parts.push("「"+under.join("、")+"」占比偏低（共缺 "+Math.abs(under.reduce((a,k)=>a+fb.drift[k],0)).toFixed(0)+"pp）");
+      out.push({key:'risk-bucket',
+        zh:`【再平衡】四笔钱配置偏离目标中枢：${parts.join("；")}。建议将偏高的笔钱逐步止盈，补入偏低的笔钱，使活钱/稳钱/长钱/保障回归 10/30/50/10 参考比例`,
+        en:`[REBALANCE] Four-bucket drifted: ${parts.join("; ")}. Rebalance toward 10/30/50/10`});
+    }
+    if(fb.total>0 && (fb.bucket["活钱"]||0)/fb.total*100 < 5){
+      out.push({key:'risk-cash',
+        zh:`【流动性】应急现金（活钱）占比仅 ${((fb.bucket["活钱"]||0)/fb.total*100).toFixed(1)}%，低于 5% 安全垫。建议预留 3~6 个月生活开支的活钱（货币基金/活期），以应对突发用款、避免低位被迫卖出`,
+        en:`[LIQUIDITY] Cash(活钱) buffer only ${((fb.bucket["活钱"]||0)/fb.total*100).toFixed(1)}% of portfolio, below 5% floor`});
+    }
+  }
+  // 3) 基金历史最大回撤过深（≤-30%）
+  (funds||[]).forEach(f=>{ const arr=_parseNums(f.nav);
+    if(arr.length>=20){ let peak=-Infinity, mdd=0; arr.forEach(v=>{ if(v>peak)peak=v; const d=(v-peak)/peak*100; if(d<mdd)mdd=d; });
+      if(mdd<=-30){ out.push({key:'risk-dd-'+f.code,
+        zh:`【风险】「${f.name||'基金'}」(${f.code}) 历史最大回撤达 ${mdd.toFixed(1)}%，波动剧烈。若为主要仓位，需评估风险承受力，考虑分批减仓或定投摊薄，避免高位一次性重仓`,
+        en:`[RISK] ${f.name||'Fund'} (${f.code}) max drawdown ${mdd.toFixed(1)}%. High volatility, consider trimming/DCA`}); }
+    }
+  });
+  // 4) 指数估值分位过高（≥90%，近10年）
+  (indices||[]).forEach(x=>{ const pct = (x.idxSeries && String(x.idxSeries).trim()!=="") ? _idxPricePct(x) : _idxPct(x);
+    if(pct>=90){ out.push({key:'risk-val-'+(x.code||x.name),
+      zh:`【估值】「${x.name||'指数'}」当前 PE 分位 ${pct}%（近10年高位）。估值偏贵、追高安全边际低，建议停止加仓、逢高逐步止盈，等待估值回归`,
+      en:`[VALUATION] ${x.name||'Index'} at ${pct}% PE percentile (10y high). Expensive, consider taking profit`}); }
   });
   return out;
 }
@@ -2874,6 +2924,7 @@ function renderResearch(){
     ? SYNCED_INDEX.funds.map(f=>{ const ds=_parseDates(f.navDates); return ds.length?ds[ds.length-1]:""; }).filter(Boolean)
     : [];
   const fundNavLatest = fundNavDates.length ? fundNavDates.sort().pop() : "—（自行录入，未见净值日期）";
+  const rf=realFundSet();
   function idxCard(x,i){
     const isPrice = !!x.idxSeries && String(x.idxSeries).trim()!=="";
     const pct = isPrice ? _idxPricePct(x) : _idxPct(x);
@@ -2927,7 +2978,7 @@ function renderResearch(){
       </div>`;
     }
     return `<div class="item-card">
-      <div class="ic-head"><div class="ic-title">${esc(f.name||"未命名基金")}</div>
+      <div class="ic-head"><div class="ic-title">${esc(f.name||"未命名基金")}</div>${rf.has(f.code)?'<span class="badge-real" title="已同步真实持仓">真实持仓</span>':'<span class="badge-back" title="仅用于回测 / 自选跟踪">回测/自选</span>'}
         <button class="icon-btn" data-toggle-edit-fund="${i}" title="编辑数据"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
         <button class="icon-btn" data-del="funds" data-i="${i}"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg></button></div>
       <div class="fgrid" id="fund-edit-${i}" style="display:none">
@@ -2967,6 +3018,7 @@ function renderResearch(){
 }
 
 function renderTools(){
+  const rf=realFundSet();
   const html=state.tools.map((tl,i)=>`
     <div class="item-card">
       <div class="ic-head"><div class="ic-title">${esc(tl.name)}</div>
@@ -2976,12 +3028,12 @@ function renderTools(){
         <div style="grid-column:1/-1"><label>${t('tNote')}</label><textarea data-bind="tools" data-i="${i}" data-f="note">${esc(tl.note)}</textarea></div>
       </div>
     </div>`).join("") || `<div class="muted" style="padding:14px">${t('noData')}</div>`;
-  const gcFundsOpts = (typeof SYNCED_INDEX!=="undefined"&&SYNCED_INDEX&&SYNCED_INDEX.funds) ? SYNCED_INDEX.funds.map(f=>'<option value="'+f.code+'">'+f.name+'</option>').join("") : "";
+  const gcFundsOpts = (typeof SYNCED_INDEX!=="undefined"&&SYNCED_INDEX&&SYNCED_INDEX.funds) ? SYNCED_INDEX.funds.map(f=>'<option value="'+f.code+'">'+f.name+(rf.has(f.code)?' · 真实持仓':' · 回测/自选')+'</option>').join("") : "";
   const gcRealOpts = (state.holdings&&state.holdings.length) ? state.holdings.filter(h=>h.code&&h.synced).map(h=>'<option value="'+h.code+'">'+h.name+'('+h.code+') · '+money(h.market)+'</option>').join("") : "";
   const calcCard=`
 <div class="card">
   <h3>网格 / 定投收益计算器 <span class="fresh-badge ok">本地自定义 · 实时计算</span></h3>
-  <div class="hint">移植自「网格投资跟踪表」skill 核心算法（定投展开 + 收益/年化精算）。输入基金代码与计划，秒出总投资、收益、收益率、年化。净值来源：① 页面已同步真实数据（012920 / 001015 / 160422）；② 未同步代码自动从天天基金在线拉取全历史净值。</div>
+  <div class="hint">移植自「网格投资跟踪表」skill 核心算法（定投展开 + 收益/年化精算）。输入基金代码与计划，秒出总投资、收益、收益率、年化。净值来源：① 已同步真实数据——<b style="color:var(--danger)">真实持仓</b> 012920 / 001015，<b style="color:var(--muted)">回测标的</b> 160422；② 未同步代码自动从天天基金在线拉取全历史净值。</div>
   <div class="fgrid">
     <div><label>基金代码</label><input id="gc-code" list="gc-funds" placeholder="如 012920"><datalist id="gc-funds">${gcFundsOpts}</datalist></div>
     <div><label>投资方式</label><select id="gc-mode">
@@ -3545,7 +3597,7 @@ function onContentClick(e){
   if(tgt.dataset.clearfoc!==undefined){ if(confirm("确定清空所有待办事项？此操作不可撤销。")){ state.focus=[]; save(); renderActive(); toast(t('toastDeleted')); } return; }
   // （原财经要闻分类筛选已随模块改为行业轮动而移除）
   if(tgt.id==="holdAdd"){ const custom=loadCustom(); custom.push({name:"",code:"",cost:0,market:0,note:""}); saveCustom(custom); state.holdings=buildHoldings(); renderActive(); toast(t('toastAdded')); return; }
-  if(tgt.id==="holdSync"){ syncHoldings(); syncNews(); syncSentiment(); syncMacro(); syncRotation(); syncSectors(); return; }
+  if(tgt.id==="holdSync"){ syncHoldings(); syncSentiment(); syncMacro(); syncRotation(); syncSectors(); return; }
   if(tgt.id==="holdCsv"){ exportCsv(); return; }
   const realBtn=e.target.closest('[data-action="gcRealLoad"]');
   if(realBtn){ const sel=document.getElementById("gc-real-sel"); const code=sel?sel.value:""; if(code){ const inp=document.getElementById("gc-code"); if(inp) inp.value=code; const hh=state.holdings.find(x=>x.code===code); const baseEl=document.getElementById("gc-base"); if(hh&&baseEl) baseEl.value=Math.round(hh.market)||baseEl.value; gcPrefill(); toast("已载入真实持仓 "+code); } return; }
@@ -3566,20 +3618,7 @@ function syncHoldings(){
     if(btn) btn.disabled=false;
   }
 }
-// 同步自动源要闻：
-//  - 本地(file://)与线上基线：读取内联 SYNCED_NEWS（每日自动化注入，不受 file:// 无法 fetch 的限制）
-//  - 部署版(http)：再 fetch news-data.json（每日自动化推送）拿最新覆盖，保证线上永远最新
-function applyAutoNews(j){ /* 原财经要闻同步逻辑已随模块移除 */ }
-function syncNews(){
-  if(typeof SYNCED_NEWS!=="undefined" && SYNCED_NEWS && SYNCED_NEWS.length){
-    applyAutoNews({ updatedAt:(typeof SYNCED_NEWS_AT!=="undefined"?SYNCED_NEWS_AT:""), news:SYNCED_NEWS });
-  }
-  if(location.protocol!=="file:"){
-    fetch("./news-data.json?t="+Date.now(),{cache:"no-store"}).then(r=>{ if(!r.ok) throw new Error("net"); return r.json(); })
-      .then(applyAutoNews)
-      .catch(()=>{});
-  }
-}
+// 财经要闻模块已于 v20260809.5 由「行业轮动」替代，相关 SYNCED_NEWS 读取与 syncNews 已移除，避免每打开页面发起无效 news-data.json 请求。
 // 同步市场情绪曲线：部署版 fetch sentiment-data.json 覆盖内联 SYNCED_BUFFETT/SYNCED_FNG
 function syncSentiment(){
   if(location.protocol!=="file:"){
@@ -3645,9 +3684,31 @@ function addItem(b){
 function incMonth(ym){ const [y,m]=ym.split("-").map(Number); const nm=m===12?1:m+1; const ny=m===12?y+1:y; return ny+"-"+String(nm).padStart(2,"0"); }
 function incDay(dstr){ const d=new Date(dstr+"T00:00:00"); d.setDate(d.getDate()+1); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
 /* ============== Export / Import / Clear ============== */
+function captureSnapshots(){
+  const H = (typeof SYNCED_HOLDINGS!=="undefined")?SYNCED_HOLDINGS:null;
+  const AT = (typeof SYNCED_AT!=="undefined")?SYNCED_AT:null;
+  const ROT = (typeof SYNCED_ROTATION!=="undefined")?SYNCED_ROTATION:null;
+  const SEC = (typeof SYNCED_SECTORS!=="undefined")?SYNCED_SECTORS:null;
+  const BF = (typeof SYNCED_BUFFETT!=="undefined")?SYNCED_BUFFETT:null;
+  const FG = (typeof SYNCED_FNG!=="undefined")?SYNCED_FNG:null;
+  const MAC = (typeof SYNCED_MACRO!=="undefined")?SYNCED_MACRO:null;
+  const MS = (typeof SYNCED_MACRO_SERIES!=="undefined")?SYNCED_MACRO_SERIES:null;
+  const MOM = (typeof SYNCED_MOMENTUM!=="undefined")?SYNCED_MOMENTUM:null;
+  return {
+    holdings: MEM_SYNCED!=null?MEM_SYNCED:H,
+    holdingsAt: MEM_SYNCED_AT || AT,
+    rotation: MEM_ROTATION!=null?MEM_ROTATION:ROT,
+    sectors: MEM_SECTORS!=null?MEM_SECTORS:SEC,
+    buffett: MEM_BUFFETT!=null?MEM_BUFFETT:BF,
+    fng: MEM_FNG!=null?MEM_FNG:FG,
+    macro: MEM_MACRO!=null?MEM_MACRO:MAC,
+    macroSeries: MEM_MACRO_SERIES!=null?MEM_MACRO_SERIES:MS,
+    momentum: MEM_MOMENTUM!=null?MEM_MOMENTUM:MOM
+  };
+}
 function exportBackup(){
-  const data={ _app:"投资管理工作台", _ver:1, _exported:new Date().toISOString(),
-    theme:getTheme(), lang:lang, data:state };
+  const data={ _app:"投资管理工作台", _ver:2, _exported:new Date().toISOString(), appVer:APP_VER,
+    theme:getTheme(), lang:lang, data:state, snapshots:captureSnapshots() };
   const blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"});
   const url=URL.createObjectURL(blob); const a=document.createElement("a");
   a.href=url; a.download="投资工作台备份_"+new Date().toISOString().slice(0,10)+".json"; a.click();
@@ -3666,6 +3727,14 @@ function importBackup(e){
     saveCustom(imp.filter(x=>x.synced===false).map(x=>({name:x.name,code:x.code,cost:x.cost,market:x.market,note:x.note})));
     const notes=loadNotes(); imp.forEach(x=>{ if(x.note && x.code) notes[x.code]=x.note; }); saveNotes(notes);
     state.holdings = buildHoldings();
+    const sn=obj.snapshots;
+    if(sn && typeof sn==="object"){
+      if(sn.holdings){ MEM_SYNCED=sn.holdings; } if(sn.holdingsAt){ MEM_SYNCED_AT=sn.holdingsAt; }
+      if(sn.rotation){ MEM_ROTATION=sn.rotation; } if(sn.sectors){ MEM_SECTORS=sn.sectors; }
+      if(sn.buffett){ MEM_BUFFETT=sn.buffett; } if(sn.fng){ MEM_FNG=sn.fng; }
+      if(sn.macro){ MEM_MACRO=sn.macro; } if(sn.macroSeries){ MEM_MACRO_SERIES=sn.macroSeries; }
+      if(sn.momentum){ MEM_MOMENTUM=sn.momentum; }
+    }
     persist(state);
     renderActive(); applyStaticI18n(); toast(t('importOk'));
   }catch(err){ toast(t('importFail')); } };
@@ -3707,7 +3776,7 @@ function init(){
   applyStaticI18n();
   bindEvents();
   render("dashboard");
-  if(location.protocol!=="file:"){ syncHoldings(); syncNews(); syncSentiment(); syncMacro(); syncMomentum(); syncRotation(); syncSectors(); checkVersion(); }   // 部署版：打开即拉取最新持仓 + 自动源要闻 + 情绪曲线 + 宏观指标 + 动量曲线 + 行业轮动 + 版本检测
+  if(location.protocol!=="file:"){ syncHoldings(); syncSentiment(); syncMacro(); syncMomentum(); syncRotation(); syncSectors(); checkVersion(); }   // 部署版：打开即拉取最新持仓 + 情绪曲线 + 宏观指标 + 动量曲线 + 行业轮动 + 版本检测
   // long-press / dblclick brand to show add-home hint? add a small entry: press logo 2s
   document.querySelector(".brand .logo").addEventListener("click",showAddHome);
 }
