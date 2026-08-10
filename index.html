@@ -374,6 +374,9 @@ td input:focus,td select:focus{outline:none;border-color:var(--primary)}
 
 .rot-stat{font-size:12px;color:var(--text);margin:2px 0 8px;display:flex;align-items:baseline;gap:6px;flex-wrap:wrap}
 .rot-stat .muted{font-size:11px}
+
+.gc-real-sel,.mini-sel{font-size:13px;padding:5px 8px;border:1px solid var(--border);border-radius:8px;background:#fff}
+.fund-profile{font-size:13px;line-height:1.7;background:#f7fafc;border:1px solid #e8ecf1;border-radius:8px;padding:8px 10px;margin-top:8px}
 </style>
 </head>
 <body>
@@ -486,6 +489,7 @@ const I18N = {
     rotSouth:"港股通（南向资金）", rotSouthHint:"南向资金=内资经港股通净流入港股的规模。南向大幅流入常反映内资对港股估值性价比的认可。",
     rotMargin:"融资融券", rotMarginHint:"融资余额反映杠杆资金仓位。余额高位=风险偏好高、市场亢奋；余额低位=杠杆出清、情绪冰点。",
     rotCrowd:"拥挤度", rotCrowdHint:"综合量价与波动率的拥挤度代理指标。>70 代表短期交易拥挤、追高风险大；<30 代表冷清、潜在反弹窗口。",
+    rotNorth:"北向资金", rotNorthHint:"北向资金=外资经沪深股通净流入A股的规模（东方财富真实源）。持续大幅净流入常反映外资对A股估值认可与风险偏好回升；大幅净流出则预示外资撤离、避险。",
     rotMarginBuy:"融资买入额", rotMarginBuyHint:"沪+深融资买入额（亿元），杠杆资金单日进攻力度。金额骤升=激进加仓、短期动能强；骤降=杠杆撤退、顶部预警。",
 
     sentFear:"恐贪指数", zone:{ef:"极度恐惧",f:"恐惧",n:"中性",g:"贪婪",eg:"极度贪婪",
@@ -559,6 +563,7 @@ const I18N = {
     rotSouth:"HK Stock Connect (Southbound)", rotSouthHint:"Mainland capital inflow into HK via Stock Connect. Large inflow often reflects value hunting in HK valuations.",
     rotMargin:"Margin Trading", rotMarginHint:"Margin balance reflects leveraged positioning. High = greed/euphoria; low = deleveraging/emotional bottom.",
     rotCrowd:"Crowding", rotCrowdHint:"Crowding proxy from price/volume/volatility. >70 = crowded, chase risk; <30 = cold, potential rebound window.",
+    rotNorth:"Northbound (Foreign)", rotNorthHint:"Northbound = foreign capital net inflow into A-shares via Stock Connect (Eastmoney real source). Sustained inflow = foreign appetite/risk-on; heavy outflow = flight to safety.",
     rotMarginBuy:"Margin Buy-in", rotMarginBuyHint:"Total margin buy-in (SH+SZ, 100M RMB), intraday leveraged buying aggressiveness. Surge = aggressive add/strong momentum; plunge = leverage retreat/top warning.",
 
     sentFear:"Fear & Greed", zone:{ef:"Extreme Fear",f:"Fear",n:"Neutral",g:"Greed",eg:"Extreme Greed",
@@ -851,7 +856,7 @@ const SYNCED_ROTATION = {"syncedAt":"2026-08-09T15:02:03.739Z","series":{"south"
 
 
 // 版本号：每次部署 bump 此值，并同步更新 version.json；旧版 HTML 检测到远程版本更新会弹横幅提示刷新
-const APP_VER = "20260810.1";
+const APP_VER = "20260810.2";
 
 // 内存中的同步数据（部署版 fetch 成功后覆盖文件内嵌值）
 let MEM_SYNCED=null, MEM_SYNCED_AT=null;
@@ -1027,7 +1032,7 @@ const SRC_DATE = {
   fng:      ()=> _lastDateOf(typeof SYNCED_FNG!=="undefined" ? SYNCED_FNG : []),
   rotation: ()=> { let best=null;
     const S = (typeof SYNCED_ROTATION!=="undefined" && SYNCED_ROTATION && SYNCED_ROTATION.series) ? SYNCED_ROTATION.series : {};
-    for(const k of ["south","margin","marginBuy","crowd"]){ const d=_lastDateOf(S[k]); if(d && (!best||d>best)) best=d; }
+    for(const k of ["south","margin","marginBuy","crowd","north"]){ const d=_lastDateOf(S[k]); if(d && (!best||d>best)) best=d; }
     return best; },
   macro:    ()=> (typeof MEM_MACRO!=="undefined" && MEM_MACRO && MEM_MACRO.syncedAt) ? String(MEM_MACRO.syncedAt).slice(0,10) : null,
   momentum: ()=> { let best=null;
@@ -1742,14 +1747,16 @@ const ROTATION_CHART_CFG = {
   south:{height:200, color:"#06b6d4", fill:true, fmtY:v=>v.toFixed(0), unit:"亿", refLines:[{y:-50,label:"流出",color:"#16a34a"},{y:50,label:"流入",color:"#d83a3a"}], base:10, vol:40, min:-120, max:150},
   margin:{height:200, color:"#dc2626", fill:false, fmtY:v=>(v/10000).toFixed(2), unit:"万亿", refLines:[{y:18000,label:"杠杆高位",color:"#d83a3a"},{y:14000,label:"杠杆低位",color:"#16a34a"}], base:15000, vol:150, min:12000, max:20000},
   crowd:{height:200, color:"#9333ea", fill:true, fmtY:v=>v.toFixed(1), unit:"", refLines:[{y:30,label:"冷清",color:"#16a34a"},{y:70,label:"拥挤",color:"#d83a3a"}], base:50, vol:8, min:10, max:90},
-  marginBuy:{height:200, color:"#be185d", fill:false, fmtY:v=>v.toFixed(0), unit:"亿", refLines:[]}
+  marginBuy:{height:200, color:"#be185d", fill:false, fmtY:v=>v.toFixed(0), unit:"亿", refLines:[]},
+  north:{height:200, color:"#2563eb", fill:true, fmtY:v=>v.toFixed(0), unit:"亿", refLines:[{y:0,label:"零轴",color:"#888"}], base:0, vol:80, min:-300, max:300}
 };
 // 行业轮动真实数据源：内联 SYNCED_ROTATION 优先，部署版 fetch 覆盖其次（均为乐咕乐股真实行情，无虚拟数据）
 const ROT_SOURCE = {
   south:"乐咕乐股 · 沪深港通南向资金净流入",
   margin:"乐咕乐股 · 融资融券（沪+深融资余额）",
   crowd:"乐咕乐股 · A股拥挤度",
-  marginBuy:"乐咕乐股 · 融资融券（沪+深融资买入额）"
+  marginBuy:"乐咕乐股 · 融资融券（沪+深融资买入额）",
+  north:"东方财富 · 沪深股通北向资金净流入"
 };
 function getRotationSeries(key){
   try{
@@ -1768,6 +1775,125 @@ function pctInSeries(series, v){
   if(!series || series.length<2 || v==null) return null;
   let c=0; series.forEach(p=>{ if(p.v<=v) c++; });
   return Math.round(c/series.length*100);
+}
+
+// ===== 持仓诊断：年化波动/夏普/最大回撤 + 收益归因（净值贡献 vs 成本结构）=====
+function fundRiskFromNav(navArr){
+  const n=navArr.length; if(n<3) return null;
+  const rets=[]; for(let i=1;i<n;i++){ rets.push((navArr[i]-navArr[i-1])/navArr[i-1]); }
+  const mean=rets.reduce((a,b)=>a+b,0)/rets.length;
+  let va=0; rets.forEach(r=>va+=(r-mean)**2); va/=(rets.length-1);
+  const annVol=Math.sqrt(va)*Math.sqrt(252)*100;
+  const years=(n-1)/252; const totRet=navArr[n-1]/navArr[0]-1;
+  const annRet=years>0?Math.pow(1+totRet,1/years)-1:0;
+  const rf=(typeof GRID_RULES!=="undefined"&&GRID_RULES)?GRID_RULES.rf:0.025;
+  const sharpe=annVol>0?(annRet-rf)/(annVol/100):0;
+  let peak=-Infinity, mdd=0; navArr.forEach(v=>{ if(v>peak)peak=v; const d=(v-peak)/peak*100; if(d<mdd)mdd=d; });
+  return {annVol, sharpe, mdd, annRet};
+}
+function navAtDate(navArr, dates, target){
+  if(!dates||!dates.length) return null; let best=null;
+  for(let i=0;i<dates.length;i++){ if(dates[i]<=target){ best={i,v:navArr[i],d:dates[i]}; } else break; }
+  return best;
+}
+function holdingRisk(h){
+  if(typeof SYNCED_INDEX==="undefined"||!SYNCED_INDEX||!Array.isArray(SYNCED_INDEX.funds)) return null;
+  const f=SYNCED_INDEX.funds.find(x=>x.code===h.code); if(!f) return null;
+  const nav=_parseNums(f.nav), nd=_parseDates(f.navDates);
+  if(nav.length<3||nd.length!==nav.length) return null;
+  const r=fundRiskFromNav(nav); let attr=null;
+  if(h.buyDate){
+    const bd=navAtDate(nav, nd, h.buyDate);
+    if(bd){ const curNav=nav[nav.length-1], shares=h.market>0?h.market/curNav:0;
+      const navGrowth=(curNav-bd.v)*shares, costStruct=bd.v*shares - h.cost;
+      attr={buyNav:bd.v, curNav, shares, navGrowth, costStruct, holdDays:_calDays(h.buyDate, nd[nd.length-1]), buyDate:bd.d}; }
+  }
+  return {risk:r, attr};
+}
+function holdDiagHtml(b){
+  const hr=holdingRisk(b); if(!hr) return '<span class="muted">—</span>';
+  const r=hr.risk, a=hr.attr; let s='';
+  if(a&&a.holdDays!=null) s+='持有 '+a.holdDays+'天 · ';
+  if(r) s+='波动 '+r.annVol.toFixed(1)+'% · 夏普 '+r.sharpe.toFixed(2);
+  if(a) s+='<br><span class="muted" style="font-size:11px">净值贡献 '+money(a.navGrowth)+' / 成本结构 '+money(a.costStruct)+'</span>';
+  return s||'<span class="muted">—</span>';
+}
+
+// ===== 蒙特卡洛模拟（基于历史日收益自助抽样 bootstrap）=====
+function monteCarloGrid(rows, mode, base, dca, day, totalInvested, sims){
+  const navs=rows.map(r=>r[1]); const n=navs.length;
+  const rets=[]; for(let i=1;i<n;i++) rets.push((navs[i]-navs[i-1])/navs[i-1]);
+  if(rets.length<2) return null;
+  const hasBase=(mode==="lump"||mode.startsWith("lumponce"));
+  const baseAmt=hasBase?base:0, dcaAmt=(mode==="lump")?0:dca;
+  const amounts=expandPlan(rows, mode, baseAmt, dcaAmt, day, true, false);
+  const out=[];
+  for(let s2=0;s2<sims;s2++){
+    let p=[navs[0]];
+    for(let i=1;i<n;i++){ const r=rets[Math.floor(Math.random()*rets.length)]; p.push(p[i-1]*(1+r)); }
+    let val=0; for(let i=0;i<n;i++){ if(amounts[i]>0) val += (amounts[i]/p[i])*p[n-1]; }
+    out.push(totalInvested>0 ? val/totalInvested-1 : 0);
+  }
+  out.sort((a,b)=>a-b);
+  const q=p=>out[Math.min(out.length-1, Math.max(0, Math.floor(p*(out.length-1))))];
+  const lossProb=out.filter(x=>x<0).length/out.length;
+  return {p10:q(0.1),p25:q(0.25),p50:q(0.5),p75:q(0.75),p90:q(0.9),lossProb, rets:out};
+}
+function renderMcHtml(mc){
+  const vals=mc.rets; const bins=24; let min=vals[0], max=vals[vals.length-1];
+  if(max-min<1e-6){ min-=0.01; max+=0.01; }
+  const w=600,h=120, bw=w/bins; const counts=new Array(bins).fill(0);
+  for(const v of vals){ let idx=Math.floor((v-min)/(max-min)*bins); if(idx<0)idx=0; if(idx>=bins)idx=bins-1; counts[idx]++; }
+  const mx=Math.max.apply(null,counts);
+  let bars=''; for(let i=0;i<bins;i++){ const bh=mx>0?counts[i]/mx*(h-20):0;
+    const lo=min+(i/bins)*(max-min), hi=min+((i+1)/bins)*(max-min);
+    const col=(lo<0&&hi<0)?'#16a34a':((lo>0&&hi>0)?'#e0533a':'#caa400');
+    bars+=`<rect x="${(i*bw).toFixed(1)}" y="${(h-10-bh).toFixed(1)}" width="${(bw-1).toFixed(1)}" height="${bh.toFixed(1)}" fill="${col}" opacity="0.85"/>`; }
+  const line=(v,label)=>{ const x=((v-min)/(max-min))*w; return `<line x1="${x.toFixed(1)}" y1="0" x2="${x.toFixed(1)}" y2="${h-10}" stroke="#1e4e79" stroke-width="1.5" stroke-dasharray="3 2"/><text x="${x.toFixed(1)}" y="${h-2}" font-size="10" fill="#1e4e79" text-anchor="middle">${label}</text>`; };
+  const svg=`<svg viewBox="0 0 ${w} ${h}" width="100%" style="max-width:600px;display:block;margin:6px 0">${bars}${line(mc.p10,'P10')}${line(mc.p50,'P50')}${line(mc.p90,'P90')}</svg>`;
+  const fp=v=>(v*100).toFixed(1)+'%';
+  return `<div style="border:1px solid #e8ecf1;border-radius:10px;padding:12px;background:#fff">
+    <div style="font-weight:700;margin-bottom:4px">蒙特卡洛模拟结果（1000 次随机路径 · 持有-不卖策略）</div>
+    <div class="hint" style="margin-bottom:6px">横轴=区间总收益率，竖线为分位；红=盈利路径、绿=亏损路径。</div>
+    ${svg}
+    <div style="display:flex;gap:14px;flex-wrap:wrap;font-size:13px;margin-top:6px">
+      <span>盈利概率 <b style="color:var(--danger)">${fp(1-mc.lossProb)}</b></span>
+      <span>亏损概率 <b style="color:var(--success)">${fp(mc.lossProb)}</b></span>
+      <span>P10 <b>${fp(mc.p10)}</b></span>
+      <span>P50 <b>${fp(mc.p50)}</b></span>
+      <span>P90 <b>${fp(mc.p90)}</b></span>
+    </div>
+    <div class="muted" style="font-size:11px;margin-top:6px">说明：基于该基金历史日收益自助抽样（bootstrap）模拟未来路径，非预测；每次略有随机差异。</div>
+  </div>`;
+}
+
+// ===== 基金档案（天天基金 fundf10，JSONP 无需 CORS）=====
+function gcLoadFundProfile(code, mountId){
+  const el=document.getElementById(mountId); if(!el) return;
+  el.innerHTML='<div class="muted" style="padding:8px">加载基金档案中…</div>';
+  const s=document.createElement("script");
+  s.src=`https://fund.eastmoney.com/pingzhongdata/${encodeURIComponent(code)}.js?t=${Date.now()}`;
+  s.async=true;
+  const to=setTimeout(()=>{ try{s.remove();}catch(_){} el.innerHTML='<div class="muted">加载超时（请检查网络）</div>'; },15000);
+  s.onload=()=>{ try{
+    const info=window.Data_fundInfo||{}; const name=window.fS_name||code;
+    const mgrs=window.Data_currentFundManager||window.Data_fundManager||null;
+    let html='<div class="fund-profile">';
+    html+=`<div>名称：<b>${esc(name)}</b>（${esc(code)}）</div>`;
+    if(info["基金类型"]) html+=`<div>类型：${esc(info["基金类型"])}</div>`;
+    if(info["基金经理"]) html+=`<div>基金经理：${esc(info["基金经理"])}</div>`;
+    if(info["成立日期"]) html+=`<div>成立日期：${esc(info["成立日期"])}</div>`;
+    if(info["基金规模"]!=null) html+=`<div>规模：${esc(info["基金规模"])}</div>`;
+    if(info["基金管理人"]) html+=`<div>管理人：${esc(info["基金管理人"])}</div>`;
+    if(info["跟踪标的"]) html+=`<div>跟踪标的：${esc(info["跟踪标的"])}</div>`;
+    if(mgrs && Array.isArray(mgrs)){ html+='<div>现任经理：</div>'; mgrs.slice(0,3).forEach(m=>{ const nm=m.name||m.xingming||""; const sd=m.startDate||m.beginDate||""; if(nm) html+=`<div class="muted" style="font-size:12px">· ${esc(nm)}（任职 ${esc(sd)}）</div>`; }); }
+    html+='<div class="muted" style="font-size:11px;margin-top:6px">数据来源：天天基金 fundf10（在线拉取，需联网）</div>';
+    html+='</div>';
+    el.innerHTML=html;
+  }catch(e){ el.innerHTML='<div class="muted">解析失败：'+esc(e.message)+'</div>'; }
+  clearTimeout(to); try{s.remove();}catch(_){} };
+  s.onerror=()=>{ clearTimeout(to); try{s.remove();}catch(_){} el.innerHTML='<div class="muted">档案加载失败（可能跨域/离线）</div>'; };
+  document.head.appendChild(s);
 }
 function rotationChartCard(key, title, hint){
   const cfg=ROTATION_CHART_CFG[key];
@@ -1811,6 +1937,7 @@ function renderRotation(){
     ${rotationChartCard('margin', t('rotMargin'), t('rotMarginHint'))}
     ${rotationChartCard('marginBuy', t('rotMarginBuy'), t('rotMarginBuyHint'))}
     ${rotationChartCard('crowd', t('rotCrowd'), t('rotCrowdHint'))}
+    ${rotationChartCard('north', t('rotNorth'), t('rotNorthHint'))}
     ${staleBanner("rotation","行业轮动数据")}
   </div>`;
 }
@@ -1834,7 +1961,7 @@ function renderHoldings(){
         <td class="num" data-label="${L.market}"><span class="hv">${money(m)}</span></td>
         <td class="num ${p>=0?'up':'down'}" data-label="${L.profit}"><span class="hv">${p>=0?'+':''}${money(p)}</span></td>
         <td class="num ${p>=0?'up':'down'}" data-label="${L.rate}"><span class="hv">${(+b.profitRate||r).toFixed(1)}%</span></td>
-        <td class="num" data-label="${L.weight}"><span class="hv">${w.toFixed(1)}%</span></td><td class="num" data-label="利润占比"><span class="hv">${contrib.toFixed(1)}%</span></td>
+        <td class="num" data-label="${L.weight}"><span class="hv">${w.toFixed(1)}%</span></td><td class="num" data-label="利润占比"><span class="hv">${contrib.toFixed(1)}%</span></td><td class="num" data-label="诊断">${holdDiagHtml(b)}</td>
         <td data-label="${L.note}"><input data-note-code="${esc(b.code)}" value="${esc(b.note)}" placeholder="—" style="min-width:90px"></td>
         <td data-label=""></td>
       </tr>`;
@@ -1846,7 +1973,7 @@ function renderHoldings(){
       <td class="num" data-label="${L.market}"><input type="number" data-bind="custom" data-i="${i}" data-f="market" value="${esc(b.market)}" style="text-align:right"></td>
         <td class="num ${p>=0?'up':'down'}" data-label="${L.profit}"><span class="hv">${p>=0?'+':''}${money(p)}</span></td>
         <td class="num ${p>=0?'up':'down'}" data-label="${L.rate}"><span class="hv">${r.toFixed(1)}%</span></td>
-        <td class="num" data-label="${L.weight}"><span class="hv">${w.toFixed(1)}%</span></td><td class="num" data-label="利润占比"><span class="hv">${contrib.toFixed(1)}%</span></td>
+        <td class="num" data-label="${L.weight}"><span class="hv">${w.toFixed(1)}%</span></td><td class="num" data-label="利润占比"><span class="hv">${contrib.toFixed(1)}%</span></td><td class="num" data-label="诊断">${holdDiagHtml(b)}</td>
       <td data-label="${L.note}"><input data-bind="custom" data-i="${i}" data-f="note" value="${esc(b.note)}" placeholder="—"></td>
       <td data-label=""><button class="icon-btn" data-del="custom" data-i="${i}" title="${t('del')}"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg></button></td>
     </tr>`;}).join("");
@@ -1875,7 +2002,7 @@ function renderHoldings(){
       <thead><tr>
         <th>${t('holdName')}</th><th>${t('holdCode')}</th><th class="num">${t('holdCost')}</th>
         <th class="num">${t('holdMarket')}</th><th class="num">${t('holdProfit')}</th><th class="num">${t('holdRate')}</th>
-        <th class="num">${t('weight')}</th><th class="num">利润占比</th><th>${t('holdNote')}</th><th></th>
+        <th class="num">${t('weight')}</th><th class="num">利润占比</th><th class="num">诊断</th><th>${t('holdNote')}</th><th></th>
       </tr></thead>
       <tbody>${rows}</tbody>
     </table>
@@ -2186,9 +2313,11 @@ function macroChartCard(key){
   const firstD = series[0].d||"", lastD = last.d||"";
   const spanNote = `${firstD.split('-')[0]}~${lastD.split('-')[0]} (${series.length}期)`;
   const opts = Object.assign({}, cfg, {refLines: macroRefLines(key)});
+  const _mpct = (realVal!=null && series.length>=2) ? pctInSeries(series, parseFloat(realVal)) : null;
   return `<div class="curve-wrap">
     <div class="curve-title">${esc(lbl)} <span class="curve-cur">${fmtY(last.v)}${unit?' '+esc(unit):''}</span> <span class="muted" style="font-size:10px;font-weight:400">${esc(spanNote)}</span>${realDate?` <span class="muted" style="font-size:10px;font-weight:400">·${esc(realDate)}</span>`:""}</div>
     ${svgLineChart(series, opts)}
+    ${_mpct!=null? `<div class="rot-stat">历史分位 <b style="color:${_verdict(_mpct,'macro').color}">${_mpct}%</b> · 当前值处于过去 ${series.length} 期（约 ${(series.length/12).toFixed(0)} 年）序列的位置，越高越接近历史高位</div>`:""}
     ${getAnomalyAnalysis(key, last.v)}
     ${macroInfoHtml(key)}
   </div>`;
@@ -2629,6 +2758,8 @@ function renderResearch(){
       ${ (hasNav&&hasBench)? _navBenchSvg(nav,bench) : (hasNav? `<div class="muted" style="padding:8px 0;font-size:12px">${t('fundNeedBoth')}</div>` : "") }
       ${ hasNav? _drawdownSvg(nav) : "" }
       ${ _fundAnalysisHtml(statsObj) }
+      <button class="mini-btn" data-action="fundProfile" data-i="${i}" style="margin-top:8px">基金档案（经理/规模/评级）</button>
+      <div id="fund-profile-${i}"></div>
     </div>`;
   }).join("") || `<div class="muted" style="padding:14px">${t('noData')}</div>`;
 
@@ -2664,6 +2795,7 @@ function renderTools(){
       </div>
     </div>`).join("") || `<div class="muted" style="padding:14px">${t('noData')}</div>`;
   const gcFundsOpts = (typeof SYNCED_INDEX!=="undefined"&&SYNCED_INDEX&&SYNCED_INDEX.funds) ? SYNCED_INDEX.funds.map(f=>'<option value="'+f.code+'">'+f.name+'</option>').join("") : "";
+  const gcRealOpts = (state.holdings&&state.holdings.length) ? state.holdings.filter(h=>h.code&&h.synced).map(h=>'<option value="'+h.code+'">'+h.name+'('+h.code+') · '+money(h.market)+'</option>').join("") : "";
   const calcCard=`
 <div class="card">
   <h3>网格 / 定投收益计算器 <span class="fresh-badge ok">本地自定义 · 实时计算</span></h3>
@@ -2683,6 +2815,11 @@ function renderTools(){
     <div><label>投资期间止</label><input id="gc-end" type="date"></div>
     <div id="gc-day-wrap"><label>定投日(每月)</label><input id="gc-day" type="number" value="1" min="1" max="28"></div>
     <div style="display:flex;align-items:flex-end"><button id="gc-calc" class="mini-btn primary" style="background:var(--primary);color:#fff" data-action="calcGrid">计算</button></div>
+  </div>
+  <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:10px">
+    <label style="font-size:13px;display:flex;gap:6px;align-items:center"><input type="checkbox" id="gc-mc"> 蒙特卡洛模拟（1000 次随机路径）</label>
+    <button class="mini-btn" data-action="gcRealLoad">载入真实持仓</button>
+    <select id="gc-real-sel" class="mini-sel">${gcRealOpts}</select>
   </div>
   <div id="gc-range-hint" class="hint" style="margin-top:8px"></div>
   <div id="gc-result"></div>
@@ -3125,7 +3262,14 @@ function calcGridImpl(nav){
     </tbody>
   </table></div>`;
 
+  let mcHtml="";
+  const mcChk=document.getElementById("gc-mc");
+  if(mcChk && mcChk.checked){
+    const mc=monteCarloGrid(rows, mode, base, dca, day, hold.totalInvestedWithFee, 1000);
+    if(mc) mcHtml=renderMcHtml(mc);
+  }
   res.innerHTML=warn+tableHtml+
+    (mcHtml?'<div style="margin-top:16px">'+mcHtml+'</div>':'')+
     '<div class="hint" style="margin-top:10px">实际回测区间：'+actualStart+' 至 '+actualEnd+' ｜ '+rows.length+' 个交易日 ｜ 净值来源：'+(nav.src==="synced"?"页面已同步真实数据 · "+esc(nav.name):(nav.src==="online"?"天天基金在线拉取 · "+esc(nav.name):"粘贴序列"))+' ｜ 引擎：grid-investment-tracker SKILL v2.0.11 同款算法（M补仓成本/峰值双阶段 + dca倍投 + I止盈 + 封顶）；网格=I止盈+成本回撤补仓；持有=同计划买入持有；纯定投=仅定投无底仓</div>';
 }
 function gcToggleFields(){
@@ -3221,6 +3365,10 @@ function onContentClick(e){
   if(tgt.id==="holdAdd"){ const custom=loadCustom(); custom.push({name:"",code:"",cost:0,market:0,note:""}); saveCustom(custom); state.holdings=buildHoldings(); renderActive(); toast(t('toastAdded')); return; }
   if(tgt.id==="holdSync"){ syncHoldings(); syncNews(); syncSentiment(); syncMacro(); syncRotation(); return; }
   if(tgt.id==="holdCsv"){ exportCsv(); return; }
+  const realBtn=e.target.closest('[data-action="gcRealLoad"]');
+  if(realBtn){ const sel=document.getElementById("gc-real-sel"); const code=sel?sel.value:""; if(code){ const inp=document.getElementById("gc-code"); if(inp) inp.value=code; const hh=state.holdings.find(x=>x.code===code); const baseEl=document.getElementById("gc-base"); if(hh&&baseEl) baseEl.value=Math.round(hh.market)||baseEl.value; gcPrefill(); toast("已载入真实持仓 "+code); } return; }
+  const fpBtn=e.target.closest('[data-action="fundProfile"]');
+  if(fpBtn){ const i=+fpBtn.dataset.i; const f=state.funds[i]; if(f&&f.code) gcLoadFundProfile(f.code, "fund-profile-"+i); return; }
 }
 // 同步持仓：部署版 fetch holdings-data.json；本地版从内嵌同步源重载
 function syncHoldings(){
