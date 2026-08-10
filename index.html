@@ -916,7 +916,7 @@ const SYNCED_ROTATION = {"syncedAt":"2026-08-09T15:02:03.739Z","series":{"south"
 
 
 // 版本号：每次部署 bump 此值，并同步更新 version.json；旧版 HTML 检测到远程版本更新会弹横幅提示刷新
-const APP_VER = "20260809.12";
+const APP_VER = "20260809.13";
 
 // 内存中的同步数据（部署版 fetch 成功后覆盖文件内嵌值）
 let MEM_SYNCED=null, MEM_SYNCED_AT=null;
@@ -1425,15 +1425,9 @@ function sentFoot(kind, lastD){
     : "乐咕乐股 legulegu · A股破净率（跌破净资产个股占比）";
   return `<div class="sync-note">数据来源：${esc(src)} · 数据截至：${esc(lastD||"—")}</div>`;
 }
-// 市场情绪 tab 内 7 个动量/情绪指标卡的统一脚注（数据截至取任一序列的最新真实数据点）
-function momentumFoot(){
-  const keys = ["bondEquity","bondSpread","earnYield","fundCoef","turnover","marginBal","marginBuy"];
-  let lastD = "—";
-  for(const k of keys){
-    const s = getMomentumSeries(k);
-    if(s && s.length && s[s.length-1].d > lastD) lastD = s[s.length-1].d;
-  }
-  return `<div class="sync-note">数据来源：乐咕乐股 legulegu · 动量/情绪指标近10年真实曲线 · 数据截至：${esc(lastD)}</div>`;
+// 每个动量/情绪指标卡独立脚注：来源渠道 + 该卡自身最新数据日期（满足"每个指标都要有"）
+function momCardFoot(key, lastD){
+  return `<div class="sync-note">数据来源：乐咕乐股 legulegu · 数据截至：${esc(lastD||"待同步（需运行 sync-momentum.py）")}</div>`;
 }
 
 // ===== 动量/市场情绪指标曲线图（近10年+真实时间序列）=====
@@ -1530,6 +1524,7 @@ function momentumChartCard(key){
       <div class="curve-title">${esc(lbl)} <span class="muted" style="font-size:11px">暂无序列数据</span></div>
       <div class="curve-empty" style="height:${cfg.height}px;display:flex;align-items:center;justify-content:center">需要运行 sync-momentum.py 同步</div>
       ${macroInfoHtml(key)}
+      ${momCardFoot(key, "")}
     </div>`;
   }
   const last = series[series.length-1];
@@ -1543,6 +1538,7 @@ function momentumChartCard(key){
     ${svgLineChart(series, cfg)}
     ${getAnomalyAnalysis(key, last.v)}
     ${macroInfoHtml(key)}
+    ${momCardFoot(key, lastD)}
   </div>`;
 }
 
@@ -2184,7 +2180,6 @@ function renderSentiment(){
     ${sentimentBlock('fng', {height:240, color:"#e0683a", fill:true, refLines:[{y:10,label:"10% 恐慌线",color:"#caa400"}], fmtY:v=>v.toFixed(1)+"%"})}
     <div class="hint" style="margin-top:14px">${t('sentMomentumHint')}</div>
     <div class="grid cols-1">${momentumCharts}</div>
-    ${momentumFoot()}
   </div>`;
 }
 
