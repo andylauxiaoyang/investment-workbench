@@ -861,6 +861,10 @@ var Fr={},Gr={};var Wr,Hr=function(){function t(t,e,n){var i=this;this._sleepAft
         r = cursor
           ? await db.query({ databaseId: 'GjLvwNekmiaDCgMZrhaa29', pageSize: 100, startCursor: cursor })
           : await db.query({ databaseId: 'GjLvwNekmiaDCgMZrhaa29', pageSize: 100 });
+      } else if (dbId === DB_WATCHLIST) { /* v26j: 修复自选错查心得表（自选一直为空的根因） */
+        r = cursor
+          ? await db.query({ databaseId: 'WTUs2FXUpqewFtsCUlciFy', pageSize: 100, startCursor: cursor })
+          : await db.query({ databaseId: 'WTUs2FXUpqewFtsCUlciFy', pageSize: 100 });
       } else {
         r = cursor
           ? await db.query({ databaseId: 'ht0gxUNmAZ9JSKzgQSC3q5', pageSize: 100, startCursor: cursor })
@@ -2043,18 +2047,28 @@ async function loadPortfolioFromDB() {
 
 /* 自选：从资料库「理财·自选表」拉取（理杏仁·特别关注同步），失败保留 localStorage 兜底 */
 async function loadWatchlistFromDB() {
+  let metas = null, dbFail = false;
   try {
-    const metas = await window.__LK_DB__.watchlistList();
-    if (!Array.isArray(metas) || !metas.length) return;
-    const wm = {};
-    metas.forEach((m) => (wm[m.code] = m));
-    state.watchMeta = wm;
-    state.watchlist = metas.map((m) => m.code);
-    saveStore();
-    /* 自选晚到：清日历缓存 sig，若正处于持仓页则立即重渲染（覆盖自选基金列） */
-    state._calSig = '';
-    if (state.view === 'holdings') { renderPnlCalendar(); renderDrawdownCard(); }
-  } catch (e) { /* 拉取失败沿用现有自选 */ }
+    metas = await window.__LK_DB__.watchlistList();
+  } catch (e) { dbFail = true; } /* v26j: GitHub 版 SDK 未注入 → 走旁挂种子 */
+  if (dbFail) {
+    try {
+      const r = await fetch('watchlist-data.json', { cache: 'no-store' });
+      if (r.ok) {
+        const j = await r.json();
+        metas = Array.isArray(j) ? j : ((j && j.watchlist) || null); /* v26j: 兼容包装对象/裸数组 */
+      }
+    } catch (e2) { /* 种子缺失或解析失败：保持现有自选 */ }
+  }
+  if (!Array.isArray(metas) || !metas.length) return;
+  const wm = {};
+  metas.forEach((m) => (wm[m.code] = m));
+  state.watchMeta = wm;
+  state.watchlist = metas.map((m) => m.code);
+  saveStore();
+  /* 自选晚到：清日历缓存 sig，若正处于持仓页则立即重渲染（覆盖自选基金列） */
+  state._calSig = '';
+  if (state.view === 'holdings') { renderPnlCalendar(); renderDrawdownCard(); }
 }
 
 function normalizeCode(input) {
