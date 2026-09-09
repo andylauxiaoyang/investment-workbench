@@ -5257,17 +5257,34 @@ function renderSignalDash() {
         + (r.lvl === 'act' && !sigAcked(key) ? ' <button class="btn btn-sm" data-sigack="' + esc(key) + '">知道了</button>' : '')
         + '</div>';
     };
+    const GRP_COLOR = { '持仓信号': '#185FA5', '自选信号': '#BA7517', '市场信号': '#888780' };
+    const GRP_KEY = 'fw2_sig_grp_v1';
+    let grpFold = {};
+    try { grpFold = JSON.parse(localStorage.getItem(GRP_KEY) || '{}'); } catch (e) { grpFold = {}; }
     const grp = (title, list, metaList, srcNote) => {
       const act = list.filter((r) => r.lvl === 'act');
       const near = list.filter((r) => r.lvl === 'near');
       const watch = list.filter((r) => r.lvl === 'watch');
-      let html = '<div style="margin:10px 0 4px;font-weight:500">' + title + '（行动 ' + act.length + ' · 接近 ' + near.length + ' · 观察 ' + watch.length + '）</div>';
+      const mm = /^(.*?)（(.*?)）$/.exec(title);
+      const main = mm ? mm[1] : title, sub = mm ? mm[2] : '';
+      const color = GRP_COLOR[main] || '#888780';
+      const folded = !!grpFold[main];
+      const bd = (n, label, bg, fg) => (n ? '<span style="display:inline-block;background:' + bg + ';color:' + fg + ';font-size:11px;padding:2px 7px;border-radius:6px">' + label + ' ' + n + '</span>' : '');
+      let html = '<div class="sig-grp" data-grp="' + esc(main) + '" style="display:flex;align-items:center;gap:10px;margin:14px 0 6px;padding:7px 10px;cursor:pointer;border-left:4px solid ' + color + ';border-radius:0 6px 6px 0' + (act.length ? ';background:rgba(252,235,235,.35)' : '') + '">'
+        + '<span style="font-size:15px;font-weight:500">' + esc(main) + '</span>'
+        + (sub ? '<span style="font-size:12px;opacity:.6">' + esc(sub) + '</span>' : '')
+        + '<span style="margin-left:auto;display:flex;gap:6px;align-items:center">'
+        + bd(act.length, '行动', '#FCEBEB', '#A32D2D') + bd(near.length, '接近', '#FAEEDA', '#854F0B') + bd(watch.length, '观察', '#F1EFE8', '#5F5E5A')
+        + '<span data-arrow style="opacity:.5;font-size:11px">' + (folded ? '\u25b8' : '\u25be') + '</span></span></div>';
       if (srcNote) html += '<div class="hint" style="opacity:.75;margin-bottom:4px">' + esc(srcNote) + '</div>';
       if (metaList && metaList.length) html += '<div class="hint" style="opacity:.7;margin-bottom:4px">未启用：' + metaList.map((m) => m.sig + '（' + m.why + '）').join('；') + '</div>';
-      if (!list.length) return html + '<div class="empty">暂无标的</div>';
-      html += act.concat(near).map(rowHtml).join('');
-      if (watch.length) html += '<details style="margin-top:4px"><summary style="cursor:pointer;font-size:13px;opacity:.7">观察 ' + watch.length + ' 条（折叠）</summary>' + watch.map(rowHtml).join('') + '</details>';
-      return html;
+      html = html + '<div data-grpbody="' + esc(main) + '" style="' + (folded ? 'display:none' : '') + '">';
+      if (!list.length) html += '<div class="empty">暂无标的</div>';
+      else {
+        html += act.concat(near).map(rowHtml).join('');
+        if (watch.length) html += '<details style="margin-top:4px"><summary style="cursor:pointer;font-size:13px;opacity:.7">观察 ' + watch.length + ' 条（折叠）</summary>' + watch.map(rowHtml).join('') + '</details>';
+      }
+      return html + '</div>';
     };
     const w1 = rows.watch.filter((r) => r.sig.indexOf('W1') >= 0);
     const wAvg = w1.length ? w1.reduce((a, r) => a + (parseFloat(String(r.cur).replace(/[^\d.]/g, '')) || 0), 0) / w1.length : null;
@@ -5282,6 +5299,17 @@ function renderSignalDash() {
         + (state._wlErr ? ' · ⚠ ' + state._wlErr : ''))
       + grp('市场信号（环境 / 温度计 / 资金面）', (mk && mk.rows) || [], null);
     body.onclick = (e) => {
+      const gb = e.target.closest('.sig-grp');
+      if (gb) {
+        const k = gb.dataset.grp;
+        grpFold[k] = !grpFold[k];
+        try { localStorage.setItem(GRP_KEY, JSON.stringify(grpFold)); } catch (e2) {}
+        const pane = body.querySelector('[data-grpbody="' + k + '"]');
+        if (pane) pane.style.display = grpFold[k] ? 'none' : '';
+        const ar = gb.querySelector('[data-arrow]');
+        if (ar) ar.textContent = grpFold[k] ? '\u25b8' : '\u25be';
+        return;
+      }
       const ak = e.target.closest('[data-sigack]');
       if (ak) {
         const a = JSON.parse(localStorage.getItem('fw2_sig_ack_v1') || '{}');
