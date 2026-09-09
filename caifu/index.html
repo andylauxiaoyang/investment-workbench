@@ -1270,8 +1270,9 @@ window.HS_name = function (code) {
   let fundgzChain = Promise.resolve();
   const sc6 = (c) => (/^(sh|sz|bj)/.test(c) ? c.slice(2) : /^(hk|us)/i.test(c) ? c.slice(2) : c);
   /* 回退：天天基金 pingzhongdata（无 CORS 限制的全局变量 JS，含完整净值序列） */
+  let pzdChain = Promise.resolve(); /* v26g: pzd 互斥锁（pingzhongdata 全局变量串号修复） */
   function pzdQuote(code6) {
-    return new Promise((resolve) => {
+    pzdChain = pzdChain.then(() => new Promise((resolve) => {
       const keepN = window.Data_netWorthTrend, keepName = window.fS_name;
       try { delete window.Data_netWorthTrend; delete window.fS_name; } catch (e) {}
       const sc = document.createElement('script');
@@ -1291,7 +1292,8 @@ window.HS_name = function (code) {
       sc.onerror = () => { sc.remove(); resolve(null); };
       document.head.appendChild(sc);
       setTimeout(() => resolve(null), 10000);
-    });
+    }));
+    return pzdChain;
   }
   /* 完整净值序列（pingzhongdata）：月度收益热力日历用。{code, name, trend:[{d,y,r}]} */
   /* pingzhongdata 全量加载（v16）：一次拉取，多用途——净值序列/阶段收益/同类排名/规模/经理/费率 */
@@ -1305,7 +1307,7 @@ window.HS_name = function (code) {
       'Data_industryAllocation', 'fund_sourceRate', 'fund_Rate', 'syl_1n', 'syl_6y', 'syl_3y', 'syl_1y', 'stockCodesNew', 'Data_ACWorthTrend'];
     const keep = {};
     KEYS.forEach((k) => { keep[k] = window[k]; try { delete window[k]; } catch (e) {} });
-    return new Promise((resolve) => {
+    pzdChain = pzdChain.then(() => new Promise((resolve) => {
       let settled = false;
       const restore = () => { KEYS.forEach((k) => { try { delete window[k]; } catch (e) {} if (keep[k] !== undefined) window[k] = keep[k]; }); };
       const done = (r) => { if (!settled) { settled = true; restore(); if (r) pzdCache[c] = r; resolve(r); } };
@@ -1341,7 +1343,8 @@ window.HS_name = function (code) {
       sc.onerror = () => { sc.remove(); done(null); };
       document.head.appendChild(sc);
       setTimeout(() => done(pzdCache[c] || null), 12000);
-    });
+    }));
+    return pzdChain;
   }
   /* 净值序列（月度收益热力日历沿用此接口）：{code, name, trend:[{d,y,r}]} */
   function fundNavSeries(code6, days) {
@@ -2197,7 +2200,7 @@ async function apiPost(path, body) { return window.BrowserBackend.post(path, bod
  * ========================================================== */
 function snapshotCodes() {
   const s = new Set(INDEX_CODES);
-  state.portfolio.forEach((h) => s.add(h.code));
+  state.portfolio.forEach((h) => { if (h.assetType !== 'cash') s.add(h.code); }); /* v26g: 货币基金(现金类)不进行情管线 */
   state.watchlist.forEach((c) => s.add(c));
   if (state.research.code) s.add(state.research.code);
   return Array.from(s);
@@ -2298,7 +2301,7 @@ function buildRows() {
     const fx = fxOf(market);
     const costLocal = h.cost * h.qty;
     const mvLocal = price != null ? price * h.qty : null;
-    const dayLocal = price != null && pre ? (price - pre) * h.qty : null;
+    const dayLocal = h.assetType === 'cash' ? 0 : (price != null && pre ? (price - pre) * h.qty : null); /* v26g */
     const totLocal = mvLocal != null ? mvLocal - costLocal : null;
     return {
       code: h.code, name: (quote && quote.name) || h.name || shortCode(h.code),
@@ -2306,7 +2309,7 @@ function buildRows() {
       assetType: h.assetType || 'stock',
       sector: state.sectors[h.code] || h.sector || '—',
       qty: h.qty, cost: h.cost, price, pre,
-      pct: quote ? quote.pct : null,
+      pct: h.assetType === 'cash' ? 0 : (quote ? quote.pct : null), /* v26g */
       high: quote ? quote.high : null, low: quote ? quote.low : null,
       fx, costLocal, mvLocal, dayLocal, totLocal,
       costCny: costLocal * fx,
