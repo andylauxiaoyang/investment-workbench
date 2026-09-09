@@ -437,7 +437,7 @@ button, input, select, textarea { font-family: inherit; font-size: 12.5px; color
 .mc-days { display: flex; gap: 2px; justify-content: center; flex-wrap: wrap; }
 .mc-day { width: 13px; height: 13px; border-radius: 3px; display: inline-block; }
 
-/* ---------- 研究心得（知识库） ---------- */
+/* ---------- 交易信号（知识库） ---------- */
 .nt-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(330px, 1fr)); gap: 12px; }
 .nt-card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); padding: 12px 14px; display: flex; flex-direction: column; gap: 7px; position: relative; }
 .nt-card.clip { border-left: 3px solid var(--amber); }
@@ -474,7 +474,7 @@ button, input, select, textarea { font-family: inherit; font-size: 12.5px; color
       <button data-page-node-id="MVVUqip80gYLj9yljIbry0" class="nav-item" data-view="news"><span data-page-node-id="3qyNvv2OrqDOM5S40cdndf" class="ic"><!--pnid:aYN36M1fDGnrp0j08eRqpC-->✉</span><!--pnid:CPHNZBlIT42j0YlEKtb2JX-->财经资讯<span data-page-node-id="oYuzf26sBYTgJczkPMSjY7" class="dot" id="navNewsDot"></span></button>
       <button data-page-node-id="Ga6wshPQelu7iiVzmZnk9d" class="nav-item" data-view="review"><span data-page-node-id="yZd4GoeL05aeFQXlTwIiIw" class="ic"><!--pnid:qvAd5VwTnjM1EhaDEA89mY-->✎</span><!--pnid:8aMqo6AmLGfsf2L6dghdIp-->每日复盘</button>
       <button data-page-node-id="Y4mtPFP2JVwSGbggos9xxj" class="nav-item" data-view="research"><span data-page-node-id="urr5Uby852APAvPavafXuf" class="ic"><!--pnid:wwrryqEtixnJPFvzGu29sT-->◎</span><!--pnid:fTjdHCEBQz4W5WQAznksww-->标的分析</button>
-      <button data-page-node-id="FWR6ZKPHDI5Mo9h2Qjh72V" class="nav-item" data-view="notes"><span data-page-node-id="YxDZa2CR2omNftDEYGaQ8i" class="ic"><!--pnid:95TSPRaDE0OsZCwLx3XRWO-->✒</span><!--pnid:FazV13vC0aoz1C91UCA7Qn-->研究心得</button>
+      <button data-page-node-id="FWR6ZKPHDI5Mo9h2Qjh72V" class="nav-item" data-view="notes"><span data-page-node-id="YxDZa2CR2omNftDEYGaQ8i" class="ic"><!--pnid:95TSPRaDE0OsZCwLx3XRWO-->✒</span><!--pnid:FazV13vC0aoz1C91UCA7Qn-->交易信号</button>
     </nav>
     <div data-page-node-id="NWwNSKf013miYG93pfpzol" class="side-foot">
       <div data-page-node-id="ftO6aqWRCbJJWBhMHmpotd" class="snap-box">
@@ -727,7 +727,7 @@ button, input, select, textarea { font-family: inherit; font-size: 12.5px; color
         <div data-page-node-id="JcQ4HX4moptbUguulHi6QI" id="rsPanel"></div>
       </section>
 
-      <!--pnid:GS4yKyQcelWLAs6pQOiH8P--><!-- ---------- 研究心得（个人金融知识库） ---------- -->
+      <!--pnid:GS4yKyQcelWLAs6pQOiH8P--><!-- ---------- 交易信号（个人金融知识库） ---------- -->
       <section data-page-node-id="icHsd7SOr7tGJupwIqjoKe" class="view" id="view-notes">
         <div data-page-node-id="3K8fo0p5DfRkZGzUQxJQYn" class="toolbar">
           <div data-page-node-id="Xu0mxqLMtfXg1h6LTu7myx" class="tools-l">
@@ -806,7 +806,7 @@ var Fr={},Gr={};var Wr,Hr=function(){function t(t,e,n){var i=this;this._sleepAft
 <script data-page-node-id="BZdkguydwLSBb2O0vjwGIP" data-pnid-children="X8iOF2mvdn1CwpdLHUIhyA">
 /* ==========================================================
  * 理财工作台 · 资料库数据层（__LK_DB__）
- * 持仓表 + 研究心得表，SDK 直连 + 写穿缓存（wcache）：
+ * 持仓表 + 交易信号表，SDK 直连 + 写穿缓存（wcache）：
  *   - 新增记录即时入查询索引有延迟，写成功后快照落 localStorage，
  *     读取时 query 结果与快照按 _id / 业务键合并，删除记 tombstone。
  * ========================================================== */
@@ -963,7 +963,7 @@ var Fr={},Gr={};var Wr,Hr=function(){function t(t,e,n){var i=this;this._sleepAft
     wcSave(w);
   }
 
-  /* ---------------- 研究心得 ---------------- */
+  /* ---------------- 交易信号 ---------------- */
   function nFromRec(rec) {
     return {
       id: rec._id, title: rec['标题'] || '', kind: KIND_CANON[rec['类型']] || 'note',
@@ -1719,7 +1719,7 @@ window.HS_name = function (code) {
   /* ====================================================================
    *  笔记：localStorage（桌面版走服务端 JSON，这里改为本地存储）
    * ==================================================================== */
-  /* 研究心得：走资料库数据表（__LK_DB__，SDK + 写穿缓存） */
+  /* 交易信号：走资料库数据表（__LK_DB__，SDK + 写穿缓存） */
   async function notesGet() { return { ok: true, data: await window.__LK_DB__.notesList() }; }
   async function notesPost(body) { return window.__LK_DB__.notesPost(body || {}); }
 
@@ -1862,6 +1862,98 @@ window.HS_name = function (code) {
         return { ok: false, error: String((e && e.message) || e) };
       }
     },
+  };
+
+  /* ==========================================================
+   * 交易信号引擎（v27）：双池 17 条触发器
+   * 持仓池 T1-T12（止盈/止损/加仓/仓位节奏）+ 自选池 W1-W5（买入时机）
+   * 三级状态：act 行动 / near 接近 / watch 观察；触发≠自动交易，只提示+纪律出处
+   * ========================================================== */
+  window.SIGNALS_CFG = {
+    tpStep: 10, tpPeakDD: 8, tpPeakArm: 20, valHigh: 80,   /* T1 阶梯 / T2 峰值回撤(激活涨幅) / T3 估值止盈 */
+    slHard: -8,                                            /* T4 硬止损 */
+    addDD1: -20, addDD2: -30, valLow: 30,                  /* T7 回撤补仓两档 / T8 估值加仓 */
+    cap: 100000, barbell: {},                              /* T9 单标的 CAP / T10 半杠铃分组（待录入） */
+    wDD1: -20, wDD2: -30, wValLow: 30,                     /* W2 自选回撤买线 / W1 自选估值买线 */
+    nearBand: 2,                                           /* 接近阈值带宽（百分点） */
+  };
+  function sigValPct(c6) { /* 加权估值分位：HOLDINGS_SNAP.bench 配比 × benchData.pos(0-1) */
+    const s = window.HOLDINGS_SNAP, f = s && s.funds ? s.funds[c6] : null;
+    if (!f || !f.bench || !f.benchData) return null;
+    let wsum = 0, acc = 0;
+    f.bench.forEach((b) => {
+      const d = f.benchData[b.idx];
+      if (d && d.pos != null && b.weight) { acc += d.pos * 100 * b.weight; wsum += b.weight; }
+    });
+    return wsum ? acc / wsum : null;
+  }
+  window.signalEvalAll = async function (holdList, watchCodes) {
+    const C = window.SIGNALS_CFG;
+    const fmtRet = (v) => (v == null ? '—' : (v > 0 ? '+' : '') + v.toFixed(2) + '%');
+    const rows = { hold: [], watch: [], meta: [
+      { pool: 'hold', sig: 'T5 时间止损', why: '持仓表无买入日期，待数据补齐' },
+      { pool: 'hold', sig: 'T6 定投日打卡', why: '手动打卡模式：每月自行确认扣款正常' },
+      { pool: 'hold', sig: 'T10 杠铃失衡', why: '半杠铃分组未配置，待录入 8 只分组' },
+      { pool: 'hold', sig: 'T11 扣款计数器', why: '待启用：20 次前只加不止（D6）' },
+      { pool: 'watch', sig: 'W4 买入闸门', why: '执行买入前过 D1/D2/D3 检查单（点标的名进深挖核对）' },
+    ] };
+    async function one(code6, pool, h) {
+      if (!/^\d{6}$/.test(code6)) return;
+      let r = await pzdAll(code6);
+      if (!r) { await new Promise((res) => setTimeout(res, 400)); r = await pzdAll(code6); } /* v27: 失败重试（null 不入 pzdCache） */
+      if (!r) { await new Promise((res) => setTimeout(res, 900)); r = await pzdAll(code6); }
+      if (!r || !r.trend || r.trend.length < 20) return;
+      const ys = r.trend.map((p) => p.y);
+      const last = ys[ys.length - 1];
+      const navMa = (n) => { if (ys.length < n) return null; let a = 0; for (let i = ys.length - n; i < ys.length; i++) a += ys[i]; return a / n; };
+      const ma20 = navMa(20), ma60 = navMa(60);
+      const peak250 = Math.max.apply(null, ys.slice(-250));
+      const ddPeak = (last / peak250 - 1) * 100;
+      const vp = sigValPct(code6);
+      const name = r.name || code6;
+      const base = { code: code6, name: name, pool: pool };
+      if (pool === 'hold' && h) {
+        const cost = +h.cost || 0;
+        const ret = cost ? (last / cost - 1) * 100 : null;
+        const peakEver = Math.max.apply(null, ys);
+        const maxRet = cost ? (peakEver / cost - 1) * 100 : null;
+        const mv = last * (+h.qty || 0);
+        if (ret != null) {
+          rows.hold.push(Object.assign({}, base, { sig: 'T1 阶梯止盈', cur: fmtRet(ret), thr: '≥ +' + C.tpStep + '% → 卖1/3', lvl: ret >= C.tpStep ? 'act' : ret >= C.tpStep - C.nearBand ? 'near' : 'watch', src: 'D7' }));
+          rows.hold.push(Object.assign({}, base, { sig: 'T4 硬止损', cur: fmtRet(ret), thr: '≤ ' + C.slHard + '% → 全出', lvl: ret <= C.slHard ? 'act' : ret <= C.slHard + C.nearBand ? 'near' : 'watch', src: 'D8' }));
+        }
+        if (maxRet != null) {
+          const holdDD = (last / peakEver - 1) * 100;
+          const armed = maxRet >= C.tpPeakArm;
+          rows.hold.push(Object.assign({}, base, { sig: 'T2 峰值回撤止盈', cur: (armed ? '已激活·' : '未激活·') + fmtRet(holdDD), thr: '峰涨≥' + C.tpPeakArm + '%后 回撤≥' + C.tpPeakDD + '% → 减半', lvl: armed && holdDD <= -C.tpPeakDD ? 'act' : armed && holdDD <= -(C.tpPeakDD - C.nearBand) ? 'near' : 'watch', src: 'D7/grid G' }));
+        }
+        rows.hold.push(Object.assign({}, base, { sig: 'T7 回撤补仓', cur: fmtRet(ddPeak), thr: C.addDD1 + '% / ' + C.addDD2 + '% 分档', lvl: ddPeak <= C.addDD2 ? 'act' : ddPeak <= C.addDD1 ? 'near' : ddPeak <= C.addDD1 + C.nearBand ? 'near' : 'watch', src: '补仓双机制' }));
+        if (vp != null) {
+          rows.hold.push(Object.assign({}, base, { sig: 'T3 估值止盈 / T8 估值加仓', cur: '分位 ' + vp.toFixed(0) + '%', thr: '≥' + C.valHigh + '% 减 · ≤' + C.valLow + '% 加', lvl: (vp >= C.valHigh || vp <= C.valLow) ? 'act' : (vp >= C.valHigh - 5 || vp <= C.valLow + 5) ? 'near' : 'watch', src: 'grid E' }));
+        }
+        if (mv > 0) {
+          rows.hold.push(Object.assign({}, base, { sig: 'T9 CAP 超限', cur: '¥' + mv.toFixed(0), thr: '> ¥' + C.cap + ' 禁补', lvl: mv > C.cap ? 'act' : mv > C.cap * 0.9 ? 'near' : 'watch', src: 'CAP 硬限制' }));
+        }
+      } else {
+        rows.watch.push(Object.assign({}, base, { sig: 'W2 回撤买入', cur: fmtRet(ddPeak), thr: C.wDD1 + '% / ' + C.wDD2 + '% 分档', lvl: ddPeak <= C.wDD2 ? 'act' : ddPeak <= C.wDD1 ? 'near' : ddPeak <= C.wDD1 + 3 ? 'near' : 'watch', src: 'D3' }));
+        if (vp != null) {
+          rows.watch.push(Object.assign({}, base, { sig: 'W1 估值买入', cur: '分位 ' + vp.toFixed(0) + '%', thr: '≤ ' + C.wValLow + '%', lvl: vp <= C.wValLow ? 'act' : vp <= C.wValLow + 5 ? 'near' : 'watch', src: 'D3' }));
+        }
+        if (ma20 != null && ma60 != null) {
+          const bull = last > ma20 && last > ma60 && ma20 > ma60;
+          rows.watch.push(Object.assign({}, base, { sig: 'W3 趋势（净值对MA20/MA60）', cur: (last > ma20 ? '上方' : '下方') + ' / ' + (last > ma60 ? '上方' : '下方'), thr: '多头排列=右侧确认', lvl: bull ? 'near' : 'watch', src: '右侧入场' }));
+        }
+        const mgrY = r.manager && r.manager[0] ? (typeof parseMgrYears === 'function' ? parseMgrYears(r.manager[0].workTime || '') : null) : null;
+        const sc = r.scale && r.scale.length ? r.scale[r.scale.length - 1].v : null;
+        const risks = [];
+        if (sc != null && sc < 0.5) risks.push('规模<5000万清盘线');
+        if (mgrY != null && mgrY < 3) risks.push('经理任职' + mgrY.toFixed(1) + '年<3年');
+        rows.watch.push(Object.assign({}, base, { sig: 'W5 标的风险', cur: risks.length ? risks.join('；') : '未见明显风险', thr: '规模/经理任职', lvl: risks.length ? 'near' : 'watch', src: 'M2/M4' }));
+      }
+    }
+    for (const h of (holdList || [])) await one(String(h.code || '').replace(/\D/g, '').slice(-6), 'hold', h);
+    for (const c of (watchCodes || [])) await one(String(c).replace(/\D/g, '').slice(-6), 'watch', null);
+    return rows;
   };
 
 })();
@@ -2069,6 +2161,7 @@ async function loadWatchlistFromDB() {
   /* 自选晚到：清日历缓存 sig，若正处于持仓页则立即重渲染（覆盖自选基金列） */
   state._calSig = '';
   if (state.view === 'holdings') { renderPnlCalendar(); renderDrawdownCard(); }
+  if (typeof renderResearchChips === 'function') renderResearchChips(); /* v27: 自选晚到补渲染研究 chips（时序竞态修复） */
 }
 
 function normalizeCode(input) {
@@ -3307,7 +3400,7 @@ function renderNews() {
       ${it.summary ? `<div class="nsum ${open ? '' : 'clamp'}" data-sum="${esc(id)}">${esc(it.summary)}</div>` : ''}
       <div class="nf">
         ${it.summary && it.summary.length > 60 ? `<button class="btn-link" data-exp="${esc(id)}">${open ? '收起' : '展开阅读'}</button>` : ''}
-        <button class="btn-link" data-collect="${i}">收藏到研究心得</button>
+        <button class="btn-link" data-collect="${i}">收藏到交易信号</button>
         <a href="${esc(it.url)}" target="_blank" rel="noopener">原文链接 ↗</a>
       </div>
     </div>`;
@@ -4583,7 +4676,7 @@ function openSettings(tab) {
         · 市场统计：真实行业指数报价，按行业涨跌占比估算个股涨跌家数<br>
         · K线：web.ifzq.gtimg.cn 前复权日/周/月线，A股在腾讯不可用时回退东财<br>
         · 资讯：新浪财经滚动、金十快讯、华尔街见闻快讯、东财交易所公告、按持仓代码拉取的公司公告（IR）<br>
-        · 持仓与研究心得保存在资料库数据表中，在线增删改、多端双向同步；行情与资讯实时来自公开财经接口。
+        · 持仓与交易信号保存在资料库数据表中，在线增删改、多端双向同步；行情与资讯实时来自公开财经接口。
       </p>`;
   }
   openModal('设置与数据', tabs + body);
@@ -4598,7 +4691,7 @@ function openSettings(tab) {
 }
 
 /* ==========================================================
- *  视图 6：研究心得（个人金融知识库）
+ *  视图 6：交易信号（个人金融知识库）
  * ========================================================== */
 const NOTE_KINDS = { note: '心得', clip: '收藏' };
 
@@ -4716,7 +4809,7 @@ const VIEW_META = {
   news: ['财经资讯', '五源聚合 · 去重 · 持仓相关性标记'],
   review: ['每日复盘', 'A股 / 港股 / 美股 · 客观数据与 AI 推断分离'],
   research: ['标的分析', '公司 · 个股 · 基金 三合一分析'],
-  notes: ['研究心得', '投资心得 · 收藏 · 个人金融知识库'],
+  notes: ['交易信号', '投资心得 · 收藏 · 个人金融知识库'],
 };
 function showView(name) {
   state.view = name;
@@ -4732,6 +4825,7 @@ function showView(name) {
     if (!state.news.items.length) loadNews();
   } else if (name === 'notes') {
     loadNotesFromServer();
+    if (typeof renderSignalDash === 'function') renderSignalDash(); /* v27 */
   }
   renderCurrentView();
   setTimeout(() => Object.values(charts).forEach((c) => c && !c.isDisposed() && c.resize()), 30);
@@ -4970,7 +5064,7 @@ $('#rsChips').onclick = (e) => {
   renderResearchChips();
 };
 
-/* 研究心得页 */
+/* 交易信号页 */
 $('#ntNew').onclick = () => openNoteEditor(null);
 $('#ntSearch').oninput = (e) => { state.notesFilter.kw = e.target.value; renderNotes(); };
 $('#ntTag').onchange = (e) => { state.notesFilter.tag = e.target.value; renderNotes(); };
@@ -4989,6 +5083,66 @@ $('#ntList').onclick = async (e) => {
 
 window.addEventListener('resize', () => Object.values(charts).forEach((c) => c && !c.isDisposed() && c.resize()));
 document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal(); });
+
+/* ---------- 交易信号仪表盘（v27） ---------- */
+function renderSignalDash() {
+  const sec = document.getElementById('view-notes');
+  if (!sec) return;
+  let card = document.getElementById('sigDash');
+  if (!card) {
+    card = document.createElement('div');
+    card.className = 'card'; card.id = 'sigDash';
+    sec.insertBefore(card, sec.firstChild);
+  }
+  card.innerHTML = '<div class="card-h"><h3>信号仪表盘</h3><span class="hint">触发≠自动交易 · 阈值修改锁季度复盘日（T12/D9）· 滞回带 + 7天冷却</span></div>'
+    + '<div id="sigBody"><div class="empty">信号计算中（首次拉取净值序列约需数秒）…</div></div>';
+  const body = document.getElementById('sigBody');
+  const hold = state.portfolio.filter((h) => (h.assetType || '') !== 'cash');
+  const wl = (state.watchlist || []).map((c) => (typeof c === 'string' ? c : (c && c.code) || ''));
+  window.signalEvalAll(hold, wl).then((rows) => {
+    if (state.view !== 'notes') return;
+    const LVL = { act: ['行动', '#A32D2D'], near: ['接近', '#854F0B'], watch: ['观察', '#5F5E5A'] };
+    const rowHtml = (r) => {
+      const key = r.pool + ':' + r.code + ':' + r.sig;
+      const dim = sigAcked(key) ? ' style="opacity:.45"' : '';
+      const L = LVL[r.lvl] || LVL.watch;
+      return '<div' + dim + ' style="padding:6px 0;border-bottom:1px dashed var(--border,#e3e7ee)">'
+        + '<span class="tag">' + (r.pool === 'hold' ? '持仓' : '自选') + '</span> '
+        + '<b class="lk-rs" data-rscode="' + esc(r.code) + '" style="cursor:pointer;text-decoration:underline dotted">' + esc(r.name) + '</b>'
+        + ' · ' + esc(r.sig) + '　当前 <b>' + esc(r.cur) + '</b> ｜ 阈值 ' + esc(r.thr)
+        + ' ｜ <span style="color:' + L[1] + ';font-weight:500">' + L[0] + '</span> ｜ <span style="opacity:.6">' + esc(r.src) + '</span>'
+        + (r.lvl === 'act' && !sigAcked(key) ? ' <button class="btn btn-sm" data-sigack="' + esc(key) + '">知道了</button>' : '')
+        + '</div>';
+    };
+    const grp = (title, list, metaList) => {
+      const act = list.filter((r) => r.lvl === 'act');
+      const near = list.filter((r) => r.lvl === 'near');
+      const watch = list.filter((r) => r.lvl === 'watch');
+      let html = '<div style="margin:10px 0 4px;font-weight:500">' + title + '（行动 ' + act.length + ' · 接近 ' + near.length + ' · 观察 ' + watch.length + '）</div>';
+      if (metaList && metaList.length) html += '<div class="hint" style="opacity:.7;margin-bottom:4px">未启用：' + metaList.map((m) => m.sig + '（' + m.why + '）').join('；') + '</div>';
+      if (!list.length) return html + '<div class="empty">暂无标的</div>';
+      html += act.concat(near).map(rowHtml).join('');
+      if (watch.length) html += '<details style="margin-top:4px"><summary style="cursor:pointer;font-size:13px;opacity:.7">观察 ' + watch.length + ' 条（折叠）</summary>' + watch.map(rowHtml).join('') + '</details>';
+      return html;
+    };
+    body.innerHTML = grp('持仓信号（止盈 / 止损 / 加仓 / 仓位）', rows.hold, rows.meta.filter((m) => m.pool === 'hold'))
+      + grp('自选信号（买入时机 / 风险）', rows.watch, rows.meta.filter((m) => m.pool === 'watch'));
+    body.onclick = (e) => {
+      const ak = e.target.closest('[data-sigack]');
+      if (ak) {
+        const a = JSON.parse(localStorage.getItem('fw2_sig_ack_v1') || '{}');
+        a[ak.dataset.sigack] = Date.now();
+        localStorage.setItem('fw2_sig_ack_v1', JSON.stringify(a));
+        renderSignalDash(); return;
+      }
+      const rs = e.target.closest('.lk-rs');
+      if (rs) { loadResearch(toResearchCode(rs.dataset.rscode, 'fund')); showView('research'); }
+    };
+  }).catch((err) => { body.innerHTML = '<div class="empty">信号计算失败：' + esc(String((err && err.message) || err)) + '</div>'; });
+}
+function sigAcked(key) {
+  try { const a = JSON.parse(localStorage.getItem('fw2_sig_ack_v1') || '{}'); return a[key] && Date.now() - a[key] < 86400000; } catch (e) { return false; }
+}
 
 /* ---------- 启动 ---------- */
 loadStore();
