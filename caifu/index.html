@@ -1107,6 +1107,12 @@ window.HOLDINGS_SNAP = {"updatedAt":"2026-09-09","source":"天天基金季报(�
  * 更新：python fetch_market_snap.py
  * ========================================================================== */
 window.MKT_SNAP = {"updatedAt":"2026-09-09","m2Ref":{"value":355.51,"unit":"万亿","asOf":"2026-07","note":"M2 月末余额，央行口径"},"idx":{"000300":{"name":"沪深300","pe":13.57,"cp":4558.74,"pos":0.6796,"date":"2026-09-08"},"HSI":{"name":"恒生指数","pe":11.17,"cp":25317.18,"pos":0.6264,"date":"2026-09-08"},"HSTECH":{"name":"恒生科技","pe":23.21,"cp":4454.85,"pos":0.3422,"date":"2026-09-08"},".INX":{"name":"标普500","pe":26.01,"cp":7673.52,"pos":0.6157,"date":"2026-09-08"}}};
+/* ==========================================================================
+ * 自选池基准快照（v28b）：自选基金官方基准 -> 理杏仁可得指数的映射 + 10年分位。
+ * 仅用于信号引擎估值分位（sigValPct 回退），不参与持仓/重仓逻辑。
+ * 代理关系见各 role 字段；更新：python fetch_watch_bench.py
+ * ========================================================================== */
+window.WATCH_BENCH = {"160422":{"bench":[{"idx":"399673","mkt":"cn","role":"创业板50（原生基准，权益部分）","weight":100}],"benchData":{"000300":{"name":"沪深300","pe":13.57,"cp":4558.74,"pos":0.6796,"date":"2026-09-08"},"399673":{"name":"创业板50","pe":32.52,"cp":3514.8,"pos":0.273,"date":"2026-09-08"},"HSTECH":{"name":"恒生科技","pe":23.21,"cp":4454.85,"pos":0.3422,"date":"2026-09-08"},".INX":{"name":"标普500","pe":26.01,"cp":7673.52,"pos":0.6157,"date":"2026-09-08"}}},"006373":{"bench":[{"idx":".INX","mkt":"us","role":"标普500（MSCI全球IT代理，us仅开放此指数）","weight":70},{"idx":"HSTECH","mkt":"hk","role":"恒生科技（中概互联代理）","weight":30}],"benchData":{"000300":{"name":"沪深300","pe":13.57,"cp":4558.74,"pos":0.6796,"date":"2026-09-08"},"399673":{"name":"创业板50","pe":32.52,"cp":3514.8,"pos":0.273,"date":"2026-09-08"},"HSTECH":{"name":"恒生科技","pe":23.21,"cp":4454.85,"pos":0.3422,"date":"2026-09-08"},".INX":{"name":"标普500","pe":26.01,"cp":7673.52,"pos":0.6157,"date":"2026-09-08"}}},"270042":{"bench":[{"idx":".INX","mkt":"us","role":"标普500（纳斯达克100代理，us仅开放此指数）","weight":100}],"benchData":{"000300":{"name":"沪深300","pe":13.57,"cp":4558.74,"pos":0.6796,"date":"2026-09-08"},"399673":{"name":"创业板50","pe":32.52,"cp":3514.8,"pos":0.273,"date":"2026-09-08"},"HSTECH":{"name":"恒生科技","pe":23.21,"cp":4454.85,"pos":0.3422,"date":"2026-09-08"},".INX":{"name":"标普500","pe":26.01,"cp":7673.52,"pos":0.6157,"date":"2026-09-08"}}},"000746":{"bench":[{"idx":"000300","mkt":"cn","role":"沪深300（基准含20%债，债不参与估值分位）","weight":100}],"benchData":{"000300":{"name":"沪深300","pe":13.57,"cp":4558.74,"pos":0.6796,"date":"2026-09-08"},"399673":{"name":"创业板50","pe":32.52,"cp":3514.8,"pos":0.273,"date":"2026-09-08"},"HSTECH":{"name":"恒生科技","pe":23.21,"cp":4454.85,"pos":0.3422,"date":"2026-09-08"},".INX":{"name":"标普500","pe":26.01,"cp":7673.52,"pos":0.6157,"date":"2026-09-08"}}}};
 /* HS_get(code) -> {code,period,date,total,top10,n,updatedAt,rows10,map,prev} */
 window.HS_get = function (raw) {
   var c = String(raw == null ? '' : raw).replace(/\D/g, '').slice(-6);
@@ -1883,8 +1889,10 @@ window.HS_name = function (code) {
     wDD1: -20, wDD2: -30, wValLow: 30,                     /* W2 自选回撤买线 / W1 自选估值买线 */
     nearBand: 2,                                           /* 接近阈值带宽（百分点） */
   };
-  function sigValPct(c6) { /* 加权估值分位：HOLDINGS_SNAP.bench 配比 × benchData.pos(0-1) */
-    const s = window.HOLDINGS_SNAP, f = s && s.funds ? s.funds[c6] : null;
+  function sigValPct(c6) { /* 加权估值分位：HOLDINGS_SNAP.bench 配比 × benchData.pos(0-1)；自选池回退 WATCH_BENCH(v28b) */
+    const s = window.HOLDINGS_SNAP;
+    let f = s && s.funds ? s.funds[c6] : null;
+    if (!f || !f.bench || !f.benchData) { const wb = window.WATCH_BENCH && window.WATCH_BENCH[c6]; if (wb) f = wb; }
     if (!f || !f.bench || !f.benchData) return null;
     let wsum = 0, acc = 0;
     f.bench.forEach((b) => {
