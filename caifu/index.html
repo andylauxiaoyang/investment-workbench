@@ -2088,13 +2088,9 @@ function fmtNum(n, d = 2) {
   if (n == null || isNaN(n)) return '—';
   return Number(n).toLocaleString('zh-CN', { minimumFractionDigits: d, maximumFractionDigits: d });
 }
-function fmtMoney(n, sign) {
+function fmtMoney(n, sign) { /* v26i: 全站金额统一 元+千分位+两位小数（不再用万/亿） */
   if (n == null || isNaN(n)) return '—';
-  const a = Math.abs(n);
-  let s;
-  if (a >= 1e8) s = (a / 1e8).toFixed(2) + '亿';
-  else if (a >= 1e4) s = (a / 1e4).toFixed(2) + '万';
-  else s = a.toFixed(2);
+  const s = fmtNum(Math.abs(n), 2);
   const pre = n < 0 ? '-' : sign ? '+' : '';
   return pre + s;
 }
@@ -4222,8 +4218,8 @@ function renderResearch() {
       <div class="metric-grid">
         ${metric('所属板块', (p && p.industry) || '—')}
         ${metric('地域 / 概念', (p && p.region) || '—')}
-        ${metric('总市值', p && p.totalCap ? '¥' + fmtMoney(p.totalCap) : '—')}
-        ${metric('流通市值', p && p.circCap ? '¥' + fmtMoney(p.circCap) : '—')}
+        ${metric('总市值', p && p.totalCap ? '¥' + fmtNum(p.totalCap / 1e8, 2) + '亿' : '—')}
+        ${metric('流通市值', p && p.circCap ? '¥' + fmtNum(p.circCap / 1e8, 2) + '亿' : '—')}
         ${metric('市盈率 PE(动)', p && p.pe ? fmtNum(p.pe, 2) : '—')}
         ${metric('市净率 PB', p && p.pb ? fmtNum(p.pb, 2) : '—')}
         ${metric('ROE', p && p.roe != null ? fmtNum(p.roe * 100, 2) + '%' : '—')}
