@@ -2274,19 +2274,26 @@ async function loadPortfolioFromDB() {
 /* 自选：从资料库「理财·自选表」拉取（理杏仁·特别关注同步），失败保留 localStorage 兜底 */
 async function loadWatchlistFromDB() {
   let metas = null, dbFail = false;
+  state._wlSrc = ''; state._wlErr = '';
   try {
     metas = await window.__LK_DB__.watchlistList();
-  } catch (e) { dbFail = true; } /* v26j: GitHub 版 SDK 未注入 → 走旁挂种子 */
+    if (Array.isArray(metas)) state._wlSrc = 'DB';
+  } catch (e) { dbFail = true; state._wlErr = 'DB: ' + String((e && e.message) || e); } /* v26j: GitHub 版 SDK 未注入 → 走旁挂种子 */
   if (dbFail) {
     try {
       const r = await fetch('watchlist-data.json', { cache: 'no-store' });
       if (r.ok) {
         const j = await r.json();
         metas = Array.isArray(j) ? j : ((j && j.watchlist) || null); /* v26j: 兼容包装对象/裸数组 */
-      }
-    } catch (e2) { /* 种子缺失或解析失败：保持现有自选 */ }
+        if (metas) state._wlSrc = '种子';
+      } else if (!state._wlErr) state._wlErr = '种子 HTTP ' + r.status;
+    } catch (e2) { if (!state._wlErr) state._wlErr = '种子: ' + String((e2 && e2.message) || e2); }
   }
-  if (!Array.isArray(metas) || !metas.length) return;
+  if (!Array.isArray(metas) || !metas.length) {
+    if (!state._wlErr) state._wlErr = state._wlSrc === 'DB' ? 'DB 空返回' : 'DB 与种子均无数据';
+    if (state.view === 'notes' && typeof renderSignalDash === 'function') renderSignalDash(); /* v29b: 失败也要刷新诊断行 */
+    return;
+  }
   const wm = {};
   metas.forEach((m) => (wm[m.code] = m));
   state.watchMeta = wm;
@@ -5250,11 +5257,12 @@ function renderSignalDash() {
         + (r.lvl === 'act' && !sigAcked(key) ? ' <button class="btn btn-sm" data-sigack="' + esc(key) + '">知道了</button>' : '')
         + '</div>';
     };
-    const grp = (title, list, metaList) => {
+    const grp = (title, list, metaList, srcNote) => {
       const act = list.filter((r) => r.lvl === 'act');
       const near = list.filter((r) => r.lvl === 'near');
       const watch = list.filter((r) => r.lvl === 'watch');
       let html = '<div style="margin:10px 0 4px;font-weight:500">' + title + '（行动 ' + act.length + ' · 接近 ' + near.length + ' · 观察 ' + watch.length + '）</div>';
+      if (srcNote) html += '<div class="hint" style="opacity:.75;margin-bottom:4px">' + esc(srcNote) + '</div>';
       if (metaList && metaList.length) html += '<div class="hint" style="opacity:.7;margin-bottom:4px">未启用：' + metaList.map((m) => m.sig + '（' + m.why + '）').join('；') + '</div>';
       if (!list.length) return html + '<div class="empty">暂无标的</div>';
       html += act.concat(near).map(rowHtml).join('');
@@ -5269,7 +5277,9 @@ function renderSignalDash() {
     const bnAll = ((mk && mk.banner) || []).concat(['<b>自选池</b>｜加权估值分位 ' + (wAvg == null ? '—' : wAvg.toFixed(0) + '%') + '｜行动档 ' + wAct + ' 只｜待过闸门 ' + wGate + ' 只' + (envTxt ? '｜' + envTxt : '')]);
     body.innerHTML = '<div style="border:1px solid var(--border,#e3e7ee);border-radius:8px;padding:8px 10px;margin-bottom:8px;font-size:13px;line-height:1.9;color:var(--fg2,#5b6470)">' + bnAll.join('<br>') + '</div>'
       + grp('持仓信号（止盈 / 止损 / 加仓 / 仓位）', rows.hold, rows.meta.filter((m) => m.pool === 'hold'))
-      + grp('自选信号（买入时机 / 风险）', rows.watch, rows.meta.filter((m) => m.pool === 'watch'))
+      + grp('自选信号（买入时机 / 风险）', rows.watch, rows.meta.filter((m) => m.pool === 'watch'),
+        '自选来源：' + (state._wlSrc === 'DB' ? '资料库自选表' : state._wlSrc === '种子' ? '旁挂种子' : '未取得') + ' ' + ((state.watchlist || []).length) + ' 只'
+        + (state._wlErr ? ' · ⚠ ' + state._wlErr : ''))
       + grp('市场信号（环境 / 温度计 / 资金面）', (mk && mk.rows) || [], null);
     body.onclick = (e) => {
       const ak = e.target.closest('[data-sigack]');
