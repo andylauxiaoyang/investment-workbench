@@ -301,6 +301,10 @@ button, input, select, textarea { font-family: inherit; font-size: 12.5px; color
 
 /* ---------- 贡献榜 ---------- */
 .contrib { display: flex; flex-direction: column; gap: 6px; }
+.tm-row { display: grid; grid-template-columns: 1fr 88px 56px 64px; align-items: center; gap: 8px; padding: 4px 0; border-bottom: 1px dashed #eef1f5; font-size: 13px; }
+.tm-row .tm-src { color: #8b95a1; font-size: 11px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tm-row .tm-w { color: #8b95a1; font-size: 12px; text-align: right; }
+.tm-row .tm-pct { text-align: right; font-weight: 600; }
 .cb-row { display: grid; grid-template-columns: 120px 1fr 96px; align-items: center; gap: 9px; font-size: 12px; }
 .cb-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .cb-track { background: var(--line-2); border-radius: 3px; height: 9px; position: relative; overflow: hidden; }
@@ -3434,11 +3438,8 @@ function renderReview(regen) {
     </div>
 
     <div class="rv-sec">
-      <h3>盈亏归因与结构</h3>
-      <div class="grid-2">
-        <div><div class="card-h"><h3 style="font-size:12px">当日盈亏贡献 · Top 8 标的</h3></div><div class="chart chart-md" id="rvContrib"></div></div>
-        <div><div class="card-h"><h3 style="font-size:12px">各市场当日贡献</h3></div><div class="chart chart-md" id="rvMarketBar"></div></div>
-      </div>
+      <h3>底层重仓股当日异动 <span class="mk hint">穿透持仓基金前十大重仓 · 季报权重 · 腾讯行情</span></h3>
+      <div id="rvTopMoves"><div class="empty">重仓行情加载中…</div></div>
       ${line('data', `当日主要盈利：${o.winners.length ? o.winners.map((r) => `${esc(r.name)} ${fmtMoney(r.dayCny, true)}（${fmtPct(r.pct)}）`).join('；') : '无'}。`)}
       ${line('data', `当日主要亏损：${o.losers.length ? o.losers.map((r) => `${esc(r.name)} ${fmtMoney(r.dayCny, true)}（${fmtPct(r.pct)}）`).join('；') : '无'}。`)}
       ${line('data', `累计盈利前三：${o.totWin.length ? o.totWin.map((r) => `${esc(r.name)} ${fmtMoney(r.totCny, true)}（${fmtPct(r.totPct)}）`).join('；') : '无'}；累计亏损前三：${o.totLose.length ? o.totLose.map((r) => `${esc(r.name)} ${fmtMoney(r.totCny, true)}（${fmtPct(r.totPct)}）`).join('；') : '无'}。`)}
@@ -3467,20 +3468,58 @@ function renderReview(regen) {
       <b>说明与免责：</b>标注「数据」为接口客观取值（腾讯财经 / 东方财富），「推断」为本地规则引擎按预设阈值生成，不构成投资建议、不承诺收益。复盘与持仓页同源快照（${o.snapshotId}），盘中为即时值；汇率为设置中的固定值。
     </div>`;
 
-  mountChart('rvContrib', {
-    grid: { left: 90, right: 28, top: 8, bottom: 14 },
-    tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' }, formatter: (p) => `${p[0].name}<br/>${fmtMoney(p[0].data, true)}` },
-    xAxis: { type: 'value', axisLabel: { color: '#8b95a1', fontSize: 10, formatter: (v) => fmtMoney(v) }, splitLine: { lineStyle: { color: '#e3e8ee' } } },
-    yAxis: { type: 'category', data: o.contrib.map((c) => c.name).reverse(), axisLabel: { color: '#55616e', fontSize: 11 }, axisLine: { lineStyle: { color: '#d8dee6' } } },
-    series: [{ type: 'bar', data: o.contrib.map((c) => ({ value: c.value, itemStyle: { color: c.value >= 0 ? 'var(--up)' : 'var(--down)' } })).reverse(), barWidth: '58%' }],
-  });
-  mountChart('rvMarketBar', {
-    grid: { left: 64, right: 28, top: 8, bottom: 14 },
-    tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' }, formatter: (p) => `${p[0].name}<br/>${fmtMoney(p[0].data, true)}` },
-    xAxis: { type: 'value', axisLabel: { color: '#8b95a1', fontSize: 10, formatter: (v) => fmtMoney(v) }, splitLine: { lineStyle: { color: '#e3e8ee' } } },
-    yAxis: { type: 'category', data: o.marketContrib.map((c) => c.name).reverse(), axisLabel: { color: '#55616e', fontSize: 11 }, axisLine: { lineStyle: { color: '#d8dee6' } } },
-    series: [{ type: 'bar', data: o.marketContrib.map((c) => ({ value: c.value, itemStyle: { color: c.value >= 0 ? 'var(--up)' : 'var(--down)' } })).reverse(), barWidth: '52%' }],
-  });
+  /* v26f: 底层重仓股当日异动 —— 穿透持仓基金前十大重仓（季报权重），腾讯行情当日涨跌 */
+  (async () => {
+    const box = document.getElementById('rvTopMoves');
+    if (!box) return;
+    try {
+      const agg = {};
+      (state.portfolio || []).forEach((h) => {
+        if (h.assetType !== 'fund') return;
+        const hs = window.HS_get ? window.HS_get(h.code) : null;
+        if (!hs || !hs.rows10 || !hs.rows10.length) return;
+        const short = String(h.name || h.code).replace(/(混合|指数|精选|人民币|A$|C$).*$/, '').slice(0, 10) || h.code;
+        hs.rows10.forEach((r) => {
+          const cd = String(r.code || '').toUpperCase();
+          if (!cd) return;
+          if (!agg[cd]) agg[cd] = { code: cd, name: r.name || cd, pct: 0, srcs: [] };
+          agg[cd].pct += +r.pct || 0;
+          if (!agg[cd].srcs.includes(short)) agg[cd].srcs.push(short);
+        });
+      });
+      const list = Object.values(agg);
+      const toQt = (cd) => {
+        if (/^\d{6}$/.test(cd)) return (/^[69]/.test(cd) ? 'sh' : 'sz') + cd;
+        if (/^\d{1,5}$/.test(cd)) return 'hk' + cd.padStart(5, '0');
+        if (/^[A-Z]{1,6}$/.test(cd)) return 'us' + cd;
+        return null; /* 东京（285A）等无通道 */
+      };
+      const qtMap = {}; const jobs = [];
+      list.forEach((x) => { const q = toQt(x.code); if (q) { qtMap[q] = x; jobs.push(q); } });
+      const quotes = [];
+      for (let i = 0; i < jobs.length; i += 25) {
+        const qr = await apiGet('/api/quotes', { codes: jobs.slice(i, i + 25).join(',') }).catch(() => null);
+        if (qr && qr.ok && Array.isArray(qr.data)) quotes.push(...qr.data);
+      }
+      const meta = (q) => qtMap[String(q.code || '').toLowerCase()] || qtMap[String(q.code || '')] || null;
+      const rows = quotes.map((q) => {
+        const m = meta(q);
+        return { name: q.name || (m && m.name) || q.code, pct: +q.pct || 0, w: m ? m.pct : 0, srcs: m ? m.srcs : [] };
+      });
+      rows.sort((a, b) => b.pct - a.pct);
+      const noCov = list.length - jobs.length;
+      const rowHtml = (r) => `<div class="tm-row"><span class="tm-name" title="${esc(r.srcs.join('/'))}">${esc(r.name)}</span><span class="tm-src">${esc(r.srcs.join('/'))}</span><span class="tm-w">${r.w.toFixed(2)}%</span><span class="tm-pct ${r.pct >= 0 ? 'up' : 'down'}">${fmtPct(r.pct)}</span></div>`;
+      const up = rows.filter((r) => r.pct > 0).slice(0, 6);
+      const down = rows.filter((r) => r.pct < 0).slice(-6).reverse();
+      box.innerHTML = `<div class="grid-2">
+        <div><div class="card-h"><h3 style="font-size:12px">领涨重仓</h3></div>${up.map(rowHtml).join('') || '<div class="empty">无上涨重仓</div>'}</div>
+        <div><div class="card-h"><h3 style="font-size:12px">领跌重仓</h3></div>${down.map(rowHtml).join('') || '<div class="empty">无下跌重仓</div>'}</div>
+      </div>
+      <div class="hint" style="margin-top:6px">穿透口径：季报前十大重仓 × 占净值权重（${list.length} 只，${noCov ? noCov + ' 只无行情通道（如东京 KIOXIA）未计入' : '全部有行情'}）。盘中为即时值。</div>`;
+    } catch (e) {
+      if (box) box.innerHTML = '<div class="empty">重仓异动加载失败</div>';
+    }
+  })();
   state._review = rv;
 }
 function reviewMarkdown(rv) {
