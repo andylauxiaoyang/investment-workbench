@@ -2010,6 +2010,24 @@ function saveStore() {
 async function loadPortfolioFromDB() {
   try { state.portfolio = await window.__LK_DB__.holdingsList(); }
   catch (e) { state.portfolio = []; }
+  /* v26d GitHub Pages 备用通道：DB 不可用且持仓为空时，读旁挂种子快照兜底 */
+  if (!state.portfolio.length) {
+    try {
+      const r = await fetch('holdings-data.json', { cache: 'no-store' });
+      if (r.ok) {
+        const j = await r.json();
+        state.portfolio = ((j && j.holdings) || []).map((x) => ({
+          _id: 'seed-' + String(x.code || ''),
+          code: String(x.code || ''),
+          name: x.name || '',
+          qty: +x.shares || 0,
+          cost: x.unitCost != null ? +x.unitCost : (+x.cost || 0),
+          assetType: x.type || 'stock',
+          sector: ''
+        })).filter((h) => h.code && h.qty > 0);
+      }
+    } catch (e2) { /* 种子缺失或解析失败：保持空持仓 */ }
+  }
   /* 持仓晚到：重试基金重仓关键词（若仍在初始化时空跑过一轮），资讯相关标注补齐（v22） */
   if (state.portfolio.length && typeof ensureFundTopKeys === 'function') {
     ensureFundTopKeys().then(() => { if (state.view === 'news' && state._fundTopKeys && state._fundTopKeys.length) renderNews(); });
