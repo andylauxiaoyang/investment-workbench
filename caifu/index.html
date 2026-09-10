@@ -2277,7 +2277,8 @@ async function loadWatchlistFromDB() {
   state._wlSrc = ''; state._wlErr = '';
   try {
     metas = await window.__LK_DB__.watchlistList();
-    if (Array.isArray(metas)) state._wlSrc = 'DB';
+    if (Array.isArray(metas) && metas.length) state._wlSrc = 'DB';
+    else { dbFail = true; if (!state._wlErr) state._wlErr = 'DB 空返回→用种子'; } /* v31c: 空数组/非数组也走种子兜底 */
   } catch (e) { dbFail = true; state._wlErr = 'DB: ' + String((e && e.message) || e); } /* v26j: GitHub 版 SDK 未注入 → 走旁挂种子 */
   if (dbFail) {
     try {
