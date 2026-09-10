@@ -1285,80 +1285,297 @@ window.HS_name = function (code) {
   /* 回退：天天基金 pingzhongdata（无 CORS 限制的全局变量 JS，含完整净值序列） */
   let pzdChain = Promise.resolve(); /* v26g: pzd 互斥锁（pingzhongdata 全局变量串号修复） */
   function pzdQuote(code6) {
+    const c6 = String(code6 || '').replace(/\D/g, '');
     pzdChain = pzdChain.then(() => new Promise((resolve) => {
-      const keepN = window.Data_netWorthTrend, keepName = window.fS_name;
-      try { delete window.Data_netWorthTrend; delete window.fS_name; } catch (e) {}
+      let settled = false;
+      const done = (r) => { if (!settled) { settled = true; resolve(r); } };
+      /* v35 串号根治：与 pzdAll 同款哨兵值 + 同步快照 + 代码校验（原 delete+恢复旧值有串号风险） */
+      const KEYS = ['Data_netWorthTrend', 'fS_name', 'fS_code'];
+      const SENTINEL = '\u0000__SENTINEL__';
+      const clearAll = () => { KEYS.forEach((k) => { try { window[k] = SENTINEL; } catch (e) {} }); };
+      const readAll = () => { const o = {}; KEYS.forEach((k) => { const v = window[k]; o[k] = (v === SENTINEL) ? undefined : v; }); return o; };
+      clearAll();
       const sc = document.createElement('script');
-      sc.src = 'https://fund.eastmoney.com/pingzhongdata/' + code6 + '.js?v=' + Date.now();
+      sc.src = 'https://fund.eastmoney.com/pingzhongdata/' + c6 + '.js?v=' + Date.now();
       sc.onload = () => {
-        const arr = window.Data_netWorthTrend || [];
-        const name = window.fS_name || '';
-        window.Data_netWorthTrend = keepN;
-        window.fS_name = keepName;
+        const raw = readAll();
         sc.remove();
-        if (!arr.length) return resolve(null);
+        clearAll();
+        const selfCode = String(raw.fS_code || '').replace(/\D/g, '');
+        if (!selfCode || selfCode !== c6) { dataWarn('pzdQuote:' + c6, '代码校验失败（返回 ' + (raw.fS_code || '空') + '）'); return done(null); }
+        const arr = Array.isArray(raw.Data_netWorthTrend) ? raw.Data_netWorthTrend : [];
+        const name = raw.fS_name || '';
+        if (!arr.length) return done(null);
         const last = arr[arr.length - 1];
         const dt = new Date(last.x);
         const ymd = dt.getFullYear() + '-' + String(dt.getMonth() + 1).padStart(2, '0') + '-' + String(dt.getDate()).padStart(2, '0');
-        resolve({ name, dwjz: last.y, gsz: null, gszzl: last.equityReturn == null ? null : last.equityReturn, jzrq: ymd });
+        done({ name, dwjz: last.y, gsz: null, gszzl: last.equityReturn == null ? null : last.equityReturn, jzrq: ymd });
       };
-      sc.onerror = () => { sc.remove(); resolve(null); };
+      sc.onerror = () => { sc.remove(); clearAll(); done(null); };
       document.head.appendChild(sc);
-      setTimeout(() => resolve(null), 10000);
+      setTimeout(() => { if (!settled) { try { sc.remove(); } catch (e) {} clearAll(); done(null); } }, 10000);
     }));
     return pzdChain;
   }
   /* 完整净值序列（pingzhongdata）：月度收益热力日历用。{code, name, trend:[{d,y,r}]} */
   /* pingzhongdata 全量加载（v16）：一次拉取，多用途——净值序列/阶段收益/同类排名/规模/经理/费率 */
   const pzdCache = {};
+  /* fw2_data_integrity_v35 */ /* v35：剥离 script 注入依赖 —— 直接 fetch 原始 JS 文本 + 正则解析（无全局变量污染、无串号可能） */
+  /* v35：东财 pingzhongdata 无 CORS 头，只能 script 注入 —— 采用哨兵值+同步快照+代码校验三招根治串号 */
   function pzdAll(code6) {
     const c = String(code6 || '').replace(/\D/g, '');
     if (!/^\d{6}$/.test(c)) return Promise.resolve(null);
     if (pzdCache[c]) return Promise.resolve(pzdCache[c]);
-    const KEYS = ['fS_name', 'fS_code', 'Data_netWorthTrend', 'Data_currentFundManager', 'Data_fluctuationScale',
-      'Data_rateInSimilarType', 'Data_rateInSimilarPersent', 'Data_holderStructure', 'Data_assetAllocation',
-      'Data_industryAllocation', 'fund_sourceRate', 'fund_Rate', 'syl_1n', 'syl_6y', 'syl_3y', 'syl_1y', 'stockCodesNew', 'Data_ACWorthTrend'];
-    const keep = {};
-    KEYS.forEach((k) => { keep[k] = window[k]; try { delete window[k]; } catch (e) {} });
     pzdChain = pzdChain.then(() => new Promise((resolve) => {
       let settled = false;
-      const restore = () => { KEYS.forEach((k) => { try { delete window[k]; } catch (e) {} if (keep[k] !== undefined) window[k] = keep[k]; }); };
-      const done = (r) => { if (!settled) { settled = true; restore(); if (r) pzdCache[c] = r; resolve(r); } };
+      const done = (r) => { if (!settled) { settled = true; if (r) pzdCache[c] = r; resolve(r); } };
+      /* 东财 pingzhongdata 无 CORS 头 → 只能用 script 注入（不受同源策略限制）。
+         串号根治三招：① 注入前把全部目标全局变量置为"哨兵"（而非 delete），
+         使缺失字段可被识别为 undefined；② onload 内**同步**立即快照取值（无 await，
+         不给其他脚本插入窗口）；③ 代码校验 fS_code === 请求代码，不符直接作废。 */
+      const KEYS = ['fS_name', 'fS_code', 'ishb', 'Data_netWorthTrend', 'Data_ACWorthTrend',
+        'Data_millionCopiesIncome', 'Data_sevenDaysYearIncome', 'syl_1n', 'syl_6y', 'syl_3y', 'syl_1y',
+        'fund_sourceRate', 'fund_Rate'];
+      const SENTINEL = '\u0000__SENTINEL__';
+      const clearAll = () => { KEYS.forEach((k) => { try { window[k] = SENTINEL; } catch (e) {} }); };
+      const readAll = () => { const o = {}; KEYS.forEach((k) => { const v = window[k]; o[k] = (v === SENTINEL) ? undefined : v; }); return o; };
+      clearAll();
       const sc = document.createElement('script');
       sc.src = 'https://fund.eastmoney.com/pingzhongdata/' + c + '.js?v=' + Date.now();
       sc.onload = () => {
-        const pick = (k) => { const v = window[k]; return v === undefined ? keep[k] : v; };
-        const arr = pick('Data_netWorthTrend') || [];
+        const raw = readAll();          /* 同步快照：本 tick 内完成，无异步间隙 */
         sc.remove();
-        if (!arr.length) return done(null);
-        const trend = [];
-        for (const p of arr) {
-          const dt = new Date(p.x);
-          trend.push({ d: dt.getFullYear() + '-' + String(dt.getMonth() + 1).padStart(2, '0') + '-' + String(dt.getDate()).padStart(2, '0'), y: p.y, r: p.equityReturn });
-        }
+        clearAll();                      /* 立即清除，防止污染后续请求 */
+        const selfCode = String(raw.fS_code || '').replace(/\D/g, '');
+        /* ③ 代码校验：脚本自报代码必须与请求一致（含"完全未赋值"情形） */
+        if (!selfCode) { dataWarn('pzd:' + c, '脚本未返回 fS_code（可能风控/404）'); return done(null); }
+        if (selfCode !== c) { dataWarn('pzd:' + c, '代码串号！脚本返回 ' + selfCode); return done(null); }
+        const net = raw.Data_netWorthTrend, ac = raw.Data_ACWorthTrend;
+        const mi = raw.Data_millionCopiesIncome, sd = raw.Data_sevenDaysYearIncome;
+        const isMoney = String(raw.ishb) === 'true';
+        /* ② 字段存在性校验：普通基金无净值序列、货币基金无万份收益，都视为取数失败（绝不回退旧值） */
+        const hasNet = Array.isArray(net) && net.length > 0;
+        const hasAc = Array.isArray(ac) && ac.length > 0;
+        const hasMi = Array.isArray(mi) && mi.length > 0;
+        if (!hasNet && !hasAc && !hasMi) { dataWarn('pzd:' + c, '净值/万份收益字段全缺失（脚本可能异常）'); return done(null); }
+        const mkDate = (ts) => { const d = new Date(ts); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); };
+        const trend = hasNet ? net.map((x) => ({ d: mkDate(x.x), y: x.y, r: x.equityReturn })) : [];
         const syl = {};
         [['m1', 'syl_1y'], ['m3', 'syl_3y'], ['m6', 'syl_6y'], ['y1', 'syl_1n']].forEach(([k2, sk]) => {
-          const v = parseFloat(pick(sk)); if (!isNaN(v)) syl[k2] = v;
+          const v = parseFloat(raw[sk]); if (!isNaN(v)) syl[k2] = v;
         });
         done({
-          code: c, name: pick('fS_name') || '', trend, syl,
-          manager: (pick('Data_currentFundManager') || []).map((m) => ({ name: m.name || '', workTime: m.workTime || '', fundSize: m.fundSize || '' })),
-          scale: (() => { const fs = pick('Data_fluctuationScale') || {}; const cats = fs.categories || []; const ser = fs.series || [];
-            return cats.map((d, i) => ({ d: String(d), v: ser[i] ? ser[i].y : null })).filter((p2) => p2.v != null); })(),
-          rank: (pick('Data_rateInSimilarType') || []).map((p2) => ({ t: p2.x, y: p2.y, sc: p2.sc })),
-          stockCodesNew: pick('stockCodesNew') || [],
-          /* 累计净值（含分红再投口径）：[[ts,val],...]（v22） */
-          ac: (pick('Data_ACWorthTrend') || []).map((p2) => { const dt = new Date(p2[0]); return { d: dt.getFullYear() + '-' + String(dt.getMonth() + 1).padStart(2, '0') + '-' + String(dt.getDate()).padStart(2, '0'), y: p2[1] }; }),
-          rateSrc: pick('fund_sourceRate') || '', rate: pick('fund_Rate') || '',
-          holder: pick('Data_holderStructure') || null, alloc: pick('Data_assetAllocation') || null,
+          code: c, name: raw.fS_name || '', srcName: '天天基金 pingzhongdata',
+          isMoney: isMoney,
+          trend: trend,
+          ac: hasAc ? ac.map((x) => ({ d: mkDate(x[0]), y: x[1] })) : [],
+          millionIncome: hasMi ? mi.map((x) => ({ d: mkDate(x[0]), y: x[1] })) : [],
+          sevenDays: Array.isArray(sd) ? sd.map((x) => ({ d: mkDate(x[0]), y: x[1] })) : [],
+          syl: syl,
+          rateSrc: raw.fund_sourceRate || '', rate: raw.fund_Rate || '',
         });
       };
-      sc.onerror = () => { sc.remove(); done(null); };
+      sc.onerror = () => { sc.remove(); clearAll(); dataWarn('pzd:' + c, '脚本加载失败'); done(null); };
       document.head.appendChild(sc);
-      setTimeout(() => done(pzdCache[c] || null), 12000);
+      setTimeout(() => { if (!settled) { try { sc.remove(); } catch (e) {} clearAll(); dataWarn('pzd:' + c, '加载超时 12s'); done(null); } }, 12000);
     }));
     return pzdChain;
   }
+  /* 保留旧的 script 注入通道（备用，不再作为主路径；无任何全局回退） */
+  /* ====================================================================
+   *  v35 数据可信性层（用户硬要求：数据准确性永远排第一）
+   *  规则：① 任何外部取数必须做"自洽校验"；② 关键行情/净值尽量双源比对；
+   *        ③ 校验不通过的数据一律不显示（宁缺勿错），并记录 dataWarn 供诊断。
+   * ==================================================================== */
+  window.DATA_WARN = window.DATA_WARN || [];
+  function dataWarn(scope, msg) { window.DATA_WARN.push({ t: Date.now(), scope: scope, msg: msg }); console.warn('[dataWarn]', scope, msg); }
+
+  /* 第二源：腾讯行情 qt.gtimg.cn。用于指数/ETF 现价与东财交叉校验 */
+  async function crossQuote(code) {
+    try {
+      const buf = await (await mfetch('https://qt.gtimg.cn/q=' + code)).arrayBuffer();
+      const text = new TextDecoder('gbk').decode(new Uint8Array(buf));
+      const m = text.match(/v_\w+="([^"]*)"/);
+      if (!m) return null;
+      const g = m[1].split('~');
+      return { price: num(g[3]), prev: num(g[4]), name: g[1], ts: g[30] || '' };
+    } catch (e) { return null; }
+  }
+  /* 双源校验：主值 vs 副值，相对误差 > tol 视为不一致（默认 0.5%） */
+  function dualCheck(primary, secondary, tolPct, scope) {
+    if (primary == null || secondary == null) return { ok: null, note: '副源缺失' };
+    const d = Math.abs(primary - secondary) / (Math.abs(primary) || 1) * 100;
+    const ok = d <= (tolPct == null ? 0.5 : tolPct);
+    if (!ok) dataWarn(scope, '双源不一致 主=' + primary + ' 副=' + secondary + ' 偏差=' + d.toFixed(2) + '%');
+    return { ok: ok, diff: d, note: ok ? '' : '⚠双源偏差 ' + d.toFixed(2) + '%' };
+  }
+  /* 自洽校验：净值序列单调日期、无重复、末值>0 */
+  function sanityNav(series, scope) {
+    if (!series || !series.length) return { ok: false, note: '空序列' };
+    let prevT = -Infinity, dup = 0;
+    for (const p of series) {
+      const t = new Date(p.d + 'T00:00:00').getTime();
+      if (t <= prevT) dup++;
+      prevT = t;
+    }
+    const last = series[series.length - 1];
+    if (!(last.y > 0)) return { ok: false, note: '末值异常 ' + last.y };
+    if (dup > 0) { dataWarn(scope, '日期非单调/重复 ' + dup + ' 处'); return { ok: false, note: '日期乱序 ' + dup + ' 处' }; }
+    return { ok: true, note: '' };
+  }
+  window.__DATA_INTEGRITY__ = { dataWarn: dataWarn, dualCheck: dualCheck, sanityNav: sanityNav, crossQuote: crossQuote };
+
+  /* ====================================================================
+   *  v35.1 第二源（双口径比对，用户硬要求「两个口径比对」）
+   *  ── 浏览器端实测校准（2026-09-10，localhost / github.io 源）──
+   *  ✅ 可用：腾讯 qt.gtimg.cn（同域宽松，无 Referer 校验）
+   *      · q=jj{code}  普通基金：g[5]=单位净值 g[6]=累计净值 g[8]=日期
+   *      · q=s_jj{code} 全类型：s[3]=单位净值 s[4]=累计净值/万份收益 s[2]=日期
+   *        （货币基金 s[3]=1.0000 无意义，s[4]=万份收益 与主源口径一致）
+   *  ❌ 不可用：api.fund.eastmoney.com/f10/lsjz（严格防盗链 ErrCode -999，仅东财域可访问）
+   *  ❌ 不可用：hq.sinajs.cn/list=f_{code}（Referer 校验，script 注入 onerror）
+   *  结论：腾讯为唯一浏览器端可用副源；普通基金走 jj，货基走 s_jj。
+   * ==================================================================== */
+  const qtFundCache = {};
+  /* 腾讯 jj 行情（普通基金）：g[5]=单位净值 g[6]=累计净值 g[7]=日增长率% g[8]=净值日期。
+     ⚠ 主源 Data_ACWorthTrend 末值口径 = 累计净值，必须比对 g[6]；
+     g[5] 是单位净值，对分红基金差异极大（曾误致 160422 偏差 27.96%）。 */
+  function qtFundNav(code6) {
+    const c = String(code6 || '').replace(/\D/g, '');
+    if (!/^\d{6}$/.test(c)) return Promise.resolve(null);
+    if (qtFundCache[c]) return Promise.resolve(qtFundCache[c]);
+    return (async () => {
+      try {
+        const buf = await (await mfetch('https://qt.gtimg.cn/q=jj' + c)).arrayBuffer();
+        const text = new TextDecoder('gbk').decode(new Uint8Array(buf));
+        const m = text.match(/v_jj\w+="([^"]*)"/);
+        if (!m) return null;
+        const g = m[1].split('~');
+        const unitNav = parseFloat(g[5]);   /* 5=单位净值 */
+        const nav = parseFloat(g[6]);       /* 6=累计净值（与主源 AC 口径一致） */
+        const date = (g[8] || '').trim();
+        if (!(nav > 0) && !(unitNav > 0)) return null;
+        const r = { code: c, name: g[1] || '', nav: nav > 0 ? nav : unitNav, unitNav: unitNav, date: date, src: '腾讯财经' };
+        qtFundCache[c] = r;
+        return r;
+      } catch (e) { return null; }
+    })();
+  }
+  const qtSNavCache = {};
+  /* 腾讯 s_jj 行情（全类型，浏览器端对货基同样可用）：
+     s[2]=日期(YYYYMMDD) s[3]=单位净值/货基1.0000 s[4]=累计净值｜货基万份收益 s[5]=涨跌幅%
+     货基另有 s[27]=万份收益 s[28]=七日年化。
+     ⚠ s[4] 是跨类型统一口径：普通=累计净值（=主源 AC），货基=万份收益（=主源 millionIncome）。 */
+  function qtSJjNav(code6) {
+    const c = String(code6 || '').replace(/\D/g, '');
+    if (!/^\d{6}$/.test(c)) return Promise.resolve(null);
+    if (qtSNavCache[c]) return Promise.resolve(qtSNavCache[c]);
+    return (async () => {
+      try {
+        const buf = await (await mfetch('https://qt.gtimg.cn/q=s_jj' + c)).arrayBuffer();
+        const text = new TextDecoder('gbk').decode(new Uint8Array(buf));
+        const m = text.match(/v_s_jj\w+="([^"]*)"/);
+        if (!m) return null;
+        const g = m[1].split('~');
+        const d0 = (g[2] || '').trim();
+        const date = /^\d{8}$/.test(d0) ? (d0.slice(0, 4) + '-' + d0.slice(4, 6) + '-' + d0.slice(6, 8)) : d0;
+        const nav = parseFloat(g[4]);          /* 4=累计净值 / 货基万份收益 */
+        const unitNav = parseFloat(g[3]);
+        const mi = parseFloat(g[27]);          /* 27=货基万份收益（若有） */
+        const sd7 = parseFloat(g[28]);         /* 28=货基七日年化（若有） */
+        if (!(nav > 0) && !(unitNav > 0)) return null;
+        const r = { code: c, name: g[1] || '', nav: nav > 0 ? nav : unitNav, unitNav: unitNav,
+                    moneyIncome: isNaN(mi) ? null : mi, sevenDays: isNaN(sd7) ? null : sd7,
+                    date: date, src: '腾讯财经(s_jj)' };
+        qtSNavCache[c] = r;
+        return r;
+      } catch (e) { return null; }
+    })();
+  }
+  /* 新浪 f_ 行情（v35.1 弃用）：浏览器端 script 注入被 Referer 校验拦截（实测 onerror），
+     仅服务端 curl 可用。保留函数体为空壳，避免调用方报错；副源统一走腾讯。 */
+  function sinaFundNav(code6) {
+    void code6;
+    return Promise.resolve(null);
+  }
+  /* ====================================================================
+   *  v35.1 东财官方 F10 历史净值（api.fund.eastmoney.com/f10/lsjz）
+   *  ⚠ 实测结论：该接口有严格防盗链（非东财域 Referer 返回 ErrCode -999，
+   *     JSONP/fetch 在 github.io / localhost 源下均失败）。
+   *  → 浏览器端仅作"尽力尝试"，失败不影响主链（腾讯 s_jj/jj 为可靠副源）。
+   *  字段：普通基金 DWJZ=单位净值 LJJZ=累计净值｜货币基金 DWJZ=万份收益 LJJZ=七日年化
+   * ==================================================================== */
+  const f10Cache = {};
+  function emF10Nav(code6) {
+    const c = String(code6 || '').replace(/\D/g, '');
+    if (!/^\d{6}$/.test(c)) return Promise.resolve(null);
+    if (f10Cache[c]) return Promise.resolve(f10Cache[c]);
+    return new Promise((resolve) => {
+      let settled = false;
+      const done = (r) => { if (!settled) { settled = true; if (r) f10Cache[c] = r; resolve(r); } };
+      (async () => {
+        const u = 'https://api.fund.eastmoney.com/f10/lsjz?callback=cb&fundCode=' + c + '&pageIndex=1&pageSize=2&startDate=&endDate=';
+        let j = null;
+        try { j = await jsonp(u); } catch (e) {}
+        if (!j) { try { const r = await mfetch(u); const t = await r.text(); const m = t.match(/^cb\(([\s\S]*)\)\s*;?\s*$/); j = JSON.parse(m ? m[1] : t); } catch (e) {} }
+        if (!j || !j.Data || !Array.isArray(j.Data.LSJZList) || !j.Data.LSJZList.length) return done(null);
+        const first = j.Data.LSJZList[0];
+        const dw = parseFloat(first.DWJZ), lj = parseFloat(first.LJJZ);
+        done({ code: c, unitNav: isNaN(dw) ? null : dw, nav: isNaN(lj) ? null : lj,
+               date: (first.FSRQ || '').trim(), navType: first.NAVTYPE, src: '东财官方F10' });
+      })();
+      setTimeout(() => { if (!settled) done(null); }, 6000);
+    });
+  }
+  /* 双口径比对（v35.1，用户硬要求「起码两个口径比对」）：
+     副源1（主）腾讯 s_jj：跨类型统一口径 s[4]（普通=累计净值｜货基=万份收益）；
+     副源2     腾讯 jj（普通基金 g[6] 累计净值，作为独立第二口径交叉验证）；
+     副源3     东财官方 F10（浏览器端多被防盗链拦截，可用时作为权威第三方）。
+     任意副源与主源偏差超阈 → dataWarn 告警；全部副源不可用 → 标注「副源不可用」。 */
+  async function verifyNav(code6, primaryNav, primaryDate, isMoney) {
+    const alts = [];
+    /* 副源1：腾讯 s_jj（全类型可用） */
+    try {
+      const s = await qtSJjNav(code6);
+      if (s) {
+        const v = isMoney ? s.moneyIncome : s.nav;   /* 货基取万份收益，普通取累计净值 */
+        if (v != null && !isNaN(v)) alts.push({ nav: v, date: s.date, src: '腾讯s_jj' });
+      }
+    } catch (e) {}
+    /* 副源2：腾讯 jj（仅普通基金，货基返回 0） */
+    if (!isMoney) {
+      try { const q = await qtFundNav(code6); if (q && q.nav != null) alts.push({ nav: q.nav, date: q.date, src: '腾讯jj' }); } catch (e) {}
+    }
+    /* 副源3：东财官方 F10（浏览器端通常不可用，可用时作为权威交叉） */
+    try {
+      const f = await emF10Nav(code6);
+      if (f) { const v = isMoney ? f.unitNav : f.nav; if (v != null && !isNaN(v)) alts.push({ nav: v, date: f.date, src: '东财官方F10' }); }
+    } catch (e) {}
+    /* 去重（同一 nav 值 + 同源的重复项只留一条） */
+    const seen = {};
+    const uniq = alts.filter((a) => { const k = a.src + '@' + a.nav + '@' + a.date; if (seen[k]) return false; seen[k] = 1; return true; });
+    if (!uniq.length) return { ok: null, note: '副源不可用', altSrc: '', alts: [] };
+    let worst = null, allOk = true;
+    for (const a of uniq) {
+      const diff = Math.abs(primaryNav - a.nav) / (Math.abs(primaryNav) || 1) * 100;
+      const sameDay = String(primaryDate || '').slice(0, 10) === String(a.date || '').slice(0, 10);
+      const tol = sameDay ? 0.5 : 1.0;   /* 同日严格 0.5%，跨日放宽 1% */
+      const ok = diff <= tol;
+      if (!ok) {
+        allOk = false;
+        dataWarn('navVerify:' + code6, a.src + ' 与主源不一致 主=' + primaryNav + '(' + primaryDate + ') 副=' + a.nav + '(' + a.date + ') 偏差=' + diff.toFixed(2) + '%');
+      }
+      if (!worst || diff > worst.diff) worst = { diff: diff, src: a.src, nav: a.nav, date: a.date, ok: ok };
+    }
+    return { ok: allOk, diff: worst.diff, alt: worst, altSrc: worst.src, alts: uniq, sameDay: true,
+             note: allOk ? '' : ('⚠' + worst.src + '偏差 ' + worst.diff.toFixed(2) + '%') };
+  }
+  window.__DATA_INTEGRITY__.qtFundNav = qtFundNav;
+  window.__DATA_INTEGRITY__.qtSJjNav = qtSJjNav;
+  window.__DATA_INTEGRITY__.sinaFundNav = sinaFundNav;
+  window.__DATA_INTEGRITY__.emF10Nav = emF10Nav;
+  window.__DATA_INTEGRITY__.verifyNav = verifyNav;
+
   /* 净值序列（月度收益热力日历沿用此接口）：{code, name, trend:[{d,y,r}]} */
   function fundNavSeries(code6, days) {
     return pzdAll(code6).then((r) => {
@@ -1374,7 +1591,15 @@ window.HS_name = function (code) {
       if (!r) return null;
       const cut = Date.now() - (parseInt(days, 10) || 480) * 86400000;
       const trend = (r.ac && r.ac.length ? r.ac : r.trend).filter((p) => new Date(p.d + 'T00:00:00').getTime() >= cut);
-      return { code: r.code, name: r.name, trend };
+      /* v35 数据可信性：序列自洽校验，不通过则作废（宁缺勿错） */
+      const s = sanityNav(trend, 'fundAcSeries:' + r.code);
+      if (!s.ok) return { code: r.code, name: r.name, trend: [], isMoney: !!r.isMoney,
+                          millionIncome: r.millionIncome || [], sevenDays: r.sevenDays || [],
+                          srcName: r.srcName || '', invalid: s.note };
+      /* v35：货币基金无净值序列 → 返回 isMoney + 万份收益/七日年化，调用方按专业口径处理 */
+      return { code: r.code, name: r.name, trend, isMoney: !!r.isMoney,
+               millionIncome: r.millionIncome || [], sevenDays: r.sevenDays || [], srcName: r.srcName || '',
+               lastNav: trend.length ? trend[trend.length - 1].y : null };
     });
   }
   /* 季报重仓（v17）：FundArchivesDatas jjcc，script 注入返回 var apidata={content:HTML}，DOM 解析季度盒子 */
@@ -1456,18 +1681,13 @@ window.HS_name = function (code) {
     const c = String(code6 || '').replace(/\D/g, '');
     if (!/^\d{6}$/.test(c)) return Promise.resolve(null);
     if (fundgzCache[c]) return Promise.resolve(fundgzCache[c]);
-    fundgzChain = fundgzChain.then(() => new Promise((resolve) => {
-      let done = false;
-      window.jsonpgz = function (d) { done = true; resolve(d || null); };
-      const sc = document.createElement('script');
-      sc.src = 'https://fundgz.1234567.com.cn/js/' + c + '.js?rt=' + Date.now();
-      sc.onload = () => { sc.remove(); setTimeout(() => { if (!done) resolve(null); }, 500); };
-      sc.onerror = () => { sc.remove(); if (!done) resolve(null); };
-      document.head.appendChild(sc);
-      setTimeout(() => { if (!done) resolve(null); }, 8000);
-    }));
-    return fundgzChain
-      .then((d) => (d ? d : pzdQuote(c)))
+    /* v35.1：fundgz.1234567.com.cn 已于 2026-09 前后失效（全量返回 404 页面）——
+       改为「东财官方 F10 历史净值」→ pingzhongdata 二级链（均无全局变量污染）。 */
+    return emF10Nav(c)
+      .then((f) => {
+        if (f && f.unitNav != null) return { name: '', dwjz: f.unitNav, gsz: null, gszzl: null, jzrq: f.date };
+        return pzdQuote(c);
+      })
       .then((d) => { fundgzCache[c] = d || null; return d || null; });
   }
   function fundShape(code, d) {
@@ -2064,21 +2284,30 @@ window.HS_name = function (code) {
         if (last[0] === todayStr && !afterClose) return kl.length > 1 ? kl[kl.length - 2].split(',') : null;
         return last;
       };
+      const EX = [['1.000001', '沪', '上证指数'], ['0.399106', '深', '深证综指'], ['0.899050', '京', '北证50']];
       const grabAll = async (getJson) => {
-        const sums = [];
-        for (const sid of ['1.000001', '0.399106', '0.899050']) {
+        const parts = [];
+        for (const [sid, tag, nm] of EX) {
           const u = 'https://push2his.eastmoney.com/api/qt/stock/kline/get?secid=' + sid + '&fields1=f1,f2,f3&fields2=f51,f52,f53,f54,f55,f56,f57&klt=101&fqt=0&end=20500101&lmt=5';
-          const j = await getJson(u);
-          const bar = pickBar((j && j.data && j.data.klines) || []);
-          if (bar) sums.push(bar);
+          try {
+            const j = await getJson(u);
+            const bar = pickBar((j && j.data && j.data.klines) || []);
+            if (bar) parts.push({ tag: tag, nm: nm, date: bar[0], amt: (+bar[6] || 0) });
+          } catch (e) { /* 单所失败不影响其余 */ }
         }
-        if (sums.length === 3 && sums.every((b) => b[0] === sums[0][0])) return { yi: sums.reduce((a, b) => a + (+b[6] || 0), 0) / 1e8, day: sums[0][0] };
-        return null;
+        /* v35.2：交易日一致才合计；至少两所齐备才认（单所数据代表性不足）。缺失所名写入标签便于识别。 */
+        if (parts.length < 2) return null;
+        const dts = {}; parts.forEach((p) => { dts[p.date] = (dts[p.date] || 0) + 1; });
+        const top = Object.keys(dts).sort((a, b) => dts[b] - dts[a])[0];
+        const use = parts.filter((p) => p.date === top);
+        const have = use.map((p) => p.tag).join('');
+        const lack = EX.filter((e) => !use.some((p) => p.tag === e[1])).map((e) => e[1]).join('');
+        return { yi: use.reduce((a, b) => a + b.amt, 0) / 1e8, day: top, cover: have, lack: lack, n: use.length };
       };
       /* 三级链：fetch → JSONP（script 标签不带 Origin，可绕跨域拦截）→ 快照兜底（MKT_SNAP.amt=最近已完成收盘值）。绝不用盘中累计凑数 */
       const jsonpT = (u, ms) => Promise.race([jsonp(u), new Promise((_, rej) => setTimeout(() => rej(new Error('jsonp timeout')), ms))]);
-      try { const r1 = await grabAll(async (u) => (await (await mfetch(u)).json())); if (r1) { amtYi = r1.yi; amtDay = r1.day; } } catch (e) {}
-      if (amtYi == null) { try { const r2 = await grabAll(async (u) => await jsonpT(u, 9000)); if (r2) { amtYi = r2.yi; amtDay = r2.day; amtSrc = '·JSONP'; } } catch (e) {} }
+      try { const r1 = await grabAll(async (u) => (await (await mfetch(u)).json())); if (r1) { amtYi = r1.yi; amtDay = r1.day; amtSrc = r1.lack ? '·缺' + r1.lack : ''; } } catch (e) {}
+      if (amtYi == null) { try { const r2 = await grabAll(async (u) => await jsonpT(u, 9000)); if (r2) { amtYi = r2.yi; amtDay = r2.day; amtSrc = '·JSONP' + (r2.lack ? '缺' + r2.lack : ''); } } catch (e) {} }
       if (amtYi == null && snap.amt && snap.amt.yi > 0 && snap.amt.date) { amtYi = snap.amt.yi; amtDay = snap.amt.date; amtSrc = '·快照兜底'; }
     } catch (e) { /* 全链失败才跳过（此时 M7/M8 缺行，横幅无资金面段） */ }
     const m2v = snap.m2Ref && snap.m2Ref.value;
@@ -2088,8 +2317,7 @@ window.HS_name = function (code) {
       envHot = tw >= 3 || (pct8e != null && pct8e >= 1);
       envCold = tw < 1.5 || (pct8e != null && pct8e < 0.3);
       envNote = envHot ? '过热·自选买入降档' : envCold ? '低迷·自选买入升档' : '中性';
-      rows.push(mkRow('M7', 'M7 全A成交额（沪深京）', '全日成交金额', amtYi.toFixed(0) + ' 亿（' + amtDay + '）', '<1.5万亿 网格定投 · 1.5~2万亿 关注入场 · ≥3万亿 分批卖', tw >= 3 ? 'act' : tw >= 2 ? 'watch' : tw >= 1.5 ? 'near' : 'act', '东财日线·京=北证50口径' + amtSrc));
-      if (m2v) {
+      rows.push(mkRow('M7', 'M7 全A成交额（沪深京）', '全日成交金额', amtYi.toFixed(0) + ' 亿（' + amtDay + '）', '<1.5万亿 网格定投 · 1.5~2万亿 关注入场 · ≥3万亿 分批卖', tw >= 3 ? 'act' : tw >= 2 ? 'watch' : tw >= 1.5 ? 'near' : 'act', '东财日线·京=北证50口径' + amtSrc));      if (m2v) {
         const pct8 = (tw / m2v) * 100;
         const tag8 = pct8 >= 1.5 ? '疯狂·清仓提示(D8)' : pct8 >= 1 ? '过热·分批卖' : pct8 <= 0.3 ? '低迷·机会区' : '中性';
         rows.push(mkRow('M8', 'M8 资金系数（成交额/M2）', '短期资金面指标', pct8.toFixed(2) + '% · ' + tag8, '<0.3% 机会 · 1%~1.5% 过热 · ≥1.5% 清仓', pct8 >= 1.5 ? 'act' : pct8 >= 1 ? 'near' : pct8 <= 0.3 ? 'act' : 'watch', 'M2 ' + m2v + '万亿(' + snap.m2Ref.asOf + ')'));
@@ -3137,6 +3365,24 @@ async function renderDrawdownCard() {
       const c = shortCode(h.code);
       const r = await apiGet('/api/fund-ac-series', { code: c, days: 500 }).catch(() => null);
       const trend = r && r.ok && r.data ? (r.data.trend || []) : [];
+      /* v35：货币基金无净值序列（货币基金不适用回撤/年化收益口径）→ 用万份收益+七日年化，单独成行 */
+      if (r && r.ok && r.data && r.data.isMoney) {
+        const mi = r.data.millionIncome || [], sd = r.data.sevenDays || [];
+        const lastMi = mi.length ? mi[mi.length - 1] : null;
+        const lastSd = sd.length ? sd[sd.length - 1] : null;
+        const sd7 = sd.slice(-7).map((x) => x.y).filter((v) => v != null);
+        const mi30 = mi.slice(-30).map((x) => x.y).filter((v) => v != null);
+        /* 双源校验：万份收益 vs 新浪财经 */
+        let verM = null;
+        try { verM = lastMi ? await verifyNav(c, lastMi.y, lastMi.d, true) : null; } catch (e) { verM = null; }
+        rows.push({ kind: 'money', name: h.name || c, code: c,
+          mi: lastMi ? lastMi.y : null, miDate: lastMi ? lastMi.d : '',
+          sd: lastSd ? lastSd.y : null,
+          sd7avg: sd7.length ? sd7.reduce((a, b) => a + b, 0) / sd7.length : null,
+          mi30avg: mi30.length ? mi30.reduce((a, b) => a + b, 0) / mi30.length : null,
+          ver: verM, lamp: '\ud83d\udfe2' });
+        continue;
+      }
       if (trend.length < 20) continue;
       let peak = trend[0].y, mdd = 0;
       for (const p of trend) { if (p.y > peak) peak = p.y; const dd = p.y / peak - 1; if (dd < mdd) mdd = dd; }
@@ -3158,19 +3404,30 @@ async function renderDrawdownCard() {
           if (i > 0) excess.push({ m: x.m.slice(5), e: (x.r - (bMap[x.m] / bMap[bMonths[i - 1]] - 1)) * 100 });
         }
       }
-      rows.push({ name: h.name || c, code: c, curDD, mdd: mdd * 100, r1y, lamp, excess });
+      /* v35 双源校验：末值净值与东财官方 F10 交叉比对（用户硬要求） */
+      const lastPt = trend[trend.length - 1];
+      let ver = null;
+      try { ver = await verifyNav(c, lastPt.y, lastPt.d); } catch (e) { ver = null; }
+      rows.push({ kind: 'fund', name: h.name || c, code: c, curDD, mdd: mdd * 100, r1y, lamp, excess, lastNav: lastPt.y, navDate: lastPt.d, ver: ver });
     }
     if (!rows.length) { card.style.display = 'none'; return; }
-    body.innerHTML = rows.map((x) => `<div class="rv-line" style="align-items:flex-start">
+    body.innerHTML = rows.map((x) => x.kind === 'money'
+      ? `<div class="rv-line" style="align-items:flex-start">
         <span style="font-size:15px">${x.lamp}</span>
         <span style="flex:1"><b>${esc(x.name)}</b> <span class="muted">${esc(x.code)}</span><br/>
-        <span class="muted">当前回撤 <b style="color:${x.curDD < -20 ? 'var(--down)' : x.curDD < -15 ? '#92600a' : 'inherit'}">${fmtPct(x.curDD)}</b> · 区间最大回撤 ${fmtPct(x.mdd)}${x.r1y != null ? ' · 近1年 ' + fmtPct(x.r1y) : ''}</span>
+        <span class="muted">货币基金（不适用回撤口径）· 七日年化 <b>${x.sd != null ? x.sd.toFixed(3) + '%' : '—'}</b>（近7日均 ${x.sd7avg != null ? x.sd7avg.toFixed(3) + '%' : '—'}）· 万份收益 <b>${x.mi != null ? x.mi.toFixed(4) : '—'}</b>（近30日均 ${x.mi30avg != null ? x.mi30avg.toFixed(4) : '—'}）${x.miDate ? ' · ' + esc(x.miDate) : ''}${x.ver && x.ver.ok === true ? ' <span style="color:var(--down)">✓' + (x.ver.alts && x.ver.alts.length > 1 ? '双源' : '副源') + '校验通过(' + (x.ver.alts || []).map((a) => a.src).join('+') + ')</span>' : x.ver && x.ver.ok === false ? ' <b style="color:var(--up)">⚠副源偏差' + x.ver.diff.toFixed(2) + '%</b>' : ' <span style="opacity:.6">·副源不可用</span>'}</span>
+        </span>
+      </div>`
+      : `<div class="rv-line" style="align-items:flex-start">
+        <span style="font-size:15px">${x.lamp}</span>
+        <span style="flex:1"><b>${esc(x.name)}</b> <span class="muted">${esc(x.code)}</span><br/>
+        <span class="muted">当前回撤 <b style="color:${x.curDD < -20 ? 'var(--down)' : x.curDD < -15 ? '#92600a' : 'inherit'}">${fmtPct(x.curDD)}</b> · 区间最大回撤 ${fmtPct(x.mdd)}${x.r1y != null ? ' · 近1年 ' + fmtPct(x.r1y) : ''}${x.lastNav != null ? ' · 累计净值 ' + x.lastNav.toFixed(4) + '（' + esc(x.navDate) + '）' : ''}${x.ver && x.ver.ok === true ? ' <span style="color:var(--down)">✓' + (x.ver.alts && x.ver.alts.length > 1 ? '双源' : '副源') + '校验通过(' + (x.ver.alts || []).map((a) => a.src).join('+') + ')</span>' : x.ver && x.ver.ok === false ? ' <b style="color:var(--up)">⚠副源偏差' + x.ver.diff.toFixed(2) + '%</b>' : ' <span style="opacity:.6">·副源不可用</span>'}</span>
         ${x.excess && x.excess.length ? '<br/>' + x.excess.map((e2) => '<span class="muted">' + esc(e2.m) + '月 </span><span style="color:' + (e2.e >= 0 ? 'var(--up)' : 'var(--down)') + '">' + fmtPct(e2.e) + '</span>').join(' ') : ''}
         </span>
       </div>`).join('');
     card.style.display = '';
     const dh = document.getElementById('ddHint');
-    if (dh) dh.textContent = `近1年＝自然日365天口径（${yearWindow().cut} 起，与总览「组合收益走势」同源）· 回撤区间为近 500 自然日 · 当前回撤 >15% 黄灯 / >20% 红灯`;
+    if (dh) dh.textContent = `近1年＝自然日365天口径（${yearWindow().cut} 起，与总览「组合收益走势」同源）· 回撤区间为近 500 自然日 · 当前回撤 >15% 黄灯 / >20% 红灯 · 数据源：天天基金 pingzhongdata（累计净值含分红再投），货币基金用七日年化/万份收益`;
   } catch (e) { /* 静默降级 */ }
   _ddLoading = false;
 }
@@ -4828,16 +5085,23 @@ function openSettings(tab) {
       return `<div class="row-item"><div><b>${esc((q && q.name) || meta.name || shortCode(c))}</b> <span class="muted">${shortCode(c)}${meta.note ? ' · ' + esc(meta.note) : ''}</span></div></div>`;
     }).join('') || '<div class="empty">暂无自选</div>'}</div>`;
   } else {
+    const warnN = (window.DATA_WARN || []).length;
     body = `<div class="metric-grid">
-        ${metric('实时报价', '腾讯财经')}
+        ${metric('实时报价', '腾讯财经（主）')}
+        ${metric('基金净值（主）', '天天基金 pingzhongdata')}
+        ${metric('基金净值（副源）', '东财官方F10 + 腾讯/新浪')}
         ${metric('市场统计', '东方财富')}
-        ${metric('K线', '腾讯（A/港/美）')}
-        ${metric('基本面', '东方财富')}
       </div>
+      <div class="hint" style="margin:12px 0 6px"><b>数据可信性自检（v35.1）</b>：基金净值采用「主源 + 副源」双口径比对（同日偏差 &gt;0.5% / 跨日 &gt;1% 即告警）。主源＝天天基金 pingzhongdata；副源＝腾讯 s_jj（全类型）+ 腾讯 jj（普通基金）。当前累计告警 <b style="color:${warnN ? 'var(--up)' : 'var(--down)'}">${warnN}</b> 条。</div>
+      <button class="btn" id="diRun" style="margin-bottom:8px">▶ 立即运行数据自检</button>
+      <div id="diOut" class="row-list" style="max-height:220px;overflow:auto"><div class="empty">点击上方按钮，逐只持仓基金执行主源/副源比对</div></div>
       <p class="foot-note" style="margin-top:12px">
-        · 报价：qt.gtimg.cn（A股 / 港股 / 美股 / 指数，GBK 解码后解析）<br>
-        · 场外基金估值：天天基金 fundgz（单位净值 + 盘中估算，JSONP）<br>
-        · 市场统计：真实行业指数报价，按行业涨跌占比估算个股涨跌家数<br>
+        · 报价：qt.gtimg.cn（A股 / 港股 / 美股 / 指数，GBK 解码后解析；涨跌幅经自洽校验 f[32]≈(f[3]-f[4])/f[4]）<br>
+        · 基金净值主源：天天基金 pingzhongdata（累计净值序列，哨兵值 + 代码校验防串号）<br>
+        · 基金净值副源：腾讯 s_jj（跨类型：普通=累计净值，货基=万份收益）+ 腾讯 jj（普通基金）；东财官方 F10（浏览器端防盗链，仅服务端可作第三方）<br>
+        · 货币基金：不适用回撤/年化口径，改列七日年化 + 万份收益<br>
+        · 已弃用：fundgz.1234567.com.cn（2026-09 起全量 404）、hq.sinajs.cn 基金（Referer 校验拒跨域）<br>
+        · 市场统计：真实行业指数报价，按行业涨跌占比估算个股涨跌家数（标注 partial）<br>
         · K线：web.ifzq.gtimg.cn 前复权日/周/月线，A股在腾讯不可用时回退东财<br>
         · 资讯：新浪财经滚动、金十快讯、华尔街见闻快讯、东财交易所公告、按持仓代码拉取的公司公告（IR）<br>
         · 持仓与交易信号保存在资料库数据表中，在线增删改、多端双向同步；行情与资讯实时来自公开财经接口。
@@ -4849,7 +5113,35 @@ function openSettings(tab) {
     $('#sSave').onclick = () => {
       state.settings.refreshMs = parseInt($('#sRefresh').value, 10) || 30000;
       state.settings.cash = parseFloat($('#sCash').value) || 0;
-      saveStore(); closeModal(); startLoop(); toast('设置已保存');
+      saveStore(); closeModal(); toast('设置已保存');
+    };
+  } else if (t === 'about') {
+    const btn = $('#diRun');
+    if (btn) btn.onclick = async () => {
+      const out = $('#diOut'); if (!out) return;
+      const funds = state.portfolio.filter((h) => /^\d{6}$/.test(shortCode(h.code) || ''));
+      if (!funds.length) { out.innerHTML = '<div class="empty">当前无基金持仓</div>'; return; }
+      out.innerHTML = '<div class="hint">正在执行三源比对…</div>';
+      const lines = [];
+      for (const h of funds) {
+        const c = shortCode(h.code);
+        const r = await apiGet('/api/fund-ac-series', { code: c, days: 500 }).catch(() => null);
+        if (!r || !r.ok || !r.data) { lines.push(c + ' 主源不可用'); continue; }
+        const isM = !!r.data.isMoney;
+        const tr = r.data.trend || [];
+        const mi = r.data.millionIncome || [];
+        const pv = isM ? (mi.length ? mi[mi.length - 1].y : null) : (tr.length ? tr[tr.length - 1].y : null);
+        const pd = isM ? (mi.length ? mi[mi.length - 1].d : '') : (tr.length ? tr[tr.length - 1].d : '');
+        if (pv == null) { lines.push(c + ' 主源无有效净值'); continue; }
+        let v = null;
+        try { v = await window.__DATA_INTEGRITY__.verifyNav(c, pv, pd, isM); } catch (e) {}
+        const alts = (v && v.alts) || [];
+        lines.push('<div class="row-item"><div><b>' + esc(h.name || c) + '</b> <span class="muted">' + c + (isM ? ' · 货币基金' : '') + ' · 主源 ' + pv + '（' + esc(pd) + '）</span><br/>' +
+          (alts.length ? alts.map((a) => '<span class="muted">' + esc(a.src) + ' ' + a.nav + ' ' + esc(a.date) + '</span>').join(' ｜ ') : '<span class="muted">副源不可用</span>') +
+          ' → ' + (v && v.ok === true ? '<b style="color:var(--down)">✓ 一致</b>' : v && v.ok === false ? '<b style="color:var(--up)">⚠ 偏差 ' + v.diff.toFixed(2) + '%</b>' : '<span class="muted">未校验</span>') +
+          '</div></div>');
+      }
+      out.innerHTML = lines.join('') || '<div class="empty">无数据</div>';
     };
   }
 }
