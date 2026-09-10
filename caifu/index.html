@@ -1106,7 +1106,7 @@ window.HOLDINGS_SNAP = {"updatedAt":"2026-09-10","source":"天天基金季报(�
  * 独立不合成：A股=沪深300 / 港股=恒生+恒科各算 / 美股=标普500；m2Ref=央行 M2 月末值
  * 更新：python fetch_market_snap.py
  * ========================================================================== */
-window.MKT_SNAP = {"updatedAt":"2026-09-10","m2Ref":{"value":355.51,"unit":"万亿","asOf":"2026-07","note":"M2 月末余额，央行口径"},"idx":{"000300":{"name":"沪深300","pe":13.61,"cp":4572.6,"pos":0.6854,"date":"2026-09-09"},"HSI":{"name":"恒生指数","pe":11.18,"cp":25274.96,"pos":0.6272,"date":"2026-09-09"},"HSTECH":{"name":"恒生科技","pe":23.08,"cp":4420.79,"pos":0.3294,"date":"2026-09-09"},".INX":{"name":"标普500","pe":25.85,"cp":7636.36,"pos":0.6041,"date":"2026-09-09"}}};
+window.MKT_SNAP = {"updatedAt":"2026-09-10","m2Ref":{"value":355.51,"unit":"万亿","asOf":"2026-07","note":"M2 月末余额，央行口径"},"idx":{"000300":{"name":"沪深300","pe":13.61,"cp":4572.6,"pos":0.6854,"date":"2026-09-09"},"HSI":{"name":"恒生指数","pe":11.18,"cp":25274.96,"pos":0.6272,"date":"2026-09-09"},"HSTECH":{"name":"恒生科技","pe":23.08,"cp":4420.79,"pos":0.3294,"date":"2026-09-09"},".INX":{"name":"标普500","pe":25.85,"cp":7636.36,"pos":0.6041,"date":"2026-09-09"}},"amt":{"yi":18732,"date":"2026-09-09","note":"最近已完成交易日全天成交额（沪深京），快照兜底"}};
 /* ==========================================================================
  * 自选池基准快照（v28b）：自选基金官方基准 -> 理杏仁可得指数的映射 + 10年分位。
  * 仅用于信号引擎估值分位（sigValPct 回退），不参与持仓/重仓逻辑。
@@ -2050,8 +2050,8 @@ window.HS_name = function (code) {
         rows.push(mkRow('M6', 'M6 深度回撤（沪深300 距250日高点）', '回撤幅度', (dd > 0 ? '+' : '') + dd.toFixed(1) + '%', '≥15% 接近 · ≥20% 分批补仓区', dd <= -20 ? 'act' : dd <= -15 ? 'near' : 'watch', '腾讯日K'));
       }
     } catch (e) { /* K线失败跳过趋势行 */ }
-    /* --- M7~M8 资金面（东财日线，固定取最近已完成交易日全天成交额；全A=沪深京三所，京=北证50口径实证≈全所） --- */ /* fw2_m7_scope_v33 */ /* fw2_m7_fullday_v33 */
-    let amtYi = null, amtDay = '';
+    /* --- M7~M8 资金面（固定取最近已完成交易日全天成交额；全A=沪深京三所，京=北证50口径实证≈全所）--- */ /* fw2_m7_scope_v33 */ /* fw2_m7_fullday_v33 */ /* fw2_m7_chain_v34 */
+    let amtYi = null, amtDay = '', amtSrc = '';
     let envHot = false, envCold = false, envNote = "";
     try {
       const nowD = new Date();
@@ -2064,18 +2064,23 @@ window.HS_name = function (code) {
         if (last[0] === todayStr && !afterClose) return kl.length > 1 ? kl[kl.length - 2].split(',') : null;
         return last;
       };
-      const sums = [];
-      for (const sid of ['1.000001', '0.399106', '0.899050']) {
-        const u = 'https://push2his.eastmoney.com/api/qt/stock/kline/get?secid=' + sid + '&fields1=f1,f2,f3&fields2=f51,f52,f53,f54,f55,f56,f57&klt=101&fqt=0&end=20500101&lmt=5';
-        const j = await (await mfetch(u)).json();
-        const bar = pickBar((j && j.data && j.data.klines) || []);
-        if (bar) sums.push(bar);
-      }
-      if (sums.length === 3 && sums.every((b) => b[0] === sums[0][0])) {
-        amtYi = sums.reduce((a, b) => a + (+b[6] || 0), 0) / 1e8;
-        amtDay = sums[0][0];
-      }
-    } catch (e) { /* 日线失败跳过（绝不用盘中累计凑数，避免阈值误判） */ }
+      const grabAll = async (getJson) => {
+        const sums = [];
+        for (const sid of ['1.000001', '0.399106', '0.899050']) {
+          const u = 'https://push2his.eastmoney.com/api/qt/stock/kline/get?secid=' + sid + '&fields1=f1,f2,f3&fields2=f51,f52,f53,f54,f55,f56,f57&klt=101&fqt=0&end=20500101&lmt=5';
+          const j = await getJson(u);
+          const bar = pickBar((j && j.data && j.data.klines) || []);
+          if (bar) sums.push(bar);
+        }
+        if (sums.length === 3 && sums.every((b) => b[0] === sums[0][0])) return { yi: sums.reduce((a, b) => a + (+b[6] || 0), 0) / 1e8, day: sums[0][0] };
+        return null;
+      };
+      /* 三级链：fetch → JSONP（script 标签不带 Origin，可绕跨域拦截）→ 快照兜底（MKT_SNAP.amt=最近已完成收盘值）。绝不用盘中累计凑数 */
+      const jsonpT = (u, ms) => Promise.race([jsonp(u), new Promise((_, rej) => setTimeout(() => rej(new Error('jsonp timeout')), ms))]);
+      try { const r1 = await grabAll(async (u) => (await (await mfetch(u)).json())); if (r1) { amtYi = r1.yi; amtDay = r1.day; } } catch (e) {}
+      if (amtYi == null) { try { const r2 = await grabAll(async (u) => await jsonpT(u, 9000)); if (r2) { amtYi = r2.yi; amtDay = r2.day; amtSrc = '·JSONP'; } } catch (e) {} }
+      if (amtYi == null && snap.amt && snap.amt.yi > 0 && snap.amt.date) { amtYi = snap.amt.yi; amtDay = snap.amt.date; amtSrc = '·快照兜底'; }
+    } catch (e) { /* 全链失败才跳过（此时 M7/M8 缺行，横幅无资金面段） */ }
     const m2v = snap.m2Ref && snap.m2Ref.value;
     if (amtYi != null && amtYi > 0) {
       const tw = amtYi / 1e4;
@@ -2083,7 +2088,7 @@ window.HS_name = function (code) {
       envHot = tw >= 3 || (pct8e != null && pct8e >= 1);
       envCold = tw < 1.5 || (pct8e != null && pct8e < 0.3);
       envNote = envHot ? '过热·自选买入降档' : envCold ? '低迷·自选买入升档' : '中性';
-      rows.push(mkRow('M7', 'M7 全A成交额（沪深京）', '全日成交金额', amtYi.toFixed(0) + ' 亿（' + amtDay + '）', '<1.5万亿 网格定投 · 1.5~2万亿 关注入场 · ≥3万亿 分批卖', tw >= 3 ? 'act' : tw >= 2 ? 'watch' : tw >= 1.5 ? 'near' : 'act', '东财日线·京=北证50口径'));
+      rows.push(mkRow('M7', 'M7 全A成交额（沪深京）', '全日成交金额', amtYi.toFixed(0) + ' 亿（' + amtDay + '）', '<1.5万亿 网格定投 · 1.5~2万亿 关注入场 · ≥3万亿 分批卖', tw >= 3 ? 'act' : tw >= 2 ? 'watch' : tw >= 1.5 ? 'near' : 'act', '东财日线·京=北证50口径' + amtSrc));
       if (m2v) {
         const pct8 = (tw / m2v) * 100;
         const tag8 = pct8 >= 1.5 ? '疯狂·清仓提示(D8)' : pct8 >= 1 ? '过热·分批卖' : pct8 <= 0.3 ? '低迷·机会区' : '中性';
