@@ -5248,18 +5248,28 @@ function renderSignalDash() {
   const mkP = (window.marketEvalAll ? window.marketEvalAll() : Promise.resolve(null)).catch(() => null);
   Promise.all([window.signalEvalAll(hold, wl), mkP]).then(([rows, mk]) => {
     if (state.view !== 'notes') return;
-    const LVL = { act: ['行动', '#A32D2D'], near: ['接近', '#854F0B'], watch: ['观察', '#5F5E5A'] };
+    const LVL = { act: ['行动', '#A32D2D', '#FCEBEB', '#A32D2D'], near: ['接近', '#854F0B', '#FAEEDA', '#854F0B'], watch: ['观察', '#5F5E5A', '#F1EFE8', '#5F5E5A'] }; /* fw2_row_v32 */
     const rowHtml = (r) => {
       const key = r.pool + ':' + r.code + ':' + r.sig;
       const dim = sigAcked(key, r.lvl === 'act' ? 7 : 1) ? ' style="opacity:.45"' : '';
       const L = LVL[r.lvl] || LVL.watch;
-      return '<div' + dim + ' style="padding:6px 0;border-bottom:1px dashed var(--border,#e3e7ee)">'
-        + '<span class="tag">' + (r.pool === 'hold' ? '持仓' : r.pool === 'market' ? '市场' : '自选') + '</span> '
-        + (r.noLink ? '<b>' + esc(r.name) + '</b>' : '<b class="lk-rs" data-rscode="' + esc(r.code) + '" style="cursor:pointer;text-decoration:underline dotted">' + esc(r.name) + '</b>')
-        + ' · ' + esc(r.sig) + '　当前 <b>' + esc(r.cur) + '</b> ｜ 阈值 ' + esc(r.thr)
-        + ' ｜ <span style="color:' + L[1] + ';font-weight:500">' + L[0] + '</span>'
-        + (/^M[123]$/.test(r.code) ? (function () { var mm = String(r.cur).match(/(\d+(?:\.\d+)?)\s*%/); var m = mm ? parseFloat(mm[1]) : 0; var w = Math.max(2, Math.min(100, m)); var bc = r.lvl === 'act' ? 'var(--up)' : r.lvl === 'near' ? 'var(--warn)' : 'var(--brand)'; return '<span title="十年分位" style="display:inline-block;width:64px;height:5px;background:var(--panel-3);border-radius:3px;vertical-align:middle;margin-left:8px"><span style="display:block;height:5px;width:' + w + '%;background:' + bc + ';border-radius:3px"></span></span>'; })() : '') + ' ｜ <span style="opacity:.6">' + esc(r.src) + '</span>'
-        + (r.lvl === 'act' && !sigAcked(key) ? ' <button class="btn btn-sm" data-sigack="' + esc(key) + '">知道了</button>' : '')
+      const curColor = r.lvl === 'act' ? 'var(--up)' : r.lvl === 'near' ? 'var(--warn)' : 'var(--text)';
+      const barColor = r.lvl === 'act' ? 'var(--up)' : r.lvl === 'near' ? 'var(--warn)' : 'var(--line)';
+      const nameHtml = r.noLink ? '<b>' + esc(r.name) + '</b>' : '<b class="lk-rs" data-rscode="' + esc(r.code) + '" style="cursor:pointer">' + esc(r.name) + '</b>';
+      return '<div' + dim + ' style="background:var(--panel-2,#f7f9fc);border-left:3px solid ' + barColor + ';border-radius:0 8px 8px 0;padding:8px 12px;margin-bottom:6px">'
+        + '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">'
+        + '<span style="font-size:13px;color:var(--text,#1a2233)">' + nameHtml + '</span>'
+        + '<span style="font-size:10px;font-family:var(--mono);background:var(--panel-3,#eef1f6);color:var(--text-2,#55616e);padding:1px 6px;border-radius:5px">' + esc(r.code) + '</span>'
+        + '<span style="font-size:11px;color:var(--muted,#8b95a1)">' + esc(r.sig) + '</span>'
+        + '<span style="margin-left:auto;font-size:17px;font-weight:500;font-family:var(--mono);color:' + curColor + ';white-space:nowrap">' + esc(r.cur) + '</span>'
+        + '<span style="font-size:11px;background:' + L[2] + ';color:' + L[3] + ';padding:2px 8px;border-radius:6px;white-space:nowrap">' + L[0] + '</span>'
+        + '</div>'
+        + '<div style="display:flex;align-items:center;gap:10px;margin-top:3px;font-size:11px;color:var(--muted,#8b95a1)">'
+        + '<span>阈值 ' + esc(r.thr) + '</span>'
+        + (/^M[123]$/.test(r.code) ? (function () { var mm = String(r.cur).match(/(\d+(?:\.\d+)?)\s*%/); var m = mm ? parseFloat(mm[1]) : 0; var w = Math.max(2, Math.min(100, m)); var bc = r.lvl === 'act' ? 'var(--up)' : r.lvl === 'near' ? 'var(--warn)' : 'var(--brand)'; return '<span title="十年分位" style="display:inline-block;width:64px;height:5px;background:var(--panel-3);border-radius:3px"><span style="display:block;height:5px;width:' + w + '%;background:' + bc + ';border-radius:3px"></span></span>'; })() : '')
+        + '<span style="opacity:.75">' + esc(r.src) + '</span>'
+        + (r.lvl === 'act' && !sigAcked(key) ? '<button class="btn btn-sm" data-sigack="' + esc(key) + '" style="margin-left:auto">知道了</button>' : '')
+        + '</div>'
         + '</div>';
     };
     const GRP_COLOR = { '持仓信号': '#2563eb', '自选信号': '#BA7517', '市场信号': '#888780' };
@@ -5281,8 +5291,8 @@ function renderSignalDash() {
         + '<span style="margin-left:auto;display:flex;gap:6px;align-items:center">'
         + bd(act.length, '行动', '#FCEBEB', '#A32D2D') + bd(near.length, '接近', '#FAEEDA', '#854F0B') + bd(watch.length, '观察', '#F1EFE8', '#5F5E5A')
         + '<span data-arrow style="opacity:.5;font-size:11px">' + (folded ? '\u25b8' : '\u25be') + '</span></span></div>';
-      if (srcNote) html += '<div class="hint" style="opacity:.75;margin-bottom:4px">' + esc(srcNote) + '</div>';
-      if (metaList && metaList.length) html += '<div class="hint" style="opacity:.7;margin-bottom:4px">未启用：' + metaList.map((m) => m.sig + '（' + m.why + '）').join('；') + '</div>';
+      if (srcNote) html += '<div class="hint" style="opacity:.55;font-size:10px;margin-bottom:3px">' + esc(srcNote) + '</div>';
+      if (metaList && metaList.length) html += '<div class="hint" style="opacity:.55;font-size:10px;margin-bottom:3px">未启用：' + metaList.map((m) => m.sig + '（' + m.why + '）').join('；') + '</div>';
       html = html + '<div data-grpbody="' + esc(main) + '" style="' + (folded ? 'display:none' : '') + '">';
       if (!list.length) html += '<div class="empty">暂无标的</div>';
       else {
@@ -5297,7 +5307,8 @@ function renderSignalDash() {
     const wGate = rows.watch.filter((r) => r.sig.indexOf('W6') >= 0).length;
     const envTxt = mk && mk.env ? (mk.env.hot ? '市场过热·自选买入降档' : mk.env.cold ? '市场低迷·自选买入升档' : '资金面中性') : '';
     const bnAll = ((mk && mk.banner) || []).concat(['<b>自选池</b>｜加权估值分位 ' + (wAvg == null ? '—' : wAvg.toFixed(0) + '%') + '｜行动档 ' + wAct + ' 只｜待过闸门 ' + wGate + ' 只' + (envTxt ? '｜' + envTxt : '')]);
-    body.innerHTML = '<div style="border:1px solid var(--border,#e3e7ee);border-radius:8px;padding:8px 10px;margin-bottom:8px;font-size:13px;line-height:1.9;color:var(--fg2,#5b6470)">' + bnAll.join('<br>') + '</div>'
+    const bnFmt = (s) => { const i = s.indexOf('\uff5c'); return i > 0 ? '<span style="font-size:11px;color:var(--muted,#8b95a1)">' + s.slice(0, i) + '</span>' + s.slice(i) : s; };
+    body.innerHTML = '<div style="border:1px solid var(--border,#e3e7ee);border-radius:8px;padding:8px 12px;margin-bottom:10px;font-size:12.5px;line-height:1.9;color:var(--text-2,#55616e)">' + bnAll.map(bnFmt).join('<br>') + '</div>'
       /* v31b: 市场信号置顶 */ /* fw2_sig_order_v31b */
       + grp('市场信号（环境 / 温度计 / 资金面）', (mk && mk.rows) || [], null)
       + grp('持仓信号（止盈 / 止损 / 加仓 / 仓位）', rows.hold, rows.meta.filter((m) => m.pool === 'hold'))
