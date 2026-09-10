@@ -5297,11 +5297,12 @@ function renderSignalDash() {
     const envTxt = mk && mk.env ? (mk.env.hot ? '市场过热·自选买入降档' : mk.env.cold ? '市场低迷·自选买入升档' : '资金面中性') : '';
     const bnAll = ((mk && mk.banner) || []).concat(['<b>自选池</b>｜加权估值分位 ' + (wAvg == null ? '—' : wAvg.toFixed(0) + '%') + '｜行动档 ' + wAct + ' 只｜待过闸门 ' + wGate + ' 只' + (envTxt ? '｜' + envTxt : '')]);
     body.innerHTML = '<div style="border:1px solid var(--border,#e3e7ee);border-radius:8px;padding:8px 10px;margin-bottom:8px;font-size:13px;line-height:1.9;color:var(--fg2,#5b6470)">' + bnAll.join('<br>') + '</div>'
+      /* v31b: 市场信号置顶 */ /* fw2_sig_order_v31b */
+      + grp('市场信号（环境 / 温度计 / 资金面）', (mk && mk.rows) || [], null)
       + grp('持仓信号（止盈 / 止损 / 加仓 / 仓位）', rows.hold, rows.meta.filter((m) => m.pool === 'hold'))
       + grp('自选信号（买入时机 / 风险）', rows.watch, rows.meta.filter((m) => m.pool === 'watch'),
         '自选来源：' + (state._wlSrc === 'DB' ? '资料库自选表' : state._wlSrc === '种子' ? '旁挂种子' : '未取得') + ' ' + ((state.watchlist || []).length) + ' 只'
-        + (state._wlErr ? ' · ⚠ ' + state._wlErr : ''))
-      + grp('市场信号（环境 / 温度计 / 资金面）', (mk && mk.rows) || [], null);
+        + (state._wlErr ? ' · ⚠ ' + state._wlErr : ''));
     body.onclick = (e) => {
       const gb = e.target.closest('.sig-grp');
       if (gb) {
