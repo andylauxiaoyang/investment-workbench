@@ -2050,16 +2050,32 @@ window.HS_name = function (code) {
         rows.push(mkRow('M6', 'M6 深度回撤（沪深300 距250日高点）', '回撤幅度', (dd > 0 ? '+' : '') + dd.toFixed(1) + '%', '≥15% 接近 · ≥20% 分批补仓区', dd <= -20 ? 'act' : dd <= -15 ? 'near' : 'watch', '腾讯日K'));
       }
     } catch (e) { /* K线失败跳过趋势行 */ }
-    /* --- M7~M8 资金面（qt.gtimg.cn，f37=成交额万元；全A≈上证+深证综指） --- */
-    let amtYi = null;
+    /* --- M7~M8 资金面（东财日线，固定取最近已完成交易日全天成交额；全A=沪深京三所，京=北证50口径实证≈全所） --- */ /* fw2_m7_scope_v33 */ /* fw2_m7_fullday_v33 */
+    let amtYi = null, amtDay = '';
     let envHot = false, envCold = false, envNote = "";
     try {
-      const buf = await (await mfetch('https://qt.gtimg.cn/q=sh000001,sz399106')).arrayBuffer();
-      const text = new TextDecoder('gbk').decode(new Uint8Array(buf));
-      const grab = (k) => { const m = text.match(new RegExp('v_' + k + '="([^"]*)"')); return m ? m[1].split('~') : null; };
-      const sh = grab('sh000001'), sz = grab('sz399106');
-      amtYi = ((+(sh && sh[37]) || 0) + (+(sz && sz[37]) || 0)) / 1e4; /* 万元→亿元 */
-    } catch (e) { /* 行情失败跳过 */ }
+      const nowD = new Date();
+      const ymd = (d) => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+      const todayStr = ymd(nowD);
+      const afterClose = nowD.getHours() >= 15;
+      const pickBar = (kl) => {
+        if (!kl || !kl.length) return null;
+        const last = kl[kl.length - 1].split(',');
+        if (last[0] === todayStr && !afterClose) return kl.length > 1 ? kl[kl.length - 2].split(',') : null;
+        return last;
+      };
+      const sums = [];
+      for (const sid of ['1.000001', '0.399106', '0.899050']) {
+        const u = 'https://push2his.eastmoney.com/api/qt/stock/kline/get?secid=' + sid + '&fields1=f1,f2,f3&fields2=f51,f52,f53,f54,f55,f56,f57&klt=101&fqt=0&end=20500101&lmt=5';
+        const j = await (await mfetch(u)).json();
+        const bar = pickBar((j && j.data && j.data.klines) || []);
+        if (bar) sums.push(bar);
+      }
+      if (sums.length === 3 && sums.every((b) => b[0] === sums[0][0])) {
+        amtYi = sums.reduce((a, b) => a + (+b[6] || 0), 0) / 1e8;
+        amtDay = sums[0][0];
+      }
+    } catch (e) { /* 日线失败跳过（绝不用盘中累计凑数，避免阈值误判） */ }
     const m2v = snap.m2Ref && snap.m2Ref.value;
     if (amtYi != null && amtYi > 0) {
       const tw = amtYi / 1e4;
@@ -2067,7 +2083,7 @@ window.HS_name = function (code) {
       envHot = tw >= 3 || (pct8e != null && pct8e >= 1);
       envCold = tw < 1.5 || (pct8e != null && pct8e < 0.3);
       envNote = envHot ? '过热·自选买入降档' : envCold ? '低迷·自选买入升档' : '中性';
-      rows.push(mkRow('M7', 'M7 全A成交额（沪+深）', '当日成交金额', amtYi.toFixed(0) + ' 亿', '<1.5万亿 网格定投 · 1.5~2万亿 关注入场 · ≥3万亿 分批卖', tw >= 3 ? 'act' : tw >= 2 ? 'watch' : tw >= 1.5 ? 'near' : 'act', '腾讯实时'));
+      rows.push(mkRow('M7', 'M7 全A成交额（沪深京）', '全日成交金额', amtYi.toFixed(0) + ' 亿（' + amtDay + '）', '<1.5万亿 网格定投 · 1.5~2万亿 关注入场 · ≥3万亿 分批卖', tw >= 3 ? 'act' : tw >= 2 ? 'watch' : tw >= 1.5 ? 'near' : 'act', '东财日线·京=北证50口径'));
       if (m2v) {
         const pct8 = (tw / m2v) * 100;
         const tag8 = pct8 >= 1.5 ? '疯狂·清仓提示(D8)' : pct8 >= 1 ? '过热·分批卖' : pct8 <= 0.3 ? '低迷·机会区' : '中性';
@@ -2082,7 +2098,7 @@ window.HS_name = function (code) {
     if (amtYi != null && amtYi > 0 && m2v) {
       const tw = amtYi / 1e4, pct8 = (tw / m2v) * 100;
       const tag7 = tw >= 3 ? '≥3万亿 过热区' : tw >= 2 ? '正常区' : tw >= 1.5 ? '关注入场点' : '网格定投区';
-      banner.push('<b>资金面</b>｜全A成交 ' + amtYi.toFixed(0) + ' 亿（' + tag7 + '）｜资金系数 ' + pct8.toFixed(2) + '%｜M2 参考 ' + m2v + ' 万亿（' + snap.m2Ref.asOf + '，央行月末值）');
+      banner.push('<b>资金面</b>｜全A成交 ' + amtYi.toFixed(0) + ' 亿（' + amtDay + ' 全日）｜资金系数 ' + pct8.toFixed(2) + '%｜M2 参考 ' + m2v + ' 万亿（' + snap.m2Ref.asOf + '，央行月末值）');
     }
     const data = { rows: rows, banner: banner, env: { hot: envHot, cold: envCold, note: envNote } };
     window.MKT_EVAL = { at: Date.now(), data: data };
@@ -5261,7 +5277,7 @@ function renderSignalDash() {
         + '<span style="font-size:13px;color:var(--text,#1a2233)">' + nameHtml + '</span>'
         + '<span style="font-size:10px;font-family:var(--mono);background:var(--panel-3,#eef1f6);color:var(--text-2,#55616e);padding:1px 6px;border-radius:5px">' + esc(r.code) + '</span>'
         + '<span style="font-size:11px;color:var(--muted,#8b95a1)">' + esc(r.sig) + '</span>'
-        + '<span style="margin-left:auto;font-size:17px;font-weight:500;font-family:var(--mono);color:' + curColor + ';white-space:nowrap">' + esc(r.cur) + '</span>'
+        + '<span style="margin-left:auto;font-size:13px;color:' + curColor + ';white-space:nowrap">' + esc(r.cur) + '</span>'
         + '<span style="font-size:11px;background:' + L[2] + ';color:' + L[3] + ';padding:2px 8px;border-radius:6px;white-space:nowrap">' + L[0] + '</span>'
         + '</div>'
         + '<div style="display:flex;align-items:center;gap:10px;margin-top:3px;font-size:11px;color:var(--muted,#8b95a1)">'
