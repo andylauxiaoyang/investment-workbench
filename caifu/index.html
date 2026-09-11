@@ -183,7 +183,7 @@ button, input, select, textarea { font-family: inherit; font-size: 12.5px; color
 /* 徽标 / 标签 */
 .badge {
   display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 999px;
-  background: var(--panel-2); border: 1px solid var(--line); font-size: 10.5px; color: var(--text-2); font-family: var(--mono);
+  background: var(--panel-2); border: 1px solid var(--line); font-size: 10.5px; color: var(--text-2); font-family: var(--mono); white-space: nowrap;
 }
 .badge-ok { background: var(--down-soft); border-color: rgba(0,214,143,.3); color: var(--down); }
 .badge-warn { background: var(--warn-soft); border-color: rgba(255,176,32,.3); color: var(--warn); }
@@ -210,8 +210,9 @@ button, input, select, textarea { font-family: inherit; font-size: 12.5px; color
 
 /* ---------- 按钮 / 表单 ---------- */
 .btn {
-  background: var(--panel-2); border: 1px solid var(--line); border-radius: 7px; padding: 6px 12px; transition: background .15s, border-color .15s, color .15s, box-shadow .15s;
-  cursor: pointer; color: var(--text); transition: .12s;
+  background: var(--panel-2); border: 1px solid var(--line); border-radius: 7px; padding: 6px 12px;
+  cursor: pointer; color: var(--text); white-space: nowrap;
+  transition: background .15s, border-color .15s, color .15s, box-shadow .15s;
 }
 .btn:hover { border-color: var(--amber); color: var(--amber); }
 .btn-sm { padding: 4px 10px; font-size: 12px; }
@@ -679,6 +680,15 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   .tb-l .sub { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .tb-r { flex: 0 1 auto; flex-wrap: wrap; }
   .btn, .badge { white-space: nowrap; }
+}
+
+/* v44 手机端文本折行治理 */
+/* 短标签类元素永不折行（按钮/徽章/胶囊） */
+.badge, .chip, .tag { white-space: nowrap; }
+/* 兜底：信号行按钮无论 inline 样式如何，都保持单行且不被压缩 */
+#sigBody button.btn, #sigBody .btn-sm { white-space: nowrap !important; flex: 0 0 auto !important; }
+@media (max-width: 767px) {
+  #sigBody .btn-sm { padding: 4px 10px; font-size: 11.5px; line-height: 1.5; }
 }
 </style>
 <meta name="theme-color" content="#2563eb">
@@ -5900,11 +5910,11 @@ function renderSignalDash() {
         + '<span style="margin-left:auto;font-size:13px;color:' + curColor + ';white-space:nowrap">' + esc(r.cur) + '</span>'
         + '<span style="font-size:11px;background:' + L[2] + ';color:' + L[3] + ';padding:2px 8px;border-radius:6px;white-space:nowrap">' + L[0] + '</span>'
         + '</div>'
-        + '<div style="display:flex;align-items:center;gap:10px;margin-top:3px;font-size:11px;color:var(--muted,#94a3b8)">'
+        + '<div style="display:flex;align-items:center;gap:4px 10px;margin-top:4px;font-size:11px;color:var(--muted,#94a3b8);flex-wrap:wrap">'
         + '<span>阈值 ' + esc(r.thr) + '</span>'
         + (/^M[123]$/.test(r.code) ? (function () { var mm = String(r.cur).match(/(\d+(?:\.\d+)?)\s*%/); var m = mm ? parseFloat(mm[1]) : 0; var w = Math.max(2, Math.min(100, m)); var bc = r.lvl === 'act' ? 'var(--up)' : r.lvl === 'near' ? 'var(--warn)' : 'var(--brand)'; return '<span title="十年分位" style="display:inline-block;width:64px;height:5px;background:var(--panel-3);border-radius:3px"><span style="display:block;height:5px;width:' + w + '%;background:' + bc + ';border-radius:3px"></span></span>'; })() : '')
         + '<span style="opacity:.75">' + esc(r.src) + '</span>'
-        + (r.lvl === 'act' && !sigAcked(key) ? '<button class="btn btn-sm" data-sigack="' + esc(key) + '" style="margin-left:auto">知道了</button>' : '')
+        + (r.lvl === 'act' && !sigAcked(key) ? '<button class="btn btn-sm" data-sigack="' + esc(key) + '" style="margin-left:auto;flex:0 0 auto;white-space:nowrap">知道了</button>' : '')
         + '</div>'
         + '</div>';
     };
