@@ -3905,7 +3905,8 @@ function renderHoldings() {
     ${kpi('持仓市值', '¥' + fmtMoney(totals.mv), `${totals.count} 只 · 折人民币`, '', true)}
     ${kpi('当日盈亏', fmtMoney(totals.day, true), fmtPct(totals.dayPct), cls(totals.day))}
     ${kpi('总盈亏', fmtMoney(totals.total, true), fmtPct(totals.totalPct), cls(totals.total))}
-    ${kpi('总资产', '¥' + fmtMoney(totals.asset), totals.cash > 0 ? '含现金 ¥' + fmtMoney(totals.cash) : '与我的持仓同步 · 不含现金', '')}`;
+    `;
+
 
   const tbody = $('#hdTable tbody');
   if (!sorted.length) {
@@ -4391,16 +4392,8 @@ function renderReview(regen) {
   const riskLi = (r) => `<div class="rv-risk ${riskCls[r.sev] || ''}"><span class="rv-risk-dot"></span><span>${esc(r.txt)}</span></div>`;
 
   $('#rvBody').innerHTML = `
-    <div class="rv-sec">
-      <h3>组合当日全景 <span class="mk hint">与持仓 / 诊断页同源快照</span></h3>
-      <div class="kpi-grid kpi-5">
-        ${kpi('总资产', '¥' + fmtMoney(o.totals.asset), '', '', 'hl')}
-        ${kpi('当日盈亏', fmtMoney(o.totals.day, true), fmtPct(o.totals.dayPct), cls(o.totals.day), 'hl')}
-        ${kpi('累计盈亏', fmtMoney(o.totals.total, true), fmtPct(o.totals.totalPct), cls(o.totals.total), 'hl')}
-        ${kpi('仓位', o.totals.positionPct.toFixed(1) + '%', '现金 ' + fmtMoney(o.totals.cash), o.totals.positionPct >= 90 ? 'up' : '', 'hl')}
-        ${kpi('持仓标的数', String(o.totals.count), '', '', 'hl')}
-      </div>
-    </div>
+    <!-- v49 组合当日全景 5 卡已删：与总览页 Hero/KPI 同源快照完全重复，数据看总览页 -->
+
 
     <div class="rv-sec">
       <h3>底层重仓股当日异动 <span class="mk hint">穿透持仓基金前十大重仓 · 季报权重 · 腾讯行情</span></h3>
