@@ -1409,7 +1409,9 @@ window.HOLDINGS_SNAP = {"updatedAt":"2026-09-10","source":"天天基金季报(�
  * 独立不合成：A股=沪深300 / 港股=恒生+恒科各算 / 美股=标普500；m2Ref=央行 M2 月末值
  * 更新：python fetch_market_snap.py
  * ========================================================================== */
-window.MKT_SNAP = {"updatedAt":"2026-09-10","m2Ref":{"value":355.51,"unit":"万亿","asOf":"2026-07","note":"M2 月末余额，央行口径"},"idx":{"000300":{"name":"沪深300","pe":13.61,"cp":4572.6,"pos":0.6854,"date":"2026-09-09"},"HSI":{"name":"恒生指数","pe":11.18,"cp":25274.96,"pos":0.6272,"date":"2026-09-09"},"HSTECH":{"name":"恒生科技","pe":23.08,"cp":4420.79,"pos":0.3294,"date":"2026-09-09"},".INX":{"name":"标普500","pe":25.85,"cp":7636.36,"pos":0.6041,"date":"2026-09-09"}},"amt":{"yi":18732,"date":"2026-09-09","note":"最近已完成交易日全天成交额（沪深京），快照兜底"}};
+window.MKT_SNAP = {"updatedAt":"2026-09-10","m2Ref":{"value":355.51,"unit":"万亿","asOf":"2026-07","note":"M2 月末余额，央行口径"},"idx":{"000300":{"name":"沪深300","pe":13.61,"cp":4572.6,"pos":0.6854,"date":"2026-09-09"},"HSI":{"name":"恒生指数","pe":11.18,"cp":25274.96,"pos":0.6272,"date":"2026-09-09"},"HSTECH":{"name":"恒生科技","pe":23.08,"cp":4420.79,"pos":0.3294,"date":"2026-09-09"},".INX":{"name":"标普500","pe":25.85,"cp":7636.36,"pos":0.6041,"date":"2026-09-09"}},"amt":{"yi":16625,"date":"2026-09-10","note":"最近已完成交易日全天成交额（沪深京），快照兜底"}};
+/* v46 资金面兜底快照刷新：amt 跟随最近已完成交易日（2026-09-10 / 16625亿）
+ * 每日可跑 python refresh_amt_snap.py 自动补，勿再手工写死 */
 /* ==========================================================================
  * 自选池基准快照（v28b）：自选基金官方基准 -> 理杏仁可得指数的映射 + 10年分位。
  * 仅用于信号引擎估值分位（sigValPct 回退），不参与持仓/重仓逻辑。
@@ -2686,7 +2688,11 @@ window.HS_name = function (code) {
     if (amtYi != null && amtYi > 0 && m2v) {
       const tw = amtYi / 1e4, pct8 = (tw / m2v) * 100;
       const tag7 = tw >= 3 ? '≥3万亿 过热区' : tw >= 2 ? '正常区' : tw >= 1.5 ? '关注入场点' : '网格定投区';
-      banner.push('<b>资金面</b>｜全A成交 ' + amtYi.toFixed(0) + ' 亿（' + amtDay + ' 全日）｜资金系数 ' + pct8.toFixed(2) + '%｜M2 参考 ' + m2v + ' 万亿（' + snap.m2Ref.asOf + '，央行月末值）');
+      /* v46：披露取数来源（·在线 / ·快照兜底），兜底走琥珀色，避免静默兜底 */
+      const amtSrcTxt = amtSrc || '·在线';
+      const amtSrcHtml = (amtSrc === '·快照兜底')
+        ? '<span style="color:var(--warn,#d98c00)">' + amtSrcTxt + '</span>' : amtSrcTxt;
+      banner.push('<b>资金面</b>｜全A成交 ' + amtYi.toFixed(0) + ' 亿（' + amtDay + ' 全日' + amtSrcHtml + '）｜资金系数 ' + pct8.toFixed(2) + '%｜M2 参考 ' + m2v + ' 万亿（' + snap.m2Ref.asOf + '，央行月末值）');
     }
     const data = { rows: rows, banner: banner, env: { hot: envHot, cold: envCold, note: envNote } };
     window.MKT_EVAL = { at: Date.now(), data: data };
