@@ -70,12 +70,12 @@ button, input, select, textarea { font-family: inherit; font-size: 12.5px; color
 #nav { display: flex; flex-direction: column; gap: 1px; }
 .nav-item {
   position: relative; display: flex; align-items: center; gap: 9px;
-  background: none; border: 0; text-align: left; padding: 8px 10px; border-radius: 5px;
+  background: none; border: 0; text-align: left; padding: 9px 12px; border-radius: 8px;
   color: var(--text-2); cursor: pointer; font-size: 13px; border-left: 2px solid transparent;
 }
 .nav-item .ic { width: 16px; text-align: center; color: var(--muted); font-size: 12px; }
 .nav-item:hover { background: var(--panel-2); color: var(--text); }
-.nav-item.active { background: var(--brand-soft); color: var(--amber); font-weight: 600; border-left-color: var(--amber); }
+.nav-item.active { background: var(--brand); color: #fff; font-weight: 600; border-left-color: transparent; box-shadow: 0 3px 10px rgba(37, 99, 235, .20); }
 .nav-item.active .ic { color: var(--amber); }
 .nav-item .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--up); margin-left: auto; display: none; }
 .nav-item .dot.on { display: block; box-shadow: 0 0 6px var(--up); }
@@ -132,11 +132,11 @@ button, input, select, textarea { font-family: inherit; font-size: 12.5px; color
 /* ---------- 卡片 ---------- */
 .card {
   background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius);
-  box-shadow: var(--shadow); padding: 12px 14px; margin-bottom: 12px;
+  box-shadow: none; padding: 16px 18px; margin-bottom: 14px;
 }
 .card-flush { padding: 0; overflow: hidden; }
-.card-h { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 9px; }
-.card-flush .card-h { padding: 12px 14px 0; }
+.card-h { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 13px; }
+.card-flush .card-h { padding: 16px 18px 0; }
 .card-h h3 { font-size: 13.5px; font-weight: 600; letter-spacing: -.01em; color: var(--text); }
 .card-h h3::before { content: ""; display: inline-block; width: 3px; height: 12px; background: var(--amber); margin-right: 7px; vertical-align: -1px; border-radius: 1px; }
 .hint { font-size: 10.5px; color: var(--muted); }
@@ -152,7 +152,7 @@ button, input, select, textarea { font-family: inherit; font-size: 12.5px; color
 @media (max-width: 820px) { .kpi-grid, .kpi-grid.kpi-4 { grid-template-columns: repeat(2, 1fr); } }
 .kpi {
   background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius);
-  box-shadow: var(--shadow); padding: 10px 12px; position: relative; overflow: hidden;
+  box-shadow: none; padding: 13px 15px; position: relative; overflow: hidden;
 }
 .kpi::after { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 2px; background: var(--line); }
 .kpi.hl { background: var(--panel-2); }
@@ -210,12 +210,12 @@ button, input, select, textarea { font-family: inherit; font-size: 12.5px; color
 
 /* ---------- 按钮 / 表单 ---------- */
 .btn {
-  background: var(--panel-2); border: 1px solid var(--line); border-radius: 5px; padding: 6px 12px;
+  background: var(--panel-2); border: 1px solid var(--line); border-radius: 7px; padding: 6px 12px; transition: background .15s, border-color .15s, color .15s, box-shadow .15s;
   cursor: pointer; color: var(--text); transition: .12s;
 }
 .btn:hover { border-color: var(--amber); color: var(--amber); }
 .btn-sm { padding: 4px 10px; font-size: 12px; }
-.btn-primary { background: var(--amber); border-color: var(--amber); color: #000; font-weight: 600; }
+.btn-primary { background: var(--amber); border-color: var(--amber); color: #fff; font-weight: 600; box-shadow: 0 3px 10px rgba(37, 99, 235, .22); }
 .btn-primary:hover { background: var(--amber-2); border-color: var(--amber-2); color: #000; }
 .btn-ghost { background: var(--panel-2); }
 .btn-block { width: 100%; }
@@ -493,6 +493,36 @@ table td, table th, .ix .val, .ix .pct, .ix .chg, .badge {
 .hero .hero-tag { font-size: 11px; color: var(--muted); }
 .hero-sub + .hero-tag { margin-top: 7px; }
 
+/* ===== v43 阶段2：图标系统 + 卡片呼吸感 + 微动效 ===== */
+/* 1) 图标系统：CSS mask 线性图标（随 currentColor 变色；不依赖 DOM 内嵌 SVG，跨端导入安全） */
+.ic {
+  -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat;
+  -webkit-mask-position: center; mask-position: center;
+  -webkit-mask-size: 100% 100%; mask-size: 100% 100%;
+  background-color: currentColor;
+}
+[data-view="overview"] .ic { -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%20fill='none'%20stroke='%23000'%20stroke-width='2'%20stroke-linecap='round'%20stroke-linejoin='round'%3E%3Crect%20x='3'%20y='3'%20width='7'%20height='9'%20rx='1.5'/%3E%3Crect%20x='14'%20y='3'%20width='7'%20height='5'%20rx='1.5'/%3E%3Crect%20x='14'%20y='12'%20width='7'%20height='9'%20rx='1.5'/%3E%3Crect%20x='3'%20y='16'%20width='7'%20height='5'%20rx='1.5'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%20fill='none'%20stroke='%23000'%20stroke-width='2'%20stroke-linecap='round'%20stroke-linejoin='round'%3E%3Crect%20x='3'%20y='3'%20width='7'%20height='9'%20rx='1.5'/%3E%3Crect%20x='14'%20y='3'%20width='7'%20height='5'%20rx='1.5'/%3E%3Crect%20x='14'%20y='12'%20width='7'%20height='9'%20rx='1.5'/%3E%3Crect%20x='3'%20y='16'%20width='7'%20height='5'%20rx='1.5'/%3E%3C/svg%3E"); }
+[data-view="holdings"] .ic { -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%20fill='none'%20stroke='%23000'%20stroke-width='2'%20stroke-linecap='round'%20stroke-linejoin='round'%3E%3Cpath%20d='M21.2%2015.9A10%2010%200%201%201%208%202.8'/%3E%3Cpath%20d='M22%2012A10%2010%200%200%200%2012%202v10z'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%20fill='none'%20stroke='%23000'%20stroke-width='2'%20stroke-linecap='round'%20stroke-linejoin='round'%3E%3Cpath%20d='M21.2%2015.9A10%2010%200%201%201%208%202.8'/%3E%3Cpath%20d='M22%2012A10%2010%200%200%200%2012%202v10z'/%3E%3C/svg%3E"); }
+[data-view="signal"] .ic { -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%20fill='none'%20stroke='%23000'%20stroke-width='2'%20stroke-linecap='round'%20stroke-linejoin='round'%3E%3Cpath%20d='M13%202%203%2014h9l-1%208%2010-12h-9l1-8z'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%20fill='none'%20stroke='%23000'%20stroke-width='2'%20stroke-linecap='round'%20stroke-linejoin='round'%3E%3Cpath%20d='M13%202%203%2014h9l-1%208%2010-12h-9l1-8z'/%3E%3C/svg%3E"); }
+[data-view="market"] .ic { -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%20fill='none'%20stroke='%23000'%20stroke-width='2'%20stroke-linecap='round'%20stroke-linejoin='round'%3E%3Cpath%20d='M22%2012h-4l-3%209L9%203l-3%209H2'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%20fill='none'%20stroke='%23000'%20stroke-width='2'%20stroke-linecap='round'%20stroke-linejoin='round'%3E%3Cpath%20d='M22%2012h-4l-3%209L9%203l-3%209H2'/%3E%3C/svg%3E"); }
+[data-view="news"] .ic { -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%20fill='none'%20stroke='%23000'%20stroke-width='2'%20stroke-linecap='round'%20stroke-linejoin='round'%3E%3Cpath%20d='M4%2022h16a2%202%200%200%200%202-2V4a2%202%200%200%200-2-2H8a2%202%200%200%200-2%202v16a2%202%200%200%201-2%202Zm0%200a2%202%200%200%201-2-2v-9c0-1.1.9-2%202-2h2'/%3E%3Cpath%20d='M18%2014h-8'/%3E%3Cpath%20d='M15%2018h-5'/%3E%3Cpath%20d='M10%206h8v4h-8V6Z'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%20fill='none'%20stroke='%23000'%20stroke-width='2'%20stroke-linecap='round'%20stroke-linejoin='round'%3E%3Cpath%20d='M4%2022h16a2%202%200%200%200%202-2V4a2%202%200%200%200-2-2H8a2%202%200%200%200-2%202v16a2%202%200%200%201-2%202Zm0%200a2%202%200%200%201-2-2v-9c0-1.1.9-2%202-2h2'/%3E%3Cpath%20d='M18%2014h-8'/%3E%3Cpath%20d='M15%2018h-5'/%3E%3Cpath%20d='M10%206h8v4h-8V6Z'/%3E%3C/svg%3E"); }
+[data-view="review"] .ic { -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%20fill='none'%20stroke='%23000'%20stroke-width='2'%20stroke-linecap='round'%20stroke-linejoin='round'%3E%3Cpath%20d='M12%2020h9'/%3E%3Cpath%20d='M16.5%203.5a2.12%202.12%200%200%201%203%203L7%2019l-4%201%201-4%2012.5-12.5Z'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%20fill='none'%20stroke='%23000'%20stroke-width='2'%20stroke-linecap='round'%20stroke-linejoin='round'%3E%3Cpath%20d='M12%2020h9'/%3E%3Cpath%20d='M16.5%203.5a2.12%202.12%200%200%201%203%203L7%2019l-4%201%201-4%2012.5-12.5Z'/%3E%3C/svg%3E"); }
+[data-view="research"] .ic { -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%20fill='none'%20stroke='%23000'%20stroke-width='2'%20stroke-linecap='round'%20stroke-linejoin='round'%3E%3Ccircle%20cx='11'%20cy='11'%20r='8'/%3E%3Cpath%20d='m21%2021-4.3-4.3'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%20fill='none'%20stroke='%23000'%20stroke-width='2'%20stroke-linecap='round'%20stroke-linejoin='round'%3E%3Ccircle%20cx='11'%20cy='11'%20r='8'/%3E%3Cpath%20d='m21%2021-4.3-4.3'/%3E%3C/svg%3E"); }
+.nav-item .ic { display: inline-flex; align-items: center; justify-content: center; width: 17px; height: 17px; flex: 0 0 17px; }
+.nav-item.active .ic { color: #fff; }
+.mobile-tabbar .tab .ic { display: inline-flex; align-items: center; justify-content: center; width: 21px; height: 21px; flex: 0 0 21px; }
+/* 2) 卡片呼吸感与层级 */
+.card-h h3 { font-size: 14px; }
+.metric { padding: 10px 12px; }
+/* 3) 微动效：视图淡入上移（ease-out，禁回弹） */
+@keyframes v43fade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+.view.active { animation: v43fade .22s cubic-bezier(.22, .61, .36, 1); }
+/* 4) 键盘焦点可见性 */
+button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
+  outline: 2px solid var(--brand); outline-offset: 2px;
+}
+@media (prefers-reduced-motion: reduce) { .view.active { animation: none; } }
+
 /* ===== 移动端适配（≤767px）：左栏→底部 Tab（v38） ===== */
 .mobile-tabbar { display: none; }
 @media (max-width: 767px) {
@@ -639,6 +669,17 @@ table td, table th, .ix .val, .ix .pct, .ix .chg, .badge {
   .hero-pct { font-size: 18px; }
   .hero-chg { font-size: 13px; }
 }
+
+/* ===== v43b 阶段2b：中等宽度（768–1180px）顶栏防折行 ===== */
+/* 沿用 v41 教训：给会换行的容器加 wrap 时必须同时解除固定 flex-basis，否则内容溢出压住下方 */
+@media (min-width: 768px) and (max-width: 1180px) {
+  .topbar { flex: none; height: auto; min-height: 50px; flex-wrap: wrap; gap: 6px 12px; padding: 8px 14px; }
+  .tb-l { min-width: 0; flex: 1 1 auto; }
+  .tb-l h1 { white-space: nowrap; }
+  .tb-l .sub { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .tb-r { flex: 0 1 auto; flex-wrap: wrap; }
+  .btn, .badge { white-space: nowrap; }
+}
 </style>
 <meta name="theme-color" content="#2563eb">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -659,13 +700,13 @@ table td, table th, .ix .val, .ix .pct, .ix .chg, .badge {
       </div>
     </div>
     <nav data-page-node-id="cvBjLlFtDTcAeOJfrW9QGj" id="nav">
-      <button data-page-node-id="4tAqWmBxzfTL9UdI1oAl71" class="nav-item active" data-view="overview"><span data-page-node-id="l2TIRZzzlCY7Kz8JVkAlKW" class="ic"><!--pnid:iY6zQOfq7ei3oEAheHGnj8-->▤</span><!--pnid:MdQSyMgSqLtD3Dx7I5TzJ5-->工作台总览</button>
-      <button data-page-node-id="m9FQUCiASwYiB7fIIwaDI3" class="nav-item" data-view="holdings"><span data-page-node-id="lXsFGKsqeZv4jmUTCMnkql" class="ic"><!--pnid:qgj3kgPhSFxxJaA1PcEjbl-->▦</span><!--pnid:6qw1FDj9SYTSMbI5xqoOGu-->我的持仓</button>
-      <button class="nav-item" data-view="signal"><span class="ic">⚑</span>交易信号</button>
-      <button data-page-node-id="MRSmtETb8VoPg7GudElBXj" class="nav-item" data-view="market"><span data-page-node-id="Wldd7bgWsxOt1TbCIPYqBo" class="ic"><!--pnid:gPV8beygTkVyjeDa16p3Ei-->◈</span><!--pnid:DKu4okU0TYwYfaQc3CedYH-->持仓诊断</button>
-      <button data-page-node-id="MVVUqip80gYLj9yljIbry0" class="nav-item" data-view="news"><span data-page-node-id="3qyNvv2OrqDOM5S40cdndf" class="ic"><!--pnid:aYN36M1fDGnrp0j08eRqpC-->✉</span><!--pnid:CPHNZBlIT42j0YlEKtb2JX-->财经资讯<span data-page-node-id="oYuzf26sBYTgJczkPMSjY7" class="dot" id="navNewsDot"></span></button>
-      <button data-page-node-id="Ga6wshPQelu7iiVzmZnk9d" class="nav-item" data-view="review"><span data-page-node-id="yZd4GoeL05aeFQXlTwIiIw" class="ic"><!--pnid:qvAd5VwTnjM1EhaDEA89mY-->✎</span><!--pnid:8aMqo6AmLGfsf2L6dghdIp-->每日复盘</button>
-      <button data-page-node-id="Y4mtPFP2JVwSGbggos9xxj" class="nav-item" data-view="research"><span data-page-node-id="urr5Uby852APAvPavafXuf" class="ic"><!--pnid:wwrryqEtixnJPFvzGu29sT-->◎</span><!--pnid:fTjdHCEBQz4W5WQAznksww-->标的分析</button>
+      <button data-page-node-id="4tAqWmBxzfTL9UdI1oAl71" class="nav-item active" data-view="overview"><span data-page-node-id="l2TIRZzzlCY7Kz8JVkAlKW" class="ic"><!--pnid:iY6zQOfq7ei3oEAheHGnj8--></span><!--pnid:MdQSyMgSqLtD3Dx7I5TzJ5-->工作台总览</button>
+      <button data-page-node-id="m9FQUCiASwYiB7fIIwaDI3" class="nav-item" data-view="holdings"><span data-page-node-id="lXsFGKsqeZv4jmUTCMnkql" class="ic"><!--pnid:qgj3kgPhSFxxJaA1PcEjbl--></span><!--pnid:6qw1FDj9SYTSMbI5xqoOGu-->我的持仓</button>
+      <button class="nav-item" data-view="signal"><span class="ic"></span>交易信号</button>
+      <button data-page-node-id="MRSmtETb8VoPg7GudElBXj" class="nav-item" data-view="market"><span data-page-node-id="Wldd7bgWsxOt1TbCIPYqBo" class="ic"><!--pnid:gPV8beygTkVyjeDa16p3Ei--></span><!--pnid:DKu4okU0TYwYfaQc3CedYH-->持仓诊断</button>
+      <button data-page-node-id="MVVUqip80gYLj9yljIbry0" class="nav-item" data-view="news"><span data-page-node-id="3qyNvv2OrqDOM5S40cdndf" class="ic"><!--pnid:aYN36M1fDGnrp0j08eRqpC--></span><!--pnid:CPHNZBlIT42j0YlEKtb2JX-->财经资讯<span data-page-node-id="oYuzf26sBYTgJczkPMSjY7" class="dot" id="navNewsDot"></span></button>
+      <button data-page-node-id="Ga6wshPQelu7iiVzmZnk9d" class="nav-item" data-view="review"><span data-page-node-id="yZd4GoeL05aeFQXlTwIiIw" class="ic"><!--pnid:qvAd5VwTnjM1EhaDEA89mY--></span><!--pnid:8aMqo6AmLGfsf2L6dghdIp-->每日复盘</button>
+      <button data-page-node-id="Y4mtPFP2JVwSGbggos9xxj" class="nav-item" data-view="research"><span data-page-node-id="urr5Uby852APAvPavafXuf" class="ic"><!--pnid:wwrryqEtixnJPFvzGu29sT--></span><!--pnid:fTjdHCEBQz4W5WQAznksww-->标的分析</button>
     </nav>
     <div data-page-node-id="NWwNSKf013miYG93pfpzol" class="side-foot">
       <div data-page-node-id="ftO6aqWRCbJJWBhMHmpotd" class="snap-box">
@@ -3241,6 +3282,21 @@ function drawSpark(cv, arr, pct) {
 /* ==========================================================
  *  视图 1：工作台总览
  * ========================================================== */
+function countUpNum(el, to, fmt, dur) { /* v43 阶段2：数字滚动（尊重 reduced-motion；dur=0 直接落值） */
+  if (!el || typeof to !== 'number' || !isFinite(to)) return;
+  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (reduce || !dur) { el.textContent = fmt(to); return; }
+  var t0 = 0;
+  function step(t) {
+    if (!t0) t0 = t;
+    var k = Math.min(1, (t - t0) / dur);
+    var e = 1 - Math.pow(1 - k, 3);
+    el.textContent = fmt(to * e);
+    if (k < 1) requestAnimationFrame(step); else el.textContent = fmt(to);
+  }
+  requestAnimationFrame(step);
+}
+
 function renderOverview() {
   const { rows, totals, byMarket, bySector } = buildRows();
   $('#ovIndexNote').textContent = state.snapshot.at ? '快照 ' + fmtClock(state.snapshot.at) : '';
@@ -3263,6 +3319,14 @@ function renderOverview() {
     ${kpi('可用现金', '¥' + fmtMoney(totals.cash), '可在设置中修改', '')}
   `;
 
+  /* v43 阶段2：Hero 数字滚动（仅首帧播放，后续刷新直接落值） */
+  try {
+    var v43dur = window.__v43HeroDone ? 0 : 700;
+    window.__v43HeroDone = true;
+    countUpNum(document.querySelector('#ovHero .hero-v'), totals.asset, function (n) { return '\u00a5' + fmtMoney(n); }, v43dur);
+    countUpNum(document.querySelector('#ovHero .hero-pct'), totals.day, function (n) { return (totals.day >= 0 ? '+' : '') + '\u00a5' + fmtMoney(n); }, v43dur);
+    countUpNum(document.querySelector('#ovHero .hero-chg'), totals.dayPct, function (n) { return fmtPct(n); }, v43dur);
+  } catch (e) {}
   if (typeof renderSignalSummary === 'function') renderSignalSummary(); /* v36 信号摘要 */
   drawPortCurve();
   drawHoldingsTreemap();
