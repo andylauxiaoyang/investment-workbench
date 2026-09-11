@@ -556,6 +556,42 @@ button, input, select, textarea { font-family: inherit; font-size: 12.5px; color
   .badge { padding: 4px 7px; line-height: 1.35; }
 }
 
+
+/* v41 移动端布局重构 */
+@media (max-width: 767px) {
+  /* A. 顶部栏：解除固定高度（根因），高度随内容自适应，不再溢出压住下方 */
+  .topbar { flex: none; height: auto; min-height: 0; flex-wrap: wrap; align-items: center; padding: 9px 12px 10px; gap: 6px; }
+  .tb-l { width: 100%; min-width: 0; flex-wrap: nowrap; align-items: baseline; gap: 7px; }
+  .tb-l h1 { font-size: 15px; font-weight: 600; letter-spacing: .2px; white-space: nowrap; flex: 0 0 auto; }
+  .tb-l .sub { font-size: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: 1 1 auto; min-width: 0; }
+  .tb-r { width: 100%; justify-content: flex-start; flex-wrap: wrap; gap: 6px; row-gap: 5px; }
+  .tb-r #refreshBtn { margin-left: auto; }
+  .badge { font-size: 9px; padding: 2.5px 6px; line-height: 1.3; white-space: nowrap; }
+  #lastUpdate { font-size: 9px; white-space: nowrap; }
+
+  /* B. 卡片头：标题单行（不再竖排换行）+ 明细说明独立一行 */
+  .card-h { flex-direction: column; align-items: flex-start; justify-content: flex-start; gap: 3px; margin-bottom: 8px; }
+  .card-h h3 { font-size: 13px; font-weight: 600; line-height: 1.3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+  .card-h h3::before { height: 11px; margin-right: 6px; vertical-align: -1px; }
+  .card-h .hint { font-size: 10px; line-height: 1.3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+  .card-h .hint:empty { display: none; }
+  .card-flush .card-h { padding: 10px 12px 0; }
+
+  /* C. 分段器 / 子 Tab：单行不换行，横向滑动 */
+  .seg { max-width: 100%; }
+  .seg button { font-size: 11.5px; padding: 6px 10px; white-space: nowrap; }
+  .seg-tabs { display: flex; flex-wrap: nowrap; overflow-x: auto; max-width: 100%; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+  .seg-tabs::-webkit-scrollbar { height: 0; }
+  .seg-tabs button { flex: 0 0 auto; }
+
+  /* D. 指数条：单元格加宽，避免涨跌值挤到相邻卡片 */
+  .ix { min-width: 94px; }
+  .ix .c { font-size: 9.5px; letter-spacing: 0; }
+
+  /* E. 信号仪表盘总标题说明：同样单行截断，保持全站一致 */
+  #sigDash > div:first-of-type .hint { white-space: nowrap !important; overflow: hidden !important; text-overflow: ellipsis !important; max-width: 100% !important; }
+}
+
 </style>
 <meta name="theme-color" content="#2563eb">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -2914,9 +2950,14 @@ function setConn(ok, msg) {
   else { b.className = 'badge badge-warn'; b.textContent = '数据异常'; if (msg) console.warn('[quote]', msg); }
 }
 function updateSessionBadge() {
-  const parts = ['CN', 'HK', 'US'].map((m) => `${MARKET_LABEL[m]}${sessionOf(m).label}`);
+  const narrow = !!(window.matchMedia && window.matchMedia('(max-width: 767px)').matches);
+  const parts = ['CN', 'HK', 'US'].map((m) => {
+    let lbl = sessionOf(m).label;
+    if (narrow) lbl = lbl.replace('午间休市', '午休');
+    return `${MARKET_LABEL[m]}${lbl}`;
+  });
   const b = $('#sessionBadge');
-  b.textContent = parts.join(' · ');
+  b.textContent = parts.join(narrow ? ' ' : ' · ');
   b.className = 'badge ' + (anyMarketOpen() ? 'badge-live' : '');
 }
 /* 板块归属：按需拉取并缓存 */
