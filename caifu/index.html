@@ -6014,6 +6014,17 @@ if (_ntList) _ntList.onclick = async (e) => {
 };
 
 window.addEventListener('resize', () => Object.values(charts).forEach((c) => c && !c.isDisposed() && c.resize()));
+/* v47c 屏幕尺寸变化时防抖重绘持仓热力图：最大格封顶门控依赖容器宽度，
+   仅 resize 画布不会重算门控 —— 横屏加载后转竖屏会退回「文字被截断」状态。 */
+(function () {
+  let _t = null;
+  window.addEventListener('resize', () => {
+    clearTimeout(_t);
+    _t = setTimeout(() => {
+      if (document.getElementById('ovHoldMap') && typeof drawHoldingsTreemap === 'function') drawHoldingsTreemap();
+    }, 220);
+  });
+})();
 document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal(); });
 
 /* ---------- 交易信号仪表盘（v27） ---------- */
