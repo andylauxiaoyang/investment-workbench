@@ -148,6 +148,8 @@ button, input, select, textarea { font-family: inherit; font-size: 12.5px; color
 .kpi-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; margin-bottom: 12px; }
 .kpi-grid.kpi-4 { grid-template-columns: repeat(4, 1fr); }
 .kpi-grid.kpi-5 { grid-template-columns: repeat(5, 1fr); }
+.kpi-grid.kpi-3 { grid-template-columns: repeat(3, 1fr); } /* v50 诊断页 KPI 3 张 */
+
 @media (max-width: 1320px) { .kpi-grid { grid-template-columns: repeat(3, 1fr); } }
 @media (max-width: 820px) { .kpi-grid, .kpi-grid.kpi-4 { grid-template-columns: repeat(2, 1fr); } }
 .kpi-grid.kpi-2 { grid-template-columns: repeat(2, 1fr); } /* v48 总览 KPI 固定 2 张（桌面 2 列满行 / 手机 2 列） */
@@ -631,7 +633,8 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   .ix .p { font-size: 11px; font-weight: 500; }
   .ix .c { font-size: 9px; }
   /* 3. KPI 卡片：5/4/6 列统一变 2 列，数字缩小、字重降低 */
-  .kpi-grid, .kpi-grid.kpi-4, .kpi-grid.kpi-5 { grid-template-columns: repeat(2, 1fr) !important; gap: 8px; }
+  .kpi-grid, .kpi-grid.kpi-4, .kpi-grid.kpi-5, .kpi-grid.kpi-3 { grid-template-columns: repeat(2, 1fr) !important; gap: 8px; } /* v50 */
+
   .kpi { padding: 8px 10px; }
   .kpi .k { font-size: 10px; }
   .kpi .v { font-size: 15px; font-weight: 500; }
@@ -932,7 +935,8 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
       </section>
 
       <section data-page-node-id="PT3ogD608lLTmIk1R93WnS" class="view" id="view-market">
-        <div data-page-node-id="NH4HvkhyFPxORRokRdv3Zv" class="kpi-grid kpi-5" id="dgKpi"></div>
+        <div data-page-node-id="NH4HvkhyFPxORRokRdv3Zv" class="kpi-grid kpi-3" id="dgKpi"></div>
+
 
         <div data-page-node-id="bEQILnta67yxaRZLssVFpg" class="grid-2">
           <div data-page-node-id="MbIW1dMBsrlh2jsbSiwDoR" class="card">
@@ -3971,14 +3975,16 @@ function renderDiagnoseView() {
   } else err.classList.add('hidden');
 
   // ---- KPI ----
-  let dayTotal = 0, maxWeight = 0;
-  rows.forEach((r) => { dayTotal += r.dayCny || 0; if (r.weight > maxWeight) maxWeight = r.weight; });
+  let maxWeight = 0;
+
+  rows.forEach((r) => { if (r.weight > maxWeight) maxWeight = r.weight; });
+
   const relNews = (state.news.items || []).map((it) => Object.assign({}, it, { rel: relatedHoldings(it) })).filter((it) => it.rel.length);
   const alerts = alertsOf(rows);
   const signals = diagnoseSignals(rows, totals);
+  /* v50 诊断页删「持仓标的数/当日盈亏合计」2 卡：与总览页 Hero 重复，诊断特有指标保留 */
   const kpiHtml = [
-    kpi('持仓标的数', rows.length, '', '', 'hl'),
-    kpi('当日盈亏合计', fmtMoney(dayTotal, true), '', cls(dayTotal), 'hl'),
+
     kpi('单一最大权重', maxWeight.toFixed(1) + '%', maxWeight > 25 ? '单票偏高' : '', maxWeight > 25 ? 'up' : '', 'hl'),
     kpi('风险信号', String(signals.risks.length), signals.risks.length ? '需关注' : '平稳', signals.risks.length ? 'up' : '', 'hl'),
     kpi('持仓相关资讯', String(relNews.length), '', '', 'hl'),
