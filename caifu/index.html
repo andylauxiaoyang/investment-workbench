@@ -3252,17 +3252,42 @@ $('#tickerTrack') && ($('#tickerTrack').onclick = (e) => {
 function drawHoldingsTreemap() {
   const c = chartOf('ovHoldMap'); if (!c) return;
   const rows = buildRows().rows.filter((r) => r.mvCny != null && r.mvCny > 0);
-  if (!rows.length) { c.clear(); return; }
+  if (!rows.length) { c.clear();
+    const _n0 = document.getElementById('ovHoldMapNote');
+    if (_n0 && _n0.parentNode) _n0.parentNode.removeChild(_n0);
+    return; }
   const totalMv = rows.reduce((a, r) => a + r.mvCny, 0) || 1;
-  const data = rows.map((r) => {
+  /* v47 热力图最大格封顶：手机端（图表宽约 344px）若某只占比过高，treemap 的最大格会吃满高度，
+     其宽度 = 占比 x 容器宽，右列只剩 (1-占比) x 容器宽 —— 实测 90.6% 时右列仅 31px，
+     名称截成 1 字、+0.00% 被砍成 +0.。故把最大格面积封顶 75%，超出部分按真实比例分给其余格；
+     面积语义因此变为「权重·最大格封顶」，封顶生效时在卡片内显式注明。tooltip 始终显示真实值。 */
+  const CAP_TILE_MAX = 0.75;
+  const MIN_TILE_W = 64; /* v47b 单格可读最小宽度：约 5 个汉字 @11px + 内边距 */
+  const rawShare = rows.map((r) => (r.mvCny || 0) / totalMv);
+  const _maxI = rawShare.indexOf(Math.max.apply(null, rawShare));
+  /* v47b 按需封顶：treemap 中最大格宽度 = 占比 x 容器宽，右列 = (1-占比) x 容器宽。
+     只有当右列真的窄到放不下文字（< MIN_TILE_W）时才封顶 —— 宽屏桌面保持「面积=权重」严格成立。 */
+  const _cw = (c.getDom && c.getDom()) ? c.getDom().clientWidth : 0;
+  const _narrow = _cw > 0 && (1 - rawShare[_maxI]) * _cw < MIN_TILE_W;
+  let shares = rawShare.slice(), capped = false;
+  if (_narrow && rawShare[_maxI] > CAP_TILE_MAX && rawShare.length > 1) {
+    const over = rawShare[_maxI] - CAP_TILE_MAX;
+    const restSum = rawShare.reduce((a, s, i) => a + (i === _maxI ? 0 : s), 0);
+    if (restSum > 0) {
+      shares = rawShare.map((s, i) => (i === _maxI ? CAP_TILE_MAX : s + over * s / restSum));
+      capped = true;
+    }
+  }
+  const data = rows.map((r, i) => {
     const pct = r.pct || 0;
     return {
-      name: r.name, value: +r.mvCny.toFixed(2), code: r.code, _pct: pct,
+      name: r.name, value: +(shares[i] * 1000).toFixed(4), code: r.code, _pct: pct,
+      mv: r.mvCny, w: rawShare[i] * 100,
       itemStyle: { color: pct > 0 ? '#e02e24' : pct < 0 ? '#0a9e6b' : '#8a97a6' },
     };
   });
   c.setOption({
-    tooltip: { formatter: (p) => `${p.name}<br/>市值 ¥${fmtMoney(p.value)}<br/>权重 ${((p.value / totalMv) * 100).toFixed(1)}% · 当日 ${fmtPct(p.data._pct)}` },
+    tooltip: { formatter: (p) => `${p.name}<br/>市值 ¥${fmtMoney(p.data.mv)}<br/>权重 ${p.data.w.toFixed(1)}%${capped ? '（图中面积已封顶）' : ''} · 当日 ${fmtPct(p.data._pct)}` },
     series: [{
       type: 'treemap', roam: false, breadcrumb: { show: false }, nodeClick: false,
       width: '100%', height: '100%', top: 4, bottom: 4, left: 2, right: 2,
@@ -3273,6 +3298,23 @@ function drawHoldingsTreemap() {
     }],
   }, true);
   c.resize();
+  /* v47：封顶生效时在卡片内显式注明，避免面积语义被误读；未生效则移除 */
+  try {
+    const _host = document.getElementById('ovHoldMap');
+    let _note = document.getElementById('ovHoldMapNote');
+    if (capped) {
+      if (!_note && _host && _host.parentNode) {
+        _note = document.createElement('div');
+        _note.id = 'ovHoldMapNote';
+        _note.className = 'hint';
+        _note.style.marginTop = '6px';
+        _host.parentNode.insertBefore(_note, _host.nextSibling);
+      }
+      if (_note) _note.textContent = '面积＝权重（最大格封顶 75%，便于手机端辨读）';
+    } else if (_note && _note.parentNode) {
+      _note.parentNode.removeChild(_note);
+    }
+  } catch (e) {}
 }
 function sectorHeatHtml(rows) {
   const map = {};
