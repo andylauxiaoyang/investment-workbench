@@ -1123,6 +1123,20 @@ var Fr={},Gr={};var Wr,Hr=function(){function t(t,e,n){var i=this;this._sleepAft
   var DB_HOLDINGS = 'GjLvwNekmiaDCgMZrhaa29';
   var DB_NOTES = 'ht0gxUNmAZ9JSKzgQSC3q5';
   var DB_WATCHLIST = 'WTUs2FXUpqewFtsCUlciFy';
+  /* v52 fw2_v52_wl_snapshot：页面内置自选快照（第三级兜底，与资料库自选表/watchlist-data.json 同源，助手同步维护） */
+  var WATCHLIST_SNAPSHOT_AT = '2026-09-11';
+  var WATCHLIST_SNAPSHOT = [
+    { code: '160422', name: '华安创业板50ETF联接A', note: '', watchAt: '2026-08-06', founded: '2017-04-11', scale: '27.12亿元(2026-06-30)', fee: '0.15%+0.05%=0.20%' },
+    { code: '001015', name: '华夏沪深300指数增强A', note: '沪深300（私人）', watchAt: '2026-08-04', founded: '2015-02-10', scale: '24.22亿元(2026-06-30)', fee: '1.00%+0.20%=1.20%' },
+    { code: '006373', name: '国富全球科技互联混合(QDII)人民币A', note: '', watchAt: '2026-08-03', founded: '2018-11-20', scale: '58.83亿元(2026-06-30)', fee: '1.20%+0.20%=1.40%' },
+    { code: '270042', name: '广发纳指100ETF联接(QDII)A', note: '持仓（私人）', watchAt: '2026-08-03', founded: '2012-08-15', scale: '122.23亿元(2026-06-30)', fee: '0.80%+0.20%=1.00%' },
+    { code: '000746', name: '招商行业精选股票', note: '重要持仓。采矿，制造，金融，房地产。超额收益高', watchAt: '2026-07-31', founded: '2014-09-03', scale: '24.89亿元(2026-06-30)', fee: '1.20%+0.20%=1.40%' },
+    { code: '022438', name: '华泰柏瑞中证A500ETF联接A', note: '跟踪 中证A500 · 场内ETF 563360', watchAt: '2026-09-11', founded: '2024-11-12', scale: '9.46亿元(2026-06-30)', fee: '0.15%+0.05%' },
+    { code: '012761', name: '华泰柏瑞上证红利ETF联接A', note: '跟踪 上证红利 · 场内ETF 510880', watchAt: '2026-09-11', founded: '2021-11-15', scale: '3.06亿元(2026-06-30)', fee: '0.50%+0.10%' },
+    { code: '023917', name: '华夏国证自由现金流ETF发起式联接A', note: '跟踪 国证自由现金流 · 场内ETF 159201', watchAt: '2026-09-11', founded: '2025-04-29', scale: '22.36亿元(2026-06-30)', fee: '0.15%+0.05%' },
+    { code: '007817', name: '国泰中证全指通信设备ETF联接A', note: '跟踪 中证全指电信 · 场内ETF 561380', watchAt: '2026-09-11', founded: '2019-09-03', scale: '23.62亿元(2026-06-30)', fee: '0.50%+0.10%' },
+    { code: '000307', name: '易方达黄金ETF联接A', note: '跟踪 上海金 · 场内ETF 159934', watchAt: '2026-09-11', founded: '2016-05-26', scale: '58.83亿元(2026-06-30)', fee: '0.50%+0.10%' },
+  ];
   var WC_KEY = 'lk_wc_v2';
 
   var AT_TEXT = { stock: '股票', etf: 'ETF', bond: '债券', gold: '黄金商品', cash: '现金', fund: '基金' };
@@ -2903,6 +2917,16 @@ async function loadWatchlistFromDB() {
         if (metas) state._wlSrc = '种子';
       } else if (!state._wlErr) state._wlErr = '种子 HTTP ' + r.status;
     } catch (e2) { if (!state._wlErr) state._wlErr = '种子: ' + String((e2 && e2.message) || e2); }
+  }
+  /* v52 fw2_v52_wl_snapshot：DB 与种子均失败 → 内置快照兜底，不再静默沿用 localStorage 旧缓存 */
+  if (!Array.isArray(metas) || !metas.length) {
+    if (typeof WATCHLIST_SNAPSHOT !== 'undefined' && WATCHLIST_SNAPSHOT.length) {
+      metas = WATCHLIST_SNAPSHOT.map((x) => Object.assign({}, x));
+      metas.sort((a, b) => (b.watchAt || '').localeCompare(a.watchAt || ''));
+      state._wlSrc = '内置';
+      state._wlErr = (state._wlErr ? state._wlErr + '；' : '') + 'DB与种子均失败→内置快照(截至' + WATCHLIST_SNAPSHOT_AT + ')';
+      toast('自选在线加载失败，已用页面内置快照（' + metas.length + ' 只，截至 ' + WATCHLIST_SNAPSHOT_AT + '），可能非最新');
+    }
   }
   if (!Array.isArray(metas) || !metas.length) {
     if (!state._wlErr) state._wlErr = state._wlSrc === 'DB' ? 'DB 空返回' : 'DB 与种子均无数据';
@@ -6081,7 +6105,7 @@ function renderSignalDash() {
       + grp('市场信号（环境 / 温度计 / 资金面）', (mk && mk.rows) || [], null)
       + grp('持仓信号（止盈 / 止损 / 加仓 / 仓位）', rows.hold, rows.meta.filter((m) => m.pool === 'hold'))
       + grp('自选信号（买入时机 / 风险）', rows.watch, rows.meta.filter((m) => m.pool === 'watch'),
-        '自选来源：' + (state._wlSrc === 'DB' ? '资料库自选表' : state._wlSrc === '种子' ? '旁挂种子' : '未取得') + ' ' + ((state.watchlist || []).length) + ' 只'
+        '自选来源：' + (state._wlSrc === 'DB' ? '资料库自选表' : state._wlSrc === '种子' ? '旁挂种子' : state._wlSrc === '内置' ? '页面内置快照' : '未取得') + ' ' + ((state.watchlist || []).length) + ' 只'
         + (state._wlErr ? ' · ⚠ ' + state._wlErr : ''));
     body.onclick = (e) => {
       const gb = e.target.closest('.sig-grp');
