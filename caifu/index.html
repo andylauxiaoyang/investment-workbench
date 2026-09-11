@@ -524,6 +524,67 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 }
 @media (prefers-reduced-motion: reduce) { .view.active { animation: none; } }
 
+/* v45 阶段3 */
+/* ① 空 / 加载 / 错误态：统一图标化（保留 .empty 语义，仅叠加 .st-* 修饰） */
+.empty.st { line-height: 1.65; }
+.empty.st::before {
+  content: ""; display: inline-block; vertical-align: -2px; margin-right: 6px;
+  width: 14px; height: 14px; background-color: currentColor;
+  -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat;
+  -webkit-mask-position: center; mask-position: center;
+  -webkit-mask-size: 100% 100%; mask-size: 100% 100%;
+}
+.empty.st-empty::before { -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%20fill='none'%20stroke='%23000'%20stroke-width='2'%20stroke-linecap='round'%20stroke-linejoin='round'%3E%3Cpath%20d='M5.45%205.11%202%2012v6a2%202%200%200%200%202%202h16a2%202%200%200%200%202-2v-6l-3.45-6.89A2%202%200%200%200%2016.76%204H7.24a2%202%200%200%200-1.79%201.11z'/%3E%3Cpath%20d='M22%2012h-6l-2%203h-4l-2-3H2'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%20fill='none'%20stroke='%23000'%20stroke-width='2'%20stroke-linecap='round'%20stroke-linejoin='round'%3E%3Cpath%20d='M5.45%205.11%202%2012v6a2%202%200%200%200%202%202h16a2%202%200%200%200%202-2v-6l-3.45-6.89A2%202%200%200%200%2016.76%204H7.24a2%202%200%200%200-1.79%201.11z'/%3E%3Cpath%20d='M22%2012h-6l-2%203h-4l-2-3H2'/%3E%3C/svg%3E"); }
+.empty.st-err { color: #b45309; }
+.empty.st-err::before { -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%20fill='none'%20stroke='%23000'%20stroke-width='2'%20stroke-linecap='round'%20stroke-linejoin='round'%3E%3Cpath%20d='M10.29%203.86%201.82%2018a2%202%200%200%200%201.71%203h16.94a2%202%200%200%200%201.71-3L13.71%203.86a2%202%200%200%200-3.42%200z'/%3E%3Cpath%20d='M12%209v4'/%3E%3Cpath%20d='M12%2017h.01'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%20fill='none'%20stroke='%23000'%20stroke-width='2'%20stroke-linecap='round'%20stroke-linejoin='round'%3E%3Cpath%20d='M10.29%203.86%201.82%2018a2%202%200%200%200%201.71%203h16.94a2%202%200%200%200%201.71-3L13.71%203.86a2%202%200%200%200-3.42%200z'/%3E%3Cpath%20d='M12%209v4'/%3E%3Cpath%20d='M12%2017h.01'/%3E%3C/svg%3E"); color: var(--warn); }
+.empty.st-ok { color: var(--text-2); }
+.empty.st-ok::before { -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%20fill='none'%20stroke='%23000'%20stroke-width='2'%20stroke-linecap='round'%20stroke-linejoin='round'%3E%3Cpath%20d='M20%206%209%2017l-5-5'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%20fill='none'%20stroke='%23000'%20stroke-width='2'%20stroke-linecap='round'%20stroke-linejoin='round'%3E%3Cpath%20d='M20%206%209%2017l-5-5'/%3E%3C/svg%3E"); color: var(--brand); }
+.empty.st-load { color: var(--text-2); }
+.empty.st-load::before {
+  background: none; border: 2px solid var(--line); border-top-color: var(--brand);
+  border-radius: 50%; animation: v45spin .7s linear infinite;
+}
+@keyframes v45spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .empty.st-load::before { animation-duration: 2s; } }
+
+/* ② Hero 迷你走势线 */
+.hero-spark { margin-top: 12px; }
+.hero-spark-cap { font-size: 10px; letter-spacing: .3px; color: var(--muted); margin-bottom: 4px; }
+.hero-spark svg { display: block; width: 100%; height: 46px; }
+.hero-spark[hidden] { display: none; }
+
+/* ③ 热力图：斜纹＝亏损（色盲友好；不依赖红绿辨别） */
+.cal-leg.hatch { background: repeating-linear-gradient(45deg, rgba(6,95,70,.35) 0 2px, #dcfce7 2px 5px); }
+
+/* ④ 底部 Tab「更多」弹层 */
+.mobile-tabbar .tab.t-more .ic { -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%20fill='%23000'%3E%3Ccircle%20cx='5'%20cy='12'%20r='2'/%3E%3Ccircle%20cx='12'%20cy='12'%20r='2'/%3E%3Ccircle%20cx='19'%20cy='12'%20r='2'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%20fill='%23000'%3E%3Ccircle%20cx='5'%20cy='12'%20r='2'/%3E%3Ccircle%20cx='12'%20cy='12'%20r='2'/%3E%3Ccircle%20cx='19'%20cy='12'%20r='2'/%3E%3C/svg%3E"); }
+.mobile-sheet { display: none; position: fixed; inset: 0; z-index: 70; }
+.mobile-sheet.open { display: block; }
+.mobile-sheet .scrim { position: absolute; inset: 0; background: rgba(15,23,42,.42); }
+.mobile-sheet .panel {
+  position: absolute; left: 10px; right: 10px; bottom: 10px; padding: 12px;
+  background: var(--panel); border: 1px solid var(--line); border-radius: 14px;
+  box-shadow: 0 12px 34px rgba(16,24,40,.22);
+  padding-bottom: calc(12px + env(safe-area-inset-bottom));
+  animation: v45up .2s cubic-bezier(.22,.61,.36,1);
+}
+@keyframes v45up { from { transform: translateY(10px); opacity: .65; } to { transform: none; opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .mobile-sheet .panel { animation: none; } }
+.mobile-sheet .mh { font-size: 11px; letter-spacing: .5px; color: var(--muted); margin: 2px 4px 10px; }
+.mobile-sheet .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.mobile-sheet .it {
+  display: flex; align-items: center; gap: 9px; padding: 13px 12px; border-radius: 11px;
+  border: 1px solid var(--line); background: var(--panel-2); color: var(--text);
+  font-size: 13px; text-align: left; cursor: pointer;
+}
+.mobile-sheet .it .ic { width: 18px; height: 18px; flex: 0 0 18px; }
+.mobile-sheet .it.active { border-color: var(--brand); color: var(--brand); background: rgba(37,99,235,.08); }
+.mobile-sheet .it:active { transform: scale(.985); }
+@media (max-width: 767px) {
+  .hero-spark { margin-top: 10px; }
+  .hero-spark svg { height: 36px; }
+}
+
 /* ===== 移动端适配（≤767px）：左栏→底部 Tab（v38） ===== */
 .mobile-tabbar { display: none; }
 @media (max-width: 767px) {
@@ -820,7 +881,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
             <div data-page-node-id="oABDOj56iESnaaJNuQvP4h">
               <div data-page-node-id="keVQ4zEj5qgxiLmtJYH5DN" class="cal-kpi" id="hdCalKpi"></div>
               <div data-page-node-id="h3vG3tgpsZN6Vxsmf5Jjod" class="cal-heat" id="hdCal"></div>
-              <div data-page-node-id="iTWvsPaAzgxFUtuAUlubIJ" class="cal-legend"><span data-page-node-id="w00SlaTeKWRFa00J1c0YtM"><i data-page-node-id="e2In649Jd6zzl5tsveWKKt" class="cal-leg up"></i><!--pnid:zqJuDCxoytg3Incl4hOkm1-->盈利</span><span data-page-node-id="6a7umNxu2RUsPh0FllA7ee"><i data-page-node-id="4ewm8xZ46YwRqKZVSTUbKD" class="cal-leg flat"></i><!--pnid:537sMaccom2jZsLXbJO6b8-->持平</span><span data-page-node-id="Tl4RbyXnehU0N6OidgWxAL"><i data-page-node-id="Spg7zGwu1Vcz26mO7KmpXR" class="cal-leg down"></i><!--pnid:zCVvxEPp66acXtZsNBOq0N-->亏损</span></div>
+              <div data-page-node-id="iTWvsPaAzgxFUtuAUlubIJ" class="cal-legend"><span data-page-node-id="w00SlaTeKWRFa00J1c0YtM"><i data-page-node-id="e2In649Jd6zzl5tsveWKKt" class="cal-leg up"></i><!--pnid:zqJuDCxoytg3Incl4hOkm1-->盈利</span><span data-page-node-id="6a7umNxu2RUsPh0FllA7ee"><i data-page-node-id="4ewm8xZ46YwRqKZVSTUbKD" class="cal-leg flat"></i><!--pnid:537sMaccom2jZsLXbJO6b8-->持平</span><span data-page-node-id="Tl4RbyXnehU0N6OidgWxAL"><i data-page-node-id="Spg7zGwu1Vcz26mO7KmpXR" class="cal-leg down"></i><!--pnid:zCVvxEPp66acXtZsNBOq0N-->亏损</span><span><i class="cal-leg hatch"></i>斜纹＝亏损（色盲友好）</span></div>
             </div>
             <div data-page-node-id="uzN9aijkvQHxGLBh9rXF6L" class="chart chart-md" id="hdPnlChart"></div>
           </div>
@@ -3220,7 +3281,7 @@ function sectorHeatHtml(rows) {
     const color = avg > 0 ? 'rgba(255,59,48,' + Math.min(.55, .12 + avg / 10) + ')' : avg < 0 ? 'rgba(0,214,143,' + Math.min(.55, .12 + Math.abs(avg) / 10) + ')' : 'rgba(138,151,166,.18)';
     return `<div class="heat-tile" style="background:${color};border-color:${avg >= 0 ? 'rgba(255,59,48,.25)' : 'rgba(0,214,143,.25)'}">
       <div class="ht-n">${esc(s)}</div><div class="ht-v ${cls(avg)}">${fmtPct(avg)}</div></div>`;
-  }).join('') || '<div class="empty">暂无数据</div>';
+  }).join('') || '<div class="empty st st-empty">暂无数据</div>';
 }
 
 /* ==========================================================
@@ -3250,9 +3311,9 @@ function drawBreadthGauge() {
 function drawSectorHeatMarket() {
   const el = $('#mkSectorHeat'); if (!el) return;
   const m = state.snapshot.market;
-  if (!m) { el.innerHTML = '<div class="empty">市场统计暂不可用</div>'; return; }
+  if (!m) { el.innerHTML = '<div class="empty st st-err">市场统计暂不可用</div>'; return; }
   const arr = (m.boardsTop || []).concat(m.boardsBottom || []);
-  if (!arr.length) { el.innerHTML = '<div class="empty">暂无板块数据</div>'; return; }
+  if (!arr.length) { el.innerHTML = '<div class="empty st st-empty">暂无板块数据</div>'; return; }
   el.innerHTML = arr.map((b) => {
     const color = b.pct > 0 ? 'rgba(255,59,48,' + Math.min(.62, .12 + b.pct / 8) + ')' : 'rgba(0,214,143,' + Math.min(.62, .12 + Math.abs(b.pct) / 8) + ')';
     return `<div class="heat-tile" style="background:${color};border-color:${b.pct >= 0 ? 'rgba(255,59,48,.25)' : 'rgba(0,214,143,.25)'}">
@@ -3320,7 +3381,8 @@ function renderOverview() {
     </div>
     <div class="hero-tag">${totals.cash > 0
       ? `持仓 ¥${fmtMoney(totals.mv)} + 现金 ¥${fmtMoney(totals.cash)}`
-      : `与我的持仓同步 · 共 ${totals.count} 只 · 持仓 ¥${fmtMoney(totals.mv)}`}</div>`;
+      : `与我的持仓同步 · 共 ${totals.count} 只 · 持仓 ¥${fmtMoney(totals.mv)}`}</div>
+    <div class="hero-spark" id="ovHeroSpark" hidden><div class="hero-spark-cap">近 1 年组合走势（归一化）</div><div class="hero-spark-svg"></div></div>`;
 
   $('#ovKpi').innerHTML = `
     ${kpi('总盈亏', (totals.total >= 0 ? '+' : '') + fmtMoney(totals.total), '成本 ¥' + fmtMoney(totals.cost), cls(totals.total), true)}
@@ -3377,7 +3439,7 @@ function renderContrib(id, rows, field) {
       <div class="cb-track"><div class="cb-fill" style="width:${w.toFixed(1)}%;background:${color};${v >= 0 ? 'left:0' : 'right:0'}"></div></div>
       <div class="cb-val ${cls(v)}">${fmtMoney(v, true)}</div>
     </div>`;
-  }).join('') || '<div class="empty">暂无持仓数据</div>';
+  }).join('') || '<div class="empty st st-empty">暂无持仓数据</div>';
 }
 
 /* ---------- 图表 ---------- */
@@ -3394,6 +3456,34 @@ function chartOf(id) {
 }
 const PIE_COLORS = ['#2563eb', '#ef9f27', '#0a9e6b', '#e02e24', '#7a3fd4', '#13a3b5', '#d9822b', '#5b8cff'];
 const C_UP = '#e02e24', C_DOWN = '#0a9e6b'; // 红涨绿跌（A股惯例）
+
+/* v45 阶段3：Hero 迷你走势线 */
+function hideHeroSpark() {
+  var el = document.getElementById('ovHeroSpark');
+  if (el) { el.hidden = true; }
+}
+function renderHeroSpark(series, lastP) {
+  var el = document.getElementById('ovHeroSpark'); if (!el) return;
+  var box = el.querySelector('.hero-spark-svg'); if (!box) return;
+  var arr = (series || []).filter(function (v) { return v != null && isFinite(v); });
+  if (arr.length < 3) { hideHeroSpark(); return; }
+  var W = 300, H = 46, pad = 3, n = arr.length;
+  var mn = Math.min.apply(null, arr), mx = Math.max.apply(null, arr), rng = (mx - mn) || 1;
+  var pts = arr.map(function (v, i) {
+    return [pad + (i / (n - 1)) * (W - 2 * pad), H - pad - ((v - mn) / rng) * (H - 2 * pad)];
+  });
+  var line = pts.map(function (p, i) { return (i ? 'L' : 'M') + p[0].toFixed(1) + ' ' + p[1].toFixed(1); }).join(' ');
+  var area = line + ' L' + pts[n - 1][0].toFixed(1) + ' ' + (H - pad) + ' L' + pts[0][0].toFixed(1) + ' ' + (H - pad) + ' Z';
+  var col = ((lastP != null ? lastP : arr[n - 1]) >= 0) ? '#dc2626' : '#059669';
+  box.innerHTML = '<svg viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="none" aria-hidden="true">'
+    + '<defs><linearGradient id="v45spark" x1="0" y1="0" x2="0" y2="1">'
+    + '<stop offset="0" stop-color="' + col + '" stop-opacity=".20"/>'
+    + '<stop offset="1" stop-color="' + col + '" stop-opacity="0"/></linearGradient></defs>'
+    + '<path d="' + area + '" fill="url(#v45spark)"/>'
+    + '<path d="' + line + '" fill="none" stroke="' + col + '" stroke-width="1.6" '
+    + 'stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"/></svg>';
+  el.hidden = false;
+}
 function drawPie(id, data) {
   const c = chartOf(id); if (!c) return;
   if (!data.length) { c.clear(); return; }
@@ -3455,7 +3545,7 @@ async function drawPortCurve() {
   const REQ_KL = 300; /* 基准 K 线根数（交易日），覆盖 REQ_CAL 自然日 */
   const cut = yearWindow().cut; /* 统一口径：近 1 年 ＝ 自然日 365 天 */
   const rows = state.portfolio.filter((h) => (h.assetType || '') !== 'cash');
-  if (!rows.length) { if (c) c.clear(); if (note) note.textContent = '暂无持仓'; return; }
+  if (!rows.length) { if (c) c.clear(); if (note) note.textContent = '暂无持仓'; hideHeroSpark(); return; }
   try {
     if (c) c.showLoading({ text: '加载中', color: '#2563eb', textColor: '#0f172a', maskColor: 'rgba(0,0,0,.25)' });
     const jobs = rows.map(async (h) => {
@@ -3508,6 +3598,7 @@ async function drawPortCurve() {
     const pS = port.slice(i0).map((v) => (v == null ? null : +((v / p0 - 1) * 100).toFixed(2)));
     const bS = bench.slice(i0).map((v) => (v == null ? null : +((v / b0 - 1) * 100).toFixed(2)));
     const lastP = pS[pS.length - 1] || 0, lastB = bS[bS.length - 1] || 0;
+    try { renderHeroSpark(pS, lastP); } catch (e) {}
     if (note) note.textContent = `近 1 年（${axis[0]} ~ ${axis[axis.length - 1]}，${axis.length} 个交易日，自然日365天口径）· 组合 ${fmtPct(lastP)} vs 沪深300 ${fmtPct(lastB)} · 超额 ${fmtPct(lastP - lastB)}`;
     if (c) c.setOption({
       tooltip: {
@@ -3550,7 +3641,7 @@ async function renderPnlCalendar() {
   const codes = [];
   const push = (c) => { const d = String(c || '').replace(/\D/g, ''); if (/^\d{6}$/.test(d) && !codes.includes(d)) codes.push(d); };
   state.portfolio.forEach((h) => { if ((h.assetType || '') !== 'cash') push(h.code); });
-  if (!codes.length) { box.innerHTML = '<div class="empty">暂无基金（持仓与自选）</div>'; $('#hdCalKpi').innerHTML = ''; return; }
+  if (!codes.length) { box.innerHTML = '<div class="empty st st-empty">暂无基金（持仓与自选）</div>'; $('#hdCalKpi').innerHTML = ''; return; }
   const sig = 'M:' + codes.join(',');
   if (state._calSig === sig && box.children.length) return;
   state._calSig = sig;
@@ -3560,7 +3651,7 @@ async function renderPnlCalendar() {
     const rs = await Promise.all(codes.map((c) => apiGet('/api/fund-ac-series', { code: c, days: 480 }).catch(() => ({ ok: false }))));
     const funds = rs.filter((r) => r.ok && r.data && r.data.trend && r.data.trend.length > 1)
       .map((r) => ({ code: r.data.code, name: r.data.name || r.data.code, trend: r.data.trend }));
-    if (!funds.length) { box.innerHTML = '<div class="empty">暂无可用的净值数据</div>'; hint.textContent = '月度收益热力日历（基金净值口径）'; return; }
+    if (!funds.length) { box.innerHTML = '<div class="empty st st-empty">暂无可用的净值数据</div>'; hint.textContent = '月度收益热力日历（基金净值口径）'; return; }
 
     /* 近 12 个自然月（旧→新） */
     const now = new Date();
@@ -3624,15 +3715,19 @@ async function renderPnlCalendar() {
 
     /* 热力矩阵：行=月（新→旧），列=组合+各基金；当月行展开逐日小格 */
     const maxAbs = Math.max(1, ...[].concat(...monthRet).map((v) => v == null ? 0 : Math.abs(v)), ...portVals.map((v) => Math.abs(v)));
-    const cellBg = (v) => {
-      const ratio = Math.min(1, Math.abs(v) / maxAbs);
-      return v > 0 ? `rgba(224,46,36,${0.12 + ratio * 0.55})` : v < 0 ? `rgba(10,158,107,${0.12 + ratio * 0.55})` : '#e8ecf1';
+    /* v45 阶段3：离散多档色阶 + 亏损斜纹（色盲友好：斜纹=亏损，不依赖红绿辨别） */
+    const V45_UP = ['#fee2e2', '#fca5a5', '#f87171', '#ef4444', '#b91c1c'];
+    const V45_DN = ['#dcfce7', '#a7f3d0', '#6ee7b7', '#10b981', '#047857'];
+    const v45tier = (ratio) => (ratio <= 0.2 ? 0 : ratio <= 0.45 ? 1 : ratio <= 0.7 ? 2 : ratio <= 0.9 ? 3 : 4);
+    const v45hatch = (t) => 'repeating-linear-gradient(45deg,' + (t <= 1 ? 'rgba(6,95,70,.32)' : 'rgba(255,255,255,.5)') + ' 0 1.5px, rgba(0,0,0,0) 1.5px 4px)';
+    const v45bg = (v, ratio) => {
+      if (v == null || !v) return '#e8ecf1';
+      const t = v45tier(ratio);
+      return v > 0 ? V45_UP[t] : v45hatch(t) + ', ' + V45_DN[t];
     };
-    const dayBg = (v) => {
-      if (v == null) return '#eef1f5';
-      const ratio = Math.min(1, Math.abs(v) / Math.max(0.8, maxAbs / 3));
-      return v > 0 ? `rgba(224,46,36,${0.18 + ratio * 0.62})` : v < 0 ? `rgba(10,158,107,${0.18 + ratio * 0.62})` : '#e8ecf1';
-    };
+    const cellBg = (v) => v45bg(v, Math.min(1, Math.abs(v) / maxAbs));
+    const cellInk = (v) => (v != null && Math.abs(v) / maxAbs > 0.7 ? 'color:#fff' : '');
+    const dayBg = (v) => v45bg(v, Math.min(1, Math.abs(v) / Math.max(0.8, maxAbs / 3)));
     const shortName = (n) => (n.length > 8 ? n.slice(0, 8) + '…' : n);
     let html = '<div class="mc-wrap"><table class="mc-table"><tr><th style="text-align:left">月份</th><th>组合</th>';
     funds.forEach((f) => (html += `<th title="${esc(f.name)}">${esc(shortName(f.name))}</th>`));
@@ -3648,10 +3743,10 @@ async function renderPnlCalendar() {
           if (days && days.length) {
             html += `<td><div class="mc-days">${days.map((dd) => `<i class="mc-day" style="background:${dayBg(dd.v)}" title="${dd.d}　${dd.v != null ? fmtPct(dd.v) : '—'}"></i>`).join('')}</div></td>`;
           } else {
-            html += `<td class="mc-cell ${v == null ? 'na' : ''}" style="${v != null ? 'background:' + cellBg(v) : ''}" title="${ci === 0 ? '按持仓市值加权估算' : ''}">${v != null ? fmtPct(v) : '—'}</td>`;
+            html += `<td class="mc-cell ${v == null ? 'na' : ''}" style="${v != null ? 'background:' + cellBg(v) + ';' + cellInk(v) : ''}" title="${ci === 0 ? '按持仓市值加权估算' : ''}">${v != null ? fmtPct(v) : '—'}</td>`;
           }
         } else {
-          html += `<td class="mc-cell ${v == null ? 'na' : ''}" style="${v != null ? 'background:' + cellBg(v) : ''}">${v != null ? fmtPct(v) : '—'}</td>`;
+          html += `<td class="mc-cell ${v == null ? 'na' : ''}" style="${v != null ? 'background:' + cellBg(v) + ';' + cellInk(v) : ''}">${v != null ? fmtPct(v) : '—'}</td>`;
         }
       });
       html += '</tr>';
@@ -3670,7 +3765,7 @@ async function renderPnlCalendar() {
       series: [{ type: 'bar', data: portMonth.map((v) => ({ value: v, itemStyle: { color: v == null ? '#cbd3dc' : (v >= 0 ? 'var(--up)' : 'var(--down)') } })), barWidth: '62%' }],
     });
   } catch (e) {
-    box.innerHTML = '<div class="empty">月度收益数据加载失败</div>';
+    box.innerHTML = '<div class="empty st st-err">月度收益数据加载失败</div>';
     hint.textContent = '加载失败：' + (e && e.message || e);
   }
 }
@@ -3911,18 +4006,18 @@ function renderDiagnoseView() {
         <span class="s">${esc(a.txt)}</span>
       </div>
     </div>`;
-  }).join('') : '<div class="empty">持仓涨跌幅均在 ±5% 内，无停牌、无单票过度集中（&gt;25%），整体平稳</div>';
+  }).join('') : '<div class="empty st st-ok">持仓涨跌幅均在 ±5% 内，无停牌、无单票过度集中（&gt;25%），整体平稳</div>';
 
   // ---- 持仓相关资讯热点 ----
   if (!state.news.items.length) {
     $('#dgNewsHint').textContent = '正在抓取…';
-    $('#dgNews').innerHTML = '<div class="empty">正在抓取持仓相关资讯…</div>';
+    $('#dgNews').innerHTML = '<div class="empty st st-load">正在抓取持仓相关资讯…</div>';
   } else {
     $('#dgNewsHint').textContent = `命中 ${relNews.length} 条`;
     $('#dgNews').innerHTML = relNews.length ? relNews.slice(0, 12).map((it) => `<div class="news-item rel">
         <div class="nh"><span class="src">${esc(it.source)}</span> <span class="time-mono">${fmtDateTime(it.publishTime)}</span> <span class="tag tag-rel">${it.rel.map(esc).join(' / ')}</span></div>
         <div class="nt" style="cursor:default">${esc(it.title)}</div>
-      </div>`).join('') : '<div class="empty">暂无持仓相关资讯（可到资讯页切换更多来源后重试）</div>';
+      </div>`).join('') : '<div class="empty st st-empty">暂无持仓相关资讯（可到资讯页切换更多来源后重试）</div>';
   }
 
   // ---- 持仓诊断明细表 ----
@@ -4155,7 +4250,7 @@ function renderNews() {
         <a href="${esc(it.url)}" target="_blank" rel="noopener">原文链接 ↗</a>
       </div>
     </div>`;
-  }).join('') || '<div class="card"><div class="empty">没有符合条件的资讯</div></div>';
+  }).join('') || '<div class="card"><div class="empty st st-empty">没有符合条件的资讯</div></div>';
 }
 
 /* ==========================================================
@@ -4261,7 +4356,7 @@ function renderReview(regen) {
   $('#rvDate').textContent = todayKey() + ' 每日复盘';
   if (!rv) {
     $('#rvSnap').textContent = '快照 —';
-    $('#rvBody').innerHTML = '<div class="card"><div class="empty">等待首次行情快照…</div></div>';
+    $('#rvBody').innerHTML = '<div class="card"><div class="empty st st-load">等待首次行情快照…</div></div>';
     return;
   }
   $('#rvSnap').textContent = '快照 ' + rv.objective.snapshotId;
@@ -4293,7 +4388,7 @@ function renderReview(regen) {
 
     <div class="rv-sec">
       <h3>底层重仓股当日异动 <span class="mk hint">穿透持仓基金前十大重仓 · 季报权重 · 腾讯行情</span></h3>
-      <div id="rvTopMoves"><div class="empty">重仓行情加载中…</div></div>
+      <div id="rvTopMoves"><div class="empty st st-load">重仓行情加载中…</div></div>
       ${line('data', `当日主要盈利：${o.winners.length ? o.winners.map((r) => `${esc(r.name)} ${fmtMoney(r.dayCny, true)}（${fmtPct(r.pct)}）`).join('；') : '无'}。`)}
       ${line('data', `当日主要亏损：${o.losers.length ? o.losers.map((r) => `${esc(r.name)} ${fmtMoney(r.dayCny, true)}（${fmtPct(r.pct)}）`).join('；') : '无'}。`)}
       ${line('data', `累计盈利前三：${o.totWin.length ? o.totWin.map((r) => `${esc(r.name)} ${fmtMoney(r.totCny, true)}（${fmtPct(r.totPct)}）`).join('；') : '无'}；累计亏损前三：${o.totLose.length ? o.totLose.map((r) => `${esc(r.name)} ${fmtMoney(r.totCny, true)}（${fmtPct(r.totPct)}）`).join('；') : '无'}。`)}
@@ -4311,7 +4406,7 @@ function renderReview(regen) {
 
     <div class="rv-sec">
       <h3>大盘环境（上下文参考）</h3>
-      ${o.cnIdx.length ? idxCells(o.cnIdx) : '<div class="empty">指数数据暂缺</div>'}
+      ${o.cnIdx.length ? idxCells(o.cnIdx) : '<div class="empty st st-err">指数数据暂缺</div>'}
       ${m ? line('data', `全市场 涨 <span class="up">${m.up}</span> / 跌 <span class="down">${m.down}</span> / 平 ${m.flat}；涨停 ${(m.limitUp || []).length}，跌停 ${(m.limitDown || []).length}。`) : ''}
       ${mood ? line('ai', `情绪档位「<b>${mood.level}</b>」：${mood.desc}`) : ''}
       ${m && (m.boardsTop || []).length ? line('data', `领涨板块：${m.boardsTop.slice(0, 3).map((b) => `${esc(b.name)} ${fmtPct(b.pct)}`).join('；')}。`) : ''}
@@ -4366,12 +4461,12 @@ function renderReview(regen) {
       const up = rows.filter((r) => r.pct > 0).slice(0, 6);
       const down = rows.filter((r) => r.pct < 0).slice(-6).reverse();
       box.innerHTML = `<div class="grid-2">
-        <div><div class="card-h"><h3 style="font-size:12px">领涨重仓</h3></div>${up.map(rowHtml).join('') || '<div class="empty">无上涨重仓</div>'}</div>
-        <div><div class="card-h"><h3 style="font-size:12px">领跌重仓</h3></div>${down.map(rowHtml).join('') || '<div class="empty">无下跌重仓</div>'}</div>
+        <div><div class="card-h"><h3 style="font-size:12px">领涨重仓</h3></div>${up.map(rowHtml).join('') || '<div class="empty st st-empty">无上涨重仓</div>'}</div>
+        <div><div class="card-h"><h3 style="font-size:12px">领跌重仓</h3></div>${down.map(rowHtml).join('') || '<div class="empty st st-empty">无下跌重仓</div>'}</div>
       </div>
       <div class="hint" style="margin-top:6px">穿透口径：季报前十大重仓 × 占净值权重（${list.length} 只，${noCov ? noCov + ' 只无行情通道（如东京 KIOXIA）未计入' : '全部有行情'}）。盘中为即时值。</div>`;
     } catch (e) {
-      if (box) box.innerHTML = '<div class="empty">重仓异动加载失败</div>';
+      if (box) box.innerHTML = '<div class="empty st st-err">重仓异动加载失败</div>';
     }
   })();
   state._review = rv;
@@ -4508,7 +4603,7 @@ function techStats(k) {
 }
 function renderResearchHead() {
   const rs = state.research;
-  if (!rs.code) { $('#rsHead').innerHTML = '<div class="card"><div class="empty">输入代码或点击右上快捷标的开始分析（支持 A股 / 港股 / 美股 / ETF / 场外基金，场外基金可输 f+代码 如 f012920）</div></div>'; return; }
+  if (!rs.code) { $('#rsHead').innerHTML = '<div class="card"><div class="empty st st-empty">输入代码或点击右上快捷标的开始分析（支持 A股 / 港股 / 美股 / ETF / 场外基金，场外基金可输 f+代码 如 f012920）</div></div>'; return; }
   if (isOtcFund(rs.code)) { renderFundHead(rs); return; }
   const q = rs.quote, p = rs.profile;
   const mk = marketOf(rs.code);
@@ -4756,7 +4851,7 @@ function renderFundPosition(panel, rs) {
     const ov = q0.rows.filter((x) => heldCodes.includes(x.code));
     overlapHtml = `<div class="card">
       <div class="card-h"><h3>重仓与我的持仓重叠</h3><span class="hint">${esc(q0.period)} 前十大重仓 vs 持仓表（${ov.length} 只重叠）</span></div>
-      ${ov.length ? ov.map((x) => `<div class="rv-line"><span class="tag tag-rel">重叠</span><span><b>${esc(x.code)}</b> ${esc(x.name)} · 占净值 ${x.pct != null ? fmtNum(x.pct, 2) + '%' : '—'}</span></div>`).join('') : '<div class="empty">该基金前十大重仓与你当前持仓无重叠</div>'}
+      ${ov.length ? ov.map((x) => `<div class="rv-line"><span class="tag tag-rel">重叠</span><span><b>${esc(x.code)}</b> ${esc(x.name)} · 占净值 ${x.pct != null ? fmtNum(x.pct, 2) + '%' : '—'}</span></div>`).join('') : '<div class="empty st st-empty">该基金前十大重仓与你当前持仓无重叠</div>'}
     </div>`;
   }
   panel.innerHTML = `<div class="card">
@@ -4812,7 +4907,7 @@ function renderFundNews(panel, rs) {
           <a href="${esc(it.url)}" target="_blank" rel="noopener" style="color:var(--text);text-decoration:none">${esc(it.title)}</a>
           <span class="s">${esc(it.source)}${it.publishTime ? ' · 发布 ' + fmtDateTime(it.publishTime) : ''} · ${it.rel.map(esc).join(' / ')}</span>
         </div>
-      </div>`).join('') : '<div class="empty">暂无匹配的资讯与公告（可先到资讯页抓取全市场资讯）</div>'}
+      </div>`).join('') : '<div class="empty st st-empty">暂无匹配的资讯与公告（可先到资讯页抓取全市场资讯）</div>'}
   </div>`;
 }
 function renderFundTabs(panel, rs) {
@@ -4823,12 +4918,12 @@ function renderFundTabs(panel, rs) {
   else if (rs.tab === 'score') renderFundScore(panel, rs);
   else if (rs.tab === 'position') renderFundPosition(panel, rs);
   else if (rs.tab === 'news') renderFundNews(panel, rs);
-  else { panel.innerHTML = '<div class="card"><div class="empty">请切换到左侧 Tab 查看基金研究内容</div></div>'; }
+  else { panel.innerHTML = '<div class="card"><div class="empty st st-empty">请切换到左侧 Tab 查看基金研究内容</div></div>'; }
 }
 function renderFundProfile(panel, rs) {
   const f = rs.fund;
   const basic = rs.fundBasic || {};
-  if (!f) { panel.innerHTML = '<div class="card"><div class="empty">基金画像数据加载失败（确认代码为场外基金，可输 f+6位代码）</div></div>'; return; }
+  if (!f) { panel.innerHTML = '<div class="card"><div class="empty st st-err">基金画像数据加载失败（确认代码为场外基金，可输 f+6位代码）</div></div>'; return; }
   const wm = (state.watchMeta || {})[shortCode(rs.code)] || {};
   const mgr = (f.manager && f.manager[0]) || null;
   const mgrAll = (f.manager || []).map((m) => m.name).join(' / ');
@@ -4889,7 +4984,7 @@ function renderFundProfile(panel, rs) {
 }
 function renderFundPerf(panel, rs) {
   const f = rs.fund, ft = rs.fundTrend || [];
-  if (!ft.length) { panel.innerHTML = '<div class="card"><div class="empty">净值序列加载失败</div></div>'; return; }
+  if (!ft.length) { panel.innerHTML = '<div class="card"><div class="empty st st-err">净值序列加载失败</div></div>'; return; }
   /* 收益/回撤/波动按累计净值（含分红），走势图仍展示单位净值（v22） */
   const rt = (rs.fund && rs.fund.ac && rs.fund.ac.length > 10) ? rs.fund.ac.slice(-500) : ft;
   const st = fundCalcStats(rt);
@@ -4972,7 +5067,7 @@ function renderFundPerf(panel, rs) {
 /* 让收益页把排名走势图也渲染出来（净值大图下方） */
 function renderFundScore(panel, rs) {
   const f = rs.fund, ft = rs.fundTrend || [];
-  if (!ft.length) { panel.innerHTML = '<div class="card"><div class="empty">缺少净值数据，无法打分</div></div>'; return; }
+  if (!ft.length) { panel.innerHTML = '<div class="card"><div class="empty st st-empty">缺少净值数据，无法打分</div></div>'; return; }
   const rt = (rs.fund && rs.fund.ac && rs.fund.ac.length > 10) ? rs.fund.ac.slice(-500) : ft;
   const st = fundCalcStats(rt);
   const dims = [];
@@ -5062,7 +5157,7 @@ function renderResearch() {
   const panel = $('#rsPanel');
   $$('#rsTabs button').forEach((b) => b.classList.toggle('active', b.dataset.tab === rs.tab));
   if (!rs.code) { panel.innerHTML = ''; return; }
-  if (rs.loading) { panel.innerHTML = '<div class="card"><div class="empty">加载中…</div></div>'; return; }
+  if (rs.loading) { panel.innerHTML = '<div class="card"><div class="empty st st-load">加载中…</div></div>'; return; }
   if (isOtcFund(rs.code)) { renderFundTabs(panel, rs); return; }
 
   const p = rs.profile, q = rs.quote, k = rs.kline;
@@ -5122,7 +5217,7 @@ function renderResearch() {
           ${metric('组合权重', r.weight.toFixed(2) + '%')}
         </div>
         <p class="foot-note">盈亏均按设置汇率折人民币；成本价为手工录入，若有加仓/减仓请在持仓页更新。</p>`
-      : '<div class="empty">该标的当前不在持仓中，可点击右上「＋ 持仓」录入，或将它加入自选后在此查看关联信息</div>'}
+      : '<div class="empty st st-empty">该标的当前不在持仓中，可点击右上「＋ 持仓」录入，或将它加入自选后在此查看关联信息</div>'}
     </div>`;
   } else if (rs.tab === 'news') {
     const nm = (q && q.name) || (p && p.name) || '';
@@ -5157,7 +5252,7 @@ function renderResearch() {
             <a href="${esc(it.url)}" target="_blank" rel="noopener" style="color:var(--text);text-decoration:none">${esc(it.title)}</a>
             <span class="s">${esc(it.source)} · ${it.ir ? '公司公告' : '发布 ' + fmtDateTime(it.publishTime)} · ${it.rel.map(esc).join(' / ')}</span>
           </div>
-        </div>`).join('') : '<div class="empty">暂无匹配的资讯（可先到资讯页抓取，或该标的近期无公开消息）</div>'}
+        </div>`).join('') : '<div class="empty st st-empty">暂无匹配的资讯（可先到资讯页抓取，或该标的近期无公开消息）</div>'}
     </div>`;
   } else if (rs.tab === 'report') {
     renderReportTab(panel, rs);
@@ -5310,7 +5405,7 @@ function renderReportTab(panel, rs) {
       + renderGroup('业绩预告 / 快报', groups.forecast, '正式财报前的盈利指引')
       + (groups.other.length ? renderGroup(`其他重要公告（${groups.other.length}）`, groups.other, '人事 / 分红 / 停牌 / 融资等') : '')
     : `<div class="card"><div class="card-h"><h3>财报 / 定期报告</h3></div>
-        <div class="empty">该标的近期无公开披露的公告（可能处于静默期，或非 A 股标的）。可先到资讯页抓取全市场新闻。</div></div>`;
+        <div class="empty st st-empty">该标的近期无公开披露的公告（可能处于静默期，或非 A 股标的）。可先到资讯页抓取全市场新闻。</div></div>`;
 }
 
 /* ==========================================================
@@ -5413,7 +5508,7 @@ function openSettings(tab) {
       const q = state.snapshot.quotes[c];
       const meta = state.watchMeta[c] || {};
       return `<div class="row-item"><div><b>${esc((q && q.name) || meta.name || shortCode(c))}</b> <span class="muted">${shortCode(c)}${meta.note ? ' · ' + esc(meta.note) : ''}</span></div></div>`;
-    }).join('') || '<div class="empty">暂无自选</div>'}</div>`;
+    }).join('') || '<div class="empty st st-empty">暂无自选</div>'}</div>`;
   } else {
     const warnN = (window.DATA_WARN || []).length;
     body = `<div class="metric-grid">
@@ -5424,7 +5519,7 @@ function openSettings(tab) {
       </div>
       <div class="hint" style="margin:12px 0 6px"><b>数据可信性自检（v35.1）</b>：基金净值采用「主源 + 副源」双口径比对（同日偏差 &gt;0.5% / 跨日 &gt;1% 即告警）。主源＝天天基金 pingzhongdata；副源＝腾讯 s_jj（全类型）+ 腾讯 jj（普通基金）。当前累计告警 <b style="color:${warnN ? 'var(--up)' : 'var(--down)'}">${warnN}</b> 条。</div>
       <button class="btn" id="diRun" style="margin-bottom:8px">▶ 立即运行数据自检</button>
-      <div id="diOut" class="row-list" style="max-height:220px;overflow:auto"><div class="empty">点击上方按钮，逐只持仓基金执行主源/副源比对</div></div>
+      <div id="diOut" class="row-list" style="max-height:220px;overflow:auto"><div class="empty st st-empty">点击上方按钮，逐只持仓基金执行主源/副源比对</div></div>
       <p class="foot-note" style="margin-top:12px">
         · 报价：qt.gtimg.cn（A股 / 港股 / 美股 / 指数，GBK 解码后解析；涨跌幅经自洽校验 f[32]≈(f[3]-f[4])/f[4]）<br>
         · 基金净值主源：天天基金 pingzhongdata（累计净值序列，哨兵值 + 代码校验防串号）<br>
@@ -5450,7 +5545,7 @@ function openSettings(tab) {
     if (btn) btn.onclick = async () => {
       const out = $('#diOut'); if (!out) return;
       const funds = state.portfolio.filter((h) => /^\d{6}$/.test(shortCode(h.code) || ''));
-      if (!funds.length) { out.innerHTML = '<div class="empty">当前无基金持仓</div>'; return; }
+      if (!funds.length) { out.innerHTML = '<div class="empty st st-empty">当前无基金持仓</div>'; return; }
       out.innerHTML = '<div class="hint">正在执行三源比对…</div>';
       const lines = [];
       for (const h of funds) {
@@ -5471,7 +5566,7 @@ function openSettings(tab) {
           ' → ' + (v && v.ok === true ? '<b style="color:var(--down)">✓ 一致</b>' : v && v.ok === false ? '<b style="color:var(--up)">⚠ 偏差 ' + v.diff.toFixed(2) + '%</b>' : '<span class="muted">未校验</span>') +
           '</div></div>');
       }
-      out.innerHTML = lines.join('') || '<div class="empty">无数据</div>';
+      out.innerHTML = lines.join('') || '<div class="empty st st-empty">无数据</div>';
     };
   }
 }
@@ -5887,7 +5982,7 @@ function renderSignalDash() {
   card.innerHTML = '<div style="display:flex;align-items:center;gap:10px;padding:8px 10px;border-left:4px solid #2563eb;border-radius:0 6px 6px 0;background:rgba(37,99,235,.06)">'
     + '<span style="font-size:16px;font-weight:600">信号仪表盘</span>'
     + '<span class="hint" style="margin-left:auto">触发≠自动交易 · 阈值锁季度复盘日（T12/D9）· 市场信号=环境提示非指令</span></div>'
-    + '<div id="sigBody"><div class="empty">信号计算中（首次拉取净值序列约需数秒）…</div></div>';
+    + '<div id="sigBody"><div class="empty st st-load">信号计算中（首次拉取净值序列约需数秒）…</div></div>';
   const body = document.getElementById('sigBody');
   const hold = state.portfolio.filter((h) => (h.assetType || '') !== 'cash');
   const wl = (state.watchlist || []).map((c) => (typeof c === 'string' ? c : (c && c.code) || ''));
@@ -5940,7 +6035,7 @@ function renderSignalDash() {
       if (srcNote) html += '<div class="hint" style="opacity:.55;font-size:10px;margin-bottom:3px">' + esc(srcNote) + '</div>';
       if (metaList && metaList.length) html += '<div class="hint" style="opacity:.55;font-size:10px;margin-bottom:3px">未启用：' + metaList.map((m) => m.sig + '（' + m.why + '）').join('；') + '</div>';
       html = html + '<div data-grpbody="' + esc(main) + '" style="' + (folded ? 'display:none' : '') + '">';
-      if (!list.length) html += '<div class="empty">暂无标的</div>';
+      if (!list.length) html += '<div class="empty st st-empty">暂无标的</div>';
       else {
         html += act.concat(near).map(rowHtml).join('');
         if (watch.length) html += '<details style="margin-top:4px"><summary style="cursor:pointer;font-size:13px;opacity:.7">观察 ' + watch.length + ' 条（折叠）</summary>' + watch.map(rowHtml).join('') + '</details>';
@@ -5983,7 +6078,7 @@ function renderSignalDash() {
       const rs = e.target.closest('.lk-rs');
       if (rs) { loadResearch(toResearchCode(rs.dataset.rscode, 'fund')); showView('research'); }
     };
-  }).catch((err) => { body.innerHTML = '<div class="empty">信号计算失败：' + esc(String((err && err.message) || err)) + '</div>'; });
+  }).catch((err) => { body.innerHTML = '<div class="empty st st-err">信号计算失败：' + esc(String((err && err.message) || err)) + '</div>'; });
 }
 /* ---------- v36 今日决策辅助卡片 ---------- */
 /* ④b 杠铃配置卡：四档目标 + 实际占比（持仓已建仓时显示真实权重） */
@@ -6074,11 +6169,11 @@ function renderXMap() {
   const list = ((bb && bb.funds) || []).filter((f) => f.etf);
   if (!list.length) { el.innerHTML = ''; return; }
   el.innerHTML = '<div class="card-h"><h3>场内外对照</h3><span class="hint">场外净值为准（申赎口径）· 场内实时价作当日参考</span></div>'
-    + '<div id="xmapBody"><div class="empty">行情拉取中…</div></div>';
+    + '<div id="xmapBody"><div class="empty st st-load">行情拉取中…</div></div>';
   const codes = list.map((f) => f.inner).join(',');
   /* v36b：跨 script 块不能直接调 IIFE 私有的 tencentQuotes，统一走 BrowserBackend 入口 */
   if (!window.BrowserBackend || !window.BrowserBackend.get) {
-    document.getElementById('xmapBody').innerHTML = '<div class="empty">行情通道未就绪（场外净值仍可用）</div>';
+    document.getElementById('xmapBody').innerHTML = '<div class="empty st st-err">行情通道未就绪（场外净值仍可用）</div>';
     return;
   }
   window.BrowserBackend.get('/api/quotes', { codes: codes }).then((res) => {
@@ -6103,7 +6198,7 @@ function renderXMap() {
       + '</tbody></table></div>';
   }).catch(() => {
     const body = document.getElementById('xmapBody');
-    if (body) body.innerHTML = '<div class="empty">场内行情获取失败（场外净值仍可用）</div>';
+    if (body) body.innerHTML = '<div class="empty st st-err">场内行情获取失败（场外净值仍可用）</div>';
   });
 }
 
@@ -6111,7 +6206,7 @@ function renderXMap() {
 function renderSignalSummary() {
   const el = document.getElementById('ovSignal');
   if (!el) return;
-  el.innerHTML = '<div class="card-h"><h3>今日信号摘要</h3><span class="hint">点击进入今日决策</span></div><div id="ovSigBody"><div class="empty">计算中…</div></div>';
+  el.innerHTML = '<div class="card-h"><h3>今日信号摘要</h3><span class="hint">点击进入今日决策</span></div><div id="ovSigBody"><div class="empty st st-load">计算中…</div></div>';
   const hold = (state.portfolio || []).filter((h) => (h.assetType || '') !== 'cash');
   const wl = (state.watchlist || []).map((c) => (typeof c === 'string' ? c : (c && c.code) || ''));
   Promise.all([window.signalEvalAll(hold, wl), (window.marketEvalAll ? window.marketEvalAll() : Promise.resolve(null)).catch(() => null)])
@@ -6127,14 +6222,14 @@ function renderSignalSummary() {
         + '<span class="hint">条行动信号 · ' + near.length + ' 条接近</span></div>'
         + (top.length ? top.map((r) => '<div style="padding:6px 10px;background:var(--panel-2,#f7f9fc);border-left:3px solid var(--up);border-radius:0 6px 6px 0;margin-bottom:5px;font-size:12.5px">'
           + '<b>' + esc(r.name) + '</b> <span class="muted">' + esc(r.sig) + '</span> <span style="float:right">' + esc(r.cur) + '</span></div>').join('')
-          : '<div class="empty">无行动档信号</div>')
+          : '<div class="empty st st-empty">无行动档信号</div>')
         + '<div style="margin-top:8px"><button class="btn btn-sm btn-primary" id="ovSigGo">查看全部信号 →</button></div>';
       const go = document.getElementById('ovSigGo');
       if (go) go.onclick = () => showView('signal');
     })
     .catch(() => {
       const body = document.getElementById('ovSigBody');
-      if (body) body.innerHTML = '<div class="empty">信号获取失败</div>';
+      if (body) body.innerHTML = '<div class="empty st st-err">信号获取失败</div>';
     });
 }
 
@@ -6163,21 +6258,57 @@ setInterval(updateSessionBadge, 30000);
   if(!nav) return;
   var bar = document.createElement('nav');
   bar.className = 'mobile-tabbar';
-  nav.querySelectorAll('.nav-item').forEach(function(btn){
+  var PRIMARY = ['overview', 'holdings', 'signal', 'market', 'news'];   /* v45 阶段3：一级 Tab 收敛为 5 个 */
+  var items = Array.prototype.slice.call(nav.querySelectorAll('.nav-item'));
+  function labelOf(b) { return b.innerHTML.replace(/<span class="dot[^>]*><\/span>/g, ''); }
+  var moreViews = [];
+  items.forEach(function(btn){
+    var v = btn.dataset.view;
+    if (PRIMARY.indexOf(v) < 0) { moreViews.push(btn); return; }
     var t = document.createElement('button');
     t.className = 'tab' + (btn.classList.contains('active') ? ' active' : '');
-    t.dataset.view = btn.dataset.view;
-    t.innerHTML = btn.innerHTML.replace(/<span class="dot[^>]*><\/span>/g,'');
-    t.addEventListener('click', function(){ if (typeof showView==='function') showView(t.dataset.view); });
+    t.dataset.view = v;
+    t.innerHTML = labelOf(btn);
+    t.addEventListener('click', function(){ if (typeof showView==='function') showView(v); });
     bar.appendChild(t);
   });
+  var sheet = null, moreTab = null;
+  if (moreViews.length) {
+    moreTab = document.createElement('button');
+    moreTab.className = 'tab t-more';
+    moreTab.dataset.view = '__more';
+    moreTab.innerHTML = '<span class="ic"></span>更多';
+    moreTab.addEventListener('click', function(){ openSheet(); });
+    bar.appendChild(moreTab);
+
+    sheet = document.createElement('div');
+    sheet.className = 'mobile-sheet';
+    sheet.innerHTML = '<div class="scrim"></div><div class="panel"><div class="mh">更多功能</div><div class="grid">'
+      + moreViews.map(function(b){ return '<button class="it" data-view="' + (b.dataset.view || '') + '">' + labelOf(b) + '</button>'; }).join('')
+      + '</div></div>';
+    sheet.querySelector('.scrim').addEventListener('click', closeSheet);
+    sheet.querySelectorAll('.it').forEach(function(it){
+      it.addEventListener('click', function(){ if (typeof showView === 'function') showView(it.dataset.view); else closeSheet(); });
+    });
+    document.body.appendChild(sheet);
+  }
   document.body.appendChild(bar);
+  function openSheet(){ if (!sheet) return; sheet.classList.add('open'); }
+  function closeSheet(){ if (sheet) sheet.classList.remove('open'); }
   function syncTabbar(name){
-    bar.querySelectorAll('.tab').forEach(function(t){ t.classList.toggle('active', t.dataset.view===name); });
+    bar.querySelectorAll('.tab').forEach(function(t){
+      if (t.dataset.view === '__more') return;
+      t.classList.toggle('active', t.dataset.view === name);
+    });
+    if (moreTab && sheet) {
+      var inMore = moreViews.some(function(b){ return b.dataset.view === name; });
+      moreTab.classList.toggle('active', inMore);
+      sheet.querySelectorAll('.it').forEach(function(it){ it.classList.toggle('active', it.dataset.view === name); });
+    }
   }
   if (typeof showView === 'function') {
     var _sv = showView;
-    showView = function(name){ _sv(name); syncTabbar(name); };   /* 包装：自动同步底部 Tab 高亮 */
+    showView = function(name){ _sv(name); syncTabbar(name); closeSheet(); };   /* 包装：自动同步底部 Tab 高亮并收起弹层 */
   }
   syncTabbar((window.state && window.state.view) || 'overview');
 })();
