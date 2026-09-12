@@ -1025,7 +1025,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
             <span data-page-node-id="1tYNTqEbqNQRtvoZcDMp9W" class="flbl"><!--pnid:9wTVum6ntnQpThvDUQM28N-->选择</span>
             <select data-page-node-id="ytqOAaTQnUAlAV3d84SXD0" class="inp-sm sel" id="rsPick">
               <option data-page-node-id="dBdl5B3ockpTkZSdlssjuf" value><!--pnid:uffUrO7CKLEtAQ6KTRyigz-->持仓 / 自选…</option>
-            </select><span data-page-node-id="fw2v52bVerchip" class="hint" id="verChip" style="white-space:nowrap;flex:none"><!--fw2_v52b_verchip fw2_v54c_verchip fw2_v55_verchip fw2_v56_verchip fw2_v57_verchip fw2_v58_verchip fw2_v59_verchip fw2_v60_verchip-->v60</span>
+            </select><span data-page-node-id="fw2v52bVerchip" class="hint" id="verChip" style="white-space:nowrap;flex:none"><!--fw2_v52b_verchip fw2_v54c_verchip fw2_v55_verchip fw2_v56_verchip fw2_v57_verchip fw2_v58_verchip fw2_v59_verchip fw2_v60_verchip fw2_v61_verchip fw2_v61_wltext-->v61</span>
           </div>
           <div data-page-node-id="5FsFNsGZ6QN0HN0rpWLIlR" class="tools-l inline-form rs-combo">
             <span data-page-node-id="KyCNIch2B6qjWLrmQxqPCX" class="flbl"><!--pnid:1qPkNVbSL0r9sGQSgNifJN-->名称</span>
@@ -1401,7 +1401,7 @@ var Fr={},Gr={};var Wr,Hr=function(){function t(t,e,n){var i=this;this._sleepAft
     return { ok: false, error: 'unknown action' };
   }
 
-  /* 自选：理财·自选表（同步自理杏仁·我的基金·特别关注），只读 */
+  /* 自选：理财·自选表（资料库手工维护），只读 */
   async function watchlistList() {
     var recs = await listAll(DB_WATCHLIST);
     var out = [];
@@ -2942,7 +2942,7 @@ async function loadPortfolioFromDB() {
   if (state.view === 'signal' && typeof renderSignalDash === 'function') renderSignalDash(); /* v36：持仓晚到时重渲染 */
 }
 
-/* 自选：从资料库「理财·自选表」拉取（理杏仁·特别关注同步），失败保留 localStorage 兜底 */
+/* 自选：从资料库「理财·自选表」拉取（手工维护），失败保留 localStorage 兜底 */
 async function loadWatchlistFromDB() {
   let metas = null, dbFail = false;
   state._wlSrc = ''; state._wlErr = '';
@@ -5605,7 +5605,7 @@ function openSettings(tab) {
       <div class="hint" style="margin-bottom:12px"><span id="fxUpd">汇率自动拉取（约 30 分钟一次，来源 exchangerate-api）；拉取失败时沿用最近一次成功值。</span></div>
       <button class="btn btn-primary" id="sSave">保存设置</button>`;
   } else if (t === 'watch') {
-    body = `<div class="hint" style="margin-bottom:10px">自选来自资料库「理财·自选表」（同步自理杏仁 · 我的基金 · 特别关注），由助手自动维护，无需手动添加。</div>
+    body = `<div class="hint" style="margin-bottom:10px">自选来自资料库「理财·自选表」，由助手手工维护，无需手动添加。</div>
       <div class="row-list">${state.watchlist.map((c) => {
       const q = state.snapshot.quotes[c];
       const meta = state.watchMeta[c] || {};
@@ -6226,7 +6226,7 @@ function fillRsPick() {
     + (watch.length ? `<optgroup label="自选">${watch.map((o) => `<option value="${o.code}">${esc(o.name)} ${shortCode(o.code)}</option>`).join('')}</optgroup>` : '');
   /* v52b fw2_v52b_verchip：角标自报版本+自选条数+数据来源（DB=资料库自选表 / 种子=GitHub旁挂 / 快照=页面内置） */
   const vc = $('#verChip');
-  if (vc) vc.textContent = 'v60 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  if (vc) vc.textContent = 'v61 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
