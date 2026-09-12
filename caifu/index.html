@@ -1024,7 +1024,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
             <span data-page-node-id="1tYNTqEbqNQRtvoZcDMp9W" class="flbl"><!--pnid:9wTVum6ntnQpThvDUQM28N-->选择</span>
             <select data-page-node-id="ytqOAaTQnUAlAV3d84SXD0" class="inp-sm sel" id="rsPick">
               <option data-page-node-id="dBdl5B3ockpTkZSdlssjuf" value><!--pnid:uffUrO7CKLEtAQ6KTRyigz-->持仓 / 自选…</option>
-            </select><span data-page-node-id="fw2v52bVerchip" class="hint" id="verChip" style="white-space:nowrap;flex:none"><!--fw2_v52b_verchip fw2_v54c_verchip fw2_v55_verchip-->v55</span>
+            </select><span data-page-node-id="fw2v52bVerchip" class="hint" id="verChip" style="white-space:nowrap;flex:none"><!--fw2_v52b_verchip fw2_v54c_verchip fw2_v55_verchip fw2_v56_verchip-->v56</span>
           </div>
           <div data-page-node-id="5FsFNsGZ6QN0HN0rpWLIlR" class="tools-l inline-form rs-combo">
             <span data-page-node-id="KyCNIch2B6qjWLrmQxqPCX" class="flbl"><!--pnid:1qPkNVbSL0r9sGQSgNifJN-->名称</span>
@@ -2944,7 +2944,10 @@ async function loadWatchlistFromDB() {
   let metas = null, dbFail = false;
   state._wlSrc = ''; state._wlErr = '';
   try {
-    metas = await window.__LK_DB__.watchlistList();
+    metas = await Promise.race([ /* v56 fw2_v56_wltimeout: DB 调用 8s 超时，防 SDK hang 死兜底链 */
+      window.__LK_DB__.watchlistList(),
+      new Promise((_, rej) => setTimeout(() => rej(new Error('DB 超时(8s)')), 8000)),
+    ]);
     if (Array.isArray(metas) && metas.length) state._wlSrc = 'DB';
     else { dbFail = true; if (!state._wlErr) state._wlErr = 'DB 空返回→用种子'; } /* v31c: 空数组/非数组也走种子兜底 */
   } catch (e) { dbFail = true; state._wlErr = 'DB: ' + String((e && e.message) || e); } /* v26j: GitHub 版 SDK 未注入 → 走旁挂种子 */
@@ -6205,7 +6208,7 @@ function fillRsPick() {
     + (watch.length ? `<optgroup label="自选">${watch.map((o) => `<option value="${o.code}">${esc(o.name)} ${shortCode(o.code)}</option>`).join('')}</optgroup>` : '');
   /* v52b fw2_v52b_verchip：角标自报版本+自选条数+数据来源（DB=资料库自选表 / 种子=GitHub旁挂 / 快照=页面内置） */
   const vc = $('#verChip');
-  if (vc) vc.textContent = 'v55 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  if (vc) vc.textContent = 'v56 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
