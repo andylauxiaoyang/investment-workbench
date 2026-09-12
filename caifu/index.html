@@ -1024,7 +1024,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
             <span data-page-node-id="1tYNTqEbqNQRtvoZcDMp9W" class="flbl"><!--pnid:9wTVum6ntnQpThvDUQM28N-->选择</span>
             <select data-page-node-id="ytqOAaTQnUAlAV3d84SXD0" class="inp-sm sel" id="rsPick">
               <option data-page-node-id="dBdl5B3ockpTkZSdlssjuf" value><!--pnid:uffUrO7CKLEtAQ6KTRyigz-->持仓 / 自选…</option>
-            </select><span data-page-node-id="fw2v52bVerchip" class="hint" id="verChip" style="white-space:nowrap;flex:none"><!--fw2_v52b_verchip fw2_v54c_verchip fw2_v55_verchip fw2_v56_verchip fw2_v57_verchip fw2_v58_verchip-->v58</span>
+            </select><span data-page-node-id="fw2v52bVerchip" class="hint" id="verChip" style="white-space:nowrap;flex:none"><!--fw2_v52b_verchip fw2_v54c_verchip fw2_v55_verchip fw2_v56_verchip fw2_v57_verchip fw2_v58_verchip fw2_v59_verchip-->v59</span>
           </div>
           <div data-page-node-id="5FsFNsGZ6QN0HN0rpWLIlR" class="tools-l inline-form rs-combo">
             <span data-page-node-id="KyCNIch2B6qjWLrmQxqPCX" class="flbl"><!--pnid:1qPkNVbSL0r9sGQSgNifJN-->名称</span>
@@ -1155,6 +1155,8 @@ var Fr={},Gr={};var Wr,Hr=function(){function t(t,e,n){var i=this;this._sleepAft
     { code: '007817', name: '国泰中证全指通信设备ETF联接A', note: '跟踪 中证全指电信 · 场内ETF 561380', watchAt: '2026-09-11', founded: '2019-09-03', scale: '23.62亿元(2026-06-30)', fee: '0.50%+0.10%' },
     { code: '000307', name: '易方达黄金ETF联接A', note: '跟踪 上海金 · 场内ETF 159934', watchAt: '2026-09-11', founded: '2016-05-26', scale: '58.83亿元(2026-06-30)', fee: '0.50%+0.10%' },
   ];
+  window.WATCHLIST_SNAPSHOT = WATCHLIST_SNAPSHOT; /* v59 fw2_v59_wlscope：暴露到全局，供主块 loadWatchlistFromDB 读取（原 IIFE 局部变量不可见） */
+  window.WATCHLIST_SNAPSHOT_AT = WATCHLIST_SNAPSHOT_AT;
   var WC_KEY = 'lk_wc_v2';
 
   var AT_TEXT = { stock: '股票', etf: 'ETF', bond: '债券', gold: '黄金商品', cash: '现金', fund: '基金' };
@@ -2964,7 +2966,7 @@ async function loadWatchlistFromDB() {
   if (!dbFail && Array.isArray(metas) && metas.length) {
     /* DB 成功但 SDK 可能只返回部分记录 → 与种子/快照并集补全 */
     const _wlBase = (Array.isArray(seedMetas) && seedMetas.length) ? seedMetas
-      : ((typeof WATCHLIST_SNAPSHOT !== 'undefined' && WATCHLIST_SNAPSHOT.length) ? WATCHLIST_SNAPSHOT : null);
+      : ((typeof window.WATCHLIST_SNAPSHOT !== 'undefined' && window.WATCHLIST_SNAPSHOT.length) ? window.WATCHLIST_SNAPSHOT : null);
     if (_wlBase) {
       const dbCodes = new Set(metas.map((m) => m.code).filter(Boolean));
       const missing = _wlBase.filter((m) => m.code && !dbCodes.has(m.code)).map((m) => Object.assign({}, m));
@@ -2978,12 +2980,12 @@ async function loadWatchlistFromDB() {
   }
   /* v52 fw2_v52_wl_snapshot：DB 与种子均失败 → 内置快照兜底，不再静默沿用 localStorage 旧缓存 */
   if (!Array.isArray(metas) || !metas.length) {
-    if (typeof WATCHLIST_SNAPSHOT !== 'undefined' && WATCHLIST_SNAPSHOT.length) {
-      metas = WATCHLIST_SNAPSHOT.map((x) => Object.assign({}, x));
+    if (typeof window.WATCHLIST_SNAPSHOT !== 'undefined' && window.WATCHLIST_SNAPSHOT.length) {
+      metas = window.WATCHLIST_SNAPSHOT.map((x) => Object.assign({}, x));
       metas.sort((a, b) => (b.watchAt || '').localeCompare(a.watchAt || ''));
       state._wlSrc = '内置';
-      state._wlErr = (state._wlErr ? state._wlErr + '；' : '') + 'DB与种子均失败→内置快照(截至' + WATCHLIST_SNAPSHOT_AT + ')';
-      toast('自选在线加载失败，已用页面内置快照（' + metas.length + ' 只，截至 ' + WATCHLIST_SNAPSHOT_AT + '），可能非最新');
+      state._wlErr = (state._wlErr ? state._wlErr + '；' : '') + 'DB与种子均失败→内置快照(截至' + window.WATCHLIST_SNAPSHOT_AT + ')';
+      toast('自选在线加载失败，已用页面内置快照（' + metas.length + ' 只，截至 ' + window.WATCHLIST_SNAPSHOT_AT + '），可能非最新');
     }
   }
   if (!Array.isArray(metas) || !metas.length) {
@@ -6223,7 +6225,7 @@ function fillRsPick() {
     + (watch.length ? `<optgroup label="自选">${watch.map((o) => `<option value="${o.code}">${esc(o.name)} ${shortCode(o.code)}</option>`).join('')}</optgroup>` : '');
   /* v52b fw2_v52b_verchip：角标自报版本+自选条数+数据来源（DB=资料库自选表 / 种子=GitHub旁挂 / 快照=页面内置） */
   const vc = $('#verChip');
-  if (vc) vc.textContent = 'v58 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  if (vc) vc.textContent = 'v59 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
