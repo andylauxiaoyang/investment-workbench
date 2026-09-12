@@ -1025,7 +1025,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
             <span data-page-node-id="1tYNTqEbqNQRtvoZcDMp9W" class="flbl"><!--pnid:9wTVum6ntnQpThvDUQM28N-->选择</span>
             <select data-page-node-id="ytqOAaTQnUAlAV3d84SXD0" class="inp-sm sel" id="rsPick">
               <option data-page-node-id="dBdl5B3ockpTkZSdlssjuf" value><!--pnid:uffUrO7CKLEtAQ6KTRyigz-->持仓 / 自选…</option>
-            </select><span data-page-node-id="fw2v52bVerchip" class="hint" id="verChip" style="white-space:nowrap;flex:none"><!--fw2_v52b_verchip fw2_v54c_verchip fw2_v55_verchip fw2_v56_verchip fw2_v57_verchip fw2_v58_verchip fw2_v59_verchip fw2_v60_verchip fw2_v61_verchip fw2_v61_wltext fw2_v62_fundbasic fw2_v63_xmap_wlfix fw2_v64_macro_xasset fw2_v65_macro_spxnky fw2_v66_macro_amtd fw2_v67_nky_ts-->v67</span>
+            </select><span data-page-node-id="fw2v52bVerchip" class="hint" id="verChip" style="white-space:nowrap;flex:none"><!--fw2_v52b_verchip fw2_v54c_verchip fw2_v55_verchip fw2_v56_verchip fw2_v57_verchip fw2_v58_verchip fw2_v59_verchip fw2_v60_verchip fw2_v61_verchip fw2_v61_wltext fw2_v62_fundbasic fw2_v63_xmap_wlfix fw2_v64_macro_xasset fw2_v65_macro_spxnky fw2_v66_macro_amtd fw2_v67_nky_ts fw2_v68_split_spx_nky-->v68</span>
           </div>
           <div data-page-node-id="5FsFNsGZ6QN0HN0rpWLIlR" class="tools-l inline-form rs-combo">
             <span data-page-node-id="KyCNIch2B6qjWLrmQxqPCX" class="flbl"><!--pnid:1qPkNVbSL0r9sGQSgNifJN-->名称</span>
@@ -5915,6 +5915,24 @@ function renderMacro() {
     function p(n) { return (n < 10 ? '0' : '') + n; }
     return p(t.getMonth() + 1) + '-' + p(t.getDate()) + ' ' + p(t.getHours()) + ':' + p(t.getMinutes()); })();
   const nkySrcTxt = nkyOk ? '实时' : '快照回填';
+  /* v68 日经225 日内区间条（纯 CSS：最低↔最高 区间 + 昨收/现价 标记，不新增图表实例） */
+  const nkyRangeBar = function () {
+    if (!(nky && nky.low != null && nky.high != null)) return '';
+    const lo = Math.min(nky.low, nky.prevClose != null ? nky.prevClose : nky.low);
+    const hi = Math.max(nky.high, nky.prevClose != null ? nky.prevClose : nky.high);
+    const sp = (hi - lo) || 1;
+    const px = function (v) { return ((v - lo) / sp) * 100; };
+    const col = (nkyChg != null && nkyChg >= 0) ? 'var(--up)' : 'var(--down)';
+    const pcv = nky.prevClose != null ? px(nky.prevClose) : null;
+    const pcur = nkyVal != null ? px(nkyVal) : null;
+    let s = '<div data-nky-bar="1" style="margin-top:12px"><div style="position:relative;height:8px;border-radius:4px;background:#e9eef5">';
+    s += '<div style="position:absolute;left:' + px(nky.low) + '%;width:' + (px(nky.high) - px(nky.low)) + '%;height:8px;border-radius:4px;background:' + col + ';opacity:.3"></div>';
+    if (pcv != null) s += '<div style="position:absolute;left:' + pcv + '%;top:-4px;width:1px;height:16px;background:var(--muted);opacity:.7"></div>';
+    if (pcur != null) s += '<div style="position:absolute;left:' + pcur + '%;top:-5px;width:9px;height:18px;border-radius:3px;background:' + col + ';transform:translateX(-4px)"></div>';
+    s += '</div><div style="display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-top:7px">';
+    s += '<span>最低 ' + fmtNum(nky.low, 0) + '</span><span>昨收 ' + (nky.prevClose != null ? fmtNum(nky.prevClose, 0) : '—') + '</span><span>最高 ' + fmtNum(nky.high, 0) + '</span></div></div>';
+    return s;
+  };
   /* v66 全A日成交额（沪深京·近30日） */
   const amtDpts = (d.amtD && d.amtD.points) || [];
   const amtDlast = amtDpts.length ? amtDpts[amtDpts.length - 1] : null;
@@ -6068,21 +6086,26 @@ function renderMacro() {
     <div class="chart" id="mcRates" style="height:200px"></div>
   </div>
   <div class="card">
-    <div class="card-h"><h3>美股估值温度 · 日经225 实时</h3><span class="hint">标普500=理杏仁(.INX) · 日经225=东方财富全球(100.N225)${nkyTsTxt ? ' · 数据时间 ' + nkyTsTxt : ''} · ${nkySrcTxt}</span></div>
+    <div class="card-h"><h3>美股估值温度（标普500）</h3><span class="hint">标普500=理杏仁(.INX) · PE-TTM 10年分位</span></div>
     <div class="metric-grid">
       ${spxLast ? metric('标普500 PE-TTM', fmtNum(spxLast[1], 1), '') : ''}
       ${spxLast ? metric('标普500 PE 10年分位', fmtNum(spxPct, 0) + '%', spxPct != null && spxPct >= 80 ? 'v up' : spxPct != null && spxPct < 20 ? 'v down' : '') : ''}
+    </div>
+    <div class="rv-line"><span class="tag tag-ai">指向</span><span><b>${spxLvl}</b>；标普500 与 A股/港股温度同口径（理杏仁 PE-TTM 10年分位），是跨资产温度的美股锚。</span></div>
+    <div class="chart" id="mcSpx" style="height:200px"></div>
+  </div>
+  <div class="card">
+    <div class="card-h"><h3>日经225 实时</h3><span class="hint">日经225=东方财富全球(100.N225)${nkyTsTxt ? ' · 数据时间 ' + nkyTsTxt : ''} · ${nkySrcTxt}</span></div>
+    <div class="metric-grid">
       ${metric('日经225 点位', nkyVal != null ? fmtNum(nkyVal, 0) : '—', '')}
       ${metric('日经225 涨跌', nkyChg != null ? (nkyChg >= 0 ? '+' : '') + fmtNum(nkyChg, 2) + '%' : '—', nkyChg != null && nkyChg >= 0 ? 'v up' : nkyChg != null && nkyChg < 0 ? 'v down' : '')}
-    </div>
-    <div class="metric-grid" style="margin-top:6px">
       ${nky && nky.open != null ? metric('今开', fmtNum(nky.open, 0)) : ''}
       ${nky && nky.high != null ? metric('最高', fmtNum(nky.high, 0)) : ''}
       ${nky && nky.low != null ? metric('最低', fmtNum(nky.low, 0)) : ''}
       ${nky && nky.prevClose != null ? metric('昨收', fmtNum(nky.prevClose, 0)) : ''}
     </div>
-    <div class="rv-line"><span class="tag tag-ai">指向</span><span><b>${spxLvl}</b>；日经225 点位/涨跌为东方财富全球指数实时快照（东京收盘），与美股估值、黄金、美债共构跨资产温度。日元贬值→日经利好【观点】。</span></div>
-    <div class="chart" id="mcSpx" style="height:200px"></div>
+    ${nkyRangeBar()}
+    <div class="rv-line"><span class="tag tag-ai">指向</span><span>东京收盘实时快照；与美股估值、黄金、美债共构跨资产温度。日元贬值→日经利好【观点】。</span></div>
   </div>
   <p class="foot-note">数据源：理杏仁 OpenAPI + 东方财富 datacenter（PMI/两融）+ 东方财富全球指数(100.N225，日经225) + 全A日成交额（沪深京·近30日，日线转录）+ 沪深交易所月度成交额合计（tdx 月K，当月未完不入序列）。行动阈值与 fund-analyst M1/M9 同口径。趋势窗口 1/3/5/10 年切换重绘；本页不构成投资建议。</p>`;
   const axis = (v) => fmtNum(v, 1);
@@ -6397,7 +6420,7 @@ function fillRsPick() {
     + (watch.length ? `<optgroup label="自选">${watch.map((o) => `<option value="${o.code}">${esc(o.name)} ${shortCode(o.code)}</option>`).join('')}</optgroup>` : '');
   /* v52b fw2_v52b_verchip：角标自报版本+自选条数+数据来源（DB=资料库自选表 / 种子=GitHub旁挂 / 快照=页面内置） */
   const vc = $('#verChip');
-  if (vc) vc.textContent = 'v67 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  if (vc) vc.textContent = 'v68 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
