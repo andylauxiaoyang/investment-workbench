@@ -2978,6 +2978,7 @@ async function loadWatchlistFromDB() {
   state.watchMeta = wm;
   state.watchlist = metas.map((m) => m.code);
   saveStore();
+  if (typeof fillRsPick === 'function') fillRsPick(); /* v55c fw2_v55c_wlrefresh: 自选晚到刷新标的分析下拉+角标（否则停留在 localStorage 旧值） */
   /* 自选晚到：清日历缓存 sig，若正处于持仓页则立即重渲染（覆盖自选基金列） */
   state._calSig = '';
   if (state.view === 'holdings') { renderPnlCalendar(); renderDrawdownCard(); }
