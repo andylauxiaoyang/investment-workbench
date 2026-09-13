@@ -786,6 +786,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
       <button data-page-node-id="Ga6wshPQelu7iiVzmZnk9d" class="nav-item" data-view="review"><span data-page-node-id="yZd4GoeL05aeFQXlTwIiIw" class="ic"><!--pnid:qvAd5VwTnjM1EhaDEA89mY--></span><!--pnid:8aMqo6AmLGfsf2L6dghdIp-->每日复盘</button>
       <button data-page-node-id="Y4mtPFP2JVwSGbggos9xxj" class="nav-item" data-view="research"><span data-page-node-id="urr5Uby5APAvPavafXuf" class="ic"><!--pnid:wwrryqEtixnJPFvzGu29sT--></span><!--pnid:fTjdHCEBQz4W5WQAznksww-->标的分析</button>
       <button class="nav-item" data-view="macro"><span class="ic"></span>宏观·情绪<!--fw2_v53_macro--></button>
+      <button class="nav-item" data-view="data"><span class="ic"></span>数据中心<!--fw2_v71_datacenter--></button>
     </nav>
     <div data-page-node-id="NWwNSKf013miYG93pfpzol" class="side-foot">
       <div data-page-node-id="ftO6aqWRCbJJWBhMHmpotd" class="snap-box">
@@ -1025,7 +1026,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
             <span data-page-node-id="1tYNTqEbqNQRtvoZcDMp9W" class="flbl"><!--pnid:9wTVum6ntnQpThvDUQM28N-->选择</span>
             <select data-page-node-id="ytqOAaTQnUAlAV3d84SXD0" class="inp-sm sel" id="rsPick">
               <option data-page-node-id="dBdl5B3ockpTkZSdlssjuf" value><!--pnid:uffUrO7CKLEtAQ6KTRyigz-->持仓 / 自选…</option>
-            </select><span data-page-node-id="fw2v52bVerchip" class="hint" id="verChip" style="white-space:nowrap;flex:none"><!--fw2_v52b_verchip fw2_v54c_verchip fw2_v55_verchip fw2_v56_verchip fw2_v57_verchip fw2_v58_verchip fw2_v59_verchip fw2_v60_verchip fw2_v61_verchip fw2_v61_wltext fw2_v62_fundbasic fw2_v63_xmap_wlfix fw2_v64_macro_xasset fw2_v65_macro_spxnky fw2_v66_macro_amtd fw2_v67_nky_ts fw2_v68_split_spx_nky fw2_v69_nky_curve fw2_v70_nky_daily_ma fw2_v70b_extreme_label-->v70</span>
+            </select><span data-page-node-id="fw2v52bVerchip" class="hint" id="verChip" style="white-space:nowrap;flex:none"><!--fw2_v52b_verchip fw2_v54c_verchip fw2_v55_verchip fw2_v56_verchip fw2_v57_verchip fw2_v58_verchip fw2_v59_verchip fw2_v60_verchip fw2_v61_verchip fw2_v61_wltext fw2_v62_fundbasic fw2_v63_xmap_wlfix fw2_v64_macro_xasset fw2_v65_macro_spxnky fw2_v66_macro_amtd fw2_v67_nky_ts fw2_v68_split_spx_nky fw2_v69_nky_curve fw2_v70_nky_daily_ma fw2_v70b_extreme_label fw2_v71_datacenter-->v71</span>
           </div>
           <div data-page-node-id="5FsFNsGZ6QN0HN0rpWLIlR" class="tools-l inline-form rs-combo">
             <span data-page-node-id="KyCNIch2B6qjWLrmQxqPCX" class="flbl"><!--pnid:1qPkNVbSL0r9sGQSgNifJN-->名称</span>
@@ -1067,7 +1068,118 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
         <div id="macroBody"></div>
       </section>
 
+      <section class="view" id="view-data"><!-- fw2_v71_datacenter -->
+        <div class="v-head">
+          <div class="vh-l">
+            <h2>数据中心</h2>
+            <div class="vh-sub" id="dcSub">持仓 + 自选 基金 · 月度净值与规模</div>
+          </div>
+          <div class="vh-r dc-tabs">
+            <button class="dc-tab active" data-dc="table">表格</button>
+            <button class="dc-tab" data-dc="pivot">透视</button>
+            <button class="dc-tab" data-dc="chart">配图</button>
+          </div>
+        </div>
+        <div class="dc-bar">
+          <input class="dc-search" id="dcSearch" placeholder="搜索 代码 / 名称 / 类型 …" />
+          <span class="dc-sep"></span>
+          <button class="btn-mini" id="dcColToggle">列显隐</button>
+          <button class="btn-mini" id="dcExportCsv">导出CSV</button>
+          <button class="btn-mini" id="dcExportMd">导出MD</button>
+          <button class="btn-mini" id="dcExportJson">导出JSON</button>
+          <button class="btn-mini" id="dcReload">重新加载</button>
+          <span class="dc-meta" id="dcMeta"></span>
+          <div class="dc-col-panel" id="dcColPanel" style="display:none"></div>
+        </div>
+        <div id="dcCaliber" class="dc-caliber"></div>
+        <div id="dcTableWrap" class="dc-pane"></div>
+        <div id="dcPivotWrap" class="dc-pane" style="display:none">
+          <div class="dc-piv-ctrl">
+            <label>行维度
+              <select id="dcPivRow">
+                <option value="fund">基金</option>
+                <option value="ftype">类型</option>
+                <option value="year">年份</option>
+              </select>
+            </label>
+            <label>列维度
+              <select id="dcPivCol">
+                <option value="month">月份</option>
+                <option value="quarter">季度</option>
+              </select>
+            </label>
+            <label>聚合
+              <select id="dcPivAgg">
+                <option value="navLast">净值（月末值）</option>
+                <option value="navAvg">净值（均值）</option>
+                <option value="retAvg">月涨跌%（均值）</option>
+                <option value="retSum">月涨跌%（求和）</option>
+              </select>
+            </label>
+          </div>
+          <div id="dcPivTable"></div>
+        </div>
+        <div id="dcChartWrap" class="dc-pane" style="display:none">
+          <div class="dc-chart-ctrl">
+            <label>图型
+              <select id="dcChartType">
+                <option value="navNorm">净值走势（归一化=100）</option>
+                <option value="navRaw">净值走势（原始）</option>
+                <option value="scale">最新规模（亿元）</option>
+              </select>
+            </label>
+            <span class="dc-hint" id="dcChartHint"></span>
+          </div>
+          <div id="dcChart" style="width:100%;height:440px"></div>
+        </div>
+      </section>
+
     </div>
+
+    <style id="dcStyle"><!-- fw2_v71_datacenter -->
+      #view-data .v-head{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap}
+      #view-data .vh-sub{color:#888;font-size:13px;margin-top:2px}
+      #view-data .dc-tabs{display:flex;gap:6px}
+      #view-data .dc-tab{border:1px solid #d9d9d9;background:#fff;color:#444;padding:6px 14px;border-radius:8px;cursor:pointer;font-size:13px}
+      #view-data .dc-tab.active{background:#1f6feb;color:#fff;border-color:#1f6feb}
+      #view-data .dc-bar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:12px 0}
+      #view-data .dc-search{border:1px solid #d9d9d9;border-radius:8px;padding:6px 10px;font-size:13px;min-width:220px}
+      #view-data .dc-sep{flex:0 0 1px;height:20px;background:#eee}
+      #view-data .btn-mini{border:1px solid #d9d9d9;background:#fafafa;color:#333;padding:6px 12px;border-radius:8px;cursor:pointer;font-size:13px}
+      #view-data .btn-mini:hover{background:#f0f4ff}
+      #view-data .dc-meta{color:#888;font-size:12px;margin-left:auto}
+      #view-data .dc-col-panel{position:absolute;z-index:30;background:#fff;border:1px solid #d9d9d9;border-radius:8px;padding:10px 12px;display:flex;flex-direction:column;gap:4px;box-shadow:0 4px 16px rgba(0,0,0,.12)}
+      #view-data .dc-col-panel label{font-size:13px;display:flex;gap:6px;align-items:center;cursor:pointer}
+      #view-data .dc-caliber{background:#f7f9fc;border:1px solid #e8edf5;border-radius:10px;padding:10px 14px;margin-bottom:12px;font-size:13px}
+      #view-data .dc-cal-h{font-weight:600;margin-bottom:6px;color:#1f6feb}
+      #view-data .dc-cal-tbl{border-collapse:collapse;font-size:12px;margin-bottom:6px}
+      #view-data .dc-cal-tbl th,#view-data .dc-cal-tbl td{border:1px solid #e2e8f0;padding:3px 8px;text-align:left}
+      #view-data .dc-cal-tbl th{background:#eef3fb}
+      #view-data .dc-cal-src{color:#777;line-height:1.5}
+      #view-data .dc-tbl{border-collapse:collapse;width:100%;font-size:13px;background:#fff}
+      #view-data .dc-tbl th,#view-data .dc-tbl td{border:1px solid #ececec;padding:5px 9px;white-space:nowrap}
+      #view-data .dc-tbl thead th{position:sticky;top:0;background:#f3f6fb;cursor:pointer;user-select:none;z-index:2}
+      #view-data .dc-tbl tbody tr:nth-child(even){background:#fafbfd}
+      #view-data .dc-tbl td.num,#view-data .dc-tbl th.num{text-align:right;font-variant-numeric:tabular-nums}
+      #view-data .dc-tbl td.neg{color:#e0392b;font-weight:600}
+      #view-data .dc-tbl td:first-child,#view-data .dc-tbl th:first-child{position:sticky;left:0;background:#f3f6fb;z-index:1}
+      #view-data .dc-foot{color:#888;font-size:12px;margin-top:6px}
+      #view-data .dc-piv-ctrl{display:flex;gap:18px;flex-wrap:wrap;margin-bottom:10px;font-size:13px}
+      #view-data .dc-piv-ctrl select{border:1px solid #d9d9d9;border-radius:6px;padding:4px 8px;margin-left:4px}
+      #view-data .dc-piv-tbl{border-collapse:collapse;font-size:12px;background:#fff}
+      #view-data .dc-piv-tbl th,#view-data .dc-piv-tbl td{border:1px solid #ececec;padding:4px 8px;text-align:right;white-space:nowrap}
+      #view-data .dc-piv-tbl th.rowh,#view-data .dc-piv-tbl td.rowh{text-align:left;position:sticky;left:0;background:#f3f6fb;font-weight:600}
+      #view-data .dc-piv-tbl thead th{background:#eef3fb}
+      #view-data .dc-piv-empty{color:#999;padding:16px}
+      #view-data .dc-chart-ctrl{display:flex;gap:14px;align-items:center;margin-bottom:8px;font-size:13px}
+      #view-data .dc-chart-ctrl select{border:1px solid #d9d9d9;border-radius:6px;padding:4px 8px;margin-left:4px}
+      #view-data .dc-hint{color:#888;font-size:12px}
+      @media (max-width:560px){
+        #view-data .dc-search{min-width:140px;flex:1 1 100%}
+        #view-data .dc-tbl{font-size:12px}
+        #view-data .dc-tbl th,#view-data .dc-tbl td{padding:4px 6px}
+      }
+    </style>
   </main>
 </div>
 
@@ -6482,7 +6594,7 @@ function fillRsPick() {
     + (watch.length ? `<optgroup label="自选">${watch.map((o) => `<option value="${o.code}">${esc(o.name)} ${shortCode(o.code)}</option>`).join('')}</optgroup>` : '');
   /* v52b fw2_v52b_verchip：角标自报版本+自选条数+数据来源（DB=资料库自选表 / 种子=GitHub旁挂 / 快照=页面内置） */
   const vc = $('#verChip');
-  if (vc) vc.textContent = 'v70 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  if (vc) vc.textContent = 'v71 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
@@ -6890,6 +7002,287 @@ showView('overview');
 startLoop();
 setTimeout(() => { renderResearchChips(); if (!state.news.items.length) loadNews(); }, 800);
 setInterval(updateSessionBadge, 30000);
+
+/* ===================== 数据中心模块 (v71) ===================== */
+(function(){
+  var DC_RAW = 'https://raw.githubusercontent.com/andylauxiaoyang/investment-workbench/master/caifu/data/fund-monthly.json';
+  var DC_REL = './data/fund-monthly.json';
+  var DC = null, DC_LOADED = false;
+  var COLS = [
+    {k:'code',t:'代码'}, {k:'name',t:'名称'}, {k:'ftype',t:'类型'},
+    {k:'month',t:'月份'}, {k:'nav',t:'月末单位净值',num:true},
+    {k:'monthRet',t:'月涨跌幅%',num:true}, {k:'scale',t:'最新规模(亿元)',num:true}
+  ];
+  var dcUI = {sortKey:'month', sortDir:1, search:'', cols:new Set(COLS.map(function(c){return c.k;}))};
+
+  function $(id){ return document.getElementById(id); }
+  function elText(id,t){ var e=$(id); if(e) e.textContent=t; }
+
+  async function loadDcData(force){
+    if(DC_LOADED && !force) return DC;
+    var urls = [DC_RAW, DC_REL];
+    for(var i=0;i<urls.length;i++){
+      try{
+        var ctrl = (typeof AbortController!=='undefined') ? new AbortController() : null;
+        var to = ctrl ? setTimeout(function(){ try{ ctrl.abort(); }catch(e){} }, 10000) : null;
+        var r = await fetch(urls[i], {cache:'no-store', signal: ctrl?ctrl.signal:undefined});
+        if(to) clearTimeout(to);
+        if(!r.ok) continue;
+        var d = await r.json();
+        if(d && d.rows && d.rows.length){ DC=d; DC_LOADED=true; return d; }
+      }catch(e){ /* try next */ }
+    }
+    return null;
+  }
+
+  async function ensureDc(){
+    var meta = $('dcMeta');
+    if(!DC_LOADED){
+      elText('dcMeta','数据加载中…');
+      var d = await loadDcData(false);
+      if(!d){ elText('dcMeta','⚠ 数据加载失败（请检查网络后点「重新加载」）'); return; }
+      DC=d; DC_LOADED=true;
+      renderDcCaliber(d); renderDcTable(); renderDcPivot();
+      elText('dcMeta', d.meta.fundCount+' 只基金 · '+d.meta.monthCount+' 个月 · 截至 '+d.meta.asOf);
+    }
+  }
+
+  function renderDcCaliber(d){
+    var c = d.meta.caliber;
+    if(!c || !c.length) return;
+    var h = '<div class="dc-cal-h">口径卡（数据来源与口径说明）</div>';
+    h += '<table class="dc-cal-tbl"><thead><tr>'+c[0].map(function(x){return '<th>'+x+'</th>';}).join('')+'</tr></thead><tbody>';
+    h += c.slice(1).map(function(r){ return '<tr>'+r.map(function(x){return '<td>'+x+'</td>';}).join('')+'</tr>'; }).join('');
+    h += '</tbody></table>';
+    h += '<div class="dc-cal-src">净值源：'+d.meta.navSource+'<br>规模源：'+d.meta.scaleSource+'<br>'+d.meta.scaleNote+'</div>';
+    $('dcCaliber').innerHTML = h;
+  }
+
+  function rowsView(){
+    var fmap={}; DC.funds.forEach(function(f){ fmap[f.code]=f; });
+    var arr = DC.rows.map(function(r){ var f=fmap[r.code]; return Object.assign({}, r, {name:f.name, ftype:f.ftype, scale:f.scale}); });
+    var q = (dcUI.search||'').trim().toLowerCase();
+    if(q) arr = arr.filter(function(r){ return (r.code+' '+r.name+' '+r.ftype).toLowerCase().indexOf(q)>=0; });
+    var k=dcUI.sortKey, dir=dcUI.sortDir;
+    arr.sort(function(a,b){
+      var x=a[k], y=b[k];
+      if(k==='nav'||k==='monthRet'||k==='scale'){ x=(x==null?-Infinity:x); y=(y==null?-Infinity:y); return (x-y)*dir; }
+      return (''+x).localeCompare(''+y)*dir;
+    });
+    return arr;
+  }
+
+  function renderDcTable(){
+    if(!DC) return;
+    var arr = rowsView();
+    var vis = COLS.filter(function(c){ return dcUI.cols.has(c.k); });
+    var h = '<table class="dc-tbl"><thead><tr>';
+    vis.forEach(function(c){
+      var arrow = dcUI.sortKey===c.k ? (dcUI.sortDir>0?' ▲':' ▼') : '';
+      h += '<th data-k="'+c.k+'" class="'+(c.num?'num':'')+'">'+c.t+arrow+'</th>';
+    });
+    h += '</tr></thead><tbody>';
+    arr.forEach(function(r){
+      h += '<tr>';
+      vis.forEach(function(c){
+        var v=r[c.k];
+        if(c.k==='monthRet' && v!=null) v=v.toFixed(2);
+        else if(c.k==='nav' && v!=null) v=v.toFixed(4);
+        else if(c.k==='scale' && v==null) v='—';
+        else if(c.k==='scale' && v!=null) v=v.toFixed(2);
+        if(c.k==='monthRet' && r.monthRet<0) h += '<td class="num neg">'+v+'</td>';
+        else h += '<td class="'+(c.num?'num':'')+'">'+v+'</td>';
+      });
+      h += '</tr>';
+    });
+    h += '</tbody></table>';
+    h += '<div class="dc-foot">共 '+arr.length+' 行（基金 '+DC.meta.fundCount+' · 月份 '+DC.meta.monthCount+'）</div>';
+    $('dcTableWrap').innerHTML = h;
+    Array.prototype.forEach.call(document.querySelectorAll('#dcTableWrap th[data-k]'), function(th){
+      th.addEventListener('click', function(){
+        var k=th.dataset.k;
+        if(dcUI.sortKey===k) dcUI.sortDir*=-1; else { dcUI.sortKey=k; dcUI.sortDir=1; }
+        renderDcTable();
+      });
+    });
+  }
+
+  function toggleDcCols(){
+    var panel=$('dcColPanel');
+    if(panel.style.display==='block'){ panel.style.display='none'; return; }
+    panel.innerHTML = COLS.map(function(c){
+      return '<label><input type="checkbox" data-k="'+c.k+'" '+(dcUI.cols.has(c.k)?'checked':'')+'> '+c.t+'</label>';
+    }).join('');
+    panel.style.display='block';
+    Array.prototype.forEach.call(panel.querySelectorAll('input'), function(i){
+      i.addEventListener('change', function(){
+        if(i.checked) dcUI.cols.add(i.dataset.k); else dcUI.cols.delete(i.dataset.k);
+        renderDcTable();
+      });
+    });
+  }
+
+  function pivotAgg(vals, agg){
+    var nz = vals.filter(function(v){ return v!=null && !isNaN(v); });
+    if(!nz.length) return null;
+    if(agg==='navLast') return nz[nz.length-1];
+    if(agg==='navAvg') return nz.reduce(function(a,b){return a+b;},0)/nz.length;
+    if(agg==='retAvg') return nz.reduce(function(a,b){return a+b;},0)/nz.length;
+    if(agg==='retSum') return nz.reduce(function(a,b){return a+b;},0);
+    return null;
+  }
+
+  function renderDcPivot(){
+    if(!DC) return;
+    var rowDim=$('dcPivRow').value, colDim=$('dcPivCol').value, agg=$('dcPivAgg').value;
+    var fmap={}; DC.funds.forEach(function(f){ fmap[f.code]=f; });
+    function rowKey(r){ return rowDim==='fund'?fmap[r.code].name : rowDim==='ftype'?fmap[r.code].ftype : r.month.slice(0,4); }
+    function colKey(r){ return colDim==='month'?r.month : (r.month.slice(0,4)+'Q'+Math.ceil(parseInt(r.month.slice(5,7),10)/3)); }
+    var map={}, colSet={}, rowSet={};
+    DC.rows.forEach(function(r){
+      var rk=rowKey(r), ck=colKey(r), val=(agg.indexOf('nav')>=0?r.nav:r.monthRet);
+      if(!map[rk]) map[rk]={}; if(!map[rk][ck]) map[rk][ck]=[];
+      map[rk][ck].push(val); rowSet[rk]=1; colSet[ck]=1;
+    });
+    var cols=Object.keys(colSet).sort(), rowsA=Object.keys(rowSet).sort();
+    if(!rowsA.length){ $('dcPivTable').innerHTML='<div class="dc-piv-empty">暂无数据</div>'; return; }
+    var aggName={navLast:'净值(末值)',navAvg:'净值(均值)',retAvg:'月涨跌%(均值)',retSum:'月涨跌%(求和)'}[agg];
+    var h='<table class="dc-piv-tbl"><thead><tr><th class="rowh">'+ (rowDim==='fund'?'基金':rowDim==='ftype'?'类型':'年份') +' ＼ '+ (colDim==='month'?'月份':colDim==='quarter'?'季度':'') +'（'+aggName+'）</th>';
+    cols.forEach(function(c){ h+='<th>'+c+'</th>'; }); h+='</tr></thead><tbody>';
+    rowsA.forEach(function(rk){
+      h+='<tr><td class="rowh">'+rk+'</td>';
+      cols.forEach(function(ck){
+        var v = map[rk][ck]?pivotAgg(map[rk][ck],agg):null;
+        if(v==null) h+='<td>—</td>';
+        else if(agg.indexOf('ret')>=0) h+='<td class="'+(v<0?'neg':'')+'">'+(v>=0?'+':'')+v.toFixed(2)+'</td>';
+        else h+='<td>'+v.toFixed(4)+'</td>';
+      });
+      h+='</tr>';
+    });
+    h+='</tbody></table>';
+    $('dcPivTable').innerHTML=h;
+  }
+
+  function renderDcChart(){
+    if(!DC || !window.echarts) return;
+    var type=$('dcChartType').value, el=$('dcChart');
+    if(!el) return;
+    var fmap={}; DC.funds.forEach(function(f){ fmap[f.code]=f; });
+    var months=Array.from(new Set(DC.rows.map(function(r){return r.month;}))).sort();
+    var option;
+    if(type==='scale'){
+      var funds=DC.funds.filter(function(f){ return !f.isMoney && f.scale!=null; });
+      option={ tooltip:{trigger:'axis'}, grid:{left:70,right:30,top:30,bottom:130},
+        xAxis:{type:'category',data:funds.map(function(f){return f.name;}),axisLabel:{interval:0,rotate:45,fontSize:11}},
+        yAxis:{type:'value',name:'亿元'},
+        series:[{type:'bar',data:funds.map(function(f){return f.scale;}),itemStyle:{color:'#1f6feb'},label:{show:true,position:'top'}}] };
+      elText('dcChartHint','最新规模（截至 '+DC.funds[0].scaleDate+' 中报，点时点）');
+    } else {
+      var series=DC.funds.map(function(f){
+        var rs=DC.rows.filter(function(r){return r.code===f.code;});
+        var m2n={}; rs.forEach(function(r){ m2n[r.month]=r.nav; });
+        var data=months.map(function(m){ var v=m2n[m]; return v==null?null:+(+v).toFixed(4); });
+        return {name:f.name, type:'line', showSymbol:false, connectNulls:false, data:data};
+      });
+      if(type==='navNorm'){
+        series.forEach(function(s){
+          var first=null; for(var i=0;i<s.data.length;i++){ if(s.data[i]!=null){ first=s.data[i]; break; } }
+          if(first) s.data=s.data.map(function(v){ return v==null?null:+(v/first*100).toFixed(2); });
+        });
+      }
+      option={ tooltip:{trigger:'axis'}, legend:{type:'scroll',top:0,textStyle:{fontSize:11}},
+        grid:{left:60,right:30,top:46,bottom:64},
+        xAxis:{type:'category',data:months,axisLabel:{rotate:45,fontSize:10}},
+        yAxis:{type:'value',name: type==='navNorm'?'归一化(=100)':'单位净值',scale:true},
+        series:series };
+      elText('dcChartHint', type==='navNorm'?'各基金首月有数据月净值归一为 100，便于跨基金比较累计涨跌':'原始单位净值（货币型恒=1.0000 不具可比性）');
+    }
+    if(window.__dcChart) window.__dcChart.dispose();
+    window.__dcChart = window.echarts.init(el);
+    window.__dcChart.setOption(option);
+    if(window.__dcChart && window.__dcChart.resize) setTimeout(function(){ window.__dcChart.resize(); }, 30);
+  }
+
+  function dl(name, content, type){
+    var blob=new Blob([content],{type:type});
+    var a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=name;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(function(){ URL.revokeObjectURL(a.href); }, 1000);
+  }
+
+  function exportCsv(){
+    if(!DC) return;
+    var fmap={}; DC.funds.forEach(function(f){ fmap[f.code]=f; });
+    var head=['代码','名称','类型','月份','月末单位净值','月涨跌幅%','最新规模(亿元)'];
+    var lines=[head.join(',')];
+    DC.rows.forEach(function(r){
+      var f=fmap[r.code];
+      var row=[r.code, '"'+f.name+'"', f.ftype, r.month, r.nav, r.monthRet==null?'':r.monthRet, f.scale==null?'':f.scale];
+      lines.push(row.join(','));
+    });
+    dl('基金月度净值与规模.csv', '﻿'+lines.join('\r\n'), 'text/csv;charset=utf-8');
+  }
+
+  function exportMd(){
+    if(!DC) return;
+    var fmap={}; DC.funds.forEach(function(f){ fmap[f.code]=f; });
+    var L=['# '+DC.meta.title, '', '> 生成：'+DC.meta.generatedAt+' ｜ 截至：'+DC.meta.asOf+' ｜ 基金 '+DC.meta.fundCount+' 只 ｜ 月份 '+DC.meta.monthCount+' 个', '',
+      '**净值源**：'+DC.meta.navSource, '**规模源**：'+DC.meta.scaleSource, '**说明**：'+DC.meta.scaleNote, '',
+      '## 口径卡', '', '| '+DC.meta.caliber[0].join(' | ')+' |', '| '+DC.meta.caliber[0].map(function(){return '---';}).join(' | ')+' |',
+      DC.meta.caliber.slice(1).map(function(r){return '| '+r.join(' | ')+' |';}).join('\n'), '',
+      '## 月度净值与规模', '', '| 代码 | 名称 | 类型 | 月份 | 月末单位净值 | 月涨跌幅% | 最新规模(亿元) |', '| --- | --- | --- | --- | ---: | ---: | ---: |'];
+    DC.rows.forEach(function(r){
+      var f=fmap[r.code];
+      L.push('| '+r.code+' | '+f.name+' | '+f.ftype+' | '+r.month+' | '+r.nav+' | '+(r.monthRet==null?'':r.monthRet)+' | '+(f.scale==null?'':f.scale)+' |');
+    });
+    L.push('');
+    dl('基金月度净值与规模.md', L.join('\n'), 'text/markdown;charset=utf-8');
+  }
+
+  function exportJson(){
+    if(!DC) return;
+    dl('fund-monthly.json', JSON.stringify(DC, null, 1), 'application/json');
+  }
+
+  // 事件绑定（元素均为静态 HTML，加载即可绑定）
+  // v71：视图切到 data 即触发数据加载——覆盖「桌面点击 nav 按钮」「移动端『更多』弹层 showView」等所有路径
+  if (typeof showView === 'function') {
+    var _sv = showView;
+    showView = function(name){ _sv(name); if (name === 'data') { setTimeout(ensureDc, 0); } };
+  }
+  var dcBtn=document.querySelector('#nav .nav-item[data-view="data"]');
+  if(dcBtn) dcBtn.addEventListener('click', function(){ setTimeout(ensureDc, 0); });
+
+  Array.prototype.forEach.call(document.querySelectorAll('.dc-tab'), function(b){
+    b.addEventListener('click', function(){
+      Array.prototype.forEach.call(document.querySelectorAll('.dc-tab'), function(x){ x.classList.remove('active'); });
+      b.classList.add('active');
+      var t=b.dataset.dc;
+      $('dcTableWrap').style.display = t==='table'?'':'none';
+      $('dcPivotWrap').style.display = t==='pivot'?'':'none';
+      $('dcChartWrap').style.display = t==='chart'?'':'none';
+      if(t==='chart' && DC_LOADED) renderDcChart();
+    });
+  });
+  $('dcSearch').addEventListener('input', function(){ dcUI.search=this.value; renderDcTable(); });
+  $('dcColToggle').addEventListener('click', toggleDcCols);
+  $('dcExportCsv').addEventListener('click', exportCsv);
+  $('dcExportMd').addEventListener('click', exportMd);
+  $('dcExportJson').addEventListener('click', exportJson);
+  $('dcReload').addEventListener('click', async function(){
+    DC_LOADED=false; elText('dcMeta','重新加载中…');
+    var d=await loadDcData(true);
+    if(!d){ elText('dcMeta','⚠ 数据加载失败'); return; }
+    DC=d; DC_LOADED=true; renderDcCaliber(d); renderDcTable(); renderDcPivot();
+    elText('dcMeta', d.meta.fundCount+' 只基金 · '+d.meta.monthCount+' 个月 · 截至 '+d.meta.asOf);
+    var at=document.querySelector('.dc-tab.active'); if(at && at.dataset.dc==='chart') renderDcChart();
+  });
+  ['dcPivRow','dcPivCol','dcPivAgg'].forEach(function(id){
+    $(id).addEventListener('change', renderDcPivot);
+  });
+  $('dcChartType').addEventListener('change', function(){ if(DC_LOADED) renderDcChart(); });
+  window.addEventListener('resize', function(){ if(window.__dcChart && DC_LOADED){ var at=document.querySelector('.dc-tab.active'); if(at && at.dataset.dc==='chart') window.__dcChart.resize(); } });
+})();
 
 </script>
 <!-- 移动端底部 Tab 生成 + 同步 active 态（v38） -->
