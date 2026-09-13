@@ -1165,8 +1165,9 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
       #view-data .dc-iv-tbl th{background:#f7f9fc;font-weight:600;text-align:center}
       #view-data .dc-iv-tbl th.l,#view-data .dc-iv-tbl td.l{text-align:left}
       #view-data .dc-iv-tbl th:first-child,#view-data .dc-iv-tbl td:first-child{position:sticky;left:0;background:#f3f6fb;z-index:1;text-align:left}
-      #view-data .dc-iv-tbl td.neg{color:#e0392b;font-weight:600}
-      #view-data .dc-iv-tbl td.pos{color:#c0392b;font-weight:600}
+      /* fw2_v79_red_up_green_down：涨红跌绿，统一走全局主题变量 */
+      #view-data .dc-iv-tbl td.neg{color:var(--down);font-weight:600}
+      #view-data .dc-iv-tbl td.pos{color:var(--up);font-weight:600}
       #view-data .dc-iv-tbl td.na{color:#bbb}
       /* v76 宏观指标 */
       #view-data .dc-mc-note{color:#888;font-size:12px;margin:0 0 8px;line-height:1.6}
@@ -1177,8 +1178,8 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
       #view-data .dc-mc-tbl tr.mc-row{cursor:pointer}
       #view-data .dc-mc-tbl tr.mc-row:hover{background:#f0f6ff}
       #view-data .dc-mc-tbl tr.mc-row.sel{background:#eaf2ff}
-      #view-data .dc-mc-tbl td.up{color:#e0392b}
-      #view-data .dc-mc-tbl td.dn{color:#1e8449}
+      #view-data .dc-mc-tbl td.up{color:var(--up)}
+      #view-data .dc-mc-tbl td.dn{color:var(--down)}
       #view-data .dc-mc-chartbox{margin-top:12px}
       #view-data .dc-mc-empty{color:#999;padding:20px;text-align:center}
       #view-data .dc-bar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:12px 0}
@@ -1217,7 +1218,8 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
       #view-data .dc-tbl thead th{position:sticky;top:0;background:#f3f6fb;cursor:pointer;user-select:none;z-index:2}
       #view-data .dc-tbl tbody tr:nth-child(even){background:#fafbfd}
       #view-data .dc-tbl td.num,#view-data .dc-tbl th.num{text-align:right;font-variant-numeric:tabular-nums}
-      #view-data .dc-tbl td.neg{color:#e0392b;font-weight:600}
+      #view-data .dc-tbl td.neg{color:var(--down);font-weight:600}
+      #view-data .dc-tbl td.pos{color:var(--up);font-weight:600}
       #view-data .dc-tbl td:first-child,#view-data .dc-tbl th:first-child{position:sticky;left:0;background:#f3f6fb;z-index:1}
       #view-data .dc-foot{color:#888;font-size:12px;margin-top:6px}
       #view-data .dc-piv-ctrl{display:flex;gap:18px;flex-wrap:wrap;margin-bottom:10px;font-size:13px}
@@ -1226,6 +1228,8 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
       #view-data .dc-piv-tbl th,#view-data .dc-piv-tbl td{border:1px solid #ececec;padding:4px 8px;text-align:right;white-space:nowrap}
       #view-data .dc-piv-tbl th.rowh,#view-data .dc-piv-tbl td.rowh{text-align:left;position:sticky;left:0;background:#f3f6fb;font-weight:600}
       #view-data .dc-piv-tbl thead th{background:#eef3fb}
+      #view-data .dc-piv-tbl td.neg{color:var(--down);font-weight:600}
+      #view-data .dc-piv-tbl td.pos{color:var(--up);font-weight:600}
       #view-data .dc-piv-empty{color:#999;padding:16px}
       #view-data .dc-chart-ctrl{display:flex;gap:14px;align-items:center;margin-bottom:8px;font-size:13px}
       #view-data .dc-chart-ctrl select{border:1px solid #d9d9d9;border-radius:6px;padding:4px 8px;margin-left:4px}
@@ -6650,7 +6654,7 @@ function fillRsPick() {
     + (watch.length ? `<optgroup label="自选">${watch.map((o) => `<option value="${o.code}">${esc(o.name)} ${shortCode(o.code)}</option>`).join('')}</optgroup>` : '');
   /* v52b fw2_v52b_verchip：角标自报版本+自选条数+数据来源（DB=资料库自选表 / 种子=GitHub旁挂 / 快照=页面内置） */
   const vc = $('#verChip');
-  if (vc) vc.textContent = 'v78 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  if (vc) vc.textContent = 'v79 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
@@ -7168,6 +7172,7 @@ setInterval(updateSessionBadge, 30000);
         else if(c.k==='scale' && v!=null) v=v.toFixed(2);
         if(c.k==='monthRet' && r.monthRet==null) h += '<td class="num" title="首月无基期">'+v+'</td>';
         else if(c.k==='monthRet' && r.monthRet<0) h += '<td class="num neg">'+v+'</td>';
+        else if(c.k==='monthRet' && r.monthRet>0) h += '<td class="num pos">'+v+'</td>';
         else h += '<td class="'+(c.num?'num':'')+'">'+v+'</td>';
       });
       h += '</tr>';
@@ -7284,7 +7289,7 @@ setInterval(updateSessionBadge, 30000);
       cols.forEach(function(ck){
         var v = map[rk][ck]?pivotAgg(map[rk][ck],agg):null;
         if(v==null) h+='<td>—</td>';
-        else if(agg.indexOf('ret')>=0) h+='<td class="'+(v<0?'neg':'')+'">'+(v>=0?'+':'')+v.toFixed(2)+'</td>';
+        else if(agg.indexOf('ret')>=0) h+='<td class="'+(v<0?'neg':(v>0?'pos':''))+'">'+(v>=0?'+':'')+v.toFixed(2)+'</td>';
         else h+='<td>'+v.toFixed(4)+'</td>';
       });
       h+='</tr>';
@@ -7400,7 +7405,7 @@ setInterval(updateSessionBadge, 30000);
     });
     codes=codes.filter(function(c){ return passSel(c); });
     var h='<div class="dc-iv-note">'+(selActive()?'<b>已筛选 '+selText()+' 只基金</b>　':'')+'口径：<b>单位净值</b>（期末÷期初−1），<b>不还原分红</b>；货币型净值恒为 1，改用<b>月涨跌幅累乘</b>。'
-      +'「成立以来年化」按各基金<b>数据起始月</b>（＝成立月）年化。空白格＝该基金历史不足该区间，鼠标悬停可见原因。</div>';
+      +'「成立以来年化」按各基金<b>数据起始月</b>（＝成立月）年化。空白格＝该基金历史不足该区间，鼠标悬停可见原因。<br><span class="muted">配色：<b style="color:var(--up)">涨＝红</b>，<b style="color:var(--down)">跌＝绿</b></span></div>';
     h+='<table class="dc-iv-tbl"><thead><tr><th class="l">基金</th>';
     IV_DEFS.forEach(function(d){ h+='<th>'+d.t+'</th>'; });
     h+='</tr></thead><tbody>';
@@ -7416,7 +7421,7 @@ setInterval(updateSessionBadge, 30000);
                   : (f.estab ? '成立于 '+f.estab+'，不足 '+d.m+' 个月' : '历史不足 '+d.m+' 个月');
           h+='<td class="na" title="'+why+'">—</td>';
         } else {
-          h+='<td class="'+(v<0?'neg':'')+'">'+(v>=0?'+':'')+v.toFixed(2)+'</td>';
+          h+='<td class="'+(v<0?'neg':(v>0?'pos':''))+'">'+(v>=0?'+':'')+v.toFixed(2)+'</td>';
         }
       });
       h+='</tr>';
@@ -7457,8 +7462,8 @@ setInterval(updateSessionBadge, 30000);
     vs.forEach(function(v){ if(v<mn)mn=v; if(v>mx)mx=v; });
     var rg=(mx-mn)||1, step=(w-2)/(vs.length-1);
     var pl=vs.map(function(v,i){ return (i*step+1).toFixed(1)+','+(hgt-1-((v-mn)/rg)*(hgt-2)).toFixed(1); }).join(' ');
-    var col = vs[vs.length-1]>=vs[0] ? '#e0392b' : '#1e8449';
-    return '<svg class="dc-mc-spark" width="'+w+'" height="'+hgt+'"><polyline points="'+pl+'" fill="none" stroke="'+col+'" stroke-width="1.4"/></svg>';
+    var col = vs[vs.length-1]>=vs[0] ? 'var(--up)' : 'var(--down)';
+    return '<svg class="dc-mc-spark" width="'+w+'" height="'+hgt+'"><polyline points="'+pl+'" fill="none" style="stroke:'+col+';stroke-width:1.4"/></svg>';
   }
   var mcSel=null;
   function mcFmt(v){
