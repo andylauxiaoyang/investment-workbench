@@ -4277,7 +4277,8 @@ function renderDiagnoseView() {
   // ---- 持仓健康诊断：健康度分布 + 集中度体检 ----
   const healthDist = {};
   rows.forEach((r) => { const h = healthOf(r).label; healthDist[h] = (healthDist[h] || 0) + 1; });
-  const palette = { '正常': '#5a6b7d', '走强': 'var(--down)', '涨停': 'var(--down)', '走弱': 'var(--up)', '跌停': 'var(--up)', '高集中': 'var(--warn)', '停牌': 'var(--warn)' };
+  /* fw2_v80_limit_colors：涨红跌绿（--up=红 / --down=绿）；与下方 healthOf() 必须同步改 */
+  const palette = { '正常': '#5a6b7d', '走强': 'var(--up)', '涨停': 'var(--up)', '走弱': 'var(--down)', '跌停': 'var(--down)', '高集中': 'var(--warn)', '停牌': 'var(--warn)' };
   const order2 = ['正常', '走强', '涨停', '走弱', '跌停', '高集中', '停牌'];
   const distData = order2.filter((k) => healthDist[k]).map((k) => ({ name: k, value: healthDist[k], itemStyle: { color: palette[k] } }));
   mountChart('dgHealthDonut', {
@@ -4339,7 +4340,8 @@ function renderDiagnoseView() {
       <td class="num">${r.weight.toFixed(2)}%</td>
       <td class="num ${cls(r.dayCny)}">${fmtMoney(r.dayCny, true)}</td>
       <td><span class="tag ${r.status.kind === 'live' ? 'tag-live' : ''}">${esc(r.status.label)}</span></td>
-      <td><span class="tag" style="color:${h.color};border-color:${h.color};background:${h.color}24">${h.label}</span></td>
+      <!-- fw2_v80_limit_colors：background 用 color-mix，var(--x)24 是无效 CSS -->
+      <td><span class="tag" style="color:${h.color};border-color:${h.color};background:color-mix(in srgb, ${h.color} 14%, transparent)">${h.label}</span></td>
       <td class="num"><button class="btn-link" data-act="research" data-code="${r.code}">研究</button></td>
     </tr>`;
   }).join('');
@@ -4378,10 +4380,10 @@ function alertsOf(rows) {
 function healthOf(r) {
   const c = r.code, pct = r.pct || 0;
   if (r.price == null) return { label: '停牌', color: 'var(--warn)' };
-  if (isLimitDownCn(c, pct)) return { label: '跌停', color: 'var(--up)' };
-  if (pct <= -5) return { label: '走弱', color: 'var(--up)' };
-  if (isLimitUpCn(c, pct)) return { label: '涨停', color: 'var(--down)' };
-  if (pct >= 5) return { label: '走强', color: 'var(--down)' };
+  if (isLimitDownCn(c, pct)) return { label: '跌停', color: 'var(--down)' };   /* fw2_v80 跌=绿 */
+  if (pct <= -5) return { label: '走弱', color: 'var(--down)' };               /* fw2_v80 跌=绿 */
+  if (isLimitUpCn(c, pct)) return { label: '涨停', color: 'var(--up)' };       /* fw2_v80 涨=红 */
+  if (pct >= 5) return { label: '走强', color: 'var(--up)' };                  /* fw2_v80 涨=红 */
   if (r.weight > 25) return { label: '高集中', color: 'var(--warn)' };
   return { label: '正常', color: 'var(--text-2)' };
 }
@@ -6654,7 +6656,7 @@ function fillRsPick() {
     + (watch.length ? `<optgroup label="自选">${watch.map((o) => `<option value="${o.code}">${esc(o.name)} ${shortCode(o.code)}</option>`).join('')}</optgroup>` : '');
   /* v52b fw2_v52b_verchip：角标自报版本+自选条数+数据来源（DB=资料库自选表 / 种子=GitHub旁挂 / 快照=页面内置） */
   const vc = $('#verChip');
-  if (vc) vc.textContent = 'v79 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  if (vc) vc.textContent = 'v80 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
