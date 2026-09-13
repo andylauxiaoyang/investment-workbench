@@ -1027,7 +1027,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
             <span data-page-node-id="1tYNTqEbqNQRtvoZcDMp9W" class="flbl"><!--pnid:9wTVum6ntnQpThvDUQM28N-->选择</span>
             <select data-page-node-id="ytqOAaTQnUAlAV3d84SXD0" class="inp-sm sel" id="rsPick">
               <option data-page-node-id="dBdl5B3ockpTkZSdlssjuf" value><!--pnid:uffUrO7CKLEtAQ6KTRyigz-->持仓 / 自选…</option>
-            </select><span data-page-node-id="fw2v52bVerchip" class="hint" id="verChip" style="white-space:nowrap;flex:none"><!--fw2_v52b_verchip fw2_v54c_verchip fw2_v55_verchip fw2_v56_verchip fw2_v57_verchip fw2_v58_verchip fw2_v59_verchip fw2_v60_verchip fw2_v61_verchip fw2_v61_wltext fw2_v62_fundbasic fw2_v63_xmap_wlfix fw2_v64_macro_xasset fw2_v65_macro_spxnky fw2_v66_macro_amtd fw2_v67_nky_ts fw2_v68_split_spx_nky fw2_v69_nky_curve fw2_v70_nky_daily_ma fw2_v70b_extreme_label fw2_v71_datacenter fw2_v72_data_icon-->v72</span>
+            </select><span data-page-node-id="fw2v52bVerchip" class="hint" id="verChip" style="white-space:nowrap;flex:none"><!--fw2_v52b_verchip fw2_v54c_verchip fw2_v55_verchip fw2_v56_verchip fw2_v57_verchip fw2_v58_verchip fw2_v59_verchip fw2_v60_verchip fw2_v61_verchip fw2_v61_wltext fw2_v62_fundbasic fw2_v63_xmap_wlfix fw2_v64_macro_xasset fw2_v65_macro_spxnky fw2_v66_macro_amtd fw2_v67_nky_ts fw2_v68_split_spx_nky fw2_v69_nky_curve fw2_v70_nky_daily_ma fw2_v70b_extreme_label fw2_v71_datacenter fw2_v72_data_icon fw2_v73_pivot_desc-->v73</span>
           </div>
           <div data-page-node-id="5FsFNsGZ6QN0HN0rpWLIlR" class="tools-l inline-form rs-combo">
             <span data-page-node-id="KyCNIch2B6qjWLrmQxqPCX" class="flbl"><!--pnid:1qPkNVbSL0r9sGQSgNifJN-->名称</span>
@@ -6595,7 +6595,7 @@ function fillRsPick() {
     + (watch.length ? `<optgroup label="自选">${watch.map((o) => `<option value="${o.code}">${esc(o.name)} ${shortCode(o.code)}</option>`).join('')}</optgroup>` : '');
   /* v52b fw2_v52b_verchip：角标自报版本+自选条数+数据来源（DB=资料库自选表 / 种子=GitHub旁挂 / 快照=页面内置） */
   const vc = $('#verChip');
-  if (vc) vc.textContent = 'v72 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  if (vc) vc.textContent = 'v73 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
@@ -7145,7 +7145,7 @@ setInterval(updateSessionBadge, 30000);
       if(!map[rk]) map[rk]={}; if(!map[rk][ck]) map[rk][ck]=[];
       map[rk][ck].push(val); rowSet[rk]=1; colSet[ck]=1;
     });
-    var cols=Object.keys(colSet).sort(), rowsA=Object.keys(rowSet).sort();
+    var cols=Object.keys(colSet).sort().reverse(), rowsA=Object.keys(rowSet).sort();
     if(!rowsA.length){ $('dcPivTable').innerHTML='<div class="dc-piv-empty">暂无数据</div>'; return; }
     var aggName={navLast:'净值(末值)',navAvg:'净值(均值)',retAvg:'月涨跌%(均值)',retSum:'月涨跌%(求和)'}[agg];
     var h='<table class="dc-piv-tbl"><thead><tr><th class="rowh">'+ (rowDim==='fund'?'基金':rowDim==='ftype'?'类型':'年份') +' ＼ '+ (colDim==='month'?'月份':colDim==='quarter'?'季度':'') +'（'+aggName+'）</th>';
