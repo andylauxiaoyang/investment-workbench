@@ -1105,7 +1105,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
           <span class="dc-meta" id="dcMeta"></span>
           <div class="dc-col-panel" id="dcColPanel" style="display:none"></div>
         </div>
-        <div id="dcOverviewWrap" class="dc-pane"><!-- fw2_v85_overview --><!-- fw2_v88_overview_interval：区间收益并入总览、取消独立 Tab --></div>
+        <div id="dcOverviewWrap" class="dc-pane"><!-- fw2_v85_overview --><!-- fw2_v88_overview_interval：区间收益并入总览、取消独立 Tab --><!-- fw2_v89_iv_merged_cols：区间收益由独立表改为并入基础信息表的列（总费率后 / 基金经理前） --></div>
         <div id="dcTableWrap" class="dc-pane" style="display:none"></div>
         <div id="dcPivotWrap" class="dc-pane" style="display:none">
           <div class="dc-piv-ctrl">
@@ -1162,19 +1162,10 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
       #view-data .dc-blocks{display:flex;gap:8px;margin:0 0 10px}
       #view-data .dc-block{border:1px solid #c9d6ea;background:#f4f7fd;color:#1f6feb;padding:8px 18px;border-radius:8px;cursor:pointer;font-size:14px;font-weight:600}
       #view-data .dc-block.active{background:#1f6feb;color:#fff;border-color:#1f6feb}
-      /* v88 总览内小标题（区间收益并入总览） */
-      #view-data .dc-sub-h{font-size:14px;font-weight:600;color:#1f2937;margin:20px 0 8px;padding-left:8px;border-left:3px solid #1f6feb}
+      /* v89：「区间收益」小标题随独立块取消而移除，改为并入基础信息表的列 */
       /* v76 区间收益 */
       #view-data .dc-iv-note{color:#888;font-size:12px;margin:0 0 8px;line-height:1.6}
-      #view-data .dc-iv-tbl{border-collapse:collapse;width:100%;font-size:12.5px}
-      #view-data .dc-iv-tbl th,#view-data .dc-iv-tbl td{border:1px solid #ececec;padding:6px 8px;text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
-      #view-data .dc-iv-tbl th{background:#f7f9fc;font-weight:600;text-align:center}
-      #view-data .dc-iv-tbl th.l,#view-data .dc-iv-tbl td.l{text-align:left}
-      #view-data .dc-iv-tbl th:first-child,#view-data .dc-iv-tbl td:first-child{position:sticky;left:0;background:#f3f6fb;z-index:1;text-align:left}
       /* fw2_v79_red_up_green_down：涨红跌绿，统一走全局主题变量 */
-      #view-data .dc-iv-tbl td.neg{color:var(--down);font-weight:600}
-      #view-data .dc-iv-tbl td.pos{color:var(--up);font-weight:600}
-      #view-data .dc-iv-tbl td.na{color:#bbb}
       /* v76 宏观指标 */
       #view-data .dc-mc-note{color:#888;font-size:12px;margin:0 0 8px;line-height:1.6}
       #view-data .dc-mc-tbl{border-collapse:collapse;width:100%;font-size:12.5px}
@@ -1231,6 +1222,10 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
       /* v85 基金总览 */
       #view-data .dc-ov-note{color:#888;font-size:12px;margin:0 0 8px;line-height:1.6}
       #view-data .dc-ov-tbl th.liq{text-align:center}
+      /* v89 区间收益列并入总览表（总费率后 / 基金经理前） */
+      #view-data .dc-ov-tbl th.iv,#view-data .dc-ov-tbl td.iv{background:#fbfcfe}
+      #view-data .dc-ov-tbl .sep{border-left:2px solid #cbd6e6}
+      #view-data .dc-tbl td.na{color:#bbb}
       /* 清盘风险＝告警语义（独立于涨跌配色）：高=红 / 关注=黄 / 低=绿 */
       #view-data .dc-tbl td.liq-high{color:#d92d20;font-weight:600}
       #view-data .dc-tbl td.liq-watch{color:#b54708;font-weight:600}
@@ -6674,9 +6669,10 @@ function fillRsPick() {
      v85 fw2_v85_overview：数据中心新增「总览」默认 Tab——基金基础信息表（fund-basic.json）：代码/名称/类型/成立日/基金公司/最新规模(亿元,点时点)/总费率%/基金经理/任职年限/经理在管(亿元)/清盘风险(按规模派生)，可排序、受筛选与搜索约束、可导出总览CSV
      v86 fw2_v86_mobile_scroll：移动端底部导航改为横向滑动显示「全部模块」（9 个 nav-item 全平铺为可滑动 Tab，去掉「更多」弹层/选择），切换时激活项自动滑入可视区居中
      v87 fw2_v87_caliber_bottom：数据中心「口径卡（数据来源与口径说明）」由顶部移至所有数据视图下方；各视图的数据说明/口径注记（总览/区间收益/宏观）同样移至数据下方，顶部直接展示数据
-     v88 fw2_v88_overview_interval：数据中心「区间收益」并入「总览」Tab（基础信息表 → 区间收益表，说明垫底），取消独立的「区间收益」Tab */
+     v88 fw2_v88_overview_interval：数据中心「区间收益」并入「总览」Tab（基础信息表 → 区间收益表，说明垫底），取消独立的「区间收益」Tab
+     v89 fw2_v89_iv_merged_cols：区间收益的 10 个区间列并入「总览」基础信息表，位于「总费率(%)」之后、「基金经理」之前（单表 21 列；删除底部独立区间表与「区间收益」小标题）；顺带修复「基金经理」列恒空（fund-basic.json 字段名为 mgrNames，原列键 mgr 取不到值） */
   const vc = $('#verChip');
-  if (vc) vc.textContent = 'v88 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  if (vc) vc.textContent = 'v89 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
@@ -7460,44 +7456,11 @@ setInterval(updateSessionBadge, 30000);
     if(!(base>0)) return null;
     return (last.nav/base-1)*100;
   }
-  function dcIntervalHtml(){
+  /* v89：区间收益已并入基础信息表列（总费率后、基金经理前），此处只保留口径说明 */
+  function ivNoteHtml(){
     if(!DC) return '';
-    var fmap={}; DC.funds.forEach(function(f){ fmap[f.code]=f; });
-    var byCode={};
-    DC.rows.forEach(function(r){ (byCode[r.code]=byCode[r.code]||[]).push(r); });
-    var codes=DC.funds.map(function(f){ return f.code; });
-    var q=(dcUI.search||'').trim().toLowerCase();
-    codes=codes.filter(function(c){
-      if(!q) return true;
-      var f=fmap[c];
-      return (c+' '+f.name+' '+f.ftype).toLowerCase().indexOf(q)>=0;
-    });
-    codes=codes.filter(function(c){ return passSel(c); });
-    var ivNote='<div class="dc-iv-note">'+(selActive()?'<b>已筛选 '+selText()+' 只基金</b>　':'')+'口径：<b>单位净值</b>（期末÷期初−1），<b>不还原分红</b>；货币型净值恒为 1，改用<b>月涨跌幅累乘</b>。'
-      +'「成立以来年化」按各基金<b>数据起始月</b>（＝成立月）年化。空白格＝该基金历史不足该区间，鼠标悬停可见原因。<br><span class="muted">配色：<b style="color:var(--up)">涨＝红</b>，<b style="color:var(--down)">跌＝绿</b></span></div>';
-    var h='<table class="dc-iv-tbl"><thead><tr><th class="l">基金</th>';
-    IV_DEFS.forEach(function(d){ h+='<th>'+d.t+'</th>'; });
-    h+='</tr></thead><tbody>';
-    codes.forEach(function(c){
-      var f=fmap[c];
-      var rows=(byCode[c]||[]).slice().sort(function(a,b){ return a.month<b.month?-1:1; });
-      h+='<tr><td class="l">'+f.name+' <span class="muted">'+c+'</span></td>';
-      IV_DEFS.forEach(function(d){
-        var v=ivSeries(rows,d,!!f.isMoney);
-        if(v==null){
-          var why = (d.k==='since') ? '数据不足'
-                  : (d.k==='ytd') ? '缺上一年末基准月'
-                  : (f.estab ? '成立于 '+f.estab+'，不足 '+d.m+' 个月' : '历史不足 '+d.m+' 个月');
-          h+='<td class="na" title="'+why+'">—</td>';
-        } else {
-          h+='<td class="'+(v<0?'neg':(v>0?'pos':''))+'">'+(v>=0?'+':'')+v.toFixed(2)+'</td>';
-        }
-      });
-      h+='</tr>';
-    });
-    h+='</tbody></table>';
-    h+=ivNote;   // v87：口径说明移至表格下方，顶部直接展示数据
-    return h;
+    return '<div class="dc-iv-note">'+(selActive()?'<b>已筛选 '+selText()+' 只基金</b>　':'')+'口径：<b>单位净值</b>（期末÷期初−1），<b>不还原分红</b>；货币型净值恒为 1，改用<b>月涨跌幅累乘</b>。'
+      +'「成立以来年化」按各基金<b>数据起始月</b>（＝成立月）年化。<b>「—」</b>＝该基金历史不足该区间、或未纳入月度净值表，鼠标悬停可见原因。<br><span class="muted">配色：<b style="color:var(--up)">涨＝红</b>，<b style="color:var(--down)">跌＝绿</b></span></div>';
   }
 
   /* ---------- v76：宏观数据（指标清单 + 走势，数据源 MACRO_SNAP） ---------- */
@@ -7692,6 +7655,10 @@ setInterval(updateSessionBadge, 30000);
       r.tenure = r.mgrTenureText || (r.mgrTenure!=null ? r.mgrTenure+'年' : '—');
       r.aum = (typeof r.mgrAUM==='number') ? r.mgrAUM : null;
       r.liq = liqRisk(r.scale);
+      r.mgr = r.mgrNames || '—';   // v89 修复：fund-basic.json 字段名为 mgrNames，原「基金经理」列键 mgr 恒取不到值（列一直空白）
+      // v89：区间收益并入同一行（由月度净值派生）
+      var _m = ivMap(), _rws = (_m && _m[r.code]) || [], _money = (r.isMoney === true || /货币/.test(r.ftype || ''));
+      IV_DEFS.forEach(function(d){ r['iv_'+d.k] = ivSeries(_rws, d, _money); });
     });
     if(dcUI.sel) arr = arr.filter(function(r){ return dcUI.sel.has(r.code); });
     var q = (dcUI.search||'').trim().toLowerCase();
@@ -7699,11 +7666,35 @@ setInterval(updateSessionBadge, 30000);
     var k = dcUI.ovSortKey || 'scale', dir = dcUI.ovSortDir || -1;
     arr.sort(function(a,b){
       var x=a[k], y=b[k];
-      if(k==='scale'||k==='fee'||k==='aum'){ x=(x==null?-Infinity:x); y=(y==null?-Infinity:y); return (x-y)*dir; }
+      if(k==='scale'||k==='fee'||k==='aum'||k.indexOf('iv_')===0){ x=(x==null?-Infinity:x); y=(y==null?-Infinity:y); return (x-y)*dir; }
       if(k==='liq'){ var ord={'高风险':0,'关注':1,'低':2,'未知':3}; x=ord[x]!=null?ord[x]:3; y=ord[y]!=null?ord[y]:3; return (x-y)*dir; }
       return (''+x).localeCompare(''+y)*dir;
     });
     return arr;
+  }
+  /* ===== v89：区间收益列并入「总览」基础信息表 ===== */
+  var __ivMapSrc = null, __ivMapCache = null;
+  function ivMap(){
+    if(!DC) return null;
+    if(__ivMapSrc === DC && __ivMapCache) return __ivMapCache;
+    var by = {};
+    DC.rows.forEach(function(r){ (by[r.code] = by[r.code] || []).push(r); });
+    Object.keys(by).forEach(function(c){ by[c].sort(function(a,b){ return a.month < b.month ? -1 : 1; }); });
+    __ivMapSrc = DC; __ivMapCache = by;
+    return by;
+  }
+  /* 总览列 = 基础信息列 + 区间收益列；区间收益列插在「总费率」之后、「基金经理」之前 */
+  function ovColsAll(){
+    var out = [];
+    OV_COLS.forEach(function(c){
+      if(c.k === 'mgr'){
+        IV_DEFS.forEach(function(d, i){ out.push({k:'iv_'+d.k, t:d.t, num:true, iv:true, def:d, sep:(i===0)}); });
+        out.push({k:'mgr', t:'基金经理', sep:true});
+      } else {
+        out.push(c);
+      }
+    });
+    return out;
   }
   function renderDcOverview(){
     var wrap = $('dcOverviewWrap'); if(!wrap) return;
@@ -7717,32 +7708,43 @@ setInterval(updateSessionBadge, 30000);
     var ovNote = '<div class="dc-ov-note">数据来源：fund-basic.json（天天基金 fundf10 jbgk ＋ 基金经理页）。'
       + '「最新规模」为 <b>'+sd+'</b> 中报点时点，非月度序列；'
       + '「总费率」＝管理＋托管＋销售（销售为空计 0）；「清盘风险」按规模派生：&lt;0.5亿=高风险(清盘线)、0.5~2亿=关注、≥2亿=低。点击表头排序（默认按规模最大）。</div>';
+    var OVC = ovColsAll();   // v89：基础信息列 + 区间收益列（插在总费率后、基金经理前）
     var h = '<table class="dc-tbl dc-ov-tbl"><thead><tr>';
-    OV_COLS.forEach(function(c){
+    OVC.forEach(function(c){
       var arrow = dcUI.ovSortKey===c.k ? (dcUI.ovSortDir>0?' ▲':' ▼') : '';
-      h += '<th data-k="'+c.k+'" class="'+(c.num?'num':'')+(c.k==='liq'?' liq':'')+'">'+c.t+arrow+'</th>';
+      h += '<th data-k="'+c.k+'" class="'+((c.num?'num':'')+(c.k==='liq'?' liq':'')+(c.iv?' iv':'')+(c.sep?' sep':'')).trim()+'">'+c.t+arrow+'</th>';
     });
     h += '</tr></thead><tbody>';
     arr.forEach(function(r){
       h += '<tr>';
-      OV_COLS.forEach(function(c){
+      OVC.forEach(function(c){
         var v = r[c.k];
-        if(c.k==='scale'){ h += '<td class="num">'+(v==null?'—':(+v).toFixed(2))+'</td>'; }
-        else if(c.k==='fee'){ h += '<td class="num">'+(v==null?'—':(+v).toFixed(2))+'</td>'; }
-        else if(c.k==='aum'){ h += '<td class="num">'+(v==null?'—':(+v).toFixed(2))+'</td>'; }
-        else if(c.k==='liq'){ h += '<td class="'+liqCls(v)+'" title="按规模派生评估，非官方判定">'+(v||'—')+'</td>'; }
-        else if(c.k==='name'||c.k==='company'||c.k==='mgr'||c.k==='ftype'||c.k==='estab'){ h += '<td>'+esc(v||'')+'</td>'; }
-        else { h += '<td>'+(v==null?'—':esc(v))+'</td>'; }
+        var cls = ((c.num?'num':'') + (c.iv?' iv':'') + (c.sep?' sep':'')).trim();
+        if(c.iv){
+          if(v==null){
+            var why = !DC ? '月度净值数据加载中…'
+                    : (!(ivMap() || {})[r.code]) ? '该基金未纳入月度净值表'
+                    : (c.def.k==='since') ? '数据不足'
+                    : (c.def.k==='ytd') ? '缺上一年末基准月'
+                    : (r.estab ? '成立于 '+r.estab+'，不足 '+c.def.m+' 个月' : '历史不足 '+c.def.m+' 个月');
+            h += '<td class="'+(cls+' na').trim()+'" title="'+esc(why)+'">—</td>';
+          } else {
+            h += '<td class="'+(cls+(v<0?' neg':(v>0?' pos':''))).trim()+'">'+(v>=0?'+':'')+v.toFixed(2)+'</td>';
+          }
+        }
+        else if(c.k==='scale'||c.k==='fee'||c.k==='aum'){ h += '<td class="'+cls+'">'+(v==null?'—':(+v).toFixed(2))+'</td>'; }
+        else if(c.k==='liq'){ h += '<td class="'+(liqCls(v)+' '+cls).trim()+'" title="按规模派生评估，非官方判定">'+(v||'—')+'</td>'; }
+        else if(c.k==='name'||c.k==='company'||c.k==='mgr'||c.k==='ftype'||c.k==='estab'){ h += '<td class="'+cls+'">'+esc(v||'')+'</td>'; }
+        else { h += '<td class="'+cls+'">'+(v==null?'—':esc(v))+'</td>'; }
       });
       h += '</tr>';
     });
     h += '</tbody></table>';
     h += '<div class="dc-foot">共 '+arr.length+' 只基金（基础信息库 '+Object.keys(FB.funds).length+' 只）'
       + (dcUI.sel?' ｜ 已按筛选基金收窄':'') + (dcUI.search?' ｜ 含搜索词':'') + '</div>';
-    // v88：区间收益并入总览（原独立 Tab 取消）
-    h += '<div class="dc-sub-h">区间收益</div>';
-    h += (DC_LOADED ? dcIntervalHtml() : '<div class="dc-empty">区间收益数据加载中…（若失败请点「重新加载」）</div>');
+    // v89：区间收益已改为「列」并入上方基础信息表（总费率后、基金经理前），底部独立块与小标题取消
     h += ovNote;   // v87：数据说明移至表格下方，顶部直接展示数据
+    h += ivNoteHtml();   // v89：区间收益口径说明，紧随基础信息说明
     wrap.innerHTML = h;
     Array.prototype.forEach.call(wrap.querySelectorAll('th[data-k]'), function(th){
       th.addEventListener('click', function(){
@@ -7754,12 +7756,13 @@ setInterval(updateSessionBadge, 30000);
   }
   function exportOverviewCsv(){
     if(!FB) return;
-    var head = OV_COLS.map(function(c){ return c.t; });
+    var OVC = ovColsAll();
+    var head = OVC.map(function(c){ return c.t; });
     var lines = [head.join(',')];
     ovRows().forEach(function(r){
-      var row = OV_COLS.map(function(c){
+      var row = OVC.map(function(c){
         var v = r[c.k];
-        if(c.k==='scale'||c.k==='fee'||c.k==='aum') return (v==null?'':(+v).toFixed(2));
+        if(c.k==='scale'||c.k==='fee'||c.k==='aum'||c.iv) return (v==null?'':(+v).toFixed(2));
         if(c.k==='name'||c.k==='company'||c.k==='mgr') return '"'+String(v||'').replace(/"/g,'""')+'"';
         return v==null?'':v;
       });
