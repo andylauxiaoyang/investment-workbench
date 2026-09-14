@@ -1178,9 +1178,10 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
       #view-data .dc-mc-chartbox{margin-top:12px}
       #view-data .dc-mc-empty{color:#999;padding:20px;text-align:center}
       /* v91 fw2_v91_macro_merge：宏观分块 = 左栏模块（总览页 + 13 个指标模块）+ 右内容，并列切换 */
-      #view-data .dc-mc-layout{display:flex;gap:14px;align-items:flex-start}
-      #view-data .dc-mc-nav{flex:0 0 212px;max-height:72vh;overflow:auto;border:1px solid #ececec;border-radius:8px;padding:6px;background:#fbfcfe}
-      #view-data .dc-mc-nav button{display:block;width:100%;text-align:left;border:0;background:transparent;padding:7px 9px;border-radius:6px;font-size:12.5px;color:#334155;cursor:pointer;line-height:1.45}
+      /* v94 fw2_v94_mc_nav_horizontal：导航由左侧竖排 → 顶部单行横向（横向滚动）；按钮用简化名，全称仍在卡片/总览表 */
+      #view-data .dc-mc-layout{display:flex;flex-direction:column;gap:12px;align-items:stretch}
+      #view-data .dc-mc-nav{flex:0 0 auto;width:100%;display:flex;flex-wrap:nowrap;gap:6px;overflow-x:auto;border:1px solid #ececec;border-radius:8px;padding:6px;background:#fbfcfe;white-space:nowrap}
+      #view-data .dc-mc-nav button{display:inline-block;width:auto;flex:0 0 auto;white-space:nowrap;text-align:center;border:0;background:transparent;padding:6px 12px;border-radius:6px;font-size:12.5px;color:#334155;cursor:pointer;line-height:1.45}
       #view-data .dc-mc-nav button:hover{background:#eef4ff}
       #view-data .dc-mc-nav button.active{background:#e4eeff;color:#1d4ed8;font-weight:600}
       #view-data .dc-mc-nav button.mc-nav-ov{font-weight:600;color:#1d4ed8}
@@ -6710,9 +6711,10 @@ function fillRsPick() {
      v90 fw2_v90_drop_cols：删除「类型」「基金公司」两列（总览表 21 列 → 19 列；（表头/表体/排序/导出 CSV 列序均自动跟随 OV_COLS）
      v91 fw2_v91_macro_merge：删除「宏观·情绪」独立页（#view-macro / 导航项 / VIEW_META / render 分派），数据与 13 张判读卡片并入 数据中心→宏观数据 分块；宏观分块＝左栏模块列表（总览页 + 13 个指标模块）+ 右内容并列切换；分块标题按分块切换（宏观→总览页 / 基金→基金数据总览）；总览页展开被折叠的子序列值并补 10 年分位列与判读列
      v92 fw2_v92_data_iconfix：修复 v91 引入的导航图标回归——A18 用 end-exclusive 剪切删除宏观图标 CSS 时残留「更多弹层」注释尾片段（注释结束符 + 右花括号），该游离文本作为 CSS qualified rule 前奏吞掉了紧随其后的 [data-view="data"] .ic 规则，使「数据中心」图标退化为实心方块。已删残留，并补静态断言（8 条图标规则齐备）与渲染断言（各 .ic 的 computed mask 非 none）。
-     v93 fw2_v93_drop_dc_head：删除「数据中心」分块的分块标题与副标题（#dcTitle/#dcSub，基金/宏观两块共用），页面从「基金数据/宏观数据」切换条直接进入数据区。 */
+     v93 fw2_v93_drop_dc_head：删除「数据中心」分块的分块标题与副标题（#dcTitle/#dcSub，基金/宏观两块共用），页面从「基金数据/宏观数据」切换条直接进入数据区。
+     v94 fw2_v94_mc_nav_horizontal：宏观分块模块导航由左侧竖排改为顶部单行横向（横向滚动），导航按钮改用简化名（映射表 MC_NAV_SHORT，悬停 title 显示全称），卡片标题与总览表仍用全称。 */
   const vc = $('#verChip');
-  if (vc) vc.textContent = 'v93 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  if (vc) vc.textContent = 'v94 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
@@ -7627,12 +7629,30 @@ setInterval(updateSessionBadge, 30000);
       tr.addEventListener('click', function(){ mcMod = tr.getAttribute('data-mod'); window.__mcApply(); });
     });
   }
+  /* v94 fw2_v94_mc_nav_horizontal：模块导航的简化名（key = 卡片 h3 全称，value = 导航简称）。
+     全称保留在卡片标题与总览表；表里找不到的 key 回退为全称（改标题不会静默丢名字）。 */
+  var MC_NAV_SHORT = {
+    'ERP 股债性价比（沪深300）': '股债性价比',
+    '沪深300 PE-TTM 与 10年分位': '沪深300 PE',
+    '信用脉冲：社融 / M1 / M2 与剪刀差': '信用脉冲',
+    '物价剪刀差：CPI / PPI': 'CPI / PPI',
+    '外围：USDCNH / 美元指数 / 美债10Y / 中美利差': '美元与利差',
+    'VIX 恐慌指数（标普500 期权隐含波动率）': 'VIX 恐慌',
+    '制造业 PMI（荣枯线 50）': '制造业 PMI',
+    '情绪温度计：两融与成交': '两融与成交',
+    '全A成交额（沪深京 · 近30日）': '全A成交额',
+    '宽基估值温度（A股·中小盘）': '宽基估值',
+    '全球利率与汇率（美债·日元）': '全球利率',
+    '美股估值温度（标普500）': '美股估值',
+    '日经225 实时': '日经225'
+  };
   function renderDcMcNav(){
     var nav = $('dcMcNav'); if(!nav) return;
     var mods = Array.prototype.slice.call(document.querySelectorAll('#macroBody > .mc-mod'));
     var h = '<button class="mc-nav-ov" data-mod="0" type="button">总览页</button>';
     mods.forEach(function(m){
-      h += '<button data-mod="' + m.getAttribute('data-mod') + '" type="button">' + esc(m.getAttribute('data-title') || '') + '</button>';
+      var _full = m.getAttribute('data-title') || '';
+      h += '<button data-mod="' + m.getAttribute('data-mod') + '" type="button" title="' + esc(_full) + '">' + esc(MC_NAV_SHORT[_full] || _full) + '</button>';
     });
     nav.innerHTML = h;
     Array.prototype.forEach.call(nav.querySelectorAll('button'), function(b){
