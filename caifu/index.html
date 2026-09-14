@@ -1135,7 +1135,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
               <select id="dcChartType">
                 <option value="navNorm">净值走势（归一化=100）</option>
                 <option value="navRaw">净值走势（原始）</option>
-                <option value="scale">最新规模（亿元）</option>
+                <option value="scale">最新规模（亿元，点时点）</option>
               </select>
             </label>
             <span class="dc-hint" id="dcChartHint"></span>
@@ -6656,9 +6656,10 @@ function fillRsPick() {
     + (watch.length ? `<optgroup label="自选">${watch.map((o) => `<option value="${o.code}">${esc(o.name)} ${shortCode(o.code)}</option>`).join('')}</optgroup>` : '');
   /* v81 fw2_v81_src_gate：角标自报版本+自选条数+数据来源；v81 新增口径卡「数据来源渠道登记 + 校验戳记」
      v82 fw2_v82_navbreak：净值断裂检测（份额折算/转型不当作收益），断裂月 monthRet 置空 + navReset 标记
-     v83 fw2_v83_vixcboe：VIX 源由理杏仁 vix_fic 改 CBOE 官方 CSV（月末收盘,T0），修正与官方系统性不符 */
+     v83 fw2_v83_vixcboe：VIX 源由理杏仁 vix_fic 改 CBOE 官方 CSV（月末收盘,T0），修正与官方系统性不符
+     v84 fw2_v84_noscale_col：数据中心月度表格移除「最新规模」列——规模为点时点（中报），非月度序列，同一基金每月重复展示无意义；横向对比保留在「配图-最新规模」 */
   const vc = $('#verChip');
-  if (vc) vc.textContent = 'v83 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  if (vc) vc.textContent = 'v84 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
@@ -7075,7 +7076,8 @@ setInterval(updateSessionBadge, 30000);
   var COLS = [
     {k:'code',t:'代码'}, {k:'name',t:'名称'}, {k:'ftype',t:'类型'},
     {k:'month',t:'月份'}, {k:'nav',t:'月末单位净值',num:true},
-    {k:'monthRet',t:'月涨跌幅%',num:true}, {k:'scale',t:'最新规模(亿元)',num:true}
+    {k:'monthRet',t:'月涨跌幅%',num:true}
+    // v84 fw2_v84_noscale_col：规模是点时点（2026-06-30 中报），非月度序列，重复展示在同一基金每个月没有意义，已从月度表格移除；横向对比仍在「配图-最新规模」
   ];
   var dcUI = {sortKey:'month', sortDir:-1, search:'', sel:null, cols:new Set(COLS.map(function(c){return c.k;}))};
 
@@ -7161,14 +7163,14 @@ setInterval(updateSessionBadge, 30000);
 
   function rowsView(){
     var fmap={}; DC.funds.forEach(function(f){ fmap[f.code]=f; });
-    var arr = DC.rows.map(function(r){ var f=fmap[r.code]; return Object.assign({}, r, {name:f.name, ftype:f.ftype, scale:f.scale}); });
+    var arr = DC.rows.map(function(r){ var f=fmap[r.code]; return Object.assign({}, r, {name:f.name, ftype:f.ftype}); });
     var q = (dcUI.search||'').trim().toLowerCase();
     if(q) arr = arr.filter(function(r){ return (r.code+' '+r.name+' '+r.ftype).toLowerCase().indexOf(q)>=0; });
     if(dcUI.sel) arr = arr.filter(function(r){ return passSel(r.code); });
     var k=dcUI.sortKey, dir=dcUI.sortDir;
     arr.sort(function(a,b){
       var x=a[k], y=b[k];
-      if(k==='nav'||k==='monthRet'||k==='scale'){ x=(x==null?-Infinity:x); y=(y==null?-Infinity:y); return (x-y)*dir; }
+      if(k==='nav'||k==='monthRet'){ x=(x==null?-Infinity:x); y=(y==null?-Infinity:y); return (x-y)*dir; }
       return (''+x).localeCompare(''+y)*dir;
     });
     return arr;
@@ -7198,8 +7200,6 @@ setInterval(updateSessionBadge, 30000);
         if(c.k==='monthRet' && v!=null) v=v.toFixed(2);
         else if(c.k==='monthRet' && v==null) v='—';
         else if(c.k==='nav' && v!=null) v=v.toFixed(4);
-        else if(c.k==='scale' && v==null) v='—';
-        else if(c.k==='scale' && v!=null) v=v.toFixed(2);
         if(c.k==='monthRet' && r.navReset) h += '<td class="num" title="该月发生净值断裂（份额折算/转型），单位净值跨断裂不可比，月涨跌幅不予计算" style="color:var(--muted,#8a8f98);text-decoration:underline dotted;cursor:help">—</td>';
         else if(c.k==='monthRet' && r.monthRet==null) h += '<td class="num" title="首月无基期">'+v+'</td>';
         else if(c.k==='monthRet' && r.monthRet<0) h += '<td class="num neg">'+v+'</td>';
@@ -7348,7 +7348,7 @@ setInterval(updateSessionBadge, 30000);
         xAxis:{type:'category',data:funds.map(function(f){return f.name;}),axisLabel:{interval:0,rotate:45,fontSize:11}},
         yAxis:{type:'value',name:'亿元'},
         series:[{type:'bar',data:funds.map(function(f){return f.scale;}),itemStyle:{color:'#1f6feb'},label:{show:true,position:'top'}}] };
-      elText('dcChartHint','最新规模（截至 '+DC.funds[0].scaleDate+' 中报，点时点）');
+      elText('dcChartHint','最新规模（截至 '+DC.funds[0].scaleDate+' 中报，点时点），仅用于基金间横向对比，不是月度序列');
     } else {
       var series=DC.funds.filter(function(f){ return passSel(f.code); }).map(function(f){
         var rs=selRows.filter(function(r){return r.code===f.code;});
@@ -7591,14 +7591,14 @@ setInterval(updateSessionBadge, 30000);
   function exportCsv(){
     if(!DC) return;
     var fmap={}; DC.funds.forEach(function(f){ fmap[f.code]=f; });
-    var head=['代码','名称','类型','月份','月末单位净值','月涨跌幅%','最新规模(亿元)'];
+    var head=['代码','名称','类型','月份','月末单位净值','月涨跌幅%'];
     var lines=[head.join(',')];
     DC.rows.filter(function(r){ return passSel(r.code); }).forEach(function(r){
       var f=fmap[r.code];
-      var row=[r.code, '"'+f.name+'"', f.ftype, r.month, r.nav, r.monthRet==null?'':r.monthRet, f.scale==null?'':f.scale];
+      var row=[r.code, '"'+f.name+'"', f.ftype, r.month, r.nav, r.monthRet==null?'':r.monthRet];
       lines.push(row.join(','));
     });
-    dl('基金月度净值与规模.csv', '﻿'+lines.join('\r\n'), 'text/csv;charset=utf-8');
+    dl('基金月度净值.csv', '﻿'+lines.join('\r\n'), 'text/csv;charset=utf-8');
   }
 
   function exportMd(){
@@ -7609,13 +7609,13 @@ setInterval(updateSessionBadge, 30000);
       '**净值源**：'+DC.meta.navSource, '**规模源**：'+DC.meta.scaleSource, '**说明**：'+DC.meta.scaleNote, '',
       '## 口径卡', '', '| '+DC.meta.caliber[0].join(' | ')+' |', '| '+DC.meta.caliber[0].map(function(){return '---';}).join(' | ')+' |',
       DC.meta.caliber.slice(1).map(function(r){return '| '+r.join(' | ')+' |';}).join('\n'), '',
-      '## 月度净值与规模', '', '| 代码 | 名称 | 类型 | 月份 | 月末单位净值 | 月涨跌幅% | 最新规模(亿元) |', '| --- | --- | --- | --- | ---: | ---: | ---: |'];
+      '## 月度净值', '', '| 代码 | 名称 | 类型 | 月份 | 月末单位净值 | 月涨跌幅% |', '| --- | --- | --- | --- | ---: | ---: |'];
     DC.rows.filter(function(r){ return passSel(r.code); }).forEach(function(r){
       var f=fmap[r.code];
-      L.push('| '+r.code+' | '+f.name+' | '+f.ftype+' | '+r.month+' | '+r.nav+' | '+(r.monthRet==null?'':r.monthRet)+' | '+(f.scale==null?'':f.scale)+' |');
+      L.push('| '+r.code+' | '+f.name+' | '+f.ftype+' | '+r.month+' | '+r.nav+' | '+(r.monthRet==null?'':r.monthRet)+' |');
     });
     L.push('');
-    dl('基金月度净值与规模.md', L.join('\n'), 'text/markdown;charset=utf-8');
+    dl('基金月度净值.md', L.join('\n'), 'text/markdown;charset=utf-8');
   }
 
   function exportJson(){
