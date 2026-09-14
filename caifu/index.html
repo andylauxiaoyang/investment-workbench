@@ -607,11 +607,14 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
     display: flex; position: fixed; left: 0; right: 0; bottom: 0; z-index: 60;
     height: 54px; background: var(--panel); border-top: 1px solid var(--line);
     box-shadow: 0 -2px 10px rgba(16,24,40,.08); padding-bottom: env(safe-area-inset-bottom);
+    overflow-x: auto; overflow-y: hidden; -webkit-overflow-scrolling: touch;
+    white-space: nowrap; scrollbar-width: none;
   }
+  .mobile-tabbar::-webkit-scrollbar { display: none; }
   .mobile-tabbar .tab {
-    flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    flex: 0 0 auto; min-width: 60px; display: flex; flex-direction: column; align-items: center; justify-content: center;
     gap: 2px; border: 0; background: none; color: var(--text-2); cursor: pointer;
-    padding: 4px 1px; font-size: 9.5px; line-height: 1.15;
+    padding: 4px 10px; font-size: 9.5px; line-height: 1.15; white-space: nowrap;
   }
   .mobile-tabbar .tab .ic { font-size: 17px; line-height: 1; }
   .mobile-tabbar .tab.active { color: var(--amber); }
@@ -6668,9 +6671,10 @@ function fillRsPick() {
      v82 fw2_v82_navbreak：净值断裂检测（份额折算/转型不当作收益），断裂月 monthRet 置空 + navReset 标记
      v83 fw2_v83_vixcboe：VIX 源由理杏仁 vix_fic 改 CBOE 官方 CSV（月末收盘,T0），修正与官方系统性不符
      v84 fw2_v84_noscale_col：数据中心月度表格移除「最新规模」列——规模为点时点（中报），非月度序列，同一基金每月重复展示无意义；横向对比保留在「配图-最新规模」
-     v85 fw2_v85_overview：数据中心新增「总览」默认 Tab——基金基础信息表（fund-basic.json）：代码/名称/类型/成立日/基金公司/最新规模(亿元,点时点)/总费率%/基金经理/任职年限/经理在管(亿元)/清盘风险(按规模派生)，可排序、受筛选与搜索约束、可导出总览CSV */
+     v85 fw2_v85_overview：数据中心新增「总览」默认 Tab——基金基础信息表（fund-basic.json）：代码/名称/类型/成立日/基金公司/最新规模(亿元,点时点)/总费率%/基金经理/任职年限/经理在管(亿元)/清盘风险(按规模派生)，可排序、受筛选与搜索约束、可导出总览CSV
+     v86 fw2_v86_mobile_scroll：移动端底部导航改为横向滑动显示「全部模块」（9 个 nav-item 全平铺为可滑动 Tab，去掉「更多」弹层/选择），切换时激活项自动滑入可视区居中 */
   const vc = $('#verChip');
-  if (vc) vc.textContent = 'v85 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  if (vc) vc.textContent = 'v86 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
@@ -7824,20 +7828,17 @@ setInterval(updateSessionBadge, 30000);
 })();
 
 </script>
-<!-- 移动端底部 Tab 生成 + 同步 active 态（v38） -->
+<!-- 移动端底部 Tab 生成 + 同步 active 态（v38 / v86：横向滑动显示全部模块，不再藏「更多」） -->
 <script>
 (function(){
   var nav = document.getElementById('nav');
   if(!nav) return;
   var bar = document.createElement('nav');
   bar.className = 'mobile-tabbar';
-  var PRIMARY = ['overview', 'holdings', 'signal', 'market', 'news'];   /* v45 阶段3：一级 Tab 收敛为 5 个 */
   var items = Array.prototype.slice.call(nav.querySelectorAll('.nav-item'));
   function labelOf(b) { return b.innerHTML.replace(/<span class="dot[^>]*><\/span>/g, ''); }
-  var moreViews = [];
   items.forEach(function(btn){
     var v = btn.dataset.view;
-    if (PRIMARY.indexOf(v) < 0) { moreViews.push(btn); return; }
     var t = document.createElement('button');
     t.className = 'tab' + (btn.classList.contains('active') ? ' active' : '');
     t.dataset.view = v;
@@ -7845,43 +7846,21 @@ setInterval(updateSessionBadge, 30000);
     t.addEventListener('click', function(){ if (typeof showView==='function') showView(v); });
     bar.appendChild(t);
   });
-  var sheet = null, moreTab = null;
-  if (moreViews.length) {
-    moreTab = document.createElement('button');
-    moreTab.className = 'tab t-more';
-    moreTab.dataset.view = '__more';
-    moreTab.innerHTML = '<span class="ic"></span>更多';
-    moreTab.addEventListener('click', function(){ openSheet(); });
-    bar.appendChild(moreTab);
-
-    sheet = document.createElement('div');
-    sheet.className = 'mobile-sheet';
-    sheet.innerHTML = '<div class="scrim"></div><div class="panel"><div class="mh">更多功能</div><div class="grid">'
-      + moreViews.map(function(b){ return '<button class="it" data-view="' + (b.dataset.view || '') + '">' + labelOf(b) + '</button>'; }).join('')
-      + '</div></div>';
-    sheet.querySelector('.scrim').addEventListener('click', closeSheet);
-    sheet.querySelectorAll('.it').forEach(function(it){
-      it.addEventListener('click', function(){ if (typeof showView === 'function') showView(it.dataset.view); else closeSheet(); });
-    });
-    document.body.appendChild(sheet);
-  }
   document.body.appendChild(bar);
-  function openSheet(){ if (!sheet) return; sheet.classList.add('open'); }
-  function closeSheet(){ if (sheet) sheet.classList.remove('open'); }
   function syncTabbar(name){
     bar.querySelectorAll('.tab').forEach(function(t){
-      if (t.dataset.view === '__more') return;
-      t.classList.toggle('active', t.dataset.view === name);
+      var on = t.dataset.view === name;
+      t.classList.toggle('active', on);
+      if (on) {
+        // 把当前激活的 Tab 平滑滑入可视区中央（仅横向滚动，不触发页面纵向滚动）
+        var left = t.offsetLeft - (bar.clientWidth - t.clientWidth) / 2;
+        if (bar.scrollTo) bar.scrollTo({ left: Math.max(0, left), behavior: 'smooth' });
+      }
     });
-    if (moreTab && sheet) {
-      var inMore = moreViews.some(function(b){ return b.dataset.view === name; });
-      moreTab.classList.toggle('active', inMore);
-      sheet.querySelectorAll('.it').forEach(function(it){ it.classList.toggle('active', it.dataset.view === name); });
-    }
   }
   if (typeof showView === 'function') {
     var _sv = showView;
-    showView = function(name){ _sv(name); syncTabbar(name); closeSheet(); };   /* 包装：自动同步底部 Tab 高亮并收起弹层 */
+    showView = function(name){ _sv(name); syncTabbar(name); };   /* 包装：自动同步底部 Tab 高亮 + 滑动定位 */
   }
   syncTabbar((window.state && window.state.view) || 'overview');
 })();
