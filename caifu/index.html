@@ -1061,10 +1061,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
           <button class="dc-block" data-dcb="macro">宏观数据</button>
         </div>
         <div class="v-head">
-          <div class="vh-l">
-            <h2 id="dcTitle">数据中心</h2>
-            <div class="vh-sub" id="dcSub">持仓 + 自选 基金 · 月度净值 · 基金总览（含区间收益）</div>
-          </div>
+          <!-- v93 fw2_v93_drop_dc_head：删除本分块标题+副标题（#dcTitle/#dcSub，基金/宏观共用） -->
           <div class="vh-r dc-tabs" id="dcTabs">
             <button class="dc-tab active" data-dc="overview">总览</button>
             <button class="dc-tab" data-dc="table">表格</button>
@@ -1154,7 +1151,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
     </div>
 
     <style id="dcStyle"><!-- fw2_v71_datacenter -->
-      #view-data .v-head{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap}
+      #view-data .v-head{display:flex;align-items:flex-end;justify-content:flex-end;gap:12px;flex-wrap:wrap}
       #view-data .vh-sub{color:#888;font-size:13px;margin-top:2px}
       #view-data .dc-tabs{display:flex;gap:6px}
       #view-data .dc-tab{border:1px solid #d9d9d9;background:#fff;color:#444;padding:6px 14px;border-radius:8px;cursor:pointer;font-size:13px}
@@ -6712,9 +6709,10 @@ function fillRsPick() {
      v89 fw2_v89_iv_merged_cols：区间收益的 10 个区间列并入「总览」基础信息表，位于「总费率(%)」之后、「基金经理」之前（单表 21 列；删除底部独立区间表与「区间收益」小标题）；顺带修复「基金经理」列恒空（fund-basic.json 字段名为 mgrNames，原列键 mgr 取不到值）
      v90 fw2_v90_drop_cols：删除「类型」「基金公司」两列（总览表 21 列 → 19 列；（表头/表体/排序/导出 CSV 列序均自动跟随 OV_COLS）
      v91 fw2_v91_macro_merge：删除「宏观·情绪」独立页（#view-macro / 导航项 / VIEW_META / render 分派），数据与 13 张判读卡片并入 数据中心→宏观数据 分块；宏观分块＝左栏模块列表（总览页 + 13 个指标模块）+ 右内容并列切换；分块标题按分块切换（宏观→总览页 / 基金→基金数据总览）；总览页展开被折叠的子序列值并补 10 年分位列与判读列
-     v92 fw2_v92_data_iconfix：修复 v91 引入的导航图标回归——A18 用 end-exclusive 剪切删除宏观图标 CSS 时残留「更多弹层」注释尾片段（注释结束符 + 右花括号），该游离文本作为 CSS qualified rule 前奏吞掉了紧随其后的 [data-view="data"] .ic 规则，使「数据中心」图标退化为实心方块。已删残留，并补静态断言（8 条图标规则齐备）与渲染断言（各 .ic 的 computed mask 非 none）。 */
+     v92 fw2_v92_data_iconfix：修复 v91 引入的导航图标回归——A18 用 end-exclusive 剪切删除宏观图标 CSS 时残留「更多弹层」注释尾片段（注释结束符 + 右花括号），该游离文本作为 CSS qualified rule 前奏吞掉了紧随其后的 [data-view="data"] .ic 规则，使「数据中心」图标退化为实心方块。已删残留，并补静态断言（8 条图标规则齐备）与渲染断言（各 .ic 的 computed mask 非 none）。
+     v93 fw2_v93_drop_dc_head：删除「数据中心」分块的分块标题与副标题（#dcTitle/#dcSub，基金/宏观两块共用），页面从「基金数据/宏观数据」切换条直接进入数据区。 */
   const vc = $('#verChip');
-  if (vc) vc.textContent = 'v92 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  if (vc) vc.textContent = 'v93 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
@@ -7197,8 +7195,7 @@ setInterval(updateSessionBadge, 30000);
       updateDcFselUi(); renderDcFsel();
       elText('dcMeta', d.meta.fundCount+' 只基金 · '+d.meta.monthCount+' 个月 · 截至 '+d.meta.asOf);
     }
-    var _ab = document.querySelector('.dc-block.active');
-    dcTitles(!!(_ab && _ab.dataset.dcb === 'macro'));   /* v91：首次进入数据中心时按当前分块设标题 */
+    /* v93 fw2_v93_drop_dc_head：标题区已删除，无需按分块设标题 */
   }
 
   function renderDcCaliber(d){
@@ -7549,13 +7546,7 @@ setInterval(updateSessionBadge, 30000);
     var a=Math.abs(v);
     return a>=1000 ? v.toFixed(0) : (a>=100 ? v.toFixed(1) : v.toFixed(2));
   }
-  function dcTitles(isMacro){
-    /* v91 fw2_v91_macro_merge：分块标题按分块切换（h2 与副标题原为两分块共用，会残留「数据中心」） */
-    elText('dcTitle', isMacro ? '总览页' : '基金数据总览');
-    elText('dcSub', isMacro
-      ? '理杏仁 OpenAPI ＋ 东财 ＋ 新浪／CNBC · 指标总览 + 13 个分项模块（与总览页并列）'
-      : '持仓 + 自选 基金 · 月度净值 · 基金总览（含区间收益）');
-  }
+  /* v93 fw2_v93_drop_dc_head：分块标题切换函数随标题区一并移除 */
   /* ---- v91 fw2_v91_macro_merge：宏观分块 = 左栏模块（总览页 + 13 个指标模块）+ 右内容 ---- */
   var mcMod = '0';
   function mcLast(o){ return (o && o.points && o.points.length) ? o.points[o.points.length - 1] : null; }
@@ -7684,7 +7675,7 @@ setInterval(updateSessionBadge, 30000);
   window.__dcMacroInit = function(){ try { renderDcMacro(); } catch(e){ console.error('[dcMacro]', e); } };
     function setDcBlock(b){
     var isMacro=(b==='macro');
-    dcTitles(isMacro);
+    /* v93 fw2_v93_drop_dc_head：标题区已删除，无需再切标题 */
     Array.prototype.forEach.call(document.querySelectorAll('.dc-block'), function(x){
       x.classList.toggle('active', x.dataset.dcb===b);
     });
