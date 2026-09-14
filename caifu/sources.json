@@ -1,0 +1,106 @@
+{
+  "_note": "数据源登记表（DAR: Data-source Authority Registry）。硬规则：任何输出数据必须在本表登记；每项数据至少 2 个渠道；渠道性质必须标注为「监管披露 / 持牌数据商 / 主流平台」。禁止使用未登记来源（含网页随笔、自媒体、搜索结果摘要）。",
+  "version": "1.0",
+  "updated": "2026-09-14",
+  "tiers": {
+    "T0": "监管/交易所/基金公司官方披露（最高权威，无加工）",
+    "T1": "持牌金融数据商（Wind 万得等，专业授权数据）",
+    "T2": "大型合规财经平台（东方财富·天天基金、新浪财经、腾讯财经、同花顺）"
+  },
+  "datasets": {
+    "fund_monthly_nav": {
+      "title": "基金月度净值 / 月涨跌幅 / 规模",
+      "file": "data/fund-monthly.json",
+      "primary": {
+        "id": "em_lsjz",
+        "tier": "T2",
+        "name": "东方财富·天天基金 · 历史净值接口",
+        "url": "https://api.fund.eastmoney.com/f10/lsjz",
+        "ref": "https://fundf10.eastmoney.com/jjjz_{code}.html",
+        "granularity": "逐日",
+        "field": "单位净值 DWJZ（货币型为每万份收益）",
+        "note": "全量逐日、可编程分页（pageSize 硬上限 20）"
+      },
+      "checkers": [
+        {
+          "id": "sina_nav",
+          "tier": "T2",
+          "name": "新浪财经 · 基金净值接口",
+          "url": "https://stock.finance.sina.com.cn/fundInfo/api/openapi.php/CaihuiFundInfoService.getNav",
+          "ref": "https://finance.sina.com.cn/",
+          "granularity": "逐日",
+          "field": "jjjz = 单位净值",
+          "coverage": "非货币型基金（货币型返回空）",
+          "note": "与东财为不同公司/平台，独立源；page 分页 num 上限实测 100"
+        },
+        {
+          "id": "wind_perf",
+          "tier": "T1",
+          "name": "Wind 万得 · 基金业绩/净值（持牌数据商）",
+          "url": "mcp:wind-finance/get_fund_performance",
+          "granularity": "逐日 / 时点",
+          "field": "单位净值、每万份收益、7 日年化",
+          "coverage": "全部（含货币型万份收益）",
+          "note": "权威背书源；单次调用返回上限约 100 行，用于抽样校验"
+        }
+      ],
+      "derivation": "月末净值 = 该月【最后一个交易日】的单位净值；月涨跌幅 = 相邻月末净值环比（货币型 = 当月每万份收益合计 / 10000）",
+      "invariants": [
+        "同一 (基金, 月份) 的月末净值必须在主源与至少 1 个校验源上完全一致",
+        "月末净值必须等于该月最大日期那条记录的值",
+        "货币型单位净值恒为 1.0000，不得参与净值环比"
+      ]
+    },
+    "watchlist": {
+      "title": "自选列表",
+      "primary": {
+        "id": "lib_table",
+        "tier": "T2",
+        "name": "WorkBuddy 资料库表（用户自有数据表）",
+        "url": "space://I5QXvst27sR4FsxFbQi2ai"
+      },
+      "checkers": [
+        { "id": "gh_seed", "tier": "T2", "name": "GitHub 仓库种子文件 watchlist-data.json", "url": "https://raw.githubusercontent.com/andylauxiaoyang/investment-workbench/master/caifu/data/watchlist-data.json" }
+      ]
+    },
+    "fund_basic": {
+      "title": "基金基础档案（成立日/规模/费率）",
+      "primary": {
+        "id": "em_jbgk",
+        "tier": "T2",
+        "name": "东方财富·天天基金 · 基金概况",
+        "url": "https://fundf10.eastmoney.com/jbgk_{code}.html"
+      },
+      "checkers": [
+        { "id": "wind_info", "tier": "T1", "name": "Wind 万得 · 基金产品档案", "url": "mcp:wind-finance/get_fund_info" }
+      ]
+    },
+    "macro_snapshot": {
+      "title": "宏观 / 市场情绪快照（指数、成交额、汇率）",
+      "primary": {
+        "id": "lixinger",
+        "tier": "T1",
+        "name": "理杏仁开放平台 · 指数基本面",
+        "url": "https://open.lixinger.com/api/cn/index/fundamental"
+      },
+      "checkers": [
+        { "id": "em_datacenter", "tier": "T2", "name": "东方财富 datacenter（指数估值/行情）", "url": "https://datacenter-web.eastmoney.com/" },
+        { "id": "sina_hq", "tier": "T2", "name": "新浪财经行情（成交额/指数）", "url": "https://hq.sinajs.cn/list=sh000001,sz399106,bj899050" },
+        { "id": "wind_index", "tier": "T1", "name": "Wind 万得 · 指数基本面", "url": "mcp:wind-finance/get_index_fundamentals" }
+      ]
+    },
+    "nky_daily": {
+      "title": "日经225 日线 + 实时点位",
+      "primary": {
+        "id": "cnbc_ts",
+        "tier": "T2",
+        "name": "CNBC ts-api · 指数日线",
+        "url": "https://ts-api.cnbc.com/harmony/app/bootstrap/charts/1Y.json?symbol=.N225&interval=1D"
+      },
+      "checkers": [
+        { "id": "em_push2delay", "tier": "T2", "name": "东方财富 push2delay 实时行情（secid=100.N225）", "url": "https://push2delay.eastmoney.com/api/qt/stock/get?secid=100.N225" },
+        { "id": "wind_index", "tier": "T1", "name": "Wind 万得 · 指数行情", "url": "mcp:wind-finance/get_index_fundamentals" }
+      ]
+    }
+  }
+}
