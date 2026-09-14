@@ -6654,9 +6654,9 @@ function fillRsPick() {
   sel.innerHTML = '<option value="">持仓 / 自选…</option>'
     + (held.length ? `<optgroup label="持仓中">${held.map((o) => `<option value="${o.code}">${esc(o.name)} ${shortCode(o.code)}</option>`).join('')}</optgroup>` : '')
     + (watch.length ? `<optgroup label="自选">${watch.map((o) => `<option value="${o.code}">${esc(o.name)} ${shortCode(o.code)}</option>`).join('')}</optgroup>` : '');
-  /* v52b fw2_v52b_verchip：角标自报版本+自选条数+数据来源（DB=资料库自选表 / 种子=GitHub旁挂 / 快照=页面内置） */
+  /* v81 fw2_v81_src_gate：角标自报版本+自选条数+数据来源；v81 新增口径卡「数据来源渠道登记 + 校验戳记」 */
   const vc = $('#verChip');
-  if (vc) vc.textContent = 'v80 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  if (vc) vc.textContent = 'v81 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
@@ -7128,6 +7128,27 @@ setInterval(updateSessionBadge, 30000);
     h += c.slice(1).map(function(r){ return '<tr>'+r.map(function(x){return '<td>'+x+'</td>';}).join('')+'</tr>'; }).join('');
     h += '</tbody></table>';
     h += '<div class="dc-cal-src">净值源：'+d.meta.navSource+'<br>规模源：'+d.meta.scaleSource+'<br>'+d.meta.scaleNote+'</div>';
+    // v81 数据来源渠道登记 + 校验状态（规则4/规则5）
+    if(d.meta.sources && d.meta.sources.length){
+      h += '<div class="dc-cal-h" style="margin-top:10px">数据来源渠道登记</div>';
+      h += '<table class="dc-cal-tbl"><thead><tr><th>渠道</th><th>层级</th><th>角色</th><th>名称 / 地址</th></tr></thead><tbody>';
+      h += d.meta.sources.map(function(s){
+        return '<tr><td>'+s.id+'</td><td>'+s.tier+'</td><td>'+s.role+'</td><td>'+s.name+'<br><span style="color:#888;font-size:11px">'+s.url+'</span></td></tr>';
+      }).join('');
+      h += '</tbody></table>';
+      if(d.meta.srcLegend){
+        h += '<div class="dc-cal-src">逐行来源标注：';
+        h += Object.keys(d.meta.srcLegend).map(function(k){ return '<b>'+k+'</b> = '+d.meta.srcLegend[k]; }).join('<br>');
+        h += '</div>';
+      }
+      if(d.meta.verified){
+        h += '<div class="dc-cal-src" style="color:#0a7a3d">✔ 双渠道校验已通过（'+d.meta.verified.at+'）：'
+           + (d.meta.verified.dualSource? d.meta.verified.dualSource.detail : '')
+           + '；' + (d.meta.verified.wind? d.meta.verified.wind.detail : '') + '</div>';
+      } else {
+        h += '<div class="dc-cal-src" style="color:#b45309">⚠ 校验戳记缺失：本版数据未经双渠道比对，请勿据以决策。</div>';
+      }
+    }
     $('dcCaliber').innerHTML = h;
   }
 
