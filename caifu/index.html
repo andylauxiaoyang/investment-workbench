@@ -6654,9 +6654,10 @@ function fillRsPick() {
   sel.innerHTML = '<option value="">持仓 / 自选…</option>'
     + (held.length ? `<optgroup label="持仓中">${held.map((o) => `<option value="${o.code}">${esc(o.name)} ${shortCode(o.code)}</option>`).join('')}</optgroup>` : '')
     + (watch.length ? `<optgroup label="自选">${watch.map((o) => `<option value="${o.code}">${esc(o.name)} ${shortCode(o.code)}</option>`).join('')}</optgroup>` : '');
-  /* v81 fw2_v81_src_gate：角标自报版本+自选条数+数据来源；v81 新增口径卡「数据来源渠道登记 + 校验戳记」 */
+  /* v81 fw2_v81_src_gate：角标自报版本+自选条数+数据来源；v81 新增口径卡「数据来源渠道登记 + 校验戳记」
+     v82 fw2_v82_navbreak：净值断裂检测（份额折算/转型不当作收益），断裂月 monthRet 置空 + navReset 标记 */
   const vc = $('#verChip');
-  if (vc) vc.textContent = 'v81 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  if (vc) vc.textContent = 'v82 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
@@ -7141,6 +7142,11 @@ setInterval(updateSessionBadge, 30000);
         h += Object.keys(d.meta.srcLegend).map(function(k){ return '<b>'+k+'</b> = '+d.meta.srcLegend[k]; }).join('<br>');
         h += '</div>';
       }
+      if(d.meta.breakRule){
+        h += '<div class="dc-cal-src">净值断裂规则：'+d.meta.breakRule
+           + (d.meta.navResetMonths && d.meta.navResetMonths.length ? ('<br>本版标记断裂月：<b>'+d.meta.navResetMonths.join('、')+'</b>（该月月涨跌幅置空，不当作收益）') : '')
+           + '</div>';
+      }
       if(d.meta.verified){
         h += '<div class="dc-cal-src" style="color:#0a7a3d">✔ 双渠道校验已通过（'+d.meta.verified.at+'）：'
            + (d.meta.verified.dualSource? d.meta.verified.dualSource.detail : '')
@@ -7193,7 +7199,8 @@ setInterval(updateSessionBadge, 30000);
         else if(c.k==='nav' && v!=null) v=v.toFixed(4);
         else if(c.k==='scale' && v==null) v='—';
         else if(c.k==='scale' && v!=null) v=v.toFixed(2);
-        if(c.k==='monthRet' && r.monthRet==null) h += '<td class="num" title="首月无基期">'+v+'</td>';
+        if(c.k==='monthRet' && r.navReset) h += '<td class="num" title="该月发生净值断裂（份额折算/转型），单位净值跨断裂不可比，月涨跌幅不予计算" style="color:var(--muted,#8a8f98);text-decoration:underline dotted;cursor:help">—</td>';
+        else if(c.k==='monthRet' && r.monthRet==null) h += '<td class="num" title="首月无基期">'+v+'</td>';
         else if(c.k==='monthRet' && r.monthRet<0) h += '<td class="num neg">'+v+'</td>';
         else if(c.k==='monthRet' && r.monthRet>0) h += '<td class="num pos">'+v+'</td>';
         else h += '<td class="'+(c.num?'num':'')+'">'+v+'</td>';
