@@ -1,12 +1,12 @@
 {
  "meta": {
-  "title": "持仓 + 自选 基金 · 月度净值与规模",
+  "title": "持仓 + 自选 基金 · 月度净值",
   "generatedAt": "2026-09-14",
   "asOf": "2026-09-13",
   "incompleteMonth": "2026-09",
   "navSource": "东方财富 fundf10 lsjz (api.fund.eastmoney.com/f10/lsjz)",
   "scaleSource": "fund-basic.json（天天基金 jbgk，截至 2026-06-30 中报）",
-  "scaleNote": "规模为最新中报规模（点时点），非月度序列；各基金起始月=其成立月（方案二），故不同基金覆盖月数不同；货币型月涨跌幅=当月万份收益合计/10000；★最新月（2026-09）为【不完整月】，截至 2026-09-13",
+  "scaleNote": "规模为最新中报规模（点时点，2026-06-30），非月度序列；因此不在月度表格中重复展示，仅在「配图-最新规模」中作基金间横向对比；各基金起始月=其成立月（方案二），故不同基金覆盖月数不同；货币型月涨跌幅=当月万份收益合计/10000；★最新月（2026-09）为【不完整月】，截至 2026-09-13",
   "monthCount": 170,
   "fundCount": 12,
   "sources": [
@@ -40,18 +40,17 @@
   },
   "verifyNote": "每行 src 标注该行数值的取数渠道；已按「至少两个渠道取数并比对一致」执行。校验脚本 verify_dual_source.py（东财×新浪，非货币型）/ verify_wind.py（东财×Wind，货币型，含口径对齐）；发布由 gate.py 强制卡口，未通过校验不写入、不发布。",
   "verified": {
-   "at": "2026-09-14 12:02",
-   "dualSource": {
-    "script": "verify_dual_source.py",
-    "status": "PASS",
-    "detail": "双源比对点数=1012  源间不一致=0  发布文件不一致=0"
-   },
-   "wind": {
-    "script": "verify_wind.py",
-    "status": "PASS",
-    "detail": "货币型 007866：发布值=东财全量口径 86/86；东财交易日合计=Wind 月度 86/86"
-   },
-   "gate": "gate.py 强制卡口，未 PASS 不发布"
+   "at": "2026-09-14 13:22",
+   "datasets": [
+    "fund_monthly"
+   ],
+   "gate": "gate.py v2 强制卡口（未 PASS 不发布）",
+   "detail": {
+    "fund_monthly": [
+     "verify_dual_source.py",
+     "verify_wind.py"
+    ]
+   }
   },
   "breakRule": "净值断裂检测（v82）：相邻披露「单位净值」偏离 > 25% 判为份额折算/基金转型（非收益）。首个断裂之前的序列与本阶段不可比，不纳入本表（各基金 dataFrom 即本表起始月）；含断裂的月份 monthRet 置空并标 navReset=true。阈值依据：联接/宽基指数基金单日不可能动 25%，全量逐日扫描除已知折算外零误伤。",
   "navResetMonths": [
@@ -95,7 +94,7 @@
    ],
    [
     "scale",
-    "基金最新资产净值规模",
+    "基金最新资产净值规模；点时点，非月度序列，故不在月度行重复展示，仅在「配图-最新规模」中作基金间横向对比",
     "亿元",
     "点时点(2026-06-30)",
     "高（中报）"
