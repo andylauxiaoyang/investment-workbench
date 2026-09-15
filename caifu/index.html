@@ -1027,7 +1027,8 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
           <div class="vh-r dc-tabs" id="dcTabs">
             <button class="dc-tab active" data-dc="overview">总览</button>
             <button class="dc-tab" data-dc="chart">配图</button>
-            <button class="dc-tab" data-dc="analyze">分析</button>
+            <button class="dc-tab" data-dc="analyze">风险指标</button>
+            <!-- v98 fw2_v98_risk_label：本 Tab 由「分析」更名「风险指标」——纯文案，内容仍为 12 只本地自算风险指标 -->
             <!-- v97 fw2_v97_research_merge：原「标的分析」6 个模块迁入本分块，作为与总览并列的 Tab -->
             <button class="dc-tab" data-dc="r-fundamental">基本面</button>
             <button class="dc-tab" data-dc="r-technical">技术面</button>
@@ -1068,7 +1069,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
           </div>
           <div id="dcChart" style="width:100%;height:440px"></div>
         </div>
-        <div id="dcAnalyzeWrap" class="dc-pane" style="display:none"><!-- fw2_v96_analyze_tab --></div>
+        <div id="dcAnalyzeWrap" class="dc-pane" style="display:none"><!-- fw2_v96_analyze_tab --><!-- fw2_v98_risk_label --></div>
         <div id="dcResearchWrap" class="dc-pane" style="display:none"><!-- fw2_v97_research_merge -->
 <div data-page-node-id="1vrQgKT5uW2QpnXLRuwgaD" class="toolbar research-bar">
           <div data-page-node-id="78aqPrnkuE7IlNDt8pkzrk" class="tools-l inline-form">
@@ -6689,9 +6690,10 @@ function fillRsPick() {
      v93 fw2_v93_drop_dc_head：删除「数据中心」分块的分块标题与副标题（#dcTitle/#dcSub，基金/宏观两块共用），页面从「基金数据/宏观数据」切换条直接进入数据区。
      v94 fw2_v94_mc_nav_horizontal：宏观分块模块导航由左侧竖排改为顶部单行横向（横向滚动），导航按钮改用简化名（映射表 MC_NAV_SHORT，悬停 title 显示全称），卡片标题与总览表仍用全称。
      v95 fw2_v95_drop_table_pivot：删除「基金数据」分块的「表格」「透视」两个 Tab——含两个视图容器与内部控件、取数/渲染函数及其全部调用点、下拉监听；并连带删除因此失效的「列显示开关」（按钮 / 弹层 / 函数 / 列清单 / UI 状态字段）。仅保留「总览」「配图」两个 Tab。
-     v96 fw2_v96_analyze_tab：数据中心-基金数据分块新增第三个 Tab「分析」，与「总览」「配图」并列单模块展示基金分析指标——对 12 只本地派生风险指标（年化波动率/最大回撤/夏普/卡玛/索提诺，由 fund-monthly.json 月度净值自算，标注推断·自算）；复用筛选/搜索；不引入实时 API，守住 DAR 双源校验。 */
+     v96 fw2_v96_analyze_tab：数据中心-基金数据分块新增第三个 Tab「分析」，与「总览」「配图」并列单模块展示基金分析指标——对 12 只本地派生风险指标（年化波动率/最大回撤/夏普/卡玛/索提诺，由 fund-monthly.json 月度净值自算，标注推断·自算）；复用筛选/搜索；不引入实时 API，守住 DAR 双源校验。
+     v98 fw2_v98_risk_label：该 Tab 文案由「分析」更名「风险指标」（仅按钮文案，指标口径/数据源/渲染逻辑不变）。 */
   const vc = $('#verChip');
-  if (vc) vc.textContent = 'v97 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  if (vc) vc.textContent = 'v98 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
