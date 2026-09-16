@@ -1235,6 +1235,11 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
       /* v101 fw2_v101_an_colwidth：风险指标表列宽收紧——原 width:100% 把 8 列摊满整宽（实测 1157px 容器里名称列独吞 364px、数值列各多 30–55px 空白），改为按内容定宽 + 内边距 9px->7px。★选择器刻意保持 (1,1,x) 特异性：桌面端靠源码顺序压过 .dc-tbl{width:100%}，≤560px 时让 @media 的 .dc-tbl{padding:4px 6px} 继续生效（勿加 table./伪类，会反向覆盖移动端）。仅作用于 .dc-an-tbl，总览表等其它表不受影响 */
       #view-data .dc-an-tbl{width:auto}
       #view-data .dc-an-tbl th,#view-data .dc-an-tbl td{padding:5px 7px}
+      /* v102 fw2_v102_all_colwidth：把 v101 紧凑列宽推广到全部数据表格——总览表(.dc-ov-tbl)与宏观表(.dc-mc-tbl)同加 width:auto + 内边距 5px 7px；★同 v101 铁律：选择器保持 (1,1,x)、不加 table./伪类，桌面靠源码顺序压过 .dc-tbl{width:100%}/.dc-mc-tbl{width:100%}，≤560px 让 @media 的 .dc-tbl{padding:4px 6px} 继续生效；因这两表 nowrap 列多、内容已超容器，width:auto 主要收紧内边距、表宽基本不变 */
+      #view-data .dc-ov-tbl{width:auto}
+      #view-data .dc-ov-tbl th,#view-data .dc-ov-tbl td{padding:5px 7px}
+      #view-data .dc-mc-tbl{width:auto}
+      #view-data .dc-mc-tbl th,#view-data .dc-mc-tbl td{padding:5px 7px}
       #view-data .dc-ov-tbl th.liq{text-align:center}
       /* v89 区间收益列并入总览表（总费率后 / 基金经理前） */
       #view-data .dc-ov-tbl th.iv,#view-data .dc-ov-tbl td.iv{background:#fbfcfe}
@@ -6711,9 +6716,10 @@ function fillRsPick() {
      v98 fw2_v98_risk_label：该 Tab 文案由「分析」更名「风险指标」（仅按钮文案，指标口径/数据源/渲染逻辑不变）。
      v99 fw2_v99_acc_caliber：收益口径双轨——分红型基金（retBasis='acc'）的月收益/区间收益/风险指标改按累计净值（含分红再投），修「除息日被算成亏损」；风险指标与业绩与排名的窗口/频率在界面显式标注（全历史月频 vs 近1年日频），业绩与排名「最大回撤」标签修正为近500净值日。
      v100 fw2_v100_caliber_fold：口径卡默认收起——只留一行摘要在数据下方常显（含双渠道校验戳记状态），字段口径表 / 渠道登记表 / 逐行来源标注 / 断裂规则折叠进 <details>，点击展开。内容与 DOM 一字未删，     v101 fw2_v101_an_colwidth：风险指标表列宽收紧——表由 width:100%（8 列摊满整宽，名称列独吞 364px）改为按内容定宽（width:auto）+ 单元格内边距 9px->7px，消掉多余空白；选择器保持低特异性以免覆盖 @media(max-width:560px) 的移动端紧凑规则；仅作用于 .dc-an-tbl，列数/排序/口径/数据一律不变。
+     v102 fw2_v102_all_colwidth：把 v101 紧凑列宽推广到全部数据表格——总览表(.dc-ov-tbl)与宏观表(.dc-mc-tbl)同加 width:auto + 内边距 5px 7px（与 v101 同特异性写法，桌面靠源码顺序压过 .dc-tbl/.dc-mc-tbl 的 width:100%，≤560px 让 @media 的 .dc-tbl 紧凑规则继续生效）；因这两表 nowrap 列多、内容已超容器，width:auto 主要收紧内边距、表宽基本不变。口径表(.dc-cal-tbl)本就 width:auto 且内边距更紧(3px 8px)，不作改动。
 仅默认隐藏。 */
   const vc = $('#verChip');
-  if (vc) vc.textContent = 'v101 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  if (vc) vc.textContent = 'v102 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
