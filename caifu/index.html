@@ -1060,7 +1060,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
             <span data-page-node-id="1tYNTqEbqNQRtvoZcDMp9W" class="flbl"><!--pnid:9wTVum6ntnQpThvDUQM28N-->选择</span>
             <select data-page-node-id="ytqOAaTQnUAlAV3d84SXD0" class="inp-sm sel" id="rsPick">
               <option data-page-node-id="dBdl5B3ockpTkZSdlssjuf" value><!--pnid:uffUrO7CKLEtAQ6KTRyigz-->持仓 / 自选…</option>
-            </select><span data-page-node-id="fw2v52bVerchip" class="hint" id="verChip" style="white-space:nowrap;flex:none"><!--fw2_v52b_verchip fw2_v54c_verchip fw2_v55_verchip fw2_v56_verchip fw2_v57_verchip fw2_v58_verchip fw2_v59_verchip fw2_v60_verchip fw2_v61_verchip fw2_v61_wltext fw2_v62_fundbasic fw2_v63_xmap_wlfix fw2_v64_macro_xasset fw2_v65_macro_spxnky fw2_v66_macro_amtd fw2_v67_nky_ts fw2_v68_split_spx_nky fw2_v69_nky_curve fw2_v70_nky_daily_ma fw2_v70b_extreme_label fw2_v71_datacenter fw2_v72_data_icon fw2_v73_pivot_desc fw2_v74_null_ret fw2_v75_recent_first fw2_v76_interval_macro fw2_v77_legend_wrap fw2_v83_vixcboe fw2_v104_index_strip13 fw2_v106_hero_compact fw2_v107_holdings_table_first fw2_v108_dd_above_cal fw2_v109_health_col fw2_v110_health_to_holdings fw2_v111_del_diagnose fw2_v112_risk_merge-->v112</span>
+            </select><span data-page-node-id="fw2v52bVerchip" class="hint" id="verChip" style="white-space:nowrap;flex:none"><!--fw2_v52b_verchip fw2_v54c_verchip fw2_v55_verchip fw2_v56_verchip fw2_v57_verchip fw2_v58_verchip fw2_v59_verchip fw2_v60_verchip fw2_v61_verchip fw2_v61_wltext fw2_v62_fundbasic fw2_v63_xmap_wlfix fw2_v64_macro_xasset fw2_v65_macro_spxnky fw2_v66_macro_amtd fw2_v67_nky_ts fw2_v68_split_spx_nky fw2_v69_nky_curve fw2_v70_nky_daily_ma fw2_v70b_extreme_label fw2_v71_datacenter fw2_v72_data_icon fw2_v73_pivot_desc fw2_v74_null_ret fw2_v75_recent_first fw2_v76_interval_macro fw2_v77_legend_wrap fw2_v83_vixcboe fw2_v104_index_strip13 fw2_v106_hero_compact fw2_v107_holdings_table_first fw2_v108_dd_above_cal fw2_v109_health_col fw2_v110_health_to_holdings fw2_v111_del_diagnose fw2_v112_risk_merge fw2_v113_risk_cfg-->v113</span>
           </div>
           <div data-page-node-id="5FsFNsGZ6QN0HN0rpWLIlR" class="tools-l inline-form rs-combo">
             <span data-page-node-id="KyCNIch2B6qjWLrmQxqPCX" class="flbl"><!--pnid:1qPkNVbSL0r9sGQSgNifJN-->名称</span>
@@ -4205,6 +4205,24 @@ function renderHdFilter() {
     return `<button class="chip ${on ? 'on' : ''} at-${k}" data-filter="${k}">${lbl}<i>${n}</i></button>`;
   }).join('');
 }
+/* v113 fw2_v113_risk_cfg：风险与机会扫描 / 单票健康度 / 涨跌停判定的**唯一阈值源**（UI 与 Markdown 导出共用）。
+   ★与 window.SIGNALS_CFG 的分工：SIGNALS_CFG 管「交易动作」（补仓/止盈/止损/失衡，T1~T10）；
+     本表管「体检与告警呈现」。两表**不得互相引用数值**——谨防「同数不同义」被误当同一口径：
+       SIGNALS_CFG.addDD1 = -20（回撤补仓第 1 档，触发买入） ≠ RISK_CFG.deepLoss = -20（浮亏告警，只提示）
+       SIGNALS_CFG.barbell.band = 5（分组偏离目标 ±5pct）  ≠ RISK_CFG.dayMove  = 5（单日异动 ±5%）
+   ★方向约定：统一「达到即触发」——上界用 >=、下界用 <=、绝对带宽用 <=；比较符只写在 healthOf/diagnoseSignals 内。
+   ★改这里会**同时**改变「我的持仓-健康度列」「风险与机会扫描」「复盘 Markdown 导出」三处（单一来源，勿各自再抄）。 */
+const RISK_CFG = {
+  dayMove: 5,            /* 单日涨跌幅异动带宽（%）：<= -5 记风险 / >= +5 记机会 */
+  weightHigh: 25,        /* 单票权重集中线（%）：> 25 记高集中；★与 v109 健康度列共用 */
+  deepLoss: -20,         /* 持仓累计浮亏线（%）：<= -20 深度套牢 */
+  nearCost: 3,           /* 接近成本线带宽（%）：|累计| <= 3 记方向选择窗口 */
+  sectorHigh: 35,        /* 单板块占持仓比线（%）：>= 35 板块集中 */
+  posHigh: 90,           /* 仓位线（%）：>= 90 现金缓冲偏薄 */
+  breadthLimitDown: 20,  /* 全市场跌停只数：>= 20 情绪扩散（市场口径，非个股口径） */
+  limit: 9.8,            /* A股涨跌停幅度判定：主板 ~10% 留 0.2 容差 */
+  limitWide: 19.8,       /* 创业板/科创板 ~20% 留 0.2 容差 */
+};
 /* v112 fw2_v112_risk_merge：风险与机会四级的唯一 label/color 源（UI 与 Markdown 导出共用同一份） */
 const SEV_META = {
   danger: { label: '风险', color: 'var(--up)' },
@@ -4230,9 +4248,9 @@ function renderHoldHealthRisk() {
   });
   const c = signals.concentration;
   $('#dgConcentration').innerHTML =
-    diagMetric('单一最大权重', c.maxWeight + '%', c.maxWeight > 25 ? 'bad' : (c.maxWeight > 18 ? 'warn' : ''), c.maxWeight / 40) +
+    diagMetric('单一最大权重', c.maxWeight + '%', c.maxWeight > RISK_CFG.weightHigh ? 'bad' : (c.maxWeight > 18 ? 'warn' : ''), c.maxWeight / 40) +
     diagMetric('前三大权重', c.top3 + '%', c.top3 > 55 ? 'bad' : (c.top3 > 45 ? 'warn' : ''), c.top3 / 80) +
-    diagMetric('板块集中度', c.topSectorPct + '%', c.topSectorPct > 35 ? 'bad' : (c.topSectorPct > 25 ? 'warn' : ''), c.topSectorPct / 60) +
+    diagMetric('板块集中度', c.topSectorPct + '%', c.topSectorPct > RISK_CFG.sectorHigh ? 'bad' : (c.topSectorPct > 25 ? 'warn' : ''), c.topSectorPct / 60) +
     diagMetric('现金占比', c.cashPct + '%', c.cashPct < 5 ? 'warn' : '', c.cashPct / 60);
 
   // ---- 风险与机会扫描 ----
@@ -4331,18 +4349,19 @@ function renderHoldings() {
 /* ==========================================================
  *  视图 3：行情看板
  * ========================================================== */
-function isLimitUpCn(code, pct) { const c = shortCode(code); const wide = /^(30|688)/.test(c); return pct >= (wide ? 19.8 : 9.8); }
-function isLimitDownCn(code, pct) { const c = shortCode(code); const wide = /^(30|688)/.test(c); return pct <= (wide ? -19.8 : -9.8); }
+/* v113 fw2_v113_risk_cfg：涨跌停幅度改由 RISK_CFG 统一（原先 19.8/9.8 两处硬编码） */
+function isLimitUpCn(code, pct) { const c = shortCode(code); const wide = /^(30|688)/.test(c); return pct >= (wide ? RISK_CFG.limitWide : RISK_CFG.limit); }
+function isLimitDownCn(code, pct) { const c = shortCode(code); const wide = /^(30|688)/.test(c); return pct <= -(wide ? RISK_CFG.limitWide : RISK_CFG.limit); }
 
 // 单票健康度标签
 function healthOf(r) {
   const c = r.code, pct = r.pct || 0;
   if (r.price == null) return { label: '停牌', color: 'var(--warn)' };
   if (isLimitDownCn(c, pct)) return { label: '跌停', color: 'var(--down)' };   /* fw2_v80 跌=绿 */
-  if (pct <= -5) return { label: '走弱', color: 'var(--down)' };               /* fw2_v80 跌=绿 */
+  if (pct <= -RISK_CFG.dayMove) return { label: '走弱', color: 'var(--down)' }; /* fw2_v80 跌=绿；v113 阈值改读 RISK_CFG */
   if (isLimitUpCn(c, pct)) return { label: '涨停', color: 'var(--up)' };       /* fw2_v80 涨=红 */
-  if (pct >= 5) return { label: '走强', color: 'var(--up)' };                  /* fw2_v80 涨=红 */
-  if (r.weight > 25) return { label: '高集中', color: 'var(--warn)' };
+  if (pct >= RISK_CFG.dayMove) return { label: '走强', color: 'var(--up)' };   /* fw2_v80 涨=红；v113 */
+  if (r.weight > RISK_CFG.weightHigh) return { label: '高集中', color: 'var(--warn)' }; /* v113：与风险扫描同源 */
   return { label: '正常', color: 'var(--text-2)' };
 }
 
@@ -4364,22 +4383,22 @@ function diagnoseSignals(rows, totals) {
     const c = r.code, pct = r.pct || 0;
     if (r.price == null) risks.push({ sev: 'danger', name: r.name, code: c, txt: '停牌 / 无实时报价，估值可能失真' });
     else if (isLimitDownCn(c, pct)) risks.push({ sev: 'danger', name: r.name, code: c, txt: `跌停（${fmtPct(pct)}）` });
-    else if (pct <= -5) risks.push({ sev: 'danger', name: r.name, code: c, txt: `大跌 ${fmtPct(pct)}` }); /* v112：警报级 warn->danger */
+    else if (pct <= -RISK_CFG.dayMove) risks.push({ sev: 'danger', name: r.name, code: c, txt: `大跌 ${fmtPct(pct)}` }); /* v112：警报级 warn->danger；v113 阈值读 RISK_CFG */
     else if (isLimitUpCn(c, pct)) opps.push({ sev: 'opp', name: r.name, code: c, txt: `涨停（${fmtPct(pct)}），关注兑现节奏` });
-    else if (pct >= 5) opps.push({ sev: 'opp', name: r.name, code: c, txt: `大涨 ${fmtPct(pct)}，强势关注` });
-    if (r.weight > 25) risks.push({ sev: 'warn', name: r.name, code: c, txt: `权重集中 ${r.weight.toFixed(1)}%（单票偏高）` });
+    else if (pct >= RISK_CFG.dayMove) opps.push({ sev: 'opp', name: r.name, code: c, txt: `大涨 ${fmtPct(pct)}，强势关注` });
+    if (r.weight > RISK_CFG.weightHigh) risks.push({ sev: 'warn', name: r.name, code: c, txt: `权重集中 ${r.weight.toFixed(1)}%（单票偏高）` });
     if (r.totPct != null) {
-      if (r.totPct <= -20) risks.push({ sev: 'danger', name: r.name, code: c, txt: `持仓累计浮亏 ${fmtPct(r.totPct)}，深度套牢需复盘逻辑` }); /* v112：警报级 warn->danger */
-      else if (Math.abs(r.totPct) <= 3) opps.push({ sev: 'info', name: r.name, code: c, txt: `接近成本线（${fmtPct(r.totPct)}），方向选择关键窗口` });
+      if (r.totPct <= RISK_CFG.deepLoss) risks.push({ sev: 'danger', name: r.name, code: c, txt: `持仓累计浮亏 ${fmtPct(r.totPct)}，深度套牢需复盘逻辑` }); /* v112：警报级 warn->danger；v113 阈值读 RISK_CFG */
+      else if (Math.abs(r.totPct) <= RISK_CFG.nearCost) opps.push({ sev: 'info', name: r.name, code: c, txt: `接近成本线（${fmtPct(r.totPct)}），方向选择关键窗口` });
     }
   });
   const sectorArr = Object.entries(totals.bySector || {}).sort((a, b) => b[1] - a[1]);
   const topSectorPct = sectorArr.length && totals.mv ? (sectorArr[0][1] / totals.mv * 100) : 0;
-  if (topSectorPct >= 35) risks.push({ sev: 'warn', name: sectorArr[0][0], code: '', txt: `板块集中：${sectorArr[0][0]} 占持仓 ${topSectorPct.toFixed(1)}%` });
-  if (totals.positionPct >= 90) risks.push({ sev: 'warn', name: '现金', code: '', txt: `仓位 ${totals.positionPct.toFixed(1)}%，现金缓冲偏薄` });
+  if (topSectorPct >= RISK_CFG.sectorHigh) risks.push({ sev: 'warn', name: sectorArr[0][0], code: '', txt: `板块集中：${sectorArr[0][0]} 占持仓 ${topSectorPct.toFixed(1)}%` });
+  if (totals.positionPct >= RISK_CFG.posHigh) risks.push({ sev: 'warn', name: '现金', code: '', txt: `仓位 ${totals.positionPct.toFixed(1)}%，现金缓冲偏薄` });
   /* v112 fw2_v112_risk_merge：A股全市场跌停扩散（原每日复盘侧的风险规则；市场情绪口径，非个股口径） */
   const mkt = state.snapshot && state.snapshot.market;
-  if (mkt && (mkt.limitDown || []).length >= 20) risks.push({ sev: 'warn', name: '全市场', code: '', txt: `A股跌停 ${mkt.limitDown.length} 只，情绪端存在扩散风险` });
+  if (mkt && (mkt.limitDown || []).length >= RISK_CFG.breadthLimitDown) risks.push({ sev: 'warn', name: '全市场', code: '', txt: `A股跌停 ${mkt.limitDown.length} 只，情绪端存在扩散风险` });
   const sortedW = rows.map((r) => r.weight).sort((a, b) => b - a);
   const top3 = (sortedW[0] || 0) + (sortedW[1] || 0) + (sortedW[2] || 0);
   const concentration = {
@@ -6645,9 +6664,10 @@ function fillRsPick() {
 
      v111 fw2_v111_del_diagnose：删除「持仓诊断」整个模块（用户 2026-09-17 要求）。删除项：① nav「持仓诊断」按钮（data-view="market"）及其 [data-view="market"] .ic 图标 CSS；② <section id="view-market"> 整段（dgKpi/dgNews/dgTable/dgError）；③ renderDiagnoseView() 函数及仅被它调用的 alertsOf()（死代码）；④ 全部路由/元数据引用：VIEW_META.market、showView 的 market 分支、renderCurrentView 的 market 分派、loadNews 后的 market 重渲染。保留：renderHoldHealthRisk() 与「持仓健康诊断/风险与机会扫描」（v110 已迁入「我的持仓」）、relatedHoldings()（资讯/复盘仍在用）、isLimitUpCn/isLimitDownCn（healthOf/diagnoseSignals 仍在用）。
      v112 fw2_v112_risk_merge：「每日复盘」的「持仓风险扫描」并入「我的持仓」的「风险与机会扫描」，全站风险规则收敛为**唯一引擎 diagnoseSignals**。① 规则移植/裁决：新增「A股全市场跌停>=20只，情绪扩散」；当日大跌(<=-5%)与深度套牢(<=-20%) 由 warn 升为 danger；停牌文案融合「估值可能失真」；保留 A 侧机会信号（涨停/大涨/接近成本线）与逐标的可定位粒度。② 每日复盘侧删除：buildReview 的 risks 段、return.risks、riskCls/riskLi、rv-sec「持仓风险扫描」、CSS .rv-risk*（5 处，防第三遍重复呈现）。③ reviewMarkdown 第三节改为调用同一 diagnoseSignals（UI 与导出文档同源）；sevMeta 提升为模块级 SEV_META 供 UI/导出共用。④ ★修复静默缺陷：buildRows() 的 totals 缺 bySector（bySector 原为 totals 的兄弟字段）→ diagnoseSignals 读 totals.bySector 恒 undefined，导致「板块集中度」永远显示 0%、板块集中规则永不触发；现补 totals.bySector = bySector（已核全仓无 totals 键枚举，纯附加安全）。⑤ empty 文案随规则集同步更新（防文案与规则不符）。验证：补丁锚点全 count==1、check_js 6 块 ALL OK、headless DOM 断言（dgRisk 有项 / dgRiskHint 计数 / 无风险时新 empty 文案）、gate 预检。data/口径未变，不跑 push_macro_seed。verChip v111->v112
+     v113 fw2_v113_risk_cfg：风险/健康度阈值**单源化**（用户 2026-09-17 问「风险扫描的阈值与交易信号是否重复」）。实测归因：不是重复，而是两类问题并存 —— A「同数不同义」：SIGNALS_CFG.addDD1=-20（回撤补仓，触发买入）与 deepLoss=-20（浮亏告警，只提示）同数而语义无关；barbell.band=5（分组偏离±5pct）与 dayMove=5（单日异动±5%）同理；B「同一语义被抄两份」（真正会漂移的）：healthOf（v109 健康度列）与 diagnoseSignals（风险与机会扫描）各自硬编码 -5/+5/25。本版处理 B（收敛）与 A（显式声明），**不**把交易信号的 slHard/cap/barbell 规则抄进风险扫描（那才是真正的重复呈现）。做法：新增模块级 RISK_CFG（dayMove/weightHigh/deepLoss/nearCost/sectorHigh/posHigh/breadthLimitDown/limit/limitWide 九项），并把 isLimitUpCn+isLimitDownCn（19.8/9.8）、healthOf（3 处）、diagnoseSignals（7 处）、集中度体检 diagMetric（25/35 两条同义项）全部改读 RISK_CFG；在 RISK_CFG 注释内显式登记与 SIGNALS_CFG 的分工与「同数不同义」清单，并约定方向统一（上界 >=、下界 <=、带宽 <=）；18/45/55 等展示分层不属阈值源，保持原样。联动性：改 RISK_CFG.weightHigh 一处，健康度列「高集中」与风险扫描「权重集中」同步变化（已由 headless 突变测试证）。验证：补丁锚点全 count==1、12 条硬编码禁用字串确已归零、函数体配对断言（healthOf 3 引 / diagnoseSignals 7 引 / 涨跌停 2 引）、check_js 6 块 ALL OK、headless 突变联动断言（weightHigh 25->15 两处同时转）、负向自测。data/口径未变。verChip v112->v113
 仅默认隐藏。 */
   const vc = $('#verChip');
-  if (vc) vc.textContent = 'v112 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  if (vc) vc.textContent = 'v113 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
