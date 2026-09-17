@@ -154,6 +154,21 @@ button, input, select, textarea { font-family: inherit; font-size: 12.5px; color
 @media (max-width: 1320px) { .kpi-grid { grid-template-columns: repeat(3, 1fr); } }
 @media (max-width: 820px) { .kpi-grid, .kpi-grid.kpi-4 { grid-template-columns: repeat(2, 1fr); } }
 .kpi-grid.kpi-2 { grid-template-columns: repeat(2, 1fr); } /* v48 总览 KPI 固定 2 张（桌面 2 列满行 / 手机 2 列） */
+/* v105 fw2_v105_hero_row：总资产 · 总盈亏 · 持仓成本 同排
+   用户 2026-09-17：「把总盈亏和持仓成本，放在总资产后面，并排显示」。
+   .hero flex:1 自适应，KPI 组固定 46% 占比并排两格，三者等高（align-items:stretch）。
+   ★特异性 (0,2,0) 与 .kpi-grid.kpi-2 同级 → 靠源码顺序生效（故紧跟其后声明）；
+     刻意不改 .kpi-grid 的 grid-template-columns，以免压过 ≤767px 的紧凑规则。
+   ≤767px 落回竖排：Hero 一行 + KPI 两格一行，保持手机端原有观感。 */
+.hero-row { display: flex; align-items: stretch; gap: 10px; margin-bottom: 12px; }
+.hero-row > .hero { flex: 1 1 auto; min-width: 0; margin-bottom: 0; }
+.hero-row > .kpi-grid { flex: 0 0 46%; margin-bottom: 0; }
+.hero-row > .kpi-grid > .kpi { display: flex; flex-direction: column; justify-content: center; }
+@media (max-width: 767px) {
+  .hero-row { display: block; }
+  .hero-row > .hero { margin-bottom: 10px; }
+  .hero-row > .kpi-grid { margin-bottom: 12px; }
+}
 
 .kpi {
   background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius);
@@ -827,8 +842,10 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
     <div data-page-node-id="fXLk6Ijr5MqgohZMVFijQs" class="scroll-area">
       <!--pnid:A5cwz2ZvZ8uReJSzqwueeg--><!-- ---------- 总览 ---------- -->
       <section data-page-node-id="AHsw6vP8bmK49Cnpc48tZs" class="view active" id="view-overview">
+        <div class="hero-row">
         <div class="hero" id="ovHero"></div>
         <div data-page-node-id="wMymYX1aQolujO9y4XFcMX" class="kpi-grid kpi-2" id="ovKpi"></div>
+        </div>
 
 
         <div class="card" id="ovSignal"></div>
@@ -1082,7 +1099,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
             <span data-page-node-id="1tYNTqEbqNQRtvoZcDMp9W" class="flbl"><!--pnid:9wTVum6ntnQpThvDUQM28N-->选择</span>
             <select data-page-node-id="ytqOAaTQnUAlAV3d84SXD0" class="inp-sm sel" id="rsPick">
               <option data-page-node-id="dBdl5B3ockpTkZSdlssjuf" value><!--pnid:uffUrO7CKLEtAQ6KTRyigz-->持仓 / 自选…</option>
-            </select><span data-page-node-id="fw2v52bVerchip" class="hint" id="verChip" style="white-space:nowrap;flex:none"><!--fw2_v52b_verchip fw2_v54c_verchip fw2_v55_verchip fw2_v56_verchip fw2_v57_verchip fw2_v58_verchip fw2_v59_verchip fw2_v60_verchip fw2_v61_verchip fw2_v61_wltext fw2_v62_fundbasic fw2_v63_xmap_wlfix fw2_v64_macro_xasset fw2_v65_macro_spxnky fw2_v66_macro_amtd fw2_v67_nky_ts fw2_v68_split_spx_nky fw2_v69_nky_curve fw2_v70_nky_daily_ma fw2_v70b_extreme_label fw2_v71_datacenter fw2_v72_data_icon fw2_v73_pivot_desc fw2_v74_null_ret fw2_v75_recent_first fw2_v76_interval_macro fw2_v77_legend_wrap fw2_v83_vixcboe fw2_v104_index_strip13-->v104</span>
+            </select><span data-page-node-id="fw2v52bVerchip" class="hint" id="verChip" style="white-space:nowrap;flex:none"><!--fw2_v52b_verchip fw2_v54c_verchip fw2_v55_verchip fw2_v56_verchip fw2_v57_verchip fw2_v58_verchip fw2_v59_verchip fw2_v60_verchip fw2_v61_verchip fw2_v61_wltext fw2_v62_fundbasic fw2_v63_xmap_wlfix fw2_v64_macro_xasset fw2_v65_macro_spxnky fw2_v66_macro_amtd fw2_v67_nky_ts fw2_v68_split_spx_nky fw2_v69_nky_curve fw2_v70_nky_daily_ma fw2_v70b_extreme_label fw2_v71_datacenter fw2_v72_data_icon fw2_v73_pivot_desc fw2_v74_null_ret fw2_v75_recent_first fw2_v76_interval_macro fw2_v77_legend_wrap fw2_v83_vixcboe fw2_v104_index_strip13 fw2_v105_hero_row-->v105</span>
           </div>
           <div data-page-node-id="5FsFNsGZ6QN0HN0rpWLIlR" class="tools-l inline-form rs-combo">
             <span data-page-node-id="KyCNIch2B6qjWLrmQxqPCX" class="flbl"><!--pnid:1qPkNVbSL0r9sGQSgNifJN-->名称</span>
@@ -6753,9 +6770,10 @@ function fillRsPick() {
      v100 fw2_v100_caliber_fold：口径卡默认收起——只留一行摘要在数据下方常显（含双渠道校验戳记状态），字段口径表 / 渠道登记表 / 逐行来源标注 / 断裂规则折叠进 <details>，点击展开。内容与 DOM 一字未删，     v101 fw2_v101_an_colwidth：风险指标表列宽收紧——表由 width:100%（8 列摊满整宽，名称列独吞 364px）改为按内容定宽（width:auto）+ 单元格内边距 9px->7px，消掉多余空白；选择器保持低特异性以免覆盖 @media(max-width:560px) 的移动端紧凑规则；仅作用于 .dc-an-tbl，列数/排序/口径/数据一律不变。
      v102 fw2_v102_all_colwidth：把 v101 紧凑列宽推广到全部数据表格——总览表(.dc-ov-tbl)与宏观表(.dc-mc-tbl)同加 width:auto + 内边距 5px 7px（与 v101 同特异性写法，桌面靠源码顺序压过 .dc-tbl/.dc-mc-tbl 的 width:100%，≤560px 让 @media 的 .dc-tbl 紧凑规则继续生效）；因这两表 nowrap 列多、内容已超容器，width:auto 主要收紧内边距、表宽基本不变。口径表(.dc-cal-tbl)本就 width:auto 且内边距更紧(3px 8px)，不作改动。
      v104 fw2_v104_index_strip13：顶条指数由 10 项扩到 13 项——①「创业板指」后插「科创50」(sh000688)、②「沪深300」后插「中证A500」(sh000510)、③「标普500」后插「日经225」(东财 100.N225)。★双清单铁律：顶条有 STRIP_CODES(渲染顺序) 与 INDEX_GROUPS/INDEX_CODES(取数管线) 两套独立清单，新指数必须同时登记，只登记一处会静默显示「裸代码 + —」(renderStrip 的 || code 兜底且不入取数请求)；★日经取数用原生 fetch 而非 mfetch：mfetch 定义在上方 IIFE 内，外层 refreshSnapshot 看不见，误用抛 ReferenceError 被 catch 静默吞掉（东财 push2delay 端点 CORS 开放，已实测）。腾讯 qt.gtimg.cn 不收录日经225，故走东财 push2delay secid=100.N225（f43/f169/f170 均×100）；已与 CNBC .N225 双源比对一致（2026-09-16 双方均 63923.00，prevclose 63484.10 = CNBC 09-15 收盘）。新增 sessionOf JP 分支（北京 08:00-10:30 / 11:30-14:00，含午休）；.ix 桌面宽 112->104px（13×104=1352）。★实测单块内容宽 101-109px、13 项合计 1344px；.sidebar 固定 212px，1440 视口下 .scroll-area 仅 1198px，故顶条须横向滑动（组件原有 overflow-x:auto 生效，用户已确认保留）。数据/列/口径一律不变，仅新增 3 个指数项与 1 个市场分支。
+     v105 fw2_v105_hero_row：总览首屏改为「总资产 · 总盈亏 · 持仓成本」同排——用户 2026-09-17 截图指向总盈亏/持仓成本两张卡，要求「放在总资产后面，并排显示」。改法：把 #ovHero 与 #ovKpi 包进新的 .hero-row（flex 行），.hero flex:1 自适应、#ovKpi 固定 46% 占比并排两格，三者 align-items:stretch 等高；≤767px 落回竖排（Hero 一行 + KPI 两格一行），手机端观感不变。★CSS 铁律：.hero-row > .kpi-grid 特异性 (0,2,0) 与 .kpi-grid.kpi-2 同级 → 靠源码顺序生效，故规则紧贴 .kpi-grid.kpi-2 声明；刻意不改 .kpi-grid 的 grid-template-columns，以免压过 ≤767px 的紧凑规则（v101 教训：抬高特异性会反向覆盖手机端内边距）。仅改布局容器与 CSS，取值/口径/字段/排序一律未动（#ovHero、#ovKpi 的渲染逻辑、kpiSecond 的「有现金→可用现金／无现金→持仓成本」切换、countUpNum 滚动动画全部保留）。验证：_test_v105_herorow.py 双视口 DOM 断言（桌面 1440 hero 与 kpi-grid 顶边差 0px、hero.r=866 ≤ kpi.l=874 不重叠、两张 KPI 也并排、三块文案与数值齐备；手机 390 上下竖排、左缘对齐）；★A/B 对拍 index.html.bak_v105pre：改动前 hero 独占整行(w=1196,t=162)、KPI 在下一行(t=339，顶边差 177px) → 断言正确转红，证明判据有区分力；headless 下两类 JS 报错（Script error. / Unexpected token '<'）改动前后**完全一致**，属环境既有噪声（基金 JSONP 与 /api/* 在无桌面桥的浏览器必失败），已按签名白名单排除。
 仅默认隐藏。 */
   const vc = $('#verChip');
-  if (vc) vc.textContent = 'v104 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  if (vc) vc.textContent = 'v105 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
