@@ -766,6 +766,16 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 @media (max-width: 767px) {
   #sigBody .btn-sm { padding: 4px 10px; font-size: 11.5px; line-height: 1.5; }
 }
+
+/* v114 fw2_v114_hold_cost_col：修复「涨红跌绿」被硬色压掉的系统性缺陷 ——
+   .kpi .v / .metric .v / .rv-cell .v / .ix-card .p / .diag-metric-row .dm-v / .rs-head .px
+   把主数字硬编码成 var(--text)（#0f172a），特异性 (0,2,0)，把 .up/.down/.flat (0,1,0)
+   全部压掉 → 涨跌数字一律显示深蓝，看不见红绿（.mc-cell 则同为 (0,1,0) 但源码靠后）。
+   修法：方向类自叠到 (0,2,0) 并声明在主样式表末尾，以源码顺序赢下与 .kpi .v 等的平局；
+   不影响 #dcStyle 内 (1,x,x) 既有规则（其 td.up / i.up 本就是同色）。 */
+.up.up { color: var(--up); }
+.down.down { color: var(--down); }
+.flat.flat { color: var(--flat); }
 </style>
 <meta name="theme-color" content="#2563eb">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -898,8 +908,10 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
                   <th data-page-node-id="nHy3tCDg9gwOzXMPHClp09"><!--pnid:gWsLXkTwBzHj8x1ubO154x-->板块</th>
                   <th data-page-node-id="QYN973Djza77tFjto7sqDa"><!--pnid:EEtUKja24y5PL365TNIMcU-->资产类型</th>
                   <th data-page-node-id="hu4UKojLp4nQBgyfgTiUiq" class="num"><!--pnid:Pe1LkM54Up7qLUCkZ5GgbT-->持仓市值</th>
-                  <th data-page-node-id="X5FxJFHbA7MVWIGwKaoWl2" class="num"><!--pnid:A50LgFBc4akIska8SOZTWj-->当日盈亏</th>
+                  <th data-page-node-id="hdCostThK114mN2pQv4Rs8Tz" class="num"><!--pnid:hdCost0Th1K114mN2pQv4R-->持仓成本</th>
                   <th data-page-node-id="0s9owBAvjYdXlvslpJlPIm" class="num"><!--pnid:12d22HMzBf8vRa9yIegoh8-->总盈亏</th>
+                  <th data-page-node-id="X5FxJFHbA7MVWIGwKaoWl2" class="num"><!--pnid:A50LgFBc4akIska8SOZTWj-->当日盈亏</th>
+                  <!-- fw2_v114_col_order: 持仓市值 > 持仓成本 > 总盈亏 > 当日盈亏 -->
                   <th data-page-node-id="jVTh0PBGCv5GN5AVSRVGYv" class="num"><!--pnid:Xjcc7GfG3kbbgeT4quXlL9-->成本价</th>
                   <th data-page-node-id="KEEnVp3Z4MzPXgVVbYRqDy" class="num"><!--pnid:y3JVQIVbKc3VqkTPodnSfO-->现价</th>
                   <th data-page-node-id="hwtHtXS8e0ZOxbvIb9bC5L" class="num"><!--pnid:qC1iMaNcfWnTIiWXjUdvEd-->涨跌幅</th>
@@ -1060,7 +1072,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
             <span data-page-node-id="1tYNTqEbqNQRtvoZcDMp9W" class="flbl"><!--pnid:9wTVum6ntnQpThvDUQM28N-->选择</span>
             <select data-page-node-id="ytqOAaTQnUAlAV3d84SXD0" class="inp-sm sel" id="rsPick">
               <option data-page-node-id="dBdl5B3ockpTkZSdlssjuf" value><!--pnid:uffUrO7CKLEtAQ6KTRyigz-->持仓 / 自选…</option>
-            </select><span data-page-node-id="fw2v52bVerchip" class="hint" id="verChip" style="white-space:nowrap;flex:none"><!--fw2_v52b_verchip fw2_v54c_verchip fw2_v55_verchip fw2_v56_verchip fw2_v57_verchip fw2_v58_verchip fw2_v59_verchip fw2_v60_verchip fw2_v61_verchip fw2_v61_wltext fw2_v62_fundbasic fw2_v63_xmap_wlfix fw2_v64_macro_xasset fw2_v65_macro_spxnky fw2_v66_macro_amtd fw2_v67_nky_ts fw2_v68_split_spx_nky fw2_v69_nky_curve fw2_v70_nky_daily_ma fw2_v70b_extreme_label fw2_v71_datacenter fw2_v72_data_icon fw2_v73_pivot_desc fw2_v74_null_ret fw2_v75_recent_first fw2_v76_interval_macro fw2_v77_legend_wrap fw2_v83_vixcboe fw2_v104_index_strip13 fw2_v106_hero_compact fw2_v107_holdings_table_first fw2_v108_dd_above_cal fw2_v109_health_col fw2_v110_health_to_holdings fw2_v111_del_diagnose fw2_v112_risk_merge fw2_v113_risk_cfg-->v113</span>
+            </select><span data-page-node-id="fw2v52bVerchip" class="hint" id="verChip" style="white-space:nowrap;flex:none"><!--fw2_v52b_verchip fw2_v54c_verchip fw2_v55_verchip fw2_v56_verchip fw2_v57_verchip fw2_v58_verchip fw2_v59_verchip fw2_v60_verchip fw2_v61_verchip fw2_v61_wltext fw2_v62_fundbasic fw2_v63_xmap_wlfix fw2_v64_macro_xasset fw2_v65_macro_spxnky fw2_v66_macro_amtd fw2_v67_nky_ts fw2_v68_split_spx_nky fw2_v69_nky_curve fw2_v70_nky_daily_ma fw2_v70b_extreme_label fw2_v71_datacenter fw2_v72_data_icon fw2_v73_pivot_desc fw2_v74_null_ret fw2_v75_recent_first fw2_v76_interval_macro fw2_v77_legend_wrap fw2_v83_vixcboe fw2_v104_index_strip13 fw2_v106_hero_compact fw2_v107_holdings_table_first fw2_v108_dd_above_cal fw2_v109_health_col fw2_v110_health_to_holdings fw2_v111_del_diagnose fw2_v112_risk_merge fw2_v113_risk_cfg fw2_v114_hold_cost_col-->v114</span>
           </div>
           <div data-page-node-id="5FsFNsGZ6QN0HN0rpWLIlR" class="tools-l inline-form rs-combo">
             <span data-page-node-id="KyCNIch2B6qjWLrmQxqPCX" class="flbl"><!--pnid:1qPkNVbSL0r9sGQSgNifJN-->名称</span>
@@ -4288,22 +4300,26 @@ function renderHoldings() {
   };
   const sorted = rows.slice().sort(sorters[state.hdSort] || sorters.mv);
 
+  /* fw2_v114_hold_cost_col：KPI 卡序与持仓列表列序一致（持仓市值 > 持仓成本 > 总盈亏 > 当日盈亏） */
   $('#hdSummary').innerHTML = `
     ${kpi('持仓市值', '¥' + fmtMoney(totals.mv), `${totals.count} 只 · 折人民币`, '', true)}
-    ${kpi('当日盈亏', fmtMoney(totals.day, true), fmtPct(totals.dayPct), cls(totals.day))}
+    ${kpi('持仓成本', '¥' + fmtMoney(Number.isFinite(totals.cost) ? totals.cost : 0), `成本合计 · 折人民币`, '')}
     ${kpi('总盈亏', fmtMoney(totals.total, true), fmtPct(totals.totalPct), cls(totals.total))}
+    ${kpi('当日盈亏', fmtMoney(totals.day, true), fmtPct(totals.dayPct), cls(totals.day))}
+    <!-- fw2_v114_kpi_order: 持仓市值 > 持仓成本 > 总盈亏 > 当日盈亏 -->
     `;
 
 
   const tbody = $('#hdTable tbody');
   if (!sorted.length) {
-    tbody.innerHTML = '<tr><td colspan="15" class="empty">暂无持仓，点击「＋ 新增持仓」添加</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="16" class="empty">暂无持仓，点击「＋ 新增持仓」添加</td></tr>';
   } else {
     tbody.innerHTML = sorted.map((r) => {
       const mv = cny ? r.mvCny : r.mvLocal;
       const day = cny ? r.dayCny : r.dayLocal;
       const tot = cny ? r.totCny : r.totLocal;
       const unit = cny ? '¥' : r.cur;
+      const cost = cny ? r.costCny : r.costLocal;
       const at = ASSET_TYPES[r.assetType] || ASSET_TYPES.stock;
       const st = r.status;
       const stCls = st.kind === 'live' ? 'tag-live' : 'tag';
@@ -4316,9 +4332,10 @@ function renderHoldings() {
         <td><span class="tag">${esc(r.sector)}</span></td>
         <td><span class="at-tag ${at.cls}">${at.label}</span></td>
         <td class="num">${unit}${fmtMoney(mv)}</td>
-        <td class="num ${cls(day)}">${day == null ? '—' : unit + fmtMoney(day, true)}</td>
+        <td class="num">${Number.isFinite(cost) ? unit + fmtMoney(cost) : '—'}</td>
         <td class="num ${cls(tot)}">${tot == null ? '—' : unit + fmtMoney(tot, true)}
           <div class="sub-line ${cls(r.totPct)}">${fmtPct(r.totPct)}</div></td>
+        <td class="num ${cls(day)}">${day == null ? '—' : unit + fmtMoney(day, true)}</td>
         <td class="num">${fmtNum(r.cost, r.cost < 10 ? 3 : 2)}</td>
         <td class="num ${cls(r.pct)}">${r.price == null ? '—' : fmtNum(r.price, r.price < 10 ? 3 : 2)}</td>
         <td class="num ${cls(r.pct)}">${fmtPct(r.pct)}</td>
@@ -6665,9 +6682,10 @@ function fillRsPick() {
      v111 fw2_v111_del_diagnose：删除「持仓诊断」整个模块（用户 2026-09-17 要求）。删除项：① nav「持仓诊断」按钮（data-view="market"）及其 [data-view="market"] .ic 图标 CSS；② <section id="view-market"> 整段（dgKpi/dgNews/dgTable/dgError）；③ renderDiagnoseView() 函数及仅被它调用的 alertsOf()（死代码）；④ 全部路由/元数据引用：VIEW_META.market、showView 的 market 分支、renderCurrentView 的 market 分派、loadNews 后的 market 重渲染。保留：renderHoldHealthRisk() 与「持仓健康诊断/风险与机会扫描」（v110 已迁入「我的持仓」）、relatedHoldings()（资讯/复盘仍在用）、isLimitUpCn/isLimitDownCn（healthOf/diagnoseSignals 仍在用）。
      v112 fw2_v112_risk_merge：「每日复盘」的「持仓风险扫描」并入「我的持仓」的「风险与机会扫描」，全站风险规则收敛为**唯一引擎 diagnoseSignals**。① 规则移植/裁决：新增「A股全市场跌停>=20只，情绪扩散」；当日大跌(<=-5%)与深度套牢(<=-20%) 由 warn 升为 danger；停牌文案融合「估值可能失真」；保留 A 侧机会信号（涨停/大涨/接近成本线）与逐标的可定位粒度。② 每日复盘侧删除：buildReview 的 risks 段、return.risks、riskCls/riskLi、rv-sec「持仓风险扫描」、CSS .rv-risk*（5 处，防第三遍重复呈现）。③ reviewMarkdown 第三节改为调用同一 diagnoseSignals（UI 与导出文档同源）；sevMeta 提升为模块级 SEV_META 供 UI/导出共用。④ ★修复静默缺陷：buildRows() 的 totals 缺 bySector（bySector 原为 totals 的兄弟字段）→ diagnoseSignals 读 totals.bySector 恒 undefined，导致「板块集中度」永远显示 0%、板块集中规则永不触发；现补 totals.bySector = bySector（已核全仓无 totals 键枚举，纯附加安全）。⑤ empty 文案随规则集同步更新（防文案与规则不符）。验证：补丁锚点全 count==1、check_js 6 块 ALL OK、headless DOM 断言（dgRisk 有项 / dgRiskHint 计数 / 无风险时新 empty 文案）、gate 预检。data/口径未变，不跑 push_macro_seed。verChip v111->v112
      v113 fw2_v113_risk_cfg：风险/健康度阈值**单源化**（用户 2026-09-17 问「风险扫描的阈值与交易信号是否重复」）。实测归因：不是重复，而是两类问题并存 —— A「同数不同义」：SIGNALS_CFG.addDD1=-20（回撤补仓，触发买入）与 deepLoss=-20（浮亏告警，只提示）同数而语义无关；barbell.band=5（分组偏离±5pct）与 dayMove=5（单日异动±5%）同理；B「同一语义被抄两份」（真正会漂移的）：healthOf（v109 健康度列）与 diagnoseSignals（风险与机会扫描）各自硬编码 -5/+5/25。本版处理 B（收敛）与 A（显式声明），**不**把交易信号的 slHard/cap/barbell 规则抄进风险扫描（那才是真正的重复呈现）。做法：新增模块级 RISK_CFG（dayMove/weightHigh/deepLoss/nearCost/sectorHigh/posHigh/breadthLimitDown/limit/limitWide 九项），并把 isLimitUpCn+isLimitDownCn（19.8/9.8）、healthOf（3 处）、diagnoseSignals（7 处）、集中度体检 diagMetric（25/35 两条同义项）全部改读 RISK_CFG；在 RISK_CFG 注释内显式登记与 SIGNALS_CFG 的分工与「同数不同义」清单，并约定方向统一（上界 >=、下界 <=、带宽 <=）；18/45/55 等展示分层不属阈值源，保持原样。联动性：改 RISK_CFG.weightHigh 一处，健康度列「高集中」与风险扫描「权重集中」同步变化（已由 headless 突变测试证）。验证：补丁锚点全 count==1、12 条硬编码禁用字串确已归零、函数体配对断言（healthOf 3 引 / diagnoseSignals 7 引 / 涨跌停 2 引）、check_js 6 块 ALL OK、headless 突变联动断言（weightHigh 25->15 两处同时转）、负向自测。data/口径未变。verChip v112->v113
+     v114 fw2_v114_hold_cost_col：我的持仓「持仓市值」后新增「持仓成本」，并把「总盈亏」提到「当日盈亏」之前（用户 2026-09-17）；同轮修复「涨红跌绿」被压掉的系统性缺陷。① 列序与卡序统一为 持仓市值 > 持仓成本 > 总盈亏 > 当日盈亏：thead 新加同款 th、tbody 新增「持仓成本」td（取 r.costCny / r.costLocal ＝ 成本价×数量，随「人民币显示」开关切换币种口径，Number.isFinite 守卫、缺成本显示 —）、空态 colspan 15->16；KPI 行由 3 张补为 4 张，正好填满 kpi-4 栅格。② ★真凶修复：用户要求的「正数红色 / 负数绿色」此前在 KPI 卡上**根本没生效** —— .kpi .v / .metric .v / .rv-cell .v / .ix-card .p / .diag-metric-row .dm-v / .rs-head .px 都把主数字硬编码成 #0f172a，特异性 (0,2,0)，把 .up/.down/.flat (0,1,0) 全数压掉（.mc-cell 同为 (0,1,0) 但源码靠后，同样被压）；日历当初的补丁 #view-data .dc-mc-tbl td.up 正是同一病根的局部创可贴。本版改为在**主样式表末尾**声明 .up.up/.down.down/.flat.flat（自叠至 (0,2,0)，以源码顺序赢下与 .kpi .v 等的平局），一处修复全站涨跌数字配色；不动 #dcStyle 内 (1,x,x) 既有规则。③ 验证：补丁锚点全 count==1、check_js 6 块 ALL OK、headless DOM 断言（列序/卡序/新列取值与合计/四组 computed color 实测红绿中性）、A/B 对拍改动前副本、负向自测 noop 守卫 + 突变体、双视口 1440/390 回归。data/口径未变，不跑 push_macro_seed。verChip v113->v114
 仅默认隐藏。 */
   const vc = $('#verChip');
-  if (vc) vc.textContent = 'v113 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  if (vc) vc.textContent = 'v114 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
