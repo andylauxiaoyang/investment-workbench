@@ -807,6 +807,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
         </div>
         <div data-page-node-id="H0p80UORDRlXGXbbpRWhFq" class="filter-row" id="hdFilter"></div>
 
+        <div id="pfSrcNote" style="margin:0 0 8px;font-size:11px;color:var(--muted)"></div>
         <div data-page-node-id="CDSquaA0NXeISipWM3MeA9" class="kpi-grid kpi-4" id="hdSummary"></div>
 
         <!-- v107 fw2_v107_holdings_table_first：持仓列表上移至「每日盈亏日历」上方（用户 2026-09-17） -->
@@ -3038,28 +3039,77 @@ function saveStore() {
   localStorage.setItem(LS.sectors, JSON.stringify(state.sectors));
 }
 
+/* v123 fw2_v123_pf_seed：持仓三层兜底 —— ① 内嵌种子 ② 旁挂快照文件 ③ 资料库实时表
+   背景：免登录端（GitHub Pages）与资料库未授权端曾出现「持仓空白」：
+   - 主通道 __LK_DB__.holdingsList() 若 hang，await 永不落地 → 后面的兜底代码根本执行不到（自选通道早有 8s 超时，持仓没有）；
+   - 兜底文件 holdings-data.json 在资料库页面里并不存在 → fetch 404 → 持仓彻底空。
+   故把种子内嵌进页面（0 网络依赖），并给主通道加超时；DB 成功且非空才覆盖种子。 */
+function applySeed(j, tag) {
+  var arr = (j && j.holdings) || [];
+  var list = arr.map(function (x) {
+    return {
+      _id: 'seed-' + String(x.code || ''),
+      code: String(x.code || ''),
+      name: x.name || '',
+      qty: +x.shares || 0,
+      cost: x.unitCost != null ? +x.unitCost : (+x.cost || 0),
+      assetType: x.type || 'stock',
+      sector: x.sector || '',
+    };
+  }).filter(function (h) { return h.code && h.qty > 0; });
+  if (!list.length) return false;
+  state.portfolio = list;
+  state._pfSrc = 'seed-' + tag;
+  state._pfAt = (j && j.syncedAt) ? String(j.syncedAt) : '';
+  return true;
+}
+async function fetchSeedFile() {
+  try {
+    var r = await Promise.race([
+      fetch('holdings-data.json', { cache: 'no-store' }),
+      new Promise(function (_, rej) { setTimeout(function () { rej(new Error('seed 超时(6s)')); }, 6000); }),
+    ]);
+    if (r && r.ok) { var j = await r.json(); if (applySeed(j, 'file')) return true; }
+  } catch (e) { /* 旁挂快照不可用：保持内嵌种子 */ }
+  return false;
+}
+function renderPfSrcNote() {
+  var el = document.getElementById('pfSrcNote');
+  if (!el) return;
+  var map = {
+    DB: '资料库持仓表（实时）',
+    'seed-inline': '内置只读镜像快照',
+    'seed-file': '旁挂快照 holdings-data.json',
+    'empty': '未取到持仓数据',
+  };
+  var label = map[state._pfSrc] || '未取到持仓数据';
+  var at = state._pfAt ? ' · 同步于 ' + state._pfAt.slice(0, 16).replace('T', ' ') : '';
+  var tip = (state._pfSrc === 'DB') ? '' : '（只读：改持仓请到资料库持仓表）';
+  el.textContent = '持仓来源：' + label + at + tip;
+  el.style.color = (state._pfSrc === 'DB') ? 'var(--muted)' : '#b45309';
+}
 async function loadPortfolioFromDB() {
-  try { state.portfolio = await window.__LK_DB__.holdingsList(); }
-  catch (e) { state.portfolio = []; }
-  /* v26d GitHub Pages 备用通道：DB 不可用且持仓为空时，读旁挂种子快照兜底 */
-  if (!state.portfolio.length) {
-    try {
-      const r = await fetch('holdings-data.json', { cache: 'no-store' });
-      if (r.ok) {
-        const j = await r.json();
-        state.portfolio = ((j && j.holdings) || []).map((x) => ({
-          _id: 'seed-' + String(x.code || ''),
-          code: String(x.code || ''),
-          name: x.name || '',
-          qty: +x.shares || 0,
-          cost: x.unitCost != null ? +x.unitCost : (+x.cost || 0),
-          assetType: x.type || 'stock',
-          /* v119：种子也带「板块」，使 GitHub Pages（种子通道）与资料库（DB 通道）持仓字段一致 */
-          sector: x.sector || ''
-        })).filter((h) => h.code && h.qty > 0);
-      }
-    } catch (e2) { /* 种子缺失或解析失败：保持空持仓 */ }
+  state._pfSrc = ''; state._pfAt = '';
+  /* ① 内嵌种子：0 网络依赖，毫秒级落地，先把画面填上（免登录端不再空 8s） */
+  applySeed(window.HOLDINGS_SEED, 'inline');
+  /* ② 旁挂快照：比内嵌更新时覆盖 */
+  await fetchSeedFile();
+  /* ③ 资料库实时表：先做 SDK 预检（免登录端根本没有 __SMART_PAGE__，不必干等 waitDb 的 8s 轮询），
+        预检通过才进主通道，并带 8s 超时（与自选通道 v56 同款）；成功且非空才覆盖种子 */
+  var hasSdk = !!(window.__SMART_PAGE__ && window.__SMART_PAGE__.database);
+  if (!hasSdk) {
+    await new Promise(function (r) { setTimeout(r, 1200); });
+    hasSdk = !!(window.__SMART_PAGE__ && window.__SMART_PAGE__.database);
   }
+  try {
+    var list = hasSdk ? await Promise.race([
+      window.__LK_DB__.holdingsList(),
+      new Promise(function (_, rej) { setTimeout(function () { rej(new Error('DB 超时(8s)')); }, 8000); }),
+    ]) : null;
+    if (Array.isArray(list) && list.length) { state.portfolio = list; state._pfSrc = 'DB'; state._pfAt = ''; }
+  } catch (e) { /* 主通道不可用：保持种子（与「空列表不误清库」原则一致） */ }
+  if (!state.portfolio.length) state._pfSrc = 'empty';
+  renderPfSrcNote();
   /* 持仓晚到：重试基金重仓关键词（若仍在初始化时空跑过一轮），资讯相关标注补齐（v22） */
   if (state.portfolio.length && typeof ensureFundTopKeys === 'function') {
     ensureFundTopKeys().then(() => { if (state.view === 'news' && state._fundTopKeys && state._fundTopKeys.length) renderNews(); });
@@ -6581,7 +6631,7 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
 	   verChip v120->v121
 	  */
   const vc = $('#verChip');
-  if (vc) vc.textContent = 'v122 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  if (vc) vc.textContent = 'v123 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
@@ -8355,6 +8405,9 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', function(){ navigator.serviceWorker.register('./sw.js').catch(function(){}); });
 }
+</script>
+<script>/* v123 fw2_v123_pf_seed：持仓只读镜像（由 gen_holdings_seed.py 生成的 holdings-data.json 内嵌而来，与该文件同源；勿手改） */
+window.HOLDINGS_SEED = {"syncedAt":"2026-09-17T21:47:24+08:00","source":"资料库持仓表（database_id GjLvwNekmiaDCgMZrhaa29）的只读镜像；字段口径与资料库一致（份额=天天基金 ACCOUNT_HOLDING，成本价=单位成本）。★改持仓请改资料库表，然后重跑 gen_holdings_seed.py——勿手改本文件。","total":"15410.47","holdings":[{"name":"招商行业精选股票基金","code":"000746","shares":16.34,"unitCost":6.12,"cost":100.0,"type":"fund","sector":"主动权益"},{"name":"华夏沪深300指数增强A","code":"001015","shares":420.02,"unitCost":2.3808,"cost":999.98,"type":"fund","sector":"宽基指数"},{"name":"创金合信货币C（活期宝）","code":"007866","shares":1000.28,"unitCost":1.0,"cost":1000.28,"type":"cash","sector":"现金管理"},{"name":"易方达全球成长精选混合(QDII)人民币A","code":"012920","shares":5045.18,"unitCost":2.6164,"cost":13200.21,"type":"fund","sector":"海外权益"},{"name":"南方纳斯达克100指数发起(QDII)A","code":"016452","shares":4.42,"unitCost":2.2624,"cost":10.0,"type":"fund","sector":"海外权益"},{"name":"万家纳斯达克100指数发起式(QDII)A","code":"019441","shares":59.87,"unitCost":1.6703,"cost":100.0,"type":"fund","sector":"海外权益"}]};
 </script>
 </body>
 </html>
