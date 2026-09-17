@@ -1080,7 +1080,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
             <span data-page-node-id="1tYNTqEbqNQRtvoZcDMp9W" class="flbl"><!--pnid:9wTVum6ntnQpThvDUQM28N-->选择</span>
             <select data-page-node-id="ytqOAaTQnUAlAV3d84SXD0" class="inp-sm sel" id="rsPick">
               <option data-page-node-id="dBdl5B3ockpTkZSdlssjuf" value><!--pnid:uffUrO7CKLEtAQ6KTRyigz-->持仓 / 自选…</option>
-            </select><span data-page-node-id="fw2v52bVerchip" class="hint" id="verChip" style="white-space:nowrap;flex:none"><!--fw2_v52b_verchip fw2_v54c_verchip fw2_v55_verchip fw2_v56_verchip fw2_v57_verchip fw2_v58_verchip fw2_v59_verchip fw2_v60_verchip fw2_v61_verchip fw2_v61_wltext fw2_v62_fundbasic fw2_v63_xmap_wlfix fw2_v64_macro_xasset fw2_v65_macro_spxnky fw2_v66_macro_amtd fw2_v67_nky_ts fw2_v68_split_spx_nky fw2_v69_nky_curve fw2_v70_nky_daily_ma fw2_v70b_extreme_label fw2_v71_datacenter fw2_v72_data_icon fw2_v73_pivot_desc fw2_v74_null_ret fw2_v75_recent_first fw2_v76_interval_macro fw2_v77_legend_wrap fw2_v83_vixcboe fw2_v104_index_strip13 fw2_v106_hero_compact fw2_v107_holdings_table_first fw2_v108_dd_above_cal fw2_v109_health_col fw2_v110_health_to_holdings fw2_v111_del_diagnose fw2_v112_risk_merge fw2_v113_risk_cfg fw2_v114_hold_cost_col fw2_v115_tb_pad fw2_v116_cost_label fw2_v117_treemap_to_holdings-->v117</span>
+            </select><span data-page-node-id="fw2v52bVerchip" class="hint" id="verChip" style="white-space:nowrap;flex:none"><!--fw2_v52b_verchip fw2_v54c_verchip fw2_v55_verchip fw2_v56_verchip fw2_v57_verchip fw2_v58_verchip fw2_v59_verchip fw2_v60_verchip fw2_v61_verchip fw2_v61_wltext fw2_v62_fundbasic fw2_v63_xmap_wlfix fw2_v64_macro_xasset fw2_v65_macro_spxnky fw2_v66_macro_amtd fw2_v67_nky_ts fw2_v68_split_spx_nky fw2_v69_nky_curve fw2_v70_nky_daily_ma fw2_v70b_extreme_label fw2_v71_datacenter fw2_v72_data_icon fw2_v73_pivot_desc fw2_v74_null_ret fw2_v75_recent_first fw2_v76_interval_macro fw2_v77_legend_wrap fw2_v83_vixcboe fw2_v104_index_strip13 fw2_v106_hero_compact fw2_v107_holdings_table_first fw2_v108_dd_above_cal fw2_v109_health_col fw2_v110_health_to_holdings fw2_v111_del_diagnose fw2_v112_risk_merge fw2_v113_risk_cfg fw2_v114_hold_cost_col fw2_v115_tb_pad fw2_v116_cost_label fw2_v117_treemap_to_holdings fw2_v118_first_open_fix-->v118</span>
           </div>
           <div data-page-node-id="5FsFNsGZ6QN0HN0rpWLIlR" class="tools-l inline-form rs-combo">
             <span data-page-node-id="KyCNIch2B6qjWLrmQxqPCX" class="flbl"><!--pnid:1qPkNVbSL0r9sGQSgNifJN-->名称</span>
@@ -5720,7 +5720,11 @@ function openModal(title, html) {
   $('#modalBody').innerHTML = html;
   $('#modal').classList.remove('hidden');
 }
-function closeModal() { $('#modal').classList.add('hidden'); }
+/* v118 fw2_v118_first_open_fix：关闭时一并清空正文。
+   旧实现只加 hidden 不清空 → #modalBody 残留上一次弹窗的 DOM，
+   而模板字符串里的 `$('#fCode').value` 是在传给 openModal **之前**求值的，
+   于是「模板求值期读 DOM」这类代码会读到上一次弹窗的输入（首次则为 null → 抛 TypeError）。 */
+function closeModal() { $('#modal').classList.add('hidden'); const _mb = $('#modalBody'); if (_mb) _mb.innerHTML = ''; }
 /* 页内确认框：替代原生 confirm()。资料库页面运行在预览沙箱 iframe 中，
    原生弹窗被禁用，confirm() 静默返回 false → 所有删除按钮"点了没反应"（v14 修复） */
 function appConfirm(msg, okText) {
@@ -5737,6 +5741,10 @@ function appConfirm(msg, okText) {
   });
 }
 
+/* v118 fw2_v118_first_open_fix：本函数即「＋ 新增持仓 首次点击打不开」的修复点。
+   新增分支原写 guessAssetType($('#fCode').value)，而 '#fCode' 要到本模板**求值完成后**才进 DOM，
+   求值期读它必然为 null → 抛 TypeError → 整个 openModal 调用失败、弹窗静默不出现。
+   改为 guessAssetType(code || '')：与同一模板里 `esc(code || '')` 的取值完全等价，不再提前触碰 DOM。 */
 function openHoldingEditor(code) {
   const h = code ? state.portfolio.find((x) => x.code === code) : null;
   openModal(h ? '修改持仓' : '新增持仓', `
@@ -5751,7 +5759,7 @@ function openHoldingEditor(code) {
       <div class="field"><label>单位成本（原始币种）</label><input id="fCost" type="number" step="any" min="0" value="${h ? h.cost : ''}" placeholder="0.000"></div>
     </div>
     <div class="field-row">
-      <div class="field"><label>资产类型</label><select id="fAsset">${Object.entries(ASSET_TYPES).map(([k, v]) => `<option value="${k}" ${(h ? (h.assetType || 'stock') : guessAssetType($('#fCode').value)) === k ? 'selected' : ''}>${v.label}</option>`).join('')}</select></div>
+      <div class="field"><label>资产类型</label><select id="fAsset">${Object.entries(ASSET_TYPES).map(([k, v]) => `<option value="${k}" ${(h ? (h.assetType || 'stock') : guessAssetType(code || '')) === k ? 'selected' : ''}>${v.label}</option>`).join('')}</select></div>
       <div class="field"><label>板块（留空自动识别）</label><input id="fSector" value="${h ? esc(state.sectors[h.code] || h.sector || '') : ''}" placeholder="如 白酒Ⅱ"></div>
     </div>
     <div class="hint" style="margin-bottom:12px">港股 / 美股请填当地货币单位成本，系统按设置汇率折算人民币统计。</div>
@@ -6695,9 +6703,31 @@ function fillRsPick() {
      v115 fw2_v115_tb_pad：把这 4px 压掉（用户 2026-09-17「需要」）。持仓表 15 列 → 16 列后，1440 视口下表格最小内容宽 1198 > 容器 1194 → .table-wrap(overflow-x:auto) 出现 4px 横向滚动。做法：桌面端（@media(min-width:768px)）把 .tb 单元格水平内边距 9px → 8px —— 16 列 × 2 侧 × 1px = 32px，把最小内容宽压回容器以下。★安全性论证：全仓核过 .tb 仅 4 条规则（thead th / thead th.num / tbody td / tbody tr:hover），**没有任何 @media 覆盖其 padding**；新规则与 .tb thead th / .tb tbody td 同为 (0,1,2)，包在 min-width 媒体查询内、置主样式表末尾 → 靠源码顺序赢下桌面、对 ≤767px 一概不生效；刻意**不用** #hdTable 抬特异性（v101 教训：id 规则会反压媒体查询）。验证：补丁锚点全 count==1；check_js 6 块 ALL OK；双视口布局回归 1440 表格溢出 4px → **0px**（移动端 851px 不变，本就在滚动容器内）；v114 的 DOM 断言与负向自测复跑仍全绿（verChip 期望值改为「v 数字」正则，不再钉死具体版本号 —— 见技能 §8 教训）。data/口径未变，不跑 push_macro_seed。verChip v114->v115
      v116 fw2_v116_cost_label：「成本价」全站 UI 文案改称「单位成本」（用户 2026-09-17「需要」）。起因：v114 新增「持仓成本」（=成本价×数量，合计金额）后，与原有的「成本价」（每股单价）字面近似、同表并列易看串。改法：持仓表 thead、持仓详情面板 metric、详情脚注、录入表单 label 与 hint、数量校验 toast —— 共 6 处 UI 文案 成本价 -> 单位成本。★刻意不动：Excel 导入/导出的列键（两个数据键，见下方代码锚点）——那是数据接口契约，改了会让用户已有 xlsx 模板列头对不上、导不进来。本版规则：UI 文案统一「单位成本」，数据列键保持原样。「持仓成本」（KPI/表头/总览 hero）与「现价」均未动。★风险已实测：表头 3 字->4 字（+1 汉字）可能重新撑破 v115 刚压到 0 的表格余量 → 双视口回归 1440 容器溢出仍为 **0px**（P7c 通过）。验证：补丁锚点全 count==1；check_js 6 块 ALL OK；DOM 断言（WANT_TH 同步改「单位成本」）与负向自测复跑全绿；标记预检 0 缺。data/口径/列数/排序一律未变，不跑 push_macro_seed。verChip v115->v116
      v117 fw2_v117_treemap_to_holdings：「持仓结构热力图」由「概览」迁入「我的持仓」，置于「回撤与超额监控(M6)」之上（用户 2026-09-17 截图要求）。★这是跨视图搬卡（v110 教训），不是纯 DOM 搬移：① HTML 块整体搬移（含 data-page-node-id 包裹层，保留 pnid 以免平台侧对不上）；② 绘制调用改接 —— 从 renderOverview() 摘掉 drawHoldingsTreemap()，改在 renderHoldings() 末尾守卫调用 if (state.view === 'holdings') drawHoldingsTreemap();（与同处 renderDrawdownCard / renderHoldHealthRisk 同款既有约定），否则新位置的图会是空白；③ resize 防抖重绘补 clientWidth>0 守卫（视图隐藏时容器宽为 0，画 0 尺寸画布无意义；可见时行为不变，v47c 封顶门控语义保留）。依据：showView() 先切 .view.active 再调 render，.view{display:none}/.view.active{display:block} → renderHoldings 执行时容器已有真实宽度。验证：补丁锚点全 count==1；check_js 6 块 ALL OK；新写 _test_v117_treemap.py 做 headless DOM 断言（#ovHoldMap 的最近 .view 必须是 view-holdings；且在 DOM 中位于 #ddCard 之前；showView(holdings) 后 echarts 收到 ovHoldMap 的 setOption 且有 series 数据）+ 负向自测（搬家前副本必须转红）；双视口布局回归 1440/390 通过；v114/v116 既有断言与负向自测复跑全绿；标记预检 0 缺。data/口径/取值一律未变，不跑 push_macro_seed。verChip v116->v117
+v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（既有缺陷，v116 排查时定位、v118 修复）。
+   根因：openHoldingEditor(code) 的模板字符串在**作为实参传给 openModal 之前**就已求值，模板里
+     guessAssetType($('#fCode').value) 会在 h==null（新增）时读取 '#fCode' ——
+     此刻该 input 还没注入 DOM → $('#fCode') 为 null → 读 .value 抛
+     TypeError: Cannot read properties of null (reading 'value')，整个弹窗静默打不开。
+   为何长期没被发现：closeModal() 只加 hidden、不清空 #modalBody → 只要先前成功开过一次编辑器
+     （例如点某行「修改」，那时 h!=null 走短路、不抛），残留的 #fCode 就让后续「＋ 新增」侥幸可用。
+     即用户实际遭遇是「必须先点一次『修改』，『＋ 新增持仓』才能用」。
+   修法两处（互补，缺一不完整）：
+     1 guessAssetType($('#fCode').value) -> guessAssetType(code || '')
+       与同一模板里 esc(code || '') 的取值完全等价，但不再提前触碰尚未存在的 DOM。
+       guessAssetType('') 已核安全：shortCode('')='' -> marketOf('')='CN' -> 不匹配 ETF 前缀 -> 'stock'（新增项的正确默认值）。
+     2 closeModal() 关闭时清空 #modalBody —— 消除「残留 DOM 侥幸」这一整类隐患。
+       已核 closeModal 全部调用点均为「关掉就走」，无一处在其后读弹窗内容；#modalBody 全站仅 3 处引用
+       （元素定义 / openModal 写入 / openSettings 紧随其后读 [data-stab]），清空不破坏任何流程。
+   影响面：不改任何取值 / 口径 / 列 / 排序；仅影响弹窗打开时机与关闭清理。
+   验证：补丁锚点全 count==1；check_js 6 块 ALL OK；新增 _test_v118_first_open.py 做 headless DOM 断言
+     （一 全新加载后**不做任何前置操作**直接点 '#hdAdd' → #modal 可见、#fCode 存在且 value 为空、
+     #fAsset 选中 stock、#fSave/#fCancel 存在；二 先走一次「修改」再关闭、随后点新增 →
+     断言 #fCode.value 为空而非残留的旧代码，证明清空生效）+ 负向自测（v117 副本必须转红）；
+     双视口布局回归 1440/390 通过；v112/v113/v114/v116/v117 既有断言复跑全绿；标记预检 0 缺。
+   data/口径/取值一律未变，不跑 push_macro_seed。verChip v117->v118
 仅默认隐藏。 */
   const vc = $('#verChip');
-  if (vc) vc.textContent = 'v117 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  if (vc) vc.textContent = 'v118 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
