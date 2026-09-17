@@ -153,24 +153,8 @@ button, input, select, textarea { font-family: inherit; font-size: 12.5px; color
 
 @media (max-width: 1320px) { .kpi-grid { grid-template-columns: repeat(3, 1fr); } }
 @media (max-width: 820px) { .kpi-grid, .kpi-grid.kpi-4 { grid-template-columns: repeat(2, 1fr); } }
-.kpi-grid.kpi-2 { grid-template-columns: repeat(2, 1fr); } /* v48 总览 KPI 固定 2 张（桌面 2 列满行 / 手机 2 列） */
-/* v106 fw2_v106_hero_compact：总资产 · 总盈亏 · 持仓成本 紧凑贴左 + 大数字收至持仓卡同款 20px（v105 同排基础上进一步靠左 + 收紧 padding + 收窄字号）
-   用户 2026-09-17：「把总盈亏和持仓成本，放在总资产后面，并排显示」。
-   .hero flex:1 自适应，KPI 组固定 46% 占比并排两格，三者等高（align-items:stretch）。
-   ★特异性 (0,2,0) 与 .kpi-grid.kpi-2 同级 → 靠源码顺序生效（故紧跟其后声明）；
-     刻意不改 .kpi-grid 的 grid-template-columns，以免压过 ≤767px 的紧凑规则。
-   ≤767px 落回竖排：Hero 一行 + KPI 两格一行，保持手机端原有观感。 */
-.hero-row { display: flex; align-items: stretch; gap: 10px; margin-bottom: 12px; justify-content: flex-start; }
-.hero-row > .hero { flex: 0 1 auto; width: fit-content; min-width: 0; margin-bottom: 0; }
-.hero-row > .kpi-grid { flex: 0 0 auto; margin-bottom: 0; }
-.hero-row > .kpi-grid > .kpi { display: flex; flex-direction: column; justify-content: center; }
-@media (max-width: 767px) {
-  .hero-row { display: block; }
-  .hero-row > .hero { width: auto; margin-bottom: 10px; }
-  .hero-row > .kpi-grid { margin-bottom: 12px; }
-}
-
 .kpi {
+  background: var(--panel); border: 1px solid var(--line); border-r.kpi {
   background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius);
   box-shadow: none; padding: 13px 15px; position: relative; overflow: hidden;
 }
@@ -471,30 +455,7 @@ table td, table th, .ix .val, .ix .pct, .ix .chg, .badge {
 /* 4) 卡片标题：字重与左侧色条精修 */
 .card-h h3 { font-weight: 600; letter-spacing: -.01em; }
 .card-h h3::before { width: 3px; height: 13px; border-radius: 2px; }
-/* 5) Hero 焦点区：全站唯一主角 */
-.hero {
-  position: relative; overflow: hidden;
-  background: linear-gradient(180deg, var(--panel) 0%, var(--panel-2) 100%);
-  border: 1px solid var(--line); border-radius: 14px;
-  padding: 13px 15px; margin-bottom: 12px;
-}
-.hero::after {
-  content: ""; position: absolute; left: 0; top: 0; width: 100%; height: 3px;
-  background: linear-gradient(90deg, var(--brand), var(--amber-2));
-}
-.hero-k { font-size: 11px; letter-spacing: .6px; color: var(--muted); font-weight: 500; }
-.hero-v {
-  font-family: var(--mono); font-size: 20px; font-weight: 600; letter-spacing: -.02em;
-  line-height: 1.15; margin-top: 4px; color: var(--text);
-  font-variant-numeric: tabular-nums; font-feature-settings: "tnum" 1;
-}
-.hero-sub { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; margin-top: 5px; }
-.hero-pct { font-family: var(--mono); font-size: 14px; font-weight: 600; letter-spacing: -.02em; }
-.hero-chg { font-family: var(--mono); font-size: 13px; font-weight: 600; }
-.hero .hero-tag { font-size: 11px; color: var(--muted); }
-.hero-sub + .hero-tag { margin-top: 7px; }
-
-/* ===== v43 阶段2：图标系统 + 卡片呼吸感 + 微动效 ===== */
+/* ===== v43 阶段2：图标系统 + 卡片呼吸感 + 微动效 ===== *//* ===== v43 阶段2：图标系统 + 卡片呼吸感 + 微动效 ===== */
 /* 1) 图标系统：CSS mask 线性图标（随 currentColor 变色；不依赖 DOM 内嵌 SVG，跨端导入安全） */
 .ic {
   -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat;
@@ -502,7 +463,6 @@ table td, table th, .ix .val, .ix .pct, .ix .chg, .badge {
   -webkit-mask-size: 100% 100%; mask-size: 100% 100%;
   background-color: currentColor;
 }
-[data-view="overview"] .ic { -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%20fill='none'%20stroke='%23000'%20stroke-width='2'%20stroke-linecap='round'%20stroke-linejoin='round'%3E%3Crect%20x='3'%20y='3'%20width='7'%20height='9'%20rx='1.5'/%3E%3Crect%20x='14'%20y='3'%20width='7'%20height='5'%20rx='1.5'/%3E%3Crect%20x='14'%20y='12'%20width='7'%20height='9'%20rx='1.5'/%3E%3Crect%20x='3'%20y='16'%20width='7'%20height='5'%20rx='1.5'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%20fill='none'%20stroke='%23000'%20stroke-width='2'%20stroke-linecap='round'%20stroke-linejoin='round'%3E%3Crect%20x='3'%20y='3'%20width='7'%20height='9'%20rx='1.5'/%3E%3Crect%20x='14'%20y='3'%20width='7'%20height='5'%20rx='1.5'/%3E%3Crect%20x='14'%20y='12'%20width='7'%20height='9'%20rx='1.5'/%3E%3Crect%20x='3'%20y='16'%20width='7'%20height='5'%20rx='1.5'/%3E%3C/svg%3E"); }
 [data-view="holdings"] .ic { -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%20fill='none'%20stroke='%23000'%20stroke-width='2'%20stroke-linecap='round'%20stroke-linejoin='round'%3E%3Cpath%20d='M21.2%2015.9A10%2010%200%201%201%208%202.8'/%3E%3Cpath%20d='M22%2012A10%2010%200%200%200%2012%202v10z'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%20fill='none'%20stroke='%23000'%20stroke-width='2'%20stroke-linecap='round'%20stroke-linejoin='round'%3E%3Cpath%20d='M21.2%2015.9A10%2010%200%201%201%208%202.8'/%3E%3Cpath%20d='M22%2012A10%2010%200%200%200%2012%202v10z'/%3E%3C/svg%3E"); }
 [data-view="signal"] .ic { -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%20fill='none'%20stroke='%23000'%20stroke-width='2'%20stroke-linecap='round'%20stroke-linejoin='round'%3E%3Cpath%20d='M13%202%203%2014h9l-1%208%2010-12h-9l1-8z'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%20fill='none'%20stroke='%23000'%20stroke-width='2'%20stroke-linecap='round'%20stroke-linejoin='round'%3E%3Cpath%20d='M13%202%203%2014h9l-1%208%2010-12h-9l1-8z'/%3E%3C/svg%3E"); }
 [data-view="news"] .ic { -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%20fill='none'%20stroke='%23000'%20stroke-width='2'%20stroke-linecap='round'%20stroke-linejoin='round'%3E%3Cpath%20d='M4%2022h16a2%202%200%200%200%202-2V4a2%202%200%200%200-2-2H8a2%202%200%200%200-2%202v16a2%202%200%200%201-2%202Zm0%200a2%202%200%200%201-2-2v-9c0-1.1.9-2%202-2h2'/%3E%3Cpath%20d='M18%2014h-8'/%3E%3Cpath%20d='M15%2018h-5'/%3E%3Cpath%20d='M10%206h8v4h-8V6Z'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%20fill='none'%20stroke='%23000'%20stroke-width='2'%20stroke-linecap='round'%20stroke-linejoin='round'%3E%3Cpath%20d='M4%2022h16a2%202%200%200%200%202-2V4a2%202%200%200%200-2-2H8a2%202%200%200%200-2%202v16a2%202%200%200%201-2%202Zm0%200a2%202%200%200%201-2-2v-9c0-1.1.9-2%202-2h2'/%3E%3Cpath%20d='M18%2014h-8'/%3E%3Cpath%20d='M15%2018h-5'/%3E%3Cpath%20d='M10%206h8v4h-8V6Z'/%3E%3C/svg%3E"); }
@@ -729,14 +689,6 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 }
 
 
-/* v42 阶段1（移动端）：Hero 尺度收敛，避免大数字溢出 */
-@media (max-width: 767px) {
-  .hero { padding: 15px 16px 14px; border-radius: 12px; }
-  .hero-v { font-size: 32px; letter-spacing: -.02em; }
-  .hero-pct { font-size: 18px; }
-  .hero-chg { font-size: 13px; }
-}
-
 /* ===== v43b 阶段2b：中等宽度（768–1180px）顶栏防折行 ===== */
 /* 沿用 v41 教训：给会换行的容器加 wrap 时必须同时解除固定 flex-basis，否则内容溢出压住下方 */
 @media (min-width: 768px) and (max-width: 1180px) {
@@ -793,7 +745,6 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
       </div>
     </div>
     <nav data-page-node-id="cvBjLlFtDTcAeOJfrW9QGj" id="nav">
-      <button data-page-node-id="4tAqWmBxzfTL9UdI1oAl71" class="nav-item active" data-view="overview"><span data-page-node-id="l2TIRZzzlCY7Kz8JVkAlKW" class="ic"><!--pnid:iY6zQOfq7ei3oEAheHGnj8--></span><!--pnid:MdQSyMgSqLtD3Dx7I5TzJ5-->工作台总览</button>
       <button data-page-node-id="m9FQUCiASwYiB7fIIwaDI3" class="nav-item" data-view="holdings"><span data-page-node-id="lXsFGKsqeZv4jmUTCMnkql" class="ic"><!--pnid:qgj3kgPhSFxxJaA1PcEjbl--></span><!--pnid:6qw1FDj9SYTSMbI5xqoOGu-->我的持仓</button>
       <button class="nav-item" data-view="signal"><span class="ic"></span>交易信号</button>
       <button data-page-node-id="MVVUqip80gYLj9yljIbry0" class="nav-item" data-view="news"><span data-page-node-id="3qyNvv2OrqDOM5S40cdndf" class="ic"><!--pnid:aYN36M1fDGnrp0j08eRqpC--></span><!--pnid:CPHNZBlIT42j0YlEKtb2JX-->财经资讯<span data-page-node-id="oYuzf26sBYTgJczkPMSjY7" class="dot" id="navNewsDot"></span></button>
@@ -823,8 +774,8 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 
     <header data-page-node-id="LTmXZMx9u9SSUCdmIULsWP" class="topbar">
       <div data-page-node-id="OCbO4qj8OGWrlL8O9vSOGV" class="tb-l">
-        <h1 data-page-node-id="u7eGr0dqjmdKvmtYBvU1Y3" id="viewTitle"><!--pnid:6dUpg8sqnP30yHbd9NFeMS-->工作台总览</h1>
-        <span data-page-node-id="kQSNjMTlENeJHiUv77QZ0m" class="sub" id="viewSub"><!--pnid:t4TM4hkGyv1skzQ3lVNMa9-->总资产 · 盈亏 · 主要市场指数</span>
+        <h1 data-page-node-id="u7eGr0dqjmdKvmtYBvU1Y3" id="viewTitle"><!--pnid:6dUpg8sqnP30yHbd9NFeMS-->我的持仓</h1>
+        <span data-page-node-id="kQSNjMTlENeJHiUv77QZ0m" class="sub" id="viewSub"><!--pnid:t4TM4hkGyv1skzQ3lVNMa9-->在线持仓数据表 · 支持新增 / 修改 / 删除</span>
       </div>
       <div data-page-node-id="h9l3ThyKY61ZHbgFixPybo" class="tb-r">
         <span data-page-node-id="k6xk51S2XYhH7Yym55bsoY" class="badge" id="sessionBadge"><!--pnid:ERCOkCkuYt25aYqiwHux30-->—</span>
@@ -837,37 +788,8 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
     <div data-page-node-id="7p4vylIC8ywYkYK1GbN50S" class="index-strip" id="indexStrip"></div>
 
     <div data-page-node-id="fXLk6Ijr5MqgohZMVFijQs" class="scroll-area">
-      <!--pnid:A5cwz2ZvZ8uReJSzqwueeg--><!-- ---------- 总览 ---------- -->
-      <section data-page-node-id="AHsw6vP8bmK49Cnpc48tZs" class="view active" id="view-overview">
-        <div class="hero-row">
-        <div class="hero" id="ovHero"></div>
-        <div data-page-node-id="wMymYX1aQolujO9y4XFcMX" class="kpi-grid kpi-2" id="ovKpi"></div>
-        </div>
-
-
-        <div class="card" id="ovSignal"></div>
-
-
-          <div data-page-node-id="uyqnapusyvp12n4qjoF7TK" class="card">
-            <div data-page-node-id="3BXIB4k1bTrItkGaPrcA0d" class="card-h"><h3 data-page-node-id="lN8Y9HyDAqbhT1bMmgaaKz"><!--pnid:8UiIq2PV0cG0OLOoEebAG9-->组合收益走势</h3><span data-page-node-id="xnQLzoi2vRoJJlTJmxcC20" class="hint" id="ovCurveNote"><!--pnid:ZqKHuUT87ODIP6jkaRGE1J-->份额 × 累计净值回算 · 与沪深300 归一化对比</span></div>
-            <div data-page-node-id="zB6Nf3yRZp2fOOEfXAQ7sw" class="chart chart-md" id="ovPortCurve"></div>
-          </div>
-
-        <div data-page-node-id="k5GmJ39mz36onmntvWouI7" class="grid-2">
-          <div data-page-node-id="MrSsUyC3KMAtG9wcihayvC" class="card">
-            <div data-page-node-id="REWOnJugEMVeIYojB6ctTs" class="card-h"><h3 data-page-node-id="LYMQIT5hWzkjm1HoE6TpBP"><!--pnid:bYyU4ZU13OvVxvZoAXZmCa-->当日盈亏贡献</h3><span data-page-node-id="8awMtxAXeNZOJQbTWRRQRp" class="hint"><!--pnid:XEgCKoWgyy4uLbcASZypMO-->按折人民币金额排序</span></div>
-            <div data-page-node-id="R0W8QMp4Yjr3DhzaarQf3O" class="contrib" id="ovContribDay"></div>
-          </div>
-          <div data-page-node-id="jbdxzyUFdzeJeBpnNXIF06" class="card">
-            <div data-page-node-id="GVEhHh6sMubWqyu79lSrCy" class="card-h"><h3 data-page-node-id="4FBdJkIjVhoTgOQaNliyF3"><!--pnid:GUnzhFoEWtH1MQ803vA6m4-->累计盈亏贡献</h3><span data-page-node-id="XC23kR4QV0F9Cb8boylA1m" class="hint"><!--pnid:URBviDjHVcjPY02evtTJ43-->持仓至今</span></div>
-            <div data-page-node-id="y4T91Snv4aIXcpphUoqCFm" class="contrib" id="ovContribTotal"></div>
-          </div>
-        </div>
-
-      </section>
-
       <!--pnid:RXbe4srWCV9YnzHWIR5GFK--><!-- ---------- 持仓 ---------- -->
-      <section data-page-node-id="iCKRXKF70AWkKJ2trSJ6H9" class="view" id="view-holdings">
+      <section data-page-node-id="iCKRXKF70AWkKJ2trSJ6H9" class="view active" id="view-holdings">
         <div data-page-node-id="opFtCfZoMEAzFOjW8Xbd1m" class="toolbar">
           <div data-page-node-id="0NXwo1pNXLfeIoIQa6TRyo" class="tools-l">
             <button data-page-node-id="WJXtkuUOYMWSAbFTounNGu" class="btn btn-primary btn-sm" id="hdAdd"><!--pnid:eqJzktbPhtSkADckyoWdnv-->＋ 新增持仓</button>
@@ -1063,7 +985,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
             <span data-page-node-id="1tYNTqEbqNQRtvoZcDMp9W" class="flbl"><!--pnid:9wTVum6ntnQpThvDUQM28N-->选择</span>
             <select data-page-node-id="ytqOAaTQnUAlAV3d84SXD0" class="inp-sm sel" id="rsPick">
               <option data-page-node-id="dBdl5B3ockpTkZSdlssjuf" value><!--pnid:uffUrO7CKLEtAQ6KTRyigz-->持仓 / 自选…</option>
-            </select><span data-page-node-id="fw2v52bVerchip" class="hint" id="verChip" style="white-space:nowrap;flex:none"><!--fw2_v52b_verchip fw2_v54c_verchip fw2_v55_verchip fw2_v56_verchip fw2_v57_verchip fw2_v58_verchip fw2_v59_verchip fw2_v60_verchip fw2_v61_verchip fw2_v61_wltext fw2_v62_fundbasic fw2_v63_xmap_wlfix fw2_v64_macro_xasset fw2_v65_macro_spxnky fw2_v66_macro_amtd fw2_v67_nky_ts fw2_v68_split_spx_nky fw2_v69_nky_curve fw2_v70_nky_daily_ma fw2_v70b_extreme_label fw2_v71_datacenter fw2_v72_data_icon fw2_v73_pivot_desc fw2_v74_null_ret fw2_v75_recent_first fw2_v76_interval_macro fw2_v77_legend_wrap fw2_v83_vixcboe fw2_v104_index_strip13 fw2_v106_hero_compact fw2_v107_holdings_table_first fw2_v108_dd_above_cal fw2_v109_health_col fw2_v110_health_to_holdings fw2_v111_del_diagnose fw2_v112_risk_merge fw2_v113_risk_cfg fw2_v114_hold_cost_col fw2_v115_tb_pad fw2_v116_cost_label fw2_v117_treemap_to_holdings fw2_v118_first_open_fix fw2_v119_datafix fw2_v120_strategy fw2_v121_del_healthdiag-->v121</span>
+            </select><span data-page-node-id="fw2v52bVerchip" class="hint" id="verChip" style="white-space:nowrap;flex:none"><!--fw2_v52b_verchip fw2_v54c_verchip fw2_v55_verchip fw2_v56_verchip fw2_v57_verchip fw2_v58_verchip fw2_v59_verchip fw2_v60_verchip fw2_v61_verchip fw2_v61_wltext fw2_v62_fundbasic fw2_v63_xmap_wlfix fw2_v64_macro_xasset fw2_v65_macro_spxnky fw2_v66_macro_amtd fw2_v67_nky_ts fw2_v68_split_spx_nky fw2_v69_nky_curve fw2_v70_nky_daily_ma fw2_v70b_extreme_label fw2_v71_datacenter fw2_v72_data_icon fw2_v73_pivot_desc fw2_v74_null_ret fw2_v75_recent_first fw2_v76_interval_macro fw2_v77_legend_wrap fw2_v83_vixcboe fw2_v104_index_strip13 fw2_v106_hero_compact fw2_v107_holdings_table_first fw2_v108_dd_above_cal fw2_v109_health_col fw2_v110_health_to_holdings fw2_v111_del_diagnose fw2_v112_risk_merge fw2_v113_risk_cfg fw2_v114_hold_cost_col fw2_v115_tb_pad fw2_v116_cost_label fw2_v117_treemap_to_holdings fw2_v118_first_open_fix fw2_v119_datafix fw2_v120_strategy fw2_v121_del_healthdiag fw2_v122_del_overview-->v122</span>
           </div>
           <div data-page-node-id="5FsFNsGZ6QN0HN0rpWLIlR" class="tools-l inline-form rs-combo">
             <span data-page-node-id="KyCNIch2B6qjWLrmQxqPCX" class="flbl"><!--pnid:1qPkNVbSL0r9sGQSgNifJN-->名称</span>
@@ -3070,7 +2992,7 @@ let state = {
   snapshot: { id: '—', at: null, quotes: {}, market: null, marketError: '' },
   news: { fetchedAt: null, raw: 0, removed: 0, items: [] },
   newsFilter: { sources: new Set(NEWS_SOURCES.map((s) => s.key)), onlyRelated: false, kw: '' },
-  view: 'overview',
+  view: 'holdings',
   curveLmt: 60,
   hdSort: 'mv',
   hdAssetFilter: 'all',
@@ -3470,7 +3392,7 @@ async function ensureSectors() {
       } catch (e) { state.sectors[code] = '其他'; }
     }
     saveStore();
-    if (state.view === 'holdings' || state.view === 'overview') renderCurrentView();
+    if (state.view === 'holdings') renderCurrentView();
   } finally { sectorLoading = false; }
 }
 
@@ -3730,69 +3652,6 @@ function drawSpark(cv, arr, pct) {
   ctx.fillStyle = up ? '#e02e24' : '#0a9e6b'; ctx.beginPath(); ctx.arc(w - 1, lastY, 1.6, 0, Math.PI * 2); ctx.fill();
 }
 
-/* ==========================================================
- *  视图 1：工作台总览
- * ========================================================== */
-function countUpNum(el, to, fmt, dur) { /* v43 阶段2：数字滚动（尊重 reduced-motion；dur=0 直接落值） */
-  if (!el || typeof to !== 'number' || !isFinite(to)) return;
-  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  if (reduce || !dur) { el.textContent = fmt(to); return; }
-  var t0 = 0;
-  function step(t) {
-    if (!t0) t0 = t;
-    var k = Math.min(1, (t - t0) / dur);
-    var e = 1 - Math.pow(1 - k, 3);
-    el.textContent = fmt(to * e);
-    if (k < 1) requestAnimationFrame(step); else el.textContent = fmt(to);
-  }
-  requestAnimationFrame(step);
-}
-
-function renderOverview() {
-  const { rows, totals, byMarket, bySector } = buildRows();
-
-  /* v48 Hero 只留「总资产 + 今日盈亏 + 共 N 只」：cash=0 时「持仓 ¥」与总资产恒等，已删；迷你走势线已删 */
-  $('#ovHero').innerHTML = `<div class="hero-k">总资产 · CNY</div>
-    <div class="hero-v">¥${fmtMoney(totals.asset)}</div>
-    <div class="hero-sub">
-      <span class="hero-pct ${cls(totals.day)}">${totals.day >= 0 ? '+' : ''}¥${fmtMoney(totals.day)}</span>
-      <span class="hero-chg ${cls(totals.day)}">${fmtPct(totals.dayPct)}</span>
-      <span class="hero-tag">今日盈亏 · 折人民币</span>
-    </div>
-    <div class="hero-tag">${totals.cash > 0
-      ? `持仓 ¥${fmtMoney(totals.mv)} + 现金 ¥${fmtMoney(totals.cash)}`
-      : `与我的持仓同步 · 共 ${totals.count} 只`}</div>`;
-
-
-  /* v48 KPI 固定 2 张（手机端 2 列网格需偶数张）：总盈亏吸收总收益率；第二张按有无现金切换，
-     避免与 Hero 总资产同屏重复（cash=0 时 持仓市值 === 总资产） */
-  const kpiSecond = totals.cash > 0
-    ? kpi('可用现金', '¥' + fmtMoney(totals.cash), '仓位 ' + fmtPct(totals.positionPct, false), '')
-    : kpi('持仓成本', '¥' + fmtMoney(totals.cost), `共 ${totals.count} 只`, '');
-  $('#ovKpi').innerHTML = `
-    ${kpi('总盈亏', (totals.total >= 0 ? '+' : '') + fmtMoney(totals.total), fmtPct(totals.totalPct), cls(totals.total), true)}
-    ${kpiSecond}
-  `;
-
-
-  /* v43 阶段2：Hero 数字滚动（仅首帧播放，后续刷新直接落值） */
-  try {
-    var v43dur = window.__v43HeroDone ? 0 : 700;
-    window.__v43HeroDone = true;
-    countUpNum(document.querySelector('#ovHero .hero-v'), totals.asset, function (n) { return '\u00a5' + fmtMoney(n); }, v43dur);
-    countUpNum(document.querySelector('#ovHero .hero-pct'), totals.day, function (n) { return (totals.day >= 0 ? '+' : '') + '\u00a5' + fmtMoney(n); }, v43dur);
-    countUpNum(document.querySelector('#ovHero .hero-chg'), totals.dayPct, function (n) { return fmtPct(n); }, v43dur);
-  } catch (e) {}
-  if (typeof renderSignalSummary === 'function') renderSignalSummary(); /* v36 信号摘要 */
-  drawPortCurve();
-  /* v117 fw2_v117_treemap_to_holdings：热力图已迁至「我的持仓」，绘制改由 renderHoldings() 末尾守卫调用（见该函数尾部） */
-  /* v26h: 板块/标的热力卡已移除（持仓无板块维度，信息由持仓热力图承载） */
-  renderContrib('ovContribDay', rows, 'dayCny');
-  renderContrib('ovContribTotal', rows, 'totCny');
-
-  /* v48 「主要市场指数」卡已删：13 个指数与顶部指数条的 10 个重复（科创50/中证500/国企指数 随之移除，INDEX_GROUPS 数据保留可随时恢复） */
-
-}
 function kpi(k, v, s, klass, hl) {
   return `<div class="kpi ${hl ? 'hl' : ''}"><div class="k">${k}</div>
     <div class="v ${klass || ''}">${v}</div><div class="s">${s || ''}</div></div>`;
@@ -3881,12 +3740,12 @@ function sinceYearIdx(arr, key) {
   for (let i = 0; i < arr.length; i++) { const d = (arr[i] && arr[i][key]) || ''; if (d >= cut) return i; }
   return -1;
 }
-/* 组合收益走势（v23）：按持仓份额 × 基金累计净值回算组合市值曲线——历史可回溯，不依赖本地逐日快照积累；
+/* 组合收益走势（v23；v122 自总览迁入「我的持仓·每日盈亏日历」卡右图）：按持仓份额 × 基金累计净值回算组合市值曲线——历史可回溯，不依赖本地逐日快照积累；
    与沪深300 同起点归一化对比，回答「最近表现如何、有没有跑赢大盘」。
    替代原「每日盈亏趋势」：场外基金无日K线，该图长期空白且日变动噪音大。 */
-async function drawPortCurve() {
-  const c = chartOf('ovPortCurve');
-  const note = $('#ovCurveNote');
+async function drawPortCurve(chartId, noteId) { /* v122 fw2_v122_del_overview：自总览迁入，容器由调用方传入 */
+  const c = chartOf(chartId || 'hdPnlChart');
+  const note = noteId ? $('#' + noteId) : null;
   const REQ_CAL = 400; /* 请求窗口（自然日）> 365，保证一年窗口不缺数据 */
   const REQ_KL = 300; /* 基准 K 线根数（交易日），覆盖 REQ_CAL 自然日 */
   const cut = yearWindow().cut; /* 统一口径：近 1 年 ＝ 自然日 365 天 */
@@ -4100,16 +3959,10 @@ async function renderPnlCalendar() {
     html += '</table></div>';
     box.innerHTML = html;
     const covN = funds.length;
-    hint.textContent = `覆盖 ${covN} 只持仓基金 · 近 12 个月（当月为月初至今，日格为净值日涨跌）· 月度收益按累计净值计算（含分红再投）· 红涨绿跌`;
+    hint.textContent = `覆盖 ${covN} 只持仓基金 · 左：近 12 个月月度收益热力（累计净值口径，含分红再投，红涨绿跌）· 右：组合收益走势（近 1 年，份额×累计净值回算，与沪深300 归一化对比）`;
 
-    /* 右图：组合月度收益柱状图 */
-    mountChart('hdPnlChart', {
-      grid: { left: 52, right: 14, top: 18, bottom: 24 },
-      tooltip: { trigger: 'axis', formatter: (p) => `${p[0].axisValue}<br/>月收益 ${fmtPct(p[0].data)}` },
-      xAxis: { type: 'category', data: months.map(ymLabel).map((x) => x.slice(2)), axisLabel: { color: '#94a3b8', fontSize: 10 }, axisLine: { lineStyle: { color: '#d8dee6' } } },
-      yAxis: { type: 'value', axisLabel: { color: '#94a3b8', fontSize: 10, formatter: (v) => v + '%' }, splitLine: { lineStyle: { color: '#e3e8ee' } } },
-      series: [{ type: 'bar', data: portMonth.map((v) => ({ value: v, itemStyle: { color: v == null ? '#cbd3dc' : (v >= 0 ? 'var(--up)' : 'var(--down)') } })), barWidth: '62%' }],
-    });
+    /* v122 fw2_v122_del_overview：右图改「组合收益走势」（自总览迁入，替换原月度柱状图；份额×累计净值回算，与沪深300 归一化对比） */
+    drawPortCurve('hdPnlChart', null);
   } catch (e) {
     box.innerHTML = '<div class="empty st st-err">月度收益数据加载失败</div>';
     hint.textContent = '加载失败：' + (e && e.message || e);
@@ -5948,7 +5801,6 @@ function collectToNote(item) {
  *  路由与事件
  * ========================================================== */
 const VIEW_META = {
-  overview: ['工作台总览', '总资产 · 盈亏 · 资产分类 · 主要市场指数'],
   holdings: ['我的持仓', '在线持仓数据表 · 支持新增 / 修改 / 删除'],
   signal: ['交易信号', '信号仪表盘 · 半杠铃失衡 · 资金水位 · 场内外对照'],
   news: ['财经资讯', '五源聚合 · 去重 · 持仓相关性标记'],
@@ -5976,8 +5828,7 @@ function showView(name) {
 }
 function renderCurrentView() {
   try {
-    if (state.view === 'overview') renderOverview();
-    else if (state.view === 'holdings') renderHoldings();
+    if (state.view === 'holdings') renderHoldings();
     else if (state.view === 'signal') { renderSignalDash(); renderBarbell(); renderLiquidity(); renderXMap(); } /* v36 */
     else if (state.view === 'news') renderNews();
     else if (state.view === 'review') renderReview(false);
@@ -6707,6 +6558,18 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
      已改为直接 state 访问（_fix_v120_window_state.py，_patch_v120_strategy.py 同步修正）。
      验证：_test_v120_dom.py 八组断言全绿（A 挂载/verChip v120、B Hero、C 日历、D 执行卡、E 定投+记录层、
      F 复盘、G 事件表、H 无新增异常）。data/口径/取值一律未变，不跑 push_macro_seed。verChip v119->v120
+	 v122 fw2_v122_del_overview：删除「工作台总览」整个视图 +「组合收益走势」迁入「我的持仓」（用户 2026-09-18）。
+	   删除面：① 侧边导航「工作台总览」项（移动端 tabbar 由 #nav 自动生成，随之消失）；② #view-overview 整段
+	   （Hero 总资产卡 + KPI 两张 + ovSignal 今日信号摘要 + 组合收益走势卡 + 当日/累计盈亏贡献 grid-2）；
+	   ③ JS：renderOverview()、countUpNum()（全仓仅总览引用）、VIEW_META.overview、renderCurrentView 分支、
+	   state.view 初值 / sector 守卫 / init showView 的 overview 支、顶栏默认标题副标题；
+	   ④ CSS：.hero-row 全块（v105/v106 注释一并删）+ .hero 焦点区基础块 + v42 移动端 Hero 尺度块 +
+	   .kpi-grid.kpi-2 规则 + [data-view="overview"] 图标 mask 规则（共享 tabular-nums 选择器里的 .hero-*
+	   字样保留，属多选择器公用行，不匹配任何元素、无可见残留）。
+	   迁移面：drawPortCurve 改签名 (chartId, noteId)，落位「我的持仓·每日盈亏日历」卡右图，替换原
+	   「组合月度收益柱状图」mountChart('hdPnlChart',…)；卡 hint 同步改写。renderSignalSummary() 定义保留
+	   （自带 !el 空守卫，容器删除后自动 no-op）。data/口径/取值一律未变，不跑 push_macro_seed。
+	   验证：_test_v122_del_overview.py 新旧版对照 DOM 断言 + check_js 6 块 + verify_sync 标记审计。verChip v121->v122
 	 v121 fw2_v121_del_healthdiag：删除「我的持仓」的「持仓健康诊断」卡（用户 2026-09-18 截图要求）。
 	   删除面：① HTML grid-2 左卡（环形图 + 集中度 4 指标 + 卡头/hint），右卡「风险与机会扫描」提出
 	   grid-2 变独立卡；② CSS「持仓健康诊断指标」整块（标签/进度条/数值系列）；③ renderHoldHealthRisk()
@@ -6719,7 +6582,7 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
 	   verChip v120->v121
 	  */
   const vc = $('#verChip');
-  if (vc) vc.textContent = 'v121 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  if (vc) vc.textContent = 'v122 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
@@ -7126,7 +6989,7 @@ loadWatchlistFromDB();
 $('#hdCny').checked = state.settings.cnyView !== false;
 renderNewsSourceChips();
 updateSessionBadge();
-showView('overview');
+showView('holdings');
 startLoop();
 setTimeout(() => { renderResearchChips(); if (!state.news.items.length) loadNews(); }, 800);
 setInterval(updateSessionBadge, 30000);
