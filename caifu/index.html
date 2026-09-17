@@ -918,6 +918,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
                   <th data-page-node-id="h63mgk7xzawgdmcZ0XtqSm" class="num"><!--pnid:ypZ8J8h0wgiNdPXqacA0hG-->30日</th>
                   <th data-page-node-id="dyerTZf37ttPziAXVQE0pu"><!--pnid:0TDUP1T8iToEbiCO9jgiFJ-->市场</th>
                   <th data-page-node-id="S68bNe36dEVugJJiRXQXDQ"><!--pnid:PHksD1rrTQuc84gfFod0IG-->交易状态</th>
+                  <th data-page-node-id="hdHealthThK7mN2pQv4Rs8Tu"><!--pnid:hdHealth0Th1K7mN2pQv4Rs-->健康度</th>
                   <th data-page-node-id="vekxOgKNZfcl2KEDhCeVhO" class="num"><!--pnid:jAs12gb8QAWHLlbjmGIp9K-->操作</th>
                 </tr>
               </thead>
@@ -1101,7 +1102,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
             <span data-page-node-id="1tYNTqEbqNQRtvoZcDMp9W" class="flbl"><!--pnid:9wTVum6ntnQpThvDUQM28N-->选择</span>
             <select data-page-node-id="ytqOAaTQnUAlAV3d84SXD0" class="inp-sm sel" id="rsPick">
               <option data-page-node-id="dBdl5B3ockpTkZSdlssjuf" value><!--pnid:uffUrO7CKLEtAQ6KTRyigz-->持仓 / 自选…</option>
-            </select><span data-page-node-id="fw2v52bVerchip" class="hint" id="verChip" style="white-space:nowrap;flex:none"><!--fw2_v52b_verchip fw2_v54c_verchip fw2_v55_verchip fw2_v56_verchip fw2_v57_verchip fw2_v58_verchip fw2_v59_verchip fw2_v60_verchip fw2_v61_verchip fw2_v61_wltext fw2_v62_fundbasic fw2_v63_xmap_wlfix fw2_v64_macro_xasset fw2_v65_macro_spxnky fw2_v66_macro_amtd fw2_v67_nky_ts fw2_v68_split_spx_nky fw2_v69_nky_curve fw2_v70_nky_daily_ma fw2_v70b_extreme_label fw2_v71_datacenter fw2_v72_data_icon fw2_v73_pivot_desc fw2_v74_null_ret fw2_v75_recent_first fw2_v76_interval_macro fw2_v77_legend_wrap fw2_v83_vixcboe fw2_v104_index_strip13 fw2_v106_hero_compact fw2_v107_holdings_table_first fw2_v108_dd_above_cal-->v108</span>
+            </select><span data-page-node-id="fw2v52bVerchip" class="hint" id="verChip" style="white-space:nowrap;flex:none"><!--fw2_v52b_verchip fw2_v54c_verchip fw2_v55_verchip fw2_v56_verchip fw2_v57_verchip fw2_v58_verchip fw2_v59_verchip fw2_v60_verchip fw2_v61_verchip fw2_v61_wltext fw2_v62_fundbasic fw2_v63_xmap_wlfix fw2_v64_macro_xasset fw2_v65_macro_spxnky fw2_v66_macro_amtd fw2_v67_nky_ts fw2_v68_split_spx_nky fw2_v69_nky_curve fw2_v70_nky_daily_ma fw2_v70b_extreme_label fw2_v71_datacenter fw2_v72_data_icon fw2_v73_pivot_desc fw2_v74_null_ret fw2_v75_recent_first fw2_v76_interval_macro fw2_v77_legend_wrap fw2_v83_vixcboe fw2_v104_index_strip13 fw2_v106_hero_compact fw2_v107_holdings_table_first fw2_v108_dd_above_cal fw2_v109_health_col-->v109</span>
           </div>
           <div data-page-node-id="5FsFNsGZ6QN0HN0rpWLIlR" class="tools-l inline-form rs-combo">
             <span data-page-node-id="KyCNIch2B6qjWLrmQxqPCX" class="flbl"><!--pnid:1qPkNVbSL0r9sGQSgNifJN-->名称</span>
@@ -4270,7 +4271,7 @@ function renderHoldings() {
 
   const tbody = $('#hdTable tbody');
   if (!sorted.length) {
-    tbody.innerHTML = '<tr><td colspan="14" class="empty">暂无持仓，点击「＋ 新增持仓」添加</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="15" class="empty">暂无持仓，点击「＋ 新增持仓」添加</td></tr>';
   } else {
     tbody.innerHTML = sorted.map((r) => {
       const mv = cny ? r.mvCny : r.mvLocal;
@@ -4280,6 +4281,7 @@ function renderHoldings() {
       const at = ASSET_TYPES[r.assetType] || ASSET_TYPES.stock;
       const st = r.status;
       const stCls = st.kind === 'live' ? 'tag-live' : 'tag';
+      const hh = healthOf(r);
       return `<tr data-code="${r.code}" data-sp-bindable="database" data-sp-database-id="GjLvwNekmiaDCgMZrhaa29">
         <td>
           <div class="nm">${esc(r.name)}</div>
@@ -4298,6 +4300,7 @@ function renderHoldings() {
         <td class="num"><canvas class="spark" width="78" height="24" data-code="${r.code}"></canvas></td>
         <td><span class="tag tag-${r.market.toLowerCase()}">${r.marketLabel}</span></td>
         <td><span class="${stCls}">${st.label}</span></td>
+        <td><span class="tag" style="color:${hh.color};border-color:${hh.color};background:color-mix(in srgb, ${hh.color} 14%, transparent)">${hh.label}</span></td>
         <td class="num">
           <button class="btn-link" data-act="research" data-code="${r.code}">研究</button>
           <button class="btn-link" data-act="edit" data-code="${r.code}">改</button>
@@ -6777,9 +6780,11 @@ function fillRsPick() {
      v107 fw2_v107_holdings_table_first：我的持仓「持仓列表」移到「每日盈亏日历」上方——用户 2026-09-17 截图要求直观看到持仓列表。纯 DOM 块搬移：card-flush 持仓表整体上移至 hdSummary 汇总 KPI 与日历卡之间；每日盈亏日历、回撤监控(M6)、hdFoot 相对次序不变。取值/口径/字段/排序/渲染逻辑一律未动（renderHoldings 按 id 定位填充，与 DOM 次序无关）。
 
      v108 fw2_v108_dd_above_cal：我的持仓「回撤与超额监控（M6）」上移至「每日盈亏日历」上方——用户 2026-09-17 截图要求。纯 DOM 块搬移：ddCard 整体上移至持仓表与日历卡之间；hdFoot 相对次序不变（顺带归位 v107 搬移残留的 hdFoot 16 空格缩进伪影为 8）。取值/口径/字段/排序/渲染逻辑一律未动。
+
+     v109 fw2_v109_health_col：我的持仓「持仓列表」新增「健康度」列，置于「交易状态」列之后、「操作」列之前——用户 2026-09-17 截图要求（对齐「持仓诊断明细」表的健康度列）。复用既有 healthOf(r)（停牌/跌停/走弱/涨停/走强/高集中/正常，涨红跌绿），行内新增 const hh = healthOf(r) 并以 tag 徽章渲染；thead 加同款 th、空态 colspan 14→15。取值/口径/字段/排序/其余列一律未动。
 仅默认隐藏。 */
   const vc = $('#verChip');
-  if (vc) vc.textContent = 'v108 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  if (vc) vc.textContent = 'v109 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
