@@ -9,15 +9,15 @@
 <style data-page-node-id="XpCkAB15GiBtBlWgWVTRcu" data-pnid-children="R8MPy2bq8WkWYhQEf9Ziba">
 /* ================= 理财工作台 · Bloomberg 终端暗色主题 ================= */
 :root {
-  --bg: #f4f6fa;
+  --bg: #f5f6f9;
   --panel: #ffffff;
-  --panel-2: #f7f9fc;
-  --panel-3: #eef1f6;
-  --line: #e3e8f0;
-  --line-2: #edf0f4;
-  --text: #0f172a;
-  --text-2: #475569;
-  --muted: #94a3b8;
+  --panel-2: #f6f8fc;
+  --panel-3: #eef2f9;
+  --line: #e4e9f1;
+  --line-2: #eef2f7;
+  --text: #101828;
+  --text-2: #475467;
+  --muted: #98a2b3;
   /* v31 品牌色 = 现代蓝 #2563eb（原琥珀橙；token 名 --amber 保留兼容全局引用） */ /* fw2_theme_v31 */
   --amber: #2563eb;
   --amber-2: #5b8bff;
@@ -32,8 +32,11 @@
   --flat: #7d8894;
   --warn: #d98c00;
   --warn-soft: rgba(255, 176, 32, .18);
-  --radius: 9px;
-  --shadow: 0 1px 2px rgba(16, 24, 40, .04);
+  /* v129 fw2_v129_theme：Apple 质感参数——圆角加大、阴影分层、玻璃背景、焦点环 */
+  --radius: 12px;
+  --shadow: 0 1px 2px rgba(16, 24, 40, .05), 0 6px 20px rgba(16, 24, 40, .06);
+  --glass: rgba(255, 255, 255, .72);
+  --ring: rgba(37, 99, 235, .24);
   --mono: "IBM Plex Mono", "SFMono-Regular", "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
 }
 
@@ -41,7 +44,7 @@
 html, body { height: 100%; }
 body {
   margin: 0; background: var(--bg); color: var(--text);
-  font: 12.5px/1.55 -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", "Helvetica Neue", Arial, sans-serif;
+  font: 13px/1.55 -apple-system, BlinkMacSystemFont, "SF Pro SC", "SF Pro Text", "PingFang SC", "Microsoft YaHei", "Helvetica Neue", Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
 }
 h1, h2, h3 { margin: 0; font-weight: 600; }
@@ -713,6 +716,56 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 @media (min-width: 768px) {
   .tb thead th, .tb tbody td { padding: 8px 8px; }
 }
+/* v129 fw2_v129_theme：Apple 设计语言桌面端打磨（逻辑/数据/口径零改动）——玻璃拟态 + 分层阴影 + 大圆角 + 焦点环 + 滚动条。
+   以 @media(min-width:768px) 包裹：移动端（≤767px 媒体查询）规则不被本块压掉。 */
+@media (min-width: 768px) {
+  .app {
+    background:
+      radial-gradient(1100px 420px at 88% -8%, rgba(37, 99, 235, .07), transparent 62%),
+      radial-gradient(900px 380px at -6% 0%, rgba(5, 150, 105, .05), transparent 58%),
+      linear-gradient(180deg, #f7f9fd 0%, #f2f4fa 46%, #edf0f7 100%);
+  }
+  .sidebar {
+    background: var(--glass);
+    backdrop-filter: blur(22px) saturate(1.5);
+    -webkit-backdrop-filter: blur(22px) saturate(1.5);
+    border-right: 1px solid rgba(228, 233, 241, .9);
+  }
+  .topbar {
+    background: var(--glass);
+    backdrop-filter: blur(22px) saturate(1.5);
+    -webkit-backdrop-filter: blur(22px) saturate(1.5);
+    border-bottom: 1px solid rgba(228, 233, 241, .85);
+  }
+  .card {
+    box-shadow: var(--shadow);
+    border-color: rgba(226, 232, 240, .8);
+    transition: box-shadow .18s ease;
+  }
+  .card:hover { box-shadow: 0 2px 4px rgba(16, 24, 40, .05), 0 10px 28px rgba(16, 24, 40, .09); }
+  .kpi { box-shadow: 0 1px 2px rgba(16, 24, 40, .04); }
+  .kpi.hl { box-shadow: 0 2px 3px rgba(37, 99, 235, .08), 0 8px 22px rgba(37, 99, 235, .10); }
+  .nav-item { border-radius: 10px; transition: background .15s ease, color .15s ease; }
+  .nav-item.active { box-shadow: 0 2px 10px rgba(37, 99, 235, .35); }
+  .btn { border-radius: 9px; transition: all .15s ease; }
+  .btn-primary { box-shadow: 0 4px 12px rgba(37, 99, 235, .28); }
+  .btn-primary:hover { box-shadow: 0 6px 16px rgba(37, 99, 235, .36); }
+  .btn-link { border-radius: 6px; }
+  .tag { border-radius: 6px; font-size: 10.5px; }
+  .chip { transition: background .15s ease, border-color .15s ease, color .15s ease; }
+  .modal { background: rgba(15, 23, 42, .46); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
+  .modal-box { border-radius: 16px; box-shadow: 0 24px 64px rgba(15, 23, 42, .28); }
+  .tb tbody tr { transition: background .12s ease; }
+  .tb tbody tr:hover { background: rgba(246, 248, 252, .85); }
+  .btn:focus-visible, .chip:focus-visible, .nav-item:focus-visible,
+  input:focus-visible, select:focus-visible, textarea:focus-visible {
+    outline: 2px solid var(--ring); outline-offset: 1px;
+  }
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-thumb { background: rgba(100, 116, 139, .28); border-radius: 8px; border: 2px solid transparent; background-clip: content-box; }
+  ::-webkit-scrollbar-thumb:hover { background: rgba(100, 116, 139, .42); border-radius: 8px; border: 2px solid transparent; background-clip: content-box; }
+  ::-webkit-scrollbar-track { background: transparent; }
+}
 </style>
 <meta name="theme-color" content="#2563eb">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -958,7 +1011,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
             <span data-page-node-id="1tYNTqEbqNQRtvoZcDMp9W" class="flbl"><!--pnid:9wTVum6ntnQpThvDUQM28N-->选择</span>
             <select data-page-node-id="ytqOAaTQnUAlAV3d84SXD0" class="inp-sm sel" id="rsPick">
               <option data-page-node-id="dBdl5B3ockpTkZSdlssjuf" value><!--pnid:uffUrO7CKLEtAQ6KTRyigz-->持仓 / 自选…</option>
-            </select><span data-page-node-id="fw2v52bVerchip" class="hint" id="verChip" style="white-space:nowrap;flex:none"><!--fw2_v52b_verchip fw2_v54c_verchip fw2_v55_verchip fw2_v56_verchip fw2_v57_verchip fw2_v58_verchip fw2_v59_verchip fw2_v60_verchip fw2_v61_verchip fw2_v61_wltext fw2_v62_fundbasic fw2_v63_xmap_wlfix fw2_v64_macro_xasset fw2_v65_macro_spxnky fw2_v66_macro_amtd fw2_v67_nky_ts fw2_v68_split_spx_nky fw2_v69_nky_curve fw2_v70_nky_daily_ma fw2_v70b_extreme_label fw2_v71_datacenter fw2_v72_data_icon fw2_v73_pivot_desc fw2_v74_null_ret fw2_v75_recent_first fw2_v76_interval_macro fw2_v77_legend_wrap fw2_v83_vixcboe fw2_v104_index_strip13 fw2_v106_hero_compact fw2_v107_holdings_table_first fw2_v108_dd_above_cal fw2_v109_health_col fw2_v110_health_to_holdings fw2_v111_del_diagnose fw2_v112_risk_merge fw2_v113_risk_cfg fw2_v114_hold_cost_col fw2_v115_tb_pad fw2_v116_cost_label fw2_v117_treemap_to_holdings fw2_v118_first_open_fix fw2_v119_datafix fw2_v120_strategy fw2_v121_del_healthdiag fw2_v122_del_overview-->v122</span>
+            </select><span data-page-node-id="fw2v52bVerchip" class="hint" id="verChip" style="white-space:nowrap;flex:none"><!--fw2_v52b_verchip fw2_v54c_verchip fw2_v55_verchip fw2_v56_verchip fw2_v57_verchip fw2_v58_verchip fw2_v59_verchip fw2_v60_verchip fw2_v61_verchip fw2_v61_wltext fw2_v62_fundbasic fw2_v63_xmap_wlfix fw2_v64_macro_xasset fw2_v65_macro_spxnky fw2_v66_macro_amtd fw2_v67_nky_ts fw2_v68_split_spx_nky fw2_v69_nky_curve fw2_v70_nky_daily_ma fw2_v70b_extreme_label fw2_v71_datacenter fw2_v72_data_icon fw2_v73_pivot_desc fw2_v74_null_ret fw2_v75_recent_first fw2_v76_interval_macro fw2_v77_legend_wrap fw2_v83_vixcboe fw2_v104_index_strip13 fw2_v106_hero_compact fw2_v107_holdings_table_first fw2_v108_dd_above_cal fw2_v109_health_col fw2_v110_health_to_holdings fw2_v111_del_diagnose fw2_v112_risk_merge fw2_v113_risk_cfg fw2_v114_hold_cost_col fw2_v115_tb_pad fw2_v116_cost_label fw2_v117_treemap_to_holdings fw2_v118_first_open_fix fw2_v119_datafix fw2_v120_strategy fw2_v121_del_healthdiag fw2_v122_del_overview fw2_v129_theme_verchip-->v122</span>
           </div>
           <div data-page-node-id="5FsFNsGZ6QN0HN0rpWLIlR" class="tools-l inline-form rs-combo">
             <span data-page-node-id="KyCNIch2B6qjWLrmQxqPCX" class="flbl"><!--pnid:1qPkNVbSL0r9sGQSgNifJN-->名称</span>
@@ -3028,7 +3081,7 @@ function applySeed(j, tag) {
       name: x.name || '',
       qty: +x.shares || 0,
       cost: x.unitCost != null ? +x.unitCost : (+x.cost || 0),
-      assetType: x.type || 'stock',
+      assetType: x.assetType || x.type || 'stock', /* v129 fw2_v129_assettype_fix：v128 写入端已改 assetType、读取端漏改→现金资产误判 stock，活期宝市值 — */
       sector: x.sector || '',
     };
   }).filter(function (h) { return h.code && h.qty > 0; });
@@ -6414,10 +6467,19 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
 	   改按净值日期显示新鲜度：T日净值约 21:00 更新 → 「今日净值」高亮；T-1 → 「昨日净值」；更早（QDII 滞后 1-2 交易日等）→ 「净值MM/DD」。
 	   场内 ETF/股票维持 sessionOf 时段判断不变。另：种子补写 assetType 字段（gen_holdings_seed.py → holdings-data.json + 内嵌 HOLDINGS_SEED 同步），
 	   资产类型列不再依赖行情 fund 标志/代码前缀推断（免登录入口更稳）。数据口径未变。
-	   验证：PASS1 锚点计数、check_js、标记预检、_test_v128_dom。verChip v127->v128
+	   验证：PASS1 锚点计数、check_js、标记预检、_test_v128_dom。v129 fw2_v129_theme：全局视觉打磨（Apple 设计语言，逻辑/数据/口径零改动）+ 修复种子读取端 assetType bug。
+          ① 修复：applySeed 读 x.type（v128 写入端已改 assetType、读取端漏改）→ 所有种子持仓误判 'stock'，
+             现金资产（活期宝 007866）回退单价失效 → 市值 —。改为 x.assetType || x.type || 'stock'。
+          ② 主题参数：:root——圆角 9→12px、阴影分层（--shadow 双段）、背景/面板/边框微调、新增 --glass/--ring token；
+             正文 12.5→13px（用户偏好字号）、字体栈前置 SF Pro SC/Text。
+          ③ 桌面端（≥768px）Apple 质感：.app 多层渐变 + 品牌色光晕、侧栏/顶栏玻璃拟态（backdrop-filter blur+saturate）、
+             卡片/按钮分层阴影与 hover 过渡、导航激活投影、模态大圆角 + 背板模糊、焦点环、滚动条细化。
+          验证：PASS1 锚点计数、check_js、标记预检、_test_v129_theme（活期宝市值 ¥1,000.28 / 资产类型现金 / 主题计算样式）、
+                _test_v128_fund_status 回归。
+	  verChip v128->v129
 	  */
   const vc = $('#verChip');
-  if (vc) vc.textContent = 'v128 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  if (vc) vc.textContent = 'v129 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
