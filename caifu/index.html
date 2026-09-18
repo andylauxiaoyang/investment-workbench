@@ -918,11 +918,9 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 
       <!--pnid:qYZr6ZMqu8rjZcAgcywPAh--><!-- ---------- 持仓诊断 ---------- -->
       <!-- v37: 今日决策改名为「交易信号」；原交易信号页（投资心得库）模块已删除 -->
-      <!-- ---------- 交易信号（信号仪表盘 / 杠铃 / 场内外对照） ---------- -->
+      <!-- ---------- 交易信号（信号仪表盘） ---------- -->
       <section class="view" id="view-signal">
         <div class="card" id="sigDash"></div>
-        <div class="card" id="barbellCard"></div>
-        <div class="card" id="xmapCard"></div>
       </section>
 
       <!--pnid:fH65aUhj0Z6qDeQzgzmPPU--><!-- ---------- 资讯 ---------- -->
@@ -943,7 +941,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
       
       <!-- v91 fw2_v91_macro_merge：宏观·情绪 独立页已并入 数据中心 → 宏观数据 分块，原 #view-macro 与其窗口工具条一并删除（窗口切换迁入宏观分块） -->
 
-      <section class="view" id="view-strategy"><!-- fw2_v120_strategy --><div class="card strat-hero" id="stratHero"></div><div class="strat-tabs" id="stratTabs"><button class="st-tab active" data-st="cal">执行日历</button><button class="st-tab" data-st="cards">逐标的执行卡</button><button class="st-tab" data-st="plan">月度定投</button><button class="st-tab" data-st="review">季度复盘</button></div><div class="st-pane" id="stp-cal"></div><div class="st-pane" id="stp-cards" style="display:none"></div><div class="st-pane" id="stp-plan" style="display:none"></div><div class="st-pane" id="stp-review" style="display:none"></div><div class="card" id="stratEvents"></div></section>
+      <section class="view" id="view-strategy"><!-- fw2_v120_strategy --><div class="card strat-hero" id="stratHero"></div><div class="card" id="barbellCard"></div><!-- v132 fw2_v132_barbell_move：杠铃卡自 view-signal 迁入 --><div class="strat-tabs" id="stratTabs"><button class="st-tab active" data-st="cal">执行日历</button><button class="st-tab" data-st="cards">逐标的执行卡</button><button class="st-tab" data-st="plan">月度定投</button><button class="st-tab" data-st="review">季度复盘</button></div><div class="st-pane" id="stp-cal"></div><div class="st-pane" id="stp-cards" style="display:none"></div><div class="st-pane" id="stp-plan" style="display:none"></div><div class="st-pane" id="stp-review" style="display:none"></div><div class="card" id="xmapCard"></div><!-- v132 fw2_v132_barbell_move：场内外对照自 view-signal 迁入 --><div class="card" id="stratEvents"></div></section>
       <section class="view" id="view-data"><!-- fw2_v71_datacenter --><!-- fw2_v91_macro_merge -->
         <div class="dc-blocks" id="dcBlocks"><!-- fw2_v76_interval_macro -->
           <button class="dc-block active" data-dcb="fund">基金数据</button>
@@ -5683,9 +5681,9 @@ function collectToNote(item) {
  * ========================================================== */
 const VIEW_META = {
   holdings: ['我的持仓', '在线持仓数据表 · 支持新增 / 修改 / 删除'],
-  signal: ['交易信号', '信号仪表盘 · 半杠铃失衡 · 场内外对照'],
+  signal: ['交易信号', '信号仪表盘 · 杠铃失衡 · 持仓/自选/市场信号'],
   news: ['财经资讯', '五源聚合 · 去重 · 持仓相关性标记'],
-  strategy: ['策略执行', '半杠铃 2.0 · 建仓进度 · 定投记录 · 季度复盘'],
+  strategy: ['策略执行', '半杠铃 2.0 · 建仓进度 · 档位结构 · 场内外对照 · 定投记录 · 季度复盘'],
 };
 function showView(name) {
   state.view = name;
@@ -5699,8 +5697,6 @@ function showView(name) {
     if (!state.news.items.length) loadNews();
   } else if (name === 'signal') {
     if (typeof renderSignalDash === 'function') renderSignalDash(); /* v36 */
-    if (typeof renderBarbell === 'function') renderBarbell();        /* v36 */
-    if (typeof renderXMap === 'function') renderXMap();              /* v36 */
   }
   renderCurrentView();
   setTimeout(() => Object.values(charts).forEach((c) => c && !c.isDisposed() && c.resize()), 30);
@@ -5708,9 +5704,9 @@ function showView(name) {
 function renderCurrentView() {
   try {
     if (state.view === 'holdings') renderHoldings();
-    else if (state.view === 'signal') { renderSignalDash(); renderBarbell(); renderXMap(); } /* v36 */
+    else if (state.view === 'signal') { renderSignalDash(); } /* v36 */
     else if (state.view === 'news') renderNews();
-    else if (state.view === 'strategy') renderStrategyView(); /* fw2_v120_strategy */
+    else if (state.view === 'strategy') { renderStrategyView(); renderBarbell(); renderXMap(); } /* fw2_v120_strategy · v132 杠铃/场内外对照迁入 */
   } catch (e) { console.error('[render]', e); }
 }
 /* ================= 宏观·情绪（v53 fw2_v53_macro） =================
@@ -6495,9 +6491,17 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
 	  验证：check_js、标记预检、_test_v131_del_liquidity（#liquidityCard 不存在 / renderLiquidity 未定义 /
 	        barbell 卡仍在且整行宽 / 负向对照旧版该卡存在）。
 	  verChip v130->v131
+	  v132 fw2_v132_barbell_move：半杠铃配置 + 场内外对照 由「交易信号」迁入「策略执行」（用户 2026-09-18「放在策略执行中更好」）。
+	  ① HTML：view-signal 只留信号仪表盘；view-strategy = hero → 杠铃卡 → tabs → 场内外对照 → 事件流。
+	  ② 派发：showView / renderCurrentView 的 signal 分支删 barbell/xmap；strategy 分支补 renderStrategyView + renderBarbell + renderXMap。
+	  ③ VIEW_META：signal 副标题改「信号仪表盘 · 杠铃失衡 · 持仓/自选/市场信号」；strategy 副标题补「档位结构 · 场内外对照」。
+	  ④ T10 杠铃失衡信号不受影响：信号行自含偏差数字（barbellActual 数据函数，与卡片 DOM 解耦）。
+	  验证：check_js、标记预检、_test_v132_barbell_move（#view-signal 无两卡 / #view-strategy 含两者且顺序
+	        hero→barbell→tabs→xmap→events / 两视图渲染正常 / 负向对照旧版两卡在 signal）。
+	  verChip v131->v132
 	  */
   const vc = $('#verChip');
-  if (vc) vc.textContent = 'v131 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  if (vc) vc.textContent = 'v132 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
