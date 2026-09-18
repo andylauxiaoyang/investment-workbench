@@ -918,13 +918,10 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 
       <!--pnid:qYZr6ZMqu8rjZcAgcywPAh--><!-- ---------- 持仓诊断 ---------- -->
       <!-- v37: 今日决策改名为「交易信号」；原交易信号页（投资心得库）模块已删除 -->
-      <!-- ---------- 交易信号（信号仪表盘 / 杠铃 / 资金水位 / 场内外对照） ---------- -->
+      <!-- ---------- 交易信号（信号仪表盘 / 杠铃 / 场内外对照） ---------- -->
       <section class="view" id="view-signal">
         <div class="card" id="sigDash"></div>
-        <div class="grid-2" id="sigExtra">
-          <div class="card" id="barbellCard"></div>
-          <div class="card" id="liquidityCard"></div>
-        </div>
+        <div class="card" id="barbellCard"></div>
         <div class="card" id="xmapCard"></div>
       </section>
 
@@ -5686,7 +5683,7 @@ function collectToNote(item) {
  * ========================================================== */
 const VIEW_META = {
   holdings: ['我的持仓', '在线持仓数据表 · 支持新增 / 修改 / 删除'],
-  signal: ['交易信号', '信号仪表盘 · 半杠铃失衡 · 资金水位 · 场内外对照'],
+  signal: ['交易信号', '信号仪表盘 · 半杠铃失衡 · 场内外对照'],
   news: ['财经资讯', '五源聚合 · 去重 · 持仓相关性标记'],
   strategy: ['策略执行', '半杠铃 2.0 · 建仓进度 · 定投记录 · 季度复盘'],
 };
@@ -5703,7 +5700,6 @@ function showView(name) {
   } else if (name === 'signal') {
     if (typeof renderSignalDash === 'function') renderSignalDash(); /* v36 */
     if (typeof renderBarbell === 'function') renderBarbell();        /* v36 */
-    if (typeof renderLiquidity === 'function') renderLiquidity();    /* v36 */
     if (typeof renderXMap === 'function') renderXMap();              /* v36 */
   }
   renderCurrentView();
@@ -5712,7 +5708,7 @@ function showView(name) {
 function renderCurrentView() {
   try {
     if (state.view === 'holdings') renderHoldings();
-    else if (state.view === 'signal') { renderSignalDash(); renderBarbell(); renderLiquidity(); renderXMap(); } /* v36 */
+    else if (state.view === 'signal') { renderSignalDash(); renderBarbell(); renderXMap(); } /* v36 */
     else if (state.view === 'news') renderNews();
     else if (state.view === 'strategy') renderStrategyView(); /* fw2_v120_strategy */
   } catch (e) { console.error('[render]', e); }
@@ -6491,9 +6487,17 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
              卡标注「与…并行口径」→「已同步 v1.9（含债券档）」；XMap 场内外对照自动随基金表刷新（7 只场内 ETF）。
           验证：check_js、标记预检、_test_v130_sync（四档目标合计 100 / 债券档存在 / 11 只基金 / 旧档位零残留）。
 	  verChip v129->v130
+	  v131 fw2_v131_del_liquidity：删除「资金水位」卡片（用户 2026-09-18「我觉得没啥用」）。
+	  ① HTML：view-signal 内 #liquidityCard 移除；sigExtra grid-2 容器解包 → barbell 卡改整行宽。
+	  ② JS：renderLiquidity() 整函数删除；showView / renderCurrentView 两处调用点移除；
+	     VIEW_META signal 副标题与区块注释去除「资金水位」；⑥ 注释顺延为 ⑤。
+	  ③ L0/L1 水位机制保留于策略文档 #20（「工作台水位规则 ✓」口径），不再有工作台可视化。
+	  验证：check_js、标记预检、_test_v131_del_liquidity（#liquidityCard 不存在 / renderLiquidity 未定义 /
+	        barbell 卡仍在且整行宽 / 负向对照旧版该卡存在）。
+	  verChip v130->v131
 	  */
   const vc = $('#verChip');
-  if (vc) vc.textContent = 'v130 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  if (vc) vc.textContent = 'v131 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
@@ -6792,30 +6796,7 @@ function renderBarbell() {
     + (wo.length ? '<div class="hint" style="margin-top:6px;opacity:.7">自选池（不建仓）：' + wo.map((w) => esc(w.name) + '（' + w.code + '）').join(' · ') + '</div>' : '');
 }
 
-/* ⑤ 资金水位：L0 安全垫 / L1 可投 / 已用 / 剩余 */
-function renderLiquidity() {
-  const el = document.getElementById('liquidityCard');
-  if (!el) return;
-  const L0 = 18000;                      /* 6 × 3000 月供安全垫 */
-  const L1 = 100000;                     /* CAP 硬限制 */
-  const used = (state.portfolio || []).filter((h) => (h.assetType || '') !== 'cash')
-    .reduce((a, h) => a + (+h.qty || 0) * (+h.price || +h.cost || 0), 0);
-  const left = Math.max(0, L1 - used);
-  const pct = Math.min(100, used / L1 * 100);
-  const l0ok = true;                     /* 安全垫已建立（用户确认） */
-  el.innerHTML = '<div class="card-h"><h3>资金水位</h3><span class="hint">L0 安全垫 → L1 可投 · CAP 硬限制</span></div>'
-    + '<div class="kpi-grid" style="grid-template-columns:repeat(2,1fr);margin:0 0 10px">'
-    + '<div class="kpi"><div class="k">L0 安全垫</div><div class="v">￥' + L0.toLocaleString() + '</div><div class="s">' + (l0ok ? '✓ 已建立 · ' : '') + '6 × 月供 3000</div></div>'
-    + '<div class="kpi"><div class="k">L1 可投上限</div><div class="v">￥' + L1.toLocaleString() + '</div><div class="s">CAP 硬限制</div></div>'
-    + '<div class="kpi"><div class="k">已用额度</div><div class="v">￥' + used.toFixed(0) + '</div><div class="s">当前持仓市值</div></div>'
-    + '<div class="kpi"><div class="k">剩余弹药</div><div class="v" style="color:var(--up)">￥' + left.toFixed(0) + '</div><div class="s">可用于补仓 / 定投</div></div>'
-    + '</div>'
-    + '<div style="height:7px;background:var(--panel-3,#eef1f6);border-radius:4px;overflow:hidden;margin-bottom:5px">'
-    + '<div style="height:7px;width:' + pct.toFixed(1) + '%;background:' + (pct >= 90 ? 'var(--up)' : pct >= 70 ? 'var(--warn)' : 'var(--brand)') + ';border-radius:4px"></div></div>'
-    + '<div class="hint" style="display:flex;justify-content:space-between"><span>已用 ' + pct.toFixed(1) + '%</span><span>' + (pct >= 90 ? '⚠ 接近 CAP、禁止补仓' : pct >= 70 ? '进入后半段、优先保留弹药' : '弹药充足') + '</span></div>';
-}
-
-/* ⑥ 内多场外映射：场外净值为主 + 场内实时价参考 */
+/* ⑤ 内多场外映射：场外净值为主 + 场内实时价参考 */
 function renderXMap() {
   const el = document.getElementById('xmapCard');
   if (!el) return;
