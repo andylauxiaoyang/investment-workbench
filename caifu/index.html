@@ -2603,21 +2603,24 @@ window.HS_name = function (code) {
     slHard: -8,                                            /* T4 硬止损 */
     addDD1: -20, addDD2: -30, valLow: 30,                  /* T7 回撤补仓两档 / T8 估值加仓 */
     cap: 100000,                                           /* T9 单标的 CAP */
-    /* v36 T10 半杠铃分组（四档九只，目标年化 8~10%）：安全端30 / 中间层40 / 进攻端20 / 对冲10 */
+    /* v130 fw2_v130_barbell_v19 T10 半杠铃分组（四档 11 只 · 同步「策略执行」v1.9 含债券档）：底仓/缓冲40 · 进攻/主题35 · 安全垫10 · 对冲15 */
     barbell: {
-      target: { safe: 30, mid: 40, off: 20, hedge: 10 },
+      target: { base: 40, off: 35, bond: 10, hedge: 15 },
       band: 5,                                             /* 偏离目标正负 5 个百分点即提示 */
       funds: [
-        { code: '022438', name: '华泰柏瑞中证A500', pile: 'safe', w: 10, etf: '563360', inner: 'sh563360', outerName: 'A500基金', track: '中证A500' },
-        { code: '012761', name: '华泰柏瑞上证红利ETF联接', pile: 'safe', w: 10, etf: '510880', inner: 'sh510880', outerName: '上证红利ETF', track: '上证红利' },
-        { code: '023917', name: '华夏国证自由现金流ETF联接', pile: 'safe', w: 10, etf: '159201', inner: 'sz159201', outerName: '自由现金流ETF', track: '国证自由现金流' },
-        { code: '000746', name: '招商行业精选股票', pile: 'mid', w: 20, etf: '', inner: '', outerName: '', track: '主动偏股' },
-        { code: '012920', name: '易方达全球成长精选QDII', pile: 'mid', w: 20, etf: '', inner: '', outerName: '', track: '全球科技' },
-        { code: '160422', name: '华安创业板50指数', pile: 'off', w: 10, etf: '159949', inner: 'sz159949', outerName: '创业板50ETF', track: '创业板50' },
-        { code: '023638', name: '国泰中证全指电网设备ETF联接', pile: 'off', w: 10, etf: '561380', inner: 'sh561380', outerName: '电网设备ETF', track: '中证全指电网设备' },
-        { code: '000307', name: '易方达黄金ETF联接C', pile: 'hedge', w: 10, etf: '159934', inner: 'sz159934', outerName: '黄金ETF', track: '上海金' },
+        { code: '563360', name: 'A500', pile: 'base', w: 10, etf: '563360', inner: 'sh563360', outerName: 'A500ETF', track: '中证A500' },
+        { code: '001015', name: '沪深300增强', pile: 'base', w: 10, etf: '', inner: '', outerName: '', track: '沪深300增强' },
+        { code: '510880', name: '红利', pile: 'base', w: 10, etf: '510880', inner: 'sh510880', outerName: '红利ETF', track: '上证红利' },
+        { code: '159201', name: '现金流', pile: 'base', w: 10, etf: '159201', inner: 'sz159201', outerName: '自由现金流ETF', track: '国证自由现金流' },
+        { code: '159949', name: '创业板50', pile: 'off', w: 10, etf: '159949', inner: 'sz159949', outerName: '创业板50ETF', track: '创业板50' },
+        { code: '020712', name: '日经225', pile: 'off', w: 10, etf: '', inner: '', outerName: '', track: '日经225' },
+        { code: '012920', name: '全球成长', pile: 'off', w: 10, etf: '', inner: '', outerName: '', track: '全球科技' },
+        { code: '016452', name: '纳指100', pile: 'off', w: 5, etf: '', inner: '', outerName: '', track: '纳斯达克100' },
+        { code: '511360', name: '短融', pile: 'bond', w: 10, etf: '511360', inner: 'sh511360', outerName: '短融ETF', track: '中证短融' },
+        { code: '511260', name: '10年国债', pile: 'hedge', w: 5, etf: '511260', inner: 'sh511260', outerName: '10年国债ETF', track: '上证10年国债' },
+        { code: '159934', name: '黄金', pile: 'hedge', w: 10, etf: '159934', inner: 'sz159934', outerName: '黄金ETF', track: '上海金' },
       ],
-      watchOnly: [{ code: '016452', name: '南方纳斯达克100QDII', w: 0, note: '自选池观察不建仓' }],
+      watchOnly: [],
     },
     wDD1: -20, wDD2: -30, wValLow: 30,                     /* W2 自选回撤买线 / W1 自选估值买线 */
     nearBand: 2,                                           /* 接近阈值带宽（百分点） */
@@ -2748,7 +2751,7 @@ window.HS_name = function (code) {
       if (bb && bb.funds && bb.funds.length) {
         const wMap = {};
         bb.funds.forEach((f) => { wMap[f.code] = f; });
-        const pileMv = { safe: 0, mid: 0, off: 0, hedge: 0 };
+        const pileMv = { base: 0, off: 0, bond: 0, hedge: 0 };
         let tot = 0;
         (holdList || []).forEach((h) => {
           const c6 = String(h.code || '').replace(/\D/g, '').slice(-6);
@@ -2758,7 +2761,7 @@ window.HS_name = function (code) {
           if (mv > 0) { pileMv[f.pile] += mv; tot += mv; }
         });
         if (tot > 0) {
-          const PILE_NAME = { safe: '安全端', mid: '中间层', off: '进攻端', hedge: '对冲档' };
+          const PILE_NAME = { base: '底仓/缓冲', off: '进攻/主题', bond: '安全垫', hedge: '对冲' };
           Object.keys(bb.target).forEach((k) => {
             const act = pileMv[k] / tot * 100;
             const tgt = bb.target[k];
@@ -6477,9 +6480,20 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
           验证：PASS1 锚点计数、check_js、标记预检、_test_v129_theme（活期宝市值 ¥1,000.28 / 资产类型现金 / 主题计算样式）、
                 _test_v128_fund_status 回归。
 	  verChip v128->v129
+	  v130 fw2_v130_barbell_v19：四档模块配置表同步「策略执行」v1.9（用户 2026-09-18「把四档模块的配置表同步到 v1.9（含债券档）」）。
+          ① barbell 四档按 v1.9 四类角色重构：底仓/缓冲 40（A500/沪深300增强/红利/现金流）· 进攻/主题 35
+             （创业板50/日经225/全球成长/纳指100）· 安全垫 10（短融·债券）· 对冲 15（10年国债/黄金），
+             旧「安全端30/中间层40/进攻端20/对冲10」废弃。
+          ② 基金表 9 只换 v1.9 的 11 只（563360/001015/510880/159201/159949/020712/012920/016452/511360/511260/159934）；
+             016452 由自选池转正为建仓标的（w=5）；旧代码（022438/012761/023917/000746/160422/023638/000307）
+             仅存于自选数据块，信号逻辑不再引用。
+          ③ T10 杠铃失衡 / barbellActual / renderBarbell 档位 key 换 base/off/bond/hedge；
+             卡标注「与…并行口径」→「已同步 v1.9（含债券档）」；XMap 场内外对照自动随基金表刷新（7 只场内 ETF）。
+          验证：check_js、标记预检、_test_v130_sync（四档目标合计 100 / 债券档存在 / 11 只基金 / 旧档位零残留）。
+	  verChip v129->v130
 	  */
   const vc = $('#verChip');
-  if (vc) vc.textContent = 'v129 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  if (vc) vc.textContent = 'v130 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
@@ -6729,7 +6743,7 @@ function barbellActual() {
   if (!bb || !bb.funds) return null;
   const wMap = {};
   bb.funds.forEach((f) => { wMap[f.code] = f; });
-  const pileMv = { safe: 0, mid: 0, off: 0, hedge: 0 };
+  const pileMv = { base: 0, off: 0, bond: 0, hedge: 0 };
   let tot = 0;
   (state.portfolio || []).forEach((h) => {
     const c6 = String(h.code || '').replace(/\D/g, '').slice(-6);
@@ -6744,15 +6758,15 @@ function renderBarbell() {
   const el = document.getElementById('barbellCard');
   if (!el) return;
   const PILE = [
-    { k: 'safe', name: '安全端', color: '#2563eb', desc: '宽基 / 红利 / 现金流' },
-    { k: 'mid', name: '中间层', color: '#7c3aed', desc: '主动偏股 / 全球成长' },
-    { k: 'off', name: '进攻端', color: '#d98c00', desc: '创业板 / 电网设备' },
-    { k: 'hedge', name: '对冲档', color: '#b45309', desc: '黄金' },
+    { k: 'base', name: '底仓/缓冲', color: '#2563eb', desc: 'A500 / 沪深300增强 / 红利 / 现金流' },
+    { k: 'off', name: '进攻/主题', color: '#d98c00', desc: '创业板50 / 日经225 / 全球成长 / 纳指100' },
+    { k: 'bond', name: '安全垫', color: '#059669', desc: '短融 · 债券（止盈资金第一落点）' },
+    { k: 'hedge', name: '对冲', color: '#b45309', desc: '10年国债 / 黄金' },
   ];
   const act = barbellActual();
   const tot = act && act.tot > 0 ? act.tot : 0;
   const rows = PILE.map((p) => {
-    const tgt = act ? act.cfg.target[p.k] : { safe: 30, mid: 40, off: 20, hedge: 10 }[p.k];
+    const tgt = act ? act.cfg.target[p.k] : { base: 40, off: 35, bond: 10, hedge: 15 }[p.k];
     const cur = tot > 0 ? act.pileMv[p.k] / tot * 100 : null;
     const dev = cur == null ? null : cur - tgt;
     const band = (act && act.cfg.band) || 5;
@@ -6773,7 +6787,7 @@ function renderBarbell() {
   }).join('');
   const wo = (act && act.cfg.watchOnly) || [];
   el.innerHTML = '<div class="card-h"><h3>半杠铃配置（实盘再平衡 · 四档）</h3>'
-    + '<span class="hint">' + (tot > 0 ? '持仓已建仓 · 实际权重已换算' : '尚未建仓 · 显示目标权重') + ' · 目标年化 8~10% · 与「策略执行」文档目标组合为并行口径</span></div>'
+    + '<span class="hint">' + (tot > 0 ? '持仓已建仓 · 实际权重已换算' : '尚未建仓 · 显示目标权重') + ' · 目标年化 8~10% · 已同步「策略执行」v1.9（含债券档）</span></div>'
     + rows
     + (wo.length ? '<div class="hint" style="margin-top:6px;opacity:.7">自选池（不建仓）：' + wo.map((w) => esc(w.name) + '（' + w.code + '）').join(' · ') + '</div>' : '');
 }
