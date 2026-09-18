@@ -793,6 +793,22 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .sig-watch summary { cursor: pointer; font-size: 12px; color: var(--muted, #94a3b8); padding: 2px 0; user-select: none; }
 .sig-watch .sig-tiles { margin-top: 4px; }
 .sig-tiles .empty { grid-column: 1 / -1; }
+/* v137 fw2_v137_barbell_tiles：半杠铃四档 列表行 → 磁贴网格（沿用 v133 磁贴语言：
+   等尺寸 / 按序 / 排满自动换行；顶部 3px 档位色条，--bc 变量取色） */
+.bb-tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 8px; }
+.bb-tile { position: relative; overflow: hidden; background: var(--panel-2, #f7f9fc); border: 1px solid var(--border, #e3e7ee); border-radius: 8px; padding: 9px 12px; display: flex; flex-direction: column; gap: 2px; }
+.bb-tile::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: var(--bc, #94a3b8); }
+.bb-tile .bt-top { display: flex; align-items: baseline; gap: 8px; }
+.bb-tile .bt-name { font-size: 13px; font-weight: 600; color: var(--text, #0f172a); }
+.bb-tile .bt-desc { font-size: 11px; color: var(--muted, #94a3b8); line-height: 1.4; }
+.bb-tile .bt-nums { display: flex; align-items: baseline; gap: 8px; margin-top: 5px; font-size: 11px; color: var(--muted, #94a3b8); }
+.bb-tile .bt-nums b { font-family: var(--mono); font-size: 16px; font-weight: 600; color: var(--text, #0f172a); }
+.bb-tile .bt-nums b.bt-warn { color: var(--warn, #d97706); }
+.bb-tile .bt-dev { margin-left: auto; font-size: 11px; padding: 1px 7px; border-radius: 5px; white-space: nowrap; }
+.bb-tile .bt-dev.d-warn { background: rgba(217, 140, 0, .16); color: var(--warn, #d97706); }
+.bb-tile .bt-dev.d-ok { background: var(--panel-3, #eef1f6); color: var(--muted, #94a3b8); }
+.bb-tile .bt-funds { margin-top: 5px; font-size: 11px; color: var(--muted, #94a3b8); line-height: 1.45; }
+
 </style>
 <meta name="theme-color" content="#2563eb">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -6553,8 +6569,16 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
   验证：check_js 8 块 ALL OK；_test_v136_font_unify DOM 断言（body computed 字体 = sans 阶梯、数据元素 = mono、字号阶梯收敛）+ 1440/390 双视口回归（表格溢出仍 0）。
   verChip v135->v136
   */
+  /* v137 fw2_v137_barbell_tiles：半杠铃配置 四档 列表行 → 磁贴网格（用户 2026-09-18「做成磁贴的形式」）。
+     .bb-tiles 沿用 v133 磁贴语言：auto-fill minmax(240px,1fr) → 等尺寸 / 按序 / 排满自动换行；
+     磁贴顶部 3px 档位色条（--bc 变量）、名称 13 + 描述 11 + 目标/实际 16 mono + 偏差徽章（右对齐）+ 标的 11；
+     保留 v130 断言字符串（四档名 / 短融（10%）格式 / 「已同步策略执行 v1.9」标注）。
+     验证：check_js 8 块 ALL OK；_test_v137_barbell_tiles V137_OK（网格/等宽/色条/徽章/字号阶梯）
+     + 负向对照 V137_NEG_OK（v136 备份复现行式，探针非恒绿）。
+     verChip v136->v137
+  */
   const vc = $('#verChip');
-  if (vc) vc.textContent = 'v136 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  if (vc) vc.textContent = 'v137 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
@@ -6821,30 +6845,28 @@ function renderBarbell() {
   ];
   const act = barbellActual();
   const tot = act && act.tot > 0 ? act.tot : 0;
-  const rows = PILE.map((p) => {
+  const tiles = PILE.map((p) => {
     const tgt = act ? act.cfg.target[p.k] : { base: 40, off: 35, bond: 10, hedge: 15 }[p.k];
     const cur = tot > 0 ? act.pileMv[p.k] / tot * 100 : null;
     const dev = cur == null ? null : cur - tgt;
     const band = (act && act.cfg.band) || 5;
     const warn = dev != null && Math.abs(dev) >= band;
     const funds = (act ? act.cfg.funds : []).filter((f) => f.pile === p.k);
-    return '<div style="padding:9px 11px;background:var(--panel-2,#f7f9fc);border-left:3px solid ' + p.color + ';border-radius:0 7px 7px 0;margin-bottom:7px">'
-      + '<div style="display:flex;align-items:center;gap:9px;flex-wrap:wrap">'
-      + '<b style="font-size: 13px">' + p.name + '</b>'
-      + '<span style="font-size:11px;color:var(--muted,#94a3b8)">' + p.desc + '</span>'
-      + '<span style="margin-left:auto;font-family:var(--mono);font-size: 13px">目标 ' + tgt + '%'
-      + (cur == null ? '' : ' · 实际 <b style="color:' + (warn ? 'var(--warn)' : 'var(--text-2)') + '">' + cur.toFixed(1) + '%</b>')
-      + '</span>'
-      + (dev != null ? '<span style="font-size:11px;padding:1px 7px;border-radius:5px;background:' + (warn ? 'rgba(217,140,0,.16)' : 'var(--panel-3,#eef1f6)') + ';color:' + (warn ? 'var(--warn)' : 'var(--muted)') + '">' + (dev > 0 ? '+' : '') + dev.toFixed(1) + 'pp</span>' : '')
+    return '<div class="bb-tile" style="--bc:' + p.color + '">'
+      + '<div class="bt-top"><b class="bt-name">' + p.name + '</b>'
+      + (dev != null ? '<span class="bt-dev ' + (warn ? 'd-warn' : 'd-ok') + '">' + (dev > 0 ? '+' : '') + dev.toFixed(1) + 'pp</span>' : '')
       + '</div>'
-      + '<div style="margin-top:4px;font-size:11px;color:var(--muted,#94a3b8)">'
-      + funds.map((f) => esc(f.name) + '（' + f.w + '%）').join(' · ')
-      + '</div></div>';
+      + '<div class="bt-desc">' + p.desc + '</div>'
+      + '<div class="bt-nums">目标 <b>' + tgt + '%</b>'
+      + (cur == null ? '' : '<span>· 实际</span><b class="bt-now' + (warn ? ' bt-warn' : '') + '">' + cur.toFixed(1) + '%</b>')
+      + '</div>'
+      + (funds.length ? '<div class="bt-funds">' + funds.map((f) => esc(f.name) + '（' + f.w + '%）').join(' · ') + '</div>' : '')
+      + '</div>';
   }).join('');
   const wo = (act && act.cfg.watchOnly) || [];
   el.innerHTML = '<div class="card-h"><h3>半杠铃配置（实盘再平衡 · 四档）</h3>'
     + '<span class="hint">' + (tot > 0 ? '持仓已建仓 · 实际权重已换算' : '尚未建仓 · 显示目标权重') + ' · 目标年化 8~10% · 已同步「策略执行」v1.9（含债券档）</span></div>'
-    + rows
+    + '<div class="bb-tiles">' + tiles + '</div>'
     + (wo.length ? '<div class="hint" style="margin-top:6px;opacity:.7">自选池（不建仓）：' + wo.map((w) => esc(w.name) + '（' + w.code + '）').join(' · ') + '</div>' : '');
 }
 
