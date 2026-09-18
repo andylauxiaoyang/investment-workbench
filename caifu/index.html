@@ -198,6 +198,7 @@ button, input, select, textarea { font-family: inherit; font-size: 12.5px; color
 .tag-cn { background: rgba(255,59,48,.12); border-color: rgba(255,59,48,.3); color: #c9362b; }
 .tag-hk { background: rgba(255,158,27,.12); border-color: rgba(255,158,27,.3); color: var(--amber); }
 .tag-us { background: rgba(0,214,143,.12); border-color: rgba(0,214,143,.3); color: var(--down); }
+.tag-fund { background: rgba(47,107,255,.12); border-color: rgba(47,107,255,.3); color: #3568d4; } /* v127 fw2_v127_fund_label */
 .tag-live { background: var(--up-soft); border-color: rgba(255,59,48,.3); color: var(--up); }
 .tag-rel { background: var(--brand-soft); border-color: var(--brand-line); color: var(--amber); }
 .tag-data { background: rgba(60,140,255,.12); border-color: rgba(60,140,255,.3); color: #1d6fd0; }
@@ -2951,6 +2952,9 @@ const SRC_KEY_BY_LABEL = Object.fromEntries(NEWS_SOURCES.map((s) => [s.label, s.
 
 const CUR_SYMBOL = { CN: '¥', HK: 'HK$', US: '$' };
 const MARKET_LABEL = { CN: 'A股', HK: '港股', US: '美股' };
+/* v127 fw2_v127_fund_label：场外基金/QDII/货基此前被 marketOf 兜底误标「A股」——资产类型优先的市场标签 */
+const AT_MARKET_LABEL = { fund: '基金', etf: 'ETF', bond: '债券', gold: '黄金/商品', cash: '现金' };
+const marketLabelOf = (atKey, market) => AT_MARKET_LABEL[atKey] || MARKET_LABEL[market] || '—';
 
 /* ---------------- 状态 ---------------- */
 const DEFAULT_SETTINGS = { refreshMs: 30000, cash: 0, fx: { HKD: 0.92, USD: 7.18 }, cnyView: true };
@@ -3424,6 +3428,8 @@ function buildRows() {
   const rows = state.portfolio.map((h) => {
     const market = marketOf(h.code);
     const quote = q[h.code] || null;
+    /* v127 fw2_v127_fund_label：种子持仓无 assetType 字段 → 按行情 fund 标志推断，缺省 guessAssetType（ETF 前缀→etf） */
+    const atKey = h.assetType || (quote && quote.fund ? 'fund' : guessAssetType(h.code));
     const price = quote && quote.price ? quote.price : (h.assetType === 'cash' ? (h.cost || 1) : null);
     const pre = quote && quote.preclose ? quote.preclose : null;
     const fx = fxOf(market);
@@ -3433,8 +3439,8 @@ function buildRows() {
     const totLocal = mvLocal != null ? mvLocal - costLocal : null;
     return {
       code: h.code, name: (quote && quote.name) || h.name || shortCode(h.code),
-      market, marketLabel: MARKET_LABEL[market], cur: CUR_SYMBOL[market],
-      assetType: h.assetType || 'stock',
+      market, marketLabel: marketLabelOf(atKey, market), cur: CUR_SYMBOL[market],
+      assetType: atKey,
       sector: state.sectors[h.code] || h.sector || '—',
       qty: h.qty, cost: h.cost, price, pre,
       pct: h.assetType === 'cash' ? 0 : (quote ? quote.pct : null), /* v26g */
@@ -3648,7 +3654,21 @@ const sparkCache = {};
 async function ensureSparks(rows) {
   const need = [...new Set(rows.map((r) => r.code))].filter((c) => !(c in sparkCache));
   if (need.length) {
+    /* v127 fw2_v127_spark_fund：场外基金无股票 K 线（30 日列此前恒空白）——改走 pingzhongdata 净值序列；
+       货基无净值序列用万份收益累计，再退累计净值；现金不画；场内标的维持 K 线。 */
+    const rowAt = {}; rows.forEach((r) => { rowAt[r.code] = r.assetType; });
     const res = await Promise.all(need.map(async (c) => {
+      if (rowAt[c] === 'cash') return [c, []];
+      if (rowAt[c] === 'fund') {
+        try {
+          const fr = await apiGet('/api/fund-profile', { code: c });
+          const d = (fr && fr.ok) ? fr.data : null;
+          if (d && Array.isArray(d.trend) && d.trend.length >= 2) return [c, d.trend.slice(-30).map((t) => t.y)];
+          if (d && Array.isArray(d.millionIncome) && d.millionIncome.length >= 2) { let acc = 0; return [c, d.millionIncome.slice(-30).map((m) => (acc += m.y))]; }
+          if (d && Array.isArray(d.ac) && d.ac.length >= 2) return [c, d.ac.slice(-30).map((a) => a.y)];
+          return [c, []];
+        } catch (e) { return [c, []]; }
+      }
       try { const r = await apiGet('/api/kline', { code: c, klt: 101, lmt: 30 }); return [c, r.ok ? r.data.map((k) => k.close) : []]; }
       catch (e) { return [c, []]; }
     }));
@@ -4193,7 +4213,7 @@ function renderHoldings() {
         <td class="num ${cls(r.pct)}">${fmtPct(r.pct)}</td>
         <td class="num">${r.weight.toFixed(2)}%</td>
         <td class="num"><canvas class="spark" width="78" height="24" data-code="${r.code}"></canvas></td>
-        <td><span class="tag tag-${r.market.toLowerCase()}">${r.marketLabel}</span></td>
+        <td><span class="tag tag-${AT_MARKET_LABEL[r.assetType] ? 'fund' : r.market.toLowerCase()}">${r.marketLabel}</span></td>
         <td><span class="${stCls}">${st.label}</span></td>
         <td><span class="tag" style="color:${hh.color};border-color:${hh.color};background:color-mix(in srgb, ${hh.color} 14%, transparent)">${hh.label}</span></td>
         <td class="num">
@@ -6369,9 +6389,17 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
 	   buildRows/RISK_CFG/healthOf。data/口径/取值一律未变，不跑 push_macro_seed。
 	   验证：PASS1 全锚点计数、残留清零审计（函数/选择器形态）、section 配平、style 花括号配平、check_js、标记预检。
 	   verChip v125->v126
+	 v127 fw2_v127_fund_label：修「我的持仓」两处基金显示缺陷（用户 2026-09-18 截图「30日是空的、市场也是错的」）。
+	   ① 市场列：marketOf 只认 hk/us 前缀、其余兜底「A股」→ 场外基金/QDII/货基全误标。新增 AT_MARKET_LABEL + marketLabelOf，
+	   资产类型优先（基金/ETF/债券/黄金/现金）；buildRows 的 atKey 在种子缺 assetType 时按行情 fund 标志推断（guessAssetType 兜底 ETF）；
+	   行内标签新增 .tag-fund（蓝系，对齐 .at-fund）。行 assetType 同步用 atKey → 资产类型列/筛选分组随之修正。
+	   ② 30日列：sparkline 原走腾讯股票 K 线接口，场外基金无 K 线恒空白。ensureSparks 按资产类型分流：基金改走 /api/fund-profile
+	   （pingzhongdata 净值序列近 30 点；货基用万份收益累计；再退累计净值；现金不画），场内标的维持 K 线。
+	   保留：market/fxOf/tradeStatus 语义不变（仍按代码前缀）；数据文件一律未变（种子 assetType 缺失由页面推断覆盖，不跑 gen_holdings_seed）。
+	   验证：PASS1 锚点计数、check_js、标记预检。verChip v126->v127
 	  */
   const vc = $('#verChip');
-  if (vc) vc.textContent = 'v126 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  if (vc) vc.textContent = 'v127 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
@@ -7697,6 +7725,7 @@ setInterval(updateSessionBadge, 30000);
 /* v120 fw2_v120_strategy：策略执行模块（STRATEGY_SNAP + 渲染 + 记录层） */
 /* v125 fw2_v125_strat_exec_enh：策略执行视图增量增强（heldBadge 进度条 / 月度定投实时缺口 / 当月待办清单 / 事件触发表三态着色 / barbell 并行口径标注） */
 /* v126 fw2_v126_del_review：删除「每日复盘」整个视图（导航项/view 容器/CSS 专属规则/视图5 JS 块/按钮绑定/LS 配置/VIEW_META 键/分派分支）；多视图共用 .rv-line 与 .disclaimer 保留原位；唯一风险引擎 diagnoseSignals 不受影响 */
+/* v127 fw2_v127_fund_label：市场列资产类型优先（基金/ETF 不再误标 A股，新增 .tag-fund）+ 30日列基金改画净值序列 fw2_v127_spark_fund（货基万份收益累计/累计净值兜底） */
 
 window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个人投资策略_最终版（半杠铃2.0）","totalTarget":200000,"start":"2026-09-30","buildEnd":"2027-08-31","firstInvest":14919,"monthlyNominal":14900,"reviews":[["2026-09-30","Q3 复盘"],["2026-12-31","Q4 复盘"],["2027-03-30","Q1 复盘"],["2027-06-30","Q2 复盘"],["2027-09-30","Q3 复盘"]],"c07":["2026-12-31","2027-06-30"],"roles":[["底仓/缓冲","五步齐全 · 不设止损（长期不死）"],["进攻/主题","五步齐全 · 带硬止损/趋势清仓线"],["安全垫","只有入池/调出 · 止盈格不适用"],["对冲","再平衡驱动 · 卖出格统一不设止损"]],"assets":[{"code":"563360","name":"A500","full":"华泰柏瑞 A500","target":20000,"act":{"b":"未达 2 万 / 差额÷剩余月（从零 1,667/月）建满即停 / 新增现金流","h":"每月定投日 / 常态 1,000/月 / 工资","a":"分位 <30 / 加倍：建仓 3,334·常态 2,000 / L1","t":"分位 >70 停买；>80 每 +10% 减一档（1,000）/ →短融→现金","s":"不设止损（长期不死）"}},{"code":"001015","name":"沪深300增强","full":"华夏沪深300增强 A","target":20000,"act":{"b":"未达 2 万（已持 976）/ 差额÷剩余月（约 1,584/月）/ 新增现金流","h":"每月定投日 / 常态 1,000/月 / 工资","a":"沪深300 分位 <30 / ×1.5（建仓 2,376·常态 1,500）/ L1","t":"分位 >80 停买；每 +15% 减一档 / →短融","s":"经理变更即季报减半（换经理纪律）；回撤 −15% 复核"}},{"code":"510880","name":"红利","full":"华泰柏瑞上证红利","target":20000,"act":{"b":"未达 2 万 / 差额÷剩余月（从零 1,667/月）/ 新增现金流","h":"每月定投日 / 常态 1,000/月 / 工资","a":"分位 <40 或红利/A500 比值走高 / ×1.5（建仓 2,500·常态 1,500）/ L1","t":"分位 >80 停买，不主动卖（吃股息）","s":"股息率 <3% 且分位 >90 减半（1 万）/ →短融"}},{"code":"159201","name":"现金流","full":"华夏国证自由现金流","target":20000,"act":{"b":"未达 2 万 / 差额÷剩余月（从零 1,667/月）/ 新增现金流","h":"每月定投日 / 常态 1,000/月 / 工资","a":"分位 <40 / ×1.5（建仓 2,500·常态 1,500）/ L1","t":"分位 >80 停买；每 +15% 减一档 / →短融","s":"与 510880 同源（ρ=0.62），两只合计 ≤4 万"}},{"code":"159949","name":"创业板50","full":"华安创业板 50","target":20000,"act":{"b":"未达 2 万 / 差额÷剩余月（从零 1,667/月）/ 新增现金流","h":"每月定投日 / 常态 1,000/月 / 工资","a":"分位 <30 或急跌 >20% / 加倍（建仓 3,334·常态 2,000）；危机档 L1 50% / L1","t":"分位 >70 停买；>80 每 +10% 减一档（1,000）/ →短融→现金","s":"与 563360 ρ=0.87 当同一仓，合计 >35% 优先减本标的"}},{"code":"020712","name":"日经225","full":"华安日经 225 联接 A","target":20000,"act":{"b":"未达 2 万 / 差额÷剩余月（从零 1,667/月）/ 新增现金流","h":"每两月定投 1,000（建满后）/ 工资","a":"回撤 >15% 且未破年线 / 加 2,000（上限 ≤3 万）/ L1","t":"盈利每 +15% 减一档（2,000）/ →短融","s":"破 200 日年线减半；再破 20 日线清仓 / →现金"}},{"code":"012920","name":"全球成长","full":"易方达全球成长精选","target":20000,"act":{"b":"已持 19,080 达标，不再买入（AI 敞口 15% 封顶）","h":"每月看一次，不动","a":"不补（信息产业 88.6% 集中）","t":"盈利 +10% 减 1/4、+20% 再减 1/4（各 5,000）/ →短融","s":"回撤 −8% 硬止损（D8）全清，不再回补"}},{"code":"016452","name":"纳指100","full":"南方纳指 100","target":10000,"act":{"b":"未达 1 万 / 差额÷剩余月（833/月）/ 新增现金流","h":"建满后每季看一次，不动","a":"不补（与 012920 ρ≥0.8 同仓认知）","t":"盈利 +15% 减半（5,000）/ →短融","s":"回撤 −10% 全清 / →现金"}},{"code":"511360","name":"短融","full":"海富通中证短融","target":20000,"act":{"b":"建仓期 1,667/月（差额÷剩余月）+ 所有止盈资金默认第一落点 / 新增现金流 + 止盈资金","h":"吃票息，T+0 可用","a":"池内被调出后，下一止盈档回补 / 止盈资金","t":"不适用（安全垫非盈利仓）","s":"危机 −20%/−30% 加仓时动用（备用金优先，池内最后动）/ 调出 = 加仓档 50%"}},{"code":"511260","name":"10年国债","full":"国泰上证 10 年国债","target":10000,"act":{"b":"未达 1 万 / 差额÷剩余月（833/月）/ 新增现金流","h":"每季看久期（7.6y）与票息","a":"权益分位 >70 抬债端 / 止盈资金补至上限 15% / 止盈资金","t":"10Y 快速下行后减仓补权益（仅再平衡日）","s":"不设止损（对冲层）"}},{"code":"159934","name":"黄金","full":"易方达黄金","target":20000,"act":{"b":"未达 2 万 / 差额÷剩余月（1,667/月）；建满后可补至 3 万（15%）从 A 股簇腾挪 / 新增现金流","h":"每季看一次，不动","a":"黄金回撤 >10% 且权益未同跌 / 加 1 万至 15% / A 股簇·备用金","t":"金价急涨 >20% 减档（5,000）/ →短融","s":"不设止损（全组合 ρ≤0.34 真对冲）"}}],"plan":[{"code":"563360","name":"A500","build":"1,667","normal":"1,000","dbl":"建仓 3,334 / 常态 2,000","src":"工资 + L1"},{"code":"001015","name":"沪深300增强","build":"1,584（已持 976）","normal":"1,000","dbl":"建仓 2,376 / 常态 1,500","src":"工资 + L1"},{"code":"510880","name":"红利","build":"1,667","normal":"1,000","dbl":"建仓 2,500 / 常态 1,500","src":"工资 + L1"},{"code":"159201","name":"现金流","build":"1,667","normal":"1,000","dbl":"建仓 2,500 / 常态 1,500","src":"工资 + L1"},{"code":"159949","name":"创业板 50","build":"1,667","normal":"1,000","dbl":"建仓 3,334 / 常态 2,000","src":"工资 + L1"},{"code":"020712","name":"日经","build":"1,667","normal":"1,000（隔月）","dbl":"不加倍（回撤 >15% 时另加 2,000）","src":"工资 + L1"},{"code":"511360","name":"短融","build":"1,667","normal":"0（止盈资金默认入池）","dbl":"不加倍（池内回补靠止盈档）","src":"工资 + L1 + 止盈"},{"code":"511260","name":"10年国债","build":"833","normal":"0（不主动追加，再平衡抬债端）","dbl":"不加倍（止盈资金补至上限 15%）","src":"工资 + L1 + 止盈"},{"code":"159934","name":"黄金","build":"1,667","normal":"0（建满后不动）","dbl":"不加倍（黄金回撤 >10% 加 1 万）","src":"工资 + L1"},{"code":"016452","name":"纳指100","build":"833","normal":"0（每季看一次）","dbl":"不补（与 012920 同仓认知）","src":"工资 + L1"}],"planNote":"月合计 ≈14,900（建仓期 12 个月建满 18 万 + 已有持仓 ≈21,056 → 组合 ≈20 万）；常态期权益六只 6,000~7,000/月，债/金/纳指停主动追加","first":[{"i":"①","code":"511360","name":"短融","amount":1667,"chan":"场内","note":"安全垫优先（债随现金补）"},{"i":"②","code":"511260","name":"10年国债","amount":833,"chan":"场内","note":"利率对冲层起步"},{"i":"③","code":"159934","name":"黄金","amount":1667,"chan":"场内","note":"对冲层起步"},{"i":"④","code":"016452","name":"纳指100","amount":833,"chan":"场外","note":"先过预检 2"},{"i":"⑤","code":"563360","name":"A500","amount":1667,"chan":"场内/联接","note":"建仓档"},{"i":"⑥","code":"001015","name":"沪深300增强","amount":1584,"chan":"场外","note":"已持 976，补差额"},{"i":"⑦","code":"510880","name":"红利","amount":1667,"chan":"场内","note":""},{"i":"⑧","code":"159201","name":"现金流","amount":1667,"chan":"场内","note":""},{"i":"⑨","code":"159949","name":"创业板50","amount":1667,"chan":"场内","note":""},{"i":"⑩","code":"020712","name":"日经225","amount":1667,"chan":"场外","note":"建仓期每月投，常态期转隔月"}],"firstNote":"首月不做：012920 不买不卖（已持达标）；止盈/卖出栏首月不触发；不按加倍档超投。预检 5 项：① 6 指数分位快照 ② 016452 限额 ≥833 ③ 020712 申赎正常 ④ 场内资金 ≥10,835 ⑤ 场外资金 ≥4,084","calendar":[{"ym":"2026-09","drip":"2026-09-30","rem":12,"note":["首投预检 5 项","保存分位快照"]},{"ym":"2026-10","drip":"2026-10-30","rem":11,"note":[]},{"ym":"2026-11","drip":"2026-11-30","rem":10,"note":[]},{"ym":"2026-12","drip":"2026-12-31","rem":9,"note":["季度复盘 Q4","C-07 半年重跑"]},{"ym":"2027-01","drip":"2027-01-29","rem":8,"note":[]},{"ym":"2027-02","drip":"2027-02-26","rem":7,"note":[]},{"ym":"2027-03","drip":"2027-03-31","rem":6,"note":["季度复盘 Q1"]},{"ym":"2027-04","drip":"2027-04-30","rem":5,"note":[]},{"ym":"2027-05","drip":"2027-05-31","rem":4,"note":[]},{"ym":"2027-06","drip":"2027-06-30","rem":3,"note":["季度复盘 Q2","C-07 半年重跑"]},{"ym":"2027-07","drip":"2027-07-30","rem":2,"note":[]},{"ym":"2027-08","drip":"2027-08-31","rem":1,"note":["建仓期结束核对"]}],"events":[{"id":1,"cond":"理杏仁分位 <30","act":"该标的加倍定投（建仓档 2× / 常态档 1.5~2×）","ref":"8.2 加倍档","kind":"pos","code":"*"},{"id":2,"cond":"分位 >70","act":"该标的停买","ref":"8.1 ④","kind":"pos","code":"*"},{"id":3,"cond":"分位 >80 或盈利 +10% 档","act":"阶梯止盈（每 +10% 减一档 1,000）→ 短融 → 现金","ref":"8.1 ④","kind":"pos","code":"*"},{"id":4,"cond":"012920 盈利 +10% / +20%","act":"各减 1/4（5,000）→ 短融","ref":"8.1 ④","kind":"nav","code":"012920"},{"id":5,"cond":"012920 回撤 −8%","act":"D8 硬止损全清，不回补","ref":"8.1 ⑤","kind":"nav","code":"012920"},{"id":6,"cond":"016452 盈利 +15%","act":"减半（5,000）→ 短融","ref":"8.1 ④","kind":"nav","code":"016452"},{"id":7,"cond":"016452 回撤 −10%","act":"全清 → 现金","ref":"8.1 ⑤","kind":"nav","code":"016452"},{"id":8,"cond":"020712 回撤 >15% 且未破年线","act":"加 2,000（上限 3 万）","ref":"8.1 ③","kind":"man","code":"020712"},{"id":9,"cond":"020712 盈利 +15%","act":"减一档（2,000）→ 短融","ref":"8.1 ④","kind":"man","code":"020712"},{"id":10,"cond":"020712 破 200 日年线 / 再破 20 日线","act":"减半 → 清仓 → 现金","ref":"8.1 ⑤","kind":"man","code":"020712"},{"id":11,"cond":"159934 回撤 >10% 且权益未同跌","act":"加 1 万至 15%（A 股簇·备用金）","ref":"8.1 ③","kind":"man","code":"159934"},{"id":12,"cond":"金价急涨 >20%","act":"减档（5,000）→ 短融","ref":"8.1 ④","kind":"man","code":"159934"},{"id":13,"cond":"10Y 快速下行","act":"减国债补权益（仅再平衡日）","ref":"8.1 ④","kind":"man","code":"511260"},{"id":14,"cond":"组合回撤 −20% / −30%","act":"两档逆向加仓（备用金优先，不卖债）","ref":"Part 3 危机装置","kind":"man","code":"*"},{"id":15,"cond":"任一板块偏离目标 >±5pct","act":"卖出超配 → 买入欠配（单季权益变动 ≤10pct）","ref":"8.3 #1","kind":"man","code":"*"},{"id":16,"cond":"001015 经理变更","act":"季报减半","ref":"8.1 ⑤","kind":"man","code":"001015"},{"id":17,"cond":"510880 股息率 <3% 且分位 >90","act":"减半 1 万 → 短融","ref":"8.1 ⑤","kind":"pos","code":"*"},{"id":18,"cond":"159201 + 510880 合计 >4 万","act":"停止该簇补仓，优先减持仓高者","ref":"8.1 ⑤","kind":"man","code":"*"}],"reviewItems":[{"id":1,"item":"再平衡偏离（#15）","judge":"任一板块偏离目标 >±5pct","act":"卖出超配 → 买入欠配，单季权益变动 ≤10pct","auto":"rebal"},{"id":2,"item":"分位与止盈档","judge":"分位 >70/>80 或个股 +10%/+15% 档触发","act":"按 8.1 对应标的执行卡减档","auto":"pos"},{"id":3,"item":"估值分位记录","judge":"理杏仁 `pe_ttm.mcw` 6 个指数","act":"记入执行记录表，更新四阶段判据","auto":"snap"},{"id":4,"item":"012920 止损线","judge":"回撤是否近 −8%","act":"已触发 → 执行；未触发 → 记录距离","auto":"stop"},{"id":5,"item":"016452 限额","judge":"当日限额是否有变化","act":"有变化 → 更新建仓计划","auto":"manual"},{"id":6,"item":"C-07 相关矩阵","judge":"半年一次重跑","act":"ρ 变化 >0.1 且导致对冲失效 → 复核","auto":"manual"},{"id":7,"item":"执行记录回填","judge":"本季所有触发/动作","act":"逐条核对信号→复核→确认→执行→记录","auto":"manual"}]};
 
