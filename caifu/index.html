@@ -811,9 +811,12 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .bb-tile .bt-funds { margin-top: 5px; font-size: 11px; color: var(--muted, #94a3b8); line-height: 1.45; }
 
 /* ==========================================================
- * 黄金研究模块样式（fw2_v148_gold_zh）
+ * 黄金研究模块样式（fw2_v149_sync_gone）
  * 浅色卡片 + 金色强调；与工作台 --up/--down 涨跌语义一致
- * 编号分区、央行 KPI、CSV 卡片、资料库数据中心
+ * 编号分区（5 个）、央行 KPI、CSV 卡片
+ * v149（用户 2026-09-19「整块删掉」）：删「资料库数据中心」整段样式 ——
+ *   .g-sync-grid / .g-sync-item / .g-sync-k / .g-sync-v / .g-sync-s / .g-data-mech；
+ *   该分区只把表 id 当文本渲染、页面从不读资料库数据表，其说明文案亦与代码实际通路不符。
  * v147（用户 2026-09-19）：① Hero 深色金调 → 与其它模块一致的浅色卡；
  *   ② 删 .g-lang（中/英切换按钮）；③ 删「我的研判」整段样式 + .gold-tabs/.g-tab。
  * v148（用户 2026-09-19「把整块 Hero 删掉」）：Hero 整段样式删除 ——
@@ -921,13 +924,10 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 }
 #view-gold .g-csv-dl:hover { background: #a06f00; }
 
-/* ---- 资料库数据中心 sync-grid ---- */
-#view-gold .g-sync-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 12px; }
-#view-gold .g-sync-item { background: #fafaf7; border: 1px solid var(--line, #e5e7eb); border-radius: 10px; padding: 12px 14px; font-size: 12.5px; }
-#view-gold .g-sync-k { color: #6b7280; }
-#view-gold .g-sync-v { font-weight: 600; margin-top: 2px; color: #1f2430; font-family: var(--mono); font-size: 12px; }
-#view-gold .g-sync-s { font-size: 11px; color: #8a94a6; margin-top: 4px; word-break: break-all; }
-#view-gold .g-data-mech { margin-top: 12px; border-top: 1px dashed var(--g-line); padding-top: 10px; }
+/* ---- 资料库数据中心：v149 整块删除（用户 2026-09-19「整块删掉」） ----
+   原 .g-sync-grid / .g-sync-item / .g-sync-k / .g-sync-v / .g-sync-s / .g-data-mech 全删。
+   ★若要恢复：HTML 段（_gold_module.html）+ 本 CSS 段 + JS 的 GOLD_DB_LABELS /
+   goldRenderSync() / goldRenderDataMech() + renderGold() 里两处调用，必须同轮一起恢复。 */
 
 /* ---- 来源与免责 ---- */
 #view-gold .g-srcnote { font-size: 12px; line-height: 1.8; color: #6b7280; }
@@ -1226,14 +1226,13 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
       </div>
     </div>
 
-    <!-- ⑥ 资料库数据中心 -->
-    <div class="g-sec">
-      <div class="g-sec-head"><span class="g-sec-no">6</span><h2>资料库数据中心</h2><span class="g-sec-tag">在线数据表 ↔ 工作台展示</span></div>
-      <div class="card">
-        <div class="g-sync-grid" id="syncGrid"></div>
-        <div class="g-note g-data-mech" id="gDataMech"></div>
-      </div>
-    </div>
+    <!-- v149：⑥「资料库数据中心」整块删除（用户 2026-09-19「整块删掉」）——
+         该分区只把资料库表 id 当文本渲染，页面从不读取这些表；其 #gDataMech 更声称
+         「数据表是页面展示的统一数据源」，与代码实际通路（GOLD_SNAP 内嵌 →
+         gold-data.json → 实时接口）不符，会让人误以为改表即改页面。
+         ★上面 v148 段里「#gDataMech 说明照旧」一句已随本轮失效：该元素不复存在。
+         数据未动：GOLD_SNAP / gold-data.json / 资料库五表（含 gold_notes）一一不变；
+         window.GOLD_DB_IDS 字面量保留（数据契约 / 回滚锚点），但已无任何消费点。 -->
 
     <!-- 数据来源与免责（合并） -->
     <div class="card g-srcnote" id="gSrcNote"></div>
@@ -6943,6 +6942,49 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
      data/口径未变，不跑 push_macro_seed。verChip v146->v147
   */
 
+  /* v149 fw2_v149_sync_gone：删「资料库数据中心」第 6 分区（用户 2026-09-19「整块删掉」）——
+     起因：用户问「第 6 分区这个是干啥的？有用吗」。核代码后的答复是：**它没用，且它自己
+     的说明文案是错的**。三条硬证据（黄金 script 块 58896 chars 逐字实测）：
+       ① 资料库五个表 id 在整份 index.html 里**各只出现 1 次**，全在 window.GOLD_DB_IDS
+          字面量内；唯一消费点 goldRenderSync() 只把 id 当**文本**渲染成 4 张卡片；
+       ② goldDB()（取 window.__SMART_PAGE__.database 的 SDK 入口）**全块只出现 1 次 ——
+          就是它自己的定义，零调用点** ⇒ 黄金模块运行时**从不读**资料库数据表；
+       ③ 对照：持仓/自选模块确有**真**通道（dbApi() → window.__LK_DB__.holdingsList()，
+          内嵌种子 → 旁挂快照 → 资料库实时表三步链），黄金模块没有。
+     黄金数据的真实来源：GOLD_SNAP 内嵌字面量 → fetch('gold-data.json') → 实时接口
+       （新浪 hq.sinajs 的 hf_XAU/DINIW · 腾讯 · 东财 · FRED）。
+     ⇒ #gDataMech 那句「本工作台通过资料库数据表在线读取行情、宏观与黄金数据。数据表是
+       页面展示的统一数据源，更新数据表后刷新页面即可同步」把**持仓模块的机制错安到了
+       黄金模块上**。风险：照此去表里改数，页面毫无变化 → 制造「已更新」的假象
+       （比没有说明更糟）。故**整块删除**，而不是只把文案改对。
+     ★另查清（决定了「保留是否还有意义」）：那四张表是**冻结快照** —— _build_gold_lib.py
+       一次性建表灌数（quotes 4 / xau 260 / nonfarm 20 / cb 22 + notes 试点 3），建于
+       09-19 13:16，数据源是当时 12:20 的 gold-data.json，且无任何后续同步脚本
+       （重跑该脚本是 create_database → 会建重复表，不是更新）；而页面行情每次加载现拉
+       实时价 —— 表与页面必然越走越远。
+     删除范围：
+       HTML ⑥ 编号分区整块（#syncGrid + #gDataMech）；
+       CSS  .g-sync-grid / .g-sync-item / .g-sync-k / .g-sync-v / .g-sync-s / .g-data-mech；
+       JS   GOLD_DB_LABELS + goldRenderSync() + goldRenderDataMech() + goldDB()（v143 起
+            的零调用死代码）+ renderGold() 里 goldRenderSync() / goldRenderDataMech()
+            两处调用 —— 同轮删净（删 DOM 必查「早退守卫」的同族风险：本模块的绑定入口
+            bindGoldEvents() 不受影响，已用四条行为断言锁住）。
+     留存（非破坏、可回滚）：window.GOLD_DB_IDS 字面量（数据契约 / 回滚锚点）、资料库五表
+       （含 gold_notes 及其历史记录）、gold_db_ids.json、交接_黄金资料库_v143.md 均未动。
+     ★连带更正 JS banner 的假陈述：原文写「→ 资料库四表（GOLD_DB_IDS 注入后启用）」，
+       现改为「→ 实时接口（新浪 hf_XAU/DINIW · 腾讯 · 东财 · FRED）」并注明更正理由。
+     验证：_test_v149_sync_gone.py V149_OK（A 静态分域剥注释 + 结构断言「#view-gold 内
+       .g-sec 恰 5 个」+ 反向锁；B headless 含「删 DOM 后绑定仍活」四条；C 用
+       index.html.bak_v149pre（第 6 分区仍在）负向对照：删除项必转红、本体项必保持绿）；
+       连带更新受影响的反向锁与计数断言（_test_v148_hero_gone 分区 6 → 5、
+       _test_v145_gold_scope 的 GIDS 去 2 个 id、_test_v147_gold_zh 探针 id 表
+       syncGrid → csvGrid）；_test_v143/v145/v146/v147/v148 回归全绿；check_js 9 块
+       ALL OK；CSS {} 配平；_precheck_markers PRE_OK；gate --check GATE=PASS。
+     ★applier 幂等自证：_apply_gold_module.py 连跑两次，第二次 +0 字节且 sha256 不变
+       （v148 修掉的非幂等未复发）。
+     data/口径未变，不跑 push_macro_seed。verChip v148->v149
+  */
+
   /* v148 fw2_v148_gold_zh：黄金研究 Hero **整块删除**（用户 2026-09-19「把整块 Hero 删掉」）——
      承接 v147 第 ② 条。v147 已把 Hero 从深色金调改成与其它模块一致的白卡；本轮确认
      「保留内容、只换浅色底」并非本意，故整块摘除。
@@ -6979,7 +7021,7 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
      data/口径未变，不跑 push_macro_seed。verChip v147->v148
   */
   const vc = $('#verChip');
-  if (vc) vc.textContent = 'v148 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  if (vc) vc.textContent = 'v149 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
@@ -8779,9 +8821,18 @@ window.HOLDINGS_SEED = {"syncedAt":"2026-09-18T14:53:38+08:00","source":"资料�
 </script>
 <script>
 /* ==========================================================
- * 黄金研究模块 JS（fw2_v148_gold_zh）
+ * 黄金研究模块 JS（fw2_v149_sync_gone）
  * 数据：GOLD_SNAP 内嵌（gen_gold_data.py 生成，与 gold-data.json 同源）
- *     → fetch('gold-data.json') 覆盖 → 资料库四表（GOLD_DB_IDS 注入后启用）
+ *     → fetch('gold-data.json') 覆盖 → 实时接口（新浪 hf_XAU/DINIW · 腾讯 · 东财 · FRED）
+ *     ★v149 更正：旧 banner 写「→ 资料库四表（GOLD_DB_IDS 注入后启用）」是**错的** ——
+ *       页面从未读资料库数据表（goldDB() 自 v143 定义起零调用；五个表 id 在整份文件里
+ *       各只出现 1 次、全在 GOLD_DB_IDS 字面量内，唯一消费点是把 id 当文本显示）。
+ * v149 变更（用户 2026-09-19「整块删掉」）：删「资料库数据中心」第 6 分区 ——
+ *   HTML 段 + CSS 段 + GOLD_DB_LABELS + goldRenderSync() + goldRenderDataMech() +
+ *   本就零调用的 goldDB() + renderGold() 里两处调用，同轮删净。
+ *   删除理由：#gDataMech 声称「数据表是页面展示的统一数据源，更新数据表后刷新即可同步」，
+ *   与上述实际通路不符 → 会让人误以为改表即改页面（比没有说明更糟）。
+ *   window.GOLD_DB_IDS **保留**（数据契约 / 回滚锚点），但已无任何消费点。
  * v148 变更（用户 2026-09-19「把整块 Hero 删掉」）：Hero 整块移除 ——
  *   HTML 段（标题 / 副标题 / 5 个计数 chip）+ CSS 段 + goldRenderHero() 及其在
  *   renderGold() 里的调用同轮一起删。四个 chip id（genAt / cntXau / cntNf /
@@ -8827,7 +8878,9 @@ function goldAssetName(v) { return v; }
 function goldUnit(v) { return v; }
 function goldCsvDesc(name, v) { return v; }
 
-function goldDB() { return (window.__SMART_PAGE__ && window.__SMART_PAGE__.database) || null; }
+/* v149：goldDB() 删除 —— v143 起的**死代码**。它本是「资料库数据表读取通道」的取值
+   函数，而该通道从未实现（全文件零调用点；用户 2026-09-19 问「第 6 分区有用吗」时实测）。
+   表 id 仍在 window.GOLD_DB_IDS 里 —— 未来若要真接上读取通道，从这里开始。 */
 function goldFmt(n, d) {
   var v = Number(n);
   if (isNaN(v)) return '—';
@@ -8867,9 +8920,7 @@ function renderGold() {
     renderGoldCb(d);
     goldRenderCbKpi(d);
     goldRenderCsv(d);
-    goldRenderSync();
     goldRenderNotesText(d);
-    goldRenderDataMech();
     renderGoldSrcNote(d);
   });
 }
@@ -9040,19 +9091,17 @@ function goldRenderCsv(d) {
   }).join('');
 }
 
-/* ---------------- 资料库数据中心 sync-grid ---------------- */
-/* v147：notes（我的研判）已从展示清单移除 —— 该表 id 仍在 GOLD_DB_IDS 中（数据契约不动）。 */
-var GOLD_DB_LABELS = { quotes: '黄金行情快照', xau: '伦敦金日线', nonfarm: '非农月度', cb: '央行购金' };
-function goldRenderSync() {
-  var box = document.getElementById('syncGrid'); if (!box) return;
-  var ids = window.GOLD_DB_IDS || {};
-  box.innerHTML = Object.keys(GOLD_DB_LABELS).map(function (k) {
-    var id = ids[k] || '—';
-    return '<div class="g-sync-item"><div class="g-sync-k">' + GOLD_DB_LABELS[k] + '</div>'
-      + '<div class="g-sync-v">' + k + '</div>'
-      + '<div class="g-sync-s">' + G('表 id：', 'Table id: ') + esc(id) + '</div></div>';
-  }).join('');
-}
+/* ---------------- 资料库数据中心：v149 整块删除（用户 2026-09-19「整块删掉」） ----------------
+   删掉的是：GOLD_DB_LABELS + goldRenderSync()（把资料库表 id 渲染成卡片）
+   + goldRenderDataMech()（那句「数据表是页面展示的统一数据源」说明）。
+   ★删除理由（实测，非风格偏好）：页面从不读资料库数据表 —— 五个表 id 在整份文件里各只
+   出现 1 次，全在 window.GOLD_DB_IDS 字面量内，唯一消费点就是把它当文本显示；goldDB()
+   自 v143 定义起零调用。黄金数据的真实通路见文件头：GOLD_SNAP 内嵌 →
+   fetch('gold-data.json') → 实时接口。而该分区的说明文案宣称「数据表是页面展示的统一
+   数据源，更新数据表后刷新页面即可同步」，会让人误以为改表即改页面 —— 比没有说明更糟，
+   故整块删除而不只是改写文案。
+   ★若要恢复：HTML 段 + CSS 段 + 本段 + renderGold() 两处调用必须同轮恢复；资料库五表
+   （含 gold_notes）与 gold_db_ids.json 均仍在，本删除未做任何破坏性操作。 */
 
 /* ---------------- 分区数据说明 ---------------- */
 function goldRenderNotesText(d) {
@@ -9074,12 +9123,6 @@ function goldRenderNotesText(d) {
   if (bc) bc.innerHTML = G(
     '数据来源：世界黄金协会（WGC）《全球黄金需求趋势报告》；含未披露购金估算，历史数值随报告修订。年度净购金：' + cb.map(function (r) { return r.y + '=' + goldFmt(r.t, 1) + ' 吨'; }).join('、') + '。',
     'Source: World Gold Council (WGC) Gold Demand Trends; includes estimates for undisclosed purchases, historical figures revised with reports. Annual net purchases: ' + cb.map(function (r) { return r.y + '=' + goldFmt(r.t, 1) + ' t'; }).join(', ') + '.');
-}
-function goldRenderDataMech() {
-  var box = document.getElementById('gDataMech'); if (!box) return;
-  box.innerHTML = G(
-    '数据机制：本工作台通过资料库数据表在线读取行情、宏观与黄金数据。数据表是页面展示的统一数据源，更新数据表后刷新页面即可同步。CSV 区提供下载副本，仅用于研究和离线分析，不作为页面运行依赖。',
-    'Data model: this workbench reads quotes, macro and gold data online from Library data tables. The tables are the single source of truth for what the page displays — update a table and refresh to sync. The CSV area offers download copies for research and offline analysis only, never a runtime dependency.');
 }
 
 /* ---------------- 图/表切换 ---------------- */
