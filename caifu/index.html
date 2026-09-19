@@ -4479,12 +4479,12 @@ async function renderDrawdownCard() {
         <span style="font-size: 16px">${x.lamp}</span>
         <span style="flex:1"><b>${esc(x.name)}</b> <span class="muted">${esc(x.code)}</span><br/>
         <span class="muted">当前回撤 <b style="color:${x.curDD < -20 ? 'var(--down)' : x.curDD < -15 ? '#92600a' : 'inherit'}">${fmtPct(x.curDD)}</b> · 区间最大回撤 ${fmtPct(x.mdd)}${x.r1y != null ? ' · 近1年 ' + fmtPct(x.r1y) : ''}${x.lastNav != null ? ' · 累计净值 ' + x.lastNav.toFixed(4) + '（' + esc(x.navDate) + '）' : ''}${x.ver && x.ver.ok === true ? ' <span style="color:var(--down)">✓' + (x.ver.alts && x.ver.alts.length > 1 ? '双源' : '副源') + '校验通过(' + (x.ver.alts || []).map((a) => a.src).join('+') + ')</span>' : x.ver && x.ver.ok === false ? ' <b style="color:var(--up)">⚠副源偏差' + x.ver.diff.toFixed(2) + '%</b>' : ' <span style="opacity:.6">·副源不可用</span>'}</span>
-        ${x.excess && x.excess.length ? '<br/>' + x.excess.map((e2) => '<span class="muted">' + esc(e2.m) + '月 </span><span style="color:' + (e2.e >= 0 ? 'var(--up)' : 'var(--down)') + '">' + fmtPct(e2.e) + '</span>').join(' ') : ''}
+        ${x.excess && x.excess.length ? '<br/><span class="muted">逐月超额 vs 沪深300：</span>' + x.excess.map((e2) => '<span class="muted">' + esc(e2.m) + '月 </span><span style="color:' + (e2.e >= 0 ? 'var(--up)' : 'var(--down)') + '">' + fmtPct(e2.e) + '</span>').join(' ') : ''}
         </span>
       </div>`).join('');
     card.style.display = '';
     const dh = document.getElementById('ddHint');
-    if (dh) dh.textContent = `近1年＝自然日365天口径（${yearWindow().cut} 起，与总览「组合收益走势」同源）· 回撤区间为近 500 自然日 · 当前回撤 >15% 黄灯 / >20% 红灯 · 数据源：天天基金 pingzhongdata（累计净值含分红再投），货币基金用七日年化/万份收益`;
+    if (dh) dh.textContent = `近1年＝自然日365天口径（${yearWindow().cut} 起，与总览「组合收益走势」同源）· 回撤区间为近 500 自然日 · 当前回撤 >15% 黄灯 / >20% 红灯 · 数据源：天天基金 pingzhongdata（累计净值含分红再投），货币基金用七日年化/万份收益 · 超额＝基金月收益−沪深300月末收盘（价格指数，未含成分股分红，超额略有高估）`;
   } catch (e) { /* 静默降级 */ }
   _ddLoading = false;
 }
@@ -7096,6 +7096,27 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
        是同步替换，不同步就会在下次跑 applier 时回滚）。verChip v151->v152
   */
 
+  /* v153 fw2_v153_m6_excess_label：M6 逐月超额行加标注（用户 2026-09-20 报
+     「这个数据是错的，并且为什么这里会出现数据，其他的没有数据」）。
+     ---- 排查结论（三源复核）----
+       ① 只有 001015 有这行＝设计如此：仅名字匹配 /指增|增强/ 的基金才算
+          「逐月超额 vs 沪深300（月K）」，组合里只有华夏沪深300指数增强A 匹配
+          （016452/019441 是纳指100 指数发起，基准不同；007866 货基单独成行）。
+       ② 数字本身按其定义算得对：基金侧 pingzhongdata 与 F10 lsjz 两管线一致
+          （09-18 = 2.3060，2026 无分红）；指数侧腾讯月K 与理杏仁 T1 逐月一致
+          （+8.03/+1.76/+1.78/-7.86/+0.80/-2.54）；复算超额逐位等于页面值。
+     ---- 修法（方案 A，用户拍板）----
+       ① 超额行加前缀「逐月超额 vs 沪深300：」——原行无任何标注，+1.76% 被
+          误读成基金月度涨幅（实际基金 4 月 +9.78%）。
+       ② ddHint 补口径：超额＝基金月收益−沪深300月末收盘（价格指数，
+          未含成分股分红，超额略有高估 ~2.5pp/年、5-8 月分红季集中）。
+     ---- 已知未改 ----
+       对照同公司同指数纯被动 510330：同期 510330 只跑赢价格指数 +1.15pp（≈分红），
+       001015 跑赢 +6pp——对 300 指增反常地大；数据本体多源核对无误，属基金自身
+       表现，建议在天天基金 App 复核官方「超额收益」量级后再决定是否换含分红基准
+       （方案 B 候选）。纳指两只做超额＝方案 C 候选，本轮未做。verChip v152->v153
+  */
+
   /* v150 fw2_v150_csv_gone：删「CSV 数据文件下载」第 5 分区（用户 2026-09-19「这块删除」）——
      承接上一轮（v149 删第 6 分区）。用户上传截图指向 ⑤ 并说「这块删除」；
      问清范围后用户选「只删这 5 张卡片」（另有「保留分区改文案」「先别删」两个选项）。
@@ -7218,7 +7239,7 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
      data/口径未变，不跑 push_macro_seed。verChip v147->v148
   */
   const vc = $('#verChip');
-  if (vc) vc.textContent = 'v152 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  if (vc) vc.textContent = 'v153 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
