@@ -815,11 +815,18 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
  * 浅色卡片 + 金色强调；与工作台 --up/--down 涨跌语义一致
  * 新增：深色金调 Hero、编号分区、央行 KPI、CSV 卡片、资料库数据中心
  * ========================================================== */
+/* ★ display 必须挂在 .active 上（v145 修复）
+   本规则用 ID 选择器，优先级 (1,0,0) —— 高于 .view{display:none} (0,1,0) 与
+   .view.active{display:block} (0,2,0)。若在此处无条件写 display:flex，
+   黄金模块会在「全部视图」下常显（.active 被摘掉也压不住），
+   即用户 2026-09-19 报的「其他模块里显示黄金研究的内容」。
+   修法：布局属性留在 #view-gold，display 只放 #view-gold.active。 */
 #view-gold {
-  display: flex; flex-direction: column; gap: 14px;
+  flex-direction: column; gap: 14px;
   --gold: #b8860b; --gold2: #d4a017; --gold-soft: rgba(184, 134, 11, .10);
   --g-line: #e8e2d0;
 }
+#view-gold.active { display: flex; }
 #view-gold .gold-tabs { display: flex; gap: 8px; flex-wrap: wrap; }
 #view-gold .g-tab {
   padding: 6px 18px; border-radius: 20px; font-size: 13px; cursor: pointer;
@@ -6967,8 +6974,22 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
      验证：check_js 9 块 ALL OK；_test_v143_gold V143_OK（13 项 DOM 断言）；v142 回归 V142_OK。
      data/口径未变，不跑 push_macro_seed。verChip v142->v143
   */
+  /* v145 fw2_v145_gold_scope：修「黄金研究模块在全部视图下常显」（用户 2026-09-19「黄金研究中的模块只显示在
+     黄金研究中，其他模块中显示的黄金研究中的模块信息全部删除」）。
+     ① 根因：_gold_module.css 首条规则写成 `#view-gold { display: flex; ... }`。选择器用 ID，优先级 (1,0,0)，
+        高于 `.view{display:none}` (0,1,0) 与 `.view.active{display:block}` (0,2,0) —— showView() 摘掉 .active
+        也压不住，于是 #view-gold 恒显：黄金 Hero + 6 个编号分区被渲染进**每一个**视图。
+        实测（headless 逐视图取 document.body.innerText）：非 gold 视图可见文本含 'GOLD RESEARCH'、
+        '四大资产实时行情'、'央行购金'、'COMEX' 等黄金专属内容；gold 视图未激活时 16 个黄金元素 offsetParent 仍非 null。
+     ② 修法：布局属性（flex-direction / gap / --gold 等变量）留在 #view-gold，display 移入 `.active`：
+        `#view-gold.active { display: flex; }`。改动只落在 _gold_module.css（注入器 ④ 始终同步替换），
+        ID / 函数名 / 数据 / 口径一律未动。
+     验证：_test_v145_gold_scope V145_OK（A 静态 CSS 形状 + B 逐视图 display:none / 可见黄金元素=0 / 无专属词
+     + C 负向对照「注回旧写法必须转红」）；_test_v143_gold V143_OK（13 项）、_test_v144_gold V144_OK（21 项）回归全绿。
+     data/口径未变，不跑 push_macro_seed。verChip v143->v145
+  */
   const vc = $('#verChip');
-  if (vc) vc.textContent = 'v143 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  if (vc) vc.textContent = 'v145 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
@@ -8773,6 +8794,7 @@ window.HOLDINGS_SEED = {"syncedAt":"2026-09-18T14:53:38+08:00","source":"资料�
 
 
 
+
 <script>
 /* ==========================================================
  * 黄金研究模块 JS（fw2_v143_gold）
@@ -9371,6 +9393,7 @@ if (document.readyState === 'loading') {
 }
 
 </script>
+
 
 
 
