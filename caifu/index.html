@@ -811,11 +811,14 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .bb-tile .bt-funds { margin-top: 5px; font-size: 11px; color: var(--muted, #94a3b8); line-height: 1.45; }
 
 /* ==========================================================
- * 黄金研究模块样式（fw2_v147_gold_zh）
+ * 黄金研究模块样式（fw2_v148_gold_zh）
  * 浅色卡片 + 金色强调；与工作台 --up/--down 涨跌语义一致
  * 编号分区、央行 KPI、CSV 卡片、资料库数据中心
  * v147（用户 2026-09-19）：① Hero 深色金调 → 与其它模块一致的浅色卡；
  *   ② 删 .g-lang（中/英切换按钮）；③ 删「我的研判」整段样式 + .gold-tabs/.g-tab。
+ * v148（用户 2026-09-19「把整块 Hero 删掉」）：Hero 整段样式删除 ——
+ *   .g-hero / .g-hero-main / .g-title / .g-sub / .g-chips / .g-chip 与移动端两行；
+ *   v147 ①「浅色卡」仅存历史。分区标题仍由 .g-sec-head 提供，不受影响。
  * ========================================================== */
 /* ★ display 必须挂在 .active 上（v145 修复）
    本规则用 ID 选择器，优先级 (1,0,0) —— 高于 .view{display:none} (0,1,0) 与
@@ -832,24 +835,11 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 #view-gold .g-pane { display: flex; flex-direction: column; gap: 14px; }
 #view-gold .g-pane[hidden] { display: none; }
 
-/* ---- Hero（v147：深色金调 → 与其它模块一致的浅色卡） ----
-   用户 2026-09-19「黄金研究的背景风格调整成其他模块一致」。
-   改动：渐变底 #2b2110→#6b5417 + 米金字 → --card 白卡 + --line 描边 + --shadow；
-        删掉右上角 150px 的 "Au" 水印（::after）；.g-lang 语言按钮随 ③ 一并删除。 */
-#view-gold .g-hero { /* fw2_v147_gold_zh */
-  position: relative; overflow: hidden; border-radius: 16px;
-  background: var(--card, #fff); border: 1px solid var(--line, #e5e7eb);
-  box-shadow: var(--shadow, none); padding: 18px 20px 14px;
-}
-#view-gold .g-hero-main { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; }
-#view-gold .g-title { font-size: 22px; letter-spacing: 1px; font-weight: 700; color: #1f2430; }
-#view-gold .g-sub { font-size: 12px; color: #8a94a6; }
-#view-gold .g-chips { margin-top: 12px; display: flex; flex-wrap: wrap; gap: 8px; }
-#view-gold .g-chip {
-  font-size: 12px; background: #f6f7f9; color: #6b7280;
-  border: 1px solid #e8eaf0; padding: 3px 12px; border-radius: 20px;
-}
-#view-gold .g-chip b { color: var(--gold); font-family: var(--mono); }
+/* ---- Hero：v148 整块删除（用户 2026-09-19「把整块 Hero 删掉」） ----
+   原为 v147 的浅色白卡：.g-hero / .g-hero-main / .g-title / .g-sub / .g-chips / .g-chip。
+   ★若要恢复 Hero：HTML 段（_gold_module.html）、本 CSS 段、JS 的 goldRenderHero()
+   与其在 renderGold() 里的调用，必须**同轮**一起恢复 —— 四个 chip 的 id 为
+   genAt / cntXau / cntNf / cntCb，现已不存在，勿在任何地方重新引用。 */
 
 /* ---- 编号分区 ---- */
 #view-gold .g-sec { display: flex; flex-direction: column; gap: 10px; }
@@ -951,8 +941,6 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   #view-gold .gq-grid { grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); }
   #view-gold .g-chart { height: 300px; }
   #view-gold .gq-price { font-size: 22px; }
-  #view-gold .g-title { font-size: 20px; }
-  #view-gold .g-hero { padding: 16px 14px 12px; }
 }
 </style>
 <meta name="theme-color" content="#2563eb">
@@ -1154,20 +1142,13 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
         </div>
       </section>
       <section class="view" id="view-gold"><!-- fw2_v143_gold -->
-  <!-- 黄金研究 Hero（v147：与工作台其它模块一致的浅色卡） -->
-  <div class="g-hero" id="gHero">
-    <div class="g-hero-main">
-      <h1 class="g-title">黄金研究</h1>
-      <div class="g-sub">GOLD RESEARCH · 贵金属 × 美元 × 美债 × 美股 × 宏观</div>
-    </div>
-    <div class="g-chips">
-      <span class="g-chip">数据更新：<b id="genAt">—</b></span>
-      <span class="g-chip">伦敦金日线 <b id="cntXau">0</b> 条</span>
-      <span class="g-chip">非农月度 <b id="cntNf">0</b> 期</span>
-      <span class="g-chip">央行购金 <b id="cntCb">0</b> 个季度</span>
-      <span class="g-chip">多源交叉验证 <b>已启用</b></span>
-    </div>
-  </div>
+  <!-- v148：Hero 整块删除（用户 2026-09-19「把整块 Hero 删掉」）。
+       原 Hero = 标题「黄金研究」+ 副标题 GOLD RESEARCH… + 5 个计数 chip
+       （数据更新时点 / 伦敦金日线 N 条 / 非农月度 N 期 / 央行购金 N 个季度 /
+        多源交叉验证）。信息无净损失：模块标题由左侧导航「黄金研究」承担，
+       每个分区自带 .g-sec-head 标题，图表卡内仍有 #gSrcXau/#gSrcNf/#gSrcCb
+       时点标注，「资料库数据中心」#gDataMech 说明照旧。
+       数据未动：GOLD_SNAP / gold-data.json / 资料库四表一一不变。 -->
 
   <div class="g-pane" id="gp-home">
     <!-- ① 四大资产实时行情 -->
@@ -6961,8 +6942,44 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
         资料库端 gold_notes 表未动，故 verify_sync 的六文件清单与资料库语义核对不受影响。
      data/口径未变，不跑 push_macro_seed。verChip v146->v147
   */
+
+  /* v148 fw2_v148_gold_zh：黄金研究 Hero **整块删除**（用户 2026-09-19「把整块 Hero 删掉」）——
+     承接 v147 第 ② 条。v147 已把 Hero 从深色金调改成与其它模块一致的白卡；本轮确认
+     「保留内容、只换浅色底」并非本意，故整块摘除。
+     · HTML：`<div class="g-hero" id="gHero">` 整段（标题「黄金研究」+ 副标题
+       GOLD RESEARCH · 贵金属 × 美元 × 美债 × 美股 × 宏观 + 5 个计数 chip）删除。
+     · CSS：.g-hero / .g-hero-main / .g-title / .g-sub / .g-chips / .g-chip 整段，
+       以及 @media(max-width:720px) 内的 .g-title / .g-hero 两行。
+     · JS：goldRenderHero() 与其在 renderGold() 里的调用。四个 chip 写入点本就带
+       `if (el)` 守卫 →「只删 HTML、留着函数」不会抛错，但会留下写不进任何地方的
+       死代码，故连函数一并移除。
+     ★信息无净损失的依据：模块标题由左侧导航「黄金研究」承担；6 个分区各带 .g-sec-head
+       标题；图表卡内 #gSrcXau/#gSrcNf/#gSrcCb 仍是时点/来源标注；「资料库数据中心」
+       #gDataMech 说明照旧。**数据零改动**：GOLD_SNAP / gold-data.json / 资料库四表
+       （含 gold_notes）一一未动 —— 只是不再有 Hero 那一行计数 chip 展示。
+     ★★顺带修真 bug（本轮实测发现，非本次需求引入）：_apply_gold_module.py 的 ⑥ 分支
+       重建黄金 script 块时，写成了「前置换行 + script 开标签 + 内容 + script 闭标签 +
+       后置换行」的形状，而 raw[:s0] 自身已以换行结尾 → **每跑一轮给该块前后各多一个
+       换行（+2 字节）**，与模块文档「同步替换、幂等」的承诺不符。v143→v147 反复重跑把
+       该块前后积成 11 / 10 行空行，而文件里其它 8 个 script 闭标签后面都恰好 1 行。
+       修法：⑥ 改为「区间等长」重建（首尾都不加换行）+ 空白收敛（只缩不扩）→ 该脚本自
+       此可反复安全运行，实测再跑一次 index.html 逐字节不变（sha256 相同）。
+     ★变更范围用**分域证明**锁住：把黄金三块各遮一个标记后，改前/改后逐字相同
+       （_v148_diff.py）—— 即「三块之外一个字节都没动」（空白归位那 19 个换行除外，
+       原因即上一条）。相对 v147 版：1712615 → 1711873 chars（−742），
+       1805463 → 1805306 B（−157）。
+     验证：_test_v148_hero_gone.py V148_OK（A 静态 50 项：Hero 12 个标识 × CSS/JS/HTML
+       三域残留 = 0 + 结构断言「section 内第一个 <div> 即 #gp-home」+ 17 条反向锁 +
+       花括号配平；B headless 14 项：含 ★四条绑定存活断言（图/表切换 ≥200 行、1月按钮
+       .on、切回 canvas、CSV ×8）；C 负向对照：Hero 三项必转红、本体四项必须保持绿
+       → 证明探针既不恒绿也不恒红）；_test_v147_gold_zh（② 组三条已改为「Hero 不存在」
+       反向断言）、_test_v145_gold_scope（GIDS 去 gHero、EXCL 换成 5 个分区标题，避免
+       判别力随 Hero 删除掉到临界）、_test_v146_mcnav、_test_v143_gold 回归；
+       check_js、CSS 花括号配平、_precheck_markers、gate --check。
+     data/口径未变，不跑 push_macro_seed。verChip v147->v148
+  */
   const vc = $('#verChip');
-  if (vc) vc.textContent = 'v147 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  if (vc) vc.textContent = 'v148 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
@@ -8760,20 +8777,15 @@ if ('serviceWorker' in navigator) {
 <script>/* v123 fw2_v123_pf_seed：持仓只读镜像（由 gen_holdings_seed.py 生成的 holdings-data.json 内嵌而来，与该文件同源；勿手改） */
 window.HOLDINGS_SEED = {"syncedAt":"2026-09-18T14:53:38+08:00","source":"资料库持仓表（database_id GjLvwNekmiaDCgMZrhaa29）的只读镜像；字段口径与资料库一致（份额=天天基金 ACCOUNT_HOLDING，成本价=单位成本）。★改持仓请改资料库表，然后重跑 gen_holdings_seed.py——勿手改本文件。","total":"15410.47","holdings":[{"name":"招商行业精选股票基金","code":"000746","shares":16.34,"unitCost":6.12,"cost":100.0,"assetType":"fund","sector":"主动权益"},{"name":"华夏沪深300指数增强A","code":"001015","shares":420.02,"unitCost":2.3808,"cost":999.98,"assetType":"fund","sector":"宽基指数"},{"name":"创金合信货币C（活期宝）","code":"007866","shares":1000.28,"unitCost":1.0,"cost":1000.28,"assetType":"cash","sector":"现金管理"},{"name":"易方达全球成长精选混合(QDII)人民币A","code":"012920","shares":5045.18,"unitCost":2.6164,"cost":13200.21,"assetType":"fund","sector":"海外权益"},{"name":"南方纳斯达克100指数发起(QDII)A","code":"016452","shares":4.42,"unitCost":2.2624,"cost":10.0,"assetType":"fund","sector":"海外权益"},{"name":"万家纳斯达克100指数发起式(QDII)A","code":"019441","shares":59.87,"unitCost":1.6703,"cost":100.0,"assetType":"fund","sector":"海外权益"}]};
 </script>
-
-
-
-
-
-
-
-
-
 <script>
 /* ==========================================================
- * 黄金研究模块 JS（fw2_v147_gold_zh）
+ * 黄金研究模块 JS（fw2_v148_gold_zh）
  * 数据：GOLD_SNAP 内嵌（gen_gold_data.py 生成，与 gold-data.json 同源）
  *     → fetch('gold-data.json') 覆盖 → 资料库四表（GOLD_DB_IDS 注入后启用）
+ * v148 变更（用户 2026-09-19「把整块 Hero 删掉」）：Hero 整块移除 ——
+ *   HTML 段（标题 / 副标题 / 5 个计数 chip）+ CSS 段 + goldRenderHero() 及其在
+ *   renderGold() 里的调用同轮一起删。四个 chip id（genAt / cntXau / cntNf /
+ *   cntCb）**不再存在**，勿在任何地方重新引用。
  * v147 变更（用户 2026-09-19）：
  *   ① 单一中文：删除中/英切换按钮与**整层翻译**（GOLD_TR / goldTranslate /
  *      goldRestoreZh / goldSetLang）以及 ?lang=en 入口。gstate.goldLang 恒为 'zh'，
@@ -8849,7 +8861,6 @@ function renderGold() {
       var p = $('#gp-home'); if (p) p.innerHTML = '<div class="card"><div class="empty">' + G('黄金数据加载中…', 'Loading gold data…') + '</div></div>';
       return;
     }
-    goldRenderHero(d);
     renderGoldQuotes(d);
     renderGoldXau(d);
     renderGoldNonfarm(d);
@@ -8863,13 +8874,12 @@ function renderGold() {
   });
 }
 
-/* ---------------- Hero + 计数 chips ---------------- */
-function goldRenderHero(d) {
-  var ga = document.getElementById('genAt'); if (ga) ga.textContent = d.generated_at || '—';
-  var a = document.getElementById('cntXau'); if (a) a.textContent = (d.xau || []).length;
-  var b = document.getElementById('cntNf'); if (b) b.textContent = (d.nonfarm || []).length;
-  var c = document.getElementById('cntCb'); if (c) c.textContent = (d.cb_q || []).length;
-}
+/* ---------------- Hero：v148 整块删除 ----------------
+   用户 2026-09-19「把整块 Hero 删掉」。原 goldRenderHero(d) 只做一件事：把 GOLD_SNAP
+   的 generated_at / xau.length / nonfarm.length / cb_q.length 写进 Hero 的四个计数 chip。
+   四个写入点本来都带 `if (el)` 守卫，所以「只删 HTML、留着函数」不会抛错 —— 但会留下
+   写不进任何地方的死代码，故函数与其调用一并移除。
+   ★若要恢复：本函数 + renderGold() 里的调用 + HTML 段 + CSS 段必须同轮恢复。 */
 
 /* ---------------- 四大资产行情卡片 ---------------- */
 function renderGoldQuotes(d) {
@@ -9163,13 +9173,5 @@ if (document.readyState === 'loading') {
 }
 
 </script>
-
-
-
-
-
-
-
-
 </body>
 </html>
