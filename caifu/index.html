@@ -1461,7 +1461,9 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
       #view-macro .dc-mc-nav button{display:inline-block;width:auto;flex:0 0 auto;white-space:nowrap;text-align:center;border:0;background:transparent;padding:6px 12px;border-radius:6px;font-size: 13px;color:#334155;cursor:pointer;line-height:1.45}
       #view-macro .dc-mc-nav button:hover{background:#eef4ff}
       #view-macro .dc-mc-nav button.active{background:#e4eeff;color:#1d4ed8;font-weight:600}
-      #view-macro .dc-mc-nav button.mc-nav-ov{font-weight:600;color:#1d4ed8}
+            /* v146：总览页只保留「入口」语义（粗体），不再借用选中态的蓝字 —— 否则抽出 .active 后
+         仍显蓝粗，与真正选中的模块同时宣称自己是当前项（用户 2026-09-19 报「点击其他项目他还高亮」）。 */
+      #view-macro .dc-mc-nav button.mc-nav-ov{font-weight:600}
       #view-macro .dc-mc-main{flex:1 1 auto;min-width:0}
       #view-macro .dc-mc-tools{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:0 0 10px}
       #view-macro .mc-mod{display:none}
@@ -6988,8 +6990,21 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
      + C 负向对照「注回旧写法必须转红」）；_test_v143_gold V143_OK（13 项）、_test_v144_gold V144_OK（21 项）回归全绿。
      data/口径未变，不跑 push_macro_seed。verChip v143->v145
   */
+  /* v146 fw2_v146_mcnav_active：修「宏观数据 · 总览页 常亮高亮」（用户 2026-09-19 截图报「点击其他项目他还高亮」）。
+     ① 根因：CSS 里 `.mc-nav-ov`（总览页按钮的常驻 class，由 renderDcMcNav() 写死、永不摘除）
+        被无条件赋予了与选中态 `.active` **完全相同**的 color:#1d4ed8 + font-weight:600。
+        于是 __mcApply() 正确抽出 .active 之后，总览页仍显蓝字+粗体 → 与真正选中的模块
+        同时「宣称自己是当前项」，状态表达自相矛盾。
+        实测（headless 逐按钮取 getComputedStyle）：点「VIX 恐慌」后总览页 .active class = False、
+        背景已透明，但 color 仍 rgb(29,78,216)、font-weight 仍 600；而 VIX 恐慌 = 蓝字 + 蓝底 + 600。
+     ② 修法：`.mc-nav-ov` 去掉 color，只留 font-weight:600 —— 总览页仍是「入口」语义（粗体），
+        但不再占用选中态配色；「已选中」统一由 .active 的「蓝字 + 蓝底」独占表达。JS 未动，ID/契约未动。
+     验证：_test_v146_mcnav V146_OK（A 静态 CSS 形状 + B 运行时「选中视觉唯一」断言 + C 负向对照必转红）；
+     _test_v143_gold(13) / _test_v144_gold(21) / _test_v145_gold_scope 回归全绿；check_js、标记预检、gate。
+     data/口径未变，不跑 push_macro_seed。verChip v145->v146
+  */
   const vc = $('#verChip');
-  if (vc) vc.textContent = 'v145 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  if (vc) vc.textContent = 'v146 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
