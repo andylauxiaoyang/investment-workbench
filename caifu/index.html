@@ -811,12 +811,16 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .bb-tile .bt-funds { margin-top: 5px; font-size: 11px; color: var(--muted, #94a3b8); line-height: 1.45; }
 
 /* ==========================================================
- * 黄金研究模块样式（fw2_v149_sync_gone）
+ * 黄金研究模块样式（fw2_v150_csv_gone）
  * 浅色卡片 + 金色强调；与工作台 --up/--down 涨跌语义一致
- * 编号分区（5 个）、央行 KPI、CSV 卡片
+ * 编号分区（4 个）、央行 KPI
  * v149（用户 2026-09-19「整块删掉」）：删「资料库数据中心」整段样式 ——
  *   .g-sync-grid / .g-sync-item / .g-sync-k / .g-sync-v / .g-sync-s / .g-data-mech；
  *   该分区只把表 id 当文本渲染、页面从不读资料库数据表，其说明文案亦与代码实际通路不符。
+ * v150（用户 2026-09-19「这块删除」）：删「CSV 数据文件下载」第 5 分区样式 ——
+ *   .g-csv-grid / .g-csv-item / .g-csv-fn / .g-csv-desc / .g-csv-meta / .g-csv-dl(:hover)。
+ *   该组选择器**只**被 ⑤ 的下载卡消费（三张图卡的内联 CSV 按钮走通用 .btn.btn-sm）→
+ *   随分区一并删除，不留孤儿规则。
  * v147（用户 2026-09-19）：① Hero 深色金调 → 与其它模块一致的浅色卡；
  *   ② 删 .g-lang（中/英切换按钮）；③ 删「我的研判」整段样式 + .gold-tabs/.g-tab。
  * v148（用户 2026-09-19「把整块 Hero 删掉」）：Hero 整段样式删除 ——
@@ -907,22 +911,11 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 #view-gold .g-note { font-size: 12px; line-height: 1.75; color: #6b7280; }
 #view-gold .g-note b { color: #475569; }
 
-/* ---- CSV 下载卡片 ---- */
-#view-gold .g-csv-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(255px, 1fr)); gap: 12px; }
-#view-gold .g-csv-item {
-  background: #fff; border: 1px solid var(--line, #e5e7eb); border-radius: 12px; padding: 14px 16px;
-  display: flex; flex-direction: column; gap: 5px; border-top: 3px solid var(--gold);
-  box-shadow: var(--shadow, none);
-}
-#view-gold .g-csv-fn { font-family: var(--mono); font-size: 13px; font-weight: 700; color: #4a3a15; }
-#view-gold .g-csv-desc { font-size: 12px; color: #6b7280; line-height: 1.5; }
-#view-gold .g-csv-meta { font-size: 11px; color: #8a94a6; font-family: var(--mono); }
-#view-gold .g-csv-dl {
-  align-self: flex-start; margin-top: 4px; border: 0; cursor: pointer;
-  background: var(--gold); color: #fff; font-size: 12.5px; font-weight: 600;
-  padding: 6px 14px; border-radius: 8px; font-family: var(--sans);
-}
-#view-gold .g-csv-dl:hover { background: #a06f00; }
+/* ---- CSV 下载卡片：v150 整块删除（用户 2026-09-19「这块删除」） ----
+   原 .g-csv-grid / .g-csv-item / .g-csv-fn / .g-csv-desc / .g-csv-meta / .g-csv-dl(:hover) 全删。
+   ★该组选择器**只**被 ⑤ 的下载卡消费（三张图卡的内联 CSV 按钮走通用 .btn.btn-sm）→
+   随分区一并删除，不留孤儿规则。若要恢复：HTML 段 + 本 CSS 段 + goldRenderCsv()
+   + renderGold() 里的调用 + goldCsvDesc()，必须同轮一起恢复。 */
 
 /* ---- 资料库数据中心：v149 整块删除（用户 2026-09-19「整块删掉」） ----
    原 .g-sync-grid / .g-sync-item / .g-sync-k / .g-sync-v / .g-sync-s / .g-data-mech 全删。
@@ -1218,13 +1211,17 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
       <div class="g-note" id="gNoteCb"></div>
     </div>
 
-    <!-- ⑤ CSV 数据文件下载 -->
-    <div class="g-sec">
-      <div class="g-sec-head"><span class="g-sec-no">5</span><h2>CSV 数据文件下载</h2><span class="g-sec-tag">原始数据 · 点击即下载</span></div>
-      <div class="card">
-        <div class="g-csv-grid" id="csvGrid"></div>
-      </div>
-    </div>
+    <!-- v150：⑤「CSV 数据文件下载」整块删除（用户 2026-09-19「这块删除」）——
+         原分区 = #csvGrid 容器 + goldRenderCsv() 渲染的 5 张下载卡
+         （xau_1y / us30y / sp500 / nonfarm_payroll / cb_gold）。
+         三张图卡头部仍各有内联 CSV 按钮（data-gcsv），dlGoldCsv() 保留 ⇒
+         伦敦金 / 非农 / 央行购金三个 CSV 照旧可下载 —— 功能未减。
+         ★代价（已向用户说明并获确认）：us30y.csv（266 行）与 sp500.csv（267 行）
+         原先**只**有 ⑤ 这一个下载入口，本轮之后页面内再无其二者的下载按钮；
+         文件本体仍在 gold-data.json 的 csv_payloads 里（键未删，可回滚）。
+         数据未动：GOLD_SNAP / gold-data.json / 资料库五表一一不变；
+         GOLD_SNAP.csv_files 原样保留（自本轮起无消费点，处理方式同 GOLD_DB_IDS）。
+         侧栏提示里的「CSV 数据」现在指图卡内联按钮，仍然成立，故未改。
 
     <!-- v149：⑥「资料库数据中心」整块删除（用户 2026-09-19「整块删掉」）——
          该分区只把资料库表 id 当文本渲染，页面从不读取这些表；其 #gDataMech 更声称
@@ -6942,6 +6939,49 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
      data/口径未变，不跑 push_macro_seed。verChip v146->v147
   */
 
+  /* v150 fw2_v150_csv_gone：删「CSV 数据文件下载」第 5 分区（用户 2026-09-19「这块删除」）——
+     承接上一轮（v149 删第 6 分区）。用户上传截图指向 ⑤ 并说「这块删除」；
+     问清范围后用户选「只删这 5 张卡片」（另有「保留分区改文案」「先别删」两个选项）。
+     删除范围（源文件三件套 + 本文件的 ⑤ 幂等段）：
+       HTML ⑤ 编号分区整块（#csvGrid 容器）；
+       CSS  .g-csv-grid / .g-csv-item / .g-csv-fn / .g-csv-desc / .g-csv-meta / .g-csv-dl(:hover)；
+       JS   goldRenderCsv()（把 GOLD_SNAP.csv_files 渲染成 5 张下载卡）+ renderGold() 里的调用；
+       JS   goldCsvDesc()（v147 起只是 identity，唯一调用点就在 goldRenderCsv() → 删后零调用，
+            处理方式同 v149 对零调用的 goldDB()）。
+     ★保留（逐项核对过）：三张主图卡头部各有**内联 CSV 按钮**
+       （class="btn btn-sm" 且 data-gcsv = xau_1y.csv / nonfarm_payroll.csv / cb_gold.csv，共 3 个）
+       + dlGoldCsv() + GOLD_SNAP.csv_payloads + bindGoldEvents() 里的 [data-gcsv] 绑定
+       → 伦敦金 / 非农 / 央行购金三个 CSV 照旧可下载，功能未减。
+       CSS 侧：内联按钮走通用 .btn.btn-sm，不依赖 .g-csv-*，故那一组样式可整块删而不留孤儿规则。
+     ★代价（发现后已向用户说明，用户接受）：us30y.csv（266 行）与 sp500.csv（267 行）原先
+       **只**有 ⑤ 这一个下载入口 —— 删后页面内再无其二者的下载按钮；文件本体仍在
+       gold-data.json 的 csv_payloads 里（键未删，可回滚）。
+     ★未动：GOLD_SNAP（含 csv_files，自本轮起无消费点，处理方式同 GOLD_DB_IDS）、
+       gold-data.json、资料库五表；侧栏提示「金价走势 · 非农 · 央行购金 · CSV 数据」里的
+       「CSV 数据」现在指图卡内联按钮，仍然成立，故未改。
+     ★banner 改名：CSS/JS 的 fw2_v149_sync_gone → fw2_v150_csv_gone（同步撤掉 verify_sync
+       里的旧串，避免「旧串只剩变更日志引文 → 恒绿」，v142 教训）。
+     验证：_test_v150_csv_gone.py V150_OK（A 静态分域剥注释 + 结构断言「#view-gold 内 .g-sec
+       恰 4 个、无 ⑤ 编号」+ 反向锁；B headless 含「删 DOM 后绑定仍活」四条 —— 图/表切换、
+       窗口切换、[data-gcsv] = 3 且 dlGoldCsv 在场；C 用 index.html.bak_v150pre（⑤ 仍在，
+       [data-gcsv] = 8）负向对照：删除项必转红、本体项必保持绿）。
+     连带更新受影响的反向锁与计数断言（又踩到「计数型反向锁的期望值随版本漂移」这个老问题，
+       本次把它从 KEEP_GREEN_IN_C 里摘掉而不是留着）：
+       _test_v148_hero_gone 分区 5 → 4、CSV 按钮 8 → 3、KEEP 清单去 csvGrid / goldRenderCsv /
+         g-csv-grid（换成 cbKpi / dlGoldCsv / .g-kpis）；
+       _test_v149_sync_gone 分区 5 → 4、CSV 8 → 3、KEEP 清单同上，并把 '★CSV 按钮' 移出
+         KEEP_GREEN_IN_C（其负向对照用 bak_v149pre，CSV 按钮本就是 8 → 留着必误报恒红）；
+       _test_v147_gold_zh 探针 id 表 csvGrid → cbKpi、CSV 8 → 3、反向锁 goldRenderCsv → dlGoldCsv；
+       _test_v145_gold_scope GIDS 去 csvGrid（11 → 10 项，阈值 ≥10 → ≥9）、EXCL 把随分区一起
+         消失的「CSV 数据文件下载」换成仍在的黄金专属串「COMEX 期金主力连续」（防判别力漂移）；
+       _test_v143_gold CSV 按钮 ≥5 → ≥3；新建 _live_v150.py。
+       _test_v145 / _test_v146 等回归全绿；check_js、CSS 花括号配平、_precheck_markers、
+       gate --check。
+     ★applier 幂等自证：_apply_gold_module.py 连跑（本轮实测三次），第二次起 +0 字符且
+       sha256 不变（25afad93dfae197c…）。
+     data/口径未变，不跑 push_macro_seed。verChip v149->v150
+  */
+
   /* v149 fw2_v149_sync_gone：删「资料库数据中心」第 6 分区（用户 2026-09-19「整块删掉」）——
      起因：用户问「第 6 分区这个是干啥的？有用吗」。核代码后的答复是：**它没用，且它自己
      的说明文案是错的**。三条硬证据（黄金 script 块 58896 chars 逐字实测）：
@@ -7021,7 +7061,7 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
      data/口径未变，不跑 push_macro_seed。verChip v147->v148
   */
   const vc = $('#verChip');
-  if (vc) vc.textContent = 'v149 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  if (vc) vc.textContent = 'v150 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
@@ -8821,7 +8861,7 @@ window.HOLDINGS_SEED = {"syncedAt":"2026-09-18T14:53:38+08:00","source":"资料�
 </script>
 <script>
 /* ==========================================================
- * 黄金研究模块 JS（fw2_v149_sync_gone）
+ * 黄金研究模块 JS（fw2_v150_csv_gone）
  * 数据：GOLD_SNAP 内嵌（gen_gold_data.py 生成，与 gold-data.json 同源）
  *     → fetch('gold-data.json') 覆盖 → 实时接口（新浪 hf_XAU/DINIW · 腾讯 · 东财 · FRED）
  *     ★v149 更正：旧 banner 写「→ 资料库四表（GOLD_DB_IDS 注入后启用）」是**错的** ——
@@ -8833,6 +8873,14 @@ window.HOLDINGS_SEED = {"syncedAt":"2026-09-18T14:53:38+08:00","source":"资料�
  *   删除理由：#gDataMech 声称「数据表是页面展示的统一数据源，更新数据表后刷新即可同步」，
  *   与上述实际通路不符 → 会让人误以为改表即改页面（比没有说明更糟）。
  *   window.GOLD_DB_IDS **保留**（数据契约 / 回滚锚点），但已无任何消费点。
+ * v150 变更（用户 2026-09-19「这块删除」）：删「CSV 数据文件下载」第 5 分区 ——
+ *   HTML 段（#csvGrid）+ CSS 段 + goldRenderCsv() + renderGold() 里的调用，同轮删净；
+ *   连带删 goldCsvDesc()（v147 起只是 identity，唯一调用点就在 goldRenderCsv() → 删后零调用）。
+ *   ★保留：dlGoldCsv() 与 GOLD_SNAP.csv_payloads —— 三张图卡头部各有内联 CSV 按钮
+ *   （data-gcsv：xau_1y.csv / nonfarm_payroll.csv / cb_gold.csv），bindGoldEvents() 的
+ *   `[data-gcsv]` 绑定照旧工作（本模块绑定入口不受影响，已用行为断言锁住）。
+ *   ★代价：us30y.csv / sp500.csv 原先只有 ⑤ 一个下载入口，删后页面内再无入口；
+ *   文件本体仍在 csv_payloads 里（键未删，可回滚）。
  * v148 变更（用户 2026-09-19「把整块 Hero 删掉」）：Hero 整块移除 ——
  *   HTML 段（标题 / 副标题 / 5 个计数 chip）+ CSS 段 + goldRenderHero() 及其在
  *   renderGold() 里的调用同轮一起删。四个 chip id（genAt / cntXau / cntNf /
@@ -8873,10 +8921,11 @@ var GOLD_XAU_WIN = { '1m': 20, '3m': 60, '6m': 130, '1y': 260 };
 function G(zh, en) { return zh; }
 
 /* v147：三张英文对照表（GOLD_ASSET_EN / GOLD_UNIT_EN / GOLD_CSVDESC_EN）随中英切换一并删除。
-   以下三个取值函数**保留原名**（调用点不动），一律直出原值。 */
+   以下两个取值函数**保留原名**（调用点不动），一律直出原值。
+   ★v150：原第三个 goldCsvDesc() 的唯一调用点在 goldRenderCsv() 里，随 ⑤ 删除
+   而成为零调用死代码，故一并移除（同 v149 对零调用的 goldDB() 的处理）。 */
 function goldAssetName(v) { return v; }
 function goldUnit(v) { return v; }
-function goldCsvDesc(name, v) { return v; }
 
 /* v149：goldDB() 删除 —— v143 起的**死代码**。它本是「资料库数据表读取通道」的取值
    函数，而该通道从未实现（全文件零调用点；用户 2026-09-19 问「第 6 分区有用吗」时实测）。
@@ -8919,7 +8968,6 @@ function renderGold() {
     renderGoldNonfarm(d);
     renderGoldCb(d);
     goldRenderCbKpi(d);
-    goldRenderCsv(d);
     goldRenderNotesText(d);
     renderGoldSrcNote(d);
   });
@@ -9078,18 +9126,14 @@ function goldRenderCbKpi(d) {
   box.innerHTML = cards;
 }
 
-/* ---------------- CSV 卡片 ---------------- */
-function goldRenderCsv(d) {
-  var box = document.getElementById('csvGrid'); if (!box) return;
-  box.innerHTML = (d.csv_files || []).map(function (f) {
-    return '<div class="g-csv-item">'
-      + '<div class="g-csv-fn">' + esc(f.name) + '</div>'
-      + '<div class="g-csv-desc">' + esc(goldCsvDesc(f.name, f.desc || '')) + '</div>'
-      + '<div class="g-csv-meta">' + goldFmt(f.rows || 0, 0) + G(' 行 · 更新 ', ' rows · updated ') + esc(f.updated || '—') + '</div>'
-      + '<button class="g-csv-dl" data-gcsv="' + esc(f.name) + '">' + G('↓ 下载', '↓ Download') + '</button>'
-      + '</div>';
-  }).join('');
-}
+/* ---------------- CSV 卡片：v150 整块删除（用户 2026-09-19「这块删除」） ----------------
+   删掉的是 goldRenderCsv() —— 它把 GOLD_SNAP.csv_files 渲染成 #csvGrid 里的 5 张下载卡。
+   ★删除理由：用户确认该分区冗余（三张主图卡头部已有内联 CSV 按钮，功能重复）。
+   ★保留：dlGoldCsv()（下面「CSV 下载」段）与 GOLD_SNAP.csv_payloads —— 内联按钮仍走
+   bindGoldEvents() 里的 `[data-gcsv]` 绑定 → dlGoldCsv(名称) → csv_payloads[名称] 取数。
+   ★GOLD_SNAP.csv_files 保留原样（数据契约不动，只是从此没有消费点）。
+   ★代价：us30y.csv / sp500.csv 原先只有 ⑤ 一个下载入口，删后页面内再无入口（已向用户说明）。
+   若要恢复：HTML 段 + CSS 段 + 本函数 + renderGold() 里的调用，同轮恢复。 */
 
 /* ---------------- 资料库数据中心：v149 整块删除（用户 2026-09-19「整块删掉」） ----------------
    删掉的是：GOLD_DB_LABELS + goldRenderSync()（把资料库表 id 渲染成卡片）
