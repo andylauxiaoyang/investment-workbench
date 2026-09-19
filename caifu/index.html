@@ -813,6 +813,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 /* ==========================================================
  * 黄金研究模块样式（fw2_v143_gold）
  * 浅色卡片 + 金色强调；与工作台 --up/--down 涨跌语义一致
+ * 新增：深色金调 Hero、编号分区、央行 KPI、CSV 卡片、资料库数据中心
  * ========================================================== */
 #view-gold {
   display: flex; flex-direction: column; gap: 14px;
@@ -829,6 +830,45 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 #view-gold .g-tab.on { background: var(--gold); border-color: var(--gold); color: #fff; font-weight: 600; }
 #view-gold .g-pane { display: flex; flex-direction: column; gap: 14px; }
 #view-gold .g-pane[hidden] { display: none; }
+
+/* ---- Hero（深色金调） ---- */
+#view-gold .g-hero {
+  position: relative; overflow: hidden; border-radius: 16px;
+  background: linear-gradient(135deg, #2b2110 0%, #4a3a15 55%, #6b5417 100%);
+  color: #f5e9c8; padding: 22px 26px 18px;
+}
+#view-gold .g-hero::after {
+  content: "Au"; position: absolute; right: 24px; top: -34px;
+  font-size: 150px; font-weight: 800; color: rgba(212, 160, 23, .14);
+  font-family: Georgia, "Times New Roman", serif; line-height: 1; pointer-events: none;
+}
+#view-gold .g-hero-main { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; }
+#view-gold .g-title { font-size: 24px; letter-spacing: 2px; font-weight: 700; }
+#view-gold .g-sub { font-size: 12px; color: #d8c48a; }
+#view-gold .g-lang {
+  position: absolute; top: 16px; right: 20px; z-index: 2;
+  border: 1px solid rgba(255, 255, 255, .35); background: rgba(255, 255, 255, .12);
+  color: #ffe9a8; font-size: 12px; font-weight: 600; padding: 5px 12px; border-radius: 18px;
+  cursor: pointer; font-family: var(--sans);
+}
+#view-gold .g-lang:hover { background: rgba(255, 255, 255, .22); }
+#view-gold .g-chips { margin-top: 14px; display: flex; flex-wrap: wrap; gap: 8px; }
+#view-gold .g-chip {
+  font-size: 12px; background: rgba(255, 255, 255, .12);
+  border: 1px solid rgba(255, 255, 255, .22); padding: 3px 12px; border-radius: 20px;
+}
+#view-gold .g-chip b { color: #ffe9a8; font-family: var(--mono); }
+
+/* ---- 编号分区 ---- */
+#view-gold .g-sec { display: flex; flex-direction: column; gap: 10px; }
+#view-gold .g-sec-head { display: flex; align-items: center; gap: 10px; }
+#view-gold .g-sec-no {
+  flex: none; width: 26px; height: 26px; border-radius: 8px; background: var(--gold);
+  color: #fff; display: flex; align-items: center; justify-content: center;
+  font-size: 14px; font-weight: 700;
+}
+#view-gold .g-sec-head h2 { font-size: 18px; color: #1f2430; }
+#view-gold .g-sec-tag { font-size: 12px; color: #6b7280; background: #eef0f3; padding: 2px 10px; border-radius: 20px; }
 
 /* ---- 四大资产行情卡片 ---- */
 #view-gold .gq-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
@@ -871,12 +911,41 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 #view-gold .g-tbl td.neg { color: var(--up, #dc2626); }
 #view-gold .g-tbl tr:hover td { background: #faf6ee; }
 
-/* ---- CSV 下载 ---- */
-#view-gold .g-csv { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-#view-gold .g-csv .g-csv-file { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--g-line); border-radius: 8px; padding: 5px 10px; font-size: 12px; color: #6b7280; background: #fff; cursor: pointer; font-family: var(--sans); }
-#view-gold .g-csv .g-csv-file:hover { border-color: var(--gold); color: var(--gold); background: #faf6ee; }
-#view-gold .g-csv .g-csv-file b { font-family: var(--mono); font-weight: 600; color: #475569; }
-#view-gold .g-csv .g-csv-file:hover b { color: var(--gold); }
+/* ---- 央行购金 KPI 卡片 ---- */
+#view-gold .g-kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-top: 10px; }
+#view-gold .g-kpi { background: #fffdf5; border: 1px solid #efe3c0; border-radius: 10px; padding: 12px 14px; }
+#view-gold .g-kpi .g-kpi-y { font-size: 12px; color: #8a7430; font-weight: 600; }
+#view-gold .g-kpi .g-kpi-t { font-size: 24px; font-weight: 750; color: #6b5417; margin-top: 2px; font-family: var(--mono); }
+#view-gold .g-kpi .g-kpi-u { font-size: 12px; color: #a08a3e; font-family: var(--sans); }
+
+/* ---- 分区说明 note ---- */
+#view-gold .g-note { font-size: 12px; line-height: 1.75; color: #6b7280; }
+#view-gold .g-note b { color: #475569; }
+
+/* ---- CSV 下载卡片 ---- */
+#view-gold .g-csv-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(255px, 1fr)); gap: 12px; }
+#view-gold .g-csv-item {
+  background: #fff; border: 1px solid var(--line, #e5e7eb); border-radius: 12px; padding: 14px 16px;
+  display: flex; flex-direction: column; gap: 5px; border-top: 3px solid var(--gold);
+  box-shadow: var(--shadow, none);
+}
+#view-gold .g-csv-fn { font-family: var(--mono); font-size: 13px; font-weight: 700; color: #4a3a15; }
+#view-gold .g-csv-desc { font-size: 12px; color: #6b7280; line-height: 1.5; }
+#view-gold .g-csv-meta { font-size: 11px; color: #8a94a6; font-family: var(--mono); }
+#view-gold .g-csv-dl {
+  align-self: flex-start; margin-top: 4px; border: 0; cursor: pointer;
+  background: var(--gold); color: #fff; font-size: 12.5px; font-weight: 600;
+  padding: 6px 14px; border-radius: 8px; font-family: var(--sans);
+}
+#view-gold .g-csv-dl:hover { background: #a06f00; }
+
+/* ---- 资料库数据中心 sync-grid ---- */
+#view-gold .g-sync-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 12px; }
+#view-gold .g-sync-item { background: #fafaf7; border: 1px solid var(--line, #e5e7eb); border-radius: 10px; padding: 12px 14px; font-size: 12.5px; }
+#view-gold .g-sync-k { color: #6b7280; }
+#view-gold .g-sync-v { font-weight: 600; margin-top: 2px; color: #1f2430; font-family: var(--mono); font-size: 12px; }
+#view-gold .g-sync-s { font-size: 11px; color: #8a94a6; margin-top: 4px; word-break: break-all; }
+#view-gold .g-data-mech { margin-top: 12px; border-top: 1px dashed var(--g-line); padding-top: 10px; }
 
 /* ---- 来源与免责 ---- */
 #view-gold .g-srcnote { font-size: 12px; line-height: 1.8; color: #6b7280; }
@@ -884,7 +953,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 #view-gold .g-srcnote .g-disc { color: #b8860b; font-weight: 600; }
 
 /* ---- 我的研判 ---- */
-#view-gold .g-nh { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+#view-gold .g-nh { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; gap: 8px; flex-wrap: wrap; }
 #view-gold .g-nh b { font-size: 15px; color: #1f2430; }
 #view-gold .g-nform { display: none; flex-direction: column; gap: 10px; border-top: 1px dashed var(--g-line); padding-top: 12px; }
 #view-gold .g-nform.open { display: flex; }
@@ -925,6 +994,9 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   #view-gold .gq-grid { grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); }
   #view-gold .g-chart { height: 300px; }
   #view-gold .gq-price { font-size: 22px; }
+  #view-gold .g-title { font-size: 20px; }
+  #view-gold .g-hero { padding: 18px 18px 14px; }
+  #view-gold .g-hero::after { font-size: 110px; right: 8px; top: -20px; }
 }
 </style>
 <meta name="theme-color" content="#2563eb">
@@ -1126,85 +1198,148 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
         </div>
       </section>
       <section class="view" id="view-gold"><!-- fw2_v143_gold -->
+  <!-- 黄金研究 Hero（深色金调 · 与工作台浅色主题区分） -->
+  <div class="g-hero" id="gHero">
+    <div class="g-hero-main">
+      <h1 class="g-title">黄金研究</h1>
+      <div class="g-sub">GOLD RESEARCH · 贵金属 × 美元 × 美债 × 美股 × 宏观</div>
+    </div>
+    <button class="g-lang" id="gLangBtn" type="button" data-lang="zh" title="切换中 / 英文">EN / 中</button>
+    <div class="g-chips">
+      <span class="g-chip">数据更新：<b id="genAt">—</b></span>
+      <span class="g-chip">伦敦金日线 <b id="cntXau">0</b> 条</span>
+      <span class="g-chip">非农月度 <b id="cntNf">0</b> 期</span>
+      <span class="g-chip">央行购金 <b id="cntCb">0</b> 个季度</span>
+      <span class="g-chip">多源交叉验证 <b>已启用</b></span>
+    </div>
+  </div>
+
   <div class="card">
     <div class="gold-tabs" id="goldTabs">
       <button class="g-tab on" data-gtab="home">行情研究</button>
       <button class="g-tab" data-gtab="notes">我的研判</button>
     </div>
   </div>
+
   <div class="g-pane" id="gp-home">
-    <div class="gq-grid" id="gqWrap"></div>
-    <div class="card g-chart-card">
-      <div class="g-chart-hd">
-        <div><b>伦敦金近一年走势</b><span class="g-src" id="gSrcXau"></span></div>
-        <div class="g-tools">
-          <div class="seg seg-tabs" id="gXauWin">
-            <button data-w="1m">1月</button><button data-w="3m">3月</button><button data-w="6m">6月</button><button class="on" data-w="1y">1年</button>
-          </div>
-          <div class="g-cht" id="gXauCht">
-            <button class="on" data-v="chart">图表</button><button data-v="tbl">数据表</button>
-          </div>
-          <button class="btn btn-sm" data-gcsv="xau_1y.csv">CSV</button>
-        </div>
-      </div>
-      <div id="chartGold" class="g-chart"></div>
-      <div class="g-tbl" id="gTblXau" style="display:none"></div>
+    <!-- ① 四大资产实时行情 -->
+    <div class="g-sec">
+      <div class="g-sec-head"><span class="g-sec-no">1</span><h2>四大资产实时行情</h2><span class="g-sec-tag">多源交叉验证 · 已标注时点</span></div>
+      <div class="gq-grid" id="gqWrap"></div>
     </div>
-    <div class="card g-chart-card">
-      <div class="g-chart-hd">
-        <div><b>美国非农月度变动</b><span class="g-src" id="gSrcNf"></span></div>
-        <div class="g-tools">
-          <div class="g-cht" id="gNfCht">
-            <button class="on" data-v="chart">图表</button><button data-v="tbl">数据表</button>
+
+    <!-- ② 伦敦金近一年走势 -->
+    <div class="g-sec">
+      <div class="g-sec-head"><span class="g-sec-no">2</span><h2>伦敦金近一年走势</h2><span class="g-sec-tag">每日更新 · 近260个交易日</span></div>
+      <div class="card g-chart-card">
+        <div class="g-chart-hd">
+          <div><b>伦敦金近一年走势</b><span class="g-src" id="gSrcXau"></span></div>
+          <div class="g-tools">
+            <div class="seg seg-tabs" id="gXauWin">
+              <button data-w="1m">1月</button><button data-w="3m">3月</button><button data-w="6m">6月</button><button class="on" data-w="1y">1年</button>
+            </div>
+            <div class="g-cht" id="gXauCht">
+              <button class="on" data-v="chart">图表</button><button data-v="tbl">数据表</button>
+            </div>
+            <button class="btn btn-sm" data-gcsv="xau_1y.csv">CSV</button>
           </div>
-          <button class="btn btn-sm" data-gcsv="nonfarm_payroll.csv">CSV</button>
         </div>
+        <div id="chartGold" class="g-chart"></div>
+        <div class="g-tbl" id="gTblXau" style="display:none"></div>
       </div>
-      <div id="chartNonfarm" class="g-chart"></div>
-      <div class="g-tbl" id="gTblNf" style="display:none"></div>
+      <div class="g-note" id="gNoteXau"></div>
     </div>
-    <div class="card g-chart-card">
-      <div class="g-chart-hd">
-        <div><b>全球央行季度购金</b><span class="g-src" id="gSrcCb"></span></div>
-        <div class="g-tools">
-          <div class="g-cht" id="gCbCht">
-            <button class="on" data-v="chart">图表</button><button data-v="tbl">数据表</button>
+
+    <!-- ③ 美国非农月度变动 -->
+    <div class="g-sec">
+      <div class="g-sec-head"><span class="g-sec-no">3</span><h2>美国非农月度变动</h2><span class="g-sec-tag">BLS / FRED · 季调 · 千人</span></div>
+      <div class="card g-chart-card">
+        <div class="g-chart-hd">
+          <div><b>美国非农月度变动</b><span class="g-src" id="gSrcNf"></span></div>
+          <div class="g-tools">
+            <div class="g-cht" id="gNfCht">
+              <button class="on" data-v="chart">图表</button><button data-v="tbl">数据表</button>
+            </div>
+            <button class="btn btn-sm" data-gcsv="nonfarm_payroll.csv">CSV</button>
           </div>
-          <button class="btn btn-sm" data-gcsv="cb_gold.csv">CSV</button>
         </div>
+        <div id="chartNonfarm" class="g-chart"></div>
+        <div class="g-tbl" id="gTblNf" style="display:none"></div>
       </div>
-      <div id="chartCbq" class="g-chart"></div>
-      <div class="g-tbl" id="gTblCb" style="display:none"></div>
+      <div class="g-note" id="gNoteNf"></div>
     </div>
+
+    <!-- ④ 全球央行季度购金 -->
+    <div class="g-sec">
+      <div class="g-sec-head"><span class="g-sec-no">4</span><h2>全球央行季度购金</h2><span class="g-sec-tag">世界黄金协会 WGC · 吨</span></div>
+      <div class="card g-chart-card">
+        <div class="g-chart-hd">
+          <div><b>全球央行季度购金</b><span class="g-src" id="gSrcCb"></span></div>
+          <div class="g-tools">
+            <div class="g-cht" id="gCbCht">
+              <button class="on" data-v="chart">图表</button><button data-v="tbl">数据表</button>
+            </div>
+            <button class="btn btn-sm" data-gcsv="cb_gold.csv">CSV</button>
+          </div>
+        </div>
+        <div id="chartCbq" class="g-chart"></div>
+        <div class="g-tbl" id="gTblCb" style="display:none"></div>
+      </div>
+      <div class="g-kpis" id="cbKpi"></div>
+      <div class="g-note" id="gNoteCb"></div>
+    </div>
+
+    <!-- ⑤ CSV 数据文件下载 -->
+    <div class="g-sec">
+      <div class="g-sec-head"><span class="g-sec-no">5</span><h2>CSV 数据文件下载</h2><span class="g-sec-tag">原始数据 · 点击即下载</span></div>
+      <div class="card">
+        <div class="g-csv-grid" id="csvGrid"></div>
+      </div>
+    </div>
+
+    <!-- ⑥ 资料库数据中心 -->
+    <div class="g-sec">
+      <div class="g-sec-head"><span class="g-sec-no">6</span><h2>资料库数据中心</h2><span class="g-sec-tag">在线数据表 ↔ 工作台展示</span></div>
+      <div class="card">
+        <div class="g-sync-grid" id="syncGrid"></div>
+        <div class="g-note g-data-mech" id="gDataMech"></div>
+      </div>
+    </div>
+
+    <!-- 数据来源与免责（合并） -->
     <div class="card g-srcnote" id="gSrcNote"></div>
   </div>
+
   <div class="g-pane" id="gp-notes" hidden>
-    <div class="card">
-      <div class="g-nh">
-        <b>我的研判</b>
-        <span style="font-size:12px;color:#8a94a6">看多 / 看空 / 中性 · 关键价位 · 关键事件 · 下次复盘</span>
-        <span><button class="btn btn-sm" id="gNotesSync">同步状态</button> <button class="btn btn-primary btn-sm" id="gNoteOpen">＋ 新增研判</button></span>
+    <div class="g-sec">
+      <div class="g-sec-head"><span class="g-sec-no">1</span><h2>我的研判</h2><span class="g-sec-tag">记录观点 · 下次复盘</span></div>
+      <div class="card">
+        <div class="g-nh">
+          <b>我的研判</b>
+          <span style="font-size:12px;color:#8a94a6">看多 / 看空 / 中性 · 关键价位 · 关键事件 · 下次复盘</span>
+          <span><button class="btn btn-sm" id="gNotesSync">同步状态</button> <button class="btn btn-primary btn-sm" id="gNoteOpen">＋ 新增研判</button></span>
+        </div>
+        <div class="g-nform" id="gNoteForm">
+          <div class="g-frow">
+            <label>关注资产<select id="gNF-asset"><option>伦敦金 XAUUSD</option><option>美元指数 DXY</option><option>30年期美债收益率</option><option>标普500指数</option></select></label>
+            <label>方向<select id="gNF-dir"><option>看多</option><option>看空</option><option>中性</option></select></label>
+            <label>下次复盘<input id="gNF-nx" type="date"></label>
+          </div>
+          <div class="g-frow">
+            <label class="g-wide">观点<textarea id="gNF-view" rows="2" placeholder="你的判断逻辑 / 依据 / 预期…"></textarea></label>
+          </div>
+          <div class="g-frow">
+            <label>关键价位<input id="gNF-kp" placeholder="如：支撑 4350-4400 / 压力 4650"></label>
+            <label>关键事件<input id="gNF-ev" placeholder="如：9月FOMC、非农、美债拍卖"></label>
+          </div>
+          <div class="g-frow">
+            <button class="btn btn-primary btn-sm" id="gNoteSave">保存到资料库</button>
+            <span class="g-save-tip" id="gSaveTip"></span>
+          </div>
+        </div>
       </div>
-      <div class="g-nform" id="gNoteForm">
-        <div class="g-frow">
-          <label>关注资产<select id="gNF-asset"><option>伦敦金 XAUUSD</option><option>美元指数 DXY</option><option>30年期美债收益率</option><option>标普500指数</option></select></label>
-          <label>方向<select id="gNF-dir"><option>看多</option><option>看空</option><option>中性</option></select></label>
-          <label>下次复盘<input id="gNF-nx" type="date"></label>
-        </div>
-        <div class="g-frow">
-          <label class="g-wide">观点<textarea id="gNF-view" rows="2" placeholder="你的判断逻辑 / 依据 / 预期…"></textarea></label>
-        </div>
-        <div class="g-frow">
-          <label>关键价位<input id="gNF-kp" placeholder="如：支撑 4350-4400 / 压力 4650"></label>
-          <label>关键事件<input id="gNF-ev" placeholder="如：9月FOMC、非农、美债拍卖"></label>
-        </div>
-        <div class="g-frow">
-          <button class="btn btn-primary btn-sm" id="gNoteSave">保存到资料库</button>
-          <span class="g-save-tip" id="gSaveTip"></span>
-        </div>
-      </div>
+      <div class="card"><div class="g-nlist" id="gNotesWrap"></div></div>
     </div>
-    <div class="card"><div class="g-nlist" id="gNotesWrap"></div></div>
   </div>
 </section>
       <section class="view" id="view-data"><!-- fw2_v71_datacenter --><!-- fw2_v91_macro_merge --><!-- fw2_v135_macro_view：dcBlocks 已删，基金数据直接显示（默认总览 Tab） -->
@@ -8634,12 +8769,16 @@ window.HOLDINGS_SEED = {"syncedAt":"2026-09-18T14:53:38+08:00","source":"资料�
 
 
 
+
+
 <script>
 /* ==========================================================
  * 黄金研究模块 JS（fw2_v143_gold）
  * 数据：GOLD_SNAP 内嵌（gen_gold_data.py 生成，与 gold-data.json 同源）
  *     → fetch('gold-data.json') 覆盖 → 资料库五表（GOLD_DB_IDS 注入后启用）
  * 「我的研判」写回：资料库 gold_notes 表（有 SDK + 表 id 时）＋ localStorage 写穿
+ * 优化（参照双语演示）：深色金调 Hero + 计数 chips + 中/英切换（仅作用于 #view-gold）
+ *   编号分区、央行购金 KPI、CSV 卡片、资料库数据中心 sync-grid、分区数据说明
  * ========================================================== */
 window.GOLD_SNAP = {"generated_at": "2026-09-19 12:20", "quotes": [{"asset": "伦敦金 XAUUSD", "code": "hf_XAU", "price": 4341.62, "change": -0.84, "unit": "美元/盎司", "time": "2026-09-19 12:20", "src": "新浪财经现货实时，已与COMEX期金交叉验证；2026-09-19 12:20 新浪实时刷新", "_live": true}, {"asset": "美元指数 DXY", "code": "DINIW", "price": 100.2167, "change": 0.0, "unit": "点", "time": "2026-09-19 12:20", "src": "新浪财经实时；变动口径存在数据源分歧（新浪前收99.16/-0.02%，西斯特prevClose98.91/+0.23%），已如实标注；2026-09-19 12:20 新浪实时刷新", "_live": true}, {"asset": "30年期美债收益率", "code": "US30Y", "price": 5.18, "change": 0.19, "unit": "%", "time": "2026-08-26(美东)", "src": "FRED DGS30 日频，最新交易日收盘", "_live": false}, {"asset": "标普500指数", "code": "SPX", "price": 7730.99, "change": 0.72, "unit": "点", "time": "2026-08-27收盘", "src": "FRED SP500 日频，与腾讯自选股 usINX 交叉验证", "_live": false}], "xau": [{"d": "2025-08-27", "c": 3397.18}, {"d": "2025-08-28", "c": 3416.88}, {"d": "2025-08-29", "c": 3448.01}, {"d": "2025-09-01", "c": 3476.08}, {"d": "2025-09-02", "c": 3533.4}, {"d": "2025-09-03", "c": 3558.93}, {"d": "2025-09-04", "c": 3545.63}, {"d": "2025-09-05", "c": 3587.3}, {"d": "2025-09-08", "c": 3635.68}, {"d": "2025-09-09", "c": 3626.13}, {"d": "2025-09-10", "c": 3640.44}, {"d": "2025-09-11", "c": 3633.81}, {"d": "2025-09-12", "c": 3643.21}, {"d": "2025-09-15", "c": 3678.73}, {"d": "2025-09-16", "c": 3689.6}, {"d": "2025-09-17", "c": 3659.79}, {"d": "2025-09-18", "c": 3644.27}, {"d": "2025-09-19", "c": 3684.93}, {"d": "2025-09-22", "c": 3746.71}, {"d": "2025-09-23", "c": 3763.93}, {"d": "2025-09-24", "c": 3735.88}, {"d": "2025-09-25", "c": 3749.18}, {"d": "2025-09-26", "c": 3761.17}, {"d": "2025-09-29", "c": 3833.73}, {"d": "2025-09-30", "c": 3858.29}, {"d": "2025-10-01", "c": 3865.49}, {"d": "2025-10-02", "c": 3856.39}, {"d": "2025-10-03", "c": 3886.47}, {"d": "2025-10-06", "c": 3960.85}, {"d": "2025-10-07", "c": 3984.34}, {"d": "2025-10-08", "c": 4041.45}, {"d": "2025-10-09", "c": 3976.05}, {"d": "2025-10-10", "c": 4018.43}, {"d": "2025-10-13", "c": 4110.45}, {"d": "2025-10-14", "c": 4142.01}, {"d": "2025-10-15", "c": 4207.96}, {"d": "2025-10-16", "c": 4325.85}, {"d": "2025-10-17", "c": 4247.17}, {"d": "2025-10-20", "c": 4356.26}, {"d": "2025-10-21", "c": 4124.84}, {"d": "2025-10-22", "c": 4098.29}, {"d": "2025-10-23", "c": 4125.81}, {"d": "2025-10-24", "c": 4112.82}, {"d": "2025-10-27", "c": 3981.1}, {"d": "2025-10-28", "c": 3952.54}, {"d": "2025-10-29", "c": 3930.1}, {"d": "2025-10-30", "c": 4024.18}, {"d": "2025-10-31", "c": 4002.94}, {"d": "2025-11-03", "c": 4001.16}, {"d": "2025-11-04", "c": 3931.78}, {"d": "2025-11-05", "c": 3978.95}, {"d": "2025-11-06", "c": 3976.85}, {"d": "2025-11-07", "c": 4001.27}, {"d": "2025-11-10", "c": 4115.71}, {"d": "2025-11-11", "c": 4126.62}, {"d": "2025-11-12", "c": 4195.46}, {"d": "2025-11-13", "c": 4171.22}, {"d": "2025-11-14", "c": 4084.8}, {"d": "2025-11-17", "c": 4045.5}, {"d": "2025-11-18", "c": 4067.44}, {"d": "2025-11-19", "c": 4077.74}, {"d": "2025-11-20", "c": 4077.17}, {"d": "2025-11-21", "c": 4065.77}, {"d": "2025-11-24", "c": 4134.54}, {"d": "2025-11-25", "c": 4130.62}, {"d": "2025-11-26", "c": 4163.78}, {"d": "2025-11-27", "c": 4157.22}, {"d": "2025-11-28", "c": 4219.2}, {"d": "2025-12-01", "c": 4232.08}, {"d": "2025-12-02", "c": 4205.57}, {"d": "2025-12-03", "c": 4202.93}, {"d": "2025-12-04", "c": 4208.6}, {"d": "2025-12-05", "c": 4196.03}, {"d": "2025-12-08", "c": 4190.48}, {"d": "2025-12-09", "c": 4208.09}, {"d": "2025-12-10", "c": 4228.47}, {"d": "2025-12-11", "c": 4279.62}, {"d": "2025-12-12", "c": 4300.12}, {"d": "2025-12-15", "c": 4304.91}, {"d": "2025-12-16", "c": 4302.06}, {"d": "2025-12-17", "c": 4338.09}, {"d": "2025-12-18", "c": 4332.61}, {"d": "2025-12-19", "c": 4338.22}, {"d": "2025-12-22", "c": 4443.56}, {"d": "2025-12-23", "c": 4484.54}, {"d": "2025-12-24", "c": 4479.42}, {"d": "2025-12-26", "c": 4531.87}, {"d": "2025-12-29", "c": 4331.78}, {"d": "2025-12-30", "c": 4338.54}, {"d": "2025-12-31", "c": 4318.85}, {"d": "2026-01-02", "c": 4332.85}, {"d": "2026-01-05", "c": 4448.82}, {"d": "2026-01-06", "c": 4494.58}, {"d": "2026-01-07", "c": 4456.32}, {"d": "2026-01-08", "c": 4477.28}, {"d": "2026-01-09", "c": 4509.36}, {"d": "2026-01-12", "c": 4597.21}, {"d": "2026-01-13", "c": 4586.45}, {"d": "2026-01-14", "c": 4626.41}, {"d": "2026-01-15", "c": 4615.73}, {"d": "2026-01-16", "c": 4595.53}, {"d": "2026-01-19", "c": 4670.79}, {"d": "2026-01-20", "c": 4763.36}, {"d": "2026-01-21", "c": 4831.01}, {"d": "2026-01-22", "c": 4936.14}, {"d": "2026-01-23", "c": 4986.02}, {"d": "2026-01-26", "c": 5008.06}, {"d": "2026-01-27", "c": 5181.04}, {"d": "2026-01-28", "c": 5414.84}, {"d": "2026-01-29", "c": 5377.14}, {"d": "2026-01-30", "c": 4860.39}, {"d": "2026-02-02", "c": 4656.46}, {"d": "2026-02-03", "c": 4945.23}, {"d": "2026-02-04", "c": 4963.59}, {"d": "2026-02-05", "c": 4774.48}, {"d": "2026-02-06", "c": 4959.54}, {"d": "2026-02-09", "c": 5059.14}, {"d": "2026-02-10", "c": 5023.97}, {"d": "2026-02-11", "c": 5083.51}, {"d": "2026-02-12", "c": 4920.81}, {"d": "2026-02-13", "c": 5038.52}, {"d": "2026-02-16", "c": 4992.94}, {"d": "2026-02-17", "c": 4878.57}, {"d": "2026-02-18", "c": 4976.09}, {"d": "2026-02-19", "c": 4995.83}, {"d": "2026-02-20", "c": 5098.85}, {"d": "2026-02-23", "c": 5227.43}, {"d": "2026-02-24", "c": 5141.43}, {"d": "2026-02-25", "c": 5163.86}, {"d": "2026-02-26", "c": 5183.88}, {"d": "2026-02-27", "c": 5279.95}, {"d": "2026-03-02", "c": 5321.97}, {"d": "2026-03-03", "c": 5088.16}, {"d": "2026-03-04", "c": 5140.99}, {"d": "2026-03-05", "c": 5080.88}, {"d": "2026-03-06", "c": 5171.06}, {"d": "2026-03-09", "c": 5136.6}, {"d": "2026-03-10", "c": 5192.67}, {"d": "2026-03-11", "c": 5176.08}, {"d": "2026-03-12", "c": 5079.25}, {"d": "2026-03-13", "c": 5021.27}, {"d": "2026-03-16", "c": 5006.19}, {"d": "2026-03-17", "c": 5005.45}, {"d": "2026-03-18", "c": 4818.83}, {"d": "2026-03-19", "c": 4650.33}, {"d": "2026-03-20", "c": 4496.98}, {"d": "2026-03-23", "c": 4406.64}, {"d": "2026-03-24", "c": 4474.26}, {"d": "2026-03-25", "c": 4506.49}, {"d": "2026-03-26", "c": 4377.85}, {"d": "2026-03-27", "c": 4495.17}, {"d": "2026-03-30", "c": 4510.95}, {"d": "2026-03-31", "c": 4667.05}, {"d": "2026-04-01", "c": 4758.1}, {"d": "2026-04-02", "c": 4675.99}, {"d": "2026-04-06", "c": 4650.36}, {"d": "2026-04-07", "c": 4705.48}, {"d": "2026-04-08", "c": 4719.18}, {"d": "2026-04-09", "c": 4765.38}, {"d": "2026-04-10", "c": 4749.05}, {"d": "2026-04-13", "c": 4740.15}, {"d": "2026-04-14", "c": 4841.56}, {"d": "2026-04-15", "c": 4790.51}, {"d": "2026-04-16", "c": 4790.66}, {"d": "2026-04-17", "c": 4834.02}, {"d": "2026-04-20", "c": 4820.63}, {"d": "2026-04-21", "c": 4719.89}, {"d": "2026-04-22", "c": 4740.05}, {"d": "2026-04-23", "c": 4694.07}, {"d": "2026-04-24", "c": 4708.05}, {"d": "2026-04-27", "c": 4681.67}, {"d": "2026-04-28", "c": 4597.09}, {"d": "2026-04-29", "c": 4543.41}, {"d": "2026-04-30", "c": 4621.61}, {"d": "2026-05-01", "c": 4616.14}, {"d": "2026-05-04", "c": 4523.67}, {"d": "2026-05-05", "c": 4557.27}, {"d": "2026-05-06", "c": 4690.81}, {"d": "2026-05-07", "c": 4687.05}, {"d": "2026-05-08", "c": 4715.18}, {"d": "2026-05-11", "c": 4734.63}, {"d": "2026-05-12", "c": 4715.07}, {"d": "2026-05-13", "c": 4688.71}, {"d": "2026-05-14", "c": 4652.27}, {"d": "2026-05-15", "c": 4538.18}, {"d": "2026-05-18", "c": 4566.02}, {"d": "2026-05-19", "c": 4481.83}, {"d": "2026-05-20", "c": 4543.53}, {"d": "2026-05-21", "c": 4542.99}, {"d": "2026-05-22", "c": 4506.82}, {"d": "2026-05-25", "c": 4570.69}, {"d": "2026-05-26", "c": 4507.39}, {"d": "2026-05-27", "c": 4456.1}, {"d": "2026-05-28", "c": 4495.59}, {"d": "2026-05-29", "c": 4539.78}, {"d": "2026-06-01", "c": 4484.65}, {"d": "2026-06-02", "c": 4487.74}, {"d": "2026-06-03", "c": 4434.25}, {"d": "2026-06-04", "c": 4475.18}, {"d": "2026-06-05", "c": 4327.46}, {"d": "2026-06-08", "c": 4329.67}, {"d": "2026-06-09", "c": 4259.29}, {"d": "2026-06-10", "c": 4071.15}, {"d": "2026-06-11", "c": 4210.58}, {"d": "2026-06-12", "c": 4216.83}, {"d": "2026-06-15", "c": 4309.05}, {"d": "2026-06-16", "c": 4331.05}, {"d": "2026-06-17", "c": 4257.6}, {"d": "2026-06-18", "c": 4208.92}, {"d": "2026-06-19", "c": 4155.44}, {"d": "2026-06-22", "c": 4191.18}, {"d": "2026-06-23", "c": 4110.05}, {"d": "2026-06-24", "c": 3998.95}, {"d": "2026-06-25", "c": 4026.51}, {"d": "2026-06-26", "c": 4081.02}, {"d": "2026-06-29", "c": 4016.45}, {"d": "2026-06-30", "c": 4007.28}, {"d": "2026-07-01", "c": 4030.94}, {"d": "2026-07-02", "c": 4123.61}, {"d": "2026-07-03", "c": 4174.77}, {"d": "2026-07-06", "c": 4164.75}, {"d": "2026-07-07", "c": 4105.7}, {"d": "2026-07-08", "c": 4077.19}, {"d": "2026-07-09", "c": 4123.48}, {"d": "2026-07-10", "c": 4119.01}, {"d": "2026-07-13", "c": 4000.8}, {"d": "2026-07-14", "c": 4052.64}, {"d": "2026-07-15", "c": 4060.28}, {"d": "2026-07-16", "c": 3976.26}, {"d": "2026-07-17", "c": 4016.36}, {"d": "2026-07-20", "c": 4007.32}, {"d": "2026-07-21", "c": 4077.51}, {"d": "2026-07-22", "c": 4129.79}, {"d": "2026-07-23", "c": 4049.26}, {"d": "2026-07-24", "c": 4053.29}, {"d": "2026-07-27", "c": 4076.46}, {"d": "2026-07-28", "c": 4028.42}, {"d": "2026-07-29", "c": 4066.13}, {"d": "2026-07-30", "c": 4103.42}, {"d": "2026-07-31", "c": 4046.42}, {"d": "2026-08-03", "c": 4055.34}, {"d": "2026-08-04", "c": 4077.21}, {"d": "2026-08-05", "c": 4246.79}, {"d": "2026-08-06", "c": 4240.55}, {"d": "2026-08-07", "c": 4341.12}, {"d": "2026-08-10", "c": 4390.25}, {"d": "2026-08-11", "c": 4368.0}, {"d": "2026-08-12", "c": 4408.42}, {"d": "2026-08-13", "c": 4350.88}, {"d": "2026-08-14", "c": 4375.8}, {"d": "2026-08-17", "c": 4416.5}, {"d": "2026-08-18", "c": 4334.17}, {"d": "2026-08-19", "c": 4522.78}, {"d": "2026-08-20", "c": 4519.14}, {"d": "2026-08-21", "c": 4604.53}, {"d": "2026-08-24", "c": 4651.59}, {"d": "2026-08-25", "c": 4658.65}, {"d": "2026-08-26", "c": 4594.49}, {"d": "2026-08-27", "c": 4601.58}, {"d": "2026-08-28", "c": 4605.66}], "nonfarm": [{"m": "2024-12", "c": 237.0}, {"m": "2025-01", "c": -48.0}, {"m": "2025-02", "c": 42.0}, {"m": "2025-03", "c": 67.0}, {"m": "2025-04", "c": 108.0}, {"m": "2025-05", "c": 13.0}, {"m": "2025-06", "c": -20.0}, {"m": "2025-07", "c": 64.0}, {"m": "2025-08", "c": -70.0}, {"m": "2025-09", "c": 76.0}, {"m": "2025-10", "c": -140.0}, {"m": "2025-11", "c": 41.0}, {"m": "2025-12", "c": -17.0}, {"m": "2026-01", "c": 160.0}, {"m": "2026-02", "c": -156.0}, {"m": "2026-03", "c": 214.0}, {"m": "2026-04", "c": 148.0}, {"m": "2026-05", "c": 63.0}, {"m": "2026-06", "c": 20.0}, {"m": "2026-07", "c": -23.0}], "cb_q": [{"q": "2022Q1", "t": 82.7}, {"q": "2022Q2", "t": 158.6}, {"q": "2022Q3", "t": 459.0}, {"q": "2022Q4", "t": 381.6}, {"q": "2023Q1", "t": 228.4}, {"q": "2023Q2", "t": 102.9}, {"q": "2023Q3", "t": 337.1}, {"q": "2023Q4", "t": 229.4}, {"q": "2024Q1", "t": 290.0}, {"q": "2024Q2", "t": 235.8}, {"q": "2024Q3", "t": 186.2}, {"q": "2024Q4", "t": 333.0}, {"q": "2025Q1", "t": 243.7}, {"q": "2025Q2", "t": 170.7}, {"q": "2025Q3", "t": 218.0}, {"q": "2025Q4", "t": 230.0}, {"q": "2026Q1", "t": 57.0}, {"q": "2026Q2", "t": 289.0}], "cb_y": [{"y": 2022, "t": 1081.9}, {"y": 2023, "t": 1050.8}, {"y": 2024, "t": 1044.6}, {"y": 2025, "t": 863.3}], "csv_files": [{"name": "xau_1y.csv", "desc": "伦敦金近一年日线（开/高/低/收）· COMEX 期金主力连续", "rows": 260, "size": 12803, "updated": "2026-08-28 15:36"}, {"name": "us30y.csv", "desc": "30年期美债收益率 · FRED DGS30 日频收盘", "rows": 266, "size": 4235, "updated": "2026-08-28 15:36"}, {"name": "sp500.csv", "desc": "标普500指数 · FRED SP500 日频收盘", "rows": 267, "size": 5026, "updated": "2026-08-28 15:36"}, {"name": "nonfarm_payroll.csv", "desc": "美国非农就业总水平 · FRED PAYEMS 季调", "rows": 31, "size": 582, "updated": "2026-08-28 15:36"}, {"name": "cb_gold.csv", "desc": "全球央行净购金（季度 + 年度）", "rows": 22, "size": 335, "updated": "2026-09-19 12:20"}], "csv_payloads": {"nonfarm_payroll.csv": "observation_date,PAYEMS\n2024-01-01,157032\n2024-02-01,157238\n2024-03-01,157466\n2024-04-01,157530\n2024-05-01,157608\n2024-06-01,157695\n2024-07-01,157748\n2024-08-01,157757\n2024-09-01,157912\n2024-10-01,157945\n2024-11-01,158079\n2024-12-01,158316\n2025-01-01,158268\n2025-02-01,158310\n2025-03-01,158377\n2025-04-01,158485\n2025-05-01,158498\n2025-06-01,158478\n2025-07-01,158542\n2025-08-01,158472\n2025-09-01,158548\n2025-10-01,158408\n2025-11-01,158449\n2025-12-01,158432\n2026-01-01,158592\n2026-02-01,158436\n2026-03-01,158650\n2026-04-01,158798\n2026-05-01,158861\n2026-06-01,158881\n2026-07-01,158858\n", "sp500.csv": "observation_date,SP500\n2025-08-20,6395.78\n2025-08-21,6370.17\n2025-08-22,6466.91\n2025-08-25,6439.32\n2025-08-26,6465.94\n2025-08-27,6481.40\n2025-08-28,6501.86\n2025-08-29,6460.26\n2025-09-01,\n2025-09-02,6415.54\n2025-09-03,6448.26\n2025-09-04,6502.08\n2025-09-05,6481.50\n2025-09-08,6495.15\n2025-09-09,6512.61\n2025-09-10,6532.04\n2025-09-11,6587.47\n2025-09-12,6584.29\n2025-09-15,6615.28\n2025-09-16,6606.76\n2025-09-17,6600.35\n2025-09-18,6631.96\n2025-09-19,6664.36\n2025-09-22,6693.75\n2025-09-23,6656.92\n2025-09-24,6637.97\n2025-09-25,6604.72\n2025-09-26,6643.70\n2025-09-29,6661.21\n2025-09-30,6688.46\n2025-10-01,6711.20\n2025-10-02,6715.35\n2025-10-03,6715.79\n2025-10-06,6740.28\n2025-10-07,6714.59\n2025-10-08,6753.72\n2025-10-09,6735.11\n2025-10-10,6552.51\n2025-10-13,6654.72\n2025-10-14,6644.31\n2025-10-15,6671.06\n2025-10-16,6629.07\n2025-10-17,6664.01\n2025-10-20,6735.13\n2025-10-21,6735.35\n2025-10-22,6699.40\n2025-10-23,6738.44\n2025-10-24,6791.69\n2025-10-27,6875.16\n2025-10-28,6890.89\n2025-10-29,6890.59\n2025-10-30,6822.34\n2025-10-31,6840.20\n2025-11-03,6851.97\n2025-11-04,6771.55\n2025-11-05,6796.29\n2025-11-06,6720.32\n2025-11-07,6728.80\n2025-11-10,6832.43\n2025-11-11,6846.61\n2025-11-12,6850.92\n2025-11-13,6737.49\n2025-11-14,6734.11\n2025-11-17,6672.41\n2025-11-18,6617.32\n2025-11-19,6642.16\n2025-11-20,6538.76\n2025-11-21,6602.99\n2025-11-24,6705.12\n2025-11-25,6765.88\n2025-11-26,6812.61\n2025-11-27,\n2025-11-28,6849.09\n2025-12-01,6812.63\n2025-12-02,6829.37\n2025-12-03,6849.72\n2025-12-04,6857.12\n2025-12-05,6870.40\n2025-12-08,6846.51\n2025-12-09,6840.51\n2025-12-10,6886.68\n2025-12-11,6901.00\n2025-12-12,6827.41\n2025-12-15,6816.51\n2025-12-16,6800.26\n2025-12-17,6721.43\n2025-12-18,6774.76\n2025-12-19,6834.50\n2025-12-22,6878.49\n2025-12-23,6909.79\n2025-12-24,6932.05\n2025-12-25,\n2025-12-26,6929.94\n2025-12-29,6905.74\n2025-12-30,6896.24\n2025-12-31,6845.50\n2026-01-01,\n2026-01-02,6858.47\n2026-01-05,6902.05\n2026-01-06,6944.82\n2026-01-07,6920.93\n2026-01-08,6921.46\n2026-01-09,6966.28\n2026-01-12,6977.27\n2026-01-13,6963.74\n2026-01-14,6926.60\n2026-01-15,6944.47\n2026-01-16,6940.01\n2026-01-19,\n2026-01-20,6796.86\n2026-01-21,6875.62\n2026-01-22,6913.35\n2026-01-23,6915.61\n2026-01-26,6950.23\n2026-01-27,6978.60\n2026-01-28,6978.03\n2026-01-29,6969.01\n2026-01-30,6939.03\n2026-02-02,6976.44\n2026-02-03,6917.81\n2026-02-04,6882.72\n2026-02-05,6798.40\n2026-02-06,6932.30\n2026-02-09,6964.82\n2026-02-10,6941.81\n2026-02-11,6941.47\n2026-02-12,6832.76\n2026-02-13,6836.17\n2026-02-16,\n2026-02-17,6843.22\n2026-02-18,6881.31\n2026-02-19,6861.89\n2026-02-20,6909.51\n2026-02-23,6837.75\n2026-02-24,6890.07\n2026-02-25,6946.13\n2026-02-26,6908.86\n2026-02-27,6878.88\n2026-03-02,6881.62\n2026-03-03,6816.63\n2026-03-04,6869.50\n2026-03-05,6830.71\n2026-03-06,6740.02\n2026-03-09,6795.99\n2026-03-10,6781.48\n2026-03-11,6775.80\n2026-03-12,6672.62\n2026-03-13,6632.19\n2026-03-16,6699.38\n2026-03-17,6716.09\n2026-03-18,6624.70\n2026-03-19,6606.49\n2026-03-20,6506.48\n2026-03-23,6581.00\n2026-03-24,6556.37\n2026-03-25,6591.90\n2026-03-26,6477.16\n2026-03-27,6368.85\n2026-03-30,6343.72\n2026-03-31,6528.52\n2026-04-01,6575.32\n2026-04-02,6582.69\n2026-04-03,\n2026-04-06,6611.83\n2026-04-07,6616.85\n2026-04-08,6782.81\n2026-04-09,6824.66\n2026-04-10,6816.89\n2026-04-13,6886.24\n2026-04-14,6967.38\n2026-04-15,7022.95\n2026-04-16,7041.28\n2026-04-17,7126.06\n2026-04-20,7109.14\n2026-04-21,7064.01\n2026-04-22,7137.90\n2026-04-23,7108.40\n2026-04-24,7165.08\n2026-04-27,7173.91\n2026-04-28,7138.80\n2026-04-29,7135.95\n2026-04-30,7209.01\n2026-05-01,7230.12\n2026-05-04,7200.75\n2026-05-05,7259.22\n2026-05-06,7365.12\n2026-05-07,7337.11\n2026-05-08,7398.93\n2026-05-11,7412.84\n2026-05-12,7400.96\n2026-05-13,7444.25\n2026-05-14,7501.24\n2026-05-15,7408.50\n2026-05-18,7403.05\n2026-05-19,7353.61\n2026-05-20,7432.97\n2026-05-21,7445.72\n2026-05-22,7473.47\n2026-05-25,\n2026-05-26,7519.12\n2026-05-27,7520.36\n2026-05-28,7563.63\n2026-05-29,7580.06\n2026-06-01,7599.96\n2026-06-02,7609.78\n2026-06-03,7553.68\n2026-06-04,7584.31\n2026-06-05,7383.74\n2026-06-08,7405.73\n2026-06-09,7386.65\n2026-06-10,7266.99\n2026-06-11,7394.30\n2026-06-12,7431.46\n2026-06-15,7554.29\n2026-06-16,7511.35\n2026-06-17,7420.10\n2026-06-18,7500.58\n2026-06-19,\n2026-06-22,7472.79\n2026-06-23,7365.46\n2026-06-24,7358.22\n2026-06-25,7357.49\n2026-06-26,7354.02\n2026-06-29,7440.43\n2026-06-30,7499.36\n2026-07-01,7483.23\n2026-07-02,7483.24\n2026-07-03,\n2026-07-06,7537.43\n2026-07-07,7503.85\n2026-07-08,7482.71\n2026-07-09,7543.64\n2026-07-10,7575.39\n2026-07-13,7515.34\n2026-07-14,7543.59\n2026-07-15,7572.40\n2026-07-16,7533.77\n2026-07-17,7457.69\n2026-07-20,7443.28\n2026-07-21,7509.20\n2026-07-22,7498.96\n2026-07-23,7408.30\n2026-07-24,7411.98\n2026-07-27,7413.18\n2026-07-28,7428.78\n2026-07-29,7316.15\n2026-07-30,7437.63\n2026-07-31,7489.72\n2026-08-03,7600.50\n2026-08-04,7736.52\n2026-08-05,7723.55\n2026-08-06,7709.96\n2026-08-07,7757.64\n2026-08-10,7753.11\n2026-08-11,7728.20\n2026-08-12,7748.50\n2026-08-13,7798.99\n2026-08-14,7785.76\n2026-08-17,7745.06\n2026-08-18,7691.76\n2026-08-19,7707.98\n2026-08-20,7641.16\n2026-08-21,7674.37\n2026-08-24,7652.86\n2026-08-25,7677.28\n2026-08-26,7675.70\n2026-08-27,7730.99\n", "us30y.csv": "observation_date,DGS30\n2025-08-20,4.89\n2025-08-21,4.92\n2025-08-22,4.88\n2025-08-25,4.89\n2025-08-26,4.90\n2025-08-27,4.91\n2025-08-28,4.88\n2025-08-29,4.92\n2025-09-01,\n2025-09-02,4.97\n2025-09-03,4.90\n2025-09-04,4.86\n2025-09-05,4.78\n2025-09-08,4.69\n2025-09-09,4.72\n2025-09-10,4.69\n2025-09-11,4.65\n2025-09-12,4.68\n2025-09-15,4.66\n2025-09-16,4.65\n2025-09-17,4.66\n2025-09-18,4.72\n2025-09-19,4.75\n2025-09-22,4.77\n2025-09-23,4.73\n2025-09-24,4.76\n2025-09-25,4.75\n2025-09-26,4.77\n2025-09-29,4.71\n2025-09-30,4.73\n2025-10-01,4.72\n2025-10-02,4.69\n2025-10-03,4.71\n2025-10-06,4.76\n2025-10-07,4.73\n2025-10-08,4.72\n2025-10-09,4.72\n2025-10-10,4.63\n2025-10-13,\n2025-10-14,4.62\n2025-10-15,4.64\n2025-10-16,4.58\n2025-10-17,4.60\n2025-10-20,4.58\n2025-10-21,4.55\n2025-10-22,4.54\n2025-10-23,4.58\n2025-10-24,4.59\n2025-10-27,4.57\n2025-10-28,4.55\n2025-10-29,4.61\n2025-10-30,4.65\n2025-10-31,4.67\n2025-11-03,4.69\n2025-11-04,4.67\n2025-11-05,4.74\n2025-11-06,4.69\n2025-11-07,4.70\n2025-11-10,4.71\n2025-11-11,\n2025-11-12,4.67\n2025-11-13,4.70\n2025-11-14,4.74\n2025-11-17,4.73\n2025-11-18,4.74\n2025-11-19,4.75\n2025-11-20,4.73\n2025-11-21,4.71\n2025-11-24,4.68\n2025-11-25,4.67\n2025-11-26,4.64\n2025-11-27,\n2025-11-28,4.67\n2025-12-01,4.74\n2025-12-02,4.74\n2025-12-03,4.73\n2025-12-04,4.76\n2025-12-05,4.79\n2025-12-08,4.81\n2025-12-09,4.80\n2025-12-10,4.78\n2025-12-11,4.79\n2025-12-12,4.85\n2025-12-15,4.84\n2025-12-16,4.82\n2025-12-17,4.83\n2025-12-18,4.80\n2025-12-19,4.82\n2025-12-22,4.84\n2025-12-23,4.83\n2025-12-24,4.79\n2025-12-25,\n2025-12-26,4.81\n2025-12-29,4.80\n2025-12-30,4.81\n2025-12-31,4.84\n2026-01-01,\n2026-01-02,4.86\n2026-01-05,4.85\n2026-01-06,4.86\n2026-01-07,4.82\n2026-01-08,4.85\n2026-01-09,4.82\n2026-01-12,4.83\n2026-01-13,4.83\n2026-01-14,4.79\n2026-01-15,4.79\n2026-01-16,4.83\n2026-01-19,\n2026-01-20,4.91\n2026-01-21,4.87\n2026-01-22,4.84\n2026-01-23,4.82\n2026-01-26,4.80\n2026-01-27,4.83\n2026-01-28,4.85\n2026-01-29,4.85\n2026-01-30,4.87\n2026-02-02,4.90\n2026-02-03,4.90\n2026-02-04,4.91\n2026-02-05,4.85\n2026-02-06,4.85\n2026-02-09,4.85\n2026-02-10,4.78\n2026-02-11,4.82\n2026-02-12,4.72\n2026-02-13,4.69\n2026-02-16,\n2026-02-17,4.68\n2026-02-18,4.71\n2026-02-19,4.70\n2026-02-20,4.72\n2026-02-23,4.70\n2026-02-24,4.70\n2026-02-25,4.70\n2026-02-26,4.67\n2026-02-27,4.64\n2026-03-02,4.70\n2026-03-03,4.70\n2026-03-04,4.72\n2026-03-05,4.74\n2026-03-06,4.77\n2026-03-09,4.72\n2026-03-10,4.78\n2026-03-11,4.86\n2026-03-12,4.88\n2026-03-13,4.90\n2026-03-16,4.86\n2026-03-17,4.85\n2026-03-18,4.88\n2026-03-19,4.83\n2026-03-20,4.96\n2026-03-23,4.91\n2026-03-24,4.94\n2026-03-25,4.89\n2026-03-26,4.93\n2026-03-27,4.98\n2026-03-30,4.91\n2026-03-31,4.88\n2026-04-01,4.91\n2026-04-02,4.88\n2026-04-03,4.91\n2026-04-06,4.89\n2026-04-07,4.90\n2026-04-08,4.89\n2026-04-09,4.90\n2026-04-10,4.91\n2026-04-13,4.90\n2026-04-14,4.87\n2026-04-15,4.89\n2026-04-16,4.93\n2026-04-17,4.88\n2026-04-20,4.88\n2026-04-21,4.89\n2026-04-22,4.90\n2026-04-23,4.92\n2026-04-24,4.91\n2026-04-27,4.94\n2026-04-28,4.94\n2026-04-29,4.98\n2026-04-30,4.98\n2026-05-01,4.97\n2026-05-04,5.02\n2026-05-05,4.98\n2026-05-06,4.94\n2026-05-07,4.97\n2026-05-08,4.95\n2026-05-11,4.98\n2026-05-12,5.03\n2026-05-13,5.03\n2026-05-14,5.02\n2026-05-15,5.12\n2026-05-18,5.14\n2026-05-19,5.18\n2026-05-20,5.11\n2026-05-21,5.10\n2026-05-22,5.07\n2026-05-25,\n2026-05-26,5.03\n2026-05-27,5.01\n2026-05-28,4.98\n2026-05-29,4.99\n2026-06-01,4.99\n2026-06-02,4.97\n2026-06-03,4.99\n2026-06-04,4.97\n2026-06-05,5.01\n2026-06-08,5.03\n2026-06-09,5.01\n2026-06-10,5.03\n2026-06-11,4.95\n2026-06-12,4.97\n2026-06-15,4.97\n2026-06-16,4.93\n2026-06-17,4.93\n2026-06-18,4.90\n2026-06-19,\n2026-06-22,4.95\n2026-06-23,4.94\n2026-06-24,4.86\n2026-06-25,4.86\n2026-06-26,4.87\n2026-06-29,4.86\n2026-06-30,4.91\n2026-07-01,4.97\n2026-07-02,4.98\n2026-07-03,\n2026-07-06,4.99\n2026-07-07,5.05\n2026-07-08,5.06\n2026-07-09,5.05\n2026-07-10,5.06\n2026-07-13,5.10\n2026-07-14,5.08\n2026-07-15,5.08\n2026-07-16,5.09\n2026-07-17,5.06\n2026-07-20,5.11\n2026-07-21,5.13\n2026-07-22,5.15\n2026-07-23,5.17\n2026-07-24,5.16\n2026-07-27,5.12\n2026-07-28,5.09\n2026-07-29,5.20\n2026-07-30,5.21\n2026-07-31,5.27\n2026-08-03,5.23\n2026-08-04,5.18\n2026-08-05,5.17\n2026-08-06,5.22\n2026-08-07,5.19\n2026-08-10,5.25\n2026-08-11,5.24\n2026-08-12,5.24\n2026-08-13,5.21\n2026-08-14,5.25\n2026-08-17,5.31\n2026-08-18,5.28\n2026-08-19,5.19\n2026-08-20,5.23\n2026-08-21,5.27\n2026-08-24,5.23\n2026-08-25,5.17\n2026-08-26,5.18\n", "xau_1y.csv": "日期,开盘(美元/盎司),最高,最低,收盘,成交量\n2025-08-27,3393.390,3398.650,3373.760,3397.180,0\n2025-08-28,3398.650,3423.020,3384.520,3416.880,0\n2025-08-29,3417.720,3453.820,3404.270,3448.010,0\n2025-09-01,3445.730,3489.780,3436.990,3476.080,0\n2025-09-02,3475.940,3539.880,3470.280,3533.400,0\n2025-09-03,3531.850,3578.290,3526.260,3558.930,0\n2025-09-04,3560.580,3564.120,3511.440,3545.630,0\n2025-09-05,3545.910,3599.910,3539.960,3587.300,0\n2025-09-08,3582.630,3646.230,3579.530,3635.680,0\n2025-09-09,3635.670,3674.360,3625.980,3626.130,0\n2025-09-10,3623.180,3657.400,3620.390,3640.440,0\n2025-09-11,3642.280,3649.040,3613.550,3633.810,0\n2025-09-12,3633.880,3656.490,3630.370,3643.210,0\n2025-09-15,3644.360,3685.470,3626.580,3678.730,0\n2025-09-16,3680.180,3702.930,3674.680,3689.600,0\n2025-09-17,3689.220,3707.350,3646.100,3659.790,0\n2025-09-18,3659.540,3672.860,3627.880,3644.270,0\n2025-09-19,3643.330,3685.120,3632.190,3684.930,0\n2025-09-22,3685.140,3748.620,3683.650,3746.710,0\n2025-09-23,3745.220,3790.970,3736.700,3763.930,0\n2025-09-24,3765.850,3779.070,3717.460,3735.880,0\n2025-09-25,3737.380,3761.460,3722.080,3749.180,0\n2025-09-26,3750.830,3783.610,3734.400,3761.170,0\n2025-09-29,3758.190,3834.030,3757.790,3833.730,0\n2025-09-30,3832.530,3871.610,3793.070,3858.290,0\n2025-10-01,3858.670,3895.280,3853.310,3865.490,0\n2025-10-02,3868.350,3896.600,3819.230,3856.390,0\n2025-10-03,3855.710,3891.460,3837.970,3886.470,0\n2025-10-06,3888.110,3969.940,3884.190,3960.850,0\n2025-10-07,3958.710,3990.900,3940.810,3984.340,0\n2025-10-08,3984.890,4059.070,3983.020,4041.450,0\n2025-10-09,4041.690,4057.770,3945.030,3976.050,0\n2025-10-10,3976.230,4022.400,3947.030,4018.430,0\n2025-10-13,4004.020,4116.870,4003.990,4110.450,0\n2025-10-14,4109.370,4179.470,4090.490,4142.010,0\n2025-10-15,4144.300,4218.140,4140.650,4207.960,0\n2025-10-16,4208.380,4330.500,4199.730,4325.850,0\n2025-10-17,4328.900,4379.380,4186.450,4247.170,0\n2025-10-20,4247.680,4381.290,4219.100,4356.260,0\n2025-10-21,4353.690,4375.140,4083.150,4124.840,0\n2025-10-22,4126.020,4161.200,4004.460,4098.290,0\n2025-10-23,4097.120,4154.540,4066.320,4125.810,0\n2025-10-24,4129.200,4144.310,4044.820,4112.820,0\n2025-10-27,4074.340,4108.920,3971.380,3981.100,0\n2025-10-28,3986.250,4019.630,3886.510,3952.540,0\n2025-10-29,3955.330,4029.900,3916.560,3930.100,0\n2025-10-30,3922.240,4026.880,3915.350,4024.180,0\n2025-10-31,4021.440,4046.130,3972.360,4002.940,0\n2025-11-03,3988.320,4030.440,3962.600,4001.160,0\n2025-11-04,4001.230,4005.640,3928.800,3931.780,0\n2025-11-05,3933.350,3990.240,3929.940,3978.950,0\n2025-11-06,3980.090,4019.440,3964.550,3976.850,0\n2025-11-07,3977.250,4027.280,3974.440,4001.270,0\n2025-11-10,3998.850,4116.380,3997.720,4115.710,0\n2025-11-11,4116.200,4148.910,4097.050,4126.620,0\n2025-11-12,4127.570,4211.650,4098.770,4195.460,0\n2025-11-13,4196.300,4244.960,4145.250,4171.220,0\n2025-11-14,4171.020,4211.140,4032.100,4084.800,0\n2025-11-17,4081.750,4106.570,4006.800,4045.500,0\n2025-11-18,4050.140,4082.160,3997.940,4067.440,0\n2025-11-19,4067.830,4132.660,4055.530,4077.740,0\n2025-11-20,4079.760,4110.030,4038.820,4077.170,0\n2025-11-21,4076.170,4101.000,4022.630,4065.770,0\n2025-11-24,4069.600,4139.820,4040.120,4134.540,0\n2025-11-25,4133.880,4159.150,4109.540,4130.620,0\n2025-11-26,4133.760,4173.310,4129.720,4163.780,0\n2025-11-27,4164.970,4168.580,4142.580,4157.220,0\n2025-11-28,4158.460,4226.560,4153.980,4219.200,0\n2025-12-01,4222.190,4264.430,4205.640,4232.080,0\n2025-12-02,4232.320,4235.860,4163.800,4205.570,0\n2025-12-03,4208.190,4241.400,4194.510,4202.930,0\n2025-12-04,4204.500,4218.980,4174.930,4208.600,0\n2025-12-05,4208.460,4259.120,4191.920,4196.030,0\n2025-12-08,4197.540,4218.910,4176.290,4190.480,0\n2025-12-09,4190.100,4221.180,4170.060,4208.090,0\n2025-12-10,4208.240,4238.590,4182.040,4228.470,0\n2025-12-11,4228.360,4285.750,4204.240,4279.620,0\n2025-12-12,4281.310,4353.360,4257.720,4300.120,0\n2025-12-15,4299.410,4349.930,4285.290,4304.910,0\n2025-12-16,4306.390,4334.900,4271.660,4302.060,0\n2025-12-17,4302.640,4348.700,4301.540,4338.090,0\n2025-12-18,4339.990,4374.410,4308.710,4332.610,0\n2025-12-19,4332.690,4356.350,4309.260,4338.220,0\n2025-12-22,4341.920,4448.950,4337.980,4443.560,0\n2025-12-23,4446.030,4499.690,4430.620,4484.540,0\n2025-12-24,4487.330,4525.700,4448.320,4479.420,0\n2025-12-26,4483.640,4549.690,4473.510,4531.870,0\n2025-12-29,4537.350,4549.440,4303.360,4331.780,0\n2025-12-30,4336.040,4404.130,4323.360,4338.540,0\n2025-12-31,4342.920,4373.070,4274.440,4318.850,0\n2026-01-02,4331.500,4402.210,4309.970,4332.850,0\n2026-01-05,4354.520,4455.590,4345.260,4448.820,0\n2026-01-06,4449.530,4497.190,4428.020,4494.580,0\n2026-01-07,4497.250,4500.270,4423.490,4456.320,0\n2026-01-08,4460.200,4479.480,4407.730,4477.280,0\n2026-01-09,4480.030,4516.910,4452.910,4509.360,0\n2026-01-12,4518.770,4630.080,4513.130,4597.210,0\n2026-01-13,4605.040,4634.250,4569.800,4586.450,0\n2026-01-14,4589.050,4642.770,4588.450,4626.410,0\n2026-01-15,4630.800,4632.390,4581.100,4615.730,0\n2026-01-16,4618.570,4620.740,4536.710,4595.530,0\n2026-01-19,4624.540,4690.460,4624.540,4670.790,0\n2026-01-20,4672.720,4766.150,4659.530,4763.360,0\n2026-01-21,4765.830,4888.170,4755.930,4831.010,0\n2026-01-22,4832.910,4940.590,4772.390,4936.140,0\n2026-01-23,4941.770,4989.730,4899.640,4986.020,0\n2026-01-26,5006.310,5110.860,4989.980,5008.060,0\n2026-01-27,5015.890,5190.200,5013.840,5181.040,0\n2026-01-28,5179.990,5418.670,5157.320,5414.840,0\n2026-01-29,5422.620,5596.330,5104.980,5377.140,0\n2026-01-30,5400.250,5450.950,4686.120,4860.390,0\n2026-02-02,4780.050,4884.440,4401.580,4656.460,0\n2026-02-03,4675.380,4993.270,4675.380,4945.230,0\n2026-02-04,4965.110,5091.630,4852.880,4963.590,0\n2026-02-05,4980.200,5023.520,4759.710,4774.480,0\n2026-02-06,4761.660,4970.760,4655.310,4959.540,0\n2026-02-09,4988.480,5086.040,4965.010,5059.140,0\n2026-02-10,5069.220,5078.220,4986.730,5023.970,0\n2026-02-11,5027.760,5118.800,5020.070,5083.510,0\n2026-02-12,5096.060,5099.260,4877.750,4920.810,0\n2026-02-13,4887.730,5046.080,4887.730,5038.520,0\n2026-02-16,5034.960,5034.960,4965.060,4992.940,0\n2026-02-17,4993.240,4999.930,4841.310,4878.570,0\n2026-02-18,4865.250,5010.690,4853.810,4976.090,0\n2026-02-19,4976.820,5022.150,4960.520,4995.830,0\n2026-02-20,5003.610,5099.730,4981.460,5098.850,0\n2026-02-23,5108.750,5237.790,5107.120,5227.430,0\n2026-02-24,5231.580,5249.290,5093.970,5141.430,0\n2026-02-25,5141.160,5217.630,5122.020,5163.860,0\n2026-02-26,5164.370,5205.260,5129.920,5183.880,0\n2026-02-27,5188.030,5280.700,5166.680,5279.950,0\n2026-03-02,5351.600,5419.010,5260.810,5321.970,0\n2026-03-03,5334.620,5379.740,4996.330,5088.160,0\n2026-03-04,5109.840,5206.090,5084.200,5140.990,0\n2026-03-05,5148.810,5194.860,5051.300,5080.880,0\n2026-03-06,5083.760,5174.610,5062.980,5171.060,0\n2026-03-09,5190.380,5192.040,5014.770,5136.600,0\n2026-03-10,5149.590,5238.610,5117.490,5192.670,0\n2026-03-11,5190.100,5223.020,5149.640,5176.080,0\n2026-03-12,5182.090,5191.690,5054.860,5079.250,0\n2026-03-13,5075.980,5128.410,5009.590,5021.270,0\n2026-03-16,5011.460,5037.860,4967.440,5006.190,0\n2026-03-17,5011.260,5044.260,4973.540,5005.450,0\n2026-03-18,5005.510,5016.190,4807.020,4818.830,0\n2026-03-19,4829.310,4867.020,4503.180,4650.330,0\n2026-03-20,4658.600,4735.730,4477.600,4496.980,0\n2026-03-23,4486.680,4535.970,4099.020,4406.640,0\n2026-03-24,4419.970,4483.900,4305.940,4474.260,0\n2026-03-25,4475.660,4602.100,4455.980,4506.490,0\n2026-03-26,4512.890,4543.770,4351.000,4377.850,0\n2026-03-27,4378.840,4555.030,4375.850,4495.170,0\n2026-03-30,4469.500,4580.480,4420.180,4510.950,0\n2026-03-31,4513.890,4687.060,4482.710,4667.050,0\n2026-04-01,4674.380,4792.710,4661.720,4758.100,0\n2026-04-02,4758.920,4800.300,4554.040,4675.990,0\n2026-04-06,4652.280,4706.530,4600.790,4650.360,0\n2026-04-07,4650.440,4718.460,4607.500,4705.480,0\n2026-04-08,4729.060,4856.930,4699.790,4719.180,0\n2026-04-09,4725.410,4800.990,4698.700,4765.380,0\n2026-04-10,4771.910,4794.950,4730.870,4749.050,0\n2026-04-13,4639.650,4750.010,4639.650,4740.150,0\n2026-04-14,4747.830,4846.170,4745.750,4841.560,0\n2026-04-15,4842.850,4871.280,4786.910,4790.510,0\n2026-04-16,4795.960,4838.150,4773.090,4790.660,0\n2026-04-17,4791.600,4889.240,4767.630,4834.020,0\n2026-04-20,4770.800,4827.490,4737.040,4820.630,0\n2026-04-21,4824.560,4832.940,4668.540,4719.890,0\n2026-04-22,4723.700,4772.150,4715.600,4740.050,0\n2026-04-23,4744.490,4753.240,4664.280,4694.070,0\n2026-04-24,4701.260,4740.200,4657.970,4708.050,0\n2026-04-27,4701.300,4729.950,4667.160,4681.670,0\n2026-04-28,4686.040,4701.190,4554.910,4597.090,0\n2026-04-29,4598.600,4609.910,4510.210,4543.410,0\n2026-04-30,4544.370,4646.740,4539.270,4621.610,0\n2026-05-01,4628.770,4660.190,4560.260,4616.140,0\n2026-05-04,4623.870,4629.280,4500.940,4523.670,0\n2026-05-05,4523.430,4586.490,4513.590,4557.270,0\n2026-05-06,4558.580,4722.590,4546.270,4690.810,0\n2026-05-07,4693.850,4764.670,4685.200,4687.050,0\n2026-05-08,4679.830,4749.350,4678.760,4715.180,0\n2026-05-11,4690.870,4748.340,4648.140,4734.630,0\n2026-05-12,4738.120,4773.370,4638.400,4715.070,0\n2026-05-13,4716.020,4726.770,4669.360,4688.710,0\n2026-05-14,4692.350,4718.500,4644.320,4652.270,0\n2026-05-15,4654.090,4665.200,4511.840,4538.180,0\n2026-05-18,4536.700,4584.140,4480.520,4566.020,0\n2026-05-19,4569.650,4589.060,4464.850,4481.830,0\n2026-05-20,4480.940,4552.480,4453.600,4543.530,0\n2026-05-21,4547.150,4570.590,4488.910,4542.990,0\n2026-05-22,4543.250,4545.930,4492.100,4506.820,0\n2026-05-25,4535.440,4579.790,4534.170,4570.690,0\n2026-05-26,4570.610,4580.110,4482.630,4507.390,0\n2026-05-27,4537.960,4538.890,4401.480,4456.100,0\n2026-05-28,4462.220,4516.450,4366.520,4495.590,0\n2026-05-29,4498.190,4595.010,4489.010,4539.780,0\n2026-06-01,4523.250,4545.930,4447.710,4484.650,0\n2026-06-02,4487.310,4541.410,4462.950,4487.740,0\n2026-06-03,4490.740,4496.600,4426.400,4434.250,0\n2026-06-04,4438.910,4515.170,4424.010,4475.180,0\n2026-06-05,4475.480,4481.390,4311.740,4327.460,0\n2026-06-08,4331.250,4353.290,4268.420,4329.670,0\n2026-06-09,4332.180,4363.230,4236.750,4259.290,0\n2026-06-10,4255.240,4257.350,4067.040,4071.150,0\n2026-06-11,4072.360,4219.870,4023.850,4210.580,0\n2026-06-12,4216.940,4246.400,4170.140,4216.830,0\n2026-06-15,4266.210,4369.070,4261.530,4309.050,0\n2026-06-16,4311.340,4354.770,4305.890,4331.050,0\n2026-06-17,4333.880,4382.040,4219.000,4257.600,0\n2026-06-18,4257.240,4329.700,4201.440,4208.920,0\n2026-06-19,4208.440,4213.280,4121.790,4155.440,0\n2026-06-22,4146.470,4220.710,4136.480,4191.180,0\n2026-06-23,4192.200,4198.170,4090.850,4110.050,0\n2026-06-24,4111.690,4114.870,3959.040,3998.950,0\n2026-06-25,4003.970,4044.150,3963.640,4026.510,0\n2026-06-26,4029.200,4095.870,3983.020,4081.020,0\n2026-06-29,4081.810,4085.960,4000.430,4016.450,0\n2026-06-30,4018.410,4063.220,3943.650,4007.280,0\n2026-07-01,4012.640,4114.770,3960.100,4030.940,0\n2026-07-02,4035.190,4143.750,4030.770,4123.610,0\n2026-07-03,4125.360,4195.270,4121.110,4174.770,0\n2026-07-06,4177.860,4202.090,4128.500,4164.750,0\n2026-07-07,4164.620,4180.260,4092.250,4105.700,0\n2026-07-08,4102.030,4133.800,4021.700,4077.190,0\n2026-07-09,4077.140,4137.900,4054.210,4123.480,0\n2026-07-10,4124.730,4134.710,4072.850,4119.010,0\n2026-07-13,4095.420,4103.430,3986.510,4000.800,0\n2026-07-14,4004.300,4102.820,3983.560,4052.640,0\n2026-07-15,4052.440,4080.670,4017.330,4060.280,0\n2026-07-16,4065.340,4065.740,3969.250,3976.260,0\n2026-07-17,3976.870,4023.620,3959.560,4016.360,0\n2026-07-20,4006.040,4040.520,3982.830,4007.320,0\n2026-07-21,4009.670,4086.710,3999.680,4077.510,0\n2026-07-22,4079.270,4165.920,4076.770,4129.790,0\n2026-07-23,4131.720,4140.790,4040.150,4049.260,0\n2026-07-24,4050.430,4081.950,4022.010,4053.290,0\n2026-07-27,4093.780,4115.890,4065.310,4076.460,0\n2026-07-28,4079.150,4082.020,4011.540,4028.420,0\n2026-07-29,4028.970,4116.280,3995.870,4066.130,0\n2026-07-30,4064.040,4120.080,4028.420,4103.420,0\n2026-07-31,4103.930,4111.650,4021.080,4046.420,0\n2026-08-03,4082.280,4082.280,4019.050,4055.340,0\n2026-08-04,4053.790,4106.240,4042.510,4077.210,0\n2026-08-05,4077.960,4267.550,4065.420,4246.790,0\n2026-08-06,4247.620,4303.900,4223.290,4240.550,0\n2026-08-07,4240.670,4371.530,4229.700,4341.120,0\n2026-08-10,4346.540,4395.110,4313.270,4390.250,0\n2026-08-11,4389.630,4434.950,4356.680,4368.000,0\n2026-08-12,4371.820,4441.070,4362.460,4408.420,0\n2026-08-13,4409.220,4449.590,4343.790,4350.880,0\n2026-08-14,4353.380,4396.820,4311.030,4375.800,0\n2026-08-17,4379.550,4428.790,4367.100,4416.500,0\n2026-08-18,4417.610,4435.950,4329.070,4334.170,0\n2026-08-19,4336.130,4524.080,4324.660,4522.780,0\n2026-08-20,4523.580,4540.810,4450.620,4519.140,0\n2026-08-21,4517.980,4632.100,4508.750,4604.530,0\n2026-08-24,4614.920,4680.650,4594.880,4651.590,0\n2026-08-25,4654.190,4696.590,4605.330,4658.650,0\n2026-08-26,4657.230,4673.660,4583.100,4594.490,0\n2026-08-27,4596.120,4642.900,4566.090,4601.580,0\n2026-08-28,4603.230,4613.310,4571.630,4605.660,0\n", "cb_gold.csv": "季度,季度净购金(吨)\n2022Q1,82.7\n2022Q2,158.6\n2022Q3,459.0\n2022Q4,381.6\n2023Q1,228.4\n2023Q2,102.9\n2023Q3,337.1\n2023Q4,229.4\n2024Q1,290.0\n2024Q2,235.8\n2024Q3,186.2\n2024Q4,333.0\n2025Q1,243.7\n2025Q2,170.7\n2025Q3,218.0\n2025Q4,230.0\n2026Q1,57.0\n2026Q2,289.0\n\n年份,年度净购金(吨)\n2022,1081.9\n2023,1050.8\n2024,1044.6\n2025,863.3"}, "notes": [{"asset": "伦敦金 XAUUSD", "dir": "看多", "view": "央行购金连续两个季度回升（2026Q1 57t → Q2 289t），叠加实际利率见顶回落，中期上行结构未破", "kp": "支撑 4350-4400；上方 4650/4810 两档压力", "ev": "9月FOMC点阵图；美国非农就业连续走弱", "nx": "2026-09-26", "t": "2026-09-18 21:40"}, {"asset": "美元指数 DXY", "dir": "中性", "view": "98.5-100.5 区间震荡，等待非农与美联储指引选择方向；跌破 98 则利多黄金", "kp": "98.5 支撑 / 100.5 压力", "ev": "9月非农数据（10月首个周五）", "nx": "2026-10-02", "t": "2026-09-15 09:12"}, {"asset": "30年期美债收益率", "dir": "看空", "view": "收益率 5.2% 上方进入高波动区，长端利率若回落将直接压低持有黄金的机会成本", "kp": "5.0 强支撑 / 5.3 压力", "ev": "美债拍卖规模；FOMC 缩表节奏", "nx": "2026-09-30", "t": "2026-09-12 15:05"}], "note_seed_ok": true, "source": "参考页 GOLD_WB 静态数据 + 新浪财经实时行情（hf_XAU/DINIW）；伦敦金日线/非农/央行购金为参考页历史序列。★研判笔记请在工作台「黄金研究 → 我的研判」中维护，重跑本脚本会用种子覆盖——勿手改。"};
 window.GOLD_DB_IDS = window.GOLD_DB_IDS || { quotes: 'mKEDBhjGMrENE7f8oyMSUE', xau: 'JVFdzyS7WeCMaWIsE6Jx2Y', nonfarm: 'S8kkYIUC3OR28aJeZ14Jn0', cb: 'pyyrPKMSm9W9GrV4dUvaVp', notes: 'prTXbTwzG9dfuk1BuSuRhx' };
@@ -8653,6 +8792,7 @@ gstate.goldXauView = gstate.goldXauView || 'chart';
 gstate.goldNonfarmView = gstate.goldNonfarmView || 'chart';
 gstate.goldCbView = gstate.goldCbView || 'chart';
 gstate.goldNotes = null; /* 合并后的研判列表缓存 */
+gstate.goldLang = gstate.goldLang || ((new URLSearchParams(location.search).get('lang') === 'en') ? 'en' : 'zh');
 
 var GOLD_C = { up: '#dc2626', down: '#059669', gold: '#b8860b', gold2: '#d4a017', blue: '#2563eb', purple: '#a855f7', gray: '#8a94a6' };
 var GOLD_XAU_WIN = { '1m': 20, '3m': 60, '6m': 130, '1y': 260 };
@@ -8677,6 +8817,92 @@ async function loadGoldData() {
   return gstate.gold;
 }
 
+/* ---------------- 中 / 英 翻译（仅作用于 #view-gold 子树） ---------------- */
+var GOLD_TR = {
+  '黄金研究': 'Gold Research', '行情研究': 'Market Research', '我的研判': 'My Research Notes',
+  '四大资产实时行情': 'Four-Asset Live Quotes', '多源交叉验证 · 已标注时点': 'Multi-source cross-check · Timestamped',
+  '伦敦金近一年走势': 'London Gold: Past Year', '每日更新 · 近260个交易日': 'Daily update · ~260 trading days',
+  '美国非农月度变动': 'US Monthly Nonfarm Change', '全球央行季度购金': 'Global Central-Bank Quarterly Gold Purchases',
+  'CSV 数据文件下载': 'CSV Data Downloads', '原始数据 · 点击即下载': 'Raw data · Click to download',
+  '资料库数据中心': 'Library Data Center', '在线数据表 ↔ 工作台展示': 'Online tables ↔ Workbench display',
+  '数据机制': 'Data Model', '数据更新：': 'Updated: ', '伦敦金日线': 'London gold daily', '非农月度': 'Nonfarm monthly',
+  '央行购金': 'Central-bank gold purchases', '个季度': ' quarters', '条': ' rows', '期': ' periods',
+  '多源交叉验证': 'Multi-source cross-check', '已启用': 'Enabled',
+  '数据来源：': 'Data source: ', 'CSV 下载：': 'CSV downloads: ', '免责声明：': 'Disclaimer: ',
+  '图表': 'Chart', '数据表': 'Data table', '1月': '1M', '3月': '3M', '6月': '6M', '1年': '1Y',
+  '来源：': 'Source: ', '时点': 'Time point', '美元/盎司': 'USD/oz',
+  '收盘价': 'Close', 'MA20': 'MA20', 'MA60': 'MA60',
+  '非农净变动(千人)': 'Nonfarm net change (thousand jobs)', '非农净变动': 'Nonfarm net change',
+  '季度净购金(吨)': 'Quarterly net purchases (tons)', '年度累计(吨)': 'Annual cumulative (tons)',
+  '增加': 'increase', '减少': 'decrease',
+  '看多': 'Bullish', '看空': 'Bearish', '中性': 'Neutral',
+  '关注资产': 'Asset', '方向': 'Direction', '观点': 'View', '关键价位': 'Key levels', '关键事件': 'Key event', '下次复盘': 'Next review',
+  '保存到资料库': 'Save to Library', '＋ 新增研判': '+ New Note', '同步状态': 'Sync status',
+  '还没有研判记录。点右上「＋ 新增研判」写下你的第一笔看多 / 看空 / 中性判断。': 'No research notes yet. Click "+ New Note" to record your first bullish/bearish/neutral view.',
+  '记录时间': 'Recorded at', '复盘日期': 'Review date',
+  '请填写观点后再保存': 'Please enter a view before saving',
+  '当前为免登录浏览，已保存到本地（登录后可同步到资料库）': 'Guest mode: saved locally (syncs to Library after login)',
+  '免登录模式：记录保存在本机浏览器': 'Guest mode: notes stored in this browser',
+  '资料库通道可用（登录态）': 'Library channel available (logged in)',
+  '已保存': 'Saved', '已删除': 'Deleted',
+  '记录观点 · 下次复盘': 'Record views · Next review',
+  'GOLD RESEARCH · 贵金属 × 美元 × 美债 × 美股 × 宏观': 'GOLD RESEARCH · Metals × USD × Treasuries × Equities × Macro',
+  '贵金属': 'Precious metals', '美元': 'USD', '美债': 'US Treasuries', '美股': 'US equities', '宏观': 'Macro',
+  '数据来源': 'Data source', '世界黄金协会': 'World Gold Council', '吨': ' tons', '季度': 'quarter', '年度': 'annual',
+  '已与': 'cross-checked with', '新浪财经': 'Sina Finance', 'COMEX 期金主力连续': 'COMEX gold continuous main contract',
+  '伦敦金现货': 'London gold spot', '实时': 'real-time', '日频': 'daily', '收盘': 'close',
+  '（XAU）': '(XAU)', '日线收盘价': 'daily close', '年内高点': 'Year high', '年内低点': 'Year low',
+  '价差': 'spread', '已交叉验证': 'cross-checked',
+  '美国劳工统计局': 'US Bureau of Labor Statistics', 'FRED': 'FRED', 'PAYEMS': 'PAYEMS',
+  '月度净变动': 'monthly net change', '最新一期': 'Latest period',
+  '全球黄金需求趋势报告': 'Global Gold Demand Trends report', '未披露购金估算': 'including estimates for undisclosed purchases',
+  '历史数值随报告修订': 'historical figures revised with reports', '年度净购金': 'Annual net purchases',
+  '资料库数据表': 'Library data tables', '统一数据源': 'single source of truth',
+  'CSV 区': 'CSV area', '离线分析': 'offline analysis', '运行依赖': 'runtime dependency',
+  '黄金行情快照': 'Gold quote snapshots', '近': 'Recent ', '年合计': '-year total',
+  '伦敦金近一年日线（开/高/低/收）': 'London gold past-year daily (O/H/L/C)',
+  '30年期美债收益率': '30Y Treasury yield', '标普500指数': 'S&P 500 Index',
+  '美国非农就业总水平': 'Total US nonfarm employment', '全球央行净购金（季度 + 年度）': 'Global central-bank net gold purchases (quarterly + annual)'
+};
+var GOLD_TR_KEYS = Object.keys(GOLD_TR).sort(function (a, b) { return b.length - a.length; });
+/* 这些节点是“数据”，不做翻译（保留数字/代码/行情原文） */
+var GOLD_TR_SKIP = '.gq-src,.g-src,.g-chart,.g-tbl,.gq-price,.gq-chg,.gq-code,.g-kpi,.g-sync-s,.g-sync-v,.g-csv-meta,.g-csv-fn';
+
+function goldTr(v) {
+  if (gstate.goldLang !== 'en' || v == null) return v;
+  var out = String(v);
+  out = out.replace(/(\d{4})年(\d{1,2})月(\d{1,2})日/g, '$1-$2-$3')
+           .replace(/(\d{4})年(\d{1,2})月/g, '$1-$2')
+           .replace(/(\d{4})年/g, '$1');
+  GOLD_TR_KEYS.forEach(function (k) { out = out.split(k).join(GOLD_TR[k]); });
+  return out;
+}
+function goldTranslate() {
+  if (gstate.goldLang !== 'en') return;
+  var root = document.getElementById('view-gold');
+  if (!root) return;
+  var walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, null, false);
+  var nodes = [];
+  while (walker.nextNode()) nodes.push(walker.currentNode);
+  nodes.forEach(function (n) {
+    var p = n.parentElement; if (!p) return;
+    if (p.closest && p.closest(GOLD_TR_SKIP)) return;
+    var t = goldTr(n.nodeValue);
+    if (t !== n.nodeValue) n.nodeValue = t;
+  });
+  root.querySelectorAll('[placeholder],[title],[aria-label]').forEach(function (el) {
+    ['placeholder', 'title', 'aria-label'].forEach(function (a) {
+      if (el.hasAttribute(a)) { var v = goldTr(el.getAttribute(a)); if (v !== el.getAttribute(a)) el.setAttribute(a, v); }
+    });
+  });
+}
+function goldSetLang(lang) {
+  gstate.goldLang = lang;
+  var btn = document.getElementById('gLangBtn');
+  if (btn) { btn.dataset.lang = lang; btn.textContent = (lang === 'en') ? '中 / EN' : 'EN / 中'; }
+  if (gstate.goldTab === 'notes') renderGoldNotes(); else renderGold();
+}
+
 /* ---------------- 渲染入口 ---------------- */
 function renderGold() {
   loadGoldData().then(function (d) {
@@ -8684,13 +8910,30 @@ function renderGold() {
       var p = $('#gp-home'); if (p) p.innerHTML = '<div class="card"><div class="empty">黄金数据加载中…</div></div>';
       return;
     }
+    goldRenderHero(d);
     renderGoldQuotes(d);
     renderGoldXau(d);
     renderGoldNonfarm(d);
     renderGoldCb(d);
+    goldRenderCbKpi(d);
+    goldRenderCsv(d);
+    goldRenderSync();
+    goldRenderNotesText(d);
+    goldRenderDataMech();
     renderGoldSrcNote(d);
+    if (gstate.goldLang === 'en') goldTranslate();
   });
   renderGoldNotes();
+}
+
+/* ---------------- Hero + 计数 chips + 语言按钮 ---------------- */
+function goldRenderHero(d) {
+  var ga = document.getElementById('genAt'); if (ga) ga.textContent = d.generated_at || '—';
+  var a = document.getElementById('cntXau'); if (a) a.textContent = (d.xau || []).length;
+  var b = document.getElementById('cntNf'); if (b) b.textContent = (d.nonfarm || []).length;
+  var c = document.getElementById('cntCb'); if (c) c.textContent = (d.cb_q || []).length;
+  var lb = document.getElementById('gLangBtn');
+  if (lb) { lb.dataset.lang = gstate.goldLang; lb.textContent = (gstate.goldLang === 'en') ? '中 / EN' : 'EN / 中'; }
 }
 
 /* ---------------- 四大资产行情卡片 ---------------- */
@@ -8821,6 +9064,64 @@ function renderGoldCbTbl(d) {
   box.innerHTML = html + '</tbody></table>';
 }
 
+/* ---------------- 央行购金 KPI 卡片 ---------------- */
+function goldRenderCbKpi(d) {
+  var box = document.getElementById('cbKpi'); if (!box) return;
+  var ys = d.cb_y || [];
+  var cards = ys.map(function (r) {
+    return '<div class="g-kpi"><div class="g-kpi-y">' + r.y + ' 年</div><div class="g-kpi-t">' + goldFmt(r.t, 1) + '<span class="g-kpi-u"> 吨</span></div></div>';
+  }).join('');
+  var sum = ys.reduce(function (m, r) { return m + r.t; }, 0);
+  cards += '<div class="g-kpi"><div class="g-kpi-y">近' + ys.length + '年合计</div><div class="g-kpi-t">' + goldFmt(sum, 0) + '<span class="g-kpi-u"> 吨</span></div></div>';
+  box.innerHTML = cards;
+}
+
+/* ---------------- CSV 卡片 ---------------- */
+function goldRenderCsv(d) {
+  var box = document.getElementById('csvGrid'); if (!box) return;
+  box.innerHTML = (d.csv_files || []).map(function (f) {
+    return '<div class="g-csv-item">'
+      + '<div class="g-csv-fn">' + esc(f.name) + '</div>'
+      + '<div class="g-csv-desc">' + esc(f.desc || '') + '</div>'
+      + '<div class="g-csv-meta">' + goldFmt(f.rows || 0, 0) + ' 行 · 更新 ' + esc(f.updated || '—') + '</div>'
+      + '<button class="g-csv-dl" data-gcsv="' + esc(f.name) + '">↓ 下载</button>'
+      + '</div>';
+  }).join('');
+}
+
+/* ---------------- 资料库数据中心 sync-grid ---------------- */
+var GOLD_DB_LABELS = { quotes: '黄金行情快照', xau: '伦敦金日线', nonfarm: '非农月度', cb: '央行购金', notes: '我的研判' };
+function goldRenderSync() {
+  var box = document.getElementById('syncGrid'); if (!box) return;
+  var ids = window.GOLD_DB_IDS || {};
+  box.innerHTML = Object.keys(GOLD_DB_LABELS).map(function (k) {
+    var id = ids[k] || '—';
+    return '<div class="g-sync-item"><div class="g-sync-k">' + GOLD_DB_LABELS[k] + '</div>'
+      + '<div class="g-sync-v">' + k + '</div>'
+      + '<div class="g-sync-s">表 id：' + esc(id) + '</div></div>';
+  }).join('');
+}
+
+/* ---------------- 分区数据说明 ---------------- */
+function goldRenderNotesText(d) {
+  var xs = d.xau || [];
+  var hi = xs.length ? Math.max.apply(null, xs.map(function (p) { return p.c; })) : 0;
+  var lo = xs.length ? Math.min.apply(null, xs.map(function (p) { return p.c; })) : 0;
+  var first = xs.length ? xs[0].d : '—', last = xs.length ? xs[xs.length - 1].d : '—';
+  var bx = document.getElementById('gNoteXau');
+  if (bx) bx.innerHTML = '数据来源：新浪财经实时行情 / COMEX 期金主力连续（XAU）日线收盘价，' + first + ' 至 ' + last + '；年内高点 ' + goldFmt(hi, 2) + ' / 低点 ' + goldFmt(lo, 2) + ' 美元/盎司，与伦敦金现货价差 &lt;0.1%，已交叉验证。';
+  var nf = d.nonfarm || []; var nl = nf.length ? nf[nf.length - 1] : null;
+  var bn = document.getElementById('gNoteNf');
+  if (bn) bn.innerHTML = '数据来源：美国劳工统计局（BLS）经 FRED（PAYEMS）计算月度净变动；最新一期 ' + (nl ? nl.m : '—') + ' ' + goldFmt(nl ? nl.c : 0, 1) + ' 千人（' + (nl && nl.c >= 0 ? '增加' : '减少') + '）。';
+  var cb = d.cb_y || [];
+  var bc = document.getElementById('gNoteCb');
+  if (bc) bc.innerHTML = '数据来源：世界黄金协会（WGC）《全球黄金需求趋势报告》；含未披露购金估算，历史数值随报告修订。年度净购金：' + cb.map(function (r) { return r.y + '=' + goldFmt(r.t, 1) + ' 吨'; }).join('、') + '。';
+}
+function goldRenderDataMech() {
+  var box = document.getElementById('gDataMech'); if (!box) return;
+  box.innerHTML = '数据机制：本工作台通过资料库数据表在线读取行情、宏观与黄金数据。数据表是页面展示的统一数据源，更新数据表后刷新页面即可同步。CSV 区提供下载副本，仅用于研究和离线分析，不作为页面运行依赖。';
+}
+
 /* ---------------- 图/表切换 ---------------- */
 function goldSetChartView(kind, view) {
   var el = $('#chartGold'), tb = $('#gTblXau');
@@ -8850,6 +9151,7 @@ function goldSetChartView(kind, view) {
     if (kind === 'xau') (view === 'chart' ? renderGoldXau(d) : renderGoldXauTbl(d));
     if (kind === 'nonfarm') (view === 'chart' ? renderGoldNonfarm(d) : renderGoldNonfarmTbl(d));
     if (kind === 'cb') (view === 'chart' ? renderGoldCb(d) : renderGoldCbTbl(d));
+    if (gstate.goldLang === 'en') goldTranslate();
   });
 }
 
@@ -8865,19 +9167,13 @@ function dlGoldCsv(name) {
   setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
 }
 
-/* ---------------- 来源与免责 ---------------- */
+/* ---------------- 来源与免责（合并，去掉与 CSV 卡片重复的列表） ---------------- */
 function renderGoldSrcNote(d) {
   var box = $('#gSrcNote'); if (!box) return;
-  var files = d.csv_files || [];
   box.innerHTML =
     '<b>数据来源：</b>伦敦金 / 美元指数为新浪财经实时行情；30年期美债收益率与标普500为 FRED 日频收盘（'
     + esc(d.generated_at || '—') + '）；伦敦金日线、非农、央行购金序列与 CSV 载荷来自参考数据源（COMEX 期金主力连续 / FRED DGS30 / FRED SP500 / FRED PAYEMS），已交叉验证。<br>'
-    + '<b>CSV 下载：</b><span class="g-csv">'
-    + files.map(function (f) {
-      return '<button class="g-csv-file" data-gcsv="' + esc(f.name) + '">↓ <b>' + esc(f.name) + '</b> · ' + esc(String(f.rows)) + ' 行</button>';
-    }).join('') + '</span><br>'
     + '<span class="g-disc">免责声明：</span>本模块数据仅供个人研究与复盘参考，不构成任何投资建议；行情存在时延与口径差异，请以官方源为准。';
-  box.querySelectorAll('.g-csv-file').forEach(function (b) { b.onclick = function () { dlGoldCsv(b.dataset.gcsv); }; });
 }
 
 /* ---------------- 我的研判：本地写穿 + 资料库 ---------------- */
@@ -8938,6 +9234,7 @@ function renderGoldNotes() {
   var list = goldNotesList();
   if (!list.length) {
     wrap.innerHTML = '<div class="g-n-empty">还没有研判记录。点右上「＋ 新增研判」写下你的第一笔看多 / 看空 / 中性判断。</div>';
+    if (gstate.goldLang === 'en') goldTranslate();
     return;
   }
   var DIR = { '看多': ['bull', '▲ 看多'], '看空': ['bear', '▼ 看空'], '中性': ['flat', '◆ 中性'] };
@@ -8962,6 +9259,7 @@ function renderGoldNotes() {
   wrap.querySelectorAll('.g-n-del').forEach(function (b) {
     b.onclick = function () { goldNotesPost('delete', null, b.dataset.del); };
   });
+  if (gstate.goldLang === 'en') goldTranslate();
 }
 function goldNotesFormToggle() {
   var f = $('#gNoteForm'); if (!f) return;
@@ -8999,6 +9297,8 @@ function bindGoldEvents() {
   tabs.querySelectorAll('.g-tab').forEach(function (b) {
     b.onclick = function () { goldSwitchTab(b.dataset.gtab); };
   });
+  var lb = document.getElementById('gLangBtn');
+  if (lb) lb.onclick = function () { goldSetLang(gstate.goldLang === 'en' ? 'zh' : 'en'); };
   ['xau', 'nonfarm', 'cb'].forEach(function (k) {
     var el = $('#g' + k.charAt(0).toUpperCase() + k.slice(1) + 'Cht'); /* gXauCht 等 */
     if (el) el.querySelectorAll('button').forEach(function (b) {
@@ -9029,6 +9329,8 @@ if (document.readyState === 'loading') {
 }
 
 </script>
+
+
 
 
 </body>
