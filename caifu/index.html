@@ -1071,6 +1071,12 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 
         <div id="pfSrcNote" style="margin:0 0 8px;font-size:11px;color:var(--muted)"></div>
         <div data-page-node-id="CDSquaA0NXeISipWM3MeA9" class="kpi-grid kpi-4" id="hdSummary"></div>
+        <!-- v164 fw2_v164_discipline：组合纪律核查卡（阈值＝半杠铃纪律，见 DISCIPLINE_CFG） -->
+        <div class="card" id="discCard">
+          <div class="card-h"><h3>组合纪律核查</h3><span class="hint" id="discSum"></span></div>
+          <div id="discBody" class="disc-grid"></div>
+          <div class="s" id="discHint" style="padding:0 2px 2px;color:#b45309"></div>
+        </div>
 
         <!-- v107 fw2_v107_holdings_table_first：持仓列表上移至「每日盈亏日历」上方（用户 2026-09-17） -->
         <div data-page-node-id="LTGEzyDeBRS9DYqsEGf3Ei" class="card card-flush">
@@ -4525,6 +4531,120 @@ function renderHoldHealthRisk() {
 
 }
 
+/* v164 fw2_v164_discipline：组合纪律核查（阈值＝半杠铃纪律；权重口径＝持仓市值折人民币）
+   ★阈值来自既定纪律：债券 25–35%、黄金 ≥15%、AI科技 ≤15%、单一持仓 ≤25%、现金缓冲 ≥5%（最小阈值待确认）。
+   ★未登记即按 0% 计——持仓表缺债券/黄金时，该项直接判红并给出补录提示，不掩盖、不推断。 */
+const DISCIPLINE_CFG = {
+  bond: { label: '债券', min: 25, max: 35, by: 'asset', at: 'bond' },
+  gold: { label: '黄金', min: 15, max: null, by: 'asset', at: 'gold' },
+  ai: { label: 'AI 科技', min: null, max: 15, by: 're', re: /AI|人工智能/i },
+  cash: { label: '现金缓冲', min: 5, max: null, by: 'asset', at: 'cash' },
+};
+const DISC_SINGLE_MAX = 25;
+const DISC_TOL = 5; /* 距阈值 5pct 内＝关注（琥珀），超出＝超线（红） */
+/* 风险重叠：名称/板块命中同一主题关键词即视为同风险类别 */
+const DISC_RISK_KEYS = [
+  ['纳斯达克100', /纳斯达克\s*100|纳指\s*100|NASDAQ\s*100/i],
+  ['标普500', /标普\s*500|S&P\s*500/i],
+  ['沪深300', /沪深\s*300/i],
+  ['中证A500', /中证\s*A500|A500/i],
+  ['科创50', /科创\s*50/i],
+  ['日经225', /日经\s*225|N225/i],
+  ['黄金', /黄金|GOLD/i],
+];
+const DISC_COLOR = { ok: '#16a34a', warn: '#d97706', bad: '#dc2626' };
+function discGrade(w, rule) {
+  if (rule.min != null && rule.max != null) {
+    if (w >= rule.min && w <= rule.max) return 'ok';
+    if (w >= rule.min - DISC_TOL && w <= rule.max + DISC_TOL) return 'warn';
+    return 'bad';
+  }
+  if (rule.min != null) {
+    if (w >= rule.min) return 'ok';
+    if (w >= rule.min - DISC_TOL) return 'warn';
+    return 'bad';
+  }
+  if (w <= rule.max) return 'ok';
+  if (w <= rule.max + DISC_TOL) return 'warn';
+  return 'bad';
+}
+function discTarget(rule) {
+  if (rule.min != null && rule.max != null) return rule.min + '–' + rule.max + '%';
+  if (rule.min != null) return '≥' + rule.min + '%';
+  return '≤' + rule.max + '%';
+}
+function renderDiscipline(all) {
+  var box = document.getElementById('discBody');
+  var sumEl = document.getElementById('discSum');
+  var hintEl = document.getElementById('discHint');
+  if (!box) return;
+  var rows = (all && all.rows) || [];
+  if (!rows.length) {
+    box.innerHTML = '<div class="empty" style="grid-column:1/-1">暂无持仓，无法核查</div>';
+    if (sumEl) sumEl.textContent = '';
+    if (hintEl) hintEl.textContent = '';
+    return;
+  }
+  var mvSum = rows.reduce(function (a, r) { return a + (r.mvCny || 0); }, 0);
+  var weightOf = function (pred) {
+    var v = rows.reduce(function (a, r) { return a + (pred(r) ? (r.mvCny || 0) : 0); }, 0);
+    return mvSum ? v / mvSum * 100 : 0;
+  };
+  var tiles = [];
+  Object.keys(DISCIPLINE_CFG).forEach(function (k) {
+    var cfg = DISCIPLINE_CFG[k], w;
+    if (cfg.by === 'asset') w = weightOf(function (r) { return r.assetType === cfg.at; });
+    else w = weightOf(function (r) { return cfg.re.test(String(r.sector || '') + ' ' + String(r.name || '')); });
+    var g = discGrade(w, cfg), gap;
+    if (cfg.min != null && w < cfg.min) gap = '缺 ' + (cfg.min - w).toFixed(1) + 'pct';
+    else if (cfg.max != null && w > cfg.max) gap = '超 ' + (w - cfg.max).toFixed(1) + 'pct';
+    else gap = '在目标区间内';
+    tiles.push({ label: cfg.label, w: w, target: discTarget(cfg), g: g, gap: gap });
+  });
+  var top = null;
+  rows.forEach(function (r) { if (!top || (r.weight || 0) > (top.weight || 0)) top = r; });
+  var sw = top ? (top.weight || 0) : 0;
+  tiles.push({
+    label: '单一持仓', w: sw, target: '≤' + DISC_SINGLE_MAX + '%', g: discGrade(sw, { max: DISC_SINGLE_MAX }),
+    gap: top ? (sw > DISC_SINGLE_MAX ? '超 ' + (sw - DISC_SINGLE_MAX).toFixed(1) + 'pct · ' + esc(top.name) : '最大 ' + esc(top.name)) : '—',
+  });
+  var groups = {};
+  rows.forEach(function (r) {
+    var txt = String(r.name || '') + ' ' + String(r.sector || ''), key = null;
+    for (var i = 0; i < DISC_RISK_KEYS.length; i++) {
+      if (DISC_RISK_KEYS[i][1].test(txt)) { key = DISC_RISK_KEYS[i][0]; break; }
+    }
+    if (!key) return;
+    (groups[key] = groups[key] || []).push(r);
+  });
+  var dup = Object.keys(groups).filter(function (k) { return groups[k].length > 1; });
+  tiles.push({
+    label: '风险重叠', w: null, target: '同主题 ≤1 只', g: dup.length ? 'warn' : 'ok',
+    gap: dup.length ? dup.map(function (k) {
+      var w = groups[k].reduce(function (a, r) { return a + (r.weight || 0); }, 0);
+      return k + ' ×' + groups[k].length + '（合计 ' + w.toFixed(1) + '%）';
+    }).join('、') : '无同主题重复',
+  });
+  var cnt = { ok: 0, warn: 0, bad: 0 };
+  tiles.forEach(function (t) { cnt[t.g] += 1; });
+  box.innerHTML = tiles.map(function (t) {
+    var c = DISC_COLOR[t.g];
+    return '<div class="disc-tile"><div class="disc-t"><span class="disc-dot" style="background:' + c + '"></span>' + esc(t.label) + '</div>'
+      + '<div class="disc-v" style="color:' + c + '">' + (t.w == null ? '—' : t.w.toFixed(1) + '%') + '</div>'
+      + '<div class="disc-r">目标 ' + esc(t.target) + '</div>'
+      + '<div class="disc-s" style="color:' + c + '">' + t.gap + '</div></div>';
+  }).join('');
+  if (sumEl) sumEl.textContent = '达标 ' + cnt.ok + ' · 关注 ' + cnt.warn + ' · 超线 ' + cnt.bad + '（权重口径＝持仓市值·折人民币）';
+  if (hintEl) {
+    var miss = [];
+    if (!rows.some(function (r) { return r.assetType === 'bond'; })) miss.push('债券');
+    if (!rows.some(function (r) { return r.assetType === 'gold'; })) miss.push('黄金');
+    hintEl.textContent = miss.length
+      ? '持仓表未登记：' + miss.join('、') + ' → 按 0% 计。若实际持有，请到资料库持仓表补录后重跑同步。'
+      : '';
+  }
+}
+
 function renderHoldings() {
   renderHdFilter();
   const all = buildRows();
@@ -4551,6 +4671,7 @@ function renderHoldings() {
     `;
 
 
+  renderDiscipline(all);
   const tbody = $('#hdTable tbody');
   if (!sorted.length) {
     tbody.innerHTML = '<tr><td colspan="16" class="empty">暂无持仓，点击「＋ 新增持仓」添加</td></tr>';
@@ -7169,7 +7290,16 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
         「现价 N ≤ 买入线4000 触发」，否则标注「现价 N（买入线 4000）」。
      ③ 纯渲染逻辑，gold-data.json 数据文件不动。verChip v161->v162
   */
-  /* v163 fw2_v163_next_action：执行卡加「当前动作」列消歧下一步 + 步骤来源折叠入 title（用户 2026-09-20「这块的数据显示很糟糕，有什么美化的方案吗」→ 执行线聚焦 + 加一列当前动作）。
+    /* v164 fw2_v164_discipline：「我的持仓」新增组合纪律核查卡（用户既定半杠铃纪律）。
+     ① 阈值常量 DISCIPLINE_CFG：债券 25–35%、黄金 ≥15%、AI科技 ≤15%、现金缓冲 ≥5%（最小阈值待确认）、
+        单一持仓 ≤25%；距阈值 ≤5pct 判「关注」（琥珀）、超出判「超线」（红）。
+     ② 权重口径＝持仓市值折人民币（与持仓表 weight 列同源）；未登记类别按 0% 计，并在 #discHint
+        明示「持仓表未登记：债券、黄金」+ 补录指引——不掩盖、不推断。
+     ③ 风险重叠：名称/板块命中同一主题关键词（纳指100/标普500/沪深300/A500/科创50/日经225/黄金）
+        且 ≥2 只 → 关注，附合计权重。
+     ④ CSS .disc-*（作用域 #view-holdings 后代选择器，避免 ID 选择器泄漏）；数据文件不动。verChip v163->v164
+  */
+/* v163 fw2_v163_next_action：执行卡加「当前动作」列消歧下一步 + 步骤来源折叠入 title（用户 2026-09-20「这块的数据显示很糟糕，有什么美化的方案吗」→ 执行线聚焦 + 加一列当前动作）。
      ① 新增 nextAction(code)：按 assetOf+已持市值+目标差额自动判定该标的状态——弹药池(T+0)/达标·观望/建仓中·差额/待建仓·X/月，
         返回 {dot 色点, cls, txt 主文案, sub 副行}；012920 达标后附「不再买入」。
      ② thead 新增「当前动作」列（STEP_HEADS 前 + 1），列总宽自适，role-tr colspan 同步 6->7。
@@ -7394,7 +7524,7 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
      data/口径未变，不跑 push_macro_seed。verChip v147->v148
   */
   const vc = $('#verChip');
-  if (vc) vc.textContent = 'v163 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  if (vc) vc.textContent = 'v164 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
@@ -8604,7 +8734,7 @@ setInterval(updateSessionBadge, 30000);
 #view-strategy .st-tbl .role-tr td{border-left:4px solid var(--bc,transparent)}#view-strategy .st-ok{display:inline-block;font-size: var(--fs-2xs);font-weight:700;padding:1px 7px;border-radius:var(--r-10);background:var(--down-soft);color:var(--down);margin-top:5px}#view-strategy .st-prog{display:inline-block;font-size: var(--fs-2xs);font-weight:700;padding:1px 7px;border-radius:var(--r-10);background:var(--brand-soft);color:var(--brand);margin-top:5px}#view-strategy .tbl-scroll{overflow-x:auto}#view-strategy .rec-form{display:flex;flex-wrap:wrap;gap:var(--sp-6);align-items:center;margin:8px 0}#view-strategy .rec-form input,.rec-form select{border:1px solid var(--line);border-radius:var(--r-6);padding:5px 8px;font-size:var(--fs-sm);background: var(--panel);color:var(--text)}#view-strategy .rec-list{margin-top:8px}#view-strategy .rec-row{display:flex;gap:var(--sp-8);align-items:center;padding:6px 8px;border-bottom:1px solid var(--line-2);font-size: var(--fs-sm)}#view-strategy .rec-row .dt{color:var(--muted);font-family:var(--mono);flex:0 0 82px}#view-strategy .rec-row .cd2{font-family:var(--mono);color:var(--brand);flex:0 0 62px}#view-strategy .rec-row .nm2{color:var(--text);flex:0 0 110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}#view-strategy .rec-row .dir{flex:0 0 38px;font-weight:600}#view-strategy .rec-row .am{font-family:var(--mono);flex:0 0 70px;text-align:right}#view-strategy .rec-row .sr{color:var(--muted);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}#view-strategy .rec-row .del{cursor:pointer;color:var(--muted);border:0;background:none;font-size:var(--fs-sm)}#view-strategy .rec-row .del:hover{color:var(--up)}#view-strategy .rev-q{display:flex;align-items:center;gap:var(--sp-10);flex-wrap:wrap;margin-bottom:10px}#view-strategy .rev-q select{border:1px solid var(--line);border-radius:var(--r-6);padding:5px 10px;font-size: var(--fs-md);background: var(--panel);color:var(--text)}#view-strategy .rev-prog{font-size: var(--fs-sm);color:var(--text-2);margin-left:auto}#view-strategy .rev-prog b{color:var(--brand)}#view-strategy .rev-item{display:flex;gap:var(--sp-10);padding:11px 12px;border:1px solid var(--line);border-radius:var(--radius);margin-bottom:8px;background: var(--panel)}#view-strategy .rev-item.checked{border-color:var(--down);background:var(--down-soft)}#view-strategy .rev-item .box{flex:0 0 auto;padding-top:2px}#view-strategy .rev-item .ri-body{flex:1;min-width:0}#view-strategy .rev-item .ri-t{font-size: var(--fs-md);font-weight:600;color:var(--text)}#view-strategy .rev-item.checked .ri-t{color:var(--down)}#view-strategy .rev-item .ri-j{font-size:var(--fs-xs);color:var(--text-2);margin:2px 0 5px}#view-strategy .rev-item .ri-a{font-size:var(--fs-xs);color:var(--muted)}#view-strategy .rev-item input.ri-note{width:100%;margin-top:5px;padding:4px 8px;border:1px solid var(--line);border-radius:var(--r-6);font-size:var(--fs-xs);outline:none;background: var(--panel);color:var(--text)}#view-strategy .ri-auto{font-size:var(--fs-xs);background:var(--brand-soft);border:1px dashed var(--brand-line);color:var(--text-2);border-radius:var(--r-6);padding:5px 9px;margin:6px 0}#view-strategy .ri-auto b{color:var(--brand);font-family:var(--mono)}#view-strategy .ri-auto.warn{background:var(--warn-soft);border-color:rgba(217,140,0,.45)}#view-strategy .ri-auto.warn b{color:var(--warn)}#view-strategy .ri-auto.ok{background:var(--down-soft);border-color:rgba(5,150,105,.4)}#view-strategy .ri-auto.ok b{color:var(--down)}#view-strategy .ri-auto.manual{background:var(--panel-3);border-color:var(--line);color:var(--muted)}#view-strategy .pos-chip{display:inline-block;background: var(--panel);border:1px solid var(--line);border-radius:var(--r-10);padding:0 7px;margin-right:4px;font-family:var(--mono);font-size: var(--fs-xs);color:var(--text-2)}#view-strategy .pos-chip.hot{border-color:var(--warn);color:var(--warn);font-weight:700}#view-strategy .ev-tbl{width:100%;border-collapse:collapse;font-size: var(--fs-sm);table-layout:fixed}#view-strategy .ev-tbl th{text-align:left;padding:6px 9px;background:var(--panel-2);border-bottom:1px solid var(--line);font-weight:600;white-space:nowrap;font-size:var(--fs-xs)}#view-strategy .ev-tbl td{padding:6px 9px;border-bottom:1px solid var(--line-2);vertical-align:top}#view-strategy .ev-tbl tr:last-child td{border-bottom:0}#view-strategy .ev-st{display:inline-block;font-size: var(--fs-2xs);font-weight:700;padding:1px 7px;border-radius:var(--r-10);white-space:nowrap}#view-strategy .ev-st.pos{background:var(--brand-soft);color:var(--brand)}#view-strategy .ev-st.nav{background:var(--warn-soft);color:var(--warn)}#view-strategy .ev-st.man{background:var(--panel-3);color:var(--muted)}
 #view-strategy .st-pane .card{margin-bottom:10px}
 #view-strategy .st-pane .card:last-child{margin-bottom:0}
-@media (max-width:767px){#view-strategy .sh-grid{grid-template-columns:repeat(2,1fr)}#view-strategy .st-tbl{font-size: var(--fs-xs)}#view-strategy .sc-grid{grid-template-columns:repeat(2,1fr)}}</style>
+@media (max-width:767px){#view-strategy .sh-grid{grid-template-columns:repeat(2,1fr)}#view-strategy .st-tbl{font-size: var(--fs-xs)}#view-strategy .sc-grid{grid-template-columns:repeat(2,1fr)}}#view-holdings .disc-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(148px,1fr));gap:8px}#view-holdings .disc-tile{border:1px solid var(--line);border-radius:var(--r-full);padding:8px 10px;background:var(--panel-2)}#view-holdings .disc-t{display:flex;align-items:center;gap:6px;font-size:var(--fs-xs);color:var(--muted)}#view-holdings .disc-v{font-size:var(--fs-2xl);font-weight:700;font-family:var(--mono);margin-top:2px}#view-holdings .disc-r{font-size:var(--fs-2xs);color:var(--muted);margin-top:1px}#view-holdings .disc-s{font-size:var(--fs-xs);font-weight:600;margin-top:3px;line-height:1.4}#view-holdings .disc-dot{width:8px;height:8px;border-radius:var(--r-full);display:inline-block;flex:0 0 auto}@media (max-width:767px){#view-holdings .disc-grid{grid-template-columns:repeat(2,1fr)}}</style>
 <script>
 /* v120 fw2_v120_strategy：策略执行模块（STRATEGY_SNAP + 渲染 + 记录层） */
 /* v125 fw2_v125_strat_exec_enh：策略执行视图增量增强（heldBadge 进度条 / 月度定投实时缺口 / 当月待办清单 / 事件触发表三态着色 / barbell 并行口径标注） */
