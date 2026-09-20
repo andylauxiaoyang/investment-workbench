@@ -4585,10 +4585,14 @@ function renderDiscipline(all) {
     if (hintEl) hintEl.textContent = '';
     return;
   }
-  var mvSum = rows.reduce(function (a, r) { return a + (r.mvCny || 0); }, 0);
+  /* v164b：逐行取值——有市值用市值，无市值（免登录端基金行情常缺）用持仓成本，
+     避免「只有货基有价 → 现金 100%」这类由缺行情制造的假红假绿；并显式标注缺行情只数。 */
+  var valOf = function (r) { return (r.mvCny > 0) ? r.mvCny : (r.costCny || 0); };
+  var noPx = rows.filter(function (r) { return !(r.mvCny > 0); }).length;
+  var denom = rows.reduce(function (a, r) { return a + valOf(r); }, 0);
   var weightOf = function (pred) {
-    var v = rows.reduce(function (a, r) { return a + (pred(r) ? (r.mvCny || 0) : 0); }, 0);
-    return mvSum ? v / mvSum * 100 : 0;
+    var v = rows.reduce(function (a, r) { return a + (pred(r) ? valOf(r) : 0); }, 0);
+    return denom ? v / denom * 100 : 0;
   };
   var tiles = [];
   Object.keys(DISCIPLINE_CFG).forEach(function (k) {
@@ -4602,8 +4606,8 @@ function renderDiscipline(all) {
     tiles.push({ label: cfg.label, w: w, target: discTarget(cfg), g: g, gap: gap });
   });
   var top = null;
-  rows.forEach(function (r) { if (!top || (r.weight || 0) > (top.weight || 0)) top = r; });
-  var sw = top ? (top.weight || 0) : 0;
+  rows.forEach(function (r) { if (!top || valOf(r) > valOf(top)) top = r; });
+  var sw = top ? (denom ? valOf(top) / denom * 100 : 0) : 0;
   tiles.push({
     label: '单一持仓', w: sw, target: '≤' + DISC_SINGLE_MAX + '%', g: discGrade(sw, { max: DISC_SINGLE_MAX }),
     gap: top ? (sw > DISC_SINGLE_MAX ? '超 ' + (sw - DISC_SINGLE_MAX).toFixed(1) + 'pct · ' + esc(top.name) : '最大 ' + esc(top.name)) : '—',
@@ -4621,7 +4625,7 @@ function renderDiscipline(all) {
   tiles.push({
     label: '风险重叠', w: null, target: '同主题 ≤1 只', g: dup.length ? 'warn' : 'ok',
     gap: dup.length ? dup.map(function (k) {
-      var w = groups[k].reduce(function (a, r) { return a + (r.weight || 0); }, 0);
+      var w = groups[k].reduce(function (a, r) { return a + (denom ? valOf(r) / denom * 100 : 0); }, 0);
       return k + ' ×' + groups[k].length + '（合计 ' + w.toFixed(1) + '%）';
     }).join('、') : '无同主题重复',
   });
@@ -4634,14 +4638,17 @@ function renderDiscipline(all) {
       + '<div class="disc-r">目标 ' + esc(t.target) + '</div>'
       + '<div class="disc-s" style="color:' + c + '">' + t.gap + '</div></div>';
   }).join('');
-  if (sumEl) sumEl.textContent = '达标 ' + cnt.ok + ' · 关注 ' + cnt.warn + ' · 超线 ' + cnt.bad + '（权重口径＝持仓市值·折人民币）';
+  if (sumEl) sumEl.textContent = '达标 ' + cnt.ok + ' · 关注 ' + cnt.warn + ' · 超线 ' + cnt.bad
+    + '（权重口径＝持仓市值·折人民币' + (noPx ? '，其中 ' + noPx + '/' + rows.length + ' 只无行情按成本' : '') + '）';
   if (hintEl) {
     var miss = [];
     if (!rows.some(function (r) { return r.assetType === 'bond'; })) miss.push('债券');
     if (!rows.some(function (r) { return r.assetType === 'gold'; })) miss.push('黄金');
-    hintEl.textContent = miss.length
+    var txt = miss.length
       ? '持仓表未登记：' + miss.join('、') + ' → 按 0% 计。若实际持有，请到资料库持仓表补录后重跑同步。'
       : '';
+    if (noPx) txt = (txt ? txt + ' ' : '') + '另有 ' + noPx + '/' + rows.length + ' 只未取到行情，按持仓成本计（与真实市值口径有偏差）。';
+    hintEl.textContent = txt;
   }
 }
 
