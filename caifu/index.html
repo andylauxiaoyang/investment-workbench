@@ -7169,6 +7169,14 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
         「现价 N ≤ 买入线4000 触发」，否则标注「现价 N（买入线 4000）」。
      ③ 纯渲染逻辑，gold-data.json 数据文件不动。verChip v161->v162
   */
+  /* v163 fw2_v163_next_action：执行卡加「当前动作」列消歧下一步 + 步骤来源折叠入 title（用户 2026-09-20「这块的数据显示很糟糕，有什么美化的方案吗」→ 执行线聚焦 + 加一列当前动作）。
+     ① 新增 nextAction(code)：按 assetOf+已持市值+目标差额自动判定该标的状态——弹药池(T+0)/达标·观望/建仓中·差额/待建仓·X/月，
+        返回 {dot 色点, cls, txt 主文案, sub 副行}；012920 达标后附「不再买入」。
+     ② thead 新增「当前动作」列（STEP_HEADS 前 + 1），列总宽自适，role-tr colspan 同步 6->7。
+     ③ 步骤单元格独立的来源容器折叠进该格 title（来源经｜拼接），主体文字不再重复来源，密度与可读性提升。
+     ④ CSS .act/.act-i/.act-t(.ok/.mid)/.act-s：资产色点 + 主文案(达标绿/建仓蓝/待建伯琥珀) + 副行灰。
+     纯前端渲染，STRATEGY_SNAP 数据文件不动。verChip v162->v163
+  */
 
   /* v160 fw2_v160_money_axis：收益曲线公共日期轴排除货基（用户 2026-09-20「把货基取消选择就能连上」）。
      ① 根因：货基周末/节假日净值记录撑大公共日期轴，其他基金在无净值日 idx=null + connectNulls:false → 断线。
@@ -7386,7 +7394,7 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
      data/口径未变，不跑 push_macro_seed。verChip v147->v148
   */
   const vc = $('#verChip');
-  if (vc) vc.textContent = 'v162 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  if (vc) vc.textContent = 'v163 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
@@ -8583,7 +8591,9 @@ setInterval(updateSessionBadge, 30000);
 })();
 
 </script>
-<style>/* ===== v120 策略执行视图 ===== */ /* v124 fw2_v124_strat_cal_fix：.cal-grid/.cal-cell 撞热力图类名，策略日历改名 .sc-grid/.sc-cell */#view-strategy .strat-hero{display:flex;flex-wrap:wrap;align-items:center;gap:18px;margin-bottom:10px}#view-strategy .sh-main{min-width:240px;flex:1 1 260px}#view-strategy .sh-k{font-size:var(--fs-xs);letter-spacing:.6px;color:var(--muted);font-weight:500}#view-strategy .sh-v{font-family:var(--mono);font-size:var(--fs-4xl);font-weight:600;letter-spacing:-.02em;margin-top:4px;color:var(--text);font-variant-numeric:tabular-nums}#view-strategy .sh-bar{height:8px;border-radius:var(--r-5);background:var(--panel-3);margin:10px 0 6px;overflow:hidden}#view-strategy .sh-bar i{display:block;height:100%;background:linear-gradient(90deg,var(--brand),var(--amber-2));border-radius:var(--r-5)}#view-strategy .sh-sub{font-size:var(--fs-sm);color:var(--text-2)}#view-strategy .sh-sub b{color:var(--brand);font-family:var(--mono)}#view-strategy .sh-grid{display:grid;grid-template-columns:repeat(4,minmax(96px,1fr));gap:var(--sp-8);flex:1 1 320px}#view-strategy .sh-cell{background:var(--panel-2);border:1px solid var(--line);border-radius:var(--radius);padding:8px 10px}#view-strategy .sh-cell .k{font-size:var(--fs-xs);color:var(--muted)}#view-strategy .sh-cell .v{font-size:var(--fs-lg);font-weight:600;font-family:var(--mono);margin-top:3px;color:var(--text)}#view-strategy .strat-tabs{display:flex;gap:var(--sp-6);flex-wrap:wrap;margin:0 0 10px}#view-strategy .st-tab{border:1px solid var(--line);background: var(--panel);color:var(--text-2);padding:6px 14px;border-radius:var(--r-8);cursor:pointer;font-size:var(--fs-md)}#view-strategy .st-tab.active{background:var(--brand);color:#fff;border-color:var(--brand)}#view-strategy .st-pane{margin-bottom:12px}#view-strategy .strat-note{font-size:var(--fs-xs);color:var(--muted);margin:0 0 8px;line-height:1.6}#view-strategy .st-card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:12px 14px;margin-bottom:10px}#view-strategy .st-card h4{margin:0 0 8px;font-size:var(--fs-md);font-weight:600;color:var(--text)}#view-strategy .sc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:var(--sp-8)}#view-strategy .sc-cell{border:1px solid var(--line);border-radius:var(--radius);padding:9px 11px;background: var(--panel);position:relative}#view-strategy .sc-cell.past{opacity:.55}#view-strategy .sc-cell.cur{border-color:var(--brand);box-shadow:0 0 0 1px var(--brand-line)}#view-strategy .sc-cell .m{font-size: var(--fs-md);font-weight:600;color:var(--text)}#view-strategy .sc-cell .d{font-size:var(--fs-xs);color:var(--brand);font-family:var(--mono);margin-top:3px}#view-strategy .sc-cell .x{font-size: var(--fs-xs);color:var(--muted);margin-top:3px;line-height:1.5}#view-strategy .sc-cell .bdg{display:inline-block;font-size: var(--fs-2xs);font-weight:600;padding:1px 7px;border-radius:var(--r-10);margin:4px 4px 0 0;background:var(--warn-soft);color:var(--warn)}#view-strategy .sc-cell .bdg.done{background:var(--down-soft);color:var(--down)}#view-strategy .sc-cell .bdg.c07{background:var(--brand-soft);color:var(--brand)}#view-strategy .st-tbl{width:100%;border-collapse:collapse;font-size: var(--fs-sm);table-layout:fixed}#view-strategy .st-tbl th{text-align:left;padding:8px 10px;background:var(--panel-2);color:var(--text-2);border-bottom:1px solid var(--line);font-weight:600;font-size:var(--fs-xs)}#view-strategy .st-tbl td{padding:9px 10px;border-bottom:1px solid var(--line-2);vertical-align:top;overflow:hidden}#view-strategy .st-tbl tr:last-child td{border-bottom:0}#view-strategy .st-tbl .nm{font-weight:700;font-size: var(--fs-md);color:var(--text)}#view-strategy .st-tbl .cd{font-family:var(--mono);font-size:var(--fs-2xs);color:var(--muted);margin-top:1px}#view-strategy .st-tbl .tg{font-size: var(--fs-xs);color:var(--muted);margin-top:3px}#view-strategy .st-tbl .step .cond{color:var(--text);font-size: var(--fs-sm);line-height:1.5}#view-strategy .st-tbl .step .qty{color:var(--brand);font-weight:700;font-family:var(--mono);font-size: var(--fs-sm);margin-top:3px}#view-strategy .st-tbl .step .src{color:var(--muted);font-size:var(--fs-2xs);margin-top:3px}#view-strategy .st-tbl .role-tr td{background:var(--panel-3);padding:6px 10px !important;font-weight:600;font-size: var(--fs-sm);color:var(--text-2);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}#view-strategy .st-tbl .role-tr:first-child td{border-top:0}#view-strategy .role-chip{font-size:var(--fs-2xs);font-weight:700;padding:1px 8px;border-radius:var(--r-10);background: var(--panel);color:var(--brand);border:1px solid var(--brand-line);margin-right:8px}
+<style>/* ===== v120 策略执行视图 ===== */ /* v124 fw2_v124_strat_cal_fix：.cal-grid/.cal-cell 撞热力图类名，策略日历改名 .sc-grid/.sc-cell */#view-strategy .strat-hero{display:flex;flex-wrap:wrap;align-items:center;gap:18px;margin-bottom:10px}#view-strategy .sh-main{min-width:240px;flex:1 1 260px}#view-strategy .sh-k{font-size:var(--fs-xs);letter-spacing:.6px;color:var(--muted);font-weight:500}#view-strategy .sh-v{font-family:var(--mono);font-size:var(--fs-4xl);font-weight:600;letter-spacing:-.02em;margin-top:4px;color:var(--text);font-variant-numeric:tabular-nums}#view-strategy .sh-bar{height:8px;border-radius:var(--r-5);background:var(--panel-3);margin:10px 0 6px;overflow:hidden}#view-strategy .sh-bar i{display:block;height:100%;background:linear-gradient(90deg,var(--brand),var(--amber-2));border-radius:var(--r-5)}#view-strategy .sh-sub{font-size:var(--fs-sm);color:var(--text-2)}#view-strategy .sh-sub b{color:var(--brand);font-family:var(--mono)}#view-strategy .sh-grid{display:grid;grid-template-columns:repeat(4,minmax(96px,1fr));gap:var(--sp-8);flex:1 1 320px}#view-strategy .sh-cell{background:var(--panel-2);border:1px solid var(--line);border-radius:var(--radius);padding:8px 10px}#view-strategy .sh-cell .k{font-size:var(--fs-xs);color:var(--muted)}#view-strategy .sh-cell .v{font-size:var(--fs-lg);font-weight:600;font-family:var(--mono);margin-top:3px;color:var(--text)}#view-strategy .strat-tabs{display:flex;gap:var(--sp-6);flex-wrap:wrap;margin:0 0 10px}#view-strategy .st-tab{border:1px solid var(--line);background: var(--panel);color:var(--text-2);padding:6px 14px;border-radius:var(--r-8);cursor:pointer;font-size:var(--fs-md)}#view-strategy .st-tab.active{background:var(--brand);color:#fff;border-color:var(--brand)}#view-strategy .st-pane{margin-bottom:12px}#view-strategy .strat-note{font-size:var(--fs-xs);color:var(--muted);margin:0 0 8px;line-height:1.6}#view-strategy .st-card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:12px 14px;margin-bottom:10px}#view-strategy .st-card h4{margin:0 0 8px;font-size:var(--fs-md);font-weight:600;color:var(--text)}#view-strategy .sc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:var(--sp-8)}#view-strategy .sc-cell{border:1px solid var(--line);border-radius:var(--radius);padding:9px 11px;background: var(--panel);position:relative}#view-strategy .sc-cell.past{opacity:.55}#view-strategy .sc-cell.cur{border-color:var(--brand);box-shadow:0 0 0 1px var(--brand-line)}#view-strategy .sc-cell .m{font-size: var(--fs-md);font-weight:600;color:var(--text)}#view-strategy .sc-cell .d{font-size:var(--fs-xs);color:var(--brand);font-family:var(--mono);margin-top:3px}#view-strategy .sc-cell .x{font-size: var(--fs-xs);color:var(--muted);margin-top:3px;line-height:1.5}#view-strategy .sc-cell .bdg{display:inline-block;font-size: var(--fs-2xs);font-weight:600;padding:1px 7px;border-radius:var(--r-10);margin:4px 4px 0 0;background:var(--warn-soft);color:var(--warn)}#view-strategy .sc-cell .bdg.done{background:var(--down-soft);color:var(--down)}#view-strategy .sc-cell .bdg.c07{background:var(--brand-soft);color:var(--brand)}#view-strategy .st-tbl{width:100%;border-collapse:collapse;font-size: var(--fs-sm);table-layout:fixed}#view-strategy .st-tbl th{text-align:left;padding:8px 10px;background:var(--panel-2);color:var(--text-2);border-bottom:1px solid var(--line);font-weight:600;font-size:var(--fs-xs)}#view-strategy .st-tbl td{padding:9px 10px;border-bottom:1px solid var(--line-2);vertical-align:top;overflow:hidden}#view-strategy .st-tbl tr:last-child td{border-bottom:0}#view-strategy .st-tbl .nm{font-weight:700;font-size: var(--fs-md);color:var(--text)}#view-strategy .st-tbl .cd{font-family:var(--mono);font-size:var(--fs-2xs);color:var(--muted);margin-top:1px}#view-strategy .st-tbl .tg{font-size: var(--fs-xs);color:var(--muted);margin-top:3px}
+/* v163 fw2_v163_next_action 「当前动作」列 */
+.act{vertical-align:middle}.act-i{width:8px;height:8px;border-radius:var(--r-full);flex:0 0 auto;margin-right:8px;margin-top:3px;display:inline-block}.act-t{font-size:var(--fs-sm);line-height:1.5;font-weight:600}.act-t.ok{color:#16a34a}.act-t.mid{color:var(--brand)}.act-s{font-size:var(--fs-xs);color:var(--muted);margin-top:2px;line-height:1.4}#view-strategy .st-tbl .step .cond{color:var(--text);font-size: var(--fs-sm);line-height:1.5}#view-strategy .st-tbl .step .qty{color:var(--brand);font-weight:700;font-family:var(--mono);font-size: var(--fs-sm);margin-top:3px}#view-strategy .st-tbl .step .src{color:var(--muted);font-size:var(--fs-2xs);margin-top:3px}#view-strategy .st-tbl .role-tr td{background:var(--panel-3);padding:6px 10px !important;font-weight:600;font-size: var(--fs-sm);color:var(--text-2);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}#view-strategy .st-tbl .role-tr:first-child td{border-top:0}#view-strategy .role-chip{font-size:var(--fs-2xs);font-weight:700;padding:1px 8px;border-radius:var(--r-10);background: var(--panel);color:var(--brand);border:1px solid var(--brand-line);margin-right:8px}
 /* v138 fw2_v138_stcards_polish：执行卡轻量打磨 —— 行悬浮 / 资产色点 / 步骤金额语义色 / 角色档位色条 */
 #view-strategy .st-tbl tbody tr:hover td{background:rgba(37,99,235,.045)}
 #view-strategy .st-tbl .dot{display:inline-block;width:8px;height:8px;border-radius:var(--r-full);margin-right:6px;vertical-align:1px}
@@ -8751,28 +8761,51 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
     var el = document.getElementById('stp-cards');
     if (!el) return;
     var html = '<div class="strat-note">五步是统一骨架，角色决定每步是否有效：① 底仓/缓冲 = 五步齐全、不设止损；② 进攻/主题 = 带硬止损/趋势清仓线；③ 安全垫 = 止盈格不适用；④ 对冲 = 卖出格不设止损（再平衡驱动）。</div><div class="tbl-scroll"><table class="st-tbl"><colgroup>' +
-      '<col style="width:14%"><col style="width:17.2%"><col style="width:17.2%"><col style="width:17.2%"><col style="width:17.2%"><col style="width:17.2%"></colgroup>' +
-      '<thead><tr><th>标的（目标）</th>' + STEP_HEADS.map(function (h) { return '<th>' + h + '</th>'; }).join('') + '</tr></thead><tbody>';
+      /* v163：加「当前动作」列（消歧“此标的下一步”，读持仓快照判定）+ 五步列按内容自适应 */
+      '<col style="width:12%"><col style="width:16%"><col style="width:14.4%"><col style="width:14.4%"><col style="width:14.4%"><col style="width:14.4%"><col style="width:14.4%"></colgroup>' +
+      '<thead><tr><th>标的（目标）</th><th>当前动作</th>' + STEP_HEADS.map(function (h) { return '<th>' + h + '</th>'; }).join('') + '</tr></thead><tbody>';
     /* 角色→代码映射（按 assets 顺序分配） */
     var roleCodes = { '底仓/缓冲': ['563360', '001015', '510880', '159201'], '进攻/主题': ['159949', '020712', '012920', '016452'], '安全垫': ['511360'], '对冲': ['511260', '159934'] };
     var roleNames = { '底仓/缓冲': ['底仓/缓冲', '宽基底仓 + 主动增强 + 真缓冲（红利/现金流）· 五步齐全 · 不设止损'], '进攻/主题': ['进攻/主题', '创业板50/日经/全球成长/纳指 · 五步齐全 · 带硬止损/趋势清仓线'], '安全垫': ['安全垫', '短融 = 流动弹药池 · 止盈格不适用'], '对冲': ['对冲', '10年国债 + 黄金 · 再平衡驱动 · 卖出格不设止损'] };
     Object.keys(roleCodes).forEach(function (rk) {
-      html += '<tr class="role-tr" style="--bc:' + (roleColor[rk] || '#94a3b8') + '"><td colspan="6"><span class="role-chip">' + roleNames[rk][0] + '</span>' + roleNames[rk][1] + '</td></tr>';
+      html += '<tr class="role-tr" style="--bc:' + (roleColor[rk] || '#94a3b8') + '"><td colspan="7"><span class="role-chip">' + roleNames[rk][0] + '</span>' + roleNames[rk][1] + '</td></tr>';
       roleCodes[rk].forEach(function (code) {
         var a = assetOf(code);
         if (!a) return;
+        var nx = nextAction(code);
         var steps = [a.act.b, a.act.h, a.act.a, a.act.t, a.act.s].map(function (txt, si) {
           var p = String(txt).split(' / ');
           var qcls = (si === 0 || si === 2) ? ' q-buy' : (si === 3 ? ' q-tp' : (si === 4 ? ' q-sell' : ''));
-          return '<td class="step"><div class="cond">' + esc(p[0] || '') + '</div>' +
-            (p[1] ? '<div class="qty' + qcls + '">' + esc(p[1]) + '</div>' : '') +
-            (p[2] ? '<div class="src">' + esc(p[2]) + '</div>' : '') + '</td>';
+          /* v163 执行线聚焦：条件+金额两行常显；来源折叠进 title（悬停可见），行高 3→2 行 */
+          return '<td class="step"' + (p[2] ? ' title="' + esc(p[2]) + '"' : '') + '><div class="cond">' + esc(p[0] || '') + '</div>' +
+            (p[1] ? '<div class="qty' + qcls + '">' + esc(p[1]) + '</div>' : '') + '</td>';
         }).join('');
-        html += '<tr><td><div class="nm">' + assetDot(a.code) + esc(a.name) + '</div><div class="cd">' + a.code + '</div><div class="tg">目标 ' + fmt(a.target) + '</div>' + heldBadge(code) + '</td>' + steps + '</tr>';
+        html += '<tr><td><div class="nm">' + assetDot(a.code) + esc(a.name) + '</div><div class="cd">' + a.code + '</div><div class="tg">目标 ' + fmt(a.target) + '</div>' + heldBadge(code) + '</td>' +
+          '<td class="act"><div class="act-i" style="background:' + nx.dot + '"></div><div>' +
+          '<div class="act-t' + nx.cls + '">' + nx.txt + '</div>' +
+          (nx.sub ? '<div class="act-s">' + nx.sub + '</div>' : '') + '</div></td>' + steps + '</tr>';
       });
     });
     html += '</tbody></table></div>';
     el.innerHTML = html;
+  }
+  /* v163 fw2_v163_next_action：「当前动作」列判定 —— 读工作台持仓快照给出“此标的下一步”。
+     口径：短融=弹药池；持仓≥90%目标=达标观望；持仓未达=建仓中差额/月；无持仓=待建仓（按 S.plan.build）。 */
+  function nextAction(code) {
+    var a = assetOf(code);
+    if (!a) return { dot: '#cbd5e1', cls: '', txt: '—', sub: '' };
+    var plan = null;
+    for (var pi = 0; pi < (S.plan || []).length; pi++) if (S.plan[pi].code === code) { plan = S.plan[pi]; break; }
+    var h = heldOf(code);
+    var m = (h && h.qty > 0) ? mvOf(h) : null;
+    var pct = (m != null && a.target > 0) ? Math.min(100, m / a.target * 100) : 0;
+    if (code === '511360') return { dot: '#059669', cls: ' ok', txt: '弹药池 · T+0', sub: '止盈资金默认落点' };
+    if (h && pct >= 90) return { dot: '#16a34a', cls: ' ok', txt: '达标 · 观望', sub: (m != null ? '市值 ' + fmt(Math.round(m)) : '') + (code === '012920' ? '（不再买入）' : '') };
+    if (h && m != null) {
+      var gap = Math.max(0, a.target - m);
+      return { dot: '#2563eb', cls: ' mid', txt: '建仓中 · 差额 ' + fmt(Math.round(gap)), sub: '约 ' + fmt(Math.round(gap / monthsLeft())) + '/月' };
+    }
+    return { dot: '#d98c00', cls: '', txt: '待建仓 · ' + (plan && plan.build ? plan.build : '') + '/月', sub: '差额 ' + fmt(Math.round(a.target)) + '（S.plan 计划口径）' };
   }
   var roleColor = { '底仓/缓冲': '#2563eb', '进攻/主题': '#d98c00', '安全垫': '#059669', '对冲': '#b45309' };
   function assetDot(code) {
