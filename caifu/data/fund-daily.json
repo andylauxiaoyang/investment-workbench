@@ -9,7 +9,7 @@
   "note": "v158 日频口径：收益分流直接读 fund-monthly.json 的 funds[].retBasis——acc 型（分红型）输出 {code,d,nav,acc}，前端按 div_t=(acc_t-acc_{t-1})-(nav_t-nav_{t-1})、r_t=(nav_t+div_t)/nav_{t-1}-1 按日链乘；nav 型（折算型/无分红）只输出 {code,d,nav}，前端按单位净值环比链乘（★160422 的东财累计净值是折算前口径 ljjz≈0.7052×nav，若喂进 div 公式会产生幻影分红，2024-09 单月差异 0.84pct，故强制去掉 acc）；货币型输出 {code,d,ret}=当日万份收益/10000×100。净值断裂自断裂日起输出，断裂前序列丢弃。",
   "verifyNote": "gen_fund_daily.py 内置断言（basis 感知）：acc 型月末 nav/acc 与 fund-monthly.json 逐月对拍一致；nav 型 nav 链乘精确望远镜（差<1e-6pct）；货币型 dayRet 链乘月末 ≈ 月频 monthRet。发布由 gate.py 强制卡口（verify_fund_daily.py，FUNDDAILY=PASS）。",
   "verified": {
-   "at": "2026-09-20 22:09",
+   "at": "2026-09-20 23:11",
    "datasets": [
     "fund_daily"
    ],
