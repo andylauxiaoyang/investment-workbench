@@ -7165,6 +7165,25 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
      xmapCard 与 SIGNALS_CFG.barbell.funds 数据契约未动。verChip v153->v154
   */
 
+  /* v158 fw2_v158_fundchart_daily：收益曲线主图日频化（用户 2026-09-20「这个数据用日数据吧，月数据看的
+     不是太清楚」+「参照这个模版做，按照日取数画图」+「只做主图日频化」+「暂不做基准列」）。
+     数据源 fund-monthly.json → fund-daily.json（DCD 懒加载，失败静默回退月频，回退= v157 原逻辑逐字不变）。
+     日频口径（与 fund-monthly.json funds[].retBasis 判型一致）：
+       · acc 型（分红型 012761/270042）：{d,nav,acc} → div 公式按日链乘（除息日分红再投）；
+       · nav 型（折算/无分红）：{d,nav} → 单位净值环比链乘。★160422 的东财 LJJZ 是「折算前口径」
+         （2018-11-09 每份折算 0.705225555 份后 ljjz≈0.7052×nav+常数，与 nav 严格线性），v157 把 acc
+         喂进 div 公式会产生「幻影分红」——2024-09 单月 +37% 时日频/月频链乘差 0.84pct（日频 25.62%
+         vs 月频 26.46%），v158 去掉 acc 走 nav 环比修复，链乘精确望远镜、与月频逐月一致；
+       · 货币型：{d,ret}=当日万份收益/10000×100 → 按日链乘（修复 v157 月频 nav=acc=1.0 恒 0% 缺陷）。
+     ★断档不重置：全集日期含货币型周末/节假日记录，nav/acc 型在断档日 idx=null，链乘基数取
+       最近非 null（lastIdx）而非 idx[-1]——否则断档后重置为 1，160422 在 2024-09-29 周日后
+       09-30 被重置 → 2024-09 单月 -2.21% 假象；修复后 = 37.53% 与月频 nav 环比精确一致
+       （_test_v158_fundchart_daily 断言 ±0.01pct）。
+     期间裁剪按交易日：ytd=当年首日起；y1/y3/y5/y10=末 252/756/1260/2520 个交易日。
+     ★契约不动：data-dc="chart"、#dcChartWrap、#dcChart、#dcChartType、#dcChartHint、renderDcChart 函数名。
+     连带：verify_sync 加 v158 组（含 fund-daily.json）+ verChip v157->v158；
+       新增 _test_v158_fundchart_daily.py + _live_v158.py；gate.py 加 fund_daily 数据集。verChip v157->v158
+  */
   /* v157 fw2_v157_fundchart：基金数据「配图」Tab → 「收益曲线」（用户 2026-09-20「按照你的建议」确认）。
      主图 = 分红再投累计收益率%（起点=0%）；期间按钮组 今年以来/1年/3年/5年/10年
      （#dcWinBtns -> window.__dcWin，默认 10年）。图型下拉 navNorm/navRaw/scale 三项退场 →
@@ -7343,7 +7362,7 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
      data/口径未变，不跑 push_macro_seed。verChip v147->v148
   */
   const vc = $('#verChip');
-  if (vc) vc.textContent = 'v157 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  if (vc) vc.textContent = 'v158 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
@@ -7730,6 +7749,37 @@ setInterval(updateSessionBadge, 30000);
   var DC_RAW = 'https://raw.githubusercontent.com/andylauxiaoyang/investment-workbench/master/caifu/data/fund-monthly.json';
   var DC_REL = './data/fund-monthly.json';
   var DC = null, DC_LOADED = false;
+  /* v158 fw2_v158_fundchart_daily：收益曲线主图专用日频数据（懒加载：首次进「收益曲线」Tab 才拉取；
+     失败静默回退月频 → renderDcChart 走 v157 原逻辑，其他分块（基金列表/分析/区间收益）一律不动）。
+     数据契约（由 gen_fund_daily.py 保证，gate.py 卡口）：funds[].retBasis ∈ {acc,nav,money}；
+     rows = {code,d,nav?|acc?|ret?}：acc 型 {d,nav,acc}、nav 型仅 {d,nav}、货币型仅 {d,ret}。 */
+  var DCD_RAW = 'https://raw.githubusercontent.com/andylauxiaoyang/investment-workbench/master/caifu/data/fund-daily.json';
+  var DCD_REL = './data/fund-daily.json';
+  var DCD = null, DCD_LOADED = false, DCD_TRIED = false;
+  async function loadDcDaily(force){
+    if(DCD_LOADED && !force) return DCD;
+    var urls = [DCD_RAW, DCD_REL];
+    for(var i=0;i<urls.length;i++){
+      try{
+        var ctrl = (typeof AbortController!=='undefined') ? new AbortController() : null;
+        var to = ctrl ? setTimeout(function(){ try{ ctrl.abort(); }catch(e){} }, 10000) : null;
+        var r = await fetch(urls[i], {cache:'no-store', signal: ctrl?ctrl.signal:undefined});
+        if(to) clearTimeout(to);
+        if(!r.ok) continue;
+        var d = await r.json();
+        if(d && d.rows && d.rows.length){ DCD=d; DCD_LOADED=true; return d; }
+      }catch(e){ /* try next */ }
+    }
+    return null;   /* 失败：DCD_LOADED 保持 false → 图表静默回退月频（v157 原逻辑） */
+  }
+  function ensureDcDaily(){
+    if(DCD_LOADED || DCD_TRIED) return;
+    DCD_TRIED = true;
+    loadDcDaily(false).then(function(){
+      var at = document.querySelector('.dc-tab.active');
+      if(DCD_LOADED && at && at.dataset.dc==='chart' && DC_LOADED) renderDcChart();
+    });
+  }
   /* v95 fw2_v95_drop_table_pivot：列清单与被删表格专用的 UI 状态字段一并移除 */
   var dcUI = {search:'', sel:null, ovSortKey:'scale', ovSortDir:-1};
 
@@ -7898,7 +7948,7 @@ setInterval(updateSessionBadge, 30000);
     var at=document.querySelector('.dc-tab.active');
     if(at && at.dataset.dc==='overview') renderDcOverview();
     else if(at && at.dataset.dc==='analyze') renderDcAnalyze();   // v96 fw2_v96_analyze_tab
-    else if(at && at.dataset.dc==='chart') renderDcChart();
+    else if(at && at.dataset.dc==='chart'){ ensureDcDaily(); renderDcChart(); }
   }
 
   /* v95 fw2_v95_drop_table_pivot：列显示开关 / 透视聚合与渲染函数一并删除 */
@@ -7927,6 +7977,14 @@ setInterval(updateSessionBadge, 30000);
   }
 
   function renderDcChart(){
+    if(!DC || !window.echarts) return;
+    /* v158：日频数据就绪走日频；否则静默回退月频（v157 原逻辑） */
+    if(DCD_LOADED && DCD && DCD.rows && DCD.rows.length){ renderDcChartDaily(); return; }
+    renderDcChartMonthly();
+  }
+
+  /* v158 回退路径：月频渲染 = v157 原逻辑逐字保留（DCD 未加载/加载失败时的数据口径与文案完全一致） */
+  function renderDcChartMonthly(){
     if(!DC || !window.echarts) return;
     var type=$('dcChartType').value, el=$('dcChart');
     if(!el) return;
@@ -7968,6 +8026,78 @@ setInterval(updateSessionBadge, 30000);
     elText('dcChartHint', (type==='dd'
       ? '各基金从窗口内峰值回撤%（基于分红再投指数）；短历史基金按实际覆盖区间绘制。'
       : '各基金分红再投累计收益率：单位净值+当月分红按月链乘，起点=0%（窗口首月）。') + coverNote);
+    if(window.__dcChart) window.__dcChart.dispose();
+    el.innerHTML='';
+    window.__dcChart = window.echarts.init(el);
+    window.__dcChart.setOption(option);
+    if(window.__dcChart && window.__dcChart.resize) setTimeout(function(){ window.__dcChart.resize(); }, 30);
+  }
+
+  /* v158：日频主图。期间裁剪按交易日（ytd=当年首日起；y1/y3/y5/y10=末 252/756/1260/2520 个交易日）；
+     再投指数 basis 感知：acc 型除息日分红再投 / nav 型单位净值环比（精确望远镜）/ 货币型万份收益累乘。
+     ★断档不重置：全集日期含货币型周末/节假日记录，nav/acc 型在断档日 idx=null，
+     lastIdx 取最近非 null 链乘基数（用 idx[-1] 会在断档后重置为 1，如 160422 在 2024-09-29
+     周日后 09-30 被重置 → 2024-09 单月 -2.21% 假象，修复后 = 37.53% 与月频 nav 环比一致）。 */
+  function dcClipWinD(dates, win){
+    if(win==='ytd'){ var y=dates[dates.length-1].slice(0,4); return dates.filter(function(d){ return d >= y+'-01-01'; }); }
+    var n=({y1:252,y3:756,y5:1260,y10:2520})[win]||2520; return dates.slice(-n);
+  }
+  function dcReinvIdxD(dates, d2nav, d2acc, d2ret, basis){
+    var idx=[], pN=null, pA=null, lastIdx=null;
+    dates.forEach(function(d){
+      if(basis==='money'){ var rtm=d2ret[d]; if(rtm==null){ idx.push(null); return; } var pm=lastIdx; idx.push(pm==null?1:pm*(1+rtm/100)); lastIdx=idx[idx.length-1]; return; }
+      var nav=d2nav[d];
+      if(nav==null){ idx.push(null); return; }
+      if(basis==='nav'){ if(pN==null){ idx.push(1); lastIdx=1; pN=nav; return; } var pn=lastIdx; idx.push(pn==null?1:pn*(nav/pN)); lastIdx=idx[idx.length-1]; pN=nav; return; }
+      var acc=d2acc[d];
+      if(acc==null){ idx.push(null); return; }
+      if(pN==null){ idx.push(1); lastIdx=1; pN=nav; pA=acc; return; }
+      var div=(acc-pA)-(nav-pN); var r=(nav+div)/pN - 1;
+      var pv=lastIdx; idx.push(pv==null?1:pv*(1+r)); lastIdx=idx[idx.length-1]; pN=nav; pA=acc;
+    });
+    return idx;
+  }
+  function renderDcChartDaily(){
+    var type=$('dcChartType').value, el=$('dcChart');
+    if(!el) return;
+    if(!selFundCount()){
+      if(window.__dcChart){ window.__dcChart.dispose(); window.__dcChart=null; }
+      el.innerHTML='<div class="dc-empty">未选择任何基金：点左上角「筛选基金」勾选要看的基金</div>';
+      elText('dcChartHint',''); return;
+    }
+    var selRows=DCD.rows.filter(function(r){ return passSel(r.code); });
+    var dates=Array.from(new Set(selRows.map(function(r){return r.d;}))).sort();
+    var win=window.__dcWin||'y10';
+    var winDates=dcClipWinD(dates, win);
+    var series=DCD.funds.filter(function(f){ return passSel(f.code); }).map(function(f){
+      var rs=selRows.filter(function(r){return r.code===f.code;});
+      var basis=(f.retBasis==='acc')?'acc':((f.isMoney||f.retBasis==='money')?'money':'nav');
+      var d2nav={}, d2acc={}, d2ret={};
+      rs.forEach(function(r){ if(r.nav!=null) d2nav[r.d]=r.nav; if(r.acc!=null) d2acc[r.d]=r.acc; if(r.ret!=null) d2ret[r.d]=r.ret; });
+      var fullIdx=dcReinvIdxD(dates, d2nav, d2acc, d2ret, basis);
+      var d2idx={}; dates.forEach(function(d,i){ d2idx[d]=fullIdx[i]; });
+      var idxSeries=winDates.map(function(d){ return d2idx[d]; });
+      var base=null; for(var i=0;i<idxSeries.length;i++){ if(idxSeries[i]!=null){ base=idxSeries[i]; break; } }
+      if(base==null) return null;
+      var data, peak=base;
+      if(type==='dd'){
+        data=idxSeries.map(function(v){ if(v==null) return null; if(v>peak) peak=v; return +((v/peak-1)*100).toFixed(2); });
+      } else {
+        data=idxSeries.map(function(v){ return v==null?null:+( (v/base-1)*100 ).toFixed(2); });
+      }
+      return {name:f.name, type:'line', showSymbol:false, connectNulls:false, data:data};
+    }).filter(Boolean);
+    var yname = type==='dd' ? '回撤(%)' : '累计收益率(%)';
+    var coverNote = (winDates.length < dates.length) ? ('（实际覆盖 '+winDates.length+' 个交易日）') : '';
+    var option={ tooltip:{trigger:'axis'},
+      legend:{type:'plain',top:0,left:'center',width:'94%',itemGap:10,itemWidth:16,itemHeight:9,textStyle:{fontSize:11}},
+      grid:{left:64,right:30,top:84,bottom:64},
+      xAxis:{type:'category',data:winDates,axisLabel:{rotate:45,fontSize:10}},
+      yAxis:{type:'value',name:yname,scale:true, max: type==='dd'?0:null},
+      series:series };
+    elText('dcChartHint', (type==='dd'
+      ? '各基金从窗口内峰值回撤%（基于分红再投指数，日频）；短历史基金按实际覆盖区间绘制。'
+      : '各基金分红再投累计收益率（日频）：分红型按除息日分红再投、无分红/折算型按单位净值环比、货币型按万份收益累乘，起点=0%（窗口首日）。') + coverNote);
     if(window.__dcChart) window.__dcChart.dispose();
     el.innerHTML='';
     window.__dcChart = window.echarts.init(el);
@@ -8428,7 +8558,7 @@ setInterval(updateSessionBadge, 30000);
       var rw=$('dcResearchWrap'); if(rw) rw.style.display = rc?'':'none';   /* v97 */
       var bar=$('dcBar'); if(bar) bar.style.display = rc?'none':'';   /* v97 */
       if(t==='overview'){ if(FB_LOADED) renderDcOverview(); else loadDcBasic().then(function(){ if(FB_LOADED) renderDcOverview(); }); }
-      else if(t==='chart' && DC_LOADED) renderDcChart();
+      else if(t==='chart' && DC_LOADED){ ensureDcDaily(); renderDcChart(); }
       else if(t==='analyze'){ if(DC_LOADED) renderDcAnalyze(); else loadDcData(false).then(function(){ if(DC_LOADED) renderDcAnalyze(); }); }   // v96 fw2_v96_analyze_tab
       else if(rc){ state.research.tab=rc; if(typeof fillRsPick==='function') fillRsPick(); if(typeof renderResearchChips==='function') renderResearchChips(); renderResearch(); }   /* v97 fw2_v97_research_merge */
     });
@@ -8459,7 +8589,7 @@ setInterval(updateSessionBadge, 30000);
   $('dcExportMd').addEventListener('click', exportMd);
   $('dcExportJson').addEventListener('click', exportJson);
   $('dcReload').addEventListener('click', async function(){
-    DC_LOADED=false; FB_LOADED=false; elText('dcMeta','重新加载中…');
+    DC_LOADED=false; FB_LOADED=false; DCD_LOADED=false; DCD_TRIED=false; DCD=null; elText('dcMeta','重新加载中…');
     var d=await loadDcData(true);
     if(!d){ elText('dcMeta','⚠ 数据加载失败'); return; }
     DC=d; DC_LOADED=true; renderDcCaliber(d);
@@ -8469,9 +8599,9 @@ setInterval(updateSessionBadge, 30000);
     var at=document.querySelector('.dc-tab.active');
     if(at && at.dataset.dc==='overview'){ if(FB_LOADED) renderDcOverview(); }
     else if(at && at.dataset.dc==='analyze'){ if(DC_LOADED) renderDcAnalyze(); }   // v96 fw2_v96_analyze_tab
-    else if(at && at.dataset.dc==='chart') renderDcChart();
+    else if(at && at.dataset.dc==='chart'){ ensureDcDaily(); renderDcChart(); }
   });
-  $('dcChartType').addEventListener('change', function(){ if(DC_LOADED) renderDcChart(); });
+  $('dcChartType').addEventListener('change', function(){ if(DC_LOADED){ ensureDcDaily(); renderDcChart(); } });
   (function(){
     var wb=document.getElementById('dcWinBtns'); if(!wb) return;
     wb.addEventListener('click', function(e){
@@ -8479,7 +8609,7 @@ setInterval(updateSessionBadge, 30000);
       window.__dcWin=b.dataset.win;
       wb.querySelectorAll('button').forEach(function(x){ x.classList.remove('on'); });
       b.classList.add('on');
-      if(DC_LOADED) renderDcChart();
+      if(DC_LOADED){ ensureDcDaily(); renderDcChart(); }
     });
     window.__dcWin = wb.querySelector('button.on') ? wb.querySelector('button.on').dataset.win : 'y10';
   })();
