@@ -1010,8 +1010,8 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
       <button data-page-node-id="MVVUqip80gYLj9yljIbry0" class="nav-item" data-view="news"><span data-page-node-id="3qyNvv2OrqDOM5S40cdndf" class="ic"><!--pnid:aYN36M1fDGnrp0j08eRqpC--></span><!--pnid:CPHNZBlIT42j0YlEKtb2JX-->财经资讯<span data-page-node-id="oYuzf26sBYTgJczkPMSjY7" class="dot" id="navNewsDot"></span></button>
       <button class="nav-item" data-view="macro"><span class="ic"></span>宏观数据</button>
       <button class="nav-item" data-view="gold"><span class="ic"></span>黄金研究</button><!-- fw2_v143_gold --><!-- fw2_v135_macro_view：宏观数据独立模块（用户 2026-09-18「宏观数据单独作为一个模块放在数据中心上面」） -->
-      <button class="nav-item" data-view="data"><span class="ic"></span>基金数据<!--fw2_v120_strategy-->
-      <button class="nav-item" data-view="strategy"><span class="ic"></span>策略执行<!--fw2_v120_strategy--></button><!--fw2_v71_datacenter--></button>
+      <button class="nav-item" data-view="data"><span class="ic"></span>基金数据<!--fw2_v120_strategy--></button>
+      <button class="nav-item" data-view="strategy"><span class="ic"></span>策略执行<!--fw2_v120_strategy--></button><!--fw2_v71_datacenter-->
     </nav>
     <div data-page-node-id="NWwNSKf013miYG93pfpzol" class="side-foot">
       <div data-page-node-id="ftO6aqWRCbJJWBhMHmpotd" class="snap-box">
@@ -7297,6 +7297,11 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
         「现价 N ≤ 买入线4000 触发」，否则标注「现价 N（买入线 4000）」。
      ③ 纯渲染逻辑，gold-data.json 数据文件不动。verChip v161->v162
   */
+    /* v165 fw2_v165_nav_close：修侧栏 nav「基金数据」按钮未闭合（用户点名的脏活）。
+       实测 nav 段 <button> 8 开 9 闭：「基金数据」缺 </button>，「策略执行」后多一个 </button>
+       → 两个 nav-item 嵌套（HTML 非法，点击行为不可预期）。本轮补齐闭合、摘掉多余闭合标签。
+       纯 HTML 结构修复，不改视图/渲染/数据。verChip v164->v165
+  */
     /* v164 fw2_v164_discipline：「我的持仓」新增组合纪律核查卡（用户既定半杠铃纪律）。
      ① 阈值常量 DISCIPLINE_CFG：债券 25–35%、黄金 ≥15%、AI科技 ≤15%、现金缓冲 ≥5%（最小阈值待确认）、
         单一持仓 ≤25%；距阈值 ≤5pct 判「关注」（琥珀）、超出判「超线」（红）。
@@ -7531,7 +7536,7 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
      data/口径未变，不跑 push_macro_seed。verChip v147->v148
   */
   const vc = $('#verChip');
-  if (vc) vc.textContent = 'v164 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  if (vc) vc.textContent = 'v165 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
