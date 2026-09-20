@@ -7364,7 +7364,7 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
      data/口径未变，不跑 push_macro_seed。verChip v147->v148
   */
   const vc = $('#verChip');
-  if (vc) vc.textContent = 'v159 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  if (vc) vc.textContent = 'v160 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
@@ -8067,7 +8067,14 @@ setInterval(updateSessionBadge, 30000);
       elText('dcChartHint',''); return;
     }
     var selRows=DCD.rows.filter(function(r){ return passSel(r.code); });
-    var dates=Array.from(new Set(selRows.map(function(r){return r.d;}))).sort();
+    /* v160 fw2_v160_money_axis：货基周末/节假日记录不参与公共日期轴
+       （否则撑大轴→其他基金在无净值日 idx=null→connectNulls:false 断线）。
+       仅当选中集含货基且还有非货基时排除货基日期；若只选了货基则回退货基自身轴。 */
+    var fm={}; DCD.funds.forEach(function(f){ fm[f.code]=f; });
+    var isMoney=function(c){ var f=fm[c]; return !!(f&&(f.isMoney||f.retBasis==='money')); };
+    var axisRows=selRows.filter(function(r){ return !isMoney(r.code); });
+    if(!axisRows.length) axisRows=selRows;
+    var dates=Array.from(new Set(axisRows.map(function(r){return r.d;}))).sort();
     var win=window.__dcWin||'y10';
     var winDates=dcClipWinD(dates, win);
     var series=DCD.funds.filter(function(f){ return passSel(f.code); }).map(function(f){
