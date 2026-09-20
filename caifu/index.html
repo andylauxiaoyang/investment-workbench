@@ -1295,8 +1295,6 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
             <button class="dc-tab active" data-dc="overview">基金列表</button>
             <!-- v156 fw2_v156_fundlist_label：Tab「总览」更名「基金列表」（用户 2026-09-20 截图指定）。纯文案：data-dc="overview" 路由键 / #dcOverviewWrap / dcExportOverviewCsv 等 id 与 JS 函数名均不动（数据契约） -->
             <button class="dc-tab" data-dc="chart">收益曲线</button>
-            <button class="dc-tab" data-dc="analyze">风险指标</button>
-            <!-- v98 fw2_v98_risk_label：本 Tab 由「分析」更名「风险指标」——纯文案，内容仍为 12 只本地自算风险指标 -->
             <!-- v97 fw2_v97_research_merge：原「标的分析」6 个模块迁入本分块，作为与总览并列的 Tab -->
             <button class="dc-tab" data-dc="r-fundamental">基本面</button>
             <button class="dc-tab" data-dc="r-technical">技术面</button>
@@ -1305,7 +1303,6 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
             <button class="dc-tab" data-dc="r-report">财报</button>
             <button class="dc-tab" data-dc="r-score">综合诊断</button>
             <!-- v95 fw2_v95_drop_table_pivot：本分块只保留「总览」「配图」两个 Tab，原第二/第三个 Tab 及其视图已删除 -->
-            <!-- v96 fw2_v96_analyze_tab：新增第三个 Tab「分析」——对 12 只本地派生风险指标（年化波动率/最大回撤/夏普/卡玛/索提诺）单模块展示，与总览/配图并列 -->
           </div>
         </div>
         <div class="dc-bar" id="dcBar"><!-- fw2_v78_fund_filter -->
@@ -1343,7 +1340,6 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
           </div>
           <div id="dcChart" style="width:100%;height:440px"></div>
         </div>
-        <div id="dcAnalyzeWrap" class="dc-pane" style="display:none"><!-- fw2_v96_analyze_tab --><!-- fw2_v98_risk_label --></div>
         <div id="dcResearchWrap" class="dc-pane" style="display:none"><!-- fw2_v97_research_merge -->
 <div data-page-node-id="1vrQgKT5uW2QpnXLRuwgaD" class="toolbar research-bar">
           <div data-page-node-id="78aqPrnkuE7IlNDt8pkzrk" class="tools-l inline-form">
@@ -1466,12 +1462,6 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
       #view-data .dc-foot{color:#888;font-size:var(--fs-sm);margin-top:6px}
       /* v85 基金总览 */
       #view-data .dc-ov-note{color:#888;font-size:var(--fs-sm);margin:0 0 8px;line-height:1.6}
-      /* v99 fw2_v99_acc_caliber：风险指标窗口标注 + 分红型「含息」标 */
-      #view-data .dc-an-tbl th em.an-w{display:block;font-style:normal;font-weight:400;font-size:var(--fs-2xs);letter-spacing:.3px;opacity:.62;margin-top:2px}
-      #view-data .dc-an-tbl sup.an-b{font-size: var(--fs-2xs);font-weight:600;color:#92600a;background:#fdf3e0;border-radius:var(--r-3);padding:1px 3px;margin-left:2px;cursor:help}
-      /* v101 fw2_v101_an_colwidth：风险指标表列宽收紧——原 width:100% 把 8 列摊满整宽（实测 1157px 容器里名称列独吞 364px、数值列各多 30–55px 空白），改为按内容定宽 + 内边距 9px->7px。★选择器刻意保持 (1,1,x) 特异性：桌面端靠源码顺序压过 .dc-tbl{width:100%}，≤560px 时让 @media 的 .dc-tbl{padding:4px 6px} 继续生效（勿加 table./伪类，会反向覆盖移动端）。仅作用于 .dc-an-tbl，总览表等其它表不受影响 */
-      #view-data .dc-an-tbl{width:auto}
-      #view-data .dc-an-tbl th,#view-data .dc-an-tbl td{padding:5px 7px}
       /* v102 fw2_v102_all_colwidth：把 v101 紧凑列宽推广到数据表格——基金总览表(.dc-ov-tbl)加 width:auto + 内边距 5px 7px；★同 v101 铁律：选择器保持 (1,1,x)、不加 table./伪类，桌面靠源码顺序压过 .dc-tbl{width:100%}，≤560px 让 @media 的 .dc-tbl{padding:4px 6px} 继续生效；因该表 nowrap 列多、内容已超容器，width:auto 主要收紧内边距、表宽基本不变。
          ★v155 fw2_v155_macro_no_overview：宏观总览表整块删除（用户 2026-09-20「总览页删除」），原同组的该表两条规则随之删除。 */
       #view-data .dc-ov-tbl{width:auto}
@@ -7165,6 +7155,18 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
      xmapCard 与 SIGNALS_CFG.barbell.funds 数据契约未动。verChip v153->v154
   */
 
+  /* v159 fw2_v159_risk_cols：风险指标并入「基金列表」（用户 2026-09-20「把风险指标里的红框住的指标移到
+     基金列表，加入到成立以来年化后面。风险指标板块删除」）。
+     ① 风险指标 Tab（v96/v98/v101 的按钮 / #dcAnalyzeWrap 容器 / renderDcAnalyze+anRows 渲染 /
+        .dc-an-tbl CSS / 5 处切换分支）整块删除；anMetrics 保留供基金列表行复用。
+     ② 基金列表新增 5 列＝年化波动率/最大回撤/夏普比率/卡玛比率/索提诺比率，列位＝「成立以来年化」之后、
+       「基金经理」之前（ovColsAll 内 IV_DEFS 组末尾插入，risk:true 标记）；数值全历史·月频自算
+       （口径与旧风险指标 Tab 逐字一致：分红型按累计净值、货币型—），表头可排序、CSV 导出跟随。
+     ★契约不动：data-dc="overview"、#dcOverviewWrap、renderDcOverview、anMetrics、ovColsAll。
+     连带：verify_sync v96/v98/v99(部分)/v101 标记摘除 + 新增 v159 组 + verChip v158->v159；
+       _probe_v159.py 校验残留。数据 / 口径未变。verChip v158->v159
+  */
+
   /* v158 fw2_v158_fundchart_daily：收益曲线主图日频化（用户 2026-09-20「这个数据用日数据吧，月数据看的
      不是太清楚」+「参照这个模版做，按照日取数画图」+「只做主图日频化」+「暂不做基准列」）。
      数据源 fund-monthly.json → fund-daily.json（DCD 懒加载，失败静默回退月频，回退= v157 原逻辑逐字不变）。
@@ -7362,7 +7364,7 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
      data/口径未变，不跑 push_macro_seed。verChip v147->v148
   */
   const vc = $('#verChip');
-  if (vc) vc.textContent = 'v158 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  if (vc) vc.textContent = 'v159 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
@@ -7947,7 +7949,6 @@ setInterval(updateSessionBadge, 30000);
     updateDcFselUi(); renderDcFsel();
     var at=document.querySelector('.dc-tab.active');
     if(at && at.dataset.dc==='overview') renderDcOverview();
-    else if(at && at.dataset.dc==='analyze') renderDcAnalyze();   // v96 fw2_v96_analyze_tab
     else if(at && at.dataset.dc==='chart'){ ensureDcDaily(); renderDcChart(); }
   }
 
@@ -8330,6 +8331,10 @@ setInterval(updateSessionBadge, 30000);
       var _m = ivMap(), _rws = (_m && _m[r.code]) || [], _money = (r.isMoney === true || /货币/.test(r.ftype || ''));
       var _basis = basisOf(r.code);
       IV_DEFS.forEach(function(d){ r['iv_'+d.k] = ivSeries(_rws, d, _money, _basis); });
+      // v159 fw2_v159_risk_cols：风险指标并入同一行（复用 anMetrics，全历史·月频自算）
+      var _rm = anMetrics(_rws, _money, _basis);
+      r.vol = _rm ? _rm.vol : null; r.mdd = _rm ? _rm.mdd : null; r.sharpe = _rm ? _rm.sharpe : null;
+      r.calmar = _rm ? _rm.calmar : null; r.sortino = _rm ? _rm.sortino : null;
     });
     if(dcUI.sel) arr = arr.filter(function(r){ return dcUI.sel.has(r.code); });
     var q = (dcUI.search||'').trim().toLowerCase();
@@ -8337,7 +8342,7 @@ setInterval(updateSessionBadge, 30000);
     var k = dcUI.ovSortKey || 'scale', dir = dcUI.ovSortDir || -1;
     arr.sort(function(a,b){
       var x=a[k], y=b[k];
-      if(k==='scale'||k==='fee'||k==='aum'||k.indexOf('iv_')===0){ x=(x==null?-Infinity:x); y=(y==null?-Infinity:y); return (x-y)*dir; }
+      if(k==='scale'||k==='fee'||k==='aum'||k==='vol'||k==='mdd'||k==='sharpe'||k==='calmar'||k==='sortino'||k.indexOf('iv_')===0){ x=(x==null?-Infinity:x); y=(y==null?-Infinity:y); return (x-y)*dir; }
       if(k==='liq'){ var ord={'高风险':0,'关注':1,'低':2,'未知':3}; x=ord[x]!=null?ord[x]:3; y=ord[y]!=null?ord[y]:3; return (x-y)*dir; }
       return (''+x).localeCompare(''+y)*dir;
     });
@@ -8360,6 +8365,8 @@ setInterval(updateSessionBadge, 30000);
     OV_COLS.forEach(function(c){
       if(c.k === 'mgr'){
         IV_DEFS.forEach(function(d, i){ out.push({k:'iv_'+d.k, t:d.t, num:true, iv:true, def:d, sep:(i===0)}); });
+        // v159 fw2_v159_risk_cols：风险指标列插在「成立以来年化」之后（区间收益列组末尾）、「基金经理」之前
+        [{k:'vol',t:'年化波动率'},{k:'mdd',t:'最大回撤'},{k:'sharpe',t:'夏普比率'},{k:'calmar',t:'卡玛比率'},{k:'sortino',t:'索提诺比率'}].forEach(function(c){ out.push({k:c.k, t:c.t, num:true, risk:true}); });
         out.push({k:'mgr', t:'基金经理', sep:true});
       } else {
         out.push(c);
@@ -8378,7 +8385,8 @@ setInterval(updateSessionBadge, 30000);
     var sd = FB.funds[Object.keys(FB.funds)[0]].scaleDate;
     var ovNote = '<div class="dc-ov-note">数据来源：fund-basic.json（天天基金 fundf10 jbgk ＋ 基金经理页）。'
       + '「最新规模」为 <b>'+sd+'</b> 中报点时点，非月度序列；'
-      + '「总费率」＝管理＋托管＋销售（销售为空计 0）；「清盘风险」按规模派生：&lt;0.5亿=高风险(清盘线)、0.5~2亿=关注、≥2亿=低。点击表头排序（默认按规模最大）。</div>';
+      + '「总费率」＝管理＋托管＋销售（销售为空计 0）；「清盘风险」按规模派生：&lt;0.5亿=高风险(清盘线)、0.5~2亿=关注、≥2亿=低。'
+      + '风险指标列为<b>推断·自算</b>（非官方披露，全历史·月频）：年化波动率=月收益标准差×√12；最大回撤=月度净值峰谷；夏普=(年化收益−1.5%)/年化波动率；卡玛=年化收益/|最大回撤|；索提诺=(年化收益−1.5%)/下行波动×√12；分红型按<b>累计净值</b>（含分红再投）、其余按单位净值，货币型（净值恒 1）显示「—」。点击表头排序（默认按规模最大）。</div>';
     var OVC = ovColsAll();   // v89：区间收益列插在总费率后、基金经理前；v90：基础信息列 11→9（删类型/基金公司）
     var h = '<table class="dc-tbl dc-ov-tbl"><thead><tr>';
     OVC.forEach(function(c){
@@ -8404,6 +8412,7 @@ setInterval(updateSessionBadge, 30000);
           }
         }
         else if(c.k==='scale'||c.k==='fee'||c.k==='aum'){ h += '<td class="'+cls+'">'+(v==null?'—':(+v).toFixed(2))+'</td>'; }
+        else if(c.risk){ h += '<td class="'+(cls+(c.k==='mdd'&&v!=null&&v<0?' neg':'')).trim()+'" title="推断·自算，全历史·月频；分红型按累计净值">'+(v==null?'—':v.toFixed(2))+'</td>'; }
         else if(c.k==='liq'){ h += '<td class="'+(liqCls(v)+' '+cls).trim()+'" title="按规模派生评估，非官方判定">'+(v||'—')+'</td>'; }
         else if(c.k==='name'||c.k==='mgr'||c.k==='estab'){ h += '<td class="'+cls+'">'+esc(v||'')+'</td>'; }
         else { h += '<td class="'+cls+'">'+(v==null?'—':esc(v))+'</td>'; }
@@ -8425,8 +8434,9 @@ setInterval(updateSessionBadge, 30000);
       });
     });
   }
-  /* v96 fw2_v96_analyze_tab：第三个 Tab「分析」——对 12 只本地派生风险指标（基金分析指标的单模块展示）
-     数据源 = fund-monthly.json 月度净值（与总览/区间收益同源，已双源校验）；指标为「推断·自算」，非官方披露。
+  /* v159 fw2_v159_risk_cols：风险指标（年化波动率/最大回撤/夏普/卡玛/索提诺）并入「基金列表」基础信息表
+     （列位＝成立以来年化之后），原「风险指标」Tab 及其渲染函数已删除。anMetrics 供基金列表行计算复用。
+     数据源 = fund-monthly.json 月度净值（与区间收益同源，已双源校验）；指标为「推断·自算」，非官方披露。
      月度分辨率低于「标的分析」的日频口径；货币型净值恒 1 → 波动/回撤无意义，显示「—」。 */
   function anMetrics(rows, isMoney, basis){
     if(!rows || rows.length < 3) return null;
@@ -8451,73 +8461,6 @@ setInterval(updateSessionBadge, 30000);
     var sortino = sd>0 ? (ann-rf)/sd : null;
     return { ann:ann*100, vol:vol*100, mdd:mdd*100, sharpe:sharpe, calmar:calmar, sortino:sortino };
   }
-  function anRows(){
-    if(!DC) return [];
-    var by = ivMap() || {};
-    var fmap = {}; DC.funds.forEach(function(f){ fmap[f.code]=f; });
-    var arr = Object.keys(by).map(function(code){
-      var f = fmap[code] || {};
-      var m = anMetrics(by[code], f.isMoney===true, basisOf(code));
-      return { code:code, name:f.name||code, ftype:f.ftype||'', isMoney:f.isMoney===true, basis:basisOf(code), m:m };
-    });
-    if(dcUI.sel) arr = arr.filter(function(r){ return dcUI.sel.has(r.code); });
-    var q=(dcUI.search||'').trim().toLowerCase();
-    if(q) arr = arr.filter(function(r){ return (r.code+' '+(r.name||'')+' '+(r.ftype||'')).toLowerCase().indexOf(q)>=0; });
-    var k=dcUI.anSortKey||'sharpe', dir=dcUI.anSortDir||-1;
-    arr.sort(function(a,b){
-      var x=a.m?a.m[k]:null, y=b.m?b.m[k]:null;
-      if(x==null && y==null) return 0;
-      if(x==null) return 1; if(y==null) return -1;
-      return (x-y)*dir;
-    });
-    return arr;
-  }
-  function renderDcAnalyze(){
-    var wrap=$('dcAnalyzeWrap'); if(!wrap) return;
-    if(!DC_LOADED){ wrap.innerHTML='<div class="dc-empty">月度净值数据加载中…（若失败请点「重新加载」）</div>'; return; }
-    var arr=anRows();
-    if(!arr.length){ wrap.innerHTML='<div class="dc-empty">无匹配基金（试试清空搜索词或基金筛选）</div>'; return; }
-    var _MW='全历史·月频';
-    var cols=[{k:'code',t:'代码'},{k:'name',t:'名称'},{k:'ann',t:'年化收益(自算)',w:_MW},{k:'vol',t:'年化波动率',w:_MW},{k:'mdd',t:'最大回撤',w:_MW},{k:'sharpe',t:'夏普比率',w:_MW},{k:'calmar',t:'卡玛比率',w:_MW},{k:'sortino',t:'索提诺比率',w:_MW}];
-    var h='<table class="dc-tbl dc-an-tbl"><thead><tr>';
-    cols.forEach(function(c){
-      var arrow=dcUI.anSortKey===c.k?(dcUI.anSortDir>0?' ▲':' ▼'):'';
-      h+='<th data-k="'+c.k+'"'+(c.k!=='code'&&c.k!=='name'?' class="num"':'')+'>'+c.t+(c.w?'<em class="an-w">'+c.w+'</em>':'')+arrow+'</th>';
-    });
-    h+='</tr></thead><tbody>';
-    arr.forEach(function(r){
-      h+='<tr>';
-      h+='<td>'+esc(r.code)+'</td>';
-      h+='<td>'+esc(r.name||'')+(r.basis==='acc'?' <sup class="an-b" title="分红型：本表收益/风险指标按累计净值（含分红再投）计算；若按单位净值，除息当日会被算成亏损">含息</sup>':'')+'</td>';
-      var m=r.m;
-      if(!m){ h+='<td class="num na" colspan="6" title="数据不足（不足 3 个净值月）">—</td>'; }
-      else {
-        h+='<td class="num '+(m.ann>=0?'pos':'neg')+'">'+(m.ann>=0?'+':'')+m.ann.toFixed(2)+'</td>';
-        h+='<td class="num">'+(m.vol==null?'—':m.vol.toFixed(2))+'</td>';
-        h+='<td class="num '+(m.mdd<0?'neg':'')+'">'+(m.mdd==null?'—':m.mdd.toFixed(2))+'</td>';
-        h+='<td class="num">'+(m.sharpe==null?'—':m.sharpe.toFixed(2))+'</td>';
-        h+='<td class="num">'+(m.calmar==null?'—':m.calmar.toFixed(2))+'</td>';
-        h+='<td class="num">'+(m.sortino==null?'—':m.sortino.toFixed(2))+'</td>';
-      }
-      h+='</tr>';
-    });
-    h+='</tbody></table>';
-    h+='<div class="dc-foot">共 '+arr.length+' 只基金（含月度净值序列）</div>';
-    h+='<div class="dc-ov-note">数据来源：fund-monthly.json 月度净值（与「总览·区间收益」同源，已双源校验，含累计净值口径校验）。'
-      + '本表指标为<b>推断·自算</b>（非官方披露），窗口＝<b>全历史·月频</b>（全部已披露净值月）：年化波动率=月收益标准差×√12；最大回撤=月度净值峰谷；'
-      + '夏普=(年化收益−1.5%)/年化波动率；卡玛=年化收益/|最大回撤|；索提诺=(年化收益−1.5%)/下行波动×√12；年化收益=月度净值 CAGR。'
-      + '<b>口径</b>：分红型基金按<b>累计净值</b>（含分红再投，名称列标「含息」）；无分红/折算型按单位净值。'
-      + '<b>与「业绩与排名·风险速览」不可直比</b>：那边是单只纵深、近 1 年日频（最大回撤为近 500 净值日）、实时抓取未经双源校验，同名指标数值天然不同（160422 回撤两口径曾差 35.8 个百分点）。'
-      + '货币型（净值恒 1）波动/回撤无意义，显示「—」。</div>';
-    wrap.innerHTML=h;
-    Array.prototype.forEach.call(wrap.querySelectorAll('th[data-k]'), function(th){
-      th.addEventListener('click', function(){
-        var k=th.dataset.k;
-        if(dcUI.anSortKey===k) dcUI.anSortDir*=-1; else { dcUI.anSortKey=k; dcUI.anSortDir=1; }
-        renderDcAnalyze();
-      });
-    });
-  }
 
   function exportOverviewCsv(){
     if(!FB) return;
@@ -8527,7 +8470,7 @@ setInterval(updateSessionBadge, 30000);
     ovRows().forEach(function(r){
       var row = OVC.map(function(c){
         var v = r[c.k];
-        if(c.k==='scale'||c.k==='fee'||c.k==='aum'||c.iv) return (v==null?'':(+v).toFixed(2));
+        if(c.k==='scale'||c.k==='fee'||c.k==='aum'||c.iv||c.risk) return (v==null?'':(+v).toFixed(2));
         if(c.k==='name'||c.k==='mgr') return '"'+String(v||'').replace(/"/g,'""')+'"';
         return v==null?'':v;
       });
@@ -8554,22 +8497,17 @@ setInterval(updateSessionBadge, 30000);
       var rc=RC_TABS[t];   /* v97 */
       $('dcChartWrap').style.display = t==='chart'?'':'none';
       $('dcOverviewWrap').style.display = t==='overview'?'':'none';
-      $('dcAnalyzeWrap').style.display = t==='analyze'?'':'none';   // v96 fw2_v96_analyze_tab
       var rw=$('dcResearchWrap'); if(rw) rw.style.display = rc?'':'none';   /* v97 */
       var bar=$('dcBar'); if(bar) bar.style.display = rc?'none':'';   /* v97 */
       if(t==='overview'){ if(FB_LOADED) renderDcOverview(); else loadDcBasic().then(function(){ if(FB_LOADED) renderDcOverview(); }); }
       else if(t==='chart' && DC_LOADED){ ensureDcDaily(); renderDcChart(); }
-      else if(t==='analyze'){ if(DC_LOADED) renderDcAnalyze(); else loadDcData(false).then(function(){ if(DC_LOADED) renderDcAnalyze(); }); }   // v96 fw2_v96_analyze_tab
       else if(rc){ state.research.tab=rc; if(typeof fillRsPick==='function') fillRsPick(); if(typeof renderResearchChips==='function') renderResearchChips(); renderResearch(); }   /* v97 fw2_v97_research_merge */
     });
   });
   /* fw2_v135_macro_view：dc-block 点击绑定已删除（dcBlocks 已移除，宏观/基金改由 nav 视图切换） */
   $('dcSearch').addEventListener('input', function(){
     dcUI.search=this.value;
-    var at=document.querySelector('.dc-tab.active');
-    var t=at?at.dataset.dc:'overview';
-    if(t==='analyze'){ if(DC_LOADED) renderDcAnalyze(); }   // v96 fw2_v96_analyze_tab
-    else { if(FB_LOADED) renderDcOverview(); }
+    if(FB_LOADED) renderDcOverview();
   });
   $('dcFselBtn').addEventListener('click', function(ev){
     ev.stopPropagation();
@@ -8598,7 +8536,6 @@ setInterval(updateSessionBadge, 30000);
     elText('dcMeta', d.meta.fundCount+' 只基金 · '+d.meta.monthCount+' 个月 · 截至 '+d.meta.asOf);
     var at=document.querySelector('.dc-tab.active');
     if(at && at.dataset.dc==='overview'){ if(FB_LOADED) renderDcOverview(); }
-    else if(at && at.dataset.dc==='analyze'){ if(DC_LOADED) renderDcAnalyze(); }   // v96 fw2_v96_analyze_tab
     else if(at && at.dataset.dc==='chart'){ ensureDcDaily(); renderDcChart(); }
   });
   $('dcChartType').addEventListener('change', function(){ if(DC_LOADED){ ensureDcDaily(); renderDcChart(); } });
