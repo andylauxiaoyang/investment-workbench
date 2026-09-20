@@ -7155,6 +7155,14 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
      xmapCard 与 SIGNALS_CFG.barbell.funds 数据契约未动。verChip v153->v154
   */
 
+  /* v161 fw2_v161_tooltip_order：收益曲线悬浮提示按数值从高到低排列（用户 2026-09-20「这个悬浮显示能按照
+     从高到低排列吗」）。
+     ① ECharts 5.6 tooltip.order='valueDesc'（trigger:'axis' 多序列默认按序列顺序渲染，5.3+ 支持按值排序）。
+     ② 两处渲染器同改：renderDcChartDaily（日频主图）+ renderDcChartMonthly（月频回退），reinv/dd 两种口径
+        共用同一 tooltip 配置 → 回撤模式数值为负，按数值降序 = 回撤浅的在前。
+     ③ 纯渲染配置，数据文件不动。verChip v160->v161
+  */
+
   /* v160 fw2_v160_money_axis：收益曲线公共日期轴排除货基（用户 2026-09-20「把货基取消选择就能连上」）。
      ① 根因：货基周末/节假日净值记录撑大公共日期轴，其他基金在无净值日 idx=null + connectNulls:false → 断线。
      ② 修复：renderDcChartDaily 公共轴仅当选中集含货基且还有非货基时排除货基日期（isMoney||retBasis==='money'
@@ -7371,7 +7379,7 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
      data/口径未变，不跑 push_macro_seed。verChip v147->v148
   */
   const vc = $('#verChip');
-  if (vc) vc.textContent = 'v160 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  if (vc) vc.textContent = 'v161 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
@@ -8025,7 +8033,7 @@ setInterval(updateSessionBadge, 30000);
     }).filter(Boolean);
     var yname = type==='dd' ? '回撤(%)' : '累计收益率(%)';
     var coverNote = (winMonths.length < months.length) ? ('（实际覆盖 '+winMonths.length+' 个月）') : '';
-    var option={ tooltip:{trigger:'axis'},
+    var option={ tooltip:{trigger:'axis', order:'valueDesc'},  /* v161：悬浮提示按数值从高到低 */
       legend:{type:'plain',top:0,left:'center',width:'94%',itemGap:10,itemWidth:16,itemHeight:9,textStyle:{fontSize:11}},
       grid:{left:64,right:30,top:84,bottom:64},
       xAxis:{type:'category',data:winMonths,axisLabel:{rotate:45,fontSize:10}},
@@ -8104,7 +8112,7 @@ setInterval(updateSessionBadge, 30000);
     }).filter(Boolean);
     var yname = type==='dd' ? '回撤(%)' : '累计收益率(%)';
     var coverNote = (winDates.length < dates.length) ? ('（实际覆盖 '+winDates.length+' 个交易日）') : '';
-    var option={ tooltip:{trigger:'axis'},
+    var option={ tooltip:{trigger:'axis', order:'valueDesc'},  /* v161：悬浮提示按数值从高到低 */
       legend:{type:'plain',top:0,left:'center',width:'94%',itemGap:10,itemWidth:16,itemHeight:9,textStyle:{fontSize:11}},
       grid:{left:64,right:30,top:84,bottom:64},
       xAxis:{type:'category',data:winDates,axisLabel:{rotate:45,fontSize:10}},
