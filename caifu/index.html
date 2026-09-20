@@ -7117,6 +7117,19 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
        （方案 B 候选）。纳指两只做超额＝方案 C 候选，本轮未做。verChip v152->v153
   */
 
+  /* v154 fw2_v154_del_xp_col：删策略执行卡「场内」列（用户 2026-09-20「场内这列删了」）。
+     删净四件套（该列由 JS 渲染，无静态 HTML）：
+       ① 表头 th「场内」+ 行内 td.xp 占位（colgroup 7→6 列：标的 14% + 五步各 17.2%）；
+       ② role-tr colspan 7→6；
+       ③ fetchXmapIntraday 整函数 + renderStrategyView 里唯一调用点（v139 引入、v142 保留
+         ——只服务该列；xmapCard「场内外对照」走 renderXMap，不受影响）；
+       ④ .xp 相关 5 条 CSS；执行卡说明句「场内现价仅作当日参考…」同步删除。
+     连带：verify_sync v139/v142 组摘除失效标记（fetchXmapIntraday/场内）；
+       _test_v140/141/142 的「场内列 11 回填位」断言改为「列已删 xp=0」；
+       新增 _test_v154_del_xp_col（A 静态 / B 运行时 / C 负向 vs bak_v154pre）。
+     xmapCard 与 SIGNALS_CFG.barbell.funds 数据契约未动。verChip v153->v154
+  */
+
   /* v150 fw2_v150_csv_gone：删「CSV 数据文件下载」第 5 分区（用户 2026-09-19「这块删除」）——
      承接上一轮（v149 删第 6 分区）。用户上传截图指向 ⑤ 并说「这块删除」；
      问清范围后用户选「只删这 5 张卡片」（另有「保留分区改文案」「先别删」两个选项）。
@@ -7239,7 +7252,7 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
      data/口径未变，不跑 push_macro_seed。verChip v147->v148
   */
   const vc = $('#verChip');
-  if (vc) vc.textContent = 'v153 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  if (vc) vc.textContent = 'v154 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
@@ -8493,11 +8506,6 @@ setInterval(updateSessionBadge, 30000);
 #view-strategy .st-tbl .role-tr td{border-left:4px solid var(--bc,transparent)}#view-strategy .st-ok{display:inline-block;font-size: var(--fs-2xs);font-weight:700;padding:1px 7px;border-radius:var(--r-10);background:var(--down-soft);color:var(--down);margin-top:5px}#view-strategy .st-prog{display:inline-block;font-size: var(--fs-2xs);font-weight:700;padding:1px 7px;border-radius:var(--r-10);background:var(--brand-soft);color:var(--brand);margin-top:5px}#view-strategy .tbl-scroll{overflow-x:auto}#view-strategy .rec-form{display:flex;flex-wrap:wrap;gap:var(--sp-6);align-items:center;margin:8px 0}#view-strategy .rec-form input,.rec-form select{border:1px solid var(--line);border-radius:var(--r-6);padding:5px 8px;font-size:var(--fs-sm);background: var(--panel);color:var(--text)}#view-strategy .rec-list{margin-top:8px}#view-strategy .rec-row{display:flex;gap:var(--sp-8);align-items:center;padding:6px 8px;border-bottom:1px solid var(--line-2);font-size: var(--fs-sm)}#view-strategy .rec-row .dt{color:var(--muted);font-family:var(--mono);flex:0 0 82px}#view-strategy .rec-row .cd2{font-family:var(--mono);color:var(--brand);flex:0 0 62px}#view-strategy .rec-row .nm2{color:var(--text);flex:0 0 110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}#view-strategy .rec-row .dir{flex:0 0 38px;font-weight:600}#view-strategy .rec-row .am{font-family:var(--mono);flex:0 0 70px;text-align:right}#view-strategy .rec-row .sr{color:var(--muted);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}#view-strategy .rec-row .del{cursor:pointer;color:var(--muted);border:0;background:none;font-size:var(--fs-sm)}#view-strategy .rec-row .del:hover{color:var(--up)}#view-strategy .rev-q{display:flex;align-items:center;gap:var(--sp-10);flex-wrap:wrap;margin-bottom:10px}#view-strategy .rev-q select{border:1px solid var(--line);border-radius:var(--r-6);padding:5px 10px;font-size: var(--fs-md);background: var(--panel);color:var(--text)}#view-strategy .rev-prog{font-size: var(--fs-sm);color:var(--text-2);margin-left:auto}#view-strategy .rev-prog b{color:var(--brand)}#view-strategy .rev-item{display:flex;gap:var(--sp-10);padding:11px 12px;border:1px solid var(--line);border-radius:var(--radius);margin-bottom:8px;background: var(--panel)}#view-strategy .rev-item.checked{border-color:var(--down);background:var(--down-soft)}#view-strategy .rev-item .box{flex:0 0 auto;padding-top:2px}#view-strategy .rev-item .ri-body{flex:1;min-width:0}#view-strategy .rev-item .ri-t{font-size: var(--fs-md);font-weight:600;color:var(--text)}#view-strategy .rev-item.checked .ri-t{color:var(--down)}#view-strategy .rev-item .ri-j{font-size:var(--fs-xs);color:var(--text-2);margin:2px 0 5px}#view-strategy .rev-item .ri-a{font-size:var(--fs-xs);color:var(--muted)}#view-strategy .rev-item input.ri-note{width:100%;margin-top:5px;padding:4px 8px;border:1px solid var(--line);border-radius:var(--r-6);font-size:var(--fs-xs);outline:none;background: var(--panel);color:var(--text)}#view-strategy .ri-auto{font-size:var(--fs-xs);background:var(--brand-soft);border:1px dashed var(--brand-line);color:var(--text-2);border-radius:var(--r-6);padding:5px 9px;margin:6px 0}#view-strategy .ri-auto b{color:var(--brand);font-family:var(--mono)}#view-strategy .ri-auto.warn{background:var(--warn-soft);border-color:rgba(217,140,0,.45)}#view-strategy .ri-auto.warn b{color:var(--warn)}#view-strategy .ri-auto.ok{background:var(--down-soft);border-color:rgba(5,150,105,.4)}#view-strategy .ri-auto.ok b{color:var(--down)}#view-strategy .ri-auto.manual{background:var(--panel-3);border-color:var(--line);color:var(--muted)}#view-strategy .pos-chip{display:inline-block;background: var(--panel);border:1px solid var(--line);border-radius:var(--r-10);padding:0 7px;margin-right:4px;font-family:var(--mono);font-size: var(--fs-xs);color:var(--text-2)}#view-strategy .pos-chip.hot{border-color:var(--warn);color:var(--warn);font-weight:700}#view-strategy .ev-tbl{width:100%;border-collapse:collapse;font-size: var(--fs-sm);table-layout:fixed}#view-strategy .ev-tbl th{text-align:left;padding:6px 9px;background:var(--panel-2);border-bottom:1px solid var(--line);font-weight:600;white-space:nowrap;font-size:var(--fs-xs)}#view-strategy .ev-tbl td{padding:6px 9px;border-bottom:1px solid var(--line-2);vertical-align:top}#view-strategy .ev-tbl tr:last-child td{border-bottom:0}#view-strategy .ev-st{display:inline-block;font-size: var(--fs-2xs);font-weight:700;padding:1px 7px;border-radius:var(--r-10);white-space:nowrap}#view-strategy .ev-st.pos{background:var(--brand-soft);color:var(--brand)}#view-strategy .ev-st.nav{background:var(--warn-soft);color:var(--warn)}#view-strategy .ev-st.man{background:var(--panel-3);color:var(--muted)}
 #view-strategy .st-pane .card{margin-bottom:10px}
 #view-strategy .st-pane .card:last-child{margin-bottom:0}
-#view-strategy .st-tbl .xp{text-align:right;white-space:nowrap}
-#view-strategy .st-tbl .xp .px{font-family:var(--mono);font-size:var(--fs-sm);color:var(--text);font-variant-numeric:tabular-nums}
-#view-strategy .st-tbl .xp .pc{font-size:var(--fs-xs);margin-top:2px}
-#view-strategy .st-tbl .xp .pc.up{color:var(--up,#dc2626)}
-#view-strategy .st-tbl .xp .pc.down{color:var(--down,#059669)}
 @media (max-width:767px){#view-strategy .sh-grid{grid-template-columns:repeat(2,1fr)}#view-strategy .st-tbl{font-size: var(--fs-xs)}#view-strategy .sc-grid{grid-template-columns:repeat(2,1fr)}}</style>
 <script>
 /* v120 fw2_v120_strategy：策略执行模块（STRATEGY_SNAP + 渲染 + 记录层） */
@@ -8577,7 +8585,6 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
     renderStratHero();
     renderStratCal();
     renderStratCards();
-    fetchXmapIntraday(); /* v139 场内行情回填执行卡「场内」列（v142 保留，独立 xmapCard 已恢复） */
     renderStratPlan();
     renderStratReview();
     renderStratEvents();
@@ -8655,14 +8662,14 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
   function renderStratCards() {
     var el = document.getElementById('stp-cards');
     if (!el) return;
-    var html = '<div class="strat-note">五步是统一骨架，角色决定每步是否有效：① 底仓/缓冲 = 五步齐全、不设止损；② 进攻/主题 = 带硬止损/趋势清仓线；③ 安全垫 = 止盈格不适用；④ 对冲 = 卖出格不设止损（再平衡驱动）。场内现价仅作当日参考，申赎以场外净值为准。</div><div class="tbl-scroll"><table class="st-tbl"><colgroup>' +
-      '<col style="width:12.6%"><col style="width:15.4%"><col style="width:15.4%"><col style="width:15.4%"><col style="width:15.4%"><col style="width:15.4%"><col style="width:10.4%"></colgroup>' +
-      '<thead><tr><th>标的（目标）</th>' + STEP_HEADS.map(function (h) { return '<th>' + h + '</th>'; }).join('') + '<th class="num">场内</th></tr></thead><tbody>';
+    var html = '<div class="strat-note">五步是统一骨架，角色决定每步是否有效：① 底仓/缓冲 = 五步齐全、不设止损；② 进攻/主题 = 带硬止损/趋势清仓线；③ 安全垫 = 止盈格不适用；④ 对冲 = 卖出格不设止损（再平衡驱动）。</div><div class="tbl-scroll"><table class="st-tbl"><colgroup>' +
+      '<col style="width:14%"><col style="width:17.2%"><col style="width:17.2%"><col style="width:17.2%"><col style="width:17.2%"><col style="width:17.2%"></colgroup>' +
+      '<thead><tr><th>标的（目标）</th>' + STEP_HEADS.map(function (h) { return '<th>' + h + '</th>'; }).join('') + '</tr></thead><tbody>';
     /* 角色→代码映射（按 assets 顺序分配） */
     var roleCodes = { '底仓/缓冲': ['563360', '001015', '510880', '159201'], '进攻/主题': ['159949', '020712', '012920', '016452'], '安全垫': ['511360'], '对冲': ['511260', '159934'] };
     var roleNames = { '底仓/缓冲': ['底仓/缓冲', '宽基底仓 + 主动增强 + 真缓冲（红利/现金流）· 五步齐全 · 不设止损'], '进攻/主题': ['进攻/主题', '创业板50/日经/全球成长/纳指 · 五步齐全 · 带硬止损/趋势清仓线'], '安全垫': ['安全垫', '短融 = 流动弹药池 · 止盈格不适用'], '对冲': ['对冲', '10年国债 + 黄金 · 再平衡驱动 · 卖出格不设止损'] };
     Object.keys(roleCodes).forEach(function (rk) {
-      html += '<tr class="role-tr" style="--bc:' + (roleColor[rk] || '#94a3b8') + '"><td colspan="7"><span class="role-chip">' + roleNames[rk][0] + '</span>' + roleNames[rk][1] + '</td></tr>';
+      html += '<tr class="role-tr" style="--bc:' + (roleColor[rk] || '#94a3b8') + '"><td colspan="6"><span class="role-chip">' + roleNames[rk][0] + '</span>' + roleNames[rk][1] + '</td></tr>';
       roleCodes[rk].forEach(function (code) {
         var a = assetOf(code);
         if (!a) return;
@@ -8673,7 +8680,7 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
             (p[1] ? '<div class="qty' + qcls + '">' + esc(p[1]) + '</div>' : '') +
             (p[2] ? '<div class="src">' + esc(p[2]) + '</div>' : '') + '</td>';
         }).join('');
-        html += '<tr><td><div class="nm">' + assetDot(a.code) + esc(a.name) + '</div><div class="cd">' + a.code + '</div><div class="tg">目标 ' + fmt(a.target) + '</div>' + heldBadge(code) + '</td>' + steps + '<td class="num xp" data-code="' + a.code + '"><span class="hint">—</span></td></tr>';
+        html += '<tr><td><div class="nm">' + assetDot(a.code) + esc(a.name) + '</div><div class="cd">' + a.code + '</div><div class="tg">目标 ' + fmt(a.target) + '</div>' + heldBadge(code) + '</td>' + steps + '</tr>';
       });
     });
     html += '</tbody></table></div>';
@@ -8923,25 +8930,6 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
     });
     html += '</tbody></table></div>';
     el.innerHTML = html;
-  }
-  /* v139 fw2_v139_action_focus：场内外对照由独立卡并入执行卡「场内」列 —— 异步拉 7 只场内 ETF 现价/涨跌，逐行回填 */
-  function fetchXmapIntraday() {
-    if (!window.BrowserBackend || !window.BrowserBackend.get) return;
-    var C = window.SIGNALS_CFG || {};
-    var list = (((C.barbell || {}).funds) || []).filter(function (f) { return f.etf && f.inner; });
-    if (!list.length) return;
-    window.BrowserBackend.get('/api/quotes', { codes: list.map(function (f) { return f.inner; }).join(',') }).then(function (res) {
-      var qm = {};
-      ((res && res.data) || []).forEach(function (q) { qm[q.code] = q; });
-      list.forEach(function (f) {
-        var q = qm[f.inner]; if (!q) return;
-        var td = document.querySelector('#stp-cards .xp[data-code="' + f.code + '"]');
-        if (!td) return;
-        var pct = q.pct, cls2 = pct == null ? '' : (pct > 0 ? ' up' : (pct < 0 ? ' down' : ''));
-        td.innerHTML = '<div class="px">' + (q.price != null ? fmtNum(q.price, 3) : '—') + '</div>' +
-          (pct == null ? '' : '<div class="pc' + cls2 + '">' + fmtPct(pct) + '</div>');
-      });
-    }).catch(function () {});
   }
   function parseThr(cond) {
     var stop = null, tp = null, m;
