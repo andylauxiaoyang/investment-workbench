@@ -7155,6 +7155,13 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
      xmapCard 与 SIGNALS_CFG.barbell.funds 数据契约未动。verChip v153->v154
   */
 
+  /* v160 fw2_v160_money_axis：收益曲线公共日期轴排除货基（用户 2026-09-20「把货基取消选择就能连上」）。
+     ① 根因：货基周末/节假日净值记录撑大公共日期轴，其他基金在无净值日 idx=null + connectNulls:false → 断线。
+     ② 修复：renderDcChartDaily 公共轴仅当选中集含货基且还有非货基时排除货基日期（isMoney||retBasis==='money'
+        判定，与净值口径/区间收益同源）；若只选了货基则回退货基自身轴（不破坏单货基场景）。
+     ③ 数据文件不动（fund-daily.json 不变），纯渲染逻辑。verChip v159->v160
+  */
+
   /* v159 fw2_v159_risk_cols：风险指标并入「基金列表」（用户 2026-09-20「把风险指标里的红框住的指标移到
      基金列表，加入到成立以来年化后面。风险指标板块删除」）。
      ① 风险指标 Tab（v96/v98/v101 的按钮 / #dcAnalyzeWrap 容器 / renderDcAnalyze+anRows 渲染 /
