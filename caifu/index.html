@@ -7162,6 +7162,13 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
         共用同一 tooltip 配置 → 回撤模式数值为负，按数值降序 = 回撤浅的在前。
      ③ 纯渲染配置，数据文件不动。verChip v160->v161
   */
+  /* v162 fw2_v162_gold_buy_line：伦敦金买入阈值线（用户 2026-09-20「伦敦金低于等于4000就买入，这个作为一个阈值；并且在黄金的曲线加入这个标准线」）。
+     ① 新常量 GOLD_BUY_LINE = 4000（美元/盎司 XAU，日线/月线共用）。
+     ② renderGoldXau：收盘价系列加 markLine 红色虚线「买入线 4000」；当窗口内全部收盘价 > 4000 时把 y 轴下限
+        拉到线下方留余量（min=4000-(cmax-4000)*0.04），保证 4000 线可见；现价 ≤ 4000 时 #gSrcXau 提示
+        「现价 N ≤ 买入线4000 触发」，否则标注「现价 N（买入线 4000）」。
+     ③ 纯渲染逻辑，gold-data.json 数据文件不动。verChip v161->v162
+  */
 
   /* v160 fw2_v160_money_axis：收益曲线公共日期轴排除货基（用户 2026-09-20「把货基取消选择就能连上」）。
      ① 根因：货基周末/节假日净值记录撑大公共日期轴，其他基金在无净值日 idx=null + connectNulls:false → 断线。
@@ -7379,7 +7386,7 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
      data/口径未变，不跑 push_macro_seed。verChip v147->v148
   */
   const vc = $('#verChip');
-  if (vc) vc.textContent = 'v161 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  if (vc) vc.textContent = 'v162 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
@@ -9193,6 +9200,9 @@ var GOLD_XAU_WIN_LABEL = {
    月线一年只有 12 点，沿用 MA20/MA60 会让两条均线整条为空 —— 改月线必须连带改这个。 */
 var GOLD_MA = { d: [20, 60], m: [6, 12] };
 
+/* v162：伦敦金买入阈值线（美元/盎司 XAU）。收盘价 ≤ GOLD_BUY_LINE 视为「触发买入」区间（用户 2026-09-20）。 */
+var GOLD_BUY_LINE = 4000;
+
 /* v147：单一中文。保留 G(zh,en) 双参签名（120+ 调用点不动），恒直出 zh。 */
 function G(zh, en) { return zh; }
 
@@ -9345,22 +9355,33 @@ function renderGoldXau(d) {
   if (!el || !window.echarts) return;
   var freq = gstate.goldXauFreq || 'd';
   var s = goldXauSeries(d, gstate.goldXauWin, freq);
+  /* v162：当窗口内全部收盘价高于买入线时，把 y 轴下限拉到线下方留余量，保证 4000 线可见 */
+  var _cmin = Infinity, _cmax = -Infinity, _has = false;
+  s.closes.forEach(function (x) { if (x != null) { if (x < _cmin) _cmin = x; if (x > _cmax) _cmax = x; _has = true; } });
+  var _yMin = (_has && _cmin > GOLD_BUY_LINE) ? (GOLD_BUY_LINE - (_cmax - GOLD_BUY_LINE) * 0.04) : undefined;
   mountChart('chartGold', {
     color: [GOLD_C.gold2, GOLD_C.blue, GOLD_C.purple],
     tooltip: { trigger: 'axis', axisPointer: { type: 'cross' }, backgroundColor: '#fff', borderColor: '#e5e7eb', textStyle: { color: '#1f2430', fontSize: 12 } },
     legend: { data: [G('收盘价', 'Close'), s.ma1n, s.ma2n], top: 4, textStyle: { fontSize: 11, color: '#6b7280' } },
     grid: { left: 62, right: 18, top: 40, bottom: 30 },
     xAxis: { type: 'category', data: s.dates, boundaryGap: false, axisLabel: { fontSize: 10, color: GOLD_C.gray }, axisLine: { lineStyle: { color: '#e5e7eb' } } },
-    yAxis: { type: 'value', scale: true, splitLine: { lineStyle: { color: '#eef1f5' } }, axisLabel: { fontSize: 10, color: GOLD_C.gray } },
+    yAxis: { type: 'value', scale: true, min: _yMin, splitLine: { lineStyle: { color: '#eef1f5' } }, axisLabel: { fontSize: 10, color: GOLD_C.gray } },
     series: [
-      { name: G('收盘价', 'Close'), type: 'line', data: s.closes, smooth: true, showSymbol: false, lineStyle: { width: 2, color: GOLD_C.gold2 }, areaStyle: { opacity: 0.08, color: GOLD_C.gold2 } },
+      { name: G('收盘价', 'Close'), type: 'line', data: s.closes, smooth: true, showSymbol: false, lineStyle: { width: 2, color: GOLD_C.gold2 }, areaStyle: { opacity: 0.08, color: GOLD_C.gold2 }, markLine: { silent: true, symbol: 'none', animation: false, data: [{ yAxis: GOLD_BUY_LINE, lineStyle: { color: '#b91c1c', type: 'dashed', width: 1 }, label: { formatter: G('买入线 4000', 'Buy@4000'), fontSize: 11, color: '#b91c1c', position: 'insideEndTop' } }] } },
       { name: s.ma1n, type: 'line', data: s.ma1, smooth: true, showSymbol: false, lineStyle: { width: 1.2, color: GOLD_C.blue } },
       { name: s.ma2n, type: 'line', data: s.ma2, smooth: true, showSymbol: false, lineStyle: { width: 1.2, color: GOLD_C.purple } }
     ]
   });
+  var _bs = '';
+  if (s.closes.length) {
+    var _last = s.closes[s.closes.length - 1];
+    _bs = (_last <= GOLD_BUY_LINE)
+      ? G(' · 现价 ' + _last.toFixed(0) + ' ≤ 买入线4000 触发', '')
+      : G(' · 现价 ' + _last.toFixed(0) + '（买入线 4000）', '');
+  }
   var sh = $('#gSrcXau'); if (sh) sh.textContent = G(
     (s.isM ? '月线' : '日线') + ' · 窗口 ' + gstate.goldXauWin + ' · ' + s.n
-      + (s.isM ? ' 个月' : ' 个交易日') + ' · 数据截至 ' + goldCutoff(d, s.isM ? 'xau_m' : 'xau'),
+      + (s.isM ? ' 个月' : ' 个交易日') + ' · 数据截至 ' + goldCutoff(d, s.isM ? 'xau_m' : 'xau') + _bs,
     (s.isM ? 'Monthly' : 'Daily') + ' · window ' + gstate.goldXauWin + ' · ' + s.n
       + (s.isM ? ' months' : ' trading days') + ' · as of ' + goldCutoff(d, s.isM ? 'xau_m' : 'xau'));
 }
