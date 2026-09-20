@@ -1292,7 +1292,8 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
         <div class="v-head">
           <!-- v93 fw2_v93_drop_dc_head：删除本分块标题+副标题（#dcTitle/#dcSub，基金/宏观共用） -->
           <div class="vh-r dc-tabs" id="dcTabs">
-            <button class="dc-tab active" data-dc="overview">总览</button>
+            <button class="dc-tab active" data-dc="overview">基金列表</button>
+            <!-- v156 fw2_v156_fundlist_label：Tab「总览」更名「基金列表」（用户 2026-09-20 截图指定）。纯文案：data-dc="overview" 路由键 / #dcOverviewWrap / dcExportOverviewCsv 等 id 与 JS 函数名均不动（数据契约） -->
             <button class="dc-tab" data-dc="chart">配图</button>
             <button class="dc-tab" data-dc="analyze">风险指标</button>
             <!-- v98 fw2_v98_risk_label：本 Tab 由「分析」更名「风险指标」——纯文案，内容仍为 12 只本地自算风险指标 -->
@@ -1314,7 +1315,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
           </div>
           <input class="dc-search" id="dcSearch" placeholder="搜索 代码 / 名称 / 类型 …" />
           <span class="dc-sep"></span>
-          <button class="btn-mini" id="dcExportOverviewCsv" title="导出全部基金基础信息总览">导出总览CSV</button>
+          <button class="btn-mini" id="dcExportOverviewCsv" title="导出全部基金基础信息列表">导出基金列表CSV</button>
           <button class="btn-mini" id="dcExportCsv" title="导出当前筛选结果">导出CSV</button>
           <button class="btn-mini" id="dcExportMd" title="导出当前筛选结果">导出MD</button>
           <button class="btn-mini" id="dcExportJson" title="导出全量原始 JSON（不受筛选影响）">导出JSON</button>
@@ -7154,6 +7155,17 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
      xmapCard 与 SIGNALS_CFG.barbell.funds 数据契约未动。verChip v153->v154
   */
 
+  /* v156 fw2_v156_fundlist_label：基金数据 Tab「总览」更名「基金列表」（用户 2026-09-20 截图指定）。
+     纯文案四件：Tab 按钮 / 导出按钮（导出总览CSV -> 导出基金列表CSV + title）/
+     筛选页脚提示（总览 / 配图 -> 基金列表 / 配图）/ 导出文件名（基金总览.csv -> 基金列表.csv）。
+     ★契约不动：data-dc="overview" 路由键、#dcOverviewWrap、dcExportOverviewCsv、renderDcOverview
+       等函数名、changelog 历史引文一律不改。
+     连带：verify_sync 新增 v156 组 + verChip 两处同改 + v85 组标记 '总览'->'基金列表'
+       （旧串仅剩 changelog 引文命中，名不副实）；_test_v135_macro_view.py 断言
+       actTab=='总览' -> =='基金列表'（不在现行 SUITE，防止单跑腐化）。
+     纯 UI 文案，data / 口径未变。verChip v155->v156
+  */
+
   /* v155 fw2_v155_macro_no_overview：删宏观数据「总览页」，判读/更新时间下沉到 13 个指标卡片
      （用户 2026-09-20「宏观数据的总览页删除，其中的判读和更新时间写入对应的指标项目下，可以更详细」）。
      删净四件套：
@@ -7309,7 +7321,7 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
      data/口径未变，不跑 push_macro_seed。verChip v147->v148
   */
   const vc = $('#verChip');
-  if (vc) vc.textContent = 'v155 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  if (vc) vc.textContent = 'v156 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
@@ -7829,7 +7841,7 @@ setInterval(updateSessionBadge, 30000);
       h+='<label><input type="checkbox" data-code="'+f.code+'"'+(passSel(f.code)?' checked':'')+'>'
         +'<span class="nm">'+f.name+'</span><span class="c">'+f.code+' · '+(cnt[f.code]||0)+'月</span></label>';
     });
-    h+='</div><div class="dc-fsel-ft">勾选后：本块内 <b>总览 / 配图</b> 只显示所选基金（当前 '+selText()+'）。<br>「导出CSV / 导出MD」导出当前筛选结果，「导出JSON」始终为全量原始数据。</div>';
+    h+='</div><div class="dc-fsel-ft">勾选后：本块内 <b>基金列表 / 配图</b> 只显示所选基金（当前 '+selText()+'）。<br>「导出CSV / 导出MD」导出当前筛选结果，「导出JSON」始终为全量原始数据。</div>';
     panel.innerHTML=h;
     Array.prototype.forEach.call(panel.querySelectorAll('input[data-code]'), function(i){
       i.addEventListener('change', function(){
@@ -8345,7 +8357,7 @@ setInterval(updateSessionBadge, 30000);
       });
       lines.push(row.join(','));
     });
-    dl('基金总览.csv', '﻿'+lines.join('\r\n'), 'text/csv;charset=utf-8');
+    dl('基金列表.csv', '﻿'+lines.join('\r\n'), 'text/csv;charset=utf-8');
   }
 
   // 事件绑定（元素均为静态 HTML，加载即可绑定）
