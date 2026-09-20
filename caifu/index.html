@@ -1294,7 +1294,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
           <div class="vh-r dc-tabs" id="dcTabs">
             <button class="dc-tab active" data-dc="overview">基金列表</button>
             <!-- v156 fw2_v156_fundlist_label：Tab「总览」更名「基金列表」（用户 2026-09-20 截图指定）。纯文案：data-dc="overview" 路由键 / #dcOverviewWrap / dcExportOverviewCsv 等 id 与 JS 函数名均不动（数据契约） -->
-            <button class="dc-tab" data-dc="chart">配图</button>
+            <button class="dc-tab" data-dc="chart">收益曲线</button>
             <button class="dc-tab" data-dc="analyze">风险指标</button>
             <!-- v98 fw2_v98_risk_label：本 Tab 由「分析」更名「风险指标」——纯文案，内容仍为 12 只本地自算风险指标 -->
             <!-- v97 fw2_v97_research_merge：原「标的分析」6 个模块迁入本分块，作为与总览并列的 Tab -->
@@ -1328,11 +1328,17 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
           <div class="dc-chart-ctrl">
             <label>图型
               <select id="dcChartType">
-                <option value="navNorm">净值走势（归一化=100）</option>
-                <option value="navRaw">净值走势（原始）</option>
-                <option value="scale">最新规模（亿元，点时点）</option>
+                <option value="reinv">收益曲线（分红再投）</option>
+                <option value="dd">回撤走势</option>
               </select>
             </label>
+            <span class="dc-win" id="dcWinBtns">
+              <button type="button" data-win="ytd">今年以来</button>
+              <button type="button" data-win="y1">1年</button>
+              <button type="button" data-win="y3">3年</button>
+              <button type="button" data-win="y5">5年</button>
+              <button type="button" data-win="y10" class="on">10年</button>
+            </span>
             <span class="dc-hint" id="dcChartHint"></span>
           </div>
           <div id="dcChart" style="width:100%;height:440px"></div>
@@ -1483,6 +1489,10 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
       #view-data .dc-chart-ctrl{display:flex;gap:var(--sp-14);align-items:center;margin-bottom:8px;font-size:var(--fs-md)}
       #view-data .dc-chart-ctrl select{border:1px solid #d9d9d9;border-radius:var(--r-6);padding:4px 8px;margin-left:4px}
       #view-data .dc-hint{color:#888;font-size:var(--fs-sm)}
+      #view-data .dc-win{display:inline-flex;gap:var(--sp-6);margin-left:8px}
+      #view-data .dc-win button{border:1px solid #d9d9d9;background:#fff;border-radius:var(--r-6);padding:3px 10px;font-size:var(--fs-sm);cursor:pointer;color:#555}
+      #view-data .dc-win button:hover{border-color:#1f6feb;color:#1f6feb}
+      #view-data .dc-win button.on{background:#1f6feb;border-color:#1f6feb;color:#fff}
       @media (max-width:560px){
         #view-data .dc-search{min-width:140px;flex:1 1 100%}
         #view-data .dc-tbl{font-size:var(--fs-sm)}
@@ -7155,6 +7165,18 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
      xmapCard 与 SIGNALS_CFG.barbell.funds 数据契约未动。verChip v153->v154
   */
 
+  /* v157 fw2_v157_fundchart：基金数据「配图」Tab → 「收益曲线」（用户 2026-09-20「按照你的建议」确认）。
+     主图 = 分红再投累计收益率%（起点=0%）；期间按钮组 今年以来/1年/3年/5年/10年
+     （#dcWinBtns -> window.__dcWin，默认 10年）。图型下拉 navNorm/navRaw/scale 三项退场 →
+     reinv（收益曲线）/ dd（回撤走势：窗口内峰值回撤%，基于再投指数，yAxis max=0）。
+     算法：div_t=(acc_t-acc_{t-1})-(nav_t-nav_{t-1})；r_t=(nav_t+div_t)/nav_{t-1}-1；链乘；
+     货币型无 acc 用 monthRet。短历史基金截断到实际起点，hint 标注实际覆盖月数。
+     删「最新规模」图型项（点时点数据、与基金列表列冗余，v84 同理由）；
+     页脚「基金列表 / 配图」→「基金列表 / 收益曲线」。
+     ★契约不动：data-dc="chart"、#dcChartWrap、#dcChart、#dcChartType、#dcChartHint、renderDcChart 函数名。
+     连带：verify_sync 加 v157 组 + verChip 两处 v156->v157；_test_v84_dom.py:113 下拉断言重定向
+       （非白名单）；新增 _test_v157_fundchart.py + _live_v157.py。data / 口径未变。verChip v156->v157
+  */
   /* v156 fw2_v156_fundlist_label：基金数据 Tab「总览」更名「基金列表」（用户 2026-09-20 截图指定）。
      纯文案四件：Tab 按钮 / 导出按钮（导出总览CSV -> 导出基金列表CSV + title）/
      筛选页脚提示（总览 / 配图 -> 基金列表 / 配图）/ 导出文件名（基金总览.csv -> 基金列表.csv）。
@@ -7321,7 +7343,7 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
      data/口径未变，不跑 push_macro_seed。verChip v147->v148
   */
   const vc = $('#verChip');
-  if (vc) vc.textContent = 'v156 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  if (vc) vc.textContent = 'v157 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
@@ -7841,7 +7863,7 @@ setInterval(updateSessionBadge, 30000);
       h+='<label><input type="checkbox" data-code="'+f.code+'"'+(passSel(f.code)?' checked':'')+'>'
         +'<span class="nm">'+f.name+'</span><span class="c">'+f.code+' · '+(cnt[f.code]||0)+'月</span></label>';
     });
-    h+='</div><div class="dc-fsel-ft">勾选后：本块内 <b>基金列表 / 配图</b> 只显示所选基金（当前 '+selText()+'）。<br>「导出CSV / 导出MD」导出当前筛选结果，「导出JSON」始终为全量原始数据。</div>';
+    h+='</div><div class="dc-fsel-ft">勾选后：本块内 <b>基金列表 / 收益曲线</b> 只显示所选基金（当前 '+selText()+'）。<br>「导出CSV / 导出MD」导出当前筛选结果，「导出JSON」始终为全量原始数据。</div>';
     panel.innerHTML=h;
     Array.prototype.forEach.call(panel.querySelectorAll('input[data-code]'), function(i){
       i.addEventListener('change', function(){
@@ -7881,6 +7903,29 @@ setInterval(updateSessionBadge, 30000);
 
   /* v95 fw2_v95_drop_table_pivot：列显示开关 / 透视聚合与渲染函数一并删除 */
 
+  /* v157 fw2_v157_fundchart：配图 Tab → 收益曲线。reinv=分红再投累计收益率%、dd=回撤%；
+     期间按钮 window.__dcWin（ytd/y1/y3/y5/y10，默认 y10）。分红再投指数：
+     div_t=(acc_t-acc_{t-1})-(nav_t-nav_{t-1})；r_t=(nav_t+div_t)/nav_{t-1}-1；链乘。
+     货币型无 acc 改用 monthRet。口径与持仓关联热力图（累计净值口径，含分红再投）一致。 */
+  function dcClipWin(months, win){
+    if(win==='ytd'){ var y=months[months.length-1].slice(0,4); return months.filter(function(m){ return m >= y+'-01'; }); }
+    var n=({y1:12,y3:36,y5:60,y10:120})[win]||120; return months.slice(-n);
+  }
+  function dcReinvIdx(months, m2nav, m2acc, m2ret){
+    var idx=[], pN=null, pA=null;
+    months.forEach(function(m){
+      var nav=m2nav[m], acc=m2acc[m], ret=m2ret[m];
+      if(nav!=null && acc!=null){
+        if(pN==null){ idx.push(1); pN=nav; pA=acc; return; }
+        var div=(acc-pA)-(nav-pN); var r=(nav+div)/pN - 1;
+        var prev=idx[idx.length-1]; idx.push(prev==null?1:prev*(1+r)); pN=nav; pA=acc; return;
+      }
+      if(ret!=null){ var r2=ret/100; var p2=idx[idx.length-1]; idx.push(p2==null?1:p2*(1+r2)); return; }
+      idx.push(null);
+    });
+    return idx;
+  }
+
   function renderDcChart(){
     if(!DC || !window.echarts) return;
     var type=$('dcChartType').value, el=$('dcChart');
@@ -7893,35 +7938,36 @@ setInterval(updateSessionBadge, 30000);
     }
     var selRows=DC.rows.filter(function(r){ return passSel(r.code); });
     var months=Array.from(new Set(selRows.map(function(r){return r.month;}))).sort();
-    var option;
-    if(type==='scale'){
-      var funds=DC.funds.filter(function(f){ return passSel(f.code) && !f.isMoney && f.scale!=null; });
-      option={ tooltip:{trigger:'axis'}, grid:{left:70,right:30,top:30,bottom:130},
-        xAxis:{type:'category',data:funds.map(function(f){return f.name;}),axisLabel:{interval:0,rotate:45,fontSize:11}},
-        yAxis:{type:'value',name:'亿元'},
-        series:[{type:'bar',data:funds.map(function(f){return f.scale;}),itemStyle:{color:'#1f6feb'},label:{show:true,position:'top'}}] };
-      elText('dcChartHint','最新规模（截至 '+DC.funds[0].scaleDate+' 中报，点时点），仅用于基金间横向对比，不是月度序列');
-    } else {
-      var series=DC.funds.filter(function(f){ return passSel(f.code); }).map(function(f){
-        var rs=selRows.filter(function(r){return r.code===f.code;});
-        var m2n={}; rs.forEach(function(r){ m2n[r.month]=r.nav; });
-        var data=months.map(function(m){ var v=m2n[m]; return v==null?null:+(+v).toFixed(4); });
-        return {name:f.name, type:'line', showSymbol:false, connectNulls:false, data:data};
-      });
-      if(type==='navNorm'){
-        series.forEach(function(s){
-          var first=null; for(var i=0;i<s.data.length;i++){ if(s.data[i]!=null){ first=s.data[i]; break; } }
-          if(first) s.data=s.data.map(function(v){ return v==null?null:+(v/first*100).toFixed(2); });
-        });
+    var win=window.__dcWin||'y10';
+    var winMonths=dcClipWin(months, win);
+    var series=DC.funds.filter(function(f){ return passSel(f.code); }).map(function(f){
+      var rs=selRows.filter(function(r){return r.code===f.code;});
+      var m2nav={}, m2acc={}, m2ret={};
+      rs.forEach(function(r){ m2nav[r.month]=r.nav; m2acc[r.month]=r.acc; if(r.monthRet!=null) m2ret[r.month]=r.monthRet; });
+      var fullIdx=dcReinvIdx(months, m2nav, m2acc, m2ret);
+      var m2idx={}; months.forEach(function(m,i){ m2idx[m]=fullIdx[i]; });
+      var idxSeries=winMonths.map(function(m){ return m2idx[m]; });
+      var base=null; for(var i=0;i<idxSeries.length;i++){ if(idxSeries[i]!=null){ base=idxSeries[i]; break; } }
+      if(base==null) return null;
+      var data, peak=base;
+      if(type==='dd'){
+        data=idxSeries.map(function(v){ if(v==null) return null; if(v>peak) peak=v; return +((v/peak-1)*100).toFixed(2); });
+      } else {
+        data=idxSeries.map(function(v){ return v==null?null:+( (v/base-1)*100 ).toFixed(2); });
       }
-      option={ tooltip:{trigger:'axis'},
-        legend:{type:'plain',top:0,left:'center',width:'94%',itemGap:10,itemWidth:16,itemHeight:9,textStyle:{fontSize:11}},
-        grid:{left:60,right:30,top:84,bottom:64},
-        xAxis:{type:'category',data:months,axisLabel:{rotate:45,fontSize:10}},
-        yAxis:{type:'value',name: type==='navNorm'?'归一化(=100)':'单位净值',scale:true},
-        series:series };
-      elText('dcChartHint', type==='navNorm'?'各基金首月有数据月净值归一为 100，便于跨基金比较累计涨跌':'原始单位净值（货币型恒=1.0000 不具可比性）');
-    }
+      return {name:f.name, type:'line', showSymbol:false, connectNulls:false, data:data};
+    }).filter(Boolean);
+    var yname = type==='dd' ? '回撤(%)' : '累计收益率(%)';
+    var coverNote = (winMonths.length < months.length) ? ('（实际覆盖 '+winMonths.length+' 个月）') : '';
+    var option={ tooltip:{trigger:'axis'},
+      legend:{type:'plain',top:0,left:'center',width:'94%',itemGap:10,itemWidth:16,itemHeight:9,textStyle:{fontSize:11}},
+      grid:{left:64,right:30,top:84,bottom:64},
+      xAxis:{type:'category',data:winMonths,axisLabel:{rotate:45,fontSize:10}},
+      yAxis:{type:'value',name:yname,scale:true, max: type==='dd'?0:null},
+      series:series };
+    elText('dcChartHint', (type==='dd'
+      ? '各基金从窗口内峰值回撤%（基于分红再投指数）；短历史基金按实际覆盖区间绘制。'
+      : '各基金分红再投累计收益率：单位净值+当月分红按月链乘，起点=0%（窗口首月）。') + coverNote);
     if(window.__dcChart) window.__dcChart.dispose();
     el.innerHTML='';
     window.__dcChart = window.echarts.init(el);
@@ -8426,6 +8472,17 @@ setInterval(updateSessionBadge, 30000);
     else if(at && at.dataset.dc==='chart') renderDcChart();
   });
   $('dcChartType').addEventListener('change', function(){ if(DC_LOADED) renderDcChart(); });
+  (function(){
+    var wb=document.getElementById('dcWinBtns'); if(!wb) return;
+    wb.addEventListener('click', function(e){
+      var b=e.target.closest('button'); if(!b) return;
+      window.__dcWin=b.dataset.win;
+      wb.querySelectorAll('button').forEach(function(x){ x.classList.remove('on'); });
+      b.classList.add('on');
+      if(DC_LOADED) renderDcChart();
+    });
+    window.__dcWin = wb.querySelector('button.on') ? wb.querySelector('button.on').dataset.win : 'y10';
+  })();
   window.addEventListener('resize', function(){ if(window.__dcChart && DC_LOADED){ var at=document.querySelector('.dc-tab.active'); if(at && at.dataset.dc==='chart') window.__dcChart.resize(); } });
 })();
 
