@@ -358,7 +358,7 @@ button, input, select, textarea { font-family: inherit; font-size: var(--fs-md);
 
 /* ---------- 热力图（板块 / 标的） ---------- */
 .heat { display: grid; grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)); gap: var(--sp-5); }
-.heat-tile { padding: 7px 8px; border-radius: var(--r-4); border: 1px solid var(--line); font-size: var(--fs-xs); min-height: 44px; display: flex; flex-direction: column; justify-content: space-between; }
+.heat-tile { padding: 7px 8px; border-radius: var(--r-8); border: 1px solid var(--line); font-size: var(--fs-xs); min-height: 44px; display: flex; flex-direction: column; justify-content: space-between; }
 .heat-tile .ht-n { color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .heat-tile .ht-v { font-family: var(--mono); font-weight: 600; font-size: var(--fs-xs); }
 
@@ -380,7 +380,7 @@ button, input, select, textarea { font-family: inherit; font-size: var(--fs-md);
 .ix-group h4 { margin: 0 0 7px; font-size: var(--fs-sm); color: var(--text-2); font-weight: 600; display: flex; align-items: center; gap: var(--sp-6); }
 .ix-group h4::before { content: ""; width: 2px; height: 11px; background: var(--amber); display: inline-block; }
 .ix-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: var(--sp-9); }
-.ix-card { border: 1px solid var(--line); border-radius: var(--r-5); padding: 8px 10px; background: var(--panel-2); }
+.ix-card { border: 1px solid var(--line); border-radius: var(--r-8); padding: 8px 10px; background: var(--panel-2); }
 .ix-card:hover { border-color: var(--amber); }
 .ix-card .n { font-size: var(--fs-sm); color: var(--text-2); display: flex; justify-content: space-between; }
 .ix-card .p { font-family: var(--mono); font-size: var(--fs-2xl); font-weight: 700; margin: 3px 0 1px; color: var(--text); }
@@ -415,7 +415,7 @@ button, input, select, textarea { font-family: inherit; font-size: var(--fs-md);
 .rs-head .nm { font-size: var(--fs-2xl); font-weight: 700; color: var(--text); }
 .rs-head .cd { font-size: var(--fs-sm); color: var(--muted); font-family: var(--mono); }
 .metric-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: var(--sp-9); }
-.metric { border: 1px solid var(--line); border-radius: var(--r-5); padding: 8px 10px; background: var(--panel-2); }
+.metric { border: 1px solid var(--line); border-radius: var(--r-8); padding: 8px 10px; background: var(--panel-2); }
 .metric .k { font-size: var(--fs-xs); color: var(--muted); }
 .metric .v { font-family: var(--mono); font-size: var(--fs-2xl); font-weight: 700; margin-top: 2px; color: var(--text); }
 .score-wrap { display: flex; gap: 20px; align-items: center; flex-wrap: wrap; }
@@ -960,7 +960,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 
 /* ---- 央行购金 KPI 卡片 ---- */
 #view-gold .g-kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: var(--sp-10); margin-top: 10px; }
-#view-gold .g-kpi { background: var(--gold-bg); border: 1px solid var(--gold-line); border-radius: var(--r-10); padding: 12px 14px; }
+#view-gold .g-kpi { background: var(--gold-bg); border: 1px solid var(--gold-line); border-radius: var(--r-8); padding: 12px 14px; }
 #view-gold .g-kpi .g-kpi-y { font-size: var(--fs-sm); color: #8a7430; font-weight: 600; }
 #view-gold .g-kpi .g-kpi-t { font-size: var(--fs-6xl); font-weight: 750; color: var(--gold-ink); margin-top: 2px; font-family: var(--mono); }
 #view-gold .g-kpi .g-kpi-u { font-size: var(--fs-sm); color: var(--gold-ink-2); font-family: var(--sans); }
@@ -1024,6 +1024,18 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .news-item, .nt-card, .kpi, .kpi.hl { box-shadow: none; }
 #view-gold .gq-card { box-shadow: none; }
 #view-strategy .st-cluster { box-shadow: var(--shadow); }
+
+/* fw2_v172c_lkrs（v172c）：决策动线 —— 可点标的「一处定义、全站生效」。
+   .lk-rs 是「名称 → 研究」的锚点类，由各视图渲染产出：
+     data-rscode = 原始码（不作前缀推断的依据），data-rast = 资产类型（缺省 fund）。
+   点按统一由 openResearch 之后注册的 document 级委托处理，本段只管外观。
+   ★顺带修一条自 v133 起就零消费者的死规则：
+     .sig-tile .st-top .st-name 与 .sig-tile .st-top .st-name .lk-rs 两条规则，
+     而渲染产出的始终是 .st-top > b.lk-rs（从未产出 .st-name 中间层）
+     —— 全站 class="st-name" 计数为 0 ⇒ 名称既没吃到 fs-md/600/min-width:0，.lk-rs 也没有品牌色。
+     本轮在渲染端补 <span class="st-name">，让该组规则按原样生效（CSS 文本未改）。 */
+.lk-rs { color: var(--brand); cursor: pointer; }
+.lk-rs:hover { text-decoration: underline; }
 
 /* fw2_v172b_cardbase（v172b）：卡片基准统一（用户 2026-09-21 选定「B 基准统一」）。
 ① 圆角对齐：分区卡 / 条目卡统一 --radius(12px)。#view-gold .gq-card 由 --r-14(14px) -> --radius(12px)，
@@ -4754,7 +4766,7 @@ function renderHoldings() {
       const hh = healthOf(r);
       return `<tr data-code="${r.code}" data-sp-bindable="database" data-sp-database-id="GjLvwNekmiaDCgMZrhaa29">
         <td>
-          <div class="nm">${esc(r.name)}</div>
+          <div class="nm"><b class="lk-rs" data-rscode="${r.code}" data-rast="${r.assetType || 'fund'}">${esc(r.name)}</b></div>
           <div class="cd">${shortCode(r.code)} · ${r.qty} 股</div>
         </td>
         <td><span class="tag">${esc(r.sector)}</span></td>
@@ -4773,7 +4785,7 @@ function renderHoldings() {
         <td><span class="${stCls}">${st.label}</span></td>
         <td><span class="tag" style="color:${hh.color};border-color:${hh.color};background:color-mix(in srgb, ${hh.color} 14%, transparent)">${hh.label}</span></td>
         <td class="num">
-          <button class="btn-link" data-act="research" data-code="${r.code}">研究</button>
+          <button class="btn-link" data-act="research" data-code="${r.code}" data-rast="${r.assetType || 'fund'}">研究</button>
           <button class="btn-link" data-act="edit" data-code="${r.code}">改</button>
           <button class="btn-link" data-act="del" data-code="${r.code}" style="color:var(--up)">删</button>
         </td>
@@ -5001,6 +5013,16 @@ function openResearch(code) {
   if (b) b.click();
   if (code) loadResearch(code); else renderResearch();
 }
+
+/* fw2_v172c_lkrs（v172c）：决策动线收口 —— 任何视图产出的 .lk-rs 都走这一个委托。
+   原先该分支只挂在 #sigBody.onclick 上（仅覆盖信号视图），且口径硬编码 'fund'。
+   现统一：data-rast 优先，缺省 fund；toResearchCode 对已是 f 前缀的码幂等，故
+   场外基金 / 场内 ETF / 已是研究码的三种输入都能正确落到对应分支。 */
+document.addEventListener('click', function (e) {
+  var el = e.target && e.target.closest ? e.target.closest('.lk-rs') : null;
+  if (!el || !el.dataset || !el.dataset.rscode) return;
+  openResearch(toResearchCode(el.dataset.rscode, el.dataset.rast || 'fund'));
+});
 async function loadResearch(code) {
   const rs = state.research;
   rs.code = code; rs.loading = true;
@@ -6812,7 +6834,7 @@ $('#hdTable').onclick = async (e) => {
     if (!(await appConfirm('删除持仓 ' + code + '？'))) return;
     state.portfolio = state.portfolio.filter((h) => h.code !== code);
     saveStore(); renderCurrentView(); toast('已删除');
-  } else if (b.dataset.act === 'research') { openResearch(code); }   /* v97 fw2_v97_research_merge */
+  } else if (b.dataset.act === 'research') { openResearch(toResearchCode(code, b.dataset.rast || 'fund')); }   /* v172c fw2_v172c_lkrs：与 .lk-rs 同一口径 —— 原样传原始码会让场外基金落进「股票/指数」分支 */
 };
 
 
@@ -7770,7 +7792,7 @@ function renderSignalDash() {
       const curColor = r.lvl === 'act' ? 'var(--up)' : r.lvl === 'near' ? 'var(--warn)' : 'var(--text)';
       const nameHtml = r.noLink ? '<b>' + esc(r.name) + '</b>' : '<b class="lk-rs" data-rscode="' + esc(r.code) + '" style="cursor:pointer">' + esc(r.name) + '</b>';
       return '<div class="sig-tile' + (r.lvl === 'act' ? ' t-act' : r.lvl === 'near' ? ' t-near' : ' t-watch') + '"' + dim + '>'
-        + '<div class="st-top">' + nameHtml
+        + '<div class="st-top"><span class="st-name">' + nameHtml + '</span>'
         + '<span class="st-badge" style="background:' + L[2] + ';color:' + L[3] + '">' + L[0] + '</span></div>'
         + '<div class="st-meta"><b>' + esc(r.code) + '</b> · ' + esc(r.sig) + '</div>'
         + '<div class="st-val" style="color:' + curColor + '">' + esc(r.cur) + '</div>'
@@ -7843,8 +7865,8 @@ function renderSignalDash() {
         localStorage.setItem('fw2_sig_ack_v1', JSON.stringify(a));
         renderSignalDash(); return;
       }
-      const rs = e.target.closest('.lk-rs');
-      if (rs) { openResearch(toResearchCode(rs.dataset.rscode, 'fund')); }   /* v97 fw2_v97_research_merge */
+      /* v172c fw2_v172c_lkrs：.lk-rs 分支已上收为 document 级委托（见 openResearch 之后），
+         此处删除以免同一次点击触发两遍研究加载。 */
     };
   }).catch((err) => { body.innerHTML = '<div class="empty st st-err">信号计算失败：' + esc(String((err && err.message) || err)) + '</div>'; });
 }
@@ -8832,7 +8854,7 @@ setInterval(updateSessionBadge, 30000);
 #view-strategy .st-cluster-rule{font-size:var(--fs-xs);color:var(--muted)}
 /* fw2_v170_ds_norm：auto-fill→auto-fit，末行空轨道塌陷、卡片自动加宽填满簇盒（消除右侧大片空白） */
 #view-strategy .st-card-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:10px;padding:12px}
-#view-strategy .st-exec-card{border:1px solid var(--line);border-radius:var(--r-10);background:var(--panel-2);padding:10px 12px;display:flex;flex-direction:column;gap:7px}
+#view-strategy .st-exec-card{border:1px solid var(--line);border-radius:var(--r-8);background:var(--panel-2);padding:10px 12px;display:flex;flex-direction:column;gap:7px}
 #view-strategy .st-exec-top{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
 #view-strategy .st-exec-top .dot{display:inline-block;width:8px;height:8px;border-radius:var(--r-full);flex:0 0 auto}
 #view-strategy .st-exec-name{font-weight:700;font-size:var(--fs-md);color:var(--text)}
@@ -9107,7 +9129,7 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
     S.plan.forEach(function (p) {
       var g = gapOf(p.code), lm = liveMonthly(p.code);
       var info = (g && g.gap > 0) ? '<div style="font-size: 11px;color:var(--muted);margin-top:2px">实时缺口 ' + fmt(Math.round(g.gap)) + ' · 建议 ' + fmt(lm) + '/月</div>' : '';
-      html += '<tr><td><div class="nm">' + esc(p.name) + '</div><div class="cd">' + p.code + '</div>' + info + '</td>' +
+      html += '<tr><td><div class="nm"><b class="lk-rs" data-rscode="' + p.code + '">' + esc(p.name) + '</b></div><div class="cd">' + p.code + '</div>' + info + '</td>' +
         '<td><div class="qty">' + esc(p.build) + '</div></td><td>' + esc(p.normal) + '</td><td>' + esc(p.dbl) + '</td><td>' + esc(p.src) + '</td></tr>';
     });
     html += '</tbody></table></div></div>';
@@ -9115,7 +9137,7 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
       '<colgroup><col style="width:8%"><col style="width:14%"><col style="width:22%"><col style="width:14%"><col style="width:14%"><col style="width:28%"></colgroup>' +
       '<thead><tr><th>顺序</th><th>标的</th><th>代码</th><th>金额</th><th>渠道</th><th>备注</th></tr></thead><tbody>';
     S.first.forEach(function (f) {
-      html += '<tr><td>' + f.i + '</td><td class="nm">' + esc(f.name) + '</td><td class="cd">' + f.code + '</td><td class="qty">' + fmt(f.amount) + '</td><td>' + f.chan + '</td><td>' + esc(f.note || '') + '</td></tr>';
+      html += '<tr><td>' + f.i + '</td><td class="nm"><b class="lk-rs" data-rscode="' + f.code + '">' + esc(f.name) + '</b></td><td class="cd">' + f.code + '</td><td class="qty">' + fmt(f.amount) + '</td><td>' + f.chan + '</td><td>' + esc(f.note || '') + '</td></tr>';
     });
     html += '</tbody></table></div></div>';
     html += '<div class="st-card"><h4>执行记录（触发 → 复核 → 确认 → 执行 → 记录 · 8.5）</h4>' + recForm() + '<div class="rec-list" id="stratRecList"></div></div>';
@@ -9135,7 +9157,7 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
     (S.events || []).forEach(function (e) { var st = evState(e); if (st.key === 'act' || st.key === 'near') items.push({ t: e.cond + ' → ' + e.act, c: st.key }); });
     var badge = { cal: '#2563eb', note: '#7c3aed', rev: '#0891b2', act: '#dc2626', near: '#d97706' };
     return '<div class="st-card"><h4>当月待办清单（' + ym + ' · 自动生成）</h4>' +
-      '<div class="strat-note">由日历轨（定投/复盘）+ 事件轨（已触发/临界）实时汇总；触发 ≠ 自动交易。</div>' +
+      '<div class="strat-note">由日历轨（定投/复盘）+ 事件轨（已触发/临界）实时汇总。</div>' +
       '<div style="display:flex;flex-direction:column;gap:6px">' +
       (items.length ? items.map(function (it) { return '<div style="display:flex;align-items:flex-start;gap:8px;font-size:12px"><span style="flex:0 0 auto;width:8px;height:8px;border-radius:50%;margin-top:5px;background:' + badge[it.c] + '"></span><span>' + esc(it.t) + '</span></div>'; }).join('') : '<div style="color:var(--muted);font-size: 12px">本月无待办 · 保持定投节奏</div>') +
       '</div></div>';
