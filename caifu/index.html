@@ -1465,6 +1465,15 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
           <span class="fl-sync-state" id="flashSyncState">未配置 Token · 只读</span>
         </div>
         <div class="s" id="flashHint"></div>
+        <details class="fl-help"><summary>无法写入？首次使用先配置 Token（点此展开步骤）</summary>
+          <ol>
+            <li>登录 GitHub 后打开 <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">github.com/settings/personal-access-tokens/new</a>（fine-grained token 创建页）</li>
+            <li>Repository access 选「Only select repositories」→ 勾选 investment-workbench</li>
+            <li>Permissions → Repository permissions → Contents 选「Read and write」（其余保持 No access）</li>
+            <li>点 Generate，复制 token（github_pat_ 开头）→ 回本页点「Token」按钮粘贴并确定</li>
+          </ol>
+          <div class="fl-help-note">Token 只保存在本设备浏览器（localStorage），不经过任何第三方；手机与电脑需各配一次。配置后即可「存入闪念库」并多端同步。</div>
+        </details>
         <div class="fl-src">数据源：GitHub 仓库 andylauxiaoyang/investment-workbench · caifu/flash-cards.json（手机 / 桌面多端同步）｜纪律与 ima 心得为构建期只读种子</div>
       </div>
     </section>
@@ -1630,6 +1639,11 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
       #view-flash .fl-sync{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:12px;padding-top:10px;border-top:1px dashed var(--line)}
       #view-flash .fl-sync-state{font-size:var(--fs-xs);color:var(--muted)}
       #view-flash .fl-src{font-size:var(--fs-2xs);color:var(--muted);margin-top:8px}
+      #view-flash .fl-help{margin-top:8px;font-size:var(--fs-xs);color:var(--text-2)}
+      #view-flash .fl-help summary{cursor:pointer;color:var(--brand);user-select:none}
+      #view-flash .fl-help ol{margin:6px 0 0;padding-left:18px;display:grid;gap:4px}
+      #view-flash .fl-help a{color:var(--brand)}
+      #view-flash .fl-help .fl-help-note{color:var(--muted);margin-top:6px}
     </style>
   </main>
 </div>
@@ -10237,7 +10251,7 @@ async function flashAct(id, act) {
   flashRender();
 }
 function flashToken() {
-  var t = prompt('粘贴 GitHub fine-grained Token（仅需本仓库 Contents 读写权限；留空并确定 = 清除）', '');
+  var t = prompt('粘贴 GitHub fine-grained Token（github_pat_ 开头；仅需本仓库 Contents 读写权限；留空并确定 = 清除）。首次生成步骤见下方「无法写入？」帮助', '');
   if (t === null) return;
   t = (t || '').trim();
   flash.token = t;
