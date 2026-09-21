@@ -88,7 +88,8 @@
   --gold-ink-2: #6f5a12;
   --gold-bg: #fffdf5;
   --gold-line: #efe3c0;
-  --shadow: 0 1px 2px rgba(16, 24, 40, .05), 0 6px 20px rgba(16, 24, 40, .06);
+  --shadow: 0 1px 2px rgba(16, 24, 40, .04), 0 3px 10px rgba(16, 24, 40, .04);
+  --shadow-hover: 0 2px 4px rgba(16, 24, 40, .06), 0 8px 18px rgba(16, 24, 40, .07);
   --glass: rgba(255, 255, 255, .72);
   --ring: rgba(37, 99, 235, .24);
   --mono: "IBM Plex Mono", "SFMono-Regular", "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
@@ -802,7 +803,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
     border-color: rgba(226, 232, 240, .8);
     transition: box-shadow .18s ease;
   }
-  .card:hover { box-shadow: 0 2px 4px rgba(16, 24, 40, .05), 0 10px 28px rgba(16, 24, 40, .09); }
+  .card:hover { box-shadow: var(--shadow-hover); }
   .kpi { box-shadow: 0 1px 2px rgba(16, 24, 40, .04); }
   .kpi.hl { box-shadow: 0 2px 3px rgba(37, 99, 235, .08), 0 8px 22px rgba(37, 99, 235, .10); }
   .nav-item { border-radius: var(--r-10); transition: background .15s ease, color .15s ease; }
@@ -1009,6 +1010,20 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .v-tabs--soft .v-tab{border:0;background:transparent;border-radius:var(--r-6);color:var(--text-2)}
 .v-tabs--soft .v-tab:hover{background:var(--brand-tint)}
 .v-tabs--soft .v-tab.active{background:var(--brand-tint);color:var(--brand);font-weight:600}
+
+
+/* fw2_v172a_shadow（v172a）：阴影分级 —— 只有「分区级卡」带分层阴影；条目级卡改平贴（靠边框区分）；浮动层保留。
+   依据＝全视图 headless 盘点：**嵌套阴影 0 处**（不存在「阴影随嵌套累积」）；真正的观感问题是同级条目卡成堆
+   ——资讯视图 .news-item 79 个、信号 .nt-card 网格、黄金 .gq-card 4 张、持仓 .kpi 磁贴，每张都带分层阴影 → 整页发灰。
+   分区级 ＝ .card（视图内区块卡）/ .st-cluster（策略·逐标的执行卡的角色簇盒，本版补上，与 .card 对齐）。
+   条目级 ＝ .news-item / .nt-card / .kpi / #view-gold .gq-card。
+   浮动层（.toast / .modal-box / .dc-fsel-panel / .suggest）与状态标识（.sc-cell.cur 的外环、.st-step.active 的
+   inset 左条、.btn-primary / .nav-item.active 的 brand 阴影）属功能与语义示意，不在本次范围。
+   ★ .gq-card 是 .card 的实例：本条选择器 (1,1,0) 高于 .card:hover (0,2,0) → 平贴后连 hover 浮起一并失效，属预期。
+   ★ 改字体/颜色/卡片结构前先跑 _precheck_markers.py。 */
+.news-item, .nt-card, .kpi, .kpi.hl { box-shadow: none; }
+#view-gold .gq-card { box-shadow: none; }
+#view-strategy .st-cluster { box-shadow: var(--shadow); }
 </style>
 <meta name="theme-color" content="#2563eb">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -1447,8 +1462,14 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
       #view-data .dc-search{border:1px solid var(--line-mid);border-radius:var(--r-8);padding:6px 10px;font-size:var(--fs-md);min-width:220px}
       /* v78 基金多选筛选 */
       #view-data .dc-fsel{position:relative}
-      #view-data .dc-fsel-btn{display:inline-flex;align-items:center;gap:var(--sp-6);font-weight:600;color:var(--brand);border-color:var(--line-mid);background:var(--brand-tint)}
-      #view-data .dc-fsel-badge{background:var(--brand-tint);color:var(--brand);border-radius:var(--r-10);padding:1px 8px;font-size:var(--fs-sm);font-weight:600}
+      /* fw2_v172a_fselbtn（v172a）：原 `#view-data .dc-fsel-btn` 与 `#view-data .btn-mini` 同为 (1,1,0)，
+         而 .btn-mini 源码在后 → 本规则的 color/background/border-color **自 v78 起从未生效**
+         （headless 实测得 --text / --panel-2）。修法：选择器加 .btn-mini 抬到 (1,2,0)，DOM 不动。 */
+      #view-data .btn-mini.dc-fsel-btn{display:inline-flex;align-items:center;gap:var(--sp-6);font-weight:600;color:var(--brand);border-color:var(--brand-line);background:var(--brand-tint)}
+      #view-data .btn-mini.dc-fsel-btn:hover{background:var(--brand-soft);border-color:var(--brand)}
+      /* ★伴随改动（v172a）：按钮底已按原声明变为 --brand-tint，徽标若仍同色即不可见 → 改白面。
+         .dc-fsel-badge 的消费点仅此一个按钮（grep 已确认），改动不外溢。 */
+      #view-data .dc-fsel-badge{background:var(--panel);color:var(--brand);border-radius:var(--r-10);padding:1px 8px;font-size:var(--fs-sm);font-weight:600}
       #view-data .dc-fsel-badge.on{background:var(--brand);color:var(--panel)}
       #view-data .dc-fsel-panel{position:absolute;z-index:40;top:calc(100% + 6px);left:0;background: var(--panel);border:1px solid var(--line-mid);border-radius:var(--r-8);padding:8px 10px;box-shadow:0 6px 20px rgba(0,0,0,.14);min-width:min(320px,88vw);max-width:88vw;max-height:360px;overflow:auto}
       #view-data .dc-fsel-hd{display:flex;align-items:center;gap:var(--sp-6);padding-bottom:6px;margin-bottom:6px;border-bottom:1px solid var(--line-2);position:sticky;top:0;background: var(--panel);z-index:1}
@@ -7579,7 +7600,7 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
      data/口径未变，不跑 push_macro_seed。verChip v147->v148
   */
   const vc = $('#verChip');
-  if (vc) vc.textContent = 'v171 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  if (vc) vc.textContent = 'v172 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
