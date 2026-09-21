@@ -1227,7 +1227,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 
 
       
-      <section class="view" id="view-strategy"><!-- fw2_v120_strategy --><div class="card strat-hero" id="stratHero"></div><div class="card" id="barbellCard"></div><!-- v132 fw2_v132_barbell_move：杠铃卡自 view-signal 迁入 --><div class="strat-tabs v-tabs" id="stratTabs"><button class="st-tab v-tab active" data-st="cal">执行日历</button><button class="st-tab v-tab" data-st="cards">逐标的执行卡</button><button class="st-tab v-tab" data-st="plan">月度定投</button><button class="st-tab v-tab" data-st="review">季度复盘</button></div><div class="st-pane" id="stp-cal"></div><div class="st-pane" id="stp-cards" style="display:none"></div><!-- v167 fw2_v167_xmap_scope：场内外对照自共享层下移至「逐标的执行卡」tab 底部，默认折叠 --><div class="card" id="xmapCard" style="display:none"></div><div class="st-pane" id="stp-plan" style="display:none"></div><div class="st-pane" id="stp-review" style="display:none"></div><!-- v167：场内外对照已下移至 #stp-cards 之后（原共享层位置摘除）--><div class="card" id="stratEvents"></div></section>
+      <section class="view" id="view-strategy"><!-- fw2_v120_strategy --><div class="card strat-hero" id="stratHero"></div><div class="card" id="barbellCard"></div><!-- v132 fw2_v132_barbell_move：杠铃卡自 view-signal 迁入 --><div class="strat-tabs v-tabs" id="stratTabs"><button class="st-tab v-tab active" data-st="cal">执行日历</button><button class="st-tab v-tab" data-st="cards">逐标的执行卡</button><button class="st-tab v-tab" data-st="plan">月度定投</button><button class="st-tab v-tab" data-st="review">季度复盘</button></div><div class="st-pane" id="stp-cal"></div><div class="st-pane" id="stp-cards" style="display:none"></div><!-- v167 fw2_v167_xmap_scope：场内外对照自共享层下移至「逐标的执行卡」tab 底部，默认折叠 --><div class="card" id="xmapCard" style="display:none"></div><div class="st-pane" id="stp-plan" style="display:none"></div><div class="st-pane" id="stp-review" style="display:none"></div><!-- v167：场内外对照已下移至 #stp-cards 之后（原共享层位置摘除）--><!-- v174 fw2_v174_events_scope：事件触发表只在「执行日历」tab 显示（其余三 tab 由 switchStratTab 隐藏） --><div class="card" id="stratEvents"></div></section>
       <!-- v91 fw2_v91_macro_merge：宏观·情绪 独立页曾并入 数据中心 → 宏观数据 分块（v135 已反向拆分，见下） -->
       <!-- fw2_v135_macro_view：宏观数据由「数据中心」分块迁出为独立模块（用户 2026-09-18「宏观数据单独作为一个模块放在数据中心上面」）；#view-data 改名「基金数据」并删除 dcBlocks 切换行（基金数据直接进入内容区，默认总览 Tab） -->
       <section class="view" id="view-macro">
@@ -7632,7 +7632,7 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
      data/口径未变，不跑 push_macro_seed。verChip v147->v148
   */
   const vc = $('#verChip');
-  if (vc) vc.textContent = 'v173 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  if (vc) vc.textContent = 'v174 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
@@ -9382,6 +9382,14 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
     /* v167 fw2_v167_xmap_scope：场内外对照只随「逐标的执行卡」tab 显隐 */
     var xm = document.getElementById('xmapCard');
     if (xm) xm.style.display = name === 'cards' ? '' : 'none';
+    /* v174 fw2_v174_events_scope：事件触发表只随「执行日历」tab 显隐（其余三 tab 隐藏）。
+       用户 2026-09-21：「这个页面目前在策略执行子模块中都有展示，只需要保留执行日历的显示，
+       其他三个模块将此页面删除，这个信息完全多余了。」
+       ★#stratEvents 是 view-strategy 末尾同级卡、不在任何 st-pane 内（故四 tab 全显）→ 沿用
+         v167 #xmapCard 同款模式按 tab 控 display，不搬 DOM（st-pane 会被 el.innerHTML 整体重写）。
+       ★renderStratEvents() 的 el.innerHTML 重写不改元素自身 style.display → 显隐不会被重绘重置。 */
+    var se = document.getElementById('stratEvents');
+    if (se) se.style.display = name === 'cal' ? '' : 'none';
   }
   function bindStratTabs() {
     Array.prototype.forEach.call(document.querySelectorAll('#view-strategy .st-tab'), function (b) {
