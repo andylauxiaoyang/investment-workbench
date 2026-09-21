@@ -7297,7 +7297,10 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
         「现价 N ≤ 买入线4000 触发」，否则标注「现价 N（买入线 4000）」。
      ③ 纯渲染逻辑，gold-data.json 数据文件不动。verChip v161->v162
   */
-    /* v167 fw2_v167_xmap_scope + fw2_v167_disc_radius：用户 2026-09-21 两条。
+    /* v168 fw2_v168_stcards_cluster：逐标的执行卡 表 → 角色簇卡片（方向2）。
+       纯前端渲染，STRATEGY_SNAP 数据不动。verChip v167->v168
+  */
+  /* v167 fw2_v167_xmap_scope + fw2_v167_disc_radius：用户 2026-09-21 两条。
        ① 纪律核查磁贴圆角：var(--r-full)=999px（椭圆）→ var(--radius)，与站内 .card 一致。
        ② 场内外对照：原挂在 #view-strategy 共享层（四个 st-pane 之外）→ 切到任一 tab 都出现。
           它是查询工具非每日必读：折进 <details>（默认折叠，summary 带条数），容器下移到
@@ -7548,7 +7551,7 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
      data/口径未变，不跑 push_macro_seed。verChip v147->v148
   */
   const vc = $('#verChip');
-  if (vc) vc.textContent = 'v167 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  if (vc) vc.textContent = 'v168 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
@@ -8748,18 +8751,53 @@ setInterval(updateSessionBadge, 30000);
 </script>
 <style>/* ===== v120 策略执行视图 ===== */ /* v124 fw2_v124_strat_cal_fix：.cal-grid/.cal-cell 撞热力图类名，策略日历改名 .sc-grid/.sc-cell */#view-strategy .strat-hero{display:flex;flex-wrap:wrap;align-items:center;gap:18px;margin-bottom:10px}#view-strategy .sh-main{min-width:240px;flex:1 1 260px}#view-strategy .sh-k{font-size:var(--fs-xs);letter-spacing:.6px;color:var(--muted);font-weight:500}#view-strategy .sh-v{font-family:var(--mono);font-size:var(--fs-4xl);font-weight:600;letter-spacing:-.02em;margin-top:4px;color:var(--text);font-variant-numeric:tabular-nums}#view-strategy .sh-bar{height:8px;border-radius:var(--r-5);background:var(--panel-3);margin:10px 0 6px;overflow:hidden}#view-strategy .sh-bar i{display:block;height:100%;background:linear-gradient(90deg,var(--brand),var(--amber-2));border-radius:var(--r-5)}#view-strategy .sh-sub{font-size:var(--fs-sm);color:var(--text-2)}#view-strategy .sh-sub b{color:var(--brand);font-family:var(--mono)}#view-strategy .sh-grid{display:grid;grid-template-columns:repeat(4,minmax(96px,1fr));gap:var(--sp-8);flex:1 1 320px}#view-strategy .sh-cell{background:var(--panel-2);border:1px solid var(--line);border-radius:var(--radius);padding:8px 10px}#view-strategy .sh-cell .k{font-size:var(--fs-xs);color:var(--muted)}#view-strategy .sh-cell .v{font-size:var(--fs-lg);font-weight:600;font-family:var(--mono);margin-top:3px;color:var(--text)}#view-strategy .strat-tabs{display:flex;gap:var(--sp-6);flex-wrap:wrap;margin:0 0 10px}#view-strategy .st-tab{border:1px solid var(--line);background: var(--panel);color:var(--text-2);padding:6px 14px;border-radius:var(--r-8);cursor:pointer;font-size:var(--fs-md)}#view-strategy .st-tab.active{background:var(--brand);color:#fff;border-color:var(--brand)}#view-strategy .st-pane{margin-bottom:12px}#view-strategy .strat-note{font-size:var(--fs-xs);color:var(--muted);margin:0 0 8px;line-height:1.6}#view-strategy .st-card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:12px 14px;margin-bottom:10px}#view-strategy .st-card h4{margin:0 0 8px;font-size:var(--fs-md);font-weight:600;color:var(--text)}#view-strategy .sc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:var(--sp-8)}#view-strategy .sc-cell{border:1px solid var(--line);border-radius:var(--radius);padding:9px 11px;background: var(--panel);position:relative}#view-strategy .sc-cell.past{opacity:.55}#view-strategy .sc-cell.cur{border-color:var(--brand);box-shadow:0 0 0 1px var(--brand-line)}#view-strategy .sc-cell .m{font-size: var(--fs-md);font-weight:600;color:var(--text)}#view-strategy .sc-cell .d{font-size:var(--fs-xs);color:var(--brand);font-family:var(--mono);margin-top:3px}#view-strategy .sc-cell .x{font-size: var(--fs-xs);color:var(--muted);margin-top:3px;line-height:1.5}#view-strategy .sc-cell .bdg{display:inline-block;font-size: var(--fs-2xs);font-weight:600;padding:1px 7px;border-radius:var(--r-10);margin:4px 4px 0 0;background:var(--warn-soft);color:var(--warn)}#view-strategy .sc-cell .bdg.done{background:var(--down-soft);color:var(--down)}#view-strategy .sc-cell .bdg.c07{background:var(--brand-soft);color:var(--brand)}#view-strategy .st-tbl{width:100%;border-collapse:collapse;font-size: var(--fs-sm);table-layout:fixed}#view-strategy .st-tbl th{text-align:left;padding:8px 10px;background:var(--panel-2);color:var(--text-2);border-bottom:1px solid var(--line);font-weight:600;font-size:var(--fs-xs)}#view-strategy .st-tbl td{padding:9px 10px;border-bottom:1px solid var(--line-2);vertical-align:top;overflow:hidden}#view-strategy .st-tbl tr:last-child td{border-bottom:0}#view-strategy .st-tbl .nm{font-weight:700;font-size: var(--fs-md);color:var(--text)}#view-strategy .st-tbl .cd{font-family:var(--mono);font-size:var(--fs-2xs);color:var(--muted);margin-top:1px}#view-strategy .st-tbl .tg{font-size: var(--fs-xs);color:var(--muted);margin-top:3px}
 /* v163 fw2_v163_next_action 「当前动作」列 */
-.act{vertical-align:middle}.act-i{width:8px;height:8px;border-radius:var(--r-full);flex:0 0 auto;margin-right:8px;margin-top:3px;display:inline-block}.act-t{font-size:var(--fs-sm);line-height:1.5;font-weight:600}.act-t.ok{color:#16a34a}.act-t.mid{color:var(--brand)}.act-s{font-size:var(--fs-xs);color:var(--muted);margin-top:2px;line-height:1.4}#view-strategy .st-tbl .step .cond{color:var(--text);font-size: var(--fs-sm);line-height:1.5}#view-strategy .st-tbl .step .qty{color:var(--brand);font-weight:700;font-family:var(--mono);font-size: var(--fs-sm);margin-top:3px}#view-strategy .st-tbl .step .src{color:var(--muted);font-size:var(--fs-2xs);margin-top:3px}#view-strategy .st-tbl .role-tr td{background:var(--panel-3);padding:6px 10px !important;font-weight:600;font-size: var(--fs-sm);color:var(--text-2);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}#view-strategy .st-tbl .role-tr:first-child td{border-top:0}#view-strategy .role-chip{font-size:var(--fs-2xs);font-weight:700;padding:1px 8px;border-radius:var(--r-10);background: var(--panel);color:var(--brand);border:1px solid var(--brand-line);margin-right:8px}
+
 /* v138 fw2_v138_stcards_polish：执行卡轻量打磨 —— 行悬浮 / 资产色点 / 步骤金额语义色 / 角色档位色条 */
 #view-strategy .st-tbl tbody tr:hover td{background:rgba(37,99,235,.045)}
-#view-strategy .st-tbl .dot{display:inline-block;width:8px;height:8px;border-radius:var(--r-full);margin-right:6px;vertical-align:1px}
-#view-strategy .st-tbl .step .qty{text-align:right}
-#view-strategy .st-tbl .step .qty.q-buy{color:var(--up,#dc2626)}
-#view-strategy .st-tbl .step .qty.q-tp{color:var(--down,#059669)}
-#view-strategy .st-tbl .step .qty.q-sell{color:var(--warn,#d98c00)}
-#view-strategy .st-tbl .role-tr td{border-left:4px solid var(--bc,transparent)}#view-strategy .st-ok{display:inline-block;font-size: var(--fs-2xs);font-weight:700;padding:1px 7px;border-radius:var(--r-10);background:var(--down-soft);color:var(--down);margin-top:5px}#view-strategy .st-prog{display:inline-block;font-size: var(--fs-2xs);font-weight:700;padding:1px 7px;border-radius:var(--r-10);background:var(--brand-soft);color:var(--brand);margin-top:5px}#view-strategy .tbl-scroll{overflow-x:auto}#view-strategy .rec-form{display:flex;flex-wrap:wrap;gap:var(--sp-6);align-items:center;margin:8px 0}#view-strategy .rec-form input,.rec-form select{border:1px solid var(--line);border-radius:var(--r-6);padding:5px 8px;font-size:var(--fs-sm);background: var(--panel);color:var(--text)}#view-strategy .rec-list{margin-top:8px}#view-strategy .rec-row{display:flex;gap:var(--sp-8);align-items:center;padding:6px 8px;border-bottom:1px solid var(--line-2);font-size: var(--fs-sm)}#view-strategy .rec-row .dt{color:var(--muted);font-family:var(--mono);flex:0 0 82px}#view-strategy .rec-row .cd2{font-family:var(--mono);color:var(--brand);flex:0 0 62px}#view-strategy .rec-row .nm2{color:var(--text);flex:0 0 110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}#view-strategy .rec-row .dir{flex:0 0 38px;font-weight:600}#view-strategy .rec-row .am{font-family:var(--mono);flex:0 0 70px;text-align:right}#view-strategy .rec-row .sr{color:var(--muted);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}#view-strategy .rec-row .del{cursor:pointer;color:var(--muted);border:0;background:none;font-size:var(--fs-sm)}#view-strategy .rec-row .del:hover{color:var(--up)}#view-strategy .rev-q{display:flex;align-items:center;gap:var(--sp-10);flex-wrap:wrap;margin-bottom:10px}#view-strategy .rev-q select{border:1px solid var(--line);border-radius:var(--r-6);padding:5px 10px;font-size: var(--fs-md);background: var(--panel);color:var(--text)}#view-strategy .rev-prog{font-size: var(--fs-sm);color:var(--text-2);margin-left:auto}#view-strategy .rev-prog b{color:var(--brand)}#view-strategy .rev-item{display:flex;gap:var(--sp-10);padding:11px 12px;border:1px solid var(--line);border-radius:var(--radius);margin-bottom:8px;background: var(--panel)}#view-strategy .rev-item.checked{border-color:var(--down);background:var(--down-soft)}#view-strategy .rev-item .box{flex:0 0 auto;padding-top:2px}#view-strategy .rev-item .ri-body{flex:1;min-width:0}#view-strategy .rev-item .ri-t{font-size: var(--fs-md);font-weight:600;color:var(--text)}#view-strategy .rev-item.checked .ri-t{color:var(--down)}#view-strategy .rev-item .ri-j{font-size:var(--fs-xs);color:var(--text-2);margin:2px 0 5px}#view-strategy .rev-item .ri-a{font-size:var(--fs-xs);color:var(--muted)}#view-strategy .rev-item input.ri-note{width:100%;margin-top:5px;padding:4px 8px;border:1px solid var(--line);border-radius:var(--r-6);font-size:var(--fs-xs);outline:none;background: var(--panel);color:var(--text)}#view-strategy .ri-auto{font-size:var(--fs-xs);background:var(--brand-soft);border:1px dashed var(--brand-line);color:var(--text-2);border-radius:var(--r-6);padding:5px 9px;margin:6px 0}#view-strategy .ri-auto b{color:var(--brand);font-family:var(--mono)}#view-strategy .ri-auto.warn{background:var(--warn-soft);border-color:rgba(217,140,0,.45)}#view-strategy .ri-auto.warn b{color:var(--warn)}#view-strategy .ri-auto.ok{background:var(--down-soft);border-color:rgba(5,150,105,.4)}#view-strategy .ri-auto.ok b{color:var(--down)}#view-strategy .ri-auto.manual{background:var(--panel-3);border-color:var(--line);color:var(--muted)}#view-strategy .pos-chip{display:inline-block;background: var(--panel);border:1px solid var(--line);border-radius:var(--r-10);padding:0 7px;margin-right:4px;font-family:var(--mono);font-size: var(--fs-xs);color:var(--text-2)}#view-strategy .pos-chip.hot{border-color:var(--warn);color:var(--warn);font-weight:700}#view-strategy .ev-tbl{width:100%;border-collapse:collapse;font-size: var(--fs-sm);table-layout:fixed}#view-strategy .ev-tbl th{text-align:left;padding:6px 9px;background:var(--panel-2);border-bottom:1px solid var(--line);font-weight:600;white-space:nowrap;font-size:var(--fs-xs)}#view-strategy .ev-tbl td{padding:6px 9px;border-bottom:1px solid var(--line-2);vertical-align:top}#view-strategy .ev-tbl tr:last-child td{border-bottom:0}#view-strategy .ev-st{display:inline-block;font-size: var(--fs-2xs);font-weight:700;padding:1px 7px;border-radius:var(--r-10);white-space:nowrap}#view-strategy .ev-st.pos{background:var(--brand-soft);color:var(--brand)}#view-strategy .ev-st.nav{background:var(--warn-soft);color:var(--warn)}#view-strategy .ev-st.man{background:var(--panel-3);color:var(--muted)}
+
+
+
+
+
+#view-strategy .tbl-scroll{overflow-x:auto}#view-strategy .rec-form{display:flex;flex-wrap:wrap;gap:var(--sp-6);align-items:center;margin:8px 0}#view-strategy .rec-form input,.rec-form select{border:1px solid var(--line);border-radius:var(--r-6);padding:5px 8px;font-size:var(--fs-sm);background: var(--panel);color:var(--text)}#view-strategy .rec-list{margin-top:8px}#view-strategy .rec-row{display:flex;gap:var(--sp-8);align-items:center;padding:6px 8px;border-bottom:1px solid var(--line-2);font-size: var(--fs-sm)}#view-strategy .rec-row .dt{color:var(--muted);font-family:var(--mono);flex:0 0 82px}#view-strategy .rec-row .cd2{font-family:var(--mono);color:var(--brand);flex:0 0 62px}#view-strategy .rec-row .nm2{color:var(--text);flex:0 0 110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}#view-strategy .rec-row .dir{flex:0 0 38px;font-weight:600}#view-strategy .rec-row .am{font-family:var(--mono);flex:0 0 70px;text-align:right}#view-strategy .rec-row .sr{color:var(--muted);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}#view-strategy .rec-row .del{cursor:pointer;color:var(--muted);border:0;background:none;font-size:var(--fs-sm)}#view-strategy .rec-row .del:hover{color:var(--up)}#view-strategy .rev-q{display:flex;align-items:center;gap:var(--sp-10);flex-wrap:wrap;margin-bottom:10px}#view-strategy .rev-q select{border:1px solid var(--line);border-radius:var(--r-6);padding:5px 10px;font-size: var(--fs-md);background: var(--panel);color:var(--text)}#view-strategy .rev-prog{font-size: var(--fs-sm);color:var(--text-2);margin-left:auto}#view-strategy .rev-prog b{color:var(--brand)}#view-strategy .rev-item{display:flex;gap:var(--sp-10);padding:11px 12px;border:1px solid var(--line);border-radius:var(--radius);margin-bottom:8px;background: var(--panel)}#view-strategy .rev-item.checked{border-color:var(--down);background:var(--down-soft)}#view-strategy .rev-item .box{flex:0 0 auto;padding-top:2px}#view-strategy .rev-item .ri-body{flex:1;min-width:0}#view-strategy .rev-item .ri-t{font-size: var(--fs-md);font-weight:600;color:var(--text)}#view-strategy .rev-item.checked .ri-t{color:var(--down)}#view-strategy .rev-item .ri-j{font-size:var(--fs-xs);color:var(--text-2);margin:2px 0 5px}#view-strategy .rev-item .ri-a{font-size:var(--fs-xs);color:var(--muted)}#view-strategy .rev-item input.ri-note{width:100%;margin-top:5px;padding:4px 8px;border:1px solid var(--line);border-radius:var(--r-6);font-size:var(--fs-xs);outline:none;background: var(--panel);color:var(--text)}#view-strategy .ri-auto{font-size:var(--fs-xs);background:var(--brand-soft);border:1px dashed var(--brand-line);color:var(--text-2);border-radius:var(--r-6);padding:5px 9px;margin:6px 0}#view-strategy .ri-auto b{color:var(--brand);font-family:var(--mono)}#view-strategy .ri-auto.warn{background:var(--warn-soft);border-color:rgba(217,140,0,.45)}#view-strategy .ri-auto.warn b{color:var(--warn)}#view-strategy .ri-auto.ok{background:var(--down-soft);border-color:rgba(5,150,105,.4)}#view-strategy .ri-auto.ok b{color:var(--down)}#view-strategy .ri-auto.manual{background:var(--panel-3);border-color:var(--line);color:var(--muted)}#view-strategy .pos-chip{display:inline-block;background: var(--panel);border:1px solid var(--line);border-radius:var(--r-10);padding:0 7px;margin-right:4px;font-family:var(--mono);font-size: var(--fs-xs);color:var(--text-2)}#view-strategy .pos-chip.hot{border-color:var(--warn);color:var(--warn);font-weight:700}#view-strategy .ev-tbl{width:100%;border-collapse:collapse;font-size: var(--fs-sm);table-layout:fixed}#view-strategy .ev-tbl th{text-align:left;padding:6px 9px;background:var(--panel-2);border-bottom:1px solid var(--line);font-weight:600;white-space:nowrap;font-size:var(--fs-xs)}#view-strategy .ev-tbl td{padding:6px 9px;border-bottom:1px solid var(--line-2);vertical-align:top}#view-strategy .ev-tbl tr:last-child td{border-bottom:0}#view-strategy .ev-st{display:inline-block;font-size: var(--fs-2xs);font-weight:700;padding:1px 7px;border-radius:var(--r-10);white-space:nowrap}#view-strategy .ev-st.pos{background:var(--brand-soft);color:var(--brand)}#view-strategy .ev-st.nav{background:var(--warn-soft);color:var(--warn)}#view-strategy .ev-st.man{background:var(--panel-3);color:var(--muted)}
 #view-strategy .st-pane .card{margin-bottom:10px}
 #view-strategy .st-pane .card:last-child{margin-bottom:0}
-@media (max-width:767px){#view-strategy .sh-grid{grid-template-columns:repeat(2,1fr)}#view-strategy .st-tbl{font-size: var(--fs-xs)}#view-strategy .sc-grid{grid-template-columns:repeat(2,1fr)}}#view-holdings .disc-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(148px,1fr));gap:8px}#view-holdings .disc-tile{border:1px solid var(--line);border-radius:var(--radius);padding:8px 10px;background:var(--panel-2);text-align:center}#view-holdings .disc-t{display:flex;align-items:center;justify-content:center;gap:6px;font-size:var(--fs-xs);color:var(--muted)}#view-holdings .disc-v{font-size:var(--fs-2xl);font-weight:700;font-family:var(--mono);margin-top:2px}#view-holdings .disc-r{font-size:var(--fs-2xs);color:var(--muted);margin-top:1px}#view-holdings .disc-s{font-size:var(--fs-xs);font-weight:600;margin-top:3px;line-height:1.4}#view-holdings .disc-dot{width:8px;height:8px;border-radius:var(--r-full);display:inline-block;flex:0 0 auto}#view-strategy .xmap-fold summary{cursor:pointer;font-size:var(--fs-md);font-weight:600;color:var(--text);list-style:none;display:flex;align-items:baseline;gap:8px}#view-strategy .xmap-fold summary::-webkit-details-marker{display:none}#view-strategy .xmap-fold summary::before{content:"▸";color:var(--muted);font-size:var(--fs-sm)}#view-strategy .xmap-fold[open] summary::before{content:"▾"}#view-strategy .xmap-fold #xmapBody{margin-top:8px}@media (max-width:767px){#view-holdings .disc-grid{grid-template-columns:repeat(2,1fr)}}</style>
+@media (max-width:767px){#view-strategy .sh-grid{grid-template-columns:repeat(2,1fr)}#view-strategy .st-tbl{font-size: var(--fs-xs)}#view-strategy .sc-grid{grid-template-columns:repeat(2,1fr)}}#view-holdings .disc-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(148px,1fr));gap:8px}#view-holdings .disc-tile{border:1px solid var(--line);border-radius:var(--radius);padding:8px 10px;background:var(--panel-2);text-align:center}#view-holdings .disc-t{display:flex;align-items:center;justify-content:center;gap:6px;font-size:var(--fs-xs);color:var(--muted)}#view-holdings .disc-v{font-size:var(--fs-2xl);font-weight:700;font-family:var(--mono);margin-top:2px}#view-holdings .disc-r{font-size:var(--fs-2xs);color:var(--muted);margin-top:1px}#view-holdings .disc-s{font-size:var(--fs-xs);font-weight:600;margin-top:3px;line-height:1.4}#view-holdings .disc-dot{width:8px;height:8px;border-radius:var(--r-full);display:inline-block;flex:0 0 auto}#view-strategy .xmap-fold summary{cursor:pointer;font-size:var(--fs-md);font-weight:600;color:var(--text);list-style:none;display:flex;align-items:baseline;gap:8px}#view-strategy .xmap-fold summary::-webkit-details-marker{display:none}#view-strategy .xmap-fold summary::before{content:"▸";color:var(--muted);font-size:var(--fs-sm)}#view-strategy .xmap-fold[open] summary::before{content:"▾"}#view-strategy .xmap-fold #xmapBody{margin-top:8px}@media (max-width:767px){#view-holdings .disc-grid{grid-template-columns:repeat(2,1fr)}}
+/* v168 fw2_v168_stcards_cluster：逐标的执行卡 → 角色簇卡片（方向2） */
+#view-strategy .st-clusters{display:flex;flex-direction:column;gap:14px}
+#view-strategy .st-cluster{border:1px solid var(--line);border-left:4px solid var(--bc,#94a3b8);border-radius:var(--radius);background:var(--panel);overflow:hidden}
+#view-strategy .st-cluster-h{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;padding:9px 13px;background:var(--panel-3);border-bottom:1px solid var(--line)}
+#view-strategy .st-cluster-dot{width:9px;height:9px;border-radius:var(--r-full);background:var(--bc,#94a3b8);flex:0 0 auto;transform:translateY(1px)}
+#view-strategy .st-cluster-name{font-weight:700;font-size:var(--fs-sm);color:var(--text)}
+#view-strategy .st-cluster-rule{font-size:var(--fs-xs);color:var(--muted)}
+#view-strategy .st-card-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px;padding:12px}
+#view-strategy .st-exec-card{border:1px solid var(--line);border-radius:var(--r-10);background:var(--panel-2);padding:10px 12px;display:flex;flex-direction:column;gap:7px}
+#view-strategy .st-exec-top{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+#view-strategy .st-exec-top .dot{display:inline-block;width:8px;height:8px;border-radius:var(--r-full);flex:0 0 auto}
+#view-strategy .st-exec-name{font-weight:700;font-size:var(--fs-md);color:var(--text)}
+#view-strategy .st-exec-code{font-family:var(--mono);font-size:var(--fs-2xs);color:var(--muted)}
+#view-strategy .st-exec-action{display:flex;align-items:baseline;gap:6px;flex-wrap:wrap;font-size:var(--fs-sm)}
+#view-strategy .st-act-dot{width:8px;height:8px;border-radius:var(--r-full);flex:0 0 auto;transform:translateY(1px)}
+#view-strategy .st-act-t{font-weight:600}
+#view-strategy .st-act-t.ok{color:#16a34a}
+#view-strategy .st-act-t.mid{color:var(--brand)}
+#view-strategy .st-act-s{font-size:var(--fs-2xs);color:var(--muted)}
+#view-strategy .st-steps{list-style:none;margin:2px 0 0;padding:0;display:flex;flex-direction:column;gap:3px}
+#view-strategy .st-step{display:flex;flex-direction:column;gap:1px;padding:5px 8px;border-radius:var(--r-6);background:var(--panel);border:1px solid var(--line-2)}
+#view-strategy .st-step-h{font-size:var(--fs-2xs);font-weight:700;color:var(--text-2);letter-spacing:.3px}
+#view-strategy .st-step-h .na-tag{font-style:normal;font-weight:600;color:var(--muted);background:var(--panel-3);border-radius:var(--r-10);padding:0 5px;margin-left:4px;font-size:10px}
+#view-strategy .st-step-cond{font-size:var(--fs-xs);color:var(--text);line-height:1.45}
+#view-strategy .st-step-qty{font-size:var(--fs-xs);font-weight:700;font-family:var(--mono)}
+#view-strategy .st-step-qty.q-buy{color:var(--up,#dc2626)}
+#view-strategy .st-step-qty.q-tp{color:var(--down,#059669)}
+#view-strategy .st-step-qty.q-sell{color:var(--warn,#d98c00)}
+#view-strategy .st-step.active{border-color:var(--brand-line);background:var(--brand-soft);box-shadow:inset 3px 0 0 var(--brand)}
+#view-strategy .st-step.active .st-step-h{color:var(--brand)}
+#view-strategy .st-step.na{opacity:.55}
+#view-strategy .st-step.na .st-step-cond{text-decoration:line-through}
+@media (max-width:767px){#view-strategy .st-card-grid{grid-template-columns:1fr}}
+
+</style>
 <script>
 /* v120 fw2_v120_strategy：策略执行模块（STRATEGY_SNAP + 渲染 + 记录层） */
 /* v125 fw2_v125_strat_exec_enh：策略执行视图增量增强（heldBadge 进度条 / 月度定投实时缺口 / 当月待办清单 / 事件触发表三态着色 / barbell 并行口径标注） */
@@ -8778,6 +8816,9 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
   var STRAT_LS_REV = 'fw2_strat_review';
   var STEP_HEADS = ['① 建仓', '② 持有', '③ 补仓', '④ 止盈', '⑤ 卖出'];
   var IDX_LABEL = { '000300': '沪深300', '000905': '中证500', '000906': '中证800', '399673': '中证A500', 'HSI': '恒生', '.INX': '标普500' };
+  var roleCodes = { '底仓/缓冲': ['563360', '001015', '510880', '159201'], '进攻/主题': ['159949', '020712', '012920', '016452'], '安全垫': ['511360'], '对冲': ['511260', '159934'] };
+  var roleNames = { '底仓/缓冲': ['底仓/缓冲', '宽基底仓 + 主动增强 + 真缓冲（红利/现金流）· 五步齐全 · 不设止损'], '进攻/主题': ['进攻/主题', '创业板50/日经/全球成长/纳指 · 五步齐全 · 带硬止损/趋势清仓线'], '安全垫': ['安全垫', '短融 = 流动弹药池 · 止盈格不适用'], '对冲': ['对冲', '10年国债 + 黄金 · 再平衡驱动 · 卖出格不设止损'] };
+
 
   function lsGet(k, d) { try { return JSON.parse(localStorage.getItem(k) || 'null') || d; } catch (e) { return d; } }
   function lsSet(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
@@ -8913,55 +8954,66 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
   }
 
   function renderStratCards() {
-    var el = document.getElementById('stp-cards');
-    if (!el) return;
-    var html = '<div class="strat-note">五步是统一骨架，角色决定每步是否有效：① 底仓/缓冲 = 五步齐全、不设止损；② 进攻/主题 = 带硬止损/趋势清仓线；③ 安全垫 = 止盈格不适用；④ 对冲 = 卖出格不设止损（再平衡驱动）。</div><div class="tbl-scroll"><table class="st-tbl"><colgroup>' +
-      /* v163：加「当前动作」列（消歧“此标的下一步”，读持仓快照判定）+ 五步列按内容自适应 */
-      '<col style="width:12%"><col style="width:16%"><col style="width:14.4%"><col style="width:14.4%"><col style="width:14.4%"><col style="width:14.4%"><col style="width:14.4%"></colgroup>' +
-      '<thead><tr><th>标的（目标）</th><th>当前动作</th>' + STEP_HEADS.map(function (h) { return '<th>' + h + '</th>'; }).join('') + '</tr></thead><tbody>';
-    /* 角色→代码映射（按 assets 顺序分配） */
-    var roleCodes = { '底仓/缓冲': ['563360', '001015', '510880', '159201'], '进攻/主题': ['159949', '020712', '012920', '016452'], '安全垫': ['511360'], '对冲': ['511260', '159934'] };
-    var roleNames = { '底仓/缓冲': ['底仓/缓冲', '宽基底仓 + 主动增强 + 真缓冲（红利/现金流）· 五步齐全 · 不设止损'], '进攻/主题': ['进攻/主题', '创业板50/日经/全球成长/纳指 · 五步齐全 · 带硬止损/趋势清仓线'], '安全垫': ['安全垫', '短融 = 流动弹药池 · 止盈格不适用'], '对冲': ['对冲', '10年国债 + 黄金 · 再平衡驱动 · 卖出格不设止损'] };
-    Object.keys(roleCodes).forEach(function (rk) {
-      html += '<tr class="role-tr" style="--bc:' + (roleColor[rk] || '#94a3b8') + '"><td colspan="7"><span class="role-chip">' + roleNames[rk][0] + '</span>' + roleNames[rk][1] + '</td></tr>';
-      roleCodes[rk].forEach(function (code) {
-        var a = assetOf(code);
-        if (!a) return;
-        var nx = nextAction(code);
-        var steps = [a.act.b, a.act.h, a.act.a, a.act.t, a.act.s].map(function (txt, si) {
-          var p = String(txt).split(' / ');
-          var qcls = (si === 0 || si === 2) ? ' q-buy' : (si === 3 ? ' q-tp' : (si === 4 ? ' q-sell' : ''));
-          /* v163 执行线聚焦：条件+金额两行常显；来源折叠进 title（悬停可见），行高 3→2 行 */
-          return '<td class="step"' + (p[2] ? ' title="' + esc(p[2]) + '"' : '') + '><div class="cond">' + esc(p[0] || '') + '</div>' +
-            (p[1] ? '<div class="qty' + qcls + '">' + esc(p[1]) + '</div>' : '') + '</td>';
-        }).join('');
-        html += '<tr><td><div class="nm">' + assetDot(a.code) + esc(a.name) + '</div><div class="cd">' + a.code + '</div><div class="tg">目标 ' + fmt(a.target) + '</div>' + heldBadge(code) + '</td>' +
-          '<td class="act"><div class="act-i" style="background:' + nx.dot + '"></div><div>' +
-          '<div class="act-t' + nx.cls + '">' + nx.txt + '</div>' +
-          (nx.sub ? '<div class="act-s">' + nx.sub + '</div>' : '') + '</div></td>' + steps + '</tr>';
-      });
+  var el = document.getElementById('stp-cards');
+  if (!el) return;
+  var html = '<div class="strat-note">五步是统一骨架，角色决定每步是否有效：① 底仓/缓冲 = 五步齐全、不设止损；② 进攻/主题 = 带硬止损/趋势清仓线；③ 安全垫 = 止盈格不适用；④ 对冲 = 卖出格不设止损（再平衡驱动）。</div><div class="st-clusters">';
+  Object.keys(roleCodes).forEach(function (rk) {
+    var rc = roleColor[rk] || '#94a3b8';
+    html += '<section class="st-cluster" style="--bc:' + rc + '">' +
+      '<header class="st-cluster-h"><span class="st-cluster-dot"></span>' +
+      '<span class="st-cluster-name">' + esc(roleNames[rk][0]) + '</span>' +
+      '<span class="st-cluster-rule">' + esc(roleNames[rk][1]) + '</span></header>' +
+      '<div class="st-card-grid">';
+    roleCodes[rk].forEach(function (code) {
+      var a = assetOf(code);
+      if (!a) return;
+      var nx = nextAction(code);
+      var steps = [a.act.b, a.act.h, a.act.a, a.act.t, a.act.s].map(function (txt, si) {
+        var p = String(txt).split(' / ');
+        var qcls = (si === 0 || si === 2) ? ' q-buy' : (si === 3 ? ' q-tp' : (si === 4 ? ' q-sell' : ''));
+        var na = (rk === '安全垫' && si === 3) ? ' na' : '';
+        var act = (nx.step === si) ? ' active' : '';
+        return '<li class="st-step' + act + na + '"' + (p[2] ? ' title="' + esc(p[2]) + '"' : '') + '>' +
+          '<span class="st-step-h">' + STEP_HEADS[si] + (na ? ' <i class="na-tag">不适用</i>' : '') + '</span>' +
+          '<span class="st-step-cond">' + esc(p[0] || '') + '</span>' +
+          (p[1] ? '<span class="st-step-qty' + qcls + '">' + esc(p[1]) + '</span>' : '') +
+          '</li>';
+      }).join('');
+      html += '<div class="st-exec-card">' +
+        '<div class="st-exec-top">' + assetDot(a.code) + '<span class="st-exec-name">' + esc(a.name) + '</span>' +
+        '<span class="st-exec-code">' + a.code + '</span></div>' +
+        '<div class="st-exec-action"><span class="st-act-dot" style="background:' + nx.dot + '"></span>' +
+        '<span class="st-act-t' + nx.cls + '">' + nx.txt + '</span>' +
+        (nx.sub ? '<span class="st-act-s">' + nx.sub + '</span>' : '') + '</div>' +
+        heldBadge(code) +
+        '<ol class="st-steps">' + steps + '</ol>' +
+        '</div>';
     });
-    html += '</tbody></table></div>';
-    el.innerHTML = html;
-  }
+    html += '</div></section>';
+  });
+  html += '</div>';
+  el.innerHTML = html;
+}
+
   /* v163 fw2_v163_next_action：「当前动作」列判定 —— 读工作台持仓快照给出“此标的下一步”。
      口径：短融=弹药池；持仓≥90%目标=达标观望；持仓未达=建仓中差额/月；无持仓=待建仓（按 S.plan.build）。 */
   function nextAction(code) {
-    var a = assetOf(code);
-    if (!a) return { dot: '#cbd5e1', cls: '', txt: '—', sub: '' };
-    var plan = null;
-    for (var pi = 0; pi < (S.plan || []).length; pi++) if (S.plan[pi].code === code) { plan = S.plan[pi]; break; }
-    var h = heldOf(code);
-    var m = (h && h.qty > 0) ? mvOf(h) : null;
-    var pct = (m != null && a.target > 0) ? Math.min(100, m / a.target * 100) : 0;
-    if (code === '511360') return { dot: '#059669', cls: ' ok', txt: '弹药池 · T+0', sub: '止盈资金默认落点' };
-    if (h && pct >= 90) return { dot: '#16a34a', cls: ' ok', txt: '达标 · 观望', sub: (m != null ? '市值 ' + fmt(Math.round(m)) : '') + (code === '012920' ? '（不再买入）' : '') };
-    if (h && m != null) {
-      var gap = Math.max(0, a.target - m);
-      return { dot: '#2563eb', cls: ' mid', txt: '建仓中 · 差额 ' + fmt(Math.round(gap)), sub: '约 ' + fmt(Math.round(gap / monthsLeft())) + '/月' };
-    }
-    return { dot: '#d98c00', cls: '', txt: '待建仓 · ' + (plan && plan.build ? plan.build : '') + '/月', sub: '差额 ' + fmt(Math.round(a.target)) + '（S.plan 计划口径）' };
+  var a = assetOf(code);
+  if (!a) return { dot: '#cbd5e1', cls: '', txt: '—', sub: '', step: 0 };
+  var plan = null;
+  for (var pi = 0; pi < (S.plan || []).length; pi++) if (S.plan[pi].code === code) { plan = S.plan[pi]; break; }
+  var h = heldOf(code);
+  var m = (h && h.qty > 0) ? mvOf(h) : null;
+  var pct = (m != null && a.target > 0) ? Math.min(100, m / a.target * 100) : 0;
+  if (code === '511360') return { dot: '#059669', cls: ' ok', txt: '弹药池 · T+0', sub: '止盈资金默认落点', step: 0 };
+  if (h && pct >= 90) return { dot: '#16a34a', cls: ' ok', txt: '达标 · 观望', sub: (m != null ? '市值 ' + fmt(Math.round(m)) : '') + (code === '012920' ? '（不再买入）' : ''), step: 1 };
+  if (h && m != null) {
+    var gap = Math.max(0, a.target - m);
+    return { dot: '#2563eb', cls: ' mid', txt: '建仓中 · 差额 ' + fmt(Math.round(gap)), sub: '约 ' + fmt(Math.round(gap / monthsLeft())) + '/月', step: 0 };
   }
+  return { dot: '#d98c00', cls: '', txt: '待建仓 · ' + (plan && plan.build ? plan.build : '') + '/月', sub: '差额 ' + fmt(Math.round(a.target)) + '（S.plan 计划口径）', step: 0 };
+}
+
   var roleColor = { '底仓/缓冲': '#2563eb', '进攻/主题': '#d98c00', '安全垫': '#059669', '对冲': '#b45309' };
   function assetDot(code) {
     var c = (code === '511360' || code === '511260') ? '#059669' : (code === '159934' ? '#b45309' : '#2563eb');
@@ -8971,6 +9023,8 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
     for (var i = 0; i < S.assets.length; i++) if (S.assets[i].code === code) return S.assets[i];
     return null;
   }
+  function isRole(code, rk) { return (roleCodes[rk] || []).indexOf(code) >= 0; }
+
   function heldBadge(code) {
     var h = heldOf(code);
     var target = (assetOf(code) || {}).target || 0;
