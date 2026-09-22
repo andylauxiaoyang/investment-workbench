@@ -7904,9 +7904,13 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
        判别力随 Hero 删除掉到临界）、_test_v146_mcnav、_test_v143_gold 回归；
        check_js、CSS 花括号配平、_precheck_markers、gate --check。
      data/口径未变，不跑 push_macro_seed。verChip v147->v148
+   v180 fw2_v180_capbal_snapshot（2026-09-23）：资金平衡数据自动化——首次进入台账为空时，按工作台
+     持仓自动生成「期初快照」（targets 同步 + buy/in 配平流水 → 资产负债/总览/净资产趋势立即有真实
+     基准）；持仓异步加载中就绪前自动重试补生成；幂等不覆盖手工数据，之后由 同步持仓/更新净值/新增交易
+     维护。连带：资金平衡导航图标改指南针。verChip v179->v180
   */
   const vc = $('#verChip');
-  if (vc) vc.textContent = 'v179 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  if (vc) vc.textContent = 'v180 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
@@ -11289,20 +11293,72 @@ function syncFromWorkbench(manual) {
   }
   return { added: added, filled: filled, total: wb.length };
 }
-/* 自动同步：仅在台账为空时自动建立（避免覆盖用户手动录入） */
+/* 自动同步：仅在台账为空时自动建立（避免覆盖用户手动录入）
+   自动「期初快照」：工作台持仓就绪后，把当前持仓按最新价期为初净资产，配平生成
+   建仓+资金入账 流水，让 资产负债/总览/净资产趋势 立即有真实基准；
+   之后由 同步持仓/更新净值/新增交易 维护。 */
+let _snapshotScheduled = false;
+function todayISO() {
+  const d = new Date(), p = function (n) { return String(n).padStart(2, "0"); };
+  return d.getFullYear() + "-" + p(d.getMonth() + 1) + "-" + p(d.getDate());
+}
+/* fw2_v180_capbal_snapshot（2026-09-23）：资金平衡自动期初快照 + 同步/净值加固 */
+function ensureInitialSnapshot() {
+  if (DB.targets.length || DB.tx.length) return false;   /* 幂等：绝不覆盖已有/手工数据 */
+  const wb = (typeof state !== "undefined" && state && Array.isArray(state.portfolio)) ? state.portfolio : [];
+  if (!wb.length) return false;
+  syncFromWorkbench(false);                              /* 先同步标的（含快照净值带入） */
+  if (!DB.targets.length) return false;
+  const byCode = {};
+  DB.targets.forEach(function (t) { byCode[normCode(t.code)] = t; });
+  const d0 = todayISO();
+  let totalCost = 0, builds = 0;
+  wb.forEach(function (h) {
+    const code = normCode(h.code), t = byCode[code];
+    const qty = Number(h.qty) || 0, c0 = Number(h.cost) || 0;
+    if (!t || !(qty > 0) || !(c0 > 0)) return;
+    const total = Math.round(qty * c0 * 100) / 100;      /* 总成本 = 份额 × 成本单价 */
+    if (!(Number(t.nav) > 0)) t.nav = Math.round(c0 * 10000) / 10000;  /* 净值兜底=成本单价 */
+    totalCost += total;
+    DB.tx.push({ id: uid(), tid: t.id, date: d0, type: "buy", amt: total, shares: qty, note: "期初建仓（自动快照）" });
+    builds++;
+  });
+  if (!builds) return false;
+  DB.tx.push({ id: uid(), tid: null, date: d0, type: "in", amt: Math.round(totalCost * 100) / 100, shares: 0, note: "期初资金快照" });  /* 配平现金：in(Σ成本)−Σbuy=0 */
+  saveDB();
+  return true;
+}
 function maybeAutoSync() {
+  const wb = (typeof state !== "undefined" && state && Array.isArray(state.portfolio)) ? state.portfolio : [];
   if (!DB.targets.length) {
-    syncFromWorkbench(false);
-  } else {
-    const wb = (typeof state !== "undefined" && state && Array.isArray(state.portfolio)) ? state.portfolio : [];
-    const syncInfo = gid("cbSyncInfo");
-    if (syncInfo && wb.length) {
-      const mine = {};
-      DB.targets.forEach(function (t) { mine[normCode(t.code)] = 1; });
-      const missing = wb.filter(function (h) { return !mine[normCode(h.code)]; }).length;
-      if (missing) syncInfo.textContent = "工作台有 " + missing + " 只持仓未在台账，可点「同步持仓」";
+    if (wb.length) {
+      const done = ensureInitialSnapshot();
+      if (done) gid("cbSyncInfo").textContent = "自动期初快照：已按工作台持仓建立账面（净值缺失暂按成本口径）";
+    } else if (!_snapshotScheduled) {
+      _snapshotScheduled = true;                         /* 持仓异步加载中就绪前自动补一次（同步/净值加固） */
+      let tries = 0;
+      const iv = setInterval(function () {
+        tries++;
+        const w2 = (typeof state !== "undefined" && state && Array.isArray(state.portfolio)) ? state.portfolio : [];
+        if (w2.length || tries >= 12) {
+          clearInterval(iv);
+          if (w2.length) {
+            const ok = ensureInitialSnapshot();
+            if (ok && state && state.view === "capbal") {
+              render();
+              gid("cbSyncInfo").textContent = "自动期初快照：已按工作台持仓建立账面（净值缺失暂按成本口径）";
+            }
+          }
+        }
+      }, 400);
     }
+    return;
   }
+  const mine = {};
+  DB.targets.forEach(function (t) { mine[normCode(t.code)] = 1; });
+  const missing = wb.filter(function (h) { return !mine[normCode(h.code)]; }).length;
+  const syncInfo = gid("cbSyncInfo");
+  if (syncInfo && wb.length && missing) syncInfo.textContent = "工作台有 " + missing + " 只持仓未在台账，可点「同步持仓」";
 }
 
 /* ================================================================
