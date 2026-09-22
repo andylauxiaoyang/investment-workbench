@@ -185,6 +185,11 @@ button, input, select, textarea { font-family: inherit; font-size: var(--fs-md);
 .ix .c { font-family: var(--mono); font-size: var(--fs-2xs); }
 
 .scroll-area { flex: 1; overflow-y: auto; padding: 14px 16px 38px; }
+/* fw2_capbal_gapfix（2026-09-22）：view-capbal / view-smartmoney 是 .scroll-area 的兄弟节点（在它闭合之后），
+   不在滚动容器内。当它们激活时，.scroll-area 内所有 .view 均已 display:none，但 .scroll-area 自身仍以 flex:1
+   吃掉一整条空高，把兄弟视图内容整块下顶（实测约 265px 死区）。用 :has() 令其内部无活动视图时收缩为零，
+   消除顶部大空白、内容整体上移。切回 holdings 等容器内视图时自动恢复滚动。 */
+.scroll-area:not(:has(.view.active)) { flex: 0 0 0; height: 0; padding: 0; overflow: visible; }
 .view { display: none; }
 .view.active { display: block; }
 
