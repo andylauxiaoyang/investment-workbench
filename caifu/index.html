@@ -6480,7 +6480,7 @@ function showView(name) {
   } else if (name === 'signal') {
     if (typeof renderSignalDash === 'function') renderSignalDash(); /* v36 */
   } else if (name === 'capbal') {
-    if (window.CAPBAL) { window.CAPBAL.render(); window.CAPBAL.maybeAutoSync(); }
+    if (window.CAPBAL) { window.CAPBAL.maybeAutoSync(); window.CAPBAL.render();  /* v181：先同步后渲染（sync 内不得 render） */ }
     const _ct = new URLSearchParams(location.search).get('tab');
     if (_ct && window.CAPBAL && window.CAPBAL.showTab) window.CAPBAL.showTab(_ct);
   } /* fw2_capbal_merge */
@@ -7908,9 +7908,20 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
      持仓自动生成「期初快照」（targets 同步 + buy/in 配平流水 → 资产负债/总览/净资产趋势立即有真实
      基准）；持仓异步加载中就绪前自动重试补生成；幂等不覆盖手工数据，之后由 同步持仓/更新净值/新增交易
      维护。连带：资金平衡导航图标改指南针。verChip v179->v180
+  v181 fw2_v181_capbal_auto（2026-09-23）：资金平衡改为「持续」自动化。用户拍板四条：
+     ① 台账条目只增不删（历史留档）；② 覆盖式自动同步（不手工建仓）；③ 台账同步进资料库；
+     ④ 净值口径＝收盘价。修 v180 的一次性缺陷（即用户报的「还是缺失数据」）：
+     · ensureInitialSnapshot 只在台账为空时生成，且成本兜底未标 autoNav → 净值恒=成本、市值恒=成本、
+       浮盈恒 0、净资产趋势一条直线；
+     · maybeAutoSync 一旦台账非空就只打提示、不动作。
+     v181 改动：syncFromWorkbench 每次以**收盘价**刷新净值（q.preclose 优先，无则回落 q.price），
+     记 navSrc 供界面披露；唯一例外 autoNav===false（用户手工改过的净值不覆盖）；
+     maybeAutoSync 非空分支改为真自动同步（新增 + 净值刷新 + saveDB），且**不得调用 render()**
+     （render() 内已调 maybeAutoSync，否则 render→sync→render 无限递归）；外部调用点改为先 sync 后 render。
+     绝不删除台账任何条目。verChip v180->v181
   */
   const vc = $('#verChip');
-  if (vc) vc.textContent = 'v180 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  if (vc) vc.textContent = 'v181 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
@@ -11276,10 +11287,28 @@ function syncFromWorkbench(manual) {
       if (h.name && t.name !== h.name) t.name = h.name;
       if (t.cat === "其他") t.cat = guessCat(h.name, code);
     }
-    /* 净值缺口：尝试从工作台行情快照自动带入 */
-    if (!(Number(t.nav) > 0) && typeof state !== "undefined" && state && state.snapshot && state.snapshot.quotes) {
+    /* ★v181 持续自动化（2026-09-23 用户拍板：覆盖式自动同步，不手工建仓）：
+         净值**每次自动刷新**（v180 只在 nav 缺失时补一次 → 成本兜底后 nav>0 就永久停更，
+         市值恒=成本、浮盈恒 0、净资产趋势一条直线，即用户报的「还是缺失数据」）。
+       ★净值口径＝**收盘价**（用户拍板）：优先 q.preclose（昨收＝已结算收盘价），
+         无 preclose 才回落 q.price（现价）；记 navSrc 供界面披露。
+       ★唯一例外：用户手工改过的净值（autoNav===false）不覆盖——保住「不覆盖手工」底线。
+       ★绝不删除台账任何条目（用户拍板：历史数据留档）。 */
+    if (t.autoNav === false) {
+      /* 用户手工维护的净值，跳过自动覆盖 */
+    } else if (typeof state !== "undefined" && state && state.snapshot && state.snapshot.quotes) {
       const q = state.snapshot.quotes[h.code] || state.snapshot.quotes[code];
-      if (q && Number(q.price) > 0) { t.nav = Math.round(Number(q.price) * 10000) / 10000; filled++; }
+      const closePx = q ? (Number(q.preclose) > 0 ? Number(q.preclose)
+                          : (Number(q.price) > 0 ? Number(q.price) : 0)) : 0;
+      if (closePx > 0) {
+        const nv = Math.round(closePx * 10000) / 10000;
+        if (Number(t.nav) !== nv) {
+          t.nav = nv;
+          t.autoNav = true;
+          t.navSrc = (Number(q.preclose) > 0 ? "close" : "last");
+          filled++;
+        }
+      }
     }
   });
   if (added || filled) { saveDB(); }
@@ -11318,7 +11347,8 @@ function ensureInitialSnapshot() {
     const qty = Number(h.qty) || 0, c0 = Number(h.cost) || 0;
     if (!t || !(qty > 0) || !(c0 > 0)) return;
     const total = Math.round(qty * c0 * 100) / 100;      /* 总成本 = 份额 × 成本单价 */
-    if (!(Number(t.nav) > 0)) t.nav = Math.round(c0 * 10000) / 10000;  /* 净值兜底=成本单价 */
+    /* ★v181：兜底必须标 autoNav=true —— v180 漏标，导致兜底后 nav>0 再也不被真实收盘价刷新 */
+    if (!(Number(t.nav) > 0)) { t.nav = Math.round(c0 * 10000) / 10000; t.autoNav = true; t.navSrc = "cost"; }
     totalCost += total;
     DB.tx.push({ id: uid(), tid: t.id, date: d0, type: "buy", amt: total, shares: qty, note: "期初建仓（自动快照）" });
     builds++;
@@ -11354,11 +11384,22 @@ function maybeAutoSync() {
     }
     return;
   }
-  const mine = {};
-  DB.targets.forEach(function (t) { mine[normCode(t.code)] = 1; });
-  const missing = wb.filter(function (h) { return !mine[normCode(h.code)]; }).length;
-  const syncInfo = gid("cbSyncInfo");
-  if (syncInfo && wb.length && missing) syncInfo.textContent = "工作台有 " + missing + " 只持仓未在台账，可点「同步持仓」";
+  /* ★v181 持续自动化（2026-09-23 用户拍板）：台账非空也继续自动同步——
+       ① 新增「工作台有、台账缺」的标的；② 以**收盘价**刷新净值；③ **绝不删除**台账条目（历史留档）。
+     ★红线圈：本函数**不得调用 render()** —— render() 第 11216 行会先调 maybeAutoSync()，
+       若此处再 render() 则 render→sync→render 无限递归。由 render() 内调用时，其后续
+       renderX() 自然用新数据渲染；外部调用点须自行 render()（见 CAPBAL 出口，已改为先 sync 后 render）。 */
+  const r2 = syncFromWorkbench(false);
+  if (r2 && (r2.added || r2.filled)) saveDB();
+  const syncInfo2 = gid("cbSyncInfo");
+  if (syncInfo2) {
+    const mine2 = {};
+    DB.targets.forEach(function (t) { mine2[normCode(t.code)] = 1; });
+    const missing2 = wb.filter(function (h) { return !mine2[normCode(h.code)]; }).length;
+    syncInfo2.textContent = "已自动同步：新增 " + (r2 ? (r2.added || 0) : 0) + " 只 · 净值刷新 "
+      + (r2 ? (r2.filled || 0) : 0) + " 只（收盘价口径）"
+      + (missing2 ? " · 仍有 " + missing2 + " 只未入账" : "");
+  }
 }
 
 /* ================================================================
