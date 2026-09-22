@@ -9,8 +9,8 @@
   "retBasisNote": "v99 收益口径：分红型（累计净值−单位净值 单调不降）走累计净值；折算型（该差额反复跳动）走单位净值；无分红两者等价走单位净值；货币型走万份收益。逐只判定结果见 funds[].retBasis / accBack / cumDiv / divEvents。",
   "scaleSource": "fund-basic.json（天天基金 jbgk，截至 2026-06-30 中报）",
   "scaleNote": "规模为最新中报规模（点时点，2026-06-30），非月度序列；因此不在月度表格中重复展示，仅在「配图-最新规模」中作基金间横向对比；各基金起始月=其成立月（方案二），故不同基金覆盖月数不同；货币型月涨跌幅=当月万份收益合计/10000；★最新月（2026-09）为【不完整月】，截至 2026-09-18",
-  "monthCount": 170,
-  "fundCount": 12,
+  "monthCount": 237,
+  "fundCount": 21,
   "sources": [
    {
     "id": "em_lsjz",
@@ -44,7 +44,10 @@
   "verified": null,
   "breakRule": "净值断裂检测（v82）：相邻披露「单位净值」偏离 > 25% 判为份额折算/基金转型（非收益）。首个断裂之前的序列与本阶段不可比，不纳入本表（各基金 dataFrom 即本表起始月）；含断裂的月份 monthRet 置空并标 navReset=true。阈值依据：联接/宽基指数基金单日不可能动 25%，全量逐日扫描除已知折算外零误伤。",
   "navResetMonths": [
-   "160422/2018-11"
+   "160422/2018-11",
+   "159934/2013-12",
+   "510880/2007-01",
+   "511360/2020-08"
   ],
   "accRule": "收益口径分流（v99）：设月末差额 D(m) = 累计净值 LJJZ − 单位净值 DWJZ。①D 序列单调不降（倒退 ≤ 1 次）且末值 > 0.001 → 差额只可能来自分红，累计净值是有效序列 → retBasis='acc'，monthRet 用 LJJZ 环比（含分红）；②D 反复跳动（倒退 > 1 次）→ 该基金发生过份额折算，累计净值基准与单位净值错位 → retBasis='nav'，monthRet 用 DWJZ 环比（与旧版一致）；③D 恒为 0 → 无分红，两口径等价，走 nav 保持与历史值一致。判定结果与官方分红标记（FHFCBZ/FHFCZ/FHSP）互证：判为分红型者必须有官方分红事件，有官方分红且 D 可用者必须走 acc，否则生成器直接断言失败。实证：012761/270042 判为分红型；160422 判为折算型（D ∈ [-0.83,-0.13]、倒退 50 次）。★acc 重建：每份累计分红 D 只在除息日跳变（阶梯函数），故当东财 LJJZ 缺日时（实测 006373 的 2020-12-31）以「前向填充 D、acc = nav + D」重建，保证 acc 与 nav 恒同日；在有观测的日期上重建值必须与官方 LJJZ 逐字一致（生成器有断言）。各基金 fill 情况见 funds[].accFillDays / accFillMonths。时点取【该月最后一个交易日】，与 nav 严格同日，月收益为相邻月末环比。",
   "caliber": [
@@ -531,6 +534,384 @@
    "company": "易方达基金",
    "mgr": "张湛",
    "mgExp": 0.5,
+   "isMoney": false
+  },
+  {
+   "code": "016452",
+   "name": "南方纳斯达克100指数发起(QDII)A",
+   "ftype": "指数型-海外股票",
+   "estab": "2022-11-29",
+   "dataFrom": "2022-11",
+   "retBasis": "nav",
+   "accBack": 0,
+   "cumDiv": 0.0,
+   "accFillDays": 0,
+   "accFillMonths": [],
+   "divEvents": [],
+   "scale": 62.1,
+   "scaleDate": "2026-06-30",
+   "company": "南方基金",
+   "mgr": "张其思",
+   "mgExp": 0.5,
+   "isMoney": false
+  },
+  {
+   "code": "020712",
+   "name": "华安三菱日联日经225ETF发起式联接(QDII)A",
+   "ftype": "指数型-海外股票",
+   "estab": "2024-02-07",
+   "dataFrom": "2024-02",
+   "retBasis": "nav",
+   "accBack": 0,
+   "cumDiv": 0.0,
+   "accFillDays": 0,
+   "accFillMonths": [],
+   "divEvents": [],
+   "scale": 2.87,
+   "scaleDate": "2026-06-30",
+   "company": "华安基金",
+   "mgr": "倪斌",
+   "mgExp": 0.2,
+   "isMoney": false
+  },
+  {
+   "code": "159201",
+   "name": "自由现金流ETF华夏",
+   "ftype": "指数型-股票",
+   "estab": "2025-02-19",
+   "dataFrom": "2025-02",
+   "retBasis": "nav",
+   "accBack": 0,
+   "cumDiv": 0.0,
+   "accFillDays": 0,
+   "accFillMonths": [],
+   "divEvents": [],
+   "scale": 129.57,
+   "scaleDate": "2026-06-30",
+   "company": "华夏基金",
+   "mgr": "杨斯琪 / 张金志",
+   "mgExp": 0.15,
+   "isMoney": false
+  },
+  {
+   "code": "159934",
+   "name": "黄金ETF易方达",
+   "ftype": "指数型-其他",
+   "estab": "2013-11-29",
+   "dataFrom": "2013-12",
+   "retBasis": "nav",
+   "accBack": 1623,
+   "cumDiv": -5.7758,
+   "accFillDays": 0,
+   "accFillMonths": [],
+   "divEvents": [
+    {
+     "d": "2013-12-11",
+     "amt": "0.40739099",
+     "text": "每份基金份额折算0.40739099份",
+     "dwjz": 2.4671,
+     "ljjz": 1.0051
+    },
+    {
+     "d": "2025-09-19",
+     "amt": "0.948126035",
+     "text": "每份基金份额折算0.948126035份",
+     "dwjz": 8.2662,
+     "ljjz": 3.1929
+    }
+   ],
+   "scale": 330.95,
+   "scaleDate": "2026-06-30",
+   "company": "易方达基金",
+   "mgr": "张湛 / 张泽峰",
+   "mgExp": 0.5,
+   "isMoney": false,
+   "stage2": "2013-12",
+   "estabAlt": null,
+   "estabAltSrc": null,
+   "stageNote": "该基金在 2013-12-11 发生净值断裂（份额折算/转型），本表自 2013-12 起保留转型后序列；断裂前序列与本阶段不可比，且 Wind/新浪均无覆盖（Wind 记成立日 None，天天基金 jbgk 记 2013-11-29，两源对「成立日」定义不同）"
+  },
+  {
+   "code": "159949",
+   "name": "创业板50ETF华安",
+   "ftype": "指数型-股票",
+   "estab": "2016-06-30",
+   "dataFrom": "2016-06",
+   "retBasis": "nav",
+   "accBack": 0,
+   "cumDiv": 0.0,
+   "accFillDays": 0,
+   "accFillMonths": [],
+   "divEvents": [],
+   "scale": 255.27,
+   "scaleDate": "2026-06-30",
+   "company": "华安基金",
+   "mgr": "许之彦",
+   "mgExp": 0.5,
+   "isMoney": false
+  },
+  {
+   "code": "510880",
+   "name": "红利ETF华泰柏瑞",
+   "ftype": "指数型-股票",
+   "estab": "2006-11-17",
+   "dataFrom": "2007-01",
+   "retBasis": "nav",
+   "accBack": 2401,
+   "cumDiv": -0.1178,
+   "accFillDays": 0,
+   "accFillMonths": [],
+   "divEvents": [
+    {
+     "d": "2007-01-10",
+     "amt": "0.65527799",
+     "text": "每份基金份额折算0.65527799份",
+     "dwjz": 2.075,
+     "ljjz": 1.36
+    },
+    {
+     "d": "2009-03-24",
+     "amt": "0.024",
+     "text": "每10份派现金0.2400元",
+     "dwjz": 1.98,
+     "ljjz": 1.321
+    },
+    {
+     "d": "2009-10-22",
+     "amt": "0.023",
+     "text": "每10份派现金0.2300元",
+     "dwjz": 2.544,
+     "ljjz": 1.698
+    },
+    {
+     "d": "2010-07-15",
+     "amt": "0.02",
+     "text": "每10份派现金0.2000元",
+     "dwjz": 2.011,
+     "ljjz": 1.362
+    },
+    {
+     "d": "2010-10-22",
+     "amt": "0.021",
+     "text": "每10份派现金0.2100元",
+     "dwjz": 2.403,
+     "ljjz": 1.632
+    },
+    {
+     "d": "2011-10-24",
+     "amt": "0.035",
+     "text": "每10份派现金0.3500元",
+     "dwjz": 1.903,
+     "ljjz": 1.328
+    },
+    {
+     "d": "2012-12-18",
+     "amt": "0.041",
+     "text": "每10份派现金0.4100元",
+     "dwjz": 1.796,
+     "ljjz": 1.284
+    },
+    {
+     "d": "2014-01-21",
+     "amt": "0.059",
+     "text": "每10份派现金0.5900元",
+     "dwjz": 1.584,
+     "ljjz": 1.184
+    },
+    {
+     "d": "2015-01-20",
+     "amt": "0.08",
+     "text": "每10份派现金0.8000元",
+     "dwjz": 2.43,
+     "ljjz": 1.791
+    },
+    {
+     "d": "2016-01-20",
+     "amt": "0.05",
+     "text": "每10份派现金0.5000元",
+     "dwjz": 2.386,
+     "ljjz": 1.795
+    },
+    {
+     "d": "2017-01-23",
+     "amt": "0.091",
+     "text": "每10份派现金0.9100元",
+     "dwjz": 2.652,
+     "ljjz": 2.029
+    },
+    {
+     "d": "2018-01-23",
+     "amt": "0.109",
+     "text": "每10份派现金1.0900元",
+     "dwjz": 3.2646,
+     "ljjz": 2.5016
+    },
+    {
+     "d": "2019-01-16",
+     "amt": "0.098",
+     "text": "每10份派现金0.9800元",
+     "dwjz": 2.531,
+     "ljjz": 2.0851
+    },
+    {
+     "d": "2020-01-17",
+     "amt": "0.144",
+     "text": "每10份派现金1.4400元",
+     "dwjz": 2.7829,
+     "ljjz": 2.3445
+    },
+    {
+     "d": "2021-01-18",
+     "amt": "0.141",
+     "text": "每10份派现金1.4100元",
+     "dwjz": 2.6054,
+     "ljjz": 2.3206
+    },
+    {
+     "d": "2022-01-17",
+     "amt": "0.086",
+     "text": "每10份派现金0.8600元",
+     "dwjz": 2.8262,
+     "ljjz": 2.5216
+    },
+    {
+     "d": "2023-01-16",
+     "amt": "0.138",
+     "text": "每10份派现金1.3800元",
+     "dwjz": 2.7861,
+     "ljjz": 2.5858
+    },
+    {
+     "d": "2024-01-23",
+     "amt": "0.131",
+     "text": "每10份派现金1.3100元",
+     "dwjz": 2.7663,
+     "ljjz": 2.6587
+    },
+    {
+     "d": "2025-01-21",
+     "amt": "0.142",
+     "text": "每10份派现金1.4200元",
+     "dwjz": 3.024,
+     "ljjz": 2.9206
+    },
+    {
+     "d": "2026-01-21",
+     "amt": "0.143",
+     "text": "每10份派现金1.4300元",
+     "dwjz": 3.0548,
+     "ljjz": 3.0345
+    }
+   ],
+   "scale": 222.76,
+   "scaleDate": "2026-06-30",
+   "company": "华泰柏瑞基金",
+   "mgr": "柳军 / 李茜",
+   "mgExp": 0.5,
+   "isMoney": false,
+   "stage2": "2007-01",
+   "estabAlt": null,
+   "estabAltSrc": null,
+   "stageNote": "该基金在 2007-01-10 发生净值断裂（份额折算/转型），本表自 2007-01 起保留转型后序列；断裂前序列与本阶段不可比，且 Wind/新浪均无覆盖（Wind 记成立日 None，天天基金 jbgk 记 2006-11-17，两源对「成立日」定义不同）"
+  },
+  {
+   "code": "511260",
+   "name": "十年国债ETF国泰",
+   "ftype": "指数型-固收",
+   "estab": "2017-08-04",
+   "dataFrom": "2017-08",
+   "retBasis": "nav",
+   "accBack": 1267,
+   "cumDiv": -133.341,
+   "accFillDays": 0,
+   "accFillMonths": [],
+   "divEvents": [
+    {
+     "d": "2017-08-04",
+     "amt": "0.01",
+     "text": "每份基金份额折算0.01份",
+     "dwjz": 100.02,
+     "ljjz": 1.0
+    },
+    {
+     "d": "2025-09-23",
+     "amt": "1.36",
+     "text": "每10份派现金13.6000元",
+     "dwjz": 134.272,
+     "ljjz": 1.356
+    },
+    {
+     "d": "2025-12-26",
+     "amt": "0.833",
+     "text": "每10份派现金8.3300元",
+     "dwjz": 134.342,
+     "ljjz": 1.365
+    },
+    {
+     "d": "2026-03-25",
+     "amt": "0.6711",
+     "text": "每10份派现金6.7110元",
+     "dwjz": 134.394,
+     "ljjz": 1.373
+    },
+    {
+     "d": "2026-06-25",
+     "amt": "1.2686",
+     "text": "每10份派现金12.6860元",
+     "dwjz": 134.746,
+     "ljjz": 1.389
+    },
+    {
+     "d": "2026-09-18",
+     "amt": "1.2747",
+     "text": "每10份派现金12.7470元",
+     "dwjz": 134.743,
+     "ljjz": 1.402
+    }
+   ],
+   "scale": 198.8,
+   "scaleDate": "2026-06-30",
+   "company": "国泰基金",
+   "mgr": "王玉 / 王振扬",
+   "mgExp": 0.15,
+   "isMoney": false
+  },
+  {
+   "code": "511360",
+   "name": "短融ETF海富通",
+   "ftype": "指数型-固收",
+   "estab": "2020-08-03",
+   "dataFrom": "2020-08",
+   "retBasis": "nav",
+   "accBack": 1332,
+   "cumDiv": -112.8035,
+   "accFillDays": 0,
+   "accFillMonths": [],
+   "divEvents": [],
+   "scale": 806.53,
+   "scaleDate": "2026-06-30",
+   "company": "海富通基金",
+   "mgr": "陈轶平 / 唐灵儿 / 陶斐然",
+   "mgExp": 0.15,
+   "isMoney": false
+  },
+  {
+   "code": "563360",
+   "name": "A500ETF华泰柏瑞",
+   "ftype": "指数型-股票",
+   "estab": "2024-09-25",
+   "dataFrom": "2024-09",
+   "retBasis": "nav",
+   "accBack": 0,
+   "cumDiv": 0.0,
+   "accFillDays": 0,
+   "accFillMonths": [],
+   "divEvents": [],
+   "scale": 315.37,
+   "scaleDate": "2026-06-30",
+   "company": "华泰柏瑞基金",
+   "mgr": "谭弘翔",
+   "mgExp": 0.15,
    "isMoney": false
   }
  ],
@@ -11513,6 +11894,8229 @@
    "acc": 3.1032,
    "monthRet": -1.67,
    "monthRetRaw": -1.67,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "016452",
+   "month": "2022-11",
+   "nav": 1.0,
+   "acc": 1.0,
+   "monthRet": null,
+   "monthRetRaw": null,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "016452",
+   "month": "2022-12",
+   "nav": 0.997,
+   "acc": 0.997,
+   "monthRet": -0.3,
+   "monthRetRaw": -0.3,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "016452",
+   "month": "2023-01",
+   "nav": 1.0317,
+   "acc": 1.0317,
+   "monthRet": 3.48,
+   "monthRetRaw": 3.48,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "016452",
+   "month": "2023-02",
+   "nav": 1.0521,
+   "acc": 1.0521,
+   "monthRet": 1.98,
+   "monthRetRaw": 1.98,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "016452",
+   "month": "2023-03",
+   "nav": 1.1349,
+   "acc": 1.1349,
+   "monthRet": 7.87,
+   "monthRetRaw": 7.87,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "016452",
+   "month": "2023-04",
+   "nav": 1.15,
+   "acc": 1.15,
+   "monthRet": 1.33,
+   "monthRetRaw": 1.33,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "016452",
+   "month": "2023-05",
+   "nav": 1.259,
+   "acc": 1.259,
+   "monthRet": 9.48,
+   "monthRetRaw": 9.48,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "016452",
+   "month": "2023-06",
+   "nav": 1.3569,
+   "acc": 1.3569,
+   "monthRet": 7.78,
+   "monthRetRaw": 7.78,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "016452",
+   "month": "2023-07",
+   "nav": 1.3823,
+   "acc": 1.3823,
+   "monthRet": 1.87,
+   "monthRetRaw": 1.87,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "016452",
+   "month": "2023-08",
+   "nav": 1.37,
+   "acc": 1.37,
+   "monthRet": -0.89,
+   "monthRetRaw": -0.89,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "016452",
+   "month": "2023-09",
+   "nav": 1.2999,
+   "acc": 1.2999,
+   "monthRet": -5.12,
+   "monthRetRaw": -5.12,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "016452",
+   "month": "2023-10",
+   "nav": 1.2773,
+   "acc": 1.2773,
+   "monthRet": -1.74,
+   "monthRetRaw": -1.74,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "016452",
+   "month": "2023-11",
+   "nav": 1.3902,
+   "acc": 1.3902,
+   "monthRet": 8.84,
+   "monthRetRaw": 8.84,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "016452",
+   "month": "2023-12",
+   "nav": 1.451,
+   "acc": 1.451,
+   "monthRet": 4.37,
+   "monthRetRaw": 4.37,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "016452",
+   "month": "2024-01",
+   "nav": 1.4778,
+   "acc": 1.4778,
+   "monthRet": 1.85,
+   "monthRetRaw": 1.85,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "016452",
+   "month": "2024-02",
+   "nav": 1.544,
+   "acc": 1.544,
+   "monthRet": 4.48,
+   "monthRetRaw": 4.48,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "016452",
+   "month": "2024-03",
+   "nav": 1.5528,
+   "acc": 1.5528,
+   "monthRet": 0.57,
+   "monthRetRaw": 0.57,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "016452",
+   "month": "2024-04",
+   "nav": 1.484,
+   "acc": 1.484,
+   "monthRet": -4.43,
+   "monthRetRaw": -4.43,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "016452",
+   "month": "2024-05",
+   "nav": 1.5699,
+   "acc": 1.5699,
+   "monthRet": 5.79,
+   "monthRetRaw": 5.79,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "016452",
+   "month": "2024-06",
+   "nav": 1.6615,
+   "acc": 1.6615,
+   "monthRet": 5.83,
+   "monthRetRaw": 5.83,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "016452",
+   "month": "2024-07",
+   "nav": 1.6298,
+   "acc": 1.6298,
+   "monthRet": -1.91,
+   "monthRetRaw": -1.91,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "016452",
+   "month": "2024-08",
+   "nav": 1.6453,
+   "acc": 1.6453,
+   "monthRet": 0.95,
+   "monthRetRaw": 0.95,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "016452",
+   "month": "2024-09",
+   "nav": 1.6599,
+   "acc": 1.6599,
+   "monthRet": 0.89,
+   "monthRetRaw": 0.89,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "016452",
+   "month": "2024-10",
+   "nav": 1.6728,
+   "acc": 1.6728,
+   "monthRet": 0.78,
+   "monthRetRaw": 0.78,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "016452",
+   "month": "2024-11",
+   "nav": 1.7677,
+   "acc": 1.7677,
+   "monthRet": 5.67,
+   "monthRetRaw": 5.67,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "016452",
+   "month": "2024-12",
+   "nav": 1.7686,
+   "acc": 1.7686,
+   "monthRet": 0.05,
+   "monthRetRaw": 0.05,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "016452",
+   "month": "2025-01",
+   "nav": 1.7629,
+   "acc": 1.7629,
+   "monthRet": -0.32,
+   "monthRetRaw": -0.32,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "016452",
+   "month": "2025-02",
+   "nav": 1.745,
+   "acc": 1.745,
+   "monthRet": -1.02,
+   "monthRetRaw": -1.02,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "016452",
+   "month": "2025-03",
+   "nav": 1.6221,
+   "acc": 1.6221,
+   "monthRet": -7.04,
+   "monthRetRaw": -7.04,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "016452",
+   "month": "2025-04",
+   "nav": 1.6568,
+   "acc": 1.6568,
+   "monthRet": 2.14,
+   "monthRetRaw": 2.14,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "016452",
+   "month": "2025-05",
+   "nav": 1.7931,
+   "acc": 1.7931,
+   "monthRet": 8.23,
+   "monthRetRaw": 8.23,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "016452",
+   "month": "2025-06",
+   "nav": 1.8928,
+   "acc": 1.8928,
+   "monthRet": 5.56,
+   "monthRetRaw": 5.56,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "016452",
+   "month": "2025-07",
+   "nav": 1.9317,
+   "acc": 1.9317,
+   "monthRet": 2.06,
+   "monthRetRaw": 2.06,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "016452",
+   "month": "2025-08",
+   "nav": 1.9326,
+   "acc": 1.9326,
+   "monthRet": 0.05,
+   "monthRetRaw": 0.05,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "016452",
+   "month": "2025-09",
+   "nav": 2.0298,
+   "acc": 2.0298,
+   "monthRet": 5.03,
+   "monthRetRaw": 5.03,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "016452",
+   "month": "2025-10",
+   "nav": 2.1123,
+   "acc": 2.1123,
+   "monthRet": 4.06,
+   "monthRetRaw": 4.06,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "016452",
+   "month": "2025-11",
+   "nav": 2.0768,
+   "acc": 2.0768,
+   "monthRet": -1.68,
+   "monthRetRaw": -1.68,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "016452",
+   "month": "2025-12",
+   "nav": 2.0485,
+   "acc": 2.0485,
+   "monthRet": -1.36,
+   "monthRetRaw": -1.36,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "016452",
+   "month": "2026-01",
+   "nav": 2.0523,
+   "acc": 2.0523,
+   "monthRet": 0.19,
+   "monthRetRaw": 0.19,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "016452",
+   "month": "2026-02",
+   "nav": 1.9944,
+   "acc": 1.9944,
+   "monthRet": -2.82,
+   "monthRetRaw": -2.82,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "016452",
+   "month": "2026-03",
+   "nav": 1.902,
+   "acc": 1.902,
+   "monthRet": -4.63,
+   "monthRetRaw": -4.63,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "016452",
+   "month": "2026-04",
+   "nav": 2.1648,
+   "acc": 2.1648,
+   "monthRet": 13.82,
+   "monthRetRaw": 13.82,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "016452",
+   "month": "2026-05",
+   "nav": 2.3678,
+   "acc": 2.3678,
+   "monthRet": 9.38,
+   "monthRetRaw": 9.38,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "016452",
+   "month": "2026-06",
+   "nav": 2.3595,
+   "acc": 2.3595,
+   "monthRet": -0.35,
+   "monthRetRaw": -0.35,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "016452",
+   "month": "2026-07",
+   "nav": 2.2014,
+   "acc": 2.2014,
+   "monthRet": -6.7,
+   "monthRetRaw": -6.7,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "016452",
+   "month": "2026-08",
+   "nav": 2.2876,
+   "acc": 2.2876,
+   "monthRet": 3.92,
+   "monthRetRaw": 3.92,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "016452",
+   "month": "2026-09",
+   "nav": 2.292,
+   "acc": 2.292,
+   "monthRet": 0.19,
+   "monthRetRaw": 0.19,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "020712",
+   "month": "2024-02",
+   "nav": 1.006,
+   "acc": 1.006,
+   "monthRet": null,
+   "monthRetRaw": null,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "020712",
+   "month": "2024-03",
+   "nav": 1.0055,
+   "acc": 1.0055,
+   "monthRet": -0.05,
+   "monthRetRaw": -0.05,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "020712",
+   "month": "2024-04",
+   "nav": 0.9295,
+   "acc": 0.9295,
+   "monthRet": -7.56,
+   "monthRetRaw": -7.56,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "020712",
+   "month": "2024-05",
+   "nav": 0.9256,
+   "acc": 0.9256,
+   "monthRet": -0.42,
+   "monthRetRaw": -0.42,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "020712",
+   "month": "2024-06",
+   "nav": 0.9346,
+   "acc": 0.9346,
+   "monthRet": 0.97,
+   "monthRetRaw": 0.97,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "020712",
+   "month": "2024-07",
+   "nav": 0.9621,
+   "acc": 0.9621,
+   "monthRet": 2.94,
+   "monthRetRaw": 2.94,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "020712",
+   "month": "2024-08",
+   "nav": 0.9719,
+   "acc": 0.9719,
+   "monthRet": 1.02,
+   "monthRetRaw": 1.02,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "020712",
+   "month": "2024-09",
+   "nav": 0.9577,
+   "acc": 0.9577,
+   "monthRet": -1.46,
+   "monthRetRaw": -1.46,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "020712",
+   "month": "2024-10",
+   "nav": 0.9369,
+   "acc": 0.9369,
+   "monthRet": -2.17,
+   "monthRetRaw": -2.17,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "020712",
+   "month": "2024-11",
+   "nav": 0.935,
+   "acc": 0.935,
+   "monthRet": -0.2,
+   "monthRetRaw": -0.2,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "020712",
+   "month": "2024-12",
+   "nav": 0.9453,
+   "acc": 0.9453,
+   "monthRet": 1.1,
+   "monthRetRaw": 1.1,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "020712",
+   "month": "2025-01",
+   "nav": 0.9378,
+   "acc": 0.9378,
+   "monthRet": -0.79,
+   "monthRetRaw": -0.79,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "020712",
+   "month": "2025-02",
+   "nav": 0.9197,
+   "acc": 0.9197,
+   "monthRet": -1.93,
+   "monthRetRaw": -1.93,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "020712",
+   "month": "2025-03",
+   "nav": 0.8884,
+   "acc": 0.8884,
+   "monthRet": -3.4,
+   "monthRetRaw": -3.4,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "020712",
+   "month": "2025-04",
+   "nav": 0.9347,
+   "acc": 0.9347,
+   "monthRet": 5.21,
+   "monthRetRaw": 5.21,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "020712",
+   "month": "2025-05",
+   "nav": 0.9649,
+   "acc": 0.9649,
+   "monthRet": 3.23,
+   "monthRetRaw": 3.23,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "020712",
+   "month": "2025-06",
+   "nav": 1.0198,
+   "acc": 1.0198,
+   "monthRet": 5.69,
+   "monthRetRaw": 5.69,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "020712",
+   "month": "2025-07",
+   "nav": 0.9975,
+   "acc": 0.9975,
+   "monthRet": -2.19,
+   "monthRetRaw": -2.19,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "020712",
+   "month": "2025-08",
+   "nav": 1.0397,
+   "acc": 1.0397,
+   "monthRet": 4.23,
+   "monthRetRaw": 4.23,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "020712",
+   "month": "2025-09",
+   "nav": 1.0801,
+   "acc": 1.0801,
+   "monthRet": 3.89,
+   "monthRetRaw": 3.89,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "020712",
+   "month": "2025-10",
+   "nav": 1.1966,
+   "acc": 1.1966,
+   "monthRet": 10.79,
+   "monthRetRaw": 10.79,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "020712",
+   "month": "2025-11",
+   "nav": 1.136,
+   "acc": 1.136,
+   "monthRet": -5.06,
+   "monthRetRaw": -5.06,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "020712",
+   "month": "2025-12",
+   "nav": 1.1303,
+   "acc": 1.1303,
+   "monthRet": -0.5,
+   "monthRetRaw": -0.5,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "020712",
+   "month": "2026-01",
+   "nav": 1.2093,
+   "acc": 1.2093,
+   "monthRet": 6.99,
+   "monthRetRaw": 6.99,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "020712",
+   "month": "2026-02",
+   "nav": 1.2947,
+   "acc": 1.2947,
+   "monthRet": 7.06,
+   "monthRetRaw": 7.06,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "020712",
+   "month": "2026-03",
+   "nav": 1.1182,
+   "acc": 1.1182,
+   "monthRet": -13.63,
+   "monthRetRaw": -13.63,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "020712",
+   "month": "2026-04",
+   "nav": 1.2736,
+   "acc": 1.2736,
+   "monthRet": 13.9,
+   "monthRetRaw": 13.9,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "020712",
+   "month": "2026-05",
+   "nav": 1.4134,
+   "acc": 1.4134,
+   "monthRet": 10.98,
+   "monthRetRaw": 10.98,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "020712",
+   "month": "2026-06",
+   "nav": 1.4672,
+   "acc": 1.4672,
+   "monthRet": 3.81,
+   "monthRetRaw": 3.81,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "020712",
+   "month": "2026-07",
+   "nav": 1.3562,
+   "acc": 1.3562,
+   "monthRet": -7.57,
+   "monthRetRaw": -7.57,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "020712",
+   "month": "2026-08",
+   "nav": 1.3977,
+   "acc": 1.3977,
+   "monthRet": 3.06,
+   "monthRetRaw": 3.06,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "020712",
+   "month": "2026-09",
+   "nav": 1.3998,
+   "acc": 1.3998,
+   "monthRet": 0.15,
+   "monthRetRaw": 0.15,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159201",
+   "month": "2025-02",
+   "nav": 0.9899,
+   "acc": 0.9899,
+   "monthRet": null,
+   "monthRetRaw": null,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159201",
+   "month": "2025-03",
+   "nav": 1.0048,
+   "acc": 1.0048,
+   "monthRet": 1.51,
+   "monthRetRaw": 1.51,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159201",
+   "month": "2025-04",
+   "nav": 0.9561,
+   "acc": 0.9561,
+   "monthRet": -4.85,
+   "monthRetRaw": -4.85,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159201",
+   "month": "2025-05",
+   "nav": 0.9873,
+   "acc": 0.9873,
+   "monthRet": 3.26,
+   "monthRetRaw": 3.26,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159201",
+   "month": "2025-06",
+   "nav": 1.0062,
+   "acc": 1.0062,
+   "monthRet": 1.91,
+   "monthRetRaw": 1.91,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159201",
+   "month": "2025-07",
+   "nav": 1.0426,
+   "acc": 1.0426,
+   "monthRet": 3.62,
+   "monthRetRaw": 3.62,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159201",
+   "month": "2025-08",
+   "nav": 1.1156,
+   "acc": 1.1156,
+   "monthRet": 7.0,
+   "monthRetRaw": 7.0,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159201",
+   "month": "2025-09",
+   "nav": 1.1287,
+   "acc": 1.1287,
+   "monthRet": 1.17,
+   "monthRetRaw": 1.17,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159201",
+   "month": "2025-10",
+   "nav": 1.173,
+   "acc": 1.173,
+   "monthRet": 3.92,
+   "monthRetRaw": 3.92,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159201",
+   "month": "2025-11",
+   "nav": 1.1668,
+   "acc": 1.1668,
+   "monthRet": -0.53,
+   "monthRetRaw": -0.53,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159201",
+   "month": "2025-12",
+   "nav": 1.2138,
+   "acc": 1.2138,
+   "monthRet": 4.03,
+   "monthRetRaw": 4.03,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159201",
+   "month": "2026-01",
+   "nav": 1.3261,
+   "acc": 1.3261,
+   "monthRet": 9.25,
+   "monthRetRaw": 9.25,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159201",
+   "month": "2026-02",
+   "nav": 1.364,
+   "acc": 1.364,
+   "monthRet": 2.86,
+   "monthRetRaw": 2.86,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159201",
+   "month": "2026-03",
+   "nav": 1.3042,
+   "acc": 1.3042,
+   "monthRet": -4.38,
+   "monthRetRaw": -4.38,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159201",
+   "month": "2026-04",
+   "nav": 1.3172,
+   "acc": 1.3172,
+   "monthRet": 1.0,
+   "monthRetRaw": 1.0,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159201",
+   "month": "2026-05",
+   "nav": 1.2209,
+   "acc": 1.2209,
+   "monthRet": -7.31,
+   "monthRetRaw": -7.31,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159201",
+   "month": "2026-06",
+   "nav": 1.062,
+   "acc": 1.062,
+   "monthRet": -13.01,
+   "monthRetRaw": -13.01,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159201",
+   "month": "2026-07",
+   "nav": 1.1857,
+   "acc": 1.1857,
+   "monthRet": 11.65,
+   "monthRetRaw": 11.65,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159201",
+   "month": "2026-08",
+   "nav": 1.1969,
+   "acc": 1.1969,
+   "monthRet": 0.94,
+   "monthRetRaw": 0.94,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159201",
+   "month": "2026-09",
+   "nav": 1.1656,
+   "acc": 1.1656,
+   "monthRet": -2.62,
+   "monthRetRaw": -2.62,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159934",
+   "month": "2013-12",
+   "nav": 2.3676,
+   "acc": 0.9645,
+   "monthRet": null,
+   "monthRetRaw": null,
+   "note": "该月发生净值断裂（份额折算/转型），单位净值跨断裂不可比，月涨跌幅不计算",
+   "src": "em+sina",
+   "navReset": true
+  },
+  {
+   "code": "159934",
+   "month": "2014-01",
+   "nav": 2.4628,
+   "acc": 1.0033,
+   "monthRet": 4.02,
+   "monthRetRaw": 4.02,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159934",
+   "month": "2014-02",
+   "nav": 2.6209,
+   "acc": 1.0677,
+   "monthRet": 6.42,
+   "monthRetRaw": 6.42,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159934",
+   "month": "2014-03",
+   "nav": 2.5658,
+   "acc": 1.0453,
+   "monthRet": -2.1,
+   "monthRetRaw": -2.1,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159934",
+   "month": "2014-04",
+   "nav": 2.5855,
+   "acc": 1.0533,
+   "monthRet": 0.77,
+   "monthRetRaw": 0.77,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159934",
+   "month": "2014-05",
+   "nav": 2.515,
+   "acc": 1.0246,
+   "monthRet": -2.73,
+   "monthRetRaw": -2.73,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159934",
+   "month": "2014-06",
+   "nav": 2.6075,
+   "acc": 1.0623,
+   "monthRet": 3.68,
+   "monthRetRaw": 3.68,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159934",
+   "month": "2014-07",
+   "nav": 2.5681,
+   "acc": 1.0462,
+   "monthRet": -1.51,
+   "monthRetRaw": -1.51,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159934",
+   "month": "2014-08",
+   "nav": 2.5417,
+   "acc": 1.0355,
+   "monthRet": -1.03,
+   "monthRetRaw": -1.03,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159934",
+   "month": "2014-09",
+   "nav": 2.4055,
+   "acc": 0.98,
+   "monthRet": -5.36,
+   "monthRetRaw": -5.36,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159934",
+   "month": "2014-10",
+   "nav": 2.2994,
+   "acc": 0.9368,
+   "monthRet": -4.41,
+   "monthRetRaw": -4.41,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159934",
+   "month": "2014-11",
+   "nav": 2.3514,
+   "acc": 0.9579,
+   "monthRet": 2.26,
+   "monthRetRaw": 2.26,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159934",
+   "month": "2014-12",
+   "nav": 2.4038,
+   "acc": 0.9793,
+   "monthRet": 2.23,
+   "monthRetRaw": 2.23,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159934",
+   "month": "2015-01",
+   "nav": 2.5287,
+   "acc": 1.0302,
+   "monthRet": 5.2,
+   "monthRetRaw": 5.2,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159934",
+   "month": "2015-02",
+   "nav": 2.4454,
+   "acc": 0.9962,
+   "monthRet": -3.29,
+   "monthRetRaw": -3.29,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159934",
+   "month": "2015-03",
+   "nav": 2.3524,
+   "acc": 0.9583,
+   "monthRet": -3.8,
+   "monthRetRaw": -3.8,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159934",
+   "month": "2015-04",
+   "nav": 2.3953,
+   "acc": 0.9758,
+   "monthRet": 1.82,
+   "monthRetRaw": 1.82,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159934",
+   "month": "2015-05",
+   "nav": 2.3721,
+   "acc": 0.9664,
+   "monthRet": -0.97,
+   "monthRetRaw": -0.97,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159934",
+   "month": "2015-06",
+   "nav": 2.3453,
+   "acc": 0.9555,
+   "monthRet": -1.13,
+   "monthRetRaw": -1.13,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159934",
+   "month": "2015-07",
+   "nav": 2.1646,
+   "acc": 0.8818,
+   "monthRet": -7.7,
+   "monthRetRaw": -7.7,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159934",
+   "month": "2015-08",
+   "nav": 2.3309,
+   "acc": 0.9496,
+   "monthRet": 7.68,
+   "monthRetRaw": 7.68,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159934",
+   "month": "2015-09",
+   "nav": 2.2981,
+   "acc": 0.9362,
+   "monthRet": -1.41,
+   "monthRetRaw": -1.41,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159934",
+   "month": "2015-10",
+   "nav": 2.3323,
+   "acc": 0.9502,
+   "monthRet": 1.49,
+   "monthRetRaw": 1.49,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159934",
+   "month": "2015-11",
+   "nav": 2.1745,
+   "acc": 0.8859,
+   "monthRet": -6.77,
+   "monthRetRaw": -6.77,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159934",
+   "month": "2015-12",
+   "nav": 2.2228,
+   "acc": 0.9055,
+   "monthRet": 2.22,
+   "monthRetRaw": 2.22,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159934",
+   "month": "2016-01",
+   "nav": 2.3579,
+   "acc": 0.9606,
+   "monthRet": 6.08,
+   "monthRetRaw": 6.08,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159934",
+   "month": "2016-02",
+   "nav": 2.5801,
+   "acc": 1.0511,
+   "monthRet": 9.42,
+   "monthRetRaw": 9.42,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159934",
+   "month": "2016-03",
+   "nav": 2.548,
+   "acc": 1.038,
+   "monthRet": -1.24,
+   "monthRetRaw": -1.24,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159934",
+   "month": "2016-04",
+   "nav": 2.653,
+   "acc": 1.0808,
+   "monthRet": 4.12,
+   "monthRetRaw": 4.12,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159934",
+   "month": "2016-05",
+   "nav": 2.5585,
+   "acc": 1.0423,
+   "monthRet": -3.56,
+   "monthRetRaw": -3.56,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159934",
+   "month": "2016-06",
+   "nav": 2.8024,
+   "acc": 1.1417,
+   "monthRet": 9.53,
+   "monthRetRaw": 9.53,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159934",
+   "month": "2016-07",
+   "nav": 2.8447,
+   "acc": 1.1589,
+   "monthRet": 1.51,
+   "monthRetRaw": 1.51,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159934",
+   "month": "2016-08",
+   "nav": 2.8176,
+   "acc": 1.1479,
+   "monthRet": -0.95,
+   "monthRetRaw": -0.95,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159934",
+   "month": "2016-09",
+   "nav": 2.8346,
+   "acc": 1.1548,
+   "monthRet": 0.6,
+   "monthRetRaw": 0.6,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159934",
+   "month": "2016-10",
+   "nav": 2.7754,
+   "acc": 1.1307,
+   "monthRet": -2.09,
+   "monthRetRaw": -2.09,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159934",
+   "month": "2016-11",
+   "nav": 2.6667,
+   "acc": 1.0864,
+   "monthRet": -3.92,
+   "monthRetRaw": -3.92,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159934",
+   "month": "2016-12",
+   "nav": 2.6269,
+   "acc": 1.0702,
+   "monthRet": -1.49,
+   "monthRetRaw": -1.49,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159934",
+   "month": "2017-01",
+   "nav": 2.6499,
+   "acc": 1.0795,
+   "monthRet": 0.88,
+   "monthRetRaw": 0.88,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159934",
+   "month": "2017-02",
+   "nav": 2.8035,
+   "acc": 1.1421,
+   "monthRet": 5.8,
+   "monthRetRaw": 5.8,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159934",
+   "month": "2017-03",
+   "nav": 2.7635,
+   "acc": 1.1258,
+   "monthRet": -1.43,
+   "monthRetRaw": -1.43,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159934",
+   "month": "2017-04",
+   "nav": 2.819,
+   "acc": 1.1484,
+   "monthRet": 2.01,
+   "monthRetRaw": 2.01,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159934",
+   "month": "2017-05",
+   "nav": 2.775,
+   "acc": 1.1305,
+   "monthRet": -1.56,
+   "monthRetRaw": -1.56,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159934",
+   "month": "2017-06",
+   "nav": 2.7167,
+   "acc": 1.1068,
+   "monthRet": -2.1,
+   "monthRetRaw": -2.1,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159934",
+   "month": "2017-07",
+   "nav": 2.7364,
+   "acc": 1.1148,
+   "monthRet": 0.73,
+   "monthRetRaw": 0.73,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159934",
+   "month": "2017-08",
+   "nav": 2.7636,
+   "acc": 1.1259,
+   "monthRet": 0.99,
+   "monthRetRaw": 0.99,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159934",
+   "month": "2017-09",
+   "nav": 2.7585,
+   "acc": 1.1238,
+   "monthRet": -0.18,
+   "monthRetRaw": -0.18,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159934",
+   "month": "2017-10",
+   "nav": 2.7231,
+   "acc": 1.1094,
+   "monthRet": -1.28,
+   "monthRetRaw": -1.28,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159934",
+   "month": "2017-11",
+   "nav": 2.7269,
+   "acc": 1.1109,
+   "monthRet": 0.14,
+   "monthRetRaw": 0.14,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159934",
+   "month": "2017-12",
+   "nav": 2.7122,
+   "acc": 1.1049,
+   "monthRet": -0.54,
+   "monthRetRaw": -0.54,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159934",
+   "month": "2018-01",
+   "nav": 2.7211,
+   "acc": 1.1086,
+   "monthRet": 0.33,
+   "monthRetRaw": 0.33,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159934",
+   "month": "2018-02",
+   "nav": 2.6828,
+   "acc": 1.0929,
+   "monthRet": -1.41,
+   "monthRetRaw": -1.41,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159934",
+   "month": "2018-03",
+   "nav": 2.6839,
+   "acc": 1.0934,
+   "monthRet": 0.04,
+   "monthRetRaw": 0.04,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159934",
+   "month": "2018-04",
+   "nav": 2.6799,
+   "acc": 1.0918,
+   "monthRet": -0.15,
+   "monthRetRaw": -0.15,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159934",
+   "month": "2018-05",
+   "nav": 2.6708,
+   "acc": 1.0881,
+   "monthRet": -0.34,
+   "monthRetRaw": -0.34,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159934",
+   "month": "2018-06",
+   "nav": 2.6478,
+   "acc": 1.0787,
+   "monthRet": -0.86,
+   "monthRetRaw": -0.86,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159934",
+   "month": "2018-07",
+   "nav": 2.6586,
+   "acc": 1.0831,
+   "monthRet": 0.41,
+   "monthRetRaw": 0.41,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159934",
+   "month": "2018-08",
+   "nav": 2.6354,
+   "acc": 1.0736,
+   "monthRet": -0.87,
+   "monthRetRaw": -0.87,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159934",
+   "month": "2018-09",
+   "nav": 2.6101,
+   "acc": 1.0633,
+   "monthRet": -0.96,
+   "monthRetRaw": -0.96,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159934",
+   "month": "2018-10",
+   "nav": 2.7041,
+   "acc": 1.1016,
+   "monthRet": 3.6,
+   "monthRetRaw": 3.6,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159934",
+   "month": "2018-11",
+   "nav": 2.7106,
+   "acc": 1.1043,
+   "monthRet": 0.24,
+   "monthRetRaw": 0.24,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159934",
+   "month": "2018-12",
+   "nav": 2.8068,
+   "acc": 1.1435,
+   "monthRet": 3.55,
+   "monthRetRaw": 3.55,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159934",
+   "month": "2019-01",
+   "nav": 2.8256,
+   "acc": 1.1511,
+   "monthRet": 0.67,
+   "monthRetRaw": 0.67,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159934",
+   "month": "2019-02",
+   "nav": 2.8172,
+   "acc": 1.1477,
+   "monthRet": -0.3,
+   "monthRetRaw": -0.3,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159934",
+   "month": "2019-03",
+   "nav": 2.7663,
+   "acc": 1.127,
+   "monthRet": -1.81,
+   "monthRetRaw": -1.81,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159934",
+   "month": "2019-04",
+   "nav": 2.7635,
+   "acc": 1.1258,
+   "monthRet": -0.1,
+   "monthRetRaw": -0.1,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159934",
+   "month": "2019-05",
+   "nav": 2.8593,
+   "acc": 1.1649,
+   "monthRet": 3.47,
+   "monthRetRaw": 3.47,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159934",
+   "month": "2019-06",
+   "nav": 3.0895,
+   "acc": 1.2586,
+   "monthRet": 8.05,
+   "monthRetRaw": 8.05,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159934",
+   "month": "2019-07",
+   "nav": 3.1419,
+   "acc": 1.28,
+   "monthRet": 1.7,
+   "monthRetRaw": 1.7,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159934",
+   "month": "2019-08",
+   "nav": 3.4754,
+   "acc": 1.4158,
+   "monthRet": 10.61,
+   "monthRetRaw": 10.61,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159934",
+   "month": "2019-09",
+   "nav": 3.3794,
+   "acc": 1.3767,
+   "monthRet": -2.76,
+   "monthRetRaw": -2.76,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159934",
+   "month": "2019-10",
+   "nav": 3.3366,
+   "acc": 1.3593,
+   "monthRet": -1.27,
+   "monthRetRaw": -1.27,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159934",
+   "month": "2019-11",
+   "nav": 3.2508,
+   "acc": 1.3243,
+   "monthRet": -2.57,
+   "monthRetRaw": -2.57,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159934",
+   "month": "2019-12",
+   "nav": 3.3383,
+   "acc": 1.36,
+   "monthRet": 2.69,
+   "monthRetRaw": 2.69,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159934",
+   "month": "2020-01",
+   "nav": 3.4063,
+   "acc": 1.3877,
+   "monthRet": 2.04,
+   "monthRetRaw": 2.04,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159934",
+   "month": "2020-02",
+   "nav": 3.5756,
+   "acc": 1.4567,
+   "monthRet": 4.97,
+   "monthRetRaw": 4.97,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159934",
+   "month": "2020-03",
+   "nav": 3.5631,
+   "acc": 1.4516,
+   "monthRet": -0.35,
+   "monthRetRaw": -0.35,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159934",
+   "month": "2020-04",
+   "nav": 3.7244,
+   "acc": 1.5173,
+   "monthRet": 4.53,
+   "monthRetRaw": 4.53,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159934",
+   "month": "2020-05",
+   "nav": 3.8301,
+   "acc": 1.5603,
+   "monthRet": 2.84,
+   "monthRetRaw": 2.84,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159934",
+   "month": "2020-06",
+   "nav": 3.8851,
+   "acc": 1.5828,
+   "monthRet": 1.44,
+   "monthRetRaw": 1.44,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159934",
+   "month": "2020-07",
+   "nav": 4.1878,
+   "acc": 1.7061,
+   "monthRet": 7.79,
+   "monthRetRaw": 7.79,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159934",
+   "month": "2020-08",
+   "nav": 4.0881,
+   "acc": 1.6655,
+   "monthRet": -2.38,
+   "monthRetRaw": -2.38,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159934",
+   "month": "2020-09",
+   "nav": 3.9299,
+   "acc": 1.601,
+   "monthRet": -3.87,
+   "monthRetRaw": -3.87,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159934",
+   "month": "2020-10",
+   "nav": 3.8718,
+   "acc": 1.5773,
+   "monthRet": -1.48,
+   "monthRetRaw": -1.48,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159934",
+   "month": "2020-11",
+   "nav": 3.6106,
+   "acc": 1.4709,
+   "monthRet": -6.75,
+   "monthRetRaw": -6.75,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159934",
+   "month": "2020-12",
+   "nav": 3.7977,
+   "acc": 1.5471,
+   "monthRet": 5.18,
+   "monthRetRaw": 5.18,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159934",
+   "month": "2021-01",
+   "nav": 3.7422,
+   "acc": 1.5245,
+   "monthRet": -1.46,
+   "monthRetRaw": -1.46,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159934",
+   "month": "2021-02",
+   "nav": 3.5825,
+   "acc": 1.4595,
+   "monthRet": -4.27,
+   "monthRetRaw": -4.27,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159934",
+   "month": "2021-03",
+   "nav": 3.469,
+   "acc": 1.4132,
+   "monthRet": -3.17,
+   "monthRetRaw": -3.17,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159934",
+   "month": "2021-04",
+   "nav": 3.6048,
+   "acc": 1.4686,
+   "monthRet": 3.91,
+   "monthRetRaw": 3.91,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159934",
+   "month": "2021-05",
+   "nav": 3.7982,
+   "acc": 1.5474,
+   "monthRet": 5.37,
+   "monthRetRaw": 5.37,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159934",
+   "month": "2021-06",
+   "nav": 3.5511,
+   "acc": 1.4467,
+   "monthRet": -6.51,
+   "monthRetRaw": -6.51,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159934",
+   "month": "2021-07",
+   "nav": 3.6952,
+   "acc": 1.5054,
+   "monthRet": 4.06,
+   "monthRetRaw": 4.06,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159934",
+   "month": "2021-08",
+   "nav": 3.6607,
+   "acc": 1.4913,
+   "monthRet": -0.93,
+   "monthRetRaw": -0.93,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159934",
+   "month": "2021-09",
+   "nav": 3.5096,
+   "acc": 1.4298,
+   "monthRet": -4.13,
+   "monthRetRaw": -4.13,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159934",
+   "month": "2021-10",
+   "nav": 3.5858,
+   "acc": 1.4608,
+   "monthRet": 2.17,
+   "monthRetRaw": 2.17,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159934",
+   "month": "2021-11",
+   "nav": 3.5675,
+   "acc": 1.4534,
+   "monthRet": -0.51,
+   "monthRetRaw": -0.51,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159934",
+   "month": "2021-12",
+   "nav": 3.6171,
+   "acc": 1.4736,
+   "monthRet": 1.39,
+   "monthRetRaw": 1.39,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159934",
+   "month": "2022-01",
+   "nav": 3.569,
+   "acc": 1.454,
+   "monthRet": -1.33,
+   "monthRetRaw": -1.33,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159934",
+   "month": "2022-02",
+   "nav": 3.7377,
+   "acc": 1.5227,
+   "monthRet": 4.73,
+   "monthRetRaw": 4.73,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159934",
+   "month": "2022-03",
+   "nav": 3.8077,
+   "acc": 1.5512,
+   "monthRet": 1.87,
+   "monthRetRaw": 1.87,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159934",
+   "month": "2022-04",
+   "nav": 3.9125,
+   "acc": 1.5939,
+   "monthRet": 2.75,
+   "monthRetRaw": 2.75,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159934",
+   "month": "2022-05",
+   "nav": 3.8445,
+   "acc": 1.5662,
+   "monthRet": -1.74,
+   "monthRetRaw": -1.74,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159934",
+   "month": "2022-06",
+   "nav": 3.7787,
+   "acc": 1.5394,
+   "monthRet": -1.71,
+   "monthRetRaw": -1.71,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159934",
+   "month": "2022-07",
+   "nav": 3.7023,
+   "acc": 1.5083,
+   "monthRet": -2.02,
+   "monthRetRaw": -2.02,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159934",
+   "month": "2022-08",
+   "nav": 3.728,
+   "acc": 1.5188,
+   "monthRet": 0.69,
+   "monthRetRaw": 0.69,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159934",
+   "month": "2022-09",
+   "nav": 3.7567,
+   "acc": 1.5304,
+   "monthRet": 0.77,
+   "monthRetRaw": 0.77,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159934",
+   "month": "2022-10",
+   "nav": 3.7718,
+   "acc": 1.5366,
+   "monthRet": 0.4,
+   "monthRetRaw": 0.4,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159934",
+   "month": "2022-11",
+   "nav": 3.9046,
+   "acc": 1.5907,
+   "monthRet": 3.52,
+   "monthRetRaw": 3.52,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159934",
+   "month": "2022-12",
+   "nav": 3.9482,
+   "acc": 1.6085,
+   "monthRet": 1.12,
+   "monthRetRaw": 1.12,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159934",
+   "month": "2023-01",
+   "nav": 4.0219,
+   "acc": 1.6385,
+   "monthRet": 1.87,
+   "monthRetRaw": 1.87,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159934",
+   "month": "2023-02",
+   "nav": 3.9661,
+   "acc": 1.6158,
+   "monthRet": -1.39,
+   "monthRetRaw": -1.39,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159934",
+   "month": "2023-03",
+   "nav": 4.2334,
+   "acc": 1.7246,
+   "monthRet": 6.74,
+   "monthRetRaw": 6.74,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159934",
+   "month": "2023-04",
+   "nav": 4.2569,
+   "acc": 1.7342,
+   "monthRet": 0.56,
+   "monthRetRaw": 0.56,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159934",
+   "month": "2023-05",
+   "nav": 4.3148,
+   "acc": 1.7578,
+   "monthRet": 1.36,
+   "monthRetRaw": 1.36,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159934",
+   "month": "2023-06",
+   "nav": 4.3019,
+   "acc": 1.7526,
+   "monthRet": -0.3,
+   "monthRetRaw": -0.3,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159934",
+   "month": "2023-07",
+   "nav": 4.3659,
+   "acc": 1.7786,
+   "monthRet": 1.49,
+   "monthRetRaw": 1.49,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159934",
+   "month": "2023-08",
+   "nav": 4.4482,
+   "acc": 1.8122,
+   "monthRet": 1.89,
+   "monthRetRaw": 1.89,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159934",
+   "month": "2023-09",
+   "nav": 4.2832,
+   "acc": 1.7449,
+   "monthRet": -3.71,
+   "monthRetRaw": -3.71,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159934",
+   "month": "2023-10",
+   "nav": 4.5658,
+   "acc": 1.8601,
+   "monthRet": 6.6,
+   "monthRetRaw": 6.6,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159934",
+   "month": "2023-11",
+   "nav": 4.5369,
+   "acc": 1.8483,
+   "monthRet": -0.63,
+   "monthRetRaw": -0.63,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159934",
+   "month": "2023-12",
+   "nav": 4.5884,
+   "acc": 1.8693,
+   "monthRet": 1.14,
+   "monthRetRaw": 1.14,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159934",
+   "month": "2024-01",
+   "nav": 4.5907,
+   "acc": 1.8702,
+   "monthRet": 0.05,
+   "monthRetRaw": 0.05,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159934",
+   "month": "2024-02",
+   "nav": 4.5985,
+   "acc": 1.8734,
+   "monthRet": 0.17,
+   "monthRetRaw": 0.17,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159934",
+   "month": "2024-03",
+   "nav": 5.0421,
+   "acc": 2.0541,
+   "monthRet": 9.65,
+   "monthRetRaw": 9.65,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159934",
+   "month": "2024-04",
+   "nav": 5.2142,
+   "acc": 2.1242,
+   "monthRet": 3.41,
+   "monthRetRaw": 3.41,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159934",
+   "month": "2024-05",
+   "nav": 5.2868,
+   "acc": 2.1538,
+   "monthRet": 1.39,
+   "monthRetRaw": 1.39,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159934",
+   "month": "2024-06",
+   "nav": 5.2494,
+   "acc": 2.1386,
+   "monthRet": -0.71,
+   "monthRetRaw": -0.71,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159934",
+   "month": "2024-07",
+   "nav": 5.375,
+   "acc": 2.1897,
+   "monthRet": 2.39,
+   "monthRetRaw": 2.39,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159934",
+   "month": "2024-08",
+   "nav": 5.47,
+   "acc": 2.2284,
+   "monthRet": 1.77,
+   "monthRetRaw": 1.77,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159934",
+   "month": "2024-09",
+   "nav": 5.6757,
+   "acc": 2.3122,
+   "monthRet": 3.76,
+   "monthRetRaw": 3.76,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159934",
+   "month": "2024-10",
+   "nav": 6.0424,
+   "acc": 2.4616,
+   "monthRet": 6.46,
+   "monthRetRaw": 6.46,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159934",
+   "month": "2024-11",
+   "nav": 5.8573,
+   "acc": 2.3862,
+   "monthRet": -3.06,
+   "monthRetRaw": -3.06,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159934",
+   "month": "2024-12",
+   "nav": 5.8534,
+   "acc": 2.3846,
+   "monthRet": -0.07,
+   "monthRetRaw": -0.07,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159934",
+   "month": "2025-01",
+   "nav": 6.1201,
+   "acc": 2.4933,
+   "monthRet": 4.56,
+   "monthRetRaw": 4.56,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159934",
+   "month": "2025-02",
+   "nav": 6.3802,
+   "acc": 2.5992,
+   "monthRet": 4.25,
+   "monthRetRaw": 4.25,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159934",
+   "month": "2025-03",
+   "nav": 6.9475,
+   "acc": 2.8303,
+   "monthRet": 8.89,
+   "monthRetRaw": 8.89,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159934",
+   "month": "2025-04",
+   "nav": 7.4135,
+   "acc": 3.0202,
+   "monthRet": 6.71,
+   "monthRetRaw": 6.71,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159934",
+   "month": "2025-05",
+   "nav": 7.3015,
+   "acc": 2.9746,
+   "monthRet": -1.51,
+   "monthRetRaw": -1.51,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159934",
+   "month": "2025-06",
+   "nav": 7.2564,
+   "acc": 2.9562,
+   "monthRet": -0.62,
+   "monthRetRaw": -0.62,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159934",
+   "month": "2025-07",
+   "nav": 7.2806,
+   "acc": 2.9661,
+   "monthRet": 0.33,
+   "monthRetRaw": 0.33,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159934",
+   "month": "2025-08",
+   "nav": 7.4133,
+   "acc": 3.0201,
+   "monthRet": 1.82,
+   "monthRetRaw": 1.82,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159934",
+   "month": "2025-09",
+   "nav": 8.7161,
+   "acc": 3.3667,
+   "monthRet": 17.57,
+   "monthRetRaw": 17.57,
+   "note": "本月含分红/拆分：2025-09-19 每份基金份额折算0.948126035份",
+   "src": "em+sina"
+  },
+  {
+   "code": "159934",
+   "month": "2025-10",
+   "nav": 9.2072,
+   "acc": 3.5564,
+   "monthRet": 5.63,
+   "monthRetRaw": 5.63,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159934",
+   "month": "2025-11",
+   "nav": 9.4691,
+   "acc": 3.6575,
+   "monthRet": 2.84,
+   "monthRetRaw": 2.84,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159934",
+   "month": "2025-12",
+   "nav": 9.7309,
+   "acc": 3.7586,
+   "monthRet": 2.76,
+   "monthRetRaw": 2.76,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159934",
+   "month": "2026-01",
+   "nav": 11.612,
+   "acc": 4.4852,
+   "monthRet": 19.33,
+   "monthRetRaw": 19.33,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159934",
+   "month": "2026-02",
+   "nav": 11.3972,
+   "acc": 4.4023,
+   "monthRet": -1.85,
+   "monthRetRaw": -1.85,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159934",
+   "month": "2026-03",
+   "nav": 10.1544,
+   "acc": 3.9222,
+   "monthRet": -10.9,
+   "monthRetRaw": -10.9,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159934",
+   "month": "2026-04",
+   "nav": 10.0965,
+   "acc": 3.8999,
+   "monthRet": -0.57,
+   "monthRetRaw": -0.57,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159934",
+   "month": "2026-05",
+   "nav": 9.8063,
+   "acc": 3.7878,
+   "monthRet": -2.87,
+   "monthRetRaw": -2.87,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159934",
+   "month": "2026-06",
+   "nav": 8.7468,
+   "acc": 3.3785,
+   "monthRet": -10.8,
+   "monthRetRaw": -10.8,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159934",
+   "month": "2026-07",
+   "nav": 8.8006,
+   "acc": 3.3993,
+   "monthRet": 0.62,
+   "monthRetRaw": 0.62,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159934",
+   "month": "2026-08",
+   "nav": 9.562,
+   "acc": 3.6934,
+   "monthRet": 8.65,
+   "monthRetRaw": 8.65,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159934",
+   "month": "2026-09",
+   "nav": 9.4108,
+   "acc": 3.635,
+   "monthRet": -1.58,
+   "monthRetRaw": -1.58,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159949",
+   "month": "2016-06",
+   "nav": 1.0,
+   "acc": 1.0,
+   "monthRet": null,
+   "monthRetRaw": null,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159949",
+   "month": "2016-07",
+   "nav": 0.9241,
+   "acc": 0.9241,
+   "monthRet": -7.59,
+   "monthRetRaw": -7.59,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159949",
+   "month": "2016-08",
+   "nav": 0.9503,
+   "acc": 0.9503,
+   "monthRet": 2.84,
+   "monthRetRaw": 2.84,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159949",
+   "month": "2016-09",
+   "nav": 0.9142,
+   "acc": 0.9142,
+   "monthRet": -3.8,
+   "monthRetRaw": -3.8,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159949",
+   "month": "2016-10",
+   "nav": 0.9221,
+   "acc": 0.9221,
+   "monthRet": 0.86,
+   "monthRetRaw": 0.86,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159949",
+   "month": "2016-11",
+   "nav": 0.9357,
+   "acc": 0.9357,
+   "monthRet": 1.47,
+   "monthRetRaw": 1.47,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159949",
+   "month": "2016-12",
+   "nav": 0.8209,
+   "acc": 0.8209,
+   "monthRet": -12.27,
+   "monthRetRaw": -12.27,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159949",
+   "month": "2017-01",
+   "nav": 0.7827,
+   "acc": 0.7827,
+   "monthRet": -4.65,
+   "monthRetRaw": -4.65,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159949",
+   "month": "2017-02",
+   "nav": 0.8002,
+   "acc": 0.8002,
+   "monthRet": 2.24,
+   "monthRetRaw": 2.24,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159949",
+   "month": "2017-03",
+   "nav": 0.7757,
+   "acc": 0.7757,
+   "monthRet": -3.06,
+   "monthRetRaw": -3.06,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159949",
+   "month": "2017-04",
+   "nav": 0.7394,
+   "acc": 0.7394,
+   "monthRet": -4.68,
+   "monthRetRaw": -4.68,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159949",
+   "month": "2017-05",
+   "nav": 0.7099,
+   "acc": 0.7099,
+   "monthRet": -3.99,
+   "monthRetRaw": -3.99,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159949",
+   "month": "2017-06",
+   "nav": 0.7348,
+   "acc": 0.7348,
+   "monthRet": 3.51,
+   "monthRetRaw": 3.51,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159949",
+   "month": "2017-07",
+   "nav": 0.7065,
+   "acc": 0.7065,
+   "monthRet": -3.85,
+   "monthRetRaw": -3.85,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159949",
+   "month": "2017-08",
+   "nav": 0.7565,
+   "acc": 0.7565,
+   "monthRet": 7.08,
+   "monthRetRaw": 7.08,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159949",
+   "month": "2017-09",
+   "nav": 0.7629,
+   "acc": 0.7629,
+   "monthRet": 0.85,
+   "monthRetRaw": 0.85,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159949",
+   "month": "2017-10",
+   "nav": 0.7538,
+   "acc": 0.7538,
+   "monthRet": -1.19,
+   "monthRetRaw": -1.19,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159949",
+   "month": "2017-11",
+   "nav": 0.7164,
+   "acc": 0.7164,
+   "monthRet": -4.96,
+   "monthRetRaw": -4.96,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159949",
+   "month": "2017-12",
+   "nav": 0.6993,
+   "acc": 0.6993,
+   "monthRet": -2.39,
+   "monthRetRaw": -2.39,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159949",
+   "month": "2018-01",
+   "nav": 0.6595,
+   "acc": 0.6595,
+   "monthRet": -5.69,
+   "monthRetRaw": -5.69,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159949",
+   "month": "2018-02",
+   "nav": 0.6744,
+   "acc": 0.6744,
+   "monthRet": 2.26,
+   "monthRetRaw": 2.26,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159949",
+   "month": "2018-03",
+   "nav": 0.7269,
+   "acc": 0.7269,
+   "monthRet": 7.78,
+   "monthRetRaw": 7.78,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159949",
+   "month": "2018-04",
+   "nav": 0.6707,
+   "acc": 0.6707,
+   "monthRet": -7.73,
+   "monthRetRaw": -7.73,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159949",
+   "month": "2018-05",
+   "nav": 0.6355,
+   "acc": 0.6355,
+   "monthRet": -5.25,
+   "monthRetRaw": -5.25,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159949",
+   "month": "2018-06",
+   "nav": 0.589,
+   "acc": 0.589,
+   "monthRet": -7.32,
+   "monthRetRaw": -7.32,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159949",
+   "month": "2018-07",
+   "nav": 0.5734,
+   "acc": 0.5734,
+   "monthRet": -2.65,
+   "monthRetRaw": -2.65,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159949",
+   "month": "2018-08",
+   "nav": 0.5279,
+   "acc": 0.5279,
+   "monthRet": -7.94,
+   "monthRetRaw": -7.94,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159949",
+   "month": "2018-09",
+   "nav": 0.5102,
+   "acc": 0.5102,
+   "monthRet": -3.35,
+   "monthRetRaw": -3.35,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159949",
+   "month": "2018-10",
+   "nav": 0.4522,
+   "acc": 0.4522,
+   "monthRet": -11.37,
+   "monthRetRaw": -11.37,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159949",
+   "month": "2018-11",
+   "nav": 0.4714,
+   "acc": 0.4714,
+   "monthRet": 4.25,
+   "monthRetRaw": 4.25,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159949",
+   "month": "2018-12",
+   "nav": 0.4369,
+   "acc": 0.4369,
+   "monthRet": -7.32,
+   "monthRetRaw": -7.32,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159949",
+   "month": "2019-01",
+   "nav": 0.4309,
+   "acc": 0.4309,
+   "monthRet": -1.37,
+   "monthRetRaw": -1.37,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159949",
+   "month": "2019-02",
+   "nav": 0.5488,
+   "acc": 0.5488,
+   "monthRet": 27.36,
+   "monthRetRaw": 27.36,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159949",
+   "month": "2019-03",
+   "nav": 0.5891,
+   "acc": 0.5891,
+   "monthRet": 7.34,
+   "monthRetRaw": 7.34,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159949",
+   "month": "2019-04",
+   "nav": 0.5542,
+   "acc": 0.5542,
+   "monthRet": -5.92,
+   "monthRetRaw": -5.92,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159949",
+   "month": "2019-05",
+   "nav": 0.5067,
+   "acc": 0.5067,
+   "monthRet": -8.57,
+   "monthRetRaw": -8.57,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159949",
+   "month": "2019-06",
+   "nav": 0.5284,
+   "acc": 0.5284,
+   "monthRet": 4.28,
+   "monthRetRaw": 4.28,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159949",
+   "month": "2019-07",
+   "nav": 0.5461,
+   "acc": 0.5461,
+   "monthRet": 3.35,
+   "monthRetRaw": 3.35,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159949",
+   "month": "2019-08",
+   "nav": 0.56,
+   "acc": 0.56,
+   "monthRet": 2.55,
+   "monthRetRaw": 2.55,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159949",
+   "month": "2019-09",
+   "nav": 0.5741,
+   "acc": 0.5741,
+   "monthRet": 2.52,
+   "monthRetRaw": 2.52,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159949",
+   "month": "2019-10",
+   "nav": 0.5871,
+   "acc": 0.5871,
+   "monthRet": 2.26,
+   "monthRetRaw": 2.26,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159949",
+   "month": "2019-11",
+   "nav": 0.5985,
+   "acc": 0.5985,
+   "monthRet": 1.94,
+   "monthRetRaw": 1.94,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159949",
+   "month": "2019-12",
+   "nav": 0.6605,
+   "acc": 0.6605,
+   "monthRet": 10.36,
+   "monthRetRaw": 10.36,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159949",
+   "month": "2020-01",
+   "nav": 0.7099,
+   "acc": 0.7099,
+   "monthRet": 7.48,
+   "monthRetRaw": 7.48,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159949",
+   "month": "2020-02",
+   "nav": 0.7673,
+   "acc": 0.7673,
+   "monthRet": 8.09,
+   "monthRetRaw": 8.09,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159949",
+   "month": "2020-03",
+   "nav": 0.6921,
+   "acc": 0.6921,
+   "monthRet": -9.8,
+   "monthRetRaw": -9.8,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159949",
+   "month": "2020-04",
+   "nav": 0.779,
+   "acc": 0.779,
+   "monthRet": 12.56,
+   "monthRetRaw": 12.56,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159949",
+   "month": "2020-05",
+   "nav": 0.7862,
+   "acc": 0.7862,
+   "monthRet": 0.92,
+   "monthRetRaw": 0.92,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159949",
+   "month": "2020-06",
+   "nav": 0.9401,
+   "acc": 0.9401,
+   "monthRet": 19.58,
+   "monthRetRaw": 19.58,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159949",
+   "month": "2020-07",
+   "nav": 1.1196,
+   "acc": 1.1196,
+   "monthRet": 19.09,
+   "monthRetRaw": 19.09,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159949",
+   "month": "2020-08",
+   "nav": 1.0791,
+   "acc": 1.0791,
+   "monthRet": -3.62,
+   "monthRetRaw": -3.62,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159949",
+   "month": "2020-09",
+   "nav": 1.0327,
+   "acc": 1.0327,
+   "monthRet": -4.3,
+   "monthRetRaw": -4.3,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159949",
+   "month": "2020-10",
+   "nav": 1.084,
+   "acc": 1.084,
+   "monthRet": 4.97,
+   "monthRetRaw": 4.97,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159949",
+   "month": "2020-11",
+   "nav": 1.0812,
+   "acc": 1.0812,
+   "monthRet": -0.26,
+   "monthRetRaw": -0.26,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159949",
+   "month": "2020-12",
+   "nav": 1.2467,
+   "acc": 1.2467,
+   "monthRet": 15.31,
+   "monthRetRaw": 15.31,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159949",
+   "month": "2021-01",
+   "nav": 1.3289,
+   "acc": 1.3289,
+   "monthRet": 6.59,
+   "monthRetRaw": 6.59,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159949",
+   "month": "2021-02",
+   "nav": 1.2399,
+   "acc": 1.2399,
+   "monthRet": -6.7,
+   "monthRetRaw": -6.7,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159949",
+   "month": "2021-03",
+   "nav": 1.1651,
+   "acc": 1.1651,
+   "monthRet": -6.03,
+   "monthRetRaw": -6.03,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159949",
+   "month": "2021-04",
+   "nav": 1.3372,
+   "acc": 1.3372,
+   "monthRet": 14.77,
+   "monthRetRaw": 14.77,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159949",
+   "month": "2021-05",
+   "nav": 1.4451,
+   "acc": 1.4451,
+   "monthRet": 8.07,
+   "monthRetRaw": 8.07,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159949",
+   "month": "2021-06",
+   "nav": 1.5392,
+   "acc": 1.5392,
+   "monthRet": 6.51,
+   "monthRetRaw": 6.51,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159949",
+   "month": "2021-07",
+   "nav": 1.5279,
+   "acc": 1.5279,
+   "monthRet": -0.73,
+   "monthRetRaw": -0.73,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159949",
+   "month": "2021-08",
+   "nav": 1.408,
+   "acc": 1.408,
+   "monthRet": -7.85,
+   "monthRetRaw": -7.85,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159949",
+   "month": "2021-09",
+   "nav": 1.439,
+   "acc": 1.439,
+   "monthRet": 2.2,
+   "monthRetRaw": 2.2,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159949",
+   "month": "2021-10",
+   "nav": 1.4999,
+   "acc": 1.4999,
+   "monthRet": 4.23,
+   "monthRetRaw": 4.23,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159949",
+   "month": "2021-11",
+   "nav": 1.5599,
+   "acc": 1.5599,
+   "monthRet": 4.0,
+   "monthRetRaw": 4.0,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159949",
+   "month": "2021-12",
+   "nav": 1.4613,
+   "acc": 1.4613,
+   "monthRet": -6.32,
+   "monthRetRaw": -6.32,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159949",
+   "month": "2022-01",
+   "nav": 1.2761,
+   "acc": 1.2761,
+   "monthRet": -12.67,
+   "monthRetRaw": -12.67,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159949",
+   "month": "2022-02",
+   "nav": 1.2544,
+   "acc": 1.2544,
+   "monthRet": -1.7,
+   "monthRetRaw": -1.7,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159949",
+   "month": "2022-03",
+   "nav": 1.1607,
+   "acc": 1.1607,
+   "monthRet": -7.47,
+   "monthRetRaw": -7.47,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159949",
+   "month": "2022-04",
+   "nav": 1.013,
+   "acc": 1.013,
+   "monthRet": -12.73,
+   "monthRetRaw": -12.73,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159949",
+   "month": "2022-05",
+   "nav": 1.0482,
+   "acc": 1.0482,
+   "monthRet": 3.47,
+   "monthRetRaw": 3.47,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159949",
+   "month": "2022-06",
+   "nav": 1.2406,
+   "acc": 1.2406,
+   "monthRet": 18.36,
+   "monthRetRaw": 18.36,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159949",
+   "month": "2022-07",
+   "nav": 1.1733,
+   "acc": 1.1733,
+   "monthRet": -5.42,
+   "monthRetRaw": -5.42,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159949",
+   "month": "2022-08",
+   "nav": 1.1276,
+   "acc": 1.1276,
+   "monthRet": -3.89,
+   "monthRetRaw": -3.89,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159949",
+   "month": "2022-09",
+   "nav": 0.9952,
+   "acc": 0.9952,
+   "monthRet": -11.74,
+   "monthRetRaw": -11.74,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159949",
+   "month": "2022-10",
+   "nav": 0.9836,
+   "acc": 0.9836,
+   "monthRet": -1.17,
+   "monthRetRaw": -1.17,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159949",
+   "month": "2022-11",
+   "nav": 1.0258,
+   "acc": 1.0258,
+   "monthRet": 4.29,
+   "monthRetRaw": 4.29,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159949",
+   "month": "2022-12",
+   "nav": 1.0275,
+   "acc": 1.0275,
+   "monthRet": 0.17,
+   "monthRetRaw": 0.17,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159949",
+   "month": "2023-01",
+   "nav": 1.1394,
+   "acc": 1.1394,
+   "monthRet": 10.89,
+   "monthRetRaw": 10.89,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159949",
+   "month": "2023-02",
+   "nav": 1.051,
+   "acc": 1.051,
+   "monthRet": -7.76,
+   "monthRetRaw": -7.76,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159949",
+   "month": "2023-03",
+   "nav": 1.0201,
+   "acc": 1.0201,
+   "monthRet": -2.94,
+   "monthRetRaw": -2.94,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159949",
+   "month": "2023-04",
+   "nav": 0.978,
+   "acc": 0.978,
+   "monthRet": -4.13,
+   "monthRetRaw": -4.13,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159949",
+   "month": "2023-05",
+   "nav": 0.9228,
+   "acc": 0.9228,
+   "monthRet": -5.64,
+   "monthRetRaw": -5.64,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159949",
+   "month": "2023-06",
+   "nav": 0.9368,
+   "acc": 0.9368,
+   "monthRet": 1.52,
+   "monthRetRaw": 1.52,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159949",
+   "month": "2023-07",
+   "nav": 0.951,
+   "acc": 0.951,
+   "monthRet": 1.52,
+   "monthRetRaw": 1.52,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159949",
+   "month": "2023-08",
+   "nav": 0.8919,
+   "acc": 0.8919,
+   "monthRet": -6.21,
+   "monthRetRaw": -6.21,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159949",
+   "month": "2023-09",
+   "nav": 0.8379,
+   "acc": 0.8379,
+   "monthRet": -6.05,
+   "monthRetRaw": -6.05,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159949",
+   "month": "2023-10",
+   "nav": 0.8214,
+   "acc": 0.8214,
+   "monthRet": -1.97,
+   "monthRetRaw": -1.97,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159949",
+   "month": "2023-11",
+   "nav": 0.7964,
+   "acc": 0.7964,
+   "monthRet": -3.04,
+   "monthRetRaw": -3.04,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159949",
+   "month": "2023-12",
+   "nav": 0.7871,
+   "acc": 0.7871,
+   "monthRet": -1.17,
+   "monthRetRaw": -1.17,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159949",
+   "month": "2024-01",
+   "nav": 0.6591,
+   "acc": 0.6591,
+   "monthRet": -16.26,
+   "monthRetRaw": -16.26,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159949",
+   "month": "2024-02",
+   "nav": 0.7603,
+   "acc": 0.7603,
+   "monthRet": 15.35,
+   "monthRetRaw": 15.35,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159949",
+   "month": "2024-03",
+   "nav": 0.7723,
+   "acc": 0.7723,
+   "monthRet": 1.58,
+   "monthRetRaw": 1.58,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159949",
+   "month": "2024-04",
+   "nav": 0.7978,
+   "acc": 0.7978,
+   "monthRet": 3.3,
+   "monthRetRaw": 3.3,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159949",
+   "month": "2024-05",
+   "nav": 0.7684,
+   "acc": 0.7684,
+   "monthRet": -3.69,
+   "monthRetRaw": -3.69,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159949",
+   "month": "2024-06",
+   "nav": 0.7218,
+   "acc": 0.7218,
+   "monthRet": -6.06,
+   "monthRetRaw": -6.06,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159949",
+   "month": "2024-07",
+   "nav": 0.7286,
+   "acc": 0.7286,
+   "monthRet": 0.94,
+   "monthRetRaw": 0.94,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159949",
+   "month": "2024-08",
+   "nav": 0.6855,
+   "acc": 0.6855,
+   "monthRet": -5.92,
+   "monthRetRaw": -5.92,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159949",
+   "month": "2024-09",
+   "nav": 0.9632,
+   "acc": 0.9632,
+   "monthRet": 40.51,
+   "monthRetRaw": 40.51,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159949",
+   "month": "2024-10",
+   "nav": 0.9656,
+   "acc": 0.9656,
+   "monthRet": 0.25,
+   "monthRetRaw": 0.25,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159949",
+   "month": "2024-11",
+   "nav": 0.9951,
+   "acc": 0.9951,
+   "monthRet": 3.06,
+   "monthRetRaw": 3.06,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159949",
+   "month": "2024-12",
+   "nav": 0.96,
+   "acc": 0.96,
+   "monthRet": -3.53,
+   "monthRetRaw": -3.53,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159949",
+   "month": "2025-01",
+   "nav": 0.9249,
+   "acc": 0.9249,
+   "monthRet": -3.66,
+   "monthRetRaw": -3.66,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159949",
+   "month": "2025-02",
+   "nav": 0.9596,
+   "acc": 0.9596,
+   "monthRet": 3.75,
+   "monthRetRaw": 3.75,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159949",
+   "month": "2025-03",
+   "nav": 0.9264,
+   "acc": 0.9264,
+   "monthRet": -3.46,
+   "monthRetRaw": -3.46,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159949",
+   "month": "2025-04",
+   "nav": 0.8536,
+   "acc": 0.8536,
+   "monthRet": -7.86,
+   "monthRetRaw": -7.86,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159949",
+   "month": "2025-05",
+   "nav": 0.8809,
+   "acc": 0.8809,
+   "monthRet": 3.2,
+   "monthRetRaw": 3.2,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159949",
+   "month": "2025-06",
+   "nav": 0.9641,
+   "acc": 0.9641,
+   "monthRet": 9.44,
+   "monthRetRaw": 9.44,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159949",
+   "month": "2025-07",
+   "nav": 1.0515,
+   "acc": 1.0515,
+   "monthRet": 9.07,
+   "monthRetRaw": 9.07,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159949",
+   "month": "2025-08",
+   "nav": 1.3422,
+   "acc": 1.3422,
+   "monthRet": 27.65,
+   "monthRetRaw": 27.65,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159949",
+   "month": "2025-09",
+   "nav": 1.5348,
+   "acc": 1.5348,
+   "monthRet": 14.35,
+   "monthRetRaw": 14.35,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159949",
+   "month": "2025-10",
+   "nav": 1.5125,
+   "acc": 1.5125,
+   "monthRet": -1.45,
+   "monthRetRaw": -1.45,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159949",
+   "month": "2025-11",
+   "nav": 1.4453,
+   "acc": 1.4453,
+   "monthRet": -4.44,
+   "monthRetRaw": -4.44,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159949",
+   "month": "2025-12",
+   "nav": 1.5219,
+   "acc": 1.5219,
+   "monthRet": 5.3,
+   "monthRetRaw": 5.3,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159949",
+   "month": "2026-01",
+   "nav": 1.5768,
+   "acc": 1.5768,
+   "monthRet": 3.61,
+   "monthRetRaw": 3.61,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159949",
+   "month": "2026-02",
+   "nav": 1.5466,
+   "acc": 1.5466,
+   "monthRet": -1.92,
+   "monthRetRaw": -1.92,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159949",
+   "month": "2026-03",
+   "nav": 1.501,
+   "acc": 1.501,
+   "monthRet": -2.95,
+   "monthRetRaw": -2.95,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159949",
+   "month": "2026-04",
+   "nav": 1.757,
+   "acc": 1.757,
+   "monthRet": 17.06,
+   "monthRetRaw": 17.06,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159949",
+   "month": "2026-05",
+   "nav": 1.9659,
+   "acc": 1.9659,
+   "monthRet": 11.89,
+   "monthRetRaw": 11.89,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159949",
+   "month": "2026-06",
+   "nav": 2.0871,
+   "acc": 2.0871,
+   "monthRet": 6.17,
+   "monthRetRaw": 6.17,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159949",
+   "month": "2026-07",
+   "nav": 1.5826,
+   "acc": 1.5826,
+   "monthRet": -24.17,
+   "monthRetRaw": -24.17,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159949",
+   "month": "2026-08",
+   "nav": 1.6133,
+   "acc": 1.6133,
+   "monthRet": 1.94,
+   "monthRetRaw": 1.94,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "159949",
+   "month": "2026-09",
+   "nav": 1.5774,
+   "acc": 1.5774,
+   "monthRet": -2.23,
+   "monthRetRaw": -2.23,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2007-01",
+   "nav": 2.117,
+   "acc": 1.387,
+   "monthRet": null,
+   "monthRetRaw": null,
+   "note": "该月发生净值断裂（份额折算/转型），单位净值跨断裂不可比，月涨跌幅不计算",
+   "src": "em+sina",
+   "navReset": true
+  },
+  {
+   "code": "510880",
+   "month": "2007-02",
+   "nav": 2.315,
+   "acc": 1.517,
+   "monthRet": 9.35,
+   "monthRetRaw": 9.35,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2007-03",
+   "nav": 2.481,
+   "acc": 1.626,
+   "monthRet": 7.17,
+   "monthRetRaw": 7.17,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2007-04",
+   "nav": 3.229,
+   "acc": 2.116,
+   "monthRet": 30.15,
+   "monthRetRaw": 30.15,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2007-05",
+   "nav": 3.545,
+   "acc": 2.323,
+   "monthRet": 9.79,
+   "monthRetRaw": 9.79,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2007-06",
+   "nav": 3.175,
+   "acc": 2.081,
+   "monthRet": -10.44,
+   "monthRetRaw": -10.44,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2007-07",
+   "nav": 3.807,
+   "acc": 2.495,
+   "monthRet": 19.91,
+   "monthRetRaw": 19.91,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2007-08",
+   "nav": 4.537,
+   "acc": 2.973,
+   "monthRet": 19.18,
+   "monthRetRaw": 19.18,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2007-09",
+   "nav": 4.873,
+   "acc": 3.193,
+   "monthRet": 7.41,
+   "monthRetRaw": 7.41,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2007-10",
+   "nav": 4.915,
+   "acc": 3.221,
+   "monthRet": 0.86,
+   "monthRetRaw": 0.86,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2007-11",
+   "nav": 4.058,
+   "acc": 2.659,
+   "monthRet": -17.44,
+   "monthRetRaw": -17.44,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2007-12",
+   "nav": 4.639,
+   "acc": 3.04,
+   "monthRet": 14.32,
+   "monthRetRaw": 14.32,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2008-01",
+   "nav": 3.97,
+   "acc": 2.601,
+   "monthRet": -14.42,
+   "monthRetRaw": -14.42,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2008-02",
+   "nav": 4.093,
+   "acc": 2.682,
+   "monthRet": 3.1,
+   "monthRetRaw": 3.1,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2008-03",
+   "nav": 3.132,
+   "acc": 2.052,
+   "monthRet": -23.48,
+   "monthRetRaw": -23.48,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2008-04",
+   "nav": 3.306,
+   "acc": 2.166,
+   "monthRet": 5.56,
+   "monthRetRaw": 5.56,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2008-05",
+   "nav": 3.098,
+   "acc": 2.03,
+   "monthRet": -6.29,
+   "monthRetRaw": -6.29,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2008-06",
+   "nav": 2.297,
+   "acc": 1.505,
+   "monthRet": -25.86,
+   "monthRetRaw": -25.86,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2008-07",
+   "nav": 2.343,
+   "acc": 1.535,
+   "monthRet": 2.0,
+   "monthRetRaw": 2.0,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2008-08",
+   "nav": 1.921,
+   "acc": 1.259,
+   "monthRet": -18.01,
+   "monthRetRaw": -18.01,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2008-09",
+   "nav": 1.937,
+   "acc": 1.269,
+   "monthRet": 0.83,
+   "monthRetRaw": 0.83,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2008-10",
+   "nav": 1.384,
+   "acc": 0.907,
+   "monthRet": -28.55,
+   "monthRetRaw": -28.55,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2008-11",
+   "nav": 1.55,
+   "acc": 1.016,
+   "monthRet": 11.99,
+   "monthRetRaw": 11.99,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2008-12",
+   "nav": 1.471,
+   "acc": 0.964,
+   "monthRet": -5.1,
+   "monthRetRaw": -5.1,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2009-01",
+   "nav": 1.66,
+   "acc": 1.088,
+   "monthRet": 12.85,
+   "monthRetRaw": 12.85,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2009-02",
+   "nav": 1.746,
+   "acc": 1.144,
+   "monthRet": 5.18,
+   "monthRetRaw": 5.18,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2009-03",
+   "nav": 1.986,
+   "acc": 1.317,
+   "monthRet": 13.75,
+   "monthRetRaw": 13.75,
+   "note": "本月含分红/拆分：2009-03-24 每10份派现金0.2400元",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2009-04",
+   "nav": 2.062,
+   "acc": 1.367,
+   "monthRet": 3.83,
+   "monthRetRaw": 3.83,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2009-05",
+   "nav": 2.162,
+   "acc": 1.432,
+   "monthRet": 4.85,
+   "monthRetRaw": 4.85,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2009-06",
+   "nav": 2.365,
+   "acc": 1.565,
+   "monthRet": 9.39,
+   "monthRetRaw": 9.39,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2009-07",
+   "nav": 2.971,
+   "acc": 1.963,
+   "monthRet": 25.62,
+   "monthRetRaw": 25.62,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2009-08",
+   "nav": 2.267,
+   "acc": 1.501,
+   "monthRet": -23.7,
+   "monthRetRaw": -23.7,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2009-09",
+   "nav": 2.314,
+   "acc": 1.532,
+   "monthRet": 2.07,
+   "monthRetRaw": 2.07,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2009-10",
+   "nav": 2.509,
+   "acc": 1.675,
+   "monthRet": 8.43,
+   "monthRetRaw": 8.43,
+   "note": "本月含分红/拆分：2009-10-22 每10份派现金0.2300元",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2009-11",
+   "nav": 2.743,
+   "acc": 1.828,
+   "monthRet": 9.33,
+   "monthRetRaw": 9.33,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2009-12",
+   "nav": 2.817,
+   "acc": 1.877,
+   "monthRet": 2.7,
+   "monthRetRaw": 2.7,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2010-01",
+   "nav": 2.496,
+   "acc": 1.666,
+   "monthRet": -11.4,
+   "monthRetRaw": -11.4,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2010-02",
+   "nav": 2.541,
+   "acc": 1.696,
+   "monthRet": 1.8,
+   "monthRetRaw": 1.8,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2010-03",
+   "nav": 2.584,
+   "acc": 1.724,
+   "monthRet": 1.69,
+   "monthRetRaw": 1.69,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2010-04",
+   "nav": 2.365,
+   "acc": 1.581,
+   "monthRet": -8.48,
+   "monthRetRaw": -8.48,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2010-05",
+   "nav": 2.163,
+   "acc": 1.448,
+   "monthRet": -8.54,
+   "monthRetRaw": -8.54,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2010-06",
+   "nav": 1.999,
+   "acc": 1.341,
+   "monthRet": -7.58,
+   "monthRetRaw": -7.58,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2010-07",
+   "nav": 2.189,
+   "acc": 1.478,
+   "monthRet": 9.5,
+   "monthRetRaw": 9.5,
+   "note": "本月含分红/拆分：2010-07-15 每10份派现金0.2000元",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2010-08",
+   "nav": 2.145,
+   "acc": 1.449,
+   "monthRet": -2.01,
+   "monthRetRaw": -2.01,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2010-09",
+   "nav": 2.122,
+   "acc": 1.434,
+   "monthRet": -1.07,
+   "monthRetRaw": -1.07,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2010-10",
+   "nav": 2.384,
+   "acc": 1.62,
+   "monthRet": 12.35,
+   "monthRetRaw": 12.35,
+   "note": "本月含分红/拆分：2010-10-22 每10份派现金0.2100元",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2010-11",
+   "nav": 2.192,
+   "acc": 1.494,
+   "monthRet": -8.05,
+   "monthRetRaw": -8.05,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2010-12",
+   "nav": 2.183,
+   "acc": 1.488,
+   "monthRet": -0.41,
+   "monthRetRaw": -0.41,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2011-01",
+   "nav": 2.188,
+   "acc": 1.491,
+   "monthRet": 0.23,
+   "monthRetRaw": 0.23,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2011-02",
+   "nav": 2.288,
+   "acc": 1.557,
+   "monthRet": 4.57,
+   "monthRetRaw": 4.57,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2011-03",
+   "nav": 2.317,
+   "acc": 1.576,
+   "monthRet": 1.27,
+   "monthRetRaw": 1.27,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2011-04",
+   "nav": 2.317,
+   "acc": 1.576,
+   "monthRet": 0.0,
+   "monthRetRaw": 0.0,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2011-05",
+   "nav": 2.187,
+   "acc": 1.491,
+   "monthRet": -5.61,
+   "monthRetRaw": -5.61,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2011-06",
+   "nav": 2.197,
+   "acc": 1.497,
+   "monthRet": 0.46,
+   "monthRetRaw": 0.46,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2011-07",
+   "nav": 2.121,
+   "acc": 1.448,
+   "monthRet": -3.46,
+   "monthRetRaw": -3.46,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2011-08",
+   "nav": 2.05,
+   "acc": 1.401,
+   "monthRet": -3.35,
+   "monthRetRaw": -3.35,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2011-09",
+   "nav": 1.933,
+   "acc": 1.324,
+   "monthRet": -5.71,
+   "monthRetRaw": -5.71,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2011-10",
+   "nav": 1.965,
+   "acc": 1.368,
+   "monthRet": 1.66,
+   "monthRetRaw": 1.66,
+   "note": "本月含分红/拆分：2011-10-24 每10份派现金0.3500元",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2011-11",
+   "nav": 1.855,
+   "acc": 1.296,
+   "monthRet": -5.6,
+   "monthRetRaw": -5.6,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2011-12",
+   "nav": 1.782,
+   "acc": 1.248,
+   "monthRet": -3.94,
+   "monthRetRaw": -3.94,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2012-01",
+   "nav": 1.882,
+   "acc": 1.314,
+   "monthRet": 5.61,
+   "monthRetRaw": 5.61,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2012-02",
+   "nav": 1.963,
+   "acc": 1.367,
+   "monthRet": 4.3,
+   "monthRetRaw": 4.3,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2012-03",
+   "nav": 1.852,
+   "acc": 1.294,
+   "monthRet": -5.65,
+   "monthRetRaw": -5.65,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2012-04",
+   "nav": 1.954,
+   "acc": 1.361,
+   "monthRet": 5.51,
+   "monthRetRaw": 5.51,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2012-05",
+   "nav": 1.93,
+   "acc": 1.345,
+   "monthRet": -1.23,
+   "monthRetRaw": -1.23,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2012-06",
+   "nav": 1.82,
+   "acc": 1.273,
+   "monthRet": -5.7,
+   "monthRetRaw": -5.7,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2012-07",
+   "nav": 1.754,
+   "acc": 1.23,
+   "monthRet": -3.63,
+   "monthRetRaw": -3.63,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2012-08",
+   "nav": 1.687,
+   "acc": 1.186,
+   "monthRet": -3.82,
+   "monthRetRaw": -3.82,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2012-09",
+   "nav": 1.728,
+   "acc": 1.213,
+   "monthRet": 2.43,
+   "monthRetRaw": 2.43,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2012-10",
+   "nav": 1.704,
+   "acc": 1.197,
+   "monthRet": -1.39,
+   "monthRetRaw": -1.39,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2012-11",
+   "nav": 1.657,
+   "acc": 1.166,
+   "monthRet": -2.76,
+   "monthRetRaw": -2.76,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2012-12",
+   "nav": 1.91,
+   "acc": 1.359,
+   "monthRet": 15.27,
+   "monthRetRaw": 15.27,
+   "note": "本月含分红/拆分：2012-12-18 每10份派现金0.4100元",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2013-01",
+   "nav": 2.09,
+   "acc": 1.477,
+   "monthRet": 9.42,
+   "monthRetRaw": 9.42,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2013-02",
+   "nav": 2.049,
+   "acc": 1.45,
+   "monthRet": -1.96,
+   "monthRetRaw": -1.96,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2013-03",
+   "nav": 1.911,
+   "acc": 1.36,
+   "monthRet": -6.73,
+   "monthRetRaw": -6.73,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2013-04",
+   "nav": 1.88,
+   "acc": 1.339,
+   "monthRet": -1.62,
+   "monthRetRaw": -1.62,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2013-05",
+   "nav": 1.971,
+   "acc": 1.399,
+   "monthRet": 4.84,
+   "monthRetRaw": 4.84,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2013-06",
+   "nav": 1.696,
+   "acc": 1.219,
+   "monthRet": -13.95,
+   "monthRetRaw": -13.95,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2013-07",
+   "nav": 1.667,
+   "acc": 1.2,
+   "monthRet": -1.71,
+   "monthRetRaw": -1.71,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2013-08",
+   "nav": 1.765,
+   "acc": 1.264,
+   "monthRet": 5.88,
+   "monthRetRaw": 5.88,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2013-09",
+   "nav": 1.832,
+   "acc": 1.308,
+   "monthRet": 3.8,
+   "monthRetRaw": 3.8,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2013-10",
+   "nav": 1.808,
+   "acc": 1.292,
+   "monthRet": -1.31,
+   "monthRetRaw": -1.31,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2013-11",
+   "nav": 1.826,
+   "acc": 1.304,
+   "monthRet": 1.0,
+   "monthRetRaw": 1.0,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2013-12",
+   "nav": 1.741,
+   "acc": 1.248,
+   "monthRet": -4.65,
+   "monthRetRaw": -4.65,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2014-01",
+   "nav": 1.61,
+   "acc": 1.201,
+   "monthRet": -7.52,
+   "monthRetRaw": -7.52,
+   "note": "本月含分红/拆分：2014-01-21 每10份派现金0.5900元",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2014-02",
+   "nav": 1.632,
+   "acc": 1.216,
+   "monthRet": 1.37,
+   "monthRetRaw": 1.37,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2014-03",
+   "nav": 1.611,
+   "acc": 1.202,
+   "monthRet": -1.29,
+   "monthRetRaw": -1.29,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2014-04",
+   "nav": 1.622,
+   "acc": 1.209,
+   "monthRet": 0.68,
+   "monthRetRaw": 0.68,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2014-05",
+   "nav": 1.627,
+   "acc": 1.212,
+   "monthRet": 0.31,
+   "monthRetRaw": 0.31,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2014-06",
+   "nav": 1.65,
+   "acc": 1.227,
+   "monthRet": 1.41,
+   "monthRetRaw": 1.41,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2014-07",
+   "nav": 1.795,
+   "acc": 1.322,
+   "monthRet": 8.79,
+   "monthRetRaw": 8.79,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2014-08",
+   "nav": 1.797,
+   "acc": 1.324,
+   "monthRet": 0.11,
+   "monthRetRaw": 0.11,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2014-09",
+   "nav": 1.902,
+   "acc": 1.392,
+   "monthRet": 5.84,
+   "monthRetRaw": 5.84,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2014-10",
+   "nav": 1.953,
+   "acc": 1.426,
+   "monthRet": 2.68,
+   "monthRetRaw": 2.68,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2014-11",
+   "nav": 2.179,
+   "acc": 1.574,
+   "monthRet": 11.57,
+   "monthRetRaw": 11.57,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2014-12",
+   "nav": 2.628,
+   "acc": 1.868,
+   "monthRet": 20.61,
+   "monthRetRaw": 20.61,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2015-01",
+   "nav": 2.468,
+   "acc": 1.816,
+   "monthRet": -6.09,
+   "monthRetRaw": -6.09,
+   "note": "本月含分红/拆分：2015-01-20 每10份派现金0.8000元",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2015-02",
+   "nav": 2.501,
+   "acc": 1.837,
+   "monthRet": 1.34,
+   "monthRetRaw": 1.34,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2015-03",
+   "nav": 2.93,
+   "acc": 2.119,
+   "monthRet": 17.15,
+   "monthRetRaw": 17.15,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2015-04",
+   "nav": 3.471,
+   "acc": 2.473,
+   "monthRet": 18.46,
+   "monthRetRaw": 18.46,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2015-05",
+   "nav": 3.531,
+   "acc": 2.512,
+   "monthRet": 1.73,
+   "monthRetRaw": 1.73,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2015-06",
+   "nav": 3.539,
+   "acc": 2.518,
+   "monthRet": 0.23,
+   "monthRetRaw": 0.23,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2015-07",
+   "nav": 3.03,
+   "acc": 2.184,
+   "monthRet": -14.38,
+   "monthRetRaw": -14.38,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2015-08",
+   "nav": 2.642,
+   "acc": 1.93,
+   "monthRet": -12.81,
+   "monthRetRaw": -12.81,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2015-09",
+   "nav": 2.486,
+   "acc": 1.828,
+   "monthRet": -5.9,
+   "monthRetRaw": -5.9,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2015-10",
+   "nav": 2.744,
+   "acc": 1.997,
+   "monthRet": 10.38,
+   "monthRetRaw": 10.38,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2015-11",
+   "nav": 2.777,
+   "acc": 2.018,
+   "monthRet": 1.2,
+   "monthRetRaw": 1.2,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2015-12",
+   "nav": 2.836,
+   "acc": 2.057,
+   "monthRet": 2.12,
+   "monthRetRaw": 2.12,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2016-01",
+   "nav": 2.217,
+   "acc": 1.684,
+   "monthRet": -21.83,
+   "monthRetRaw": -21.83,
+   "note": "本月含分红/拆分：2016-01-20 每10份派现金0.5000元",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2016-02",
+   "nav": 2.188,
+   "acc": 1.665,
+   "monthRet": -1.31,
+   "monthRetRaw": -1.31,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2016-03",
+   "nav": 2.405,
+   "acc": 1.807,
+   "monthRet": 9.92,
+   "monthRetRaw": 9.92,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2016-04",
+   "nav": 2.399,
+   "acc": 1.803,
+   "monthRet": -0.25,
+   "monthRetRaw": -0.25,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2016-05",
+   "nav": 2.377,
+   "acc": 1.789,
+   "monthRet": -0.92,
+   "monthRetRaw": -0.92,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2016-06",
+   "nav": 2.365,
+   "acc": 1.781,
+   "monthRet": -0.5,
+   "monthRetRaw": -0.5,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2016-07",
+   "nav": 2.517,
+   "acc": 1.881,
+   "monthRet": 6.43,
+   "monthRetRaw": 6.43,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2016-08",
+   "nav": 2.616,
+   "acc": 1.946,
+   "monthRet": 3.93,
+   "monthRetRaw": 3.93,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2016-09",
+   "nav": 2.561,
+   "acc": 1.909,
+   "monthRet": -2.1,
+   "monthRetRaw": -2.1,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2016-10",
+   "nav": 2.646,
+   "acc": 1.965,
+   "monthRet": 3.32,
+   "monthRetRaw": 3.32,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2016-11",
+   "nav": 2.798,
+   "acc": 2.065,
+   "monthRet": 5.74,
+   "monthRetRaw": 5.74,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2016-12",
+   "nav": 2.666,
+   "acc": 1.978,
+   "monthRet": -4.72,
+   "monthRetRaw": -4.72,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2017-01",
+   "nav": 2.675,
+   "acc": 2.044,
+   "monthRet": 0.34,
+   "monthRetRaw": 0.34,
+   "note": "本月含分红/拆分：2017-01-23 每10份派现金0.9100元",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2017-02",
+   "nav": 2.729,
+   "acc": 2.079,
+   "monthRet": 2.02,
+   "monthRetRaw": 2.02,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2017-03",
+   "nav": 2.7548,
+   "acc": 2.0961,
+   "monthRet": 0.95,
+   "monthRetRaw": 0.95,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2017-04",
+   "nav": 2.7226,
+   "acc": 2.075,
+   "monthRet": -1.17,
+   "monthRetRaw": -1.17,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2017-05",
+   "nav": 2.798,
+   "acc": 2.1244,
+   "monthRet": 2.77,
+   "monthRetRaw": 2.77,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2017-06",
+   "nav": 2.9109,
+   "acc": 2.1984,
+   "monthRet": 4.04,
+   "monthRetRaw": 4.04,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2017-07",
+   "nav": 3.0072,
+   "acc": 2.2615,
+   "monthRet": 3.31,
+   "monthRetRaw": 3.31,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2017-08",
+   "nav": 3.0138,
+   "acc": 2.2658,
+   "monthRet": 0.22,
+   "monthRetRaw": 0.22,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2017-09",
+   "nav": 3.0303,
+   "acc": 2.2766,
+   "monthRet": 0.55,
+   "monthRetRaw": 0.55,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2017-10",
+   "nav": 3.1005,
+   "acc": 2.3226,
+   "monthRet": 2.32,
+   "monthRetRaw": 2.32,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2017-11",
+   "nav": 3.0983,
+   "acc": 2.3212,
+   "monthRet": -0.07,
+   "monthRetRaw": -0.07,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2017-12",
+   "nav": 3.1039,
+   "acc": 2.3249,
+   "monthRet": 0.18,
+   "monthRetRaw": 0.18,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2018-01",
+   "nav": 3.2248,
+   "acc": 2.4755,
+   "monthRet": 3.9,
+   "monthRetRaw": 3.9,
+   "note": "本月含分红/拆分：2018-01-23 每10份派现金1.0900元",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2018-02",
+   "nav": 3.0549,
+   "acc": 2.3642,
+   "monthRet": -5.27,
+   "monthRetRaw": -5.27,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2018-03",
+   "nav": 2.9231,
+   "acc": 2.2778,
+   "monthRet": -4.31,
+   "monthRetRaw": -4.31,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2018-04",
+   "nav": 2.8077,
+   "acc": 2.2022,
+   "monthRet": -3.95,
+   "monthRetRaw": -3.95,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2018-05",
+   "nav": 2.8788,
+   "acc": 2.2488,
+   "monthRet": 2.53,
+   "monthRetRaw": 2.53,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2018-06",
+   "nav": 2.6921,
+   "acc": 2.1264,
+   "monthRet": -6.49,
+   "monthRetRaw": -6.49,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2018-07",
+   "nav": 2.7853,
+   "acc": 2.1875,
+   "monthRet": 3.46,
+   "monthRetRaw": 3.46,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2018-08",
+   "nav": 2.676,
+   "acc": 2.1159,
+   "monthRet": -3.92,
+   "monthRetRaw": -3.92,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2018-09",
+   "nav": 2.8073,
+   "acc": 2.2019,
+   "monthRet": 4.91,
+   "monthRetRaw": 4.91,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2018-10",
+   "nav": 2.6159,
+   "acc": 2.0765,
+   "monthRet": -6.82,
+   "monthRetRaw": -6.82,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2018-11",
+   "nav": 2.5886,
+   "acc": 2.0586,
+   "monthRet": -1.04,
+   "monthRetRaw": -1.04,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2018-12",
+   "nav": 2.5847,
+   "acc": 2.0561,
+   "monthRet": -0.15,
+   "monthRetRaw": -0.15,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2019-01",
+   "nav": 2.5808,
+   "acc": 2.1177,
+   "monthRet": -0.15,
+   "monthRetRaw": -0.15,
+   "note": "本月含分红/拆分：2019-01-16 每10份派现金0.9800元",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2019-02",
+   "nav": 2.8068,
+   "acc": 2.2658,
+   "monthRet": 8.76,
+   "monthRetRaw": 8.76,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2019-03",
+   "nav": 2.9241,
+   "acc": 2.3427,
+   "monthRet": 4.18,
+   "monthRetRaw": 4.18,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2019-04",
+   "nav": 2.8715,
+   "acc": 2.3082,
+   "monthRet": -1.8,
+   "monthRetRaw": -1.8,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2019-05",
+   "nav": 2.7137,
+   "acc": 2.2048,
+   "monthRet": -5.5,
+   "monthRetRaw": -5.5,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2019-06",
+   "nav": 2.7899,
+   "acc": 2.2547,
+   "monthRet": 2.81,
+   "monthRetRaw": 2.81,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2019-07",
+   "nav": 2.807,
+   "acc": 2.266,
+   "monthRet": 0.61,
+   "monthRetRaw": 0.61,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2019-08",
+   "nav": 2.7435,
+   "acc": 2.2243,
+   "monthRet": -2.26,
+   "monthRetRaw": -2.26,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2019-09",
+   "nav": 2.7522,
+   "acc": 2.23,
+   "monthRet": 0.32,
+   "monthRetRaw": 0.32,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2019-10",
+   "nav": 2.7627,
+   "acc": 2.2369,
+   "monthRet": 0.38,
+   "monthRetRaw": 0.38,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2019-11",
+   "nav": 2.7452,
+   "acc": 2.2255,
+   "monthRet": -0.63,
+   "monthRetRaw": -0.63,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2019-12",
+   "nav": 2.8992,
+   "acc": 2.3264,
+   "monthRet": 5.61,
+   "monthRetRaw": 5.61,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2020-01",
+   "nav": 2.66,
+   "acc": 2.264,
+   "monthRet": -8.25,
+   "monthRetRaw": -8.25,
+   "note": "本月含分红/拆分：2020-01-17 每10份派现金1.4400元",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2020-02",
+   "nav": 2.5529,
+   "acc": 2.1938,
+   "monthRet": -4.03,
+   "monthRetRaw": -4.03,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2020-03",
+   "nav": 2.399,
+   "acc": 2.093,
+   "monthRet": -6.03,
+   "monthRetRaw": -6.03,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2020-04",
+   "nav": 2.4529,
+   "acc": 2.1283,
+   "monthRet": 2.25,
+   "monthRetRaw": 2.25,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2020-05",
+   "nav": 2.3882,
+   "acc": 2.0859,
+   "monthRet": -2.64,
+   "monthRetRaw": -2.64,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2020-06",
+   "nav": 2.4536,
+   "acc": 2.1287,
+   "monthRet": 2.74,
+   "monthRetRaw": 2.74,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2020-07",
+   "nav": 2.6906,
+   "acc": 2.284,
+   "monthRet": 9.66,
+   "monthRetRaw": 9.66,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2020-08",
+   "nav": 2.787,
+   "acc": 2.3472,
+   "monthRet": 3.58,
+   "monthRetRaw": 3.58,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2020-09",
+   "nav": 2.6728,
+   "acc": 2.2724,
+   "monthRet": -4.1,
+   "monthRetRaw": -4.1,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2020-10",
+   "nav": 2.6818,
+   "acc": 2.2783,
+   "monthRet": 0.34,
+   "monthRetRaw": 0.34,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2020-11",
+   "nav": 2.9156,
+   "acc": 2.4315,
+   "monthRet": 8.72,
+   "monthRetRaw": 8.72,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2020-12",
+   "nav": 2.7369,
+   "acc": 2.3144,
+   "monthRet": -6.13,
+   "monthRetRaw": -6.13,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2021-01",
+   "nav": 2.4899,
+   "acc": 2.2449,
+   "monthRet": -9.02,
+   "monthRetRaw": -9.02,
+   "note": "本月含分红/拆分：2021-01-18 每10份派现金1.4100元",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2021-02",
+   "nav": 2.6334,
+   "acc": 2.3389,
+   "monthRet": 5.76,
+   "monthRetRaw": 5.76,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2021-03",
+   "nav": 2.7455,
+   "acc": 2.4124,
+   "monthRet": 4.26,
+   "monthRetRaw": 4.26,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2021-04",
+   "nav": 2.7537,
+   "acc": 2.4178,
+   "monthRet": 0.3,
+   "monthRetRaw": 0.3,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2021-05",
+   "nav": 2.8206,
+   "acc": 2.4616,
+   "monthRet": 2.43,
+   "monthRetRaw": 2.43,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2021-06",
+   "nav": 2.8563,
+   "acc": 2.485,
+   "monthRet": 1.27,
+   "monthRetRaw": 1.27,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2021-07",
+   "nav": 2.7975,
+   "acc": 2.4465,
+   "monthRet": -2.06,
+   "monthRetRaw": -2.06,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2021-08",
+   "nav": 3.1243,
+   "acc": 2.6606,
+   "monthRet": 11.68,
+   "monthRetRaw": 11.68,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2021-09",
+   "nav": 3.0919,
+   "acc": 2.6394,
+   "monthRet": -1.04,
+   "monthRetRaw": -1.04,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2021-10",
+   "nav": 2.8381,
+   "acc": 2.4731,
+   "monthRet": -8.21,
+   "monthRetRaw": -8.21,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2021-11",
+   "nav": 2.7846,
+   "acc": 2.438,
+   "monthRet": -1.89,
+   "monthRetRaw": -1.89,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2021-12",
+   "nav": 2.8794,
+   "acc": 2.5001,
+   "monthRet": 3.4,
+   "monthRetRaw": 3.4,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2022-01",
+   "nav": 2.7366,
+   "acc": 2.4629,
+   "monthRet": -4.96,
+   "monthRetRaw": -4.96,
+   "note": "本月含分红/拆分：2022-01-17 每10份派现金0.8600元",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2022-02",
+   "nav": 2.8767,
+   "acc": 2.5547,
+   "monthRet": 5.12,
+   "monthRetRaw": 5.12,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2022-03",
+   "nav": 3.0178,
+   "acc": 2.6472,
+   "monthRet": 4.9,
+   "monthRetRaw": 4.9,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2022-04",
+   "nav": 2.8804,
+   "acc": 2.5572,
+   "monthRet": -4.55,
+   "monthRetRaw": -4.55,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2022-05",
+   "nav": 2.8951,
+   "acc": 2.5668,
+   "monthRet": 0.51,
+   "monthRetRaw": 0.51,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2022-06",
+   "nav": 2.9663,
+   "acc": 2.6134,
+   "monthRet": 2.46,
+   "monthRetRaw": 2.46,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2022-07",
+   "nav": 2.899,
+   "acc": 2.5693,
+   "monthRet": -2.27,
+   "monthRetRaw": -2.27,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2022-08",
+   "nav": 2.9578,
+   "acc": 2.6079,
+   "monthRet": 2.03,
+   "monthRetRaw": 2.03,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2022-09",
+   "nav": 2.9557,
+   "acc": 2.6065,
+   "monthRet": -0.07,
+   "monthRetRaw": -0.07,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2022-10",
+   "nav": 2.7393,
+   "acc": 2.4647,
+   "monthRet": -7.32,
+   "monthRetRaw": -7.32,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2022-11",
+   "nav": 3.02,
+   "acc": 2.6486,
+   "monthRet": 10.25,
+   "monthRetRaw": 10.25,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2022-12",
+   "nav": 2.8633,
+   "acc": 2.546,
+   "monthRet": -5.19,
+   "monthRetRaw": -5.19,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2023-01",
+   "nav": 2.8095,
+   "acc": 2.6011,
+   "monthRet": -1.88,
+   "monthRetRaw": -1.88,
+   "note": "本月含分红/拆分：2023-01-16 每10份派现金1.3800元",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2023-02",
+   "nav": 2.9007,
+   "acc": 2.6609,
+   "monthRet": 3.25,
+   "monthRetRaw": 3.25,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2023-03",
+   "nav": 2.8961,
+   "acc": 2.6579,
+   "monthRet": -0.16,
+   "monthRetRaw": -0.16,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2023-04",
+   "nav": 3.0548,
+   "acc": 2.7619,
+   "monthRet": 5.48,
+   "monthRetRaw": 5.48,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2023-05",
+   "nav": 2.9907,
+   "acc": 2.7199,
+   "monthRet": -2.1,
+   "monthRetRaw": -2.1,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2023-06",
+   "nav": 2.9374,
+   "acc": 2.6849,
+   "monthRet": -1.78,
+   "monthRetRaw": -1.78,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2023-07",
+   "nav": 3.1084,
+   "acc": 2.797,
+   "monthRet": 5.82,
+   "monthRetRaw": 5.82,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2023-08",
+   "nav": 2.9911,
+   "acc": 2.7201,
+   "monthRet": -3.77,
+   "monthRetRaw": -3.77,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2023-09",
+   "nav": 3.0786,
+   "acc": 2.7775,
+   "monthRet": 2.93,
+   "monthRetRaw": 2.93,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2023-10",
+   "nav": 2.9815,
+   "acc": 2.7138,
+   "monthRet": -3.15,
+   "monthRetRaw": -3.15,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2023-11",
+   "nav": 2.9905,
+   "acc": 2.7197,
+   "monthRet": 0.3,
+   "monthRetRaw": 0.3,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2023-12",
+   "nav": 2.9298,
+   "acc": 2.68,
+   "monthRet": -2.03,
+   "monthRetRaw": -2.03,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2024-01",
+   "nav": 2.9314,
+   "acc": 2.7668,
+   "monthRet": 0.05,
+   "monthRetRaw": 0.05,
+   "note": "本月含分红/拆分：2024-01-23 每10份派现金1.3100元",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2024-02",
+   "nav": 3.1136,
+   "acc": 2.8862,
+   "monthRet": 6.22,
+   "monthRetRaw": 6.22,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2024-03",
+   "nav": 3.0766,
+   "acc": 2.862,
+   "monthRet": -1.19,
+   "monthRetRaw": -1.19,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2024-04",
+   "nav": 3.1395,
+   "acc": 2.9032,
+   "monthRet": 2.04,
+   "monthRetRaw": 2.04,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2024-05",
+   "nav": 3.2661,
+   "acc": 2.9862,
+   "monthRet": 4.03,
+   "monthRetRaw": 4.03,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2024-06",
+   "nav": 3.196,
+   "acc": 2.9402,
+   "monthRet": -2.15,
+   "monthRetRaw": -2.15,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2024-07",
+   "nav": 3.0916,
+   "acc": 2.8718,
+   "monthRet": -3.27,
+   "monthRetRaw": -3.27,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2024-08",
+   "nav": 2.9785,
+   "acc": 2.7977,
+   "monthRet": -3.66,
+   "monthRetRaw": -3.66,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2024-09",
+   "nav": 3.398,
+   "acc": 3.0726,
+   "monthRet": 14.08,
+   "monthRetRaw": 14.08,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2024-10",
+   "nav": 3.1451,
+   "acc": 2.9069,
+   "monthRet": -7.44,
+   "monthRetRaw": -7.44,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2024-11",
+   "nav": 3.198,
+   "acc": 2.9415,
+   "monthRet": 1.68,
+   "monthRetRaw": 1.68,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2024-12",
+   "nav": 3.345,
+   "acc": 3.0379,
+   "monthRet": 4.6,
+   "monthRetRaw": 4.6,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2025-01",
+   "nav": 3.1038,
+   "acc": 2.9729,
+   "monthRet": -7.21,
+   "monthRetRaw": -7.21,
+   "note": "本月含分红/拆分：2025-01-21 每10份派现金1.4200元",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2025-02",
+   "nav": 3.0067,
+   "acc": 2.9092,
+   "monthRet": -3.13,
+   "monthRetRaw": -3.13,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2025-03",
+   "nav": 3.0726,
+   "acc": 2.9524,
+   "monthRet": 2.19,
+   "monthRetRaw": 2.19,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2025-04",
+   "nav": 3.0344,
+   "acc": 2.9274,
+   "monthRet": -1.24,
+   "monthRetRaw": -1.24,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2025-05",
+   "nav": 3.115,
+   "acc": 2.9802,
+   "monthRet": 2.66,
+   "monthRetRaw": 2.66,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2025-06",
+   "nav": 3.1498,
+   "acc": 3.003,
+   "monthRet": 1.12,
+   "monthRetRaw": 1.12,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2025-07",
+   "nav": 3.207,
+   "acc": 3.0405,
+   "monthRet": 1.82,
+   "monthRetRaw": 1.82,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2025-08",
+   "nav": 3.1842,
+   "acc": 3.0255,
+   "monthRet": -0.71,
+   "monthRetRaw": -0.71,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2025-09",
+   "nav": 3.082,
+   "acc": 2.9586,
+   "monthRet": -3.21,
+   "monthRetRaw": -3.21,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2025-10",
+   "nav": 3.2388,
+   "acc": 3.0613,
+   "monthRet": 5.09,
+   "monthRetRaw": 5.09,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2025-11",
+   "nav": 3.2293,
+   "acc": 3.0551,
+   "monthRet": -0.29,
+   "monthRetRaw": -0.29,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2025-12",
+   "nav": 3.1813,
+   "acc": 3.0236,
+   "monthRet": -1.49,
+   "monthRetRaw": -1.49,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2026-01",
+   "nav": 3.1418,
+   "acc": 3.0915,
+   "monthRet": -1.24,
+   "monthRetRaw": -1.24,
+   "note": "本月含分红/拆分：2026-01-21 每10份派现金1.4300元",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2026-02",
+   "nav": 3.234,
+   "acc": 3.1519,
+   "monthRet": 2.93,
+   "monthRetRaw": 2.93,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2026-03",
+   "nav": 3.2465,
+   "acc": 3.1601,
+   "monthRet": 0.39,
+   "monthRetRaw": 0.39,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2026-04",
+   "nav": 3.3391,
+   "acc": 3.2208,
+   "monthRet": 2.85,
+   "monthRetRaw": 2.85,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2026-05",
+   "nav": 3.2036,
+   "acc": 3.132,
+   "monthRet": -4.06,
+   "monthRetRaw": -4.06,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2026-06",
+   "nav": 2.9103,
+   "acc": 2.9398,
+   "monthRet": -9.16,
+   "monthRetRaw": -9.16,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2026-07",
+   "nav": 3.3081,
+   "acc": 3.2004,
+   "monthRet": 13.67,
+   "monthRetRaw": 13.67,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2026-08",
+   "nav": 3.4938,
+   "acc": 3.3221,
+   "monthRet": 5.61,
+   "monthRetRaw": 5.61,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "510880",
+   "month": "2026-09",
+   "nav": 3.3374,
+   "acc": 3.2196,
+   "monthRet": -4.48,
+   "monthRetRaw": -4.48,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511260",
+   "month": "2017-08",
+   "nav": 100.17,
+   "acc": 1.002,
+   "monthRet": null,
+   "monthRetRaw": null,
+   "note": "本月含分红/拆分：2017-08-04 每份基金份额折算0.01份",
+   "src": "em+sina"
+  },
+  {
+   "code": "511260",
+   "month": "2017-09",
+   "nav": 100.45,
+   "acc": 1.005,
+   "monthRet": 0.28,
+   "monthRetRaw": 0.28,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511260",
+   "month": "2017-10",
+   "nav": 98.534,
+   "acc": 0.985,
+   "monthRet": -1.91,
+   "monthRetRaw": -1.91,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511260",
+   "month": "2017-11",
+   "nav": 98.259,
+   "acc": 0.983,
+   "monthRet": -0.28,
+   "monthRetRaw": -0.28,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511260",
+   "month": "2017-12",
+   "nav": 98.449,
+   "acc": 0.984,
+   "monthRet": 0.19,
+   "monthRetRaw": 0.19,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511260",
+   "month": "2018-01",
+   "nav": 98.571,
+   "acc": 0.986,
+   "monthRet": 0.12,
+   "monthRetRaw": 0.12,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511260",
+   "month": "2018-02",
+   "nav": 99.392,
+   "acc": 0.994,
+   "monthRet": 0.83,
+   "monthRetRaw": 0.83,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511260",
+   "month": "2018-03",
+   "nav": 100.245,
+   "acc": 1.002,
+   "monthRet": 0.86,
+   "monthRetRaw": 0.86,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511260",
+   "month": "2018-04",
+   "nav": 101.166,
+   "acc": 1.012,
+   "monthRet": 0.92,
+   "monthRetRaw": 0.92,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511260",
+   "month": "2018-05",
+   "nav": 101.705,
+   "acc": 1.017,
+   "monthRet": 0.53,
+   "monthRetRaw": 0.53,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511260",
+   "month": "2018-06",
+   "nav": 102.907,
+   "acc": 1.029,
+   "monthRet": 1.18,
+   "monthRetRaw": 1.18,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511260",
+   "month": "2018-07",
+   "nav": 103.139,
+   "acc": 1.031,
+   "monthRet": 0.23,
+   "monthRetRaw": 0.23,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511260",
+   "month": "2018-08",
+   "nav": 102.568,
+   "acc": 1.026,
+   "monthRet": -0.55,
+   "monthRetRaw": -0.55,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511260",
+   "month": "2018-09",
+   "nav": 102.413,
+   "acc": 1.024,
+   "monthRet": -0.15,
+   "monthRetRaw": -0.15,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511260",
+   "month": "2018-10",
+   "nav": 103.471,
+   "acc": 1.035,
+   "monthRet": 1.03,
+   "monthRetRaw": 1.03,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511260",
+   "month": "2018-11",
+   "nav": 104.731,
+   "acc": 1.047,
+   "monthRet": 1.22,
+   "monthRetRaw": 1.22,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511260",
+   "month": "2018-12",
+   "nav": 105.935,
+   "acc": 1.059,
+   "monthRet": 1.15,
+   "monthRetRaw": 1.15,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511260",
+   "month": "2019-01",
+   "nav": 106.466,
+   "acc": 1.065,
+   "monthRet": 0.5,
+   "monthRetRaw": 0.5,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511260",
+   "month": "2019-02",
+   "nav": 106.1,
+   "acc": 1.061,
+   "monthRet": -0.34,
+   "monthRetRaw": -0.34,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511260",
+   "month": "2019-03",
+   "nav": 107.146,
+   "acc": 1.071,
+   "monthRet": 0.99,
+   "monthRetRaw": 0.99,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511260",
+   "month": "2019-04",
+   "nav": 104.851,
+   "acc": 1.049,
+   "monthRet": -2.14,
+   "monthRetRaw": -2.14,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511260",
+   "month": "2019-05",
+   "nav": 105.938,
+   "acc": 1.059,
+   "monthRet": 1.04,
+   "monthRetRaw": 1.04,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511260",
+   "month": "2019-06",
+   "nav": 106.523,
+   "acc": 1.065,
+   "monthRet": 0.55,
+   "monthRetRaw": 0.55,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511260",
+   "month": "2019-07",
+   "nav": 107.239,
+   "acc": 1.072,
+   "monthRet": 0.67,
+   "monthRetRaw": 0.67,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511260",
+   "month": "2019-08",
+   "nav": 108.11,
+   "acc": 1.081,
+   "monthRet": 0.81,
+   "monthRetRaw": 0.81,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511260",
+   "month": "2019-09",
+   "nav": 107.548,
+   "acc": 1.075,
+   "monthRet": -0.52,
+   "monthRetRaw": -0.52,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511260",
+   "month": "2019-10",
+   "nav": 106.844,
+   "acc": 1.068,
+   "monthRet": -0.65,
+   "monthRetRaw": -0.65,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511260",
+   "month": "2019-11",
+   "nav": 107.901,
+   "acc": 1.079,
+   "monthRet": 0.99,
+   "monthRetRaw": 0.99,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511260",
+   "month": "2019-12",
+   "nav": 108.569,
+   "acc": 1.086,
+   "monthRet": 0.62,
+   "monthRetRaw": 0.62,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511260",
+   "month": "2020-01",
+   "nav": 109.872,
+   "acc": 1.099,
+   "monthRet": 1.2,
+   "monthRetRaw": 1.2,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511260",
+   "month": "2020-02",
+   "nav": 111.875,
+   "acc": 1.119,
+   "monthRet": 1.82,
+   "monthRetRaw": 1.82,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511260",
+   "month": "2020-03",
+   "nav": 112.884,
+   "acc": 1.129,
+   "monthRet": 0.9,
+   "monthRetRaw": 0.9,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511260",
+   "month": "2020-04",
+   "nav": 114.206,
+   "acc": 1.142,
+   "monthRet": 1.17,
+   "monthRetRaw": 1.17,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511260",
+   "month": "2020-05",
+   "nav": 112.79,
+   "acc": 1.128,
+   "monthRet": -1.24,
+   "monthRetRaw": -1.24,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511260",
+   "month": "2020-06",
+   "nav": 111.658,
+   "acc": 1.117,
+   "monthRet": -1.0,
+   "monthRetRaw": -1.0,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511260",
+   "month": "2020-07",
+   "nav": 110.716,
+   "acc": 1.107,
+   "monthRet": -0.84,
+   "monthRetRaw": -0.84,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511260",
+   "month": "2020-08",
+   "nav": 110.513,
+   "acc": 1.105,
+   "monthRet": -0.18,
+   "monthRetRaw": -0.18,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511260",
+   "month": "2020-09",
+   "nav": 110.033,
+   "acc": 1.1,
+   "monthRet": -0.43,
+   "monthRetRaw": -0.43,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511260",
+   "month": "2020-10",
+   "nav": 110.145,
+   "acc": 1.101,
+   "monthRet": 0.1,
+   "monthRetRaw": 0.1,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511260",
+   "month": "2020-11",
+   "nav": 109.88,
+   "acc": 1.099,
+   "monthRet": -0.24,
+   "monthRetRaw": -0.24,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511260",
+   "month": "2020-12",
+   "nav": 110.653,
+   "acc": 1.107,
+   "monthRet": 0.7,
+   "monthRetRaw": 0.7,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511260",
+   "month": "2021-01",
+   "nav": 110.752,
+   "acc": 1.108,
+   "monthRet": 0.09,
+   "monthRetRaw": 0.09,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511260",
+   "month": "2021-02",
+   "nav": 110.249,
+   "acc": 1.102,
+   "monthRet": -0.45,
+   "monthRetRaw": -0.45,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511260",
+   "month": "2021-03",
+   "nav": 111.161,
+   "acc": 1.112,
+   "monthRet": 0.83,
+   "monthRetRaw": 0.83,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511260",
+   "month": "2021-04",
+   "nav": 111.789,
+   "acc": 1.118,
+   "monthRet": 0.56,
+   "monthRetRaw": 0.56,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511260",
+   "month": "2021-05",
+   "nav": 112.716,
+   "acc": 1.127,
+   "monthRet": 0.83,
+   "monthRetRaw": 0.83,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511260",
+   "month": "2021-06",
+   "nav": 112.753,
+   "acc": 1.128,
+   "monthRet": 0.03,
+   "monthRetRaw": 0.03,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511260",
+   "month": "2021-07",
+   "nav": 114.875,
+   "acc": 1.149,
+   "monthRet": 1.88,
+   "monthRetRaw": 1.88,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511260",
+   "month": "2021-08",
+   "nav": 115.01,
+   "acc": 1.15,
+   "monthRet": 0.12,
+   "monthRetRaw": 0.12,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511260",
+   "month": "2021-09",
+   "nav": 115.011,
+   "acc": 1.15,
+   "monthRet": 0.0,
+   "monthRetRaw": 0.0,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511260",
+   "month": "2021-10",
+   "nav": 114.547,
+   "acc": 1.145,
+   "monthRet": -0.4,
+   "monthRetRaw": -0.4,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511260",
+   "month": "2021-11",
+   "nav": 115.797,
+   "acc": 1.158,
+   "monthRet": 1.09,
+   "monthRetRaw": 1.09,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511260",
+   "month": "2021-12",
+   "nav": 116.393,
+   "acc": 1.164,
+   "monthRet": 0.51,
+   "monthRetRaw": 0.51,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511260",
+   "month": "2022-01",
+   "nav": 117.495,
+   "acc": 1.175,
+   "monthRet": 0.95,
+   "monthRetRaw": 0.95,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511260",
+   "month": "2022-02",
+   "nav": 117.006,
+   "acc": 1.17,
+   "monthRet": -0.42,
+   "monthRetRaw": -0.42,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511260",
+   "month": "2022-03",
+   "nav": 117.026,
+   "acc": 1.17,
+   "monthRet": 0.02,
+   "monthRetRaw": 0.02,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511260",
+   "month": "2022-04",
+   "nav": 117.272,
+   "acc": 1.173,
+   "monthRet": 0.21,
+   "monthRetRaw": 0.21,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511260",
+   "month": "2022-05",
+   "nav": 117.983,
+   "acc": 1.18,
+   "monthRet": 0.61,
+   "monthRetRaw": 0.61,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511260",
+   "month": "2022-06",
+   "nav": 117.697,
+   "acc": 1.177,
+   "monthRet": -0.24,
+   "monthRetRaw": -0.24,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511260",
+   "month": "2022-07",
+   "nav": 118.713,
+   "acc": 1.187,
+   "monthRet": 0.86,
+   "monthRetRaw": 0.86,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511260",
+   "month": "2022-08",
+   "nav": 119.781,
+   "acc": 1.198,
+   "monthRet": 0.9,
+   "monthRetRaw": 0.9,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511260",
+   "month": "2022-09",
+   "nav": 119.061,
+   "acc": 1.191,
+   "monthRet": -0.6,
+   "monthRetRaw": -0.6,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511260",
+   "month": "2022-10",
+   "nav": 120.262,
+   "acc": 1.203,
+   "monthRet": 1.01,
+   "monthRetRaw": 1.01,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511260",
+   "month": "2022-11",
+   "nav": 118.75,
+   "acc": 1.188,
+   "monthRet": -1.26,
+   "monthRetRaw": -1.26,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511260",
+   "month": "2022-12",
+   "nav": 119.328,
+   "acc": 1.193,
+   "monthRet": 0.49,
+   "monthRetRaw": 0.49,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511260",
+   "month": "2023-01",
+   "nav": 119.339,
+   "acc": 1.193,
+   "monthRet": 0.01,
+   "monthRetRaw": 0.01,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511260",
+   "month": "2023-02",
+   "nav": 119.541,
+   "acc": 1.195,
+   "monthRet": 0.17,
+   "monthRetRaw": 0.17,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511260",
+   "month": "2023-03",
+   "nav": 120.073,
+   "acc": 1.201,
+   "monthRet": 0.45,
+   "monthRetRaw": 0.45,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511260",
+   "month": "2023-04",
+   "nav": 120.927,
+   "acc": 1.209,
+   "monthRet": 0.71,
+   "monthRetRaw": 0.71,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511260",
+   "month": "2023-05",
+   "nav": 121.731,
+   "acc": 1.217,
+   "monthRet": 0.66,
+   "monthRetRaw": 0.66,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511260",
+   "month": "2023-06",
+   "nav": 122.307,
+   "acc": 1.223,
+   "monthRet": 0.47,
+   "monthRetRaw": 0.47,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511260",
+   "month": "2023-07",
+   "nav": 122.569,
+   "acc": 1.226,
+   "monthRet": 0.21,
+   "monthRetRaw": 0.21,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511260",
+   "month": "2023-08",
+   "nav": 123.477,
+   "acc": 1.235,
+   "monthRet": 0.74,
+   "monthRetRaw": 0.74,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511260",
+   "month": "2023-09",
+   "nav": 122.709,
+   "acc": 1.227,
+   "monthRet": -0.62,
+   "monthRetRaw": -0.62,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511260",
+   "month": "2023-10",
+   "nav": 123.154,
+   "acc": 1.232,
+   "monthRet": 0.36,
+   "monthRetRaw": 0.36,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511260",
+   "month": "2023-11",
+   "nav": 123.449,
+   "acc": 1.234,
+   "monthRet": 0.24,
+   "monthRetRaw": 0.24,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511260",
+   "month": "2023-12",
+   "nav": 124.545,
+   "acc": 1.245,
+   "monthRet": 0.89,
+   "monthRetRaw": 0.89,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511260",
+   "month": "2024-01",
+   "nav": 125.8,
+   "acc": 1.258,
+   "monthRet": 1.01,
+   "monthRetRaw": 1.01,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511260",
+   "month": "2024-02",
+   "nav": 126.699,
+   "acc": 1.267,
+   "monthRet": 0.71,
+   "monthRetRaw": 0.71,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511260",
+   "month": "2024-03",
+   "nav": 126.97,
+   "acc": 1.27,
+   "monthRet": 0.21,
+   "monthRetRaw": 0.21,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511260",
+   "month": "2024-04",
+   "nav": 127.401,
+   "acc": 1.274,
+   "monthRet": 0.34,
+   "monthRetRaw": 0.34,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511260",
+   "month": "2024-05",
+   "nav": 127.828,
+   "acc": 1.278,
+   "monthRet": 0.34,
+   "monthRetRaw": 0.34,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511260",
+   "month": "2024-06",
+   "nav": 129.095,
+   "acc": 1.291,
+   "monthRet": 0.99,
+   "monthRetRaw": 0.99,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511260",
+   "month": "2024-07",
+   "nav": 130.346,
+   "acc": 1.303,
+   "monthRet": 0.97,
+   "monthRetRaw": 0.97,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511260",
+   "month": "2024-08",
+   "nav": 130.199,
+   "acc": 1.302,
+   "monthRet": -0.11,
+   "monthRetRaw": -0.11,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511260",
+   "month": "2024-09",
+   "nav": 130.337,
+   "acc": 1.303,
+   "monthRet": 0.11,
+   "monthRetRaw": 0.11,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511260",
+   "month": "2024-10",
+   "nav": 130.829,
+   "acc": 1.308,
+   "monthRet": 0.38,
+   "monthRetRaw": 0.38,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511260",
+   "month": "2024-11",
+   "nav": 132.303,
+   "acc": 1.323,
+   "monthRet": 1.13,
+   "monthRetRaw": 1.13,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511260",
+   "month": "2024-12",
+   "nav": 135.773,
+   "acc": 1.358,
+   "monthRet": 2.62,
+   "monthRetRaw": 2.62,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511260",
+   "month": "2025-01",
+   "nav": 136.411,
+   "acc": 1.364,
+   "monthRet": 0.47,
+   "monthRetRaw": 0.47,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511260",
+   "month": "2025-02",
+   "nav": 135.268,
+   "acc": 1.353,
+   "monthRet": -0.84,
+   "monthRetRaw": -0.84,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511260",
+   "month": "2025-03",
+   "nav": 134.625,
+   "acc": 1.346,
+   "monthRet": -0.48,
+   "monthRetRaw": -0.48,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511260",
+   "month": "2025-04",
+   "nav": 136.515,
+   "acc": 1.365,
+   "monthRet": 1.4,
+   "monthRetRaw": 1.4,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511260",
+   "month": "2025-05",
+   "nav": 136.238,
+   "acc": 1.362,
+   "monthRet": -0.2,
+   "monthRetRaw": -0.2,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511260",
+   "month": "2025-06",
+   "nav": 136.684,
+   "acc": 1.367,
+   "monthRet": 0.33,
+   "monthRetRaw": 0.33,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511260",
+   "month": "2025-07",
+   "nav": 136.32,
+   "acc": 1.363,
+   "monthRet": -0.27,
+   "monthRetRaw": -0.27,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511260",
+   "month": "2025-08",
+   "nav": 135.704,
+   "acc": 1.357,
+   "monthRet": -0.45,
+   "monthRetRaw": -0.45,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511260",
+   "month": "2025-09",
+   "nav": 134.412,
+   "acc": 1.358,
+   "monthRet": -0.95,
+   "monthRetRaw": -0.95,
+   "note": "本月含分红/拆分：2025-09-23 每10份派现金13.6000元",
+   "src": "em+sina"
+  },
+  {
+   "code": "511260",
+   "month": "2025-10",
+   "nav": 135.339,
+   "acc": 1.367,
+   "monthRet": 0.69,
+   "monthRetRaw": 0.69,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511260",
+   "month": "2025-11",
+   "nav": 134.982,
+   "acc": 1.363,
+   "monthRet": -0.26,
+   "monthRetRaw": -0.26,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511260",
+   "month": "2025-12",
+   "nav": 134.113,
+   "acc": 1.363,
+   "monthRet": -0.64,
+   "monthRetRaw": -0.64,
+   "note": "本月含分红/拆分：2025-12-26 每10份派现金8.3300元",
+   "src": "em+sina"
+  },
+  {
+   "code": "511260",
+   "month": "2026-01",
+   "nav": 134.875,
+   "acc": 1.371,
+   "monthRet": 0.57,
+   "monthRetRaw": 0.57,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511260",
+   "month": "2026-02",
+   "nav": 135.084,
+   "acc": 1.373,
+   "monthRet": 0.15,
+   "monthRetRaw": 0.15,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511260",
+   "month": "2026-03",
+   "nav": 134.563,
+   "acc": 1.374,
+   "monthRet": -0.39,
+   "monthRetRaw": -0.39,
+   "note": "本月含分红/拆分：2026-03-25 每10份派现金6.7110元",
+   "src": "em+sina"
+  },
+  {
+   "code": "511260",
+   "month": "2026-04",
+   "nav": 135.266,
+   "acc": 1.381,
+   "monthRet": 0.52,
+   "monthRetRaw": 0.52,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511260",
+   "month": "2026-05",
+   "nav": 135.998,
+   "acc": 1.389,
+   "monthRet": 0.54,
+   "monthRetRaw": 0.54,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511260",
+   "month": "2026-06",
+   "nav": 134.864,
+   "acc": 1.39,
+   "monthRet": -0.83,
+   "monthRetRaw": -0.83,
+   "note": "本月含分红/拆分：2026-06-25 每10份派现金12.6860元",
+   "src": "em+sina"
+  },
+  {
+   "code": "511260",
+   "month": "2026-07",
+   "nav": 135.406,
+   "acc": 1.395,
+   "monthRet": 0.4,
+   "monthRetRaw": 0.4,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511260",
+   "month": "2026-08",
+   "nav": 135.716,
+   "acc": 1.398,
+   "monthRet": 0.23,
+   "monthRetRaw": 0.23,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511260",
+   "month": "2026-09",
+   "nav": 134.743,
+   "acc": 1.402,
+   "monthRet": -0.72,
+   "monthRetRaw": -0.72,
+   "note": "本月含分红/拆分：2026-09-18 每10份派现金12.7470元",
+   "src": "em+sina"
+  },
+  {
+   "code": "511360",
+   "month": "2020-08",
+   "nav": 100.0832,
+   "acc": 1.0008,
+   "monthRet": null,
+   "monthRetRaw": null,
+   "note": "该月发生净值断裂（份额折算/转型），单位净值跨断裂不可比，月涨跌幅不计算",
+   "src": "em+sina",
+   "navReset": true
+  },
+  {
+   "code": "511360",
+   "month": "2020-09",
+   "nav": 100.3079,
+   "acc": 1.0031,
+   "monthRet": 0.22,
+   "monthRetRaw": 0.22,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511360",
+   "month": "2020-10",
+   "nav": 100.5074,
+   "acc": 1.0051,
+   "monthRet": 0.2,
+   "monthRetRaw": 0.2,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511360",
+   "month": "2020-11",
+   "nav": 100.6721,
+   "acc": 1.0067,
+   "monthRet": 0.16,
+   "monthRetRaw": 0.16,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511360",
+   "month": "2020-12",
+   "nav": 101.0735,
+   "acc": 1.0107,
+   "monthRet": 0.4,
+   "monthRetRaw": 0.4,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511360",
+   "month": "2021-01",
+   "nav": 101.1439,
+   "acc": 1.0114,
+   "monthRet": 0.07,
+   "monthRetRaw": 0.07,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511360",
+   "month": "2021-02",
+   "nav": 101.4382,
+   "acc": 1.0144,
+   "monthRet": 0.29,
+   "monthRetRaw": 0.29,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511360",
+   "month": "2021-03",
+   "nav": 101.7244,
+   "acc": 1.0172,
+   "monthRet": 0.28,
+   "monthRetRaw": 0.28,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511360",
+   "month": "2021-04",
+   "nav": 102.0069,
+   "acc": 1.0201,
+   "monthRet": 0.28,
+   "monthRetRaw": 0.28,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511360",
+   "month": "2021-05",
+   "nav": 102.2829,
+   "acc": 1.0228,
+   "monthRet": 0.27,
+   "monthRetRaw": 0.27,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511360",
+   "month": "2021-06",
+   "nav": 102.4501,
+   "acc": 1.0245,
+   "monthRet": 0.16,
+   "monthRetRaw": 0.16,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511360",
+   "month": "2021-07",
+   "nav": 102.8109,
+   "acc": 1.0281,
+   "monthRet": 0.35,
+   "monthRetRaw": 0.35,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511360",
+   "month": "2021-08",
+   "nav": 103.0459,
+   "acc": 1.0305,
+   "monthRet": 0.23,
+   "monthRetRaw": 0.23,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511360",
+   "month": "2021-09",
+   "nav": 103.215,
+   "acc": 1.0322,
+   "monthRet": 0.16,
+   "monthRetRaw": 0.16,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511360",
+   "month": "2021-10",
+   "nav": 103.4172,
+   "acc": 1.0342,
+   "monthRet": 0.2,
+   "monthRetRaw": 0.2,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511360",
+   "month": "2021-11",
+   "nav": 103.6825,
+   "acc": 1.0368,
+   "monthRet": 0.26,
+   "monthRetRaw": 0.26,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511360",
+   "month": "2021-12",
+   "nav": 103.9258,
+   "acc": 1.0393,
+   "monthRet": 0.23,
+   "monthRetRaw": 0.23,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511360",
+   "month": "2022-01",
+   "nav": 104.1823,
+   "acc": 1.0418,
+   "monthRet": 0.25,
+   "monthRetRaw": 0.25,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511360",
+   "month": "2022-02",
+   "nav": 104.3832,
+   "acc": 1.0438,
+   "monthRet": 0.19,
+   "monthRetRaw": 0.19,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511360",
+   "month": "2022-03",
+   "nav": 104.5426,
+   "acc": 1.0454,
+   "monthRet": 0.15,
+   "monthRetRaw": 0.15,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511360",
+   "month": "2022-04",
+   "nav": 104.8529,
+   "acc": 1.0485,
+   "monthRet": 0.3,
+   "monthRetRaw": 0.3,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511360",
+   "month": "2022-05",
+   "nav": 105.1212,
+   "acc": 1.0512,
+   "monthRet": 0.26,
+   "monthRetRaw": 0.26,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511360",
+   "month": "2022-06",
+   "nav": 105.2777,
+   "acc": 1.0528,
+   "monthRet": 0.15,
+   "monthRetRaw": 0.15,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511360",
+   "month": "2022-07",
+   "nav": 105.5248,
+   "acc": 1.0552,
+   "monthRet": 0.23,
+   "monthRetRaw": 0.23,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511360",
+   "month": "2022-08",
+   "nav": 105.7012,
+   "acc": 1.057,
+   "monthRet": 0.17,
+   "monthRetRaw": 0.17,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511360",
+   "month": "2022-09",
+   "nav": 105.8007,
+   "acc": 1.058,
+   "monthRet": 0.09,
+   "monthRetRaw": 0.09,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511360",
+   "month": "2022-10",
+   "nav": 105.9566,
+   "acc": 1.0596,
+   "monthRet": 0.15,
+   "monthRetRaw": 0.15,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511360",
+   "month": "2022-11",
+   "nav": 105.9696,
+   "acc": 1.0597,
+   "monthRet": 0.01,
+   "monthRetRaw": 0.01,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511360",
+   "month": "2022-12",
+   "nav": 106.1534,
+   "acc": 1.0615,
+   "monthRet": 0.17,
+   "monthRetRaw": 0.17,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511360",
+   "month": "2023-01",
+   "nav": 106.4044,
+   "acc": 1.064,
+   "monthRet": 0.24,
+   "monthRetRaw": 0.24,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511360",
+   "month": "2023-02",
+   "nav": 106.5572,
+   "acc": 1.0656,
+   "monthRet": 0.14,
+   "monthRetRaw": 0.14,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511360",
+   "month": "2023-03",
+   "nav": 106.7981,
+   "acc": 1.068,
+   "monthRet": 0.23,
+   "monthRetRaw": 0.23,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511360",
+   "month": "2023-04",
+   "nav": 107.0245,
+   "acc": 1.0702,
+   "monthRet": 0.21,
+   "monthRetRaw": 0.21,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511360",
+   "month": "2023-05",
+   "nav": 107.3262,
+   "acc": 1.0733,
+   "monthRet": 0.28,
+   "monthRetRaw": 0.28,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511360",
+   "month": "2023-06",
+   "nav": 107.5038,
+   "acc": 1.075,
+   "monthRet": 0.17,
+   "monthRetRaw": 0.17,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511360",
+   "month": "2023-07",
+   "nav": 107.7302,
+   "acc": 1.0773,
+   "monthRet": 0.21,
+   "monthRetRaw": 0.21,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511360",
+   "month": "2023-08",
+   "nav": 107.9216,
+   "acc": 1.0792,
+   "monthRet": 0.18,
+   "monthRetRaw": 0.18,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511360",
+   "month": "2023-09",
+   "nav": 108.0107,
+   "acc": 1.0801,
+   "monthRet": 0.08,
+   "monthRetRaw": 0.08,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511360",
+   "month": "2023-10",
+   "nav": 108.2005,
+   "acc": 1.082,
+   "monthRet": 0.18,
+   "monthRetRaw": 0.18,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511360",
+   "month": "2023-11",
+   "nav": 108.3843,
+   "acc": 1.0838,
+   "monthRet": 0.17,
+   "monthRetRaw": 0.17,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511360",
+   "month": "2023-12",
+   "nav": 108.7016,
+   "acc": 1.087,
+   "monthRet": 0.29,
+   "monthRetRaw": 0.29,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511360",
+   "month": "2024-01",
+   "nav": 108.9396,
+   "acc": 1.0894,
+   "monthRet": 0.22,
+   "monthRetRaw": 0.22,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511360",
+   "month": "2024-02",
+   "nav": 109.2003,
+   "acc": 1.092,
+   "monthRet": 0.24,
+   "monthRetRaw": 0.24,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511360",
+   "month": "2024-03",
+   "nav": 109.3784,
+   "acc": 1.0938,
+   "monthRet": 0.16,
+   "monthRetRaw": 0.16,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511360",
+   "month": "2024-04",
+   "nav": 109.6283,
+   "acc": 1.0963,
+   "monthRet": 0.23,
+   "monthRetRaw": 0.23,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511360",
+   "month": "2024-05",
+   "nav": 109.8379,
+   "acc": 1.0984,
+   "monthRet": 0.19,
+   "monthRetRaw": 0.19,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511360",
+   "month": "2024-06",
+   "nav": 110.0198,
+   "acc": 1.1002,
+   "monthRet": 0.17,
+   "monthRetRaw": 0.17,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511360",
+   "month": "2024-07",
+   "nav": 110.2087,
+   "acc": 1.1021,
+   "monthRet": 0.17,
+   "monthRetRaw": 0.17,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511360",
+   "month": "2024-08",
+   "nav": 110.3236,
+   "acc": 1.1032,
+   "monthRet": 0.1,
+   "monthRetRaw": 0.1,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511360",
+   "month": "2024-09",
+   "nav": 110.4474,
+   "acc": 1.1045,
+   "monthRet": 0.11,
+   "monthRetRaw": 0.11,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511360",
+   "month": "2024-10",
+   "nav": 110.664,
+   "acc": 1.1066,
+   "monthRet": 0.2,
+   "monthRetRaw": 0.2,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511360",
+   "month": "2024-11",
+   "nav": 110.871,
+   "acc": 1.1087,
+   "monthRet": 0.19,
+   "monthRetRaw": 0.19,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511360",
+   "month": "2024-12",
+   "nav": 111.1214,
+   "acc": 1.1112,
+   "monthRet": 0.23,
+   "monthRetRaw": 0.23,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511360",
+   "month": "2025-01",
+   "nav": 111.1713,
+   "acc": 1.1117,
+   "monthRet": 0.04,
+   "monthRetRaw": 0.04,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511360",
+   "month": "2025-02",
+   "nav": 111.2304,
+   "acc": 1.1123,
+   "monthRet": 0.05,
+   "monthRetRaw": 0.05,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511360",
+   "month": "2025-03",
+   "nav": 111.4753,
+   "acc": 1.1148,
+   "monthRet": 0.22,
+   "monthRetRaw": 0.22,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511360",
+   "month": "2025-04",
+   "nav": 111.6765,
+   "acc": 1.1168,
+   "monthRet": 0.18,
+   "monthRetRaw": 0.18,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511360",
+   "month": "2025-05",
+   "nav": 111.8351,
+   "acc": 1.1184,
+   "monthRet": 0.14,
+   "monthRetRaw": 0.14,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511360",
+   "month": "2025-06",
+   "nav": 111.9863,
+   "acc": 1.1199,
+   "monthRet": 0.14,
+   "monthRetRaw": 0.14,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511360",
+   "month": "2025-07",
+   "nav": 112.1314,
+   "acc": 1.1213,
+   "monthRet": 0.13,
+   "monthRetRaw": 0.13,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511360",
+   "month": "2025-08",
+   "nav": 112.2663,
+   "acc": 1.1227,
+   "monthRet": 0.12,
+   "monthRetRaw": 0.12,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511360",
+   "month": "2025-09",
+   "nav": 112.3964,
+   "acc": 1.124,
+   "monthRet": 0.12,
+   "monthRetRaw": 0.12,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511360",
+   "month": "2025-10",
+   "nav": 112.5588,
+   "acc": 1.1256,
+   "monthRet": 0.14,
+   "monthRetRaw": 0.14,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511360",
+   "month": "2025-11",
+   "nav": 112.6725,
+   "acc": 1.1267,
+   "monthRet": 0.1,
+   "monthRetRaw": 0.1,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511360",
+   "month": "2025-12",
+   "nav": 112.8354,
+   "acc": 1.1284,
+   "monthRet": 0.14,
+   "monthRetRaw": 0.14,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511360",
+   "month": "2026-01",
+   "nav": 112.9648,
+   "acc": 1.1296,
+   "monthRet": 0.11,
+   "monthRetRaw": 0.11,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511360",
+   "month": "2026-02",
+   "nav": 113.093,
+   "acc": 1.1309,
+   "monthRet": 0.11,
+   "monthRetRaw": 0.11,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511360",
+   "month": "2026-03",
+   "nav": 113.2619,
+   "acc": 1.1326,
+   "monthRet": 0.15,
+   "monthRetRaw": 0.15,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511360",
+   "month": "2026-04",
+   "nav": 113.4046,
+   "acc": 1.134,
+   "monthRet": 0.13,
+   "monthRetRaw": 0.13,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511360",
+   "month": "2026-05",
+   "nav": 113.5239,
+   "acc": 1.1352,
+   "monthRet": 0.11,
+   "monthRetRaw": 0.11,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511360",
+   "month": "2026-06",
+   "nav": 113.6306,
+   "acc": 1.1363,
+   "monthRet": 0.09,
+   "monthRetRaw": 0.09,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511360",
+   "month": "2026-07",
+   "nav": 113.7481,
+   "acc": 1.1375,
+   "monthRet": 0.1,
+   "monthRetRaw": 0.1,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511360",
+   "month": "2026-08",
+   "nav": 113.8696,
+   "acc": 1.1387,
+   "monthRet": 0.11,
+   "monthRetRaw": 0.11,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "511360",
+   "month": "2026-09",
+   "nav": 113.9429,
+   "acc": 1.1394,
+   "monthRet": 0.06,
+   "monthRetRaw": 0.06,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "563360",
+   "month": "2024-10",
+   "nav": 1.0102,
+   "acc": 1.0102,
+   "monthRet": null,
+   "monthRetRaw": null,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "563360",
+   "month": "2024-11",
+   "nav": 1.0112,
+   "acc": 1.0112,
+   "monthRet": 0.1,
+   "monthRetRaw": 0.1,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "563360",
+   "month": "2024-12",
+   "nav": 1.0094,
+   "acc": 1.0094,
+   "monthRet": -0.18,
+   "monthRetRaw": -0.18,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "563360",
+   "month": "2025-01",
+   "nav": 0.9826,
+   "acc": 0.9826,
+   "monthRet": -2.66,
+   "monthRetRaw": -2.66,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "563360",
+   "month": "2025-02",
+   "nav": 1.0101,
+   "acc": 1.0101,
+   "monthRet": 2.8,
+   "monthRetRaw": 2.8,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "563360",
+   "month": "2025-03",
+   "nav": 1.0068,
+   "acc": 1.0068,
+   "monthRet": -0.33,
+   "monthRetRaw": -0.33,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "563360",
+   "month": "2025-04",
+   "nav": 0.9737,
+   "acc": 0.9737,
+   "monthRet": -3.29,
+   "monthRetRaw": -3.29,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "563360",
+   "month": "2025-05",
+   "nav": 0.9903,
+   "acc": 0.9903,
+   "monthRet": 1.7,
+   "monthRetRaw": 1.7,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "563360",
+   "month": "2025-06",
+   "nav": 1.025,
+   "acc": 1.025,
+   "monthRet": 3.5,
+   "monthRetRaw": 3.5,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "563360",
+   "month": "2025-07",
+   "nav": 1.0709,
+   "acc": 1.0709,
+   "monthRet": 4.48,
+   "monthRetRaw": 4.48,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "563360",
+   "month": "2025-08",
+   "nav": 1.1962,
+   "acc": 1.1962,
+   "monthRet": 11.7,
+   "monthRetRaw": 11.7,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "563360",
+   "month": "2025-09",
+   "nav": 1.2518,
+   "acc": 1.2518,
+   "monthRet": 4.65,
+   "monthRetRaw": 4.65,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "563360",
+   "month": "2025-10",
+   "nav": 1.2455,
+   "acc": 1.2455,
+   "monthRet": -0.5,
+   "monthRetRaw": -0.5,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "563360",
+   "month": "2025-11",
+   "nav": 1.2141,
+   "acc": 1.2141,
+   "monthRet": -2.52,
+   "monthRetRaw": -2.52,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "563360",
+   "month": "2025-12",
+   "nav": 1.2605,
+   "acc": 1.2605,
+   "monthRet": 3.82,
+   "monthRetRaw": 3.82,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "563360",
+   "month": "2026-01",
+   "nav": 1.3178,
+   "acc": 1.3178,
+   "monthRet": 4.55,
+   "monthRetRaw": 4.55,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "563360",
+   "month": "2026-02",
+   "nav": 1.3332,
+   "acc": 1.3332,
+   "monthRet": 1.17,
+   "monthRetRaw": 1.17,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "563360",
+   "month": "2026-03",
+   "nav": 1.2351,
+   "acc": 1.2351,
+   "monthRet": -7.36,
+   "monthRetRaw": -7.36,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "563360",
+   "month": "2026-04",
+   "nav": 1.3463,
+   "acc": 1.3463,
+   "monthRet": 9.0,
+   "monthRetRaw": 9.0,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "563360",
+   "month": "2026-05",
+   "nav": 1.3663,
+   "acc": 1.3663,
+   "monthRet": 1.49,
+   "monthRetRaw": 1.49,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "563360",
+   "month": "2026-06",
+   "nav": 1.4189,
+   "acc": 1.4189,
+   "monthRet": 3.85,
+   "monthRetRaw": 3.85,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "563360",
+   "month": "2026-07",
+   "nav": 1.2701,
+   "acc": 1.2701,
+   "monthRet": -10.49,
+   "monthRetRaw": -10.49,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "563360",
+   "month": "2026-08",
+   "nav": 1.2941,
+   "acc": 1.2941,
+   "monthRet": 1.89,
+   "monthRetRaw": 1.89,
+   "note": "",
+   "src": "em+sina"
+  },
+  {
+   "code": "563360",
+   "month": "2026-09",
+   "nav": 1.2629,
+   "acc": 1.2629,
+   "monthRet": -2.41,
+   "monthRetRaw": -2.41,
    "note": "",
    "src": "em+sina"
   }
