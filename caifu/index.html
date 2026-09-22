@@ -1097,7 +1097,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
     <header data-page-node-id="LTmXZMx9u9SSUCdmIULsWP" class="topbar">
       <div data-page-node-id="OCbO4qj8OGWrlL8O9vSOGV" class="tb-l">
         <h1 data-page-node-id="u7eGr0dqjmdKvmtYBvU1Y3" id="viewTitle"><!--pnid:6dUpg8sqnP30yHbd9NFeMS-->我的持仓</h1>
-        <span data-page-node-id="kQSNjMTlENeJHiUv77QZ0m" class="sub" id="viewSub"><!--pnid:t4TM4hkGyv1skzQ3lVNMa9-->在线持仓数据表 · 支持新增 / 修改 / 删除</span>
+        <span data-page-node-id="kQSNjMTlENeJHiUv77QZ0m" class="sub" id="viewSub"><!--pnid:t4TM4hkGyv1skzQ3lVNMa9-->在线持仓数据表 · 支持新增 / 修改 / 删除 · 未登录时改动存本机草稿</span>
       </div>
       <div data-page-node-id="h9l3ThyKY61ZHbgFixPybo" class="tb-r">
         <span data-page-node-id="k6xk51S2XYhH7Yym55bsoY" class="badge" id="sessionBadge"><!--pnid:ERCOkCkuYt25aYqiwHux30-->—</span>
@@ -1475,6 +1475,8 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
       #view-macro .mc-meta{display:flex;flex-wrap:wrap;align-items:baseline;gap:var(--sp-8);margin:0 0 10px;padding:6px 10px;background:var(--panel-2);border:1px solid var(--line);border-radius:var(--r-6);font-size:var(--fs-sm);color:var(--muted);line-height:1.6}
       #view-macro .mc-meta b{color:var(--text-2)}
       #view-macro .mc-meta .mc-lag{color:var(--warn)}
+      /* v177 fw2_v177_stale_warn：全站快照新鲜度警示（死规则②延伸：超阈值要显眼） */
+      .stale-warn{color:var(--warn);margin-left:4px}
       #view-macro .mc-pbar.mc-pbar-lg{width:120px;height:8px}
       #view-macro .mc-pbar.mc-pbar-lg i{height:8px}
       @media (max-width:640px){
@@ -1941,6 +1943,23 @@ var Fr={},Gr={};var Wr,Hr=function(){function t(t,e,n){var i=this;this._sleepAft
 
 </script>
 <script data-page-node-id="fTuvCob0TT2GKsFNs6IepY" data-pnid-children="zt00aZrz3S7rvliyIXVPTI">
+/* v177 fw2_v177_stale_warn：全站快照新鲜度警示。判据与 _mcLagDays 同源，只认 YYYY-MM-DD 前缀；
+   staleWarn=HTML span（innerHTML 场景），staleTxt=纯文本（textContent 场景）。 */
+window.staleLagDays = function (dstr) {
+  var s = String(dstr || '');
+  if (!/^\d{4}-\d{2}-\d{2}/.test(s)) return null;
+  var d = Date.parse(s.slice(0, 10) + 'T00:00:00');
+  return isFinite(d) ? Math.floor((Date.now() - d) / 86400000) : null;
+};
+window.staleWarn = function (dstr, threshold, label) {
+  var L = window.staleLagDays(dstr);
+  return (L != null && L >= threshold) ? '<span class="stale-warn">⚠ 已滞后 ' + L + ' 天' + (label ? '（' + label + '）' : '') + '</span>' : '';
+};
+window.staleTxt = function (dstr, threshold, label) {
+  var L = window.staleLagDays(dstr);
+  return (L != null && L >= threshold) ? '（⚠ 已滞后 ' + L + ' 天' + (label ? '·' + label : '') + '）' : '';
+};
+
 /* ==========================================================================
  * 基金重仓权重 · 季度快照（v26）
  * 背景：天天基金 F10 季报接口 FundArchivesDatas.aspx 有 Referer 防盗链，浏览器直取不到；
@@ -3276,7 +3295,7 @@ window.HS_name = function (code) {
     const tempTag = (p) => p >= 80 ? '偏贵' : p >= 60 ? '中性偏暖' : p >= 40 ? '中性' : p >= 20 ? '中性偏冷' : '便宜';
     const t3 = (k, label) => { const p = px(k); return label + (p == null ? ' —' : ' ' + p + '%（' + tempTag(p) + '）'); };
     const banner = [];
-    banner.push('<b>估值温度</b>（理杏仁 ' + ((d300 || {}).date || snap.updatedAt || '') + '）｜' + t3('000300', 'A股 沪深300') + '｜港股 ' + (hsi != null ? '恒生 ' + hsi + '%' : '恒生 —') + ' · ' + (htx != null ? '恒科 ' + htx + '%' : '恒科 —') + '｜' + t3('.INX', '美股 标普500'));
+    banner.push('<b>估值温度</b>（理杏仁 ' + ((d300 || {}).date || snap.updatedAt || '') + '）' + staleWarn((d300 || {}).date || snap.updatedAt, 5, '理杏仁快照') + '｜' + t3('000300', 'A股 沪深300') + '｜港股 ' + (hsi != null ? '恒生 ' + hsi + '%' : '恒生 —') + ' · ' + (htx != null ? '恒科 ' + htx + '%' : '恒科 —') + '｜' + t3('.INX', '美股 标普500'));
     if (amtYi != null && amtYi > 0 && m2v) {
       const tw = amtYi / 1e4, pct8 = (tw / m2v) * 100;
       const tag7 = tw >= 3 ? '≥3万亿 过热区' : tw >= 2 ? '正常区' : tw >= 1.5 ? '关注入场点' : '网格定投区';
@@ -3433,6 +3452,12 @@ function loadStore() {
   try { state.settings = Object.assign({}, DEFAULT_SETTINGS, JSON.parse(localStorage.getItem(LS.settings) || '{}')); } catch (e) {}
   state.settings.fx = Object.assign({}, DEFAULT_SETTINGS.fx, state.settings.fx || {});
   state.portfolio = []; // 持仓改由资料库数据表异步加载
+  /* v177 fw2_v177_pf_draft：未登录（DB 不可用）时恢复本地草稿，编辑不再刷新即丢；
+     登录后 DB 加载成功会覆盖（DB 恒为权威源）。 */
+  try {
+    const _pf = JSON.parse(localStorage.getItem(LS.portfolio) || 'null');
+    if (Array.isArray(_pf) && _pf.length) { state.portfolio = _pf; state._pfSrc = 'local'; }
+  } catch (e) {}
   try {
     const w = JSON.parse(localStorage.getItem(LS.watchlist) || 'null');
     state.watchlist = Array.isArray(w) ? w : [];
@@ -3442,6 +3467,7 @@ function loadStore() {
 }
 function saveStore() {
   localStorage.setItem(LS.settings, JSON.stringify(state.settings));
+  localStorage.setItem(LS.portfolio, JSON.stringify(state.portfolio || [])); /* v177 fw2_v177_pf_draft 未登录时本地草稿 */
   if (window.__LK_DB__ && window.__LK_DB__.ready()) window.__LK_DB__.syncHoldings(state.portfolio);
   localStorage.setItem(LS.watchlist, JSON.stringify(state.watchlist));
   localStorage.setItem(LS.sectors, JSON.stringify(state.sectors));
@@ -3466,6 +3492,7 @@ function applySeed(j, tag) {
     };
   }).filter(function (h) { return h.code && h.qty > 0; });
   if (!list.length) return false;
+  if (state._pfSrc === 'local') return false; /* v177 fw2_v177_pf_draft：本地草稿优先于种子（DB 仍恒为权威源） */
   state.portfolio = list;
   state._pfSrc = 'seed-' + tag;
   state._pfAt = (j && j.syncedAt) ? String(j.syncedAt) : '';
@@ -3497,7 +3524,7 @@ function renderPfSrcNote() {
   el.style.color = (state._pfSrc === 'DB') ? 'var(--muted)' : '#b45309';
 }
 async function loadPortfolioFromDB() {
-  state._pfSrc = ''; state._pfAt = '';
+  if (state._pfSrc !== 'local') { state._pfSrc = ''; state._pfAt = ''; } /* v177 fw2_v177_pf_draft：本地草稿在 DB 命中前不被种子冲掉 */
   /* ① 内嵌种子：0 网络依赖，毫秒级落地，先把画面填上（免登录端不再空 8s） */
   applySeed(window.HOLDINGS_SEED, 'inline');
   /* ② 旁挂快照：比内嵌更新时覆盖 */
@@ -4609,7 +4636,7 @@ const DISCIPLINE_CFG = {
   bond: { label: '债券', min: 25, max: 35, by: 'asset', at: 'bond' },
   gold: { label: '黄金', min: 15, max: null, by: 'asset', at: 'gold' },
   ai: { label: 'AI 科技', min: null, max: 15, by: 're', re: /AI|人工智能/i },
-  cash: { label: '现金缓冲', min: 5, max: null, by: 'asset', at: 'cash' },
+  cash: { label: '现金缓冲', min: 5, max: null, by: 'asset', at: 'cash', pending: true }, /* v177：最小阈值待确认，降级不给红绿 */
 };
 const DISC_SINGLE_MAX = 25;
 const DISC_TOL = 5; /* 距阈值 5pct 内＝关注（琥珀），超出＝超线（红） */
@@ -4623,7 +4650,7 @@ const DISC_RISK_KEYS = [
   ['日经225', /日经\s*225|N225/i],
   ['黄金', /黄金|GOLD/i],
 ];
-const DISC_COLOR = { ok: '#16a34a', warn: '#d97706', bad: '#dc2626' };
+const DISC_COLOR = { ok: '#16a34a', warn: '#d97706', bad: '#dc2626', skip: '#6b7280' }; /* v177 skip=数据不全（中性灰） */
 function discGrade(w, rule) {
   if (rule.min != null && rule.max != null) {
     if (w >= rule.min && w <= rule.max) return 'ok';
@@ -4670,10 +4697,18 @@ function renderDiscipline(all) {
     var cfg = DISCIPLINE_CFG[k], w;
     if (cfg.by === 'asset') w = weightOf(function (r) { return r.assetType === cfg.at; });
     else w = weightOf(function (r) { return cfg.re.test(String(r.sector || '') + ' ' + String(r.name || '')); });
-    var g = discGrade(w, cfg), gap;
-    if (cfg.min != null && w < cfg.min) gap = '缺 ' + (cfg.min - w).toFixed(1) + 'pct';
-    else if (cfg.max != null && w > cfg.max) gap = '超 ' + (w - cfg.max).toFixed(1) + 'pct';
-    else gap = '在目标区间内';
+    /* v177 fw2_v177_disc_degrade：数据缺口降级——未登记的资产类按 0% 计只给中性灰结论，
+       不再输出红/绿（红绿会暗示「已核查」，实际分母缺整类）；阈值未确认项同理。 */
+    var hasData = (cfg.by !== 'asset') || rows.some(function (r) { return r.assetType === cfg.at; });
+    var g, gap;
+    if (!hasData) { g = 'skip'; gap = '数据不全（未登记，按 0% 计）'; }
+    else if (cfg.pending) { g = 'skip'; gap = '阈值待确认，暂不给红绿结论'; }
+    else {
+      g = discGrade(w, cfg);
+      if (cfg.min != null && w < cfg.min) gap = '缺 ' + (cfg.min - w).toFixed(1) + 'pct';
+      else if (cfg.max != null && w > cfg.max) gap = '超 ' + (w - cfg.max).toFixed(1) + 'pct';
+      else gap = '在目标区间内';
+    }
     tiles.push({ label: cfg.label, w: w, target: discTarget(cfg), g: g, gap: gap });
   });
   var top = null;
@@ -4700,8 +4735,13 @@ function renderDiscipline(all) {
       return k + ' ×' + groups[k].length + '（合计 ' + w.toFixed(1) + '%）';
     }).join('、') : '无同主题重复',
   });
-  var cnt = { ok: 0, warn: 0, bad: 0 };
+  var cnt = { ok: 0, warn: 0, bad: 0, skip: 0 };
   tiles.forEach(function (t) { cnt[t.g] += 1; });
+  /* v177 fw2_v177_disc_degrade：无行情只数过半 → 分母失真，整卡降级为中性参考 */
+  if (noPx * 2 > rows.length) {
+    tiles.forEach(function (t) { t.g = 'skip'; });
+    cnt = { ok: 0, warn: 0, bad: 0, skip: tiles.length };
+  }
   box.innerHTML = tiles.map(function (t) {
     var c = DISC_COLOR[t.g];
     return '<div class="disc-tile"><div class="disc-t"><span class="disc-dot" style="background:' + c + '"></span>' + esc(t.label) + '</div>'
@@ -4709,7 +4749,7 @@ function renderDiscipline(all) {
       + '<div class="disc-r">目标 ' + esc(t.target) + '</div>'
       + '<div class="disc-s" style="color:' + c + '">' + t.gap + '</div></div>';
   }).join('');
-  if (sumEl) sumEl.textContent = '达标 ' + cnt.ok + ' · 关注 ' + cnt.warn + ' · 超线 ' + cnt.bad
+  if (sumEl) sumEl.textContent = (cnt.skip ? '⚠ 数据不全，仅供参考 · ' : '') + '达标 ' + cnt.ok + ' · 关注 ' + cnt.warn + ' · 超线 ' + cnt.bad
     + '（权重口径＝持仓市值·折人民币' + (noPx ? '，其中 ' + noPx + '/' + rows.length + ' 只无行情按成本' : '') + '）';
   if (hintEl) {
     var miss = [];
@@ -5303,7 +5343,7 @@ function renderFundReport(panel, rs) {
   const hasWeight = q0.rows.some((r) => r.pct != null);
   const hsHint = hs2
     ? `真实季报（${esc(hs2.period)}，截止 ${esc(hs2.date)}）· 前十大合计 ${fmtNum(hs2.top10, 1)}% · 当期共 ${hs2.n} 只覆盖 ${fmtNum(hs2.total, 1)}%` +
-      (hs2.top10 > 60 ? ' · 超 60% 高度集中（M4，结合回撤警惕）' : '') + ` · 快照更新于 ${esc(hs2.updatedAt)}`
+      (hs2.top10 > 60 ? ' · 超 60% 高度集中（M4，结合回撤警惕）' : '') + ` · 快照更新于 ${esc(hs2.updatedAt)}${staleWarn(hs2.updatedAt, 30, '季报快照')}`
     : (hasWeight ? '前十大重仓占净值合计 ' + fmtNum(total, 1) + '%' + (total > 80 ? ' · 超 80% 极端集中（M4，结合回撤警惕）' : '') + ' · 来源天天基金季报'
       : '本基金暂无季报快照（可让小8补拉一期）· 下表仅列代码与名称');
   panel.innerHTML = `<div class="card">
@@ -6192,7 +6232,7 @@ function collectToNote(item) {
  *  路由与事件
  * ========================================================== */
 const VIEW_META = {
-  holdings: ['我的持仓', '在线持仓数据表 · 支持新增 / 修改 / 删除'],
+  holdings: ['我的持仓', '在线持仓数据表 · 支持新增 / 修改 / 删除 · 未登录时改动存本机草稿'],
   signal: ['交易信号', '信号仪表盘 · 杠铃失衡 · 持仓/自选/市场信号'],
   news: ['财经资讯', '五源聚合 · 去重 · 持仓相关性标记'],
   macro: ['宏观数据', '宏观指标与情绪判读 · 估值分位 · 利率汇率 · 成交额两融 · 日经'], /* fw2_v135_macro_view */
@@ -7633,7 +7673,7 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
      data/口径未变，不跑 push_macro_seed。verChip v147->v148
   */
   const vc = $('#verChip');
-  if (vc) vc.textContent = 'v176 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  if (vc) vc.textContent = 'v177 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
@@ -8115,7 +8155,7 @@ setInterval(updateSessionBadge, 30000);
       renderDcCaliber(d);
       loadDcBasic().then(function(){ if(FB_LOADED) renderDcOverview(); });
       updateDcFselUi(); renderDcFsel();
-      elText('dcMeta', d.meta.fundCount+' 只基金 · '+d.meta.monthCount+' 个月 · 截至 '+d.meta.asOf);
+      elText('dcMeta', d.meta.fundCount+' 只基金 · '+d.meta.monthCount+' 个月 · 截至 '+d.meta.asOf + staleTxt(d.meta.asOf, 5, '净值'));
     }
     /* v93 fw2_v93_drop_dc_head：标题区已删除，无需按分块设标题 */
   }
@@ -8811,7 +8851,7 @@ setInterval(updateSessionBadge, 30000);
     DC=d; DC_LOADED=true; renderDcCaliber(d);
     loadDcBasic(true).then(function(){ if(FB_LOADED) renderDcOverview(); });
     updateDcFselUi(); renderDcFsel();
-    elText('dcMeta', d.meta.fundCount+' 只基金 · '+d.meta.monthCount+' 个月 · 截至 '+d.meta.asOf);
+    elText('dcMeta', d.meta.fundCount+' 只基金 · '+d.meta.monthCount+' 个月 · 截至 '+d.meta.asOf + staleTxt(d.meta.asOf, 5, '净值'));
     var at=document.querySelector('.dc-tab.active');
     if(at && at.dataset.dc==='overview'){ if(FB_LOADED) renderDcOverview(); }
     else if(at && at.dataset.dc==='chart'){ ensureDcDaily(); renderDcChart(); }
@@ -9909,7 +9949,7 @@ function dlGoldCsv(name) {
 function renderGoldSrcNote(d) {
   var box = $('#gSrcNote'); if (!box) return;
   box.innerHTML = G(
-    '<b>数据来源：</b>伦敦金 / 美元指数为新浪财经实时行情；伦敦金日线（COMEX 期金主力连续 XAU）、标普500（FRED SP500）、30年期美债（FRED DGS30）、非农（FRED PAYEMS 水平值差分）由定时脚本抓取；央行购金为世界黄金协会（WGC）季度序列。<br><b>各序列数据截止（滞后不同，分别标注）：</b>' + goldCutoffLine(d) + '<br><b>文件生成时间：</b>' + esc(d.generated_at || '—') + '<br><span class="g-disc">免责声明：</span>本模块数据仅供个人研究与复盘参考，不构成任何投资建议；行情存在时延与口径差异，请以官方源为准。',
+    '<b>数据来源：</b>伦敦金 / 美元指数为新浪财经实时行情；伦敦金日线（COMEX 期金主力连续 XAU）、标普500（FRED SP500）、30年期美债（FRED DGS30）、非农（FRED PAYEMS 水平值差分）由定时脚本抓取；央行购金为世界黄金协会（WGC）季度序列。<br><b>各序列数据截止（滞后不同，分别标注）：</b>' + goldCutoffLine(d) + '<br><b>文件生成时间：</b>' + esc(d.generated_at || '—') + staleWarn(d.generated_at, 3, '文件生成') + '<br><span class="g-disc">免责声明：</span>本模块数据仅供个人研究与复盘参考，不构成任何投资建议；行情存在时延与口径差异，请以官方源为准。',
     '<b>Data source:</b> London gold / US dollar index from Sina Finance real-time quotes; 30Y Treasury yield and S&P 500 from FRED daily close (' + esc(d.generated_at || '—') + '); London gold daily, nonfarm and central-bank purchase series plus CSV payloads derive from reference sources (COMEX gold continuous / FRED DGS30 / FRED SP500 / FRED PAYEMS), cross-checked.<br><span class="g-disc">Disclaimer:</span> Data here is for personal research and review only, not investment advice; quotes carry latency and basis differences — defer to official sources.');
 }
 
