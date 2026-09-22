@@ -1762,6 +1762,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
         <div class="cb-data-cards">
           <div class="cb-data-card"><h4>导出备份</h4><p>把全部标的与流水导出为 JSON 文件，保存到本地。</p><div class="cb-ops"><button class="btn btn-primary btn-sm" id="cbExport">导出 JSON</button></div></div>
           <div class="cb-data-card"><h4>导入恢复</h4><p>从之前导出的 JSON 文件恢复数据，导入会覆盖当前数据。</p><div class="cb-ops"><button class="btn btn-sm" id="cbImport">导入 JSON</button><input type="file" id="cbImportFile" class="hidden" accept=".json,application/json"></div></div>
+          <div class="cb-data-card"><h4>云端镜像</h4><p>从已发布的只读镜像恢复（换设备或清缓存后可用）。镜像由本地脚本同步生成，非实时。</p><div class="cb-ops"><button class="btn btn-sm" id="cbCloudRestore">从云端恢复</button></div><p class="muted" id="cbCloudInfo" style="font-size:11px;margin:6px 0 0"></p></div>
           <div class="cb-data-card"><h4>加载示例数据</h4><p>载入一套演示数据（含在盘/清盘标的、买卖与分红流水）。示例非真实持仓。</p><div class="cb-ops"><button class="btn btn-sm" id="cbSample">加载示例</button></div></div>
           <div class="cb-data-card"><h4>清空全部</h4><p>删除本机保存的全部标的与交易数据，回到空白状态。不可撤销。</p><div class="cb-ops"><button class="btn btn-sm" id="cbClear">清空全部数据</button></div></div>
         </div>
@@ -7919,9 +7920,17 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
      maybeAutoSync 非空分支改为真自动同步（新增 + 净值刷新 + saveDB），且**不得调用 render()**
      （render() 内已调 maybeAutoSync，否则 render→sync→render 无限递归）；外部调用点改为先 sync 后 render。
      绝不删除台账任何条目。verChip v180->v181
+  v182 fw2_v182_capbal_cloud（2026-09-23）：台账同步进资料库（方案 A 离线镜像，用户拍板）。
+     ① 资料库新建三表：「资金平衡·标的」／「资金平衡·流水」／「资金平衡·概览」（id 存
+        _capbal_db_ids.json，已存在则复用，绝不重建）；写入走 curl batch-add-records，
+        字段值必须包类型壳 {字段:{'text':值}}（裸值会报 11607）。
+     ② 只读镜像 capital-balance.json（由 _capbal_lib_sync.py 生成）随代码轨发布到免登录入口。
+     ③ 页面：本地台账全空时（换设备/清缓存）自动从镜像恢复并标 cloudSrc；已有台账绝不覆盖；
+        数据管理页新增「云端镜像」卡片（披露镜像时间 + 手动「从云端恢复」按钮）。
+     ★页面绝不写回云端（免登录入口无资料库 SDK，也不应内嵌 token）。verChip v181->v182
   */
   const vc = $('#verChip');
-  if (vc) vc.textContent = 'v181 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  if (vc) vc.textContent = 'v182 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
@@ -11460,6 +11469,7 @@ function bindEvents() {
     toast("备份已导出");
   });
   b("cbImport", function () { const f = gid("cbImportFile"); if (f) f.click(); });
+  b("cbCloudRestore", function () { restoreFromMirror(); });
   const imp = gid("cbImportFile");
   if (imp) imp.onchange = function (e) {
     const file = e.target.files[0];
@@ -11499,9 +11509,75 @@ function bindEvents() {
 
 /* ================================================================
    启动（合并版：不自动显示视图，由工作台 showView 触发）
+   ================================================================ *//* ================================================================
+   v182 fw2_v182_capbal_cloud：云端只读镜像（方案 A 离线镜像）
+   镜像＝capital-balance.json，由 _capbal_lib_sync.py 生成并发布到免登录入口。
+   ★只读：页面绝不写回云端（免登录入口无资料库 SDK，也不应内嵌 token）。
+   ★不覆盖：本地已有台账时自动恢复不生效，只能手动点「从云端恢复」。
    ================================================================ */
+const MIRROR_URL = "capital-balance.json";
+let MIRROR = null;
+
+function fetchMirror(cb) {
+  fetch(MIRROR_URL + "?t=" + Date.now(), { cache: "no-store" })
+    .then(function (r) { return r.ok ? r.json() : null; })
+    .then(function (d) {
+      MIRROR = (d && Array.isArray(d.targets) && Array.isArray(d.tx)) ? d : null;
+      renderCloudInfo();
+      if (cb) cb(MIRROR);
+    })
+    .catch(function () { MIRROR = null; renderCloudInfo(); if (cb) cb(null); });
+}
+
+function renderCloudInfo() {
+  const el = gid("cbCloudInfo");
+  if (!el) return;
+  if (!MIRROR) { el.textContent = "云端镜像：不可用（离线或未发布）"; return; }
+  el.textContent = "云端镜像 " + (MIRROR.mirrorAt || "—") + " · 标的 "
+    + MIRROR.targets.length + " · 流水 " + MIRROR.tx.length;
+}
+
+function applyMirror() {
+  if (!MIRROR) return 0;
+  DB = { targets: MIRROR.targets, tx: MIRROR.tx,
+         liability: Number(MIRROR.liability) || 0, liabNote: MIRROR.liabNote || "",
+         updatedAt: MIRROR.updatedAt || new Date().toISOString(), cloudSrc: true };
+  saveDB();
+  return DB.targets.length;
+}
+
+/* 自动恢复：仅当本地台账全空（换设备 / 清缓存）时才生效，绝不覆盖已有数据 */
+function autoRestoreFromMirror() {
+  fetchMirror(function (m) {
+    if (!m) return;
+    if ((DB.targets && DB.targets.length) || (DB.tx && DB.tx.length)) return;
+    if (!m.targets.length && !m.tx.length) return;
+    applyMirror();
+    try { render(curView); } catch (e) {}
+    toast("已从云端镜像恢复：" + m.targets.length + " 个标的");
+  });
+}
+
+/* 手动恢复：用户点按钮，覆盖当前数据（与导入 JSON 同语义，先确认） */
+function restoreFromMirror() {
+  fetchMirror(function (m) {
+    if (!m) { toast("云端镜像不可用"); return; }
+    openModal("<p style='font-size:12.5px;color:var(--text-2);line-height:1.7'>将从云端镜像恢复 <b>"
+      + m.targets.length + "</b> 个标的、<b>" + m.tx.length + "</b> 条流水（镜像时间 "
+      + esc(m.mirrorAt || "—") + "）。<b>会覆盖当前数据</b>，确认继续？</p>", "从云端恢复");
+    gid("modalOk").onclick = function () {
+      applyMirror();
+      saveDB(); closeModal();
+      try { render(curView); } catch (e) {}
+      toast("已从云端镜像恢复");
+    };
+  });
+}
+
 loadDB();
 bindEvents();
+/* v182：本地台账全空时（换设备 / 清缓存）自动从云端只读镜像恢复 */
+autoRestoreFromMirror();
 /* 首次加载：capbal.js 在工作台启动代码之后执行，showView('capbal') 分支里的
    window.CAPBAL 调用会落空，这里补一次渲染；支持 ?tab= 直达子标签 */
 if (typeof state !== "undefined" && state && state.view === "capbal") {
