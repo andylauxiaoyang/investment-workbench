@@ -1053,6 +1053,119 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="理财工作台">
 <link rel="manifest" href="./manifest.webmanifest">
+<style>
+/* ============ 资金平衡模块 · 合并版（fw2_capbal_merge） ============ */
+/* ===== 资金平衡模块样式（合并版，cb- 前缀 + #view-capbal 容器限定，避免与工作台冲突）===== */
+#view-capbal .cb-kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(168px, 1fr)); gap: 10px; margin-bottom: 14px; }
+#view-capbal .cb-kpi { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 11px 13px; }
+#view-capbal .cb-kpi .k { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: .6px; }
+#view-capbal .cb-kpi .v { font-family: var(--mono); font-size: 19px; margin: 4px 0 2px; font-weight: 600; letter-spacing: -.3px; }
+#view-capbal .cb-kpi .d { font-family: var(--mono); font-size: 11px; }
+#view-capbal .cb-kpi .d .lbl { color: var(--muted); font-family: inherit; }
+
+#view-capbal .cb-panel { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); margin-bottom: 14px; }
+#view-capbal .cb-panel-head { display: flex; align-items: center; justify-content: space-between; padding: 9px 13px; border-bottom: 1px solid var(--line-2); gap: 8px; flex-wrap: wrap; }
+#view-capbal .cb-panel-head h3 { font-size: 12.5px; color: var(--text); }
+#view-capbal .cb-panel-head .tools { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+#view-capbal .cb-panel-body { padding: 12px 13px; }
+#view-capbal .cb-panel-body.cb-flush { padding: 0; }
+
+#view-capbal .cb-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+#view-capbal .cb-grid-2 .cb-panel { margin-bottom: 0; }
+@media (max-width: 980px) { #view-capbal .cb-grid-2 { grid-template-columns: 1fr; } }
+
+#view-capbal .cb-tbl-wrap { overflow-x: auto; }
+#view-capbal table.cb-tbl { width: 100%; border-collapse: collapse; table-layout: fixed; }
+#view-capbal .cb-tbl th, #view-capbal .cb-tbl td { padding: 7px 9px; border-bottom: 1px solid var(--line-2); text-align: left; vertical-align: middle; }
+#view-capbal .cb-tbl th { font-size: 10.5px; color: var(--muted); text-transform: uppercase; letter-spacing: .4px; background: var(--panel-2); font-weight: 600; white-space: nowrap; }
+#view-capbal .cb-tbl tbody tr:hover { background: var(--panel-2); }
+#view-capbal .cb-tbl tbody tr.cb-clickable { cursor: pointer; }
+#view-capbal .cb-tbl tr.cb-total-row td { background: var(--panel-2); font-weight: 600; border-top: 2px solid var(--line); }
+#view-capbal .cb-badge { display: inline-block; font-size: 10.5px; padding: 1px 7px; border-radius: 10px; font-weight: 600; white-space: nowrap; }
+#view-capbal .cb-badge.on { background: var(--down-soft); color: var(--down); }
+#view-capbal .cb-badge.off { background: var(--panel-3); color: var(--muted); }
+#view-capbal .cb-badge.cat { background: var(--brand-soft); color: var(--amber); }
+#view-capbal .cb-badge.liq { background: var(--up-soft); color: var(--up); }
+#view-capbal .cb-badge.wb { background: rgba(47, 107, 255, .12); color: #2f6bff; }
+
+#view-capbal .cb-filter-bar { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+#view-capbal .cb-seg { display: inline-flex; background: var(--panel-2); border: 1px solid var(--line); border-radius: 5px; overflow: hidden; }
+#view-capbal .cb-seg button { background: none; border: 0; padding: 4px 12px; font-size: 12px; color: var(--text-2); cursor: pointer; }
+#view-capbal .cb-seg button.active { background: var(--amber); color: #000; font-weight: 600; }
+
+#view-capbal .cb-sub-table { background: var(--panel-2); border-top: 1px solid var(--line); }
+#view-capbal .cb-sub-table .cb-tbl th { background: var(--panel-3); }
+#view-capbal .cb-sub-table td, #view-capbal .cb-sub-table th { padding: 5px 9px; font-size: 11.5px; }
+
+#view-capbal .cb-report-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 14px; }
+#view-capbal .cb-rpt { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); }
+#view-capbal .cb-rpt-head { padding: 9px 13px; border-bottom: 1px solid var(--line-2); display: flex; align-items: center; justify-content: space-between; }
+#view-capbal .cb-rpt-head h3 { font-size: 12.5px; }
+#view-capbal .cb-rpt-head .cb-rpt-period { font-family: var(--mono); font-size: 10.5px; color: var(--muted); }
+#view-capbal .cb-rpt-body { padding: 6px 13px 10px; }
+#view-capbal .cb-rpt-line { display: flex; justify-content: space-between; align-items: baseline; padding: 6px 0; border-bottom: 1px dashed var(--line-2); gap: 10px; }
+#view-capbal .cb-rpt-line .lab { color: var(--text-2); font-size: 12px; }
+#view-capbal .cb-rpt-line .lab .sub { color: var(--muted); font-size: 10.5px; margin-left: 6px; }
+#view-capbal .cb-rpt-line .val { font-family: var(--mono); font-size: 12.5px; text-align: right; white-space: nowrap; }
+#view-capbal .cb-rpt-line.indent .lab { padding-left: 18px; }
+#view-capbal .cb-rpt-line.total { border-bottom: 0; margin-top: 2px; }
+#view-capbal .cb-rpt-line.total .lab { font-weight: 700; color: var(--text); }
+#view-capbal .cb-rpt-line.total .val { font-size: 14px; font-weight: 700; }
+#view-capbal .cb-rpt-line.head { border-bottom: 2px solid var(--line); }
+#view-capbal .cb-rpt-line.head .lab { font-weight: 600; color: var(--text); text-transform: uppercase; font-size: 10.5px; letter-spacing: .5px; }
+#view-capbal .cb-rpt-line.head .val { font-weight: 600; }
+
+#view-capbal .cb-chart { width: 100%; }
+#view-capbal .cb-chart.cb-ch-md { height: 240px; }
+#view-capbal .cb-chart.cb-ch-sm { height: 190px; }
+
+#view-capbal .cb-modal-mask { position: fixed; inset: 0; background: rgba(15, 23, 42, .35); z-index: 60; display: flex; align-items: flex-start; justify-content: center; padding: 7vh 16px 16px; overflow-y: auto; }
+#view-capbal .cb-modal { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; width: 100%; max-width: 560px; box-shadow: var(--shadow); }
+#view-capbal .cb-modal-head { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; border-bottom: 1px solid var(--line); }
+#view-capbal .cb-modal-head h3 { font-size: 14px; }
+#view-capbal .cb-modal-head .x { background: none; border: 0; font-size: 18px; color: var(--muted); cursor: pointer; line-height: 1; padding: 2px 6px; }
+#view-capbal .cb-modal-head .x:hover { color: var(--text); }
+#view-capbal .cb-modal-body { padding: 14px 16px; max-height: 62vh; overflow-y: auto; }
+#view-capbal .cb-modal-foot { display: flex; justify-content: flex-end; gap: 8px; padding: 11px 16px; border-top: 1px solid var(--line); }
+
+#view-capbal .cb-frm { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 12px; }
+#view-capbal .cb-frm .full { grid-column: 1 / -1; }
+#view-capbal .cb-fld label { display: block; font-size: 11px; color: var(--text-2); margin-bottom: 3px; }
+#view-capbal .cb-fld .unit { color: var(--muted); font-size: 10.5px; margin-left: 4px; }
+#view-capbal .cb-fld input, #view-capbal .cb-fld select, #view-capbal .cb-fld textarea { width: 100%; border: 1px solid var(--line); border-radius: 5px; background: var(--panel); padding: 6px 9px; font-size: 12.5px; outline: none; }
+#view-capbal .cb-fld input:focus, #view-capbal .cb-fld select:focus, #view-capbal .cb-fld textarea:focus { border-color: var(--brand-line); }
+#view-capbal .cb-fld textarea { resize: vertical; min-height: 52px; }
+#view-capbal .cb-fld .hint { font-size: 10.5px; color: var(--muted); margin-top: 3px; }
+
+#view-capbal .cb-empty { text-align: center; padding: 34px 16px; color: var(--muted); }
+#view-capbal .cb-empty .big { font-size: 26px; color: var(--line); font-family: var(--mono); }
+#view-capbal .cb-empty .txt { margin-top: 8px; font-size: 12.5px; }
+#view-capbal .cb-empty .act { margin-top: 12px; }
+
+#view-capbal .cb-data-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
+#view-capbal .cb-data-card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px; }
+#view-capbal .cb-data-card h4 { font-size: 12.5px; margin-bottom: 5px; }
+#view-capbal .cb-data-card p { font-size: 11.5px; color: var(--text-2); margin: 0 0 10px; line-height: 1.6; }
+#view-capbal .cb-data-card .cb-ops { display: flex; gap: 6px; flex-wrap: wrap; }
+#view-capbal .cb-stat-line { display: flex; justify-content: space-between; font-size: 11.5px; padding: 4px 0; border-bottom: 1px dashed var(--line-2); }
+#view-capbal .cb-stat-line .k { color: var(--text-2); }
+#view-capbal .cb-stat-line .v { font-family: var(--mono); }
+#view-capbal .cb-btn-danger { color: var(--up); }
+#view-capbal .cb-btn-danger:hover { border-color: var(--up); }
+
+@media (max-width: 720px) {
+  #view-capbal .cb-frm { grid-template-columns: 1fr; }
+  #view-capbal .cb-kpis { grid-template-columns: repeat(2, 1fr); }
+  #view-capbal .cb-tbl-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  #view-capbal .cb-tbl-wrap table.cb-tbl { min-width: 720px; }
+}
+
+/* 资金平衡 toast（body 级 fixed，不限定 #view-capbal） */
+.cb-toast-box { position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%); z-index: 9999; display: flex; flex-direction: column; gap: 8px; align-items: center; pointer-events: none; }
+.cb-toast-item { background: rgba(16, 24, 40, .92); color: #fff; padding: 8px 16px; border-radius: 6px; font-size: 13px; opacity: 0; transform: translateY(8px); transition: opacity .2s, transform .2s; white-space: nowrap; }
+.cb-toast-item.show { opacity: 1; transform: translateY(0); }
+
+</style>
 </head>
 <body data-v36="fw2_signal_nav_v36" data-page-node-id="Um353RB63UZLORpUi14XtX">
 <div data-page-node-id="tkFeFFXLCNRluvpE1SlZ8z" class="app">
@@ -1072,7 +1185,9 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
       <button class="nav-item" data-view="macro"><span class="ic"></span>宏观数据</button>
       <button class="nav-item" data-view="gold"><span class="ic"></span>黄金研究</button><!-- fw2_v143_gold --><!-- fw2_v135_macro_view：宏观数据独立模块（用户 2026-09-18「宏观数据单独作为一个模块放在数据中心上面」） -->
       <button class="nav-item" data-view="data"><span class="ic"></span>基金数据<!--fw2_v120_strategy--></button>
-      <button class="nav-item" data-view="strategy"><span class="ic"></span>策略执行<!--fw2_v120_strategy--></button><!--fw2_v71_datacenter-->
+      <button class="nav-item" data-view="strategy"><span class="ic"></span>策略执行<!--fw2_v120_strategy--></button>
+      <button class="nav-item" data-view="capbal"><span class="ic">◫</span>资金平衡</button><!--fw2_capbal_merge--><!--fw2_v71_datacenter-->
+      <button class="nav-item" data-view="smartmoney"><span class="ic">◈</span>聪明的钱</button><!-- fw2_v179_smartmoney：独立的「聪明的钱」模块（iframe 内嵌 A股聪明钱工作台） -->
     </nav>
     <div data-page-node-id="NWwNSKf013miYG93pfpzol" class="side-foot">
       <div data-page-node-id="ftO6aqWRCbJJWBhMHmpotd" class="snap-box">
@@ -1568,7 +1683,109 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
         #view-data .dc-tbl th,#view-data .dc-tbl td{padding:4px 6px}
       }
     </style>
-  </main>
+        <section class="view" id="view-capbal">
+      <div class="toolbar" style="flex-wrap:wrap;gap:8px;align-items:center">
+        <div class="tools-l" style="max-width:100%">
+          <div class="tab-bar" style="margin-bottom:0;flex-wrap:wrap">
+            <span class="tab active" data-cbtab="overview">总览</span>
+            <span class="tab" data-cbtab="holdings">标的明细</span>
+            <span class="tab" data-cbtab="income">利润表</span>
+            <span class="tab" data-cbtab="balance">资产负债表</span>
+            <span class="tab" data-cbtab="cashflow">现金流量表</span>
+            <span class="tab" data-cbtab="data">数据管理</span>
+          </div>
+        </div>
+        <div class="tools-r" style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
+          <span class="muted" id="cbSyncInfo" style="font-size:11px"></span>
+          <button class="btn btn-sm" id="cbSync">同步持仓</button>
+          <button class="btn btn-sm" id="cbNavUpd">更新净值</button>
+          <button class="btn btn-primary btn-sm" id="cbAddTx">＋ 新增交易</button>
+        </div>
+      </div>
+
+      <div class="cb-pane" id="cbPane-overview">
+        <div class="cb-kpis" id="cbKpiRow"></div>
+        <div class="cb-grid-2">
+          <div class="cb-panel"><div class="cb-panel-head"><h3>资产分布 · 按标的类别</h3><span class="muted" style="font-size:11px">市值口径</span></div><div class="cb-panel-body"><div class="cb-chart cb-ch-md" id="cbChartAlloc"></div></div></div>
+          <div class="cb-panel"><div class="cb-panel-head"><h3>净资产趋势</h3><span class="muted" style="font-size:11px">按流水时间累计</span></div><div class="cb-panel-body"><div class="cb-chart cb-ch-md" id="cbChartNet"></div></div></div>
+        </div>
+        <div class="cb-panel"><div class="cb-panel-head"><h3>最近交易流水</h3><button class="btn btn-sm" id="cbAllTrades">查看全部</button></div><div class="cb-panel-body cb-flush" id="cbRecentTrades"></div></div>
+      </div>
+
+      <div class="cb-pane hidden" id="cbPane-holdings">
+        <div class="cb-filter-bar" style="margin-bottom:10px">
+          <div class="cb-seg" id="cbSegStatus">
+            <button data-f="all" class="active">全部</button>
+            <button data-f="on">在盘</button>
+            <button data-f="off">已清盘</button>
+          </div>
+          <button class="btn btn-sm" id="cbAddTarget">＋ 新增标的</button>
+        </div>
+        <div class="cb-panel"><div class="cb-panel-body cb-flush" id="cbHoldingsTable"></div></div>
+      </div>
+
+      <div class="cb-pane hidden" id="cbPane-income">
+        <div class="cb-kpis" id="cbIncomeKpi"></div>
+        <div class="cb-report-grid">
+          <div class="cb-rpt"><div class="cb-rpt-head"><h3>利润表 · 汇总</h3><span class="cb-rpt-period" id="cbIncPeriod"></span></div><div class="cb-rpt-body" id="cbIncomeSheet"></div></div>
+          <div class="cb-rpt"><div class="cb-rpt-head"><h3>盈亏构成</h3></div><div class="cb-rpt-body"><div class="cb-chart cb-ch-sm" id="cbChartPnl"></div></div></div>
+        </div>
+        <div class="cb-panel" style="margin-top:14px"><div class="cb-panel-head"><h3>标的盈亏明细</h3></div><div class="cb-panel-body cb-flush" id="cbIncomeDetail"></div></div>
+      </div>
+
+      <div class="cb-pane hidden" id="cbPane-balance">
+        <div class="cb-kpis" id="cbBalanceKpi"></div>
+        <div class="cb-report-grid">
+          <div class="cb-rpt"><div class="cb-rpt-head"><h3>资产负债表 · 快照</h3><span class="cb-rpt-period" id="cbBalDate"></span><button class="btn btn-sm" id="cbSetLiab">设置负债</button></div><div class="cb-rpt-body" id="cbBalanceSheet"></div></div>
+          <div class="cb-rpt"><div class="cb-rpt-head"><h3>净资产归因</h3><span class="cb-rpt-period">期初至今日</span></div><div class="cb-rpt-body" id="cbEquityBridge"></div></div>
+        </div>
+      </div>
+
+      <div class="cb-pane hidden" id="cbPane-cashflow">
+        <div class="cb-kpis" id="cbCashKpi"></div>
+        <div class="cb-report-grid">
+          <div class="cb-rpt"><div class="cb-rpt-head"><h3>现金流量表 · 期间汇总</h3><span class="cb-rpt-period" id="cbCfPeriod"></span></div><div class="cb-rpt-body" id="cbCashSheet"></div></div>
+          <div class="cb-rpt"><div class="cb-rpt-head"><h3>现金流构成</h3></div><div class="cb-rpt-body"><div class="cb-chart cb-ch-sm" id="cbChartCash"></div></div></div>
+        </div>
+        <div class="cb-panel" style="margin-top:14px"><div class="cb-panel-head"><h3>现金余额变动明细</h3></div><div class="cb-panel-body cb-flush" id="cbCashDetail"></div></div>
+      </div>
+
+      <div class="cb-pane hidden" id="cbPane-data">
+        <div class="cb-panel"><div class="cb-panel-head"><h3>数据概况</h3></div><div class="cb-panel-body"><div id="cbStats"></div></div></div>
+        <div class="cb-data-cards">
+          <div class="cb-data-card"><h4>导出备份</h4><p>把全部标的与流水导出为 JSON 文件，保存到本地。</p><div class="cb-ops"><button class="btn btn-primary btn-sm" id="cbExport">导出 JSON</button></div></div>
+          <div class="cb-data-card"><h4>导入恢复</h4><p>从之前导出的 JSON 文件恢复数据，导入会覆盖当前数据。</p><div class="cb-ops"><button class="btn btn-sm" id="cbImport">导入 JSON</button><input type="file" id="cbImportFile" class="hidden" accept=".json,application/json"></div></div>
+          <div class="cb-data-card"><h4>加载示例数据</h4><p>载入一套演示数据（含在盘/清盘标的、买卖与分红流水）。示例非真实持仓。</p><div class="cb-ops"><button class="btn btn-sm" id="cbSample">加载示例</button></div></div>
+          <div class="cb-data-card"><h4>清空全部</h4><p>删除本机保存的全部标的与交易数据，回到空白状态。不可撤销。</p><div class="cb-ops"><button class="btn btn-sm" id="cbClear">清空全部数据</button></div></div>
+        </div>
+        <div class="cb-panel" style="margin-top:14px"><div class="cb-panel-head"><h3>与工作台持仓同步</h3><span class="muted" style="font-size:11px">标的自动跟随「我的持仓」</span></div><div class="cb-panel-body" id="cbSyncLog"></div></div>
+      </div>
+      <div id="cbModalRoot"></div>
+    </section>
+    <section class="view" id="view-smartmoney"><!-- fw2_v179_smartmoney：独立的「聪明的钱」模块（iframe 内嵌 A股聪明钱工作台，子应用为自包含单文件 smartmoney/13f_workbench_ashare.html） -->
+      <iframe id="smartmoneyFrame" src="smartmoney/13f_workbench_ashare.html?wb=embed" title="聪明的钱" style="width:100%;height:1400px;border:0;border-radius:12px;background:#ffffff;display:block;box-shadow:0 1px 2px rgba(16,24,40,.04)"></iframe>
+      <script>
+      /* fw2_v179_smartmoney：iframe 高度自适应（同源可读 contentDocument；跨域/file 受阻时退回固定高） */
+      function fitSmartMoney(fr) {
+        if (!fr) return;
+        try {
+          var d = fr.contentDocument;
+          if (!d || !d.documentElement) return;
+          var h = d.documentElement.scrollHeight || (d.body && d.body.scrollHeight) || 0;
+          if (h > 200) fr.style.height = h + 'px';
+        } catch (e) {}
+      }
+      (function () {
+        var fr = document.getElementById('smartmoneyFrame');
+        if (!fr) return;
+        var tries = 0;
+        (function fit() { fitSmartMoney(fr); if (tries++ < 6) setTimeout(fit, 400); })();
+        fr.addEventListener('load', function () { fitSmartMoney(fr); });
+      })();
+      window.addEventListener('resize', function () { var f = document.getElementById('smartmoneyFrame'); if (f) fitSmartMoney(f); });
+      </script>
+    </section>
+    </main>
 </div>
 
 <!--pnid:nqsRLAUF6Du5NyGZoQxaMA--><!-- 通用弹窗 -->
@@ -6240,6 +6457,8 @@ const VIEW_META = {
   strategy: ['策略执行', '行动中心 · 标的主表 · 计划与记录'],
   gold: ['黄金研究', '金价走势 · 非农 · 央行购金 · CSV 数据'], /* fw2_v143_gold fw2_v147_gold_zh */
   data: ['基金数据', '基金列表 · 收益曲线 · 基本面/技术面/持仓关联 · 财报 · 综合诊断'], /* fw2_v170_ds_norm：补 data 键（原缺失 → 顶栏标题/副标题空） */
+  capbal: ['资金平衡', '投资记账 · 三张报表 · 盈亏台账（与持仓自动同步）'], /* fw2_capbal_merge */
+  smartmoney: ['聪明的钱', '13F 聪明钱工作台 · A股 · 公开持仓/国家队汇金分析'], /* fw2_v179_smartmoney */
 };
 function showView(name) {
   state.view = name;
@@ -6253,7 +6472,11 @@ function showView(name) {
     if (!state.news.items.length) loadNews();
   } else if (name === 'signal') {
     if (typeof renderSignalDash === 'function') renderSignalDash(); /* v36 */
-  }
+  } else if (name === 'capbal') {
+    if (window.CAPBAL) { window.CAPBAL.render(); window.CAPBAL.maybeAutoSync(); }
+    const _ct = new URLSearchParams(location.search).get('tab');
+    if (_ct && window.CAPBAL && window.CAPBAL.showTab) window.CAPBAL.showTab(_ct);
+  } /* fw2_capbal_merge */
   renderCurrentView();
   setTimeout(() => Object.values(charts).forEach((c) => c && !c.isDisposed() && c.resize()), 30);
 }
@@ -6265,6 +6488,8 @@ function renderCurrentView() {
     else if (state.view === 'macro') { loadMacroData(); }
     else if (state.view === 'gold') { renderGold(); } /* fw2_v143_gold */ /* fw2_v135_macro_view：宏观独立模块，数据齐则 __dcMacroInit 直渲，否则 fetch */
     else if (state.view === 'strategy') { renderStrategyView(); renderBarbell(); renderXMap(); } /* fw2_v120_strategy · v132 杠铃/场内外对照迁入 */
+    else if (state.view === 'capbal') { if (window.CAPBAL) window.CAPBAL.render(); } /* fw2_capbal_merge */
+    else if (state.view === 'smartmoney') { fitSmartMoney(document.getElementById('smartmoneyFrame')); } /* fw2_v179_smartmoney */
   } catch (e) { console.error('[render]', e); }
 }
 /* ================= 宏观·情绪（v53 fw2_v53_macro） =================
@@ -7674,7 +7899,7 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
      data/口径未变，不跑 push_macro_seed。verChip v147->v148
   */
   const vc = $('#verChip');
-  if (vc) vc.textContent = 'v178 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  if (vc) vc.textContent = 'v179 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
@@ -8053,7 +8278,7 @@ loadWatchlistFromDB();
 $('#hdCny').checked = state.settings.cnyView !== false;
 renderNewsSourceChips();
 updateSessionBadge();
-showView('holdings');
+showView(new URLSearchParams(location.search).get('view') || 'holdings'); /* fw2_capbal_merge：支持 ?view= 直达 */
 startLoop();
 setTimeout(() => { renderResearchChips(); if (!state.news.items.length) loadNews(); }, 800);
 setInterval(updateSessionBadge, 30000);
@@ -9997,6 +10222,1196 @@ if (document.readyState === 'loading') {
 } else {
   bindGoldEvents();
 }
+
+</script>
+<script>
+/* ================================================================
+   资金平衡模块 · 合并版（嵌入理财工作台，作为第 8 个视图）
+   数据：台账+流水存 localStorage 'capital_balance_v1'
+   联动：自动从工作台 state.portfolio（资料库持仓）同步标的与净值
+   ================================================================ */
+window.CAPBAL = (function () {
+"use strict";
+const $q = (s, r) => (r || document).querySelector(s);
+const $qa = (s, r) => Array.prototype.slice.call((r || document).querySelectorAll(s));
+const gid = (id) => document.getElementById(id);
+
+"use strict";
+/* ================================================================
+   资金平衡 · 数据层
+   ================================================================ */
+const LS_KEY = "capital_balance_v1";
+const CATS = ["宽基","红利/现金流","成长/主题","主动基金","债券","黄金","商品","QDII","现金","其他"];
+const TX_TYPES = [
+  { v: "buy",  label: "买入" },
+  { v: "sell", label: "卖出" },
+  { v: "div",  label: "分红" },
+  { v: "fee",  label: "费用" },
+  { v: "in",   label: "资金转入" },
+  { v: "out",  label: "资金转出" }
+];
+
+/* 轻提示（独立于工作台 toast 体系，cb- 前缀避免冲突；容器按需创建挂 body） */
+function toast(msg) {
+  let box = document.getElementById("cbToastBox");
+  if (!box) {
+    box = document.createElement("div");
+    box.id = "cbToastBox";
+    box.className = "cb-toast-box";
+    document.body.appendChild(box);
+  }
+  const el = document.createElement("div");
+  el.className = "cb-toast-item";
+  el.textContent = msg;
+  box.appendChild(el);
+  requestAnimationFrame(function () { el.classList.add("show"); });
+  setTimeout(function () {
+    el.classList.remove("show");
+    setTimeout(function () { el.remove(); }, 300);
+  }, 2600);
+}
+
+function emptyState() {
+  return { targets: [], tx: [], liability: 0, updatedAt: null };
+}
+let DB = emptyState();
+
+function loadDB() {
+  try {
+    const raw = localStorage.getItem(LS_KEY);
+    if (!raw) return;
+    const d = JSON.parse(raw);
+    if (d && Array.isArray(d.targets) && Array.isArray(d.tx)) {
+      DB = {
+        targets: d.targets,
+        tx: d.tx,
+        liability: Number(d.liability) || 0,
+        updatedAt: d.updatedAt || null
+      };
+    }
+  } catch (e) { console.warn("loadDB", e); }
+}
+function saveDB() {
+  DB.updatedAt = new Date().toISOString();
+  localStorage.setItem(LS_KEY, JSON.stringify(DB));
+}
+function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
+function fmt(n, d) {
+  const v = Number(n) || 0;
+  return "¥" + v.toLocaleString("zh-CN", { minimumFractionDigits: d || 2, maximumFractionDigits: d || 2 });
+}
+function fmtPct(n, d) {
+  const v = Number(n) || 0;
+  return (v * 100).toFixed(d == null ? 2 : d) + "%";
+}
+function signCls(v) { return v > 0 ? "up" : (v < 0 ? "down" : "flat"); }
+function pnlCls(v) { return v > 0 ? "up" : (v < 0 ? "down" : "flat"); }
+function esc(s) {
+  return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
+    return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+  });
+}
+/* ================================================================
+   计算层：移动平均成本法
+   ================================================================ */
+/* 每个标的统计：
+   costBasis(成本) / shares(持有份额) / avgCost / realized(已实现盈亏)
+   / divTotal(分红) / feeTotal(费用) / buyTotal / sellTotal / inShares / outShares
+   买入/卖出仅对"带份额的证券交易"生效；in/out 是现金池操作 */
+function calcTargetStats(tid) {
+  const txs = DB.tx.filter(function (t) { return t.tid === tid; })
+    .sort(function (a, b) { return (a.date + a.id).localeCompare(b.date + b.id); });
+  const s = { shares: 0, costBasis: 0, avgCost: 0, realized: 0, divTotal: 0, feeTotal: 0, buyTotal: 0, sellTotal: 0, inTotal: 0, outTotal: 0 };
+  txs.forEach(function (t) {
+    const amt = Number(t.amt) || 0;
+    const sh = Number(t.shares) || 0;
+    if (t.type === "buy") {
+      if (sh > 0) {
+        const newShares = s.shares + sh;
+        s.costBasis = (s.shares * s.avgCost) + amt;
+        s.avgCost = newShares > 0 ? s.costBasis / newShares : 0;
+        s.shares = newShares;
+      } else { s.costBasis += amt; }
+      s.buyTotal += amt;
+    } else if (t.type === "sell") {
+      const real = sh > 0 && s.avgCost > 0 ? sh * s.avgCost : 0;
+      s.realized += amt - real;
+      s.shares = Math.max(0, s.shares - sh);
+      s.costBasis = s.shares * s.avgCost;
+      s.sellTotal += amt;
+    } else if (t.type === "div") { s.divTotal += amt; }
+    else if (t.type === "fee") { s.feeTotal += amt; }
+    else if (t.type === "in") { s.inTotal += amt; }
+    else if (t.type === "out") { s.outTotal += amt; }
+  });
+  return s;
+}
+/* 现金余额 = Σ转入 − Σ转出 − Σ买入 + Σ卖出 + Σ分红 − Σ费用（跨全部标的） */
+function calcCash() {
+  let cash = 0;
+  DB.tx.forEach(function (t) {
+    const amt = Number(t.amt) || 0;
+    if (t.type === "in") cash += amt;
+    else if (t.type === "out") cash -= amt;
+    else if (t.type === "buy") cash -= amt;
+    else if (t.type === "sell") cash += amt;
+    else if (t.type === "div") cash += amt;
+    else if (t.type === "fee") cash -= amt;
+  });
+  return cash;
+}
+/* 证券市值 = Σ 在盘标的(份额 × 最新净值) */
+function calcSecurities() {
+  let mv = 0;
+  DB.targets.forEach(function (t) {
+    if (t.status !== "on") return;
+    const st = calcTargetStats(t.id);
+    const nav = Number(t.nav) || 0;
+    mv += st.shares * nav;
+  });
+  return mv;
+}
+/* 资产分布：按标的类别聚合市值 */
+function calcAlloc() {
+  const map = {};
+  DB.targets.forEach(function (t) {
+    if (t.status !== "on") return;
+    const st = calcTargetStats(t.id);
+    const nav = Number(t.nav) || 0;
+    const v = st.shares * nav;
+    if (v <= 0) return;
+    map[t.cat] = (map[t.cat] || 0) + v;
+  });
+  return Object.keys(map).map(function (k) { return { name: k, value: Math.round(map[k] * 100) / 100 }; })
+    .sort(function (a, b) { return b.value - a.value; });
+}
+/* 净资产 = 证券市值 + 现金 − 负债 */
+function calcNet() {
+  return calcSecurities() + calcCash() - (Number(DB.liability) || 0);
+}
+/* 总投入 = Σ 资金转入 − Σ 资金转出 */
+function calcInvested() {
+  let inv = 0;
+  DB.tx.forEach(function (t) {
+    if (t.type === "in") inv += Number(t.amt) || 0;
+    else if (t.type === "out") inv -= Number(t.amt) || 0;
+  });
+  return inv;
+}
+/* 未实现盈亏 = Σ 在盘标的(市值 − 成本) */
+function calcUnrealized() {
+  let u = 0;
+  DB.targets.forEach(function (t) {
+    if (t.status !== "on") return;
+    const st = calcTargetStats(t.id);
+    const nav = Number(t.nav) || 0;
+    u += st.shares * nav - st.costBasis;
+  });
+  return u;
+}
+function calcRealized() {
+  let r = 0;
+  DB.targets.forEach(function (t) { r += calcTargetStats(t.id).realized; });
+  return r;
+}
+function calcTotalDiv() {
+  let d = 0;
+  DB.tx.forEach(function (t) { if (t.type === "div") d += Number(t.amt) || 0; });
+  return d;
+}
+function calcTotalFee() {
+  let f = 0;
+  DB.tx.forEach(function (t) { if (t.type === "fee") f += Number(t.amt) || 0; });
+  return f;
+}
+/* 净资产时间序列：期初现金0 → 按流水时间逐步重放 */
+function netSeries() {
+  const events = [];
+  DB.tx.forEach(function (t) {
+    events.push({ date: t.date, amt: (function () {
+      const a = Number(t.amt) || 0;
+      if (t.type === "in") return a;
+      if (t.type === "out") return -a;
+      if (t.type === "buy") return -a;
+      if (t.type === "sell") return a;
+      if (t.type === "div") return a;
+      if (t.type === "fee") return -a;
+      return 0;
+    })(), t: t });
+  });
+  events.sort(function (a, b) { return a.date.localeCompare(b.date); });
+  const pts = [{ date: "期初", net: 0 - (Number(DB.liability) || 0) }];
+  let cur = 0 - (Number(DB.liability) || 0);
+  events.forEach(function (e) {
+    cur += e.amt;
+    pts.push({ date: e.date, net: Math.round(cur * 100) / 100 });
+  });
+  const mv = calcSecurities();
+  pts.push({ date: "今日", net: Math.round((cur + mv) * 100) / 100 });
+  return pts;
+}
+/* 现金流量表汇总 */
+function calcCashFlow() {
+  const cf = { begin: 0, investIn: 0, investOut: 0, divIn: 0, feeOut: 0, finIn: 0, finOut: 0 };
+  DB.tx.forEach(function (t) {
+    const a = Number(t.amt) || 0;
+    if (t.type === "in") cf.finIn += a;
+    else if (t.type === "out") cf.finOut += a;
+    else if (t.type === "buy") cf.investOut += a;
+    else if (t.type === "sell") cf.investIn += a;
+    else if (t.type === "div") cf.divIn += a;
+    else if (t.type === "fee") cf.feeOut += a;
+  });
+  cf.investNet = cf.investIn + cf.divIn - cf.investOut - cf.feeOut;
+  cf.finNet = cf.finIn - cf.finOut;
+  cf.end = cf.begin + cf.investNet + cf.finNet;
+  return cf;
+}
+/* 现金流水明细（仅现金影响类交易） */
+function cashDetailRows() {
+  const rows = [];
+  DB.tx.forEach(function (t) {
+    const a = Number(t.amt) || 0;
+    let flow = 0, lab = "";
+    if (t.type === "in") { flow = a; lab = "资金转入"; }
+    else if (t.type === "out") { flow = -a; lab = "资金转出"; }
+    else if (t.type === "buy") { flow = -a; lab = "买入"; }
+    else if (t.type === "sell") { flow = a; lab = "卖出"; }
+    else if (t.type === "div") { flow = a; lab = "分红"; }
+    else if (t.type === "fee") { flow = -a; lab = "费用"; }
+    if (flow === 0) return;
+    rows.push({ date: t.date, label: lab, target: t.tname || "", flow: flow });
+  });
+  rows.sort(function (a, b) { return a.date.localeCompare(b.date); });
+  return rows;
+}
+/* ================================================================
+   渲染层
+   ================================================================ */
+
+
+
+
+
+
+
+
+
+
+
+
+/* ---------- KPI 卡片 ---------- */
+function kpiCard(k, v, d, dCls) {
+  return '<div class="cb-kpi"><div class="k">' + k + '</div><div class="v">' + v + '</div>' +
+    (d ? '<div class="d ' + (dCls || "") + '">' + d + "</div>" : "") + "</div>";
+}
+
+/* ---------- 总览 ---------- */
+function renderOverview() {
+  const net = calcNet(), inv = calcInvested(), cash = calcCash(), sec = calcSecurities();
+  const pnl = net - inv;
+  const rt = inv > 0 ? pnl / inv : 0;
+  const unreal = calcUnrealized(), real = calcRealized(), div = calcTotalDiv(), fee = calcTotalFee();
+  const realizedNet = real + div - fee;
+  const kpis = document.getElementById("cbKpiRow");
+  kpis.innerHTML =
+    kpiCard("净资产 NET ASSETS", fmt(net), "证券 " + fmt(sec) + " + 现金 " + fmt(cash), "") +
+    kpiCard("累计投入 INVESTED", fmt(inv), "转入 − 转出", "") +
+    kpiCard("累计盈亏 TOTAL P&L", (pnl >= 0 ? "+" : "") + fmt(pnl), "收益率 " + (rt >= 0 ? "+" : "") + fmtPct(rt), pnlCls(pnl)) +
+    kpiCard("已实现盈亏", (realizedNet >= 0 ? "+" : "") + fmt(realizedNet), "卖出 + 分红 − 费用", pnlCls(realizedNet)) +
+    kpiCard("未实现盈亏", (unreal >= 0 ? "+" : "") + fmt(unreal), "市值 − 成本", pnlCls(unreal)) +
+    kpiCard("现金余额 CASH", fmt(cash), "可用现金池", cash < 0 ? "down" : "");
+
+  /* 资产分布：类别 ≤6 用饼图，否则横向条形 */
+  const alloc = calcAlloc();
+  if (alloc.length === 0) {
+    const c1 = document.getElementById("cbChartAlloc");
+    if (c1) c1.innerHTML = '<div class="cb-empty"><div class="big">· · ·</div><div class="txt">暂无在盘持仓数据</div></div>';
+  } else if (alloc.length <= 6) {
+    chart("cbChartAlloc", {
+      tooltip: { trigger: "item", triggerOn: "click", renderMode: "richText", confine: true, formatter: "{b}\n{c} 元（{d}%）" },
+      legend: { bottom: 0, icon: "circle", itemWidth: 8, itemHeight: 8, textStyle: { fontSize: 11, color: "#55616e" } },
+      series: [{
+        type: "pie", radius: ["42%", "68%"], center: ["50%", "45%"],
+        label: { fontSize: 11, formatter: "{b} {d}%" },
+        data: alloc.map(function (x) { return { name: x.name, value: x.value }; })
+      }]
+    });
+  } else {
+    chart("cbChartAlloc", {
+      tooltip: { trigger: "axis", triggerOn: "click", renderMode: "richText", confine: true },
+      grid: { left: 8, right: 16, top: 10, bottom: 8, containLabel: true },
+      xAxis: { type: "value", axisLabel: { formatter: function (v) { return (v / 10000).toFixed(1) + "万"; } } },
+      yAxis: { type: "category", data: alloc.map(function (x) { return x.name; }) },
+      series: [{ type: "bar", barWidth: 14, data: alloc.map(function (x) { return x.value; }) }]
+    });
+  }
+
+  /* 净资产趋势 */
+  const pts = netSeries();
+  const dates = pts.map(function (p) { return p.date; });
+  const vals = pts.map(function (p) { return p.net; });
+  chart("cbChartNet", {
+    tooltip: { trigger: "axis", triggerOn: "click", renderMode: "richText", confine: true, formatter: function (ps) {
+      if (!ps || !ps.length) return "";
+      const p = ps[0];
+      return p.axisValue + "\n净资产 " + fmt(p.value);
+    } },
+    grid: { left: 8, right: 16, top: 14, bottom: 8, containLabel: true },
+    xAxis: { type: "category", data: dates, axisLabel: { fontSize: 10, color: "#8b95a1", rotate: 24, formatter: function (v) { return v.length > 7 ? v.slice(5) : v; } } },
+    yAxis: { type: "value", axisLabel: { fontSize: 10, color: "#8b95a1", formatter: function (v) { return (v / 10000).toFixed(1) + "万"; } } },
+    series: [{
+      type: "line", data: vals, symbol: "circle", symbolSize: 4,
+      lineStyle: { width: 2 }, areaStyle: { opacity: 0.08 }
+    }]
+  });
+
+  /* 最近流水 */
+  const recent = DB.tx.slice().sort(function (a, b) { return b.date.localeCompare(a.date); }).slice(0, 8);
+  renderTxTable("cbRecentTrades", recent, true);
+}
+
+/* ---------- 交易表格（通用） ---------- */
+function txTypeLabel(t) {
+  const found = TX_TYPES.filter(function (x) { return x.v === t.type; });
+  return found.length ? found[0].label : t.type;
+}
+function renderTxTable(containerId, rows, short) {
+  const el = document.getElementById(containerId);
+  if (!el) return;
+  if (!rows.length) {
+    el.innerHTML = '<div class="cb-empty"><div class="big">· · ·</div><div class="txt">暂无交易记录，点右上角"新增交易"开始记账</div></div>';
+    return;
+  }
+  const head = short
+    ? "<colgroup><col style='width:13%'><col style='width:10%'><col style='width:24%'><col style='width:11%'><col style='width:17%'><col style='width:25%'></colgroup>" +
+      "<tr><th>日期</th><th>类型</th><th>标的</th><th>金额</th><th>份额</th><th>备注</th></tr>"
+    : "<colgroup><col style='width:11%'><col style='width:9%'><col style='width:20%'><col style='width:12%'><col style='width:11%'><col style='width:12%'><col style='width:12%'><col style='width:13%'></colgroup>" +
+      "<tr><th>日期</th><th>类型</th><th>标的</th><th>金额</th><th>份额</th><th>单价</th><th>操作</th><th>备注</th></tr>";
+  const body = rows.map(function (t) {
+    const flow = (function () {
+      const a = Number(t.amt) || 0;
+      if (t.type === "in" || t.type === "sell" || t.type === "div") return a;
+      if (t.type === "out" || t.type === "buy" || t.type === "fee") return -a;
+      return 0;
+    })();
+    const flowTxt = (flow >= 0 ? "+" : "") + fmt(flow);
+    const cls = flow > 0 ? "up" : (flow < 0 ? "down" : "flat");
+    let row = "<td>" + esc(t.date) + '</td><td><span class="cb-badge ' + (t.type === "buy" ? "liq" : t.type === "sell" ? "off" : "cat") + '">' + txTypeLabel(t) + "</span></td>" +
+      "<td>" + esc(t.tname || "") + "</td>" +
+      '<td class="num ' + cls + '">' + flowTxt + "</td>" +
+      "<td class='num'>" + (Number(t.shares) ? fmt(Number(t.shares), 2) : "—") + "</td>";
+    if (!short) {
+      row += "<td class='num'>" + (Number(t.price) ? fmt(Number(t.price), 3) : "—") + "</td>" +
+        '<td><button class="btn btn-sm" data-edit-tx="' + t.id + '">编辑</button> <button class="btn btn-sm cb-btn-danger" data-del-tx="' + t.id + '">删除</button></td>' +
+        "<td class='muted'>" + esc(t.note || "") + "</td>";
+    } else {
+      row += "<td class='muted'>" + esc(t.note || "") + "</td>";
+    }
+    return "<tr>" + row + "</tr>";
+  }).join("");
+  el.innerHTML = '<div class="cb-tbl-wrap"><table class="cb-tbl">' + head + body + "</table></div>";
+  if (!short) {
+    el.querySelectorAll("[data-edit-tx]").forEach(function (b) { b.onclick = function () { openTxForm(b.dataset.editTx); }; });
+    el.querySelectorAll("[data-del-tx]").forEach(function (b) { b.onclick = function () { delTx(b.dataset.delTx); }; });
+  }
+}
+
+/* ---------- 标的明细 ---------- */
+let holdingsFilter = "all";
+function renderHoldings() {
+  const list = DB.targets.slice().filter(function (t) {
+    if (holdingsFilter === "on") return t.status === "on";
+    if (holdingsFilter === "off") return t.status === "off";
+    return true;
+  });
+  const el = document.getElementById("cbHoldingsTable");
+  if (!list.length) {
+    el.innerHTML = '<div class="cb-empty"><div class="big">· · ·</div><div class="txt">暂无标的，点"新增标的"建立台账</div></div>';
+    return;
+  }
+  const head = "<colgroup><col style='width:9%'><col style='width:20%'><col style='width:11%'><col style='width:10%'><col style='width:8%'><col style='width:10%'><col style='width:10%'><col style='width:10%'><col style='width:12%'></colgroup>" +
+    "<tr><th>代码</th><th>名称</th><th>类别</th><th>市场</th><th>状态</th><th>成本</th><th>市值</th><th>盈亏</th><th>操作</th></tr>";
+  let totalCost = 0, totalMv = 0, totalPnl = 0;
+  const body = list.map(function (t) {
+    const st = calcTargetStats(t.id);
+    const nav = Number(t.nav) || 0;
+    const mv = t.status === "on" ? st.shares * nav : 0;
+    const pnl = t.status === "on" ? mv - st.costBasis : st.realized;
+    const pnlRt = t.status === "on" && st.costBasis > 0 ? pnl / st.costBasis : 0;
+    totalCost += st.costBasis; totalMv += mv; totalPnl += pnl;
+    const sub = t.status === "off"
+      ? '<span class="muted" style="font-size:10.5px">清盘 ' + esc(t.offDate || "") + "</span>"
+      : '<span class="muted" style="font-size:10.5px">净值 ' + fmt(nav, 3) + "</span>";
+    return "<tr class='cb-clickable' data-target-id='" + t.id + "'>" +
+      "<td class='num'>" + esc(t.code || "—") + "</td>" +
+      "<td>" + esc(t.name) + "<br>" + sub + "</td>" +
+      '<td><span class="cb-badge cat">' + esc(t.cat) + "</span></td>" +
+      "<td>" + esc(t.market || "—") + "</td>" +
+      '<td><span class="cb-badge ' + (t.status === "on" ? "on" : "off") + '">' + (t.status === "on" ? "在盘" : "清盘") + "</span></td>" +
+      "<td class='num'>" + fmt(st.costBasis) + "<br><span class='muted' style='font-size:10.5px'>份额 " + fmt(st.shares, 2) + "</span></td>" +
+      "<td class='num'>" + fmt(mv) + "</td>" +
+      '<td class="num ' + pnlCls(pnl) + '">' + (pnl >= 0 ? "+" : "") + fmt(pnl) +
+        "<br><span class='muted' style='font-size:10.5px'>" + (pnlRt >= 0 ? "+" : "") + fmtPct(pnlRt) + "</span></td>" +
+      '<td style="white-space:nowrap"><button class="btn btn-sm" data-edit-t="' + t.id + '">编辑</button> ' +
+      '<button class="btn btn-sm" data-nav-t="' + t.id + '">净值</button> ' +
+      '<button class="btn btn-sm cb-btn-danger" data-del-t="' + t.id + '">删除</button></td>' +
+      "</tr>";
+  }).join("");
+  const totalRow = "<tr class='total-row'><td colspan='5'>合计（在盘按市值 / 清盘按已实现）</td>" +
+    "<td class='num'>" + fmt(totalCost) + "</td>" +
+    "<td class='num'>" + fmt(totalMv) + "</td>" +
+    '<td class="num ' + pnlCls(totalPnl) + '">' + (totalPnl >= 0 ? "+" : "") + fmt(totalPnl) + "</td><td></td></tr>";
+  el.innerHTML = '<div class="cb-tbl-wrap"><table class="cb-tbl">' + head + body + totalRow + "</table></div>";
+  el.querySelectorAll("[data-edit-t]").forEach(function (b) { b.onclick = function () { openTargetForm(b.dataset.editT); }; });
+  el.querySelectorAll("[data-nav-t]").forEach(function (b) { b.onclick = function () { openNavForm(b.dataset.navT); }; });
+  el.querySelectorAll("[data-del-t]").forEach(function (b) { b.onclick = function () { delTarget(b.dataset.delT); }; });
+  el.querySelectorAll("tr.clickable").forEach(function (tr) {
+    tr.onclick = function (e) {
+      if (e.target.closest("button")) return;
+      toggleSub(tr.dataset.targetId);
+    };
+  });
+}
+function toggleSub(tid) {
+  const rows = document.querySelectorAll('tr[data-target-id="' + tid + '"]');
+  const existing = document.querySelector('tr.cb-sub-row[data-tid="' + tid + '"]');
+  if (existing) { existing.remove(); return; }
+  const txs = DB.tx.filter(function (t) { return t.tid === tid; })
+    .sort(function (a, b) { return b.date.localeCompare(a.date); });
+  const html = txs.map(function (t) {
+    const flow = (function () {
+      const a = Number(t.amt) || 0;
+      if (t.type === "in" || t.type === "sell" || t.type === "div") return a;
+      return -a;
+    })();
+    return "<tr><td class='num'>" + esc(t.date) + "</td><td>" + txTypeLabel(t) + "</td>" +
+      "<td class='num'>" + fmt(flow) + "</td><td class='num'>" + (Number(t.shares) ? fmt(Number(t.shares), 2) : "—") + "</td>" +
+      "<td class='num'>" + (Number(t.price) ? fmt(Number(t.price), 3) : "—") + "</td>" +
+      "<td class='muted'>" + esc(t.note || "") + "</td></tr>";
+  }).join("");
+  const sub = document.createElement("tr");
+  sub.className = "sub-row";
+  sub.dataset.tid = tid;
+  sub.innerHTML = '<td colspan="9" style="padding:0"><div class="cb-sub-table"><div class="cb-tbl-wrap"><table class="cb-tbl">' +
+    "<colgroup><col style='width:14%'><col style='width:12%'><col style='width:16%'><col style='width:14%'><col style='width:14%'><col style='width:30%'></colgroup>" +
+    "<tr><th>日期</th><th>类型</th><th>金额</th><th>份额</th><th>单价</th><th>备注</th></tr>" + html + "</table></div></div></td>";
+  if (rows.length) rows[0].after(sub);}
+/* ---------- 利润表 ---------- */
+function rptLine(lab, val, opt) {
+  opt = opt || {};
+  const cls = opt.cls || pnlCls(val);
+  const indent = opt.indent ? " indent" : "";
+  const total = opt.total ? " total" : "";
+  const head = opt.head ? " head" : "";
+  const sub = opt.sub ? '<span class="sub">' + opt.sub + "</span>" : "";
+  const valTxt = (opt.sign && val > 0 ? "+" : "") + fmt(val);
+  return '<div class="cb-rpt-line' + indent + total + head + '"><span class="lab">' + lab + sub + "</span>" +
+    '<span class="val ' + (opt.noCls ? "" : cls) + '">' + valTxt + "</span></div>";
+}
+function renderIncome() {
+  const real = calcRealized(), unreal = calcUnrealized(), div = calcTotalDiv(), fee = calcTotalFee();
+  const investIn = calcInvested();
+  const realizedNet = real + div - fee;
+  const total = realizedNet + unreal;
+  const rt = investIn > 0 ? total / investIn : 0;
+  document.getElementById("cbIncomeKpi").innerHTML =
+    kpiCard("已实现净利润", (realizedNet >= 0 ? "+" : "") + fmt(realizedNet), "卖出盈亏 + 分红 − 费用", pnlCls(realizedNet)) +
+    kpiCard("未实现盈亏", (unreal >= 0 ? "+" : "") + fmt(unreal), "在盘市值 − 成本", pnlCls(unreal)) +
+    kpiCard("总收益", (total >= 0 ? "+" : "") + fmt(total), "收益率 " + (rt >= 0 ? "+" : "") + fmtPct(rt), pnlCls(total)) +
+    kpiCard("分红收入", "+" + fmt(div), "期间现金分红", "up") +
+    kpiCard("交易费用", "−" + fmt(fee), "申赎 / 交易成本", "down");
+  document.getElementById("cbIncPeriod").textContent = "截至 " + (DB.updatedAt ? DB.updatedAt.slice(0, 10) : "—");
+  const sheet = document.getElementById("cbIncomeSheet");
+  sheet.innerHTML =
+    rptLine("已实现收益", realizedNet, { head: true, sign: true, noCls: true }) +
+    rptLine("卖出已实现盈亏", real, { sign: true, noCls: true }) +
+    rptLine("分红收入", div, { sign: true, noCls: true }) +
+    rptLine("交易费用", -fee, { sign: true, noCls: true }) +
+    rptLine("已实现净利润", realizedNet, { total: true, sign: true, cls: pnlCls(realizedNet) }) +
+    rptLine("未实现盈亏（在盘）", unreal, { head: true, sign: true, noCls: true }) +
+    rptLine("市值变动", unreal, { sign: true, noCls: true }) +
+    rptLine("未实现盈亏合计", unreal, { total: true, sign: true, cls: pnlCls(unreal) }) +
+    rptLine("总收益", total, { head: true, sign: true, cls: pnlCls(total) }) +
+    rptLine("已实现 + 未实现", total, { total: true, sign: true, cls: pnlCls(total) });
+
+  chart("cbChartPnl", {
+    tooltip: { trigger: "axis", triggerOn: "click", renderMode: "richText", confine: true,
+      formatter: function (ps) { if (!ps || !ps.length) return ""; const p = ps[0]; return p.name + "\n" + fmt(p.value); } },
+    grid: { left: 8, right: 16, top: 10, bottom: 8, containLabel: true },
+    xAxis: { type: "category", data: ["已实现净利润", "未实现盈亏", "分红收入", "交易费用"] },
+    yAxis: { type: "value", axisLabel: { formatter: function (v) { return (v / 10000).toFixed(1) + "万"; } } },
+    series: [{ type: "bar", barWidth: 26, data: [
+      { value: Math.round(realizedNet * 100) / 100 },
+      { value: Math.round(unreal * 100) / 100 },
+      { value: Math.round(div * 100) / 100 },
+      { value: Math.round(-fee * 100) / 100 }
+    ] }]
+  });
+
+  /* 标的盈亏明细 */
+  const rows = DB.targets.map(function (t) {
+    const st = calcTargetStats(t.id);
+    const nav = Number(t.nav) || 0;
+    const mv = t.status === "on" ? st.shares * nav : 0;
+    const pnl = t.status === "on" ? mv - st.costBasis : st.realized;
+    const rt2 = (t.status === "on" ? st.costBasis : Math.abs(st.sellTotal)) > 0
+      ? pnl / (t.status === "on" ? st.costBasis : (st.sellTotal || 1)) : 0;
+    return { id: t.id, name: t.name, code: t.code, status: t.status, realized: st.realized, unreal: t.status === "on" ? mv - st.costBasis : 0, pnl: pnl, rt: rt2 };
+  }).sort(function (a, b) { return b.pnl - a.pnl; });
+  const el = document.getElementById("cbIncomeDetail");
+  if (!rows.length) { el.innerHTML = '<div class="cb-empty"><div class="big">· · ·</div><div class="txt">暂无标的</div></div>'; return; }
+  el.innerHTML = '<div class="cb-tbl-wrap"><table class="cb-tbl"><colgroup>' +
+    "<col style='width:16%'><col style='width:30%'><col style='width:10%'><col style='width:14%'><col style='width:14%'><col style='width:16%'></colgroup>" +
+    "<tr><th>代码</th><th>名称</th><th>状态</th><th>已实现</th><th>未实现</th><th>合计盈亏</th></tr>" +
+    rows.map(function (r) {
+      return "<tr><td class='num'>" + esc(r.code || "—") + "</td><td>" + esc(r.name) + "</td>" +
+        '<td><span class="cb-badge ' + (r.status === "on" ? "on" : "off") + '">' + (r.status === "on" ? "在盘" : "清盘") + "</span></td>" +
+        '<td class="num ' + pnlCls(r.realized) + '">' + (r.realized >= 0 ? "+" : "") + fmt(r.realized) + "</td>" +
+        '<td class="num ' + pnlCls(r.unreal) + '">' + (r.unreal >= 0 ? "+" : "") + fmt(r.unreal) + "</td>" +
+        '<td class="num ' + pnlCls(r.pnl) + '">' + (r.pnl >= 0 ? "+" : "") + fmt(r.pnl) + " (" + (r.rt >= 0 ? "+" : "") + fmtPct(r.rt) + ")</td></tr>";
+    }).join("") + "</table></div>";
+}
+
+/* ---------- 资产负债表 ---------- */
+function renderBalance() {
+  const sec = calcSecurities(), cash = calcCash(), liab = Number(DB.liability) || 0;
+  const assets = sec + cash, net = assets - liab;
+  const inv = calcInvested(), totalPnl = net - inv;
+  document.getElementById("cbBalanceKpi").innerHTML =
+    kpiCard("总资产 ASSETS", fmt(assets), "证券 " + fmt(sec) + " + 现金 " + fmt(cash), "") +
+    kpiCard("总负债 LIABILITIES", fmt(liab), "外部借款（可编辑）", liab > 0 ? "down" : "") +
+    kpiCard("净资产 EQUITY", fmt(net), "资产 − 负债", "") +
+    kpiCard("净资产变动", (totalPnl >= 0 ? "+" : "") + fmt(totalPnl), "相对累计投入", pnlCls(totalPnl));
+  document.getElementById("cbBalDate").textContent = "截至 " + (DB.updatedAt ? DB.updatedAt.slice(0, 10) : "—");
+  const sheet = document.getElementById("cbBalanceSheet");
+  sheet.innerHTML =
+    rptLine("资产", assets, { head: true, noCls: true }) +
+    rptLine("证券市值（在盘）", sec, { noCls: true }) +
+    rptLine("现金余额", cash, { noCls: true }) +
+    rptLine("资产合计", assets, { total: true, noCls: true }) +
+    rptLine("负债", liab, { head: true, noCls: true }) +
+    rptLine("外部借款", liab, { noCls: true }) +
+    rptLine("负债合计", liab, { total: true, noCls: true }) +
+    rptLine("净资产（资产 − 负债）", net, { head: true, sign: true, cls: pnlCls(net) });
+
+  /* 净资产归因桥 */
+  const real = calcRealized(), unreal = calcUnrealized();
+  const bridge = document.getElementById("cbEquityBridge");
+  bridge.innerHTML =
+    rptLine("期初净资产", 0, { noCls: true }) +
+    rptLine("+ 累计资金投入", inv, { sign: true, noCls: true }) +
+    rptLine("+ 已实现收益", real, { sign: true, noCls: true }) +
+    rptLine("+ 未实现盈亏", unreal, { sign: true, noCls: true }) +
+    rptLine("− 负债", -liab, { sign: true, noCls: true }) +
+    rptLine("期末净资产", net, { total: true, sign: true, cls: pnlCls(net) });
+}
+
+/* ---------- 现金流量表 ---------- */
+function renderCashflow() {
+  const cf = calcCashFlow();
+  const cash = calcCash();
+  document.getElementById("cbCashKpi").innerHTML =
+    kpiCard("期初现金", fmt(cf.begin), "首笔流水前余额", "") +
+    kpiCard("投资活动净流", (cf.investNet >= 0 ? "+" : "") + fmt(cf.investNet), "买卖 / 分红 / 费用", pnlCls(cf.investNet)) +
+    kpiCard("筹资活动净流", (cf.finNet >= 0 ? "+" : "") + fmt(cf.finNet), "资金转入 − 转出", pnlCls(cf.finNet)) +
+    kpiCard("期末现金", fmt(cf.end), "与现金余额校验", cash === cf.end ? "" : "warn");
+  document.getElementById("cbCfPeriod").textContent = "截至 " + (DB.updatedAt ? DB.updatedAt.slice(0, 10) : "—");
+  const sheet = document.getElementById("cbCashSheet");
+  sheet.innerHTML =
+    rptLine("期初现金", cf.begin, { noCls: true }) +
+    rptLine("投资活动现金流", cf.investNet, { head: true, sign: true, noCls: true }) +
+    rptLine("卖出证券流入", cf.investIn, { sign: true, noCls: true }) +
+    rptLine("分红收入流入", cf.divIn, { sign: true, noCls: true }) +
+    rptLine("买入证券流出", -cf.investOut, { sign: true, noCls: true }) +
+    rptLine("交易费用流出", -cf.feeOut, { sign: true, noCls: true }) +
+    rptLine("投资活动净现金流", cf.investNet, { total: true, sign: true, cls: pnlCls(cf.investNet) }) +
+    rptLine("筹资活动现金流", cf.finNet, { head: true, sign: true, noCls: true }) +
+    rptLine("资金转入流入", cf.finIn, { sign: true, noCls: true }) +
+    rptLine("资金转出流出", -cf.finOut, { sign: true, noCls: true }) +
+    rptLine("筹资活动净现金流", cf.finNet, { total: true, sign: true, cls: pnlCls(cf.finNet) }) +
+    rptLine("期末现金", cf.end, { head: true, sign: true, cls: pnlCls(cf.end) });
+
+  chart("cbChartCash", {
+    tooltip: { trigger: "axis", triggerOn: "click", renderMode: "richText", confine: true,
+      formatter: function (ps) { if (!ps || !ps.length) return ""; const p = ps[0]; return p.name + "\n" + fmt(p.value); } },
+    grid: { left: 8, right: 16, top: 10, bottom: 8, containLabel: true },
+    xAxis: { type: "category", data: ["买入流出", "卖出流入", "分红流入", "费用流出", "资金转入", "资金转出"] },
+    yAxis: { type: "value", axisLabel: { formatter: function (v) { return (v / 10000).toFixed(1) + "万"; } } },
+    series: [{ type: "bar", barWidth: 22, data: [
+      { value: Math.round(-cf.investOut * 100) / 100 },
+      { value: Math.round(cf.investIn * 100) / 100 },
+      { value: Math.round(cf.divIn * 100) / 100 },
+      { value: Math.round(-cf.feeOut * 100) / 100 },
+      { value: Math.round(cf.finIn * 100) / 100 },
+      { value: Math.round(-cf.finOut * 100) / 100 }
+    ] }]
+  });
+
+  const rows = cashDetailRows();
+  const el = document.getElementById("cbCashDetail");
+  if (!rows.length) { el.innerHTML = '<div class="cb-empty"><div class="big">· · ·</div><div class="txt">暂无现金类流水</div></div>'; return; }
+  let run = 0;
+  el.innerHTML = '<div class="cb-tbl-wrap"><table class="cb-tbl"><colgroup>' +
+    "<col style='width:14%'><col style='width:16%'><col style='width:26%'><col style='width:20%'><col style='width:24%'></colgroup>" +
+    "<tr><th>日期</th><th>类型</th><th>标的</th><th>现金流</th><th>现金余额</th></tr>" +
+    rows.map(function (r) {
+      run += r.flow;
+      return "<tr><td class='num'>" + esc(r.date) + "</td><td>" + esc(r.label) + "</td><td>" + esc(r.target) + "</td>" +
+        '<td class="num ' + (r.flow >= 0 ? "up" : "down") + '">' + (r.flow >= 0 ? "+" : "") + fmt(r.flow) + "</td>" +
+        "<td class='num'>" + fmt(run) + "</td></tr>";
+    }).join("") + "</table></div>";
+}
+
+/* ---------- 数据管理 ---------- */
+function renderData() {
+  const stats = [
+    ["标的数量", DB.targets.length],
+    ["交易笔数", DB.tx.length],
+    ["在盘标的", DB.targets.filter(function (t) { return t.status === "on"; }).length],
+    ["已清盘标的", DB.targets.filter(function (t) { return t.status === "off"; }).length],
+    ["最近更新", DB.updatedAt ? DB.updatedAt.replace("T", " ").slice(0, 16) : "—"]
+  ];
+  const el = gid("cbStats");
+  if (el) el.innerHTML = stats.map(function (r) {
+    return '<div class="cb-stat-line"><span class="k">' + r[0] + '</span><span class="v">' + r[1] + "</span></div>";
+  }).join("");
+  const log = gid("cbSyncLog");
+  if (log) {
+    const wb = (typeof state !== "undefined" && state && Array.isArray(state.portfolio)) ? state.portfolio : [];
+    if (!wb.length) {
+      log.innerHTML = '<div class="muted" style="font-size:11.5px">工作台暂无持仓数据。持仓在「我的持仓」中新增后，这里会自动同步。</div>';
+    } else {
+      const mine = {};
+      DB.targets.forEach(function (t) { mine[normCode(t.code)] = 1; });
+      const synced = wb.filter(function (h) { return mine[normCode(h.code)]; }).length;
+      const missing = wb.length - synced;
+      log.innerHTML = '<div class="cb-stat-line"><span class="k">工作台持仓总数</span><span class="v">' + wb.length + "</span></div>" +
+        '<div class="cb-stat-line"><span class="k">已在台账</span><span class="v">' + synced + "</span></div>" +
+        '<div class="cb-stat-line"><span class="k">尚未同步</span><span class="v">' + missing + "</span></div>" +
+        '<div class="muted" style="font-size:11.5px;margin-top:8px">台账为空时进入本视图会自动同步；点顶部「同步持仓」可随时手动刷新（含净值缺口补带）。</div>';
+    }
+  }
+}
+/* ================================================================
+   交互层：弹窗表单
+   ================================================================ */
+function openModal(html, title) {
+  const root = document.getElementById("cbModalRoot");
+  root.innerHTML = '<div class="cb-modal-mask"><div class="cb-modal">' +
+    '<div class="cb-modal-head"><h3>' + esc(title) + '</h3><button class="x" data-close>×</button></div>' +
+    '<div class="cb-modal-body">' + html + "</div>" +
+    '<div class="cb-modal-foot"><button class="btn" data-close>取消</button><button class="btn btn-primary" id="modalOk">确定</button></div>' +
+    "</div></div>";
+  root.querySelectorAll("[data-close]").forEach(function (b) {
+    b.onclick = function () { root.innerHTML = ""; };
+  });
+  root.querySelector(".cb-modal-mask").onclick = function (e) {
+    if (e.target.classList.contains("cb-modal-mask")) root.innerHTML = "";
+  };
+}
+function closeModal() { document.getElementById("cbModalRoot").innerHTML = ""; }
+
+/* ---------- 标的表单 ---------- */
+function openTargetForm(id) {
+  const t = id ? DB.targets.find(function (x) { return x.id === id; }) : null;
+  const f = t || { name: "", code: "", cat: "宽基", market: "A股", status: "on", offDate: "", note: "" };
+  const catOpts = CATS.map(function (c) { return '<option' + (f.cat === c ? " selected" : "") + ">" + c + "</option>"; }).join("");
+  openModal(
+    '<div class="cb-frm">' +
+    '<div class="cb-fld"><label>名称 *</label><input id="f_name" value="' + esc(f.name) + '" placeholder="如：华泰柏瑞A500"></div>' +
+    '<div class="cb-fld"><label>代码</label><input id="f_code" value="' + esc(f.code) + '" placeholder="如：563360"></div>' +
+    '<div class="cb-fld"><label>类别</label><select id="f_cat">' + catOpts + "</select></div>" +
+    '<div class="cb-fld"><label>市场</label><select id="f_market">' +
+    ["A股", "港股", "美股", "日股", "全球", "其他"].map(function (m) { return '<option' + (f.market === m ? " selected" : "") + ">" + m + "</option>"; }).join("") + "</select></div>" +
+    '<div class="cb-fld"><label>状态</label><select id="f_status">' +
+    '<option value="on"' + (f.status === "on" ? " selected" : "") + ">在盘</option>" +
+    '<option value="off"' + (f.status === "off" ? " selected" : "") + ">已清盘</option></select></div>" +
+    '<div class="cb-fld" id="f_offWrap"><label>清盘日期<span class="unit">清盘时填写</span></label><input id="f_offDate" type="date" value="' + esc(f.offDate || "") + '"></div>' +
+    '<div class="cb-fld full"><label>备注</label><textarea id="f_note" placeholder="如：跟踪指数、基金经理、场内映射等">' + esc(f.note || "") + "</textarea></div>" +
+    "</div>",
+    t ? "编辑标的" : "新增标的"
+  );
+  const statusSel = document.getElementById("f_status");
+  const offWrap = document.getElementById("f_offWrap");
+  function syncOff() { offWrap.classList.toggle("hidden", statusSel.value !== "off"); }
+  statusSel.onchange = syncOff; syncOff();
+  document.getElementById("modalOk").onclick = function () {
+    const name = document.getElementById("f_name").value.trim();
+    if (!name) { toast("请填写标的名称"); return; }
+    const rec = {
+      id: t ? t.id : uid(),
+      name: name,
+      code: document.getElementById("f_code").value.trim(),
+      cat: document.getElementById("f_cat").value,
+      market: document.getElementById("f_market").value,
+      status: statusSel.value,
+      offDate: statusSel.value === "off" ? document.getElementById("f_offDate").value : "",
+      note: document.getElementById("f_note").value.trim(),
+      nav: t ? t.nav : 0
+    };
+    if (t) {
+      const i = DB.targets.findIndex(function (x) { return x.id === t.id; });
+      if (i >= 0) DB.targets[i] = rec;
+      toast("标的已更新");
+    } else {
+      DB.targets.push(rec);
+      toast("标的已新增");
+    }
+    saveDB(); closeModal(); render(curView);
+  };
+}
+
+/* ---------- 交易表单 ---------- */
+function targetOptions(sel, withBlank) {
+  let opts = "";
+  if (withBlank) opts += '<option value="">—</option>';
+  DB.targets.forEach(function (t) {
+    opts += '<option value="' + t.id + '"' + (sel === t.id ? " selected" : "") + ">" + esc(t.name) + (t.status === "off" ? "（清盘）" : "") + "</option>";
+  });
+  return opts;
+}
+function openTxForm(id) {
+  const t = id ? DB.tx.find(function (x) { return x.id === id; }) : null;
+  const f = t || { date: new Date().toISOString().slice(0, 10), tid: "", type: "buy", amt: "", shares: "", price: "", note: "" };
+  const typeOpts = TX_TYPES.map(function (x) {
+    return '<option value="' + x.v + '"' + (f.type === x.v ? " selected" : "") + ">" + x.label + "</option>";
+  }).join("");
+  const isCashType = function (v) { return v === "in" || v === "out"; };
+  const noTarget = isCashType(f.type);
+  openModal(
+    '<div class="cb-frm">' +
+    '<div class="cb-fld"><label>日期 *</label><input id="t_date" type="date" value="' + esc(f.date) + '"></div>' +
+    '<div class="cb-fld"><label>类型 *</label><select id="t_type">' + typeOpts + "</select></div>" +
+    '<div class="cb-fld" id="t_targetWrap"><label>标的 *</label><select id="t_target">' + targetOptions(f.tid, false) + "</select></div>" +
+    '<div class="cb-fld"><label>金额 *<span class="unit">元</span></label><input id="t_amt" type="number" step="0.01" min="0" value="' + (f.amt || "") + '" placeholder="0.00"></div>' +
+    '<div class="cb-fld" id="t_sharesWrap"><label>份额<span class="unit">买入/卖出时必填</span></label><input id="t_shares" type="number" step="0.0001" min="0" value="' + (f.shares || "") + '"></div>' +
+    '<div class="cb-fld" id="t_priceWrap"><label>单价<span class="unit">元/份</span></label><input id="t_price" type="number" step="0.0001" min="0" value="' + (f.price || "") + '"></div>' +
+    '<div class="cb-fld full"><label>备注</label><input id="t_note" value="' + esc(f.note || "") + '" placeholder="如：季度定投、分红再投、赎回理由"></div>' +
+    "</div>",
+    t ? "编辑交易" : "新增交易"
+  );
+  const typeSel = document.getElementById("t_type");
+  const tWrap = document.getElementById("t_targetWrap");
+  const shWrap = document.getElementById("t_sharesWrap");
+  const prWrap = document.getElementById("t_priceWrap");
+  function syncType() {
+    const v = typeSel.value;
+    const noT = v === "in" || v === "out";
+    const noSh = v === "in" || v === "out" || v === "div" || v === "fee";
+    tWrap.classList.toggle("hidden", noT);
+    shWrap.classList.toggle("hidden", noSh);
+    prWrap.classList.toggle("hidden", noSh);
+  }
+  typeSel.onchange = syncType; syncType();
+  document.getElementById("modalOk").onclick = function () {
+    const date = document.getElementById("t_date").value;
+    const type = typeSel.value;
+    const tid = document.getElementById("t_target") ? document.getElementById("t_target").value : "";
+    const amt = Number(document.getElementById("t_amt").value) || 0;
+    const shares = Number(document.getElementById("t_shares").value) || 0;
+    const price = Number(document.getElementById("t_price").value) || 0;
+    if (!date) { toast("请选择日期"); return; }
+    if (amt <= 0) { toast("金额必须大于 0"); return; }
+    const noT = type === "in" || type === "out";
+    if (!noT && !tid) { toast("请选择标的"); return; }
+    if ((type === "buy" || type === "sell") && shares <= 0) { toast("买入/卖出需填写份额"); return; }
+    const rec = {
+      id: t ? t.id : uid(),
+      date: date,
+      type: type,
+      tid: noT ? "__cash__" : tid,
+      tname: noT ? "现金池" : (DB.targets.find(function (x) { return x.id === tid; }) || { name: "?" }).name,
+      amt: Math.round(amt * 100) / 100,
+      shares: shares,
+      price: price,
+      note: document.getElementById("t_note").value.trim()
+    };
+    if (t) {
+      const i = DB.tx.findIndex(function (x) { return x.id === t.id; });
+      if (i >= 0) DB.tx[i] = rec;
+      toast("交易已更新");
+    } else {
+      DB.tx.push(rec);
+      toast("交易已新增");
+    }
+    saveDB(); closeModal(); render(curView);
+  };
+}
+
+/* ---------- 净值更新 ---------- */
+function openNavForm(tid) {
+  const t = DB.targets.find(function (x) { return x.id === tid; });
+  if (!t) return;
+  const st = calcTargetStats(t.id);
+  const mv = st.shares * (Number(t.nav) || 0);
+  openModal(
+    '<div class="cb-frm">' +
+    '<div class="cb-fld full"><label>标的</label><input value="' + esc(t.name) + '" disabled></div>' +
+    '<div class="cb-fld"><label>最新净值 *<span class="unit">元/份</span></label><input id="n_nav" type="number" step="0.0001" min="0" value="' + (t.nav || "") + '"></div>' +
+    '<div class="cb-fld"><label>净值日期</label><input id="n_date" type="date" value="' + new Date().toISOString().slice(0, 10) + '"></div>' +
+    '<div class="cb-fld full"><label>当前持有份额</label><input value="' + fmt(st.shares, 2) + '" disabled></div>' +
+    '<div class="cb-fld full"><label>当前市值（按净值 × 份额）</label><input value="' + fmt(mv) + '" disabled></div>' +
+    "</div>",
+    "更新净值"
+  );
+  document.getElementById("modalOk").onclick = function () {
+    const nav = Number(document.getElementById("n_nav").value);
+    if (!(nav > 0)) { toast("请输入有效净值"); return; }
+    t.nav = Math.round(nav * 10000) / 10000;
+    t.navDate = document.getElementById("n_date").value;
+    saveDB(); closeModal(); render(curView);
+    toast("净值已更新：" + t.name + " → " + fmt(t.nav, 4));
+  };
+}
+function openBatchNavForm() {
+  const onTargets = DB.targets.filter(function (t) { return t.status === "on" && calcTargetStats(t.id).shares > 0; });
+  if (!onTargets.length) { toast("没有在盘且持有份额的标的"); return; }
+  const rows = onTargets.map(function (t) {
+    return '<div class="cb-fld" style="display:flex;align-items:center;gap:8px">' +
+      '<label style="flex:1;margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(t.name) + "</label>" +
+      '<input data-bnav="' + t.id + '" type="number" step="0.0001" min="0" value="' + (t.nav || "") + '" style="width:130px">' +
+      "</div>";
+  }).join("");
+  openModal('<div class="cb-frm" style="grid-template-columns:1fr">' + rows + "</div>", "批量更新净值");
+  document.getElementById("modalOk").onclick = function () {
+    let n = 0;
+    onTargets.forEach(function (t) {
+      const el = document.querySelector('[data-bnav="' + t.id + '"]');
+      const nav = Number(el.value);
+      if (nav > 0) { t.nav = Math.round(nav * 10000) / 10000; n++; }
+    });
+    saveDB(); closeModal(); render(curView);
+    toast("已更新 " + n + " 个标的净值");
+  };
+}
+
+/* ---------- 负债设置 ---------- */
+function openLiabilityForm() {
+  openModal(
+    '<div class="cb-frm" style="grid-template-columns:1fr">' +
+    '<div class="cb-fld"><label>外部借款 / 负债<span class="unit">元</span></label><input id="liab" type="number" step="0.01" min="0" value="' + (DB.liability || "") + '"></div>' +
+    '<div class="cb-fld"><label>说明</label><textarea id="liabNote" placeholder="如：家庭借款、融资余额等">' + esc(DB.liabNote || "") + "</textarea></div>" +
+    "</div>",
+    "设置负债"
+  );
+  document.getElementById("modalOk").onclick = function () {
+    DB.liability = Number(document.getElementById("liab").value) || 0;
+    DB.liabNote = document.getElementById("liabNote").value.trim();
+    saveDB(); closeModal(); render(curView);
+    toast("负债已更新");
+  };
+}
+
+/* ---------- 删除 ---------- */
+function delTarget(id) {
+  const t = DB.targets.find(function (x) { return x.id === id; });
+  if (!t) return;
+  const n = DB.tx.filter(function (x) { return x.tid === id; }).length;
+  openModal(
+    '<div class="cb-fld"><label>确认删除标的？</label>' +
+    '<p style="font-size:12.5px;color:var(--text-2);margin:8px 0 0;line-height:1.7">' +
+    "<b>" + esc(t.name) + "</b> 及其 " + n + " 条交易记录将被一并删除（含分红、费用）。此操作不可撤销。</p></div>",
+    "删除标的"
+  );
+  document.getElementById("modalOk").className = "btn danger";
+  document.getElementById("modalOk").textContent = "确认删除";
+  document.getElementById("modalOk").onclick = function () {
+    DB.targets = DB.targets.filter(function (x) { return x.id !== id; });
+    DB.tx = DB.tx.filter(function (x) { return x.tid !== id; });
+    saveDB(); closeModal(); render(curView);
+    toast("标的已删除");
+  };
+}
+function delTx(id) {
+  const t = DB.tx.find(function (x) { return x.id === id; });
+  if (!t) return;
+  openModal(
+    '<p style="font-size:12.5px;color:var(--text-2);line-height:1.7">确认删除 ' + esc(t.date) + " 的「" + txTypeLabel(t) + "」" +
+    esc(t.tname || "") + " " + fmt(t.amt) + " 元？此操作不可撤销。</p>",
+    "删除交易"
+  );
+  document.getElementById("modalOk").className = "btn danger";
+  document.getElementById("modalOk").textContent = "确认删除";
+  document.getElementById("modalOk").onclick = function () {
+    DB.tx = DB.tx.filter(function (x) { return x.id !== id; });
+    saveDB(); closeModal(); render(curView);
+    toast("交易已删除");
+  };
+}
+
+/* ================================================================
+   示例数据
+   ================================================================ */
+function sampleData() {
+  const T = function (o) { return { id: o.id, name: o.name, code: o.code, cat: o.cat, market: o.market, status: o.status, offDate: o.offDate || "", note: o.note || "", nav: o.nav || 0, navDate: o.navDate || "" }; };
+  const X = function (o) { return { id: uid(), date: o.date, type: o.type, tid: o.tid, tname: o.tname, amt: o.amt, shares: o.shares || 0, price: o.price || 0, note: o.note || "" }; };
+  const targets = [
+    T({ id: "t1", name: "华泰柏瑞A500ETF", code: "563360", cat: "宽基", market: "A股", status: "on", nav: 1.1042, note: "宽基底仓" }),
+    T({ id: "t2", name: "华泰柏瑞上证红利ETF", code: "510880", cat: "红利/现金流", market: "A股", status: "on", nav: 3.5620, note: "分红现金流" }),
+    T({ id: "t3", name: "华夏国证自由现金流ETF", code: "159201", cat: "红利/现金流", market: "A股", status: "on", nav: 1.2315, note: "FCF因子" }),
+    T({ id: "t4", name: "华安创业板50ETF", code: "159949", cat: "成长/主题", market: "A股", status: "on", nav: 0.9180, note: "进攻端" }),
+    T({ id: "t5", name: "招商行业精选股票", code: "000746", cat: "主动基金", market: "A股", status: "on", nav: 3.2840, note: "更换基金经理观察期" }),
+    T({ id: "t6", name: "华安日经225联接A", code: "020712", cat: "QDII", market: "日股", status: "on", nav: 1.4520, note: "独立境外风险源" }),
+    T({ id: "t7", name: "易方达全球成长精选A", code: "012920", cat: "QDII", market: "全球", status: "on", nav: 5.2809, note: "半导体/AI主题，挂止损纪律" }),
+    T({ id: "t8", name: "南方纳斯达克100发起A", code: "016452", cat: "QDII", market: "美股", status: "on", nav: 1.8740, note: "限大额申购" }),
+    T({ id: "t9", name: "上证10年期国债ETF", code: "511260", cat: "债券", market: "A股", status: "on", nav: 121.3400, note: "长久期债缓冲" }),
+    T({ id: "t10", name: "易方达黄金ETF", code: "159934", cat: "黄金", market: "A股", status: "on", nav: 5.8610, note: "真对冲" }),
+    T({ id: "t11", name: "国泰中证电网设备ETF联接", code: "023638", cat: "成长/主题", market: "A股", status: "off", offDate: "2026-06-30", note: "高波动主题，已清盘退出" })
+  ];
+  const tx = [
+    X({ date: "2026-01-05", type: "in", tid: "__cash__", tname: "现金池", amt: 200000, note: "期初资金转入" }),
+    X({ date: "2026-01-12", type: "buy", tid: "t1", tname: "华泰柏瑞A500ETF", amt: 40000, shares: 37000, price: 1.0811, note: "宽基底仓建仓" }),
+    X({ date: "2026-01-15", type: "buy", tid: "t2", tname: "华泰柏瑞上证红利ETF", amt: 20000, shares: 5700, price: 3.5088, note: "红利建仓" }),
+    X({ date: "2026-01-20", type: "buy", tid: "t3", tname: "华夏国证自由现金流ETF", amt: 20000, shares: 16600, price: 1.2048, note: "FCF建仓" }),
+    X({ date: "2026-02-10", type: "buy", tid: "t4", tname: "华安创业板50ETF", amt: 20000, shares: 22400, price: 0.8929, note: "进攻端建仓" }),
+    X({ date: "2026-02-18", type: "buy", tid: "t6", tname: "华安日经225联接A", amt: 20000, shares: 14300, price: 1.3986, note: "日经建仓" }),
+    X({ date: "2026-03-02", type: "buy", tid: "t10", tname: "易方达黄金ETF", amt: 20000, shares: 3520, price: 5.6818, note: "对冲仓建仓" }),
+    X({ date: "2026-03-10", type: "buy", tid: "t9", tname: "上证10年期国债ETF", amt: 15000, shares: 124.5, price: 120.4819, note: "债端建仓" }),
+    X({ date: "2026-04-08", type: "buy", tid: "t5", tname: "招商行业精选股票", amt: 10000, shares: 3120, price: 3.2051, note: "主动观察仓" }),
+    X({ date: "2026-04-15", type: "buy", tid: "t8", tname: "南方纳斯达克100发起A", amt: 10000, shares: 5460, price: 1.8315, note: "纳指小仓" }),
+    X({ date: "2026-05-12", type: "buy", tid: "t7", tname: "易方达全球成长精选A", amt: 15000, shares: 3225, price: 4.6512, note: "半导体主题仓" }),
+    X({ date: "2026-05-20", type: "fee", tid: "t7", tname: "易方达全球成长精选A", amt: 60, note: "申购费" }),
+    X({ date: "2026-06-15", type: "buy", tid: "t11", tname: "国泰中证电网设备ETF联接", amt: 5000, shares: 6400, price: 0.7813, note: "主题试仓" }),
+    X({ date: "2026-06-30", type: "sell", tid: "t11", tname: "国泰中证电网设备ETF联接", amt: 3700, shares: 6400, price: 0.5781, note: "清盘止损退出" }),
+    X({ date: "2026-07-02", type: "div", tid: "t2", tname: "华泰柏瑞上证红利ETF", amt: 530, note: "年度分红" }),
+    X({ date: "2026-07-10", type: "sell", tid: "t5", tname: "招商行业精选股票", amt: 3200, shares: 1000, price: 3.2000, note: "观察仓部分退出" }),
+    X({ date: "2026-08-14", type: "buy", tid: "t4", tname: "华安创业板50ETF", amt: 10000, shares: 10800, price: 0.9259, note: "低位加倍定投" }),
+    X({ date: "2026-08-20", type: "div", tid: "t3", tname: "华夏国证自由现金流ETF", amt: 260, note: "半年分红" }),
+    X({ date: "2026-09-15", type: "fee", tid: "t6", tname: "华安日经225联接A", amt: 20, note: "赎回费试算" })
+  ];
+  return { targets: targets, tx: tx, liability: 0, liabNote: "", updatedAt: new Date().toISOString() };
+}
+
+/* ================================================================
+   初始化与事件绑定
+   ================================================================ */
+
+/* ================================================================
+   视图切换（tab 机制，与工作台 .view 切换独立）
+   ================================================================ */
+let curView = "overview";
+function showTab(name) {
+  curView = name;
+  $qa("#view-capbal .cb-pane").forEach(function (p) { p.classList.add("hidden"); });
+  const el = gid("cbPane-" + name);
+  if (el) el.classList.remove("hidden");
+  $qa("#view-capbal .tab[data-cbtab]").forEach(function (t) {
+    t.classList.toggle("active", t.dataset.cbtab === name);
+  });
+  render();
+}
+function render() {
+  maybeAutoSync();
+  disposeCharts();
+  if (curView === "overview") renderOverview();
+  else if (curView === "holdings") renderHoldings();
+  else if (curView === "income") renderIncome();
+  else if (curView === "balance") renderBalance();
+  else if (curView === "cashflow") renderCashflow();
+  else if (curView === "data") renderData();
+}
+
+/* ================================================================
+   与工作台持仓自动同步
+   ================================================================ */
+function normCode(c) {
+  if (!c) return "";
+  let s = String(c).trim().toLowerCase();
+  s = s.replace(/^(sh|sz|bj)/, "").replace(/^f(\d{6})/, "$1").replace(/^hk/, "").replace(/^us/, "");
+  return s;
+}
+function marketOfCode(c) {
+  const s = String(c).toLowerCase();
+  if (/^hk/.test(s)) return "港股";
+  if (/^us/.test(s)) return "美股";
+  return "A股";
+}
+function guessCat(name, code) {
+  const n = String(name || "") + String(code || "");
+  if (/红利|自由现金流|现金流/.test(n)) return "红利/现金流";
+  if (/黄金/.test(n)) return "黄金";
+  if (/国债|债|信用/.test(n)) return "债券";
+  if (/日经|纳指|纳斯达克|标普|全球|恒生|美股|海外/.test(n)) return "QDII";
+  if (/创业|成长|科技|主题|半导体|新能源|AI/.test(n)) return "成长/主题";
+  if (/A500|沪深300|中证|上证50|深证|宽基|指数/.test(n)) return "宽基";
+  return "其他";
+}
+/* 手动同步（manual=true 时也允许更新已存在标的的名称与净值缺口） */
+function syncFromWorkbench(manual) {
+  const wb = (typeof state !== "undefined" && state && Array.isArray(state.portfolio)) ? state.portfolio : [];
+  if (!wb.length) {
+    if (manual) toast("工作台暂无持仓数据");
+    return { added: 0, filled: 0, total: 0 };
+  }
+  let added = 0, filled = 0;
+  const norm = {};
+  DB.targets.forEach(function (t) { norm[normCode(t.code)] = t; });
+  wb.forEach(function (h) {
+    const code = normCode(h.code);
+    if (!code) return;
+    let t = norm[code];
+    if (!t) {
+      t = {
+        id: uid(), name: h.name || h.code, code: code,
+        cat: guessCat(h.name, code), market: marketOfCode(h.code),
+        status: "on", offDate: "", note: "来自工作台持仓", nav: 0,
+        wb: true
+      };
+      DB.targets.push(t);
+      norm[code] = t;
+      added++;
+    } else if (manual && t.wb) {
+      if (h.name && t.name !== h.name) t.name = h.name;
+      if (t.cat === "其他") t.cat = guessCat(h.name, code);
+    }
+    /* 净值缺口：尝试从工作台行情快照自动带入 */
+    if (!(Number(t.nav) > 0) && typeof state !== "undefined" && state && state.snapshot && state.snapshot.quotes) {
+      const q = state.snapshot.quotes[h.code] || state.snapshot.quotes[code];
+      if (q && Number(q.price) > 0) { t.nav = Math.round(Number(q.price) * 10000) / 10000; filled++; }
+    }
+  });
+  if (added || filled) { saveDB(); }
+  const syncInfo = gid("cbSyncInfo");
+  if (syncInfo) {
+    const wbOn = wb.length;
+    syncInfo.textContent = "工作台持仓 " + wbOn + " 只 · 本次新增 " + added + " · 净值带入 " + filled;
+  }
+  if (manual) {
+    toast(added ? "已从工作台同步 " + added + " 个标的" : (filled ? "已补充 " + filled + " 个净值" : "台账与工作台持仓一致"));
+  }
+  return { added: added, filled: filled, total: wb.length };
+}
+/* 自动同步：仅在台账为空时自动建立（避免覆盖用户手动录入） */
+function maybeAutoSync() {
+  if (!DB.targets.length) {
+    syncFromWorkbench(false);
+  } else {
+    const wb = (typeof state !== "undefined" && state && Array.isArray(state.portfolio)) ? state.portfolio : [];
+    const syncInfo = gid("cbSyncInfo");
+    if (syncInfo && wb.length) {
+      const mine = {};
+      DB.targets.forEach(function (t) { mine[normCode(t.code)] = 1; });
+      const missing = wb.filter(function (h) { return !mine[normCode(h.code)]; }).length;
+      if (missing) syncInfo.textContent = "工作台有 " + missing + " 只持仓未在台账，可点「同步持仓」";
+    }
+  }
+}
+
+/* ================================================================
+   图表实例管理（与工作台 charts 隔离）
+   ================================================================ */
+const charts = {};
+function disposeCharts() {
+  Object.keys(charts).forEach(function (k) {
+    try { if (charts[k] && !charts[k].isDisposed()) charts[k].dispose(); } catch (e) {}
+    delete charts[k];
+  });
+}
+function chart(id, option) {
+  const dom = gid(id);
+  if (!dom || typeof echarts === "undefined") return;
+  try { if (charts[id]) charts[id].dispose(); } catch (e) {}
+  const c = echarts.init(dom);
+  c.setOption(option, true);
+  charts[id] = c;
+}
+function chartResizeAll() {
+  Object.keys(charts).forEach(function (k) {
+    try { if (charts[k] && !charts[k].isDisposed()) charts[k].resize(); } catch (e) {}
+  });
+}
+window.addEventListener("resize", chartResizeAll);
+
+/* ================================================================
+   事件绑定（工作台环境：一次绑定，视图常驻）
+   ================================================================ */
+function bindEvents() {
+  $qa("#view-capbal .tab[data-cbtab]").forEach(function (t) {
+    t.onclick = function () { showTab(t.dataset.cbtab); };
+  });
+  const b = (id, fn) => { const el = gid(id); if (el) el.onclick = fn; };
+  b("cbAddTx", function () { openTxForm(null); });
+  b("cbNavUpd", openBatchNavForm);
+  b("cbSetLiab", openLiabilityForm);
+  b("cbSetLiab", openLiabilityForm);
+  b("cbSync", function () { syncFromWorkbench(true); render(); });
+  b("cbAddTarget", function () { openTargetForm(null); });
+  b("cbAllTrades", function () { showTab("holdings"); });
+  const seg = gid("cbSegStatus");
+  if (seg) $qa("button", seg).forEach(function (bt) {
+    bt.onclick = function () {
+      holdingsFilter = bt.dataset.f;
+      $qa("#cbSegStatus button").forEach(function (x) { x.classList.toggle("active", x === bt); });
+      renderHoldings();
+    };
+  });
+  b("cbExport", function () {
+    const blob = new Blob([JSON.stringify(DB, null, 2)], { type: "application/json" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "资金平衡备份_" + new Date().toISOString().slice(0, 10) + ".json";
+    document.body.appendChild(a); a.click();
+    setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 300);
+    toast("备份已导出");
+  });
+  b("cbImport", function () { const f = gid("cbImportFile"); if (f) f.click(); });
+  const imp = gid("cbImportFile");
+  if (imp) imp.onchange = function (e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function () {
+      try {
+        const d = JSON.parse(reader.result);
+        if (!d || !Array.isArray(d.targets) || !Array.isArray(d.tx)) throw new Error("bad");
+        DB = { targets: d.targets, tx: d.tx, liability: Number(d.liability) || 0, liabNote: d.liabNote || "", updatedAt: d.updatedAt || new Date().toISOString() };
+        saveDB(); render();
+        toast("数据已导入");
+      } catch (err) { toast("导入失败：文件格式不正确"); }
+      e.target.value = "";
+    };
+    reader.readAsText(file);
+  };
+  b("cbSample", function () {
+    openModal('<p style="font-size:12.5px;color:var(--text-2);line-height:1.7">将载入 11 个标的、约 20 笔交易的演示数据（含清盘标的、分红、买卖）。<b>会覆盖当前数据</b>，确认继续？</p>', "加载示例数据");
+    gid("modalOk").onclick = function () {
+      DB = sampleData();
+      saveDB(); closeModal(); render();
+      toast("示例数据已加载（非真实持仓）");
+    };
+  });
+  b("cbClear", function () {
+    openModal('<p style="font-size:12.5px;color:var(--text-2);line-height:1.7">将删除本机保存的全部标的与交易数据，恢复到空白状态。<b>此操作不可撤销</b>，建议先导出备份。</p>', "清空全部数据");
+    gid("modalOk").className = "btn cb-btn-danger";
+    gid("modalOk").textContent = "确认清空";
+    gid("modalOk").onclick = function () {
+      DB = emptyState();
+      saveDB(); closeModal(); render();
+      toast("数据已清空");
+    };
+  });
+}
+
+/* ================================================================
+   启动（合并版：不自动显示视图，由工作台 showView 触发）
+   ================================================================ */
+loadDB();
+bindEvents();
+/* 首次加载：capbal.js 在工作台启动代码之后执行，showView('capbal') 分支里的
+   window.CAPBAL 调用会落空，这里补一次渲染；支持 ?tab= 直达子标签 */
+if (typeof state !== "undefined" && state && state.view === "capbal") {
+  var _ct0 = new URLSearchParams(location.search).get("tab");
+  if (_ct0) showTab(_ct0); else render();
+}
+
+return {
+  render: function () { render(); },
+  showTab: showTab,
+  syncFromWorkbench: syncFromWorkbench,
+  maybeAutoSync: maybeAutoSync
+};
+})();
 
 </script>
 </body>
