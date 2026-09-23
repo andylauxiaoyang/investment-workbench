@@ -1786,6 +1786,13 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
       (function () {
         var fr = document.getElementById('smartmoneyFrame');
         if (!fr) return;
+        /* fw2_v183_sm_lib_src：资料库轨（workbuddy.cn）不发布 smartmoney 子应用（_lib_import_v152 只导 index.html），
+           相对 src 必 404（NoSuchKey）→ 检测到 workbuddy.cn 域时改用 GitHub Pages 绝对地址；
+           跨域读不了 contentDocument，fitSmartMoney 自动退回固定高 1400px（原有兜底）。 */
+        var smartmoneyGhUrl = 'https://andylauxiaoyang.github.io/investment-workbench/caifu/smartmoney/13f_workbench_ashare.html?wb=embed';
+        try {
+          if (/(^|\.)workbuddy\.cn$/i.test(location.hostname)) fr.src = smartmoneyGhUrl;
+        } catch (e) {}
         var tries = 0;
         (function fit() { fitSmartMoney(fr); if (tries++ < 6) setTimeout(fit, 400); })();
         fr.addEventListener('load', function () { fitSmartMoney(fr); });
@@ -7928,9 +7935,15 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
      ③ 页面：本地台账全空时（换设备/清缓存）自动从镜像恢复并标 cloudSrc；已有台账绝不覆盖；
         数据管理页新增「云端镜像」卡片（披露镜像时间 + 手动「从云端恢复」按钮）。
      ★页面绝不写回云端（免登录入口无资料库 SDK，也不应内嵌 token）。verChip v181->v182
+  v183 fw2_v183_sm_fullwidth_（2026-09-23）：聪明的钱模块（iframe 子应用 13f_workbench_ashare.html）
+     ① 对齐全站布局——去掉 .tb-in / nav.views / main / footer 的 max-width:1180px + margin:auto 居中，
+        改为全宽贴边（padding 0 16px，与主工作台 .scroll-area 一致）；子应用独立打开亦同样全宽。
+     ② 修资料库轨「聪明的钱」NoSuchKey（v179 起的双轨缺口）：_lib_import_v152 只导 index.html，
+        库内无 smartmoney/ 子路径 → 相对 src 必 404；检测 workbuddy.cn 域时 iframe 改用
+        GitHub Pages 绝对地址（smartmoneyGhUrl），跨域退回固定高 1400px（原有兜底）。verChip v182->v183
   */
   const vc = $('#verChip');
-  if (vc) vc.textContent = 'v182 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  if (vc) vc.textContent = 'v183 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
