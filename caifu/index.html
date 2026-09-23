@@ -1804,6 +1804,19 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
         fr.addEventListener('load', function () { fitSmartMoney(fr); });
       })();
       window.addEventListener('resize', function () { var f = document.getElementById('smartmoneyFrame'); if (f) fitSmartMoney(f); });
+      /* fw2_v185_sm_resize：子应用 postMessage 页高（跨域资料库轨也能拿到），动态撑高 iframe，根治底部被裁。
+         仅处理带 __smH 数字的消息，并按来源域白名单过滤（github.io / 同源 / 本地）。 */
+      window.addEventListener('message', function (e) {
+        var f = document.getElementById('smartmoneyFrame');
+        if (!f || !e.data || typeof e.data.__smH !== 'number') return;
+        var o = e.origin || '';
+        var okOrg = o === '' || o === 'null' || /(^|\.)github\.io$/i.test(o) ||
+                    /^(https?:)?(\/\/)?(localhost|127\.0\.0\.1)/i.test(o) ||
+                    o === (location.origin || '');
+        if (!okOrg) return;
+        var h = e.data.__smH;
+        if (h > 200 && h < 20000) f.style.height = h + 'px';
+      });
       </script>
     </section>
     </main>
@@ -6479,7 +6492,7 @@ const VIEW_META = {
   gold: ['黄金研究', '金价走势 · 非农 · 央行购金 · CSV 数据'], /* fw2_v143_gold fw2_v147_gold_zh */
   data: ['基金数据', '基金列表 · 收益曲线 · 基本面/技术面/持仓关联 · 财报 · 综合诊断'], /* fw2_v170_ds_norm：补 data 键（原缺失 → 顶栏标题/副标题空） */
   capbal: ['资金平衡', '投资记账 · 三张报表 · 盈亏台账（与持仓自动同步）'], /* fw2_capbal_merge */
-  smartmoney: ['聪明的钱', '13F 聪明钱工作台 · A股 · 公开持仓/国家队汇金分析'], /* fw2_v179_smartmoney */
+  smartmoney: ['聪明的钱', '机构持仓 · 季度环比 · 资金流向'], /* fw2_v185_smartmoney_rename：去 13F 旧名，顶栏副标题与子应用一致 */
 };
 function showView(name) {
   state.view = name;
@@ -7952,9 +7965,13 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
      （错误路径 /page/<node>/<ver>/smartmoney/）。改反向白名单：仅 github.io / 本地（file:/localhost）
      保留相对 src，其余主机一律改 GH Pages 绝对地址（实测响应头无 X-Frame-Options，允许嵌入）。
      verChip v183->v184
+  v185 fw2_v185_sm_rename_resize（2026-09-23）：聪明的钱模块 ① 名字去「13F 聪明钱工作台 · A股」→「聪明的钱」
+     （子应用 title/h1/数据 meta + 主工作台顶栏副标题一致化）；② 底部显示不完整根治——子应用任意 render/内容
+     变化后经 postMessage 上报页高，父工作台 message 监听后动态撑高 iframe；跨域资料库轨亦自适应（不再固定
+     1400px 裁切），同源 GitHub 轨切换 tab 也不裁。verChip v184->v185
   */
   const vc = $('#verChip');
-  if (vc) vc.textContent = 'v184 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  if (vc) vc.textContent = 'v185 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
