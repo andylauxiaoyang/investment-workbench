@@ -1786,12 +1786,18 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
       (function () {
         var fr = document.getElementById('smartmoneyFrame');
         if (!fr) return;
-        /* fw2_v183_sm_lib_src：资料库轨（workbuddy.cn）不发布 smartmoney 子应用（_lib_import_v152 只导 index.html），
-           相对 src 必 404（NoSuchKey）→ 检测到 workbuddy.cn 域时改用 GitHub Pages 绝对地址；
-           跨域读不了 contentDocument，fitSmartMoney 自动退回固定高 1400px（原有兜底）。 */
+        /* fw2_v184_sm_host_fb_：资料库轨不发布 smartmoney 子应用（_lib_import_v152 只导 index.html），
+           相对 src 必 404（NoSuchKey）。v183 教训（fw2_v183_sm_lib_src）：白名单检测 workbuddy.cn 未命中——
+           库轨实际渲染 HTML 的主机名不是 www.workbuddy.cn（COS/静态资源域）→ v184 改**反向白名单**：
+           仅 github.io（相对路径本就有效）与本地（file:/localhost/127.0.0.1）保留相对 src，
+           其余一切主机一律改用 GitHub Pages 绝对地址（smartmoneyGhUrl；实测 GH Pages 响应头
+           无 X-Frame-Options / frame-ancestors，允许 iframe 嵌入）。跨域读不了 contentDocument，
+           fitSmartMoney 自动退回固定高 1400px（原有兜底）。 */
         var smartmoneyGhUrl = 'https://andylauxiaoyang.github.io/investment-workbench/caifu/smartmoney/13f_workbench_ashare.html?wb=embed';
         try {
-          if (/(^|\.)workbuddy\.cn$/i.test(location.hostname)) fr.src = smartmoneyGhUrl;
+          var smHost = location.protocol === 'file:' ? 'file' : (location.hostname || '');
+          var smKnown = smHost === 'file' || /^(localhost|127\.0\.0\.1)$/i.test(smHost) || /(^|\.)github\.io$/i.test(smHost);
+          if (!smKnown) fr.src = smartmoneyGhUrl;
         } catch (e) {}
         var tries = 0;
         (function fit() { fitSmartMoney(fr); if (tries++ < 6) setTimeout(fit, 400); })();
@@ -7940,10 +7946,15 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
         改为全宽贴边（padding 0 16px，与主工作台 .scroll-area 一致）；子应用独立打开亦同样全宽。
      ② 修资料库轨「聪明的钱」NoSuchKey（v179 起的双轨缺口）：_lib_import_v152 只导 index.html，
         库内无 smartmoney/ 子路径 → 相对 src 必 404；检测 workbuddy.cn 域时 iframe 改用
-        GitHub Pages 绝对地址（smartmoneyGhUrl），跨域退回固定高 1400px（原有兜底）。verChip v182->v183
+        GitHub Pages 绝对地址（smartmoneyGhUrl），跨域退回固定高 1400px（原有兜底）。
+  v184 fw2_v184_sm_host_fb_（2026-09-23）：修 v183 资料库轨「聪明的钱」仍 NoSuchKey——实测库轨渲染
+     HTML 的主机名并非 www.workbuddy.cn（COS/静态资源域），v183 域白名单未命中、iframe 仍走相对路径
+     （错误路径 /page/<node>/<ver>/smartmoney/）。改反向白名单：仅 github.io / 本地（file:/localhost）
+     保留相对 src，其余主机一律改 GH Pages 绝对地址（实测响应头无 X-Frame-Options，允许嵌入）。
+     verChip v183->v184
   */
   const vc = $('#verChip');
-  if (vc) vc.textContent = 'v183 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  if (vc) vc.textContent = 'v184 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
