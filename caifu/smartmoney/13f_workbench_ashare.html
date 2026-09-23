@@ -87,9 +87,9 @@ table.tbl{width:100%;border-collapse:collapse;font-size:var(--fs-md)}
 .tbl .num,.num{font-family:var(--mono)}
 .mono{font-family:var(--mono)}
 /* detail modal */
-.overlay{position:fixed;inset:0;background:rgba(15,18,26,.42);backdrop-filter:blur(2px);display:none;z-index:90;align-items:flex-start;justify-content:center;overflow-y:auto;padding:26px 14px}
+.overlay{position:fixed;inset:0;background:rgba(15,18,26,.42);backdrop-filter:blur(2px);display:none;z-index:90;align-items:center;justify-content:center;overflow:hidden;padding:26px 14px}
 .overlay.open{display:flex}
-.detail{max-width:980px;width:100%;background:var(--card);border-radius:18px;box-shadow:0 24px 60px rgba(0,0,0,.28);overflow:hidden;margin:auto}
+.detail{max-width:980px;width:100%;background:var(--card);border-radius:18px;box-shadow:0 24px 60px rgba(0,0,0,.28);overflow-y:auto;max-height:calc(100vh - 52px);margin:0;scrollbar-width:thin}
 .detail .dhead{padding:20px 22px 16px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--card);z-index:5}
 .detail .dhead .ttl{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
 .detail .dhead h2{font-size:var(--fs-2xl);font-weight:700}
@@ -23505,7 +23505,7 @@ function renderInst(){
 /* ============ 机构详情 ============ */
 window.openInst=function(id){st.dInst=INSTBY[id];st.dQ=LAST;st.dSort='mk';st.dMode='simple';renderDetail();overlayOpen();};
 window.closeDetail=function(){$('#overlay').classList.remove('open');};
-function overlayOpen(){$('#overlay').classList.add('open');}
+function overlayOpen(){var _o=$('#overlay');_o.scrollTop=0;_o.classList.add('open');}
 function renderDetail(){
   var x=st.dInst;if(!x)return;
   var q=st.dQ, iq=qIndex2(q), ext=instExt(x.canon);
