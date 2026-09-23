@@ -192,6 +192,9 @@ button, input, select, textarea { font-family: inherit; font-size: var(--fs-md);
 .scroll-area:not(:has(.view.active)) { flex: 0 0 0; height: 0; padding: 0; overflow: visible; }
 /* fw2_v187_sm_iframe_style_fix：聪明的钱 iframe 尺寸兜底（不依赖内联 style，防属性解析意外） */
 #smartmoneyFrame { width: 100%; display: block; border: 0; border-radius: 12px; background: #fff; }
+.sm-fallback { margin: 0 0 10px; padding: 10px 12px; border: 1px solid #f0d9a8; border-radius: 10px; background: #fffaef; color: #7a5320; font-size: 12px; line-height: 1.7; }
+.sm-fallback[hidden] { display: none; }
+.sm-fallback a { color: #2563eb; text-decoration: underline; }
 .view { display: none; }
 .view.active { display: block; }
 
@@ -1466,7 +1469,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
          GOLD_SNAP.csv_files 原样保留（自本轮起无消费点，处理方式同 GOLD_DB_IDS）。
          侧栏提示里的「CSV 数据」现在指图卡内联按钮，仍然成立，故未改。
 
-    <!-- v149：⑥「资料库数据中心」整块删除（用户 2026-09-19「整块删掉」）——
+          v149：⑥「资料库数据中心」整块删除（用户 2026-09-19「整块删掉」）——
          该分区只把资料库表 id 当文本渲染，页面从不读取这些表；其 #gDataMech 更声称
          「数据表是页面展示的统一数据源」，与代码实际通路（GOLD_SNAP 内嵌 →
          gold-data.json → 实时接口）不符，会让人误以为改表即改页面。
@@ -1772,10 +1775,14 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
       </div>
       <div id="cbModalRoot"></div>
     </section>
-    <section class="view" id="view-smartmoney"><!-- fw2_v179_smartmoney：独立的「聪明的钱」模块（iframe 内嵌 A股聪明钱工作台，子应用为自包含单文件 smartmoney/13f_workbench_ashare.html） -->
-      <!-- fw2_v187_sm_iframe_style_fix：v186 曾把说明注释写进 <iframe> 开标签内部 —— 解析器在注释的 "-->" 的 ">"
-           处提前闭合标签，style 属性整体沦为文本被丢弃（iframe 退回 inline、宽塌成默认 ~300px）。
-           现将注释移到标签外，样式恢复；并另加 CSS #smartmoneyFrame 兜底（见下方样式块）。 -->
+    <section class="view" id="view-smartmoney">
+      <!-- fw2_v179_smartmoney：独立的「聪明的钱」模块。子应用是自包含单文件
+           （smartmoney/13f_workbench_ashare.html），运行时以内联文本喂给下方 iframe，
+           加载策略见 fw2_v186_sm_inline 与 fw2_v188_sm_srcdoc_csp 两段说明。
+           本文件所有说明注释里都不得出现注释结束符、也不得出现尖括号标签原文：
+           一旦出现，注释会被解析器提前截断，余下注释文字会当成页面正文显示出来。 -->
+      <div class="sm-fallback" id="smFallback" hidden>子应用未能内联渲染。
+        <a id="smOpenTab" href="#" target="_blank" rel="noopener">在新标签打开「聪明的钱」</a></div>
       <iframe id="smartmoneyFrame" title="聪明的钱" style="width:100%;height:1400px;border:0;border-radius:12px;background:#ffffff;display:block;box-shadow:0 1px 2px rgba(16,24,40,.04)"></iframe>
       <script>
       /* fw2_v179_smartmoney：iframe 高度自适应（同源可读 contentDocument；跨域/file 受阻时退回固定高） */
@@ -2624,35 +2631,71 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
       (function () {
         var fr = document.getElementById('smartmoneyFrame');
         if (!fr) return;
-        /* fw2_v186_sm_inline：跨域 iframe 在资料库轨被 CSP 拦死——实测 workbuddy.cn 响应头
-           frame-src 'self' data: blob: +（腾讯域若干），**不含 github.io** ⇒ v183(相对)/v184(GH 绝对)
-           两版都加载不出（模块空白）。v186 改**内联自包含**：子应用 HTML 以 base64 内置
-           （window.SM_APP_B64，多行分块），运行时解码 → Blob URL 赋给 iframe（CSP 允许 blob:）。
-           无跨域、无同级文件依赖 ⇒ 两轨与离线(file://)一致可用。
-           兜底链：blob → 解码失败退 GH Pages 绝对地址。 */
+        /* fw2_v186_sm_inline：跨域 iframe 在资料库轨被 CSP 拦死 —— 实测 workbuddy.cn 响应头
+           frame-src 只有 self/data:/blob: 加若干腾讯域，不含 github.io ⇒ v183(相对路径) 与
+           v184(GH 绝对地址) 两版都加载不出（模块空白）。v186 改内联自包含：子应用 HTML 以
+           base64 内置（window.SM_APP_B64，多行分块），运行时解码后喂给 iframe，无跨域、无同级文件依赖。 */
+        /* fw2_v188_sm_srcdoc_csp：加载策略由 blob 单路改为 srcdoc 优先 —— srcdoc 继承父文档源、
+           不发网络请求，本地 file:// 直接打开也能渲染；随后依次兜底 blob URL、GitHub Pages 绝对地址。
+           2.4 秒看门狗：iframe 内判不出内容就自动降级；三条策略全失败才显示提示条与新标签入口。
+           判据 smOk()：contentDocument 读得到且正文有字 ⇒ 成功；读不到(跨域) ⇒ 视为成功不降级；
+           读得到但空 ⇒ 失败降级（CSP 拦 srcdoc 时正是「可读但空」这一形态）。 */
         var smartmoneyGhUrl = 'https://andylauxiaoyang.github.io/investment-workbench/caifu/smartmoney/13f_workbench_ashare.html?wb=embed';
-        function smBoot() {
+        var smFallback = document.getElementById('smFallback');
+        var smOpenTab = document.getElementById('smOpenTab');
+        if (smOpenTab) smOpenTab.href = smartmoneyGhUrl;
+        var SM_MODES = ['srcdoc', 'blob', 'gh'];
+        var smIdx = -1, smWatchdog = null;
+        function smDecode() {
           try {
             var B = window.SM_APP_B64;
-            if (!B || typeof B !== 'string' || B.length < 1000) return false;
+            if (!B || typeof B !== 'string' || B.length < 1000) return null;
             var bin = atob(B);
             var u8 = new Uint8Array(bin.length);
             for (var i = 0; i < bin.length; i++) u8[i] = bin.charCodeAt(i);
-            var txt = (typeof TextDecoder !== 'undefined')
+            var txt = (typeof TextDecoder !== "undefined")
               ? new TextDecoder('utf-8').decode(u8)
               : decodeURIComponent(escape(bin));
-            if (!txt || txt.indexOf('<html') < 0) return false;
-            var url = URL.createObjectURL(new Blob([txt], { type: 'text/html' }));
-            fr.src = url;
+            if (!txt || txt.indexOf('<html') < 0) return null;
+            return txt;
+          } catch (e) { return null; }
+        }
+        function smOk() {
+          var d = null;
+          try { d = fr.contentDocument; } catch (e) { return true; }
+          if (d === null) return true;
+          if (!d.body) return false;
+          return (d.body.textContent || '').replace(/\s+/g, '').length > 40;
+        }
+        function smApply(mode, txt) {
+          try {
+            if (mode === 'srcdoc') { fr.removeAttribute('src'); fr.srcdoc = txt; }
+            else if (mode === 'blob') { fr.removeAttribute('srcdoc'); fr.src = URL.createObjectURL(new Blob([txt], { type: 'text/html' })); }
+            else { fr.removeAttribute('srcdoc'); fr.src = smartmoneyGhUrl; }
+            fr.setAttribute('data-sm-mode', mode);
             return true;
           } catch (e) { return false; }
         }
-        if (!smBoot()) {
-          try { fr.src = smartmoneyGhUrl; } catch (e) {}
+        function smSettle() {
+          clearTimeout(smWatchdog);
+          if (smOk()) { if (smFallback) smFallback.hidden = true; fitSmartMoney(fr); return; }
+          smNext();
         }
+        function smArm() { clearTimeout(smWatchdog); smWatchdog = setTimeout(smSettle, 2400); }
+        function smNext() {
+          var txt = smDecode();
+          while (smIdx + 1 < SM_MODES.length) {
+            smIdx++;
+            var m = SM_MODES[smIdx];
+            if (m !== 'gh' && !txt) continue;
+            if (smApply(m, txt)) { smArm(); return; }
+          }
+          if (smFallback) smFallback.hidden = false;
+        }
+        smNext();
         var tries = 0;
         (function fit() { fitSmartMoney(fr); if (tries++ < 6) setTimeout(fit, 400); })();
-        fr.addEventListener('load', function () { fitSmartMoney(fr); });
+        fr.addEventListener('load', function () { setTimeout(smSettle, 150); });
       })();
       window.addEventListener('resize', function () { var f = document.getElementById('smartmoneyFrame'); if (f) fitSmartMoney(f); });
       /* fw2_v185_sm_resize：子应用 postMessage 页高（跨域资料库轨也能拿到），动态撑高 iframe，根治底部被裁。
@@ -8831,9 +8874,16 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
   v187 fw2_v187_sm_iframe_style_fix（2026-09-23）：修 v186 引入的显示缺陷——v186 把说明注释写进 <iframe> 开标签
      内部，HTML 解析器在注释 "-->" 的 ">" 处提前闭合标签 ⇒ 其后 style 属性沦为文本被丢弃，iframe 退回
      inline 且宽塌成默认 ~300px（子应用被塞进窄条）。修：注释移出标签 + 补 CSS #smartmoneyFrame 兜底。
-     verChip v186->v187  */
+     verChip v186->v187
+  v188 fw2_v188_sm_srcdoc_csp（2026-09-23）：修 v187 引入的「注释自截断」事故 + 本地 file:// 不渲染。
+     ① v187 说明注释里字面写了注释结束符，HTML 解析器在第一个结束符处收尾 ⇒ 其余注释文字（「处提前闭合
+        标签，style 属性整体沦为文本被丢弃」等）当正文显示在页面上（线上与资料库两轨都有）；
+     ② 加载策略由 blob 单路改为 srcdoc 优先（继承父源、不发网络请求 ⇒ file:// 本地也能渲染），
+        依次兜底 blob URL、GitHub Pages 绝对地址；加 2.4s 看门狗自动降级 + 失败提示条与新标签入口。
+     verChip v187->v188
+  */
   const vc = $('#verChip');
-  if (vc) vc.textContent = 'v187 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  if (vc) vc.textContent = 'v188 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
