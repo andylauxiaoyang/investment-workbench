@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>13F 聪明钱工作台 · A股</title>
+<title>聪明的钱</title>
 <style>
 :root{
   --bg:#f5f6f8; --card:#ffffff; --line:#e7eaef; --txt:#1f2430; --txt2:#6b7280; --txt3:#9aa1ac;
@@ -132,7 +132,7 @@ a.alt{color:var(--accent);text-decoration:none;cursor:pointer}
     <div class="brand">
       <div class="logo">S</div>
       <div>
-        <h1>13F 聪明钱工作台 <span style="font-size:var(--fs-xs);color:var(--txt2)">· A股</span></h1>
+        <h1>聪明的钱</h1>
         <div class="sub">机构持仓 · 季度环比 · 资金流向</div>
       </div>
     </div>
@@ -164,7 +164,7 @@ a.alt{color:var(--accent);text-decoration:none;cursor:pointer}
 <script>
 window.SM={
  "meta": {
-  "title": "13F 聪明钱工作台 · A股",
+  "title": "聪明的钱",
   "asOf": "2026-09-22",
   "generated": "2026-09-22T15:20+08:00",
   "source": "东方财富 F10 十大股东（源自上市公司定期报告披露，公开合规，无需鉴权）",
@@ -11798,6 +11798,26 @@ function renderFoot(){
 }
 /* ============ 启动 ============ */
 chipQ();renderNav();go('overview');renderFoot();
+})();
+</script>
+<script>
+/* fw2_v185_sm_resize：任一视图渲染/内容变化后把页高经 postMessage 上报父容器（同源/跨域均可用），
+   父工作台据此动态撑高 iframe —— 根治「切换 tab 后底部被裁」与资料库轨固定 1400px 裁切。 */
+(function () {
+  function notify () {
+    var h = document.documentElement ? document.documentElement.scrollHeight : 0;
+    if (h > 200 && window.parent && window.parent !== window) {
+      try { window.parent.postMessage({ __smH: h }, '*'); } catch (e) {}
+    }
+  }
+  setTimeout(notify, 120);
+  var __t = null;
+  var mo = new MutationObserver(function () {
+    clearTimeout(__t); __t = setTimeout(notify, 160);
+  });
+  if (document.body && document.documentElement) {
+    mo.observe(document.body, { childList: true, subtree: true, attributes: true, characterData: true });
+  }
 })();
 </script>
 </body>
