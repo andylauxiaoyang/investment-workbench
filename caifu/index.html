@@ -1832,11 +1832,11 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
     <section class="view" id="view-smartmoney">
       <!-- fw2_v194_sm_merge：聪明的钱 = A股/美股 分区（市场条 + 跨市场速览卡常驻） -->
       <div class="sm-market-bar" id="smMarketBar">
-        <span class="sm-mlab" title="点击切换市场">市场</span>
+        <span class="sm-mlab" title="跨市场机构动向速览（A股汇金/机构 + 美股13F）">跨市场速览</span>
         <button class="sm-m-btn on" data-sm-m="a">A股</button>
         <button class="sm-m-btn" data-sm-m="us">美股</button>
       </div>
-      <div class="card sm-xov" id="smXOverview"></div>
+      <div class="card sm-xov" id="smXOverview" hidden></div>
       <!-- fw2_v179_smartmoney：独立的「聪明的钱」模块。子应用是自包含单文件
            （smartmoney/13f_workbench_ashare.html），运行时以内联文本喂给下方 iframe，
            加载策略见 fw2_v186_sm_inline 与 fw2_v188_sm_srcdoc_csp 两段说明。
@@ -17043,6 +17043,8 @@ section.sm13f-view{display:none;padding-top:22px}
 #view-smartmoney .sm-m-btn:hover { border-color: #c9d2e0; }
 #view-smartmoney .sm-m-btn.on { background: #2563eb; color: #fff; border-color: #2563eb; font-weight: 600; }
 #view-smartmoney .sm-panel[hidden] { display: none !important; }
+#view-smartmoney .sm-xov[hidden] { display: none !important; }
+#view-smartmoney .sm-mlab.on { color: #2563eb; font-weight: 700; background: #eef4ff; }
 #view-smartmoney .sm-xov { margin: 0 0 14px; }
 #view-smartmoney .sm-xov .xov-title { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
 #view-smartmoney .sm-xov .xov-title h3 { margin: 0; font-size: 15px; font-weight: 700; }
@@ -19906,20 +19908,25 @@ window.SM_XOV = {"label": "我的基金 × 机构动向", "asOf": "2026-09-22", 
 /* fw2_v194_sm_merge：A股/美股 分区切换（localStorage 记忆，缺省 A股） */
 function renderSmartMoney() {
   var m = 'a';
-  try { m = (localStorage && localStorage.getItem('smMarket')) || 'a'; } catch (e) {}
+  try { m = (localStorage && localStorage.getItem('smMarket')) || 'a'; if (m !== 'a' && m !== 'us' && m !== 'xov') m = 'a'; } catch (e) {}
   if (new URLSearchParams(location.search).get('view') === 'sm13f') m = 'us'; /* 旧链接兼容 */
   setSMMarket(m, true);
 }
 function setSMMarket(m, silent) {
   var pa = document.getElementById('sm-panel-a'), pu = document.getElementById('sm-panel-us');
+  var xov = document.getElementById('smXOverview');
   if (!pa || !pu) return;
   pa.hidden = (m !== 'a'); pu.hidden = (m !== 'us');
+  if (xov) xov.hidden = (m !== 'xov');
   document.querySelectorAll('#smMarketBar .sm-m-btn').forEach(function (b) {
     b.classList.toggle('on', b.getAttribute('data-sm-m') === m);
   });
+  var lab = document.querySelector('#smMarketBar .sm-mlab');
+  if (lab) lab.classList.toggle('on', m === 'xov');
   try { if (localStorage) localStorage.setItem('smMarket', m); } catch (e) {}
   if (m === 'a') { var f = document.getElementById('smartmoneyFrame'); if (f && fitSmartMoney) fitSmartMoney(f); }
-  else { if (window.SM13F && window.SM13F.render) window.SM13F.render(); }
+  else if (m === 'us') { if (window.SM13F && window.SM13F.render) window.SM13F.render(); }
+  else if (m === 'xov' && window.renderXOverview) { renderXOverview(); }
 }
 (function () {
   var bar = document.getElementById('smMarketBar'); if (!bar) return;
@@ -19928,7 +19935,7 @@ function setSMMarket(m, silent) {
     var b = e.target && e.target.closest ? e.target.closest('.sm-m-btn') : null;
     if (b) { setSMMarket(b.getAttribute('data-sm-m')); if (sc) sc.scrollTop = 0; return; }
     var lab = e.target && e.target.closest ? e.target.closest('.sm-mlab') : null;
-    if (lab) { /* v195：点击「市场」标签切换到另一个市场 */ var cur = document.querySelector('#smMarketBar .sm-m-btn.on'); var next = (cur && cur.getAttribute('data-sm-m') === 'a') ? 'us' : 'a'; setSMMarket(next); if (sc) sc.scrollTop = 0; }
+    if (lab) { /* v200：点击「跨市场速览」标签进入速览 tab */ setSMMarket('xov'); if (sc) sc.scrollTop = 0; }
   });
 })();
 /* fw2_v194_sm_xov：跨市场速览卡「你的持仓 × 聪明钱」渲染 */
