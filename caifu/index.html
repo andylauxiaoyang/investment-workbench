@@ -1842,7 +1842,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
     <section class="view" id="view-smartmoney">
       <!-- fw2_v194_sm_merge：聪明的钱 = A股/美股 分区（市场条 + 跨市场速览卡常驻） -->
       <div class="sm-market-bar" id="smMarketBar">
-        <span class="sm-mlab" title="跨市场机构动向速览（A股汇金/机构 + 美股13F）">跨市场速览</span>
+        <span class="sm-mlab" title="按决策动作分组：行动 / 观察 / 维持（市场不拆开）">决策看板</span>
         <button class="sm-m-btn on" data-sm-m="a">A股</button>
         <button class="sm-m-btn" data-sm-m="us">美股</button>
       </div>
@@ -17680,6 +17680,16 @@ section.sm13f-view{display:none;padding-top:22px}
 .act-lv { padding: 3px 10px; font-size: 13px; }
 .xov-fpair { gap: 14px; }
 .xov-fpair .xov-fcard { min-width: 0; }
+/* fw2_v203.2_xov_decision：决策看板分组（行动/观察/维持）——顶部标签更名 + 卡流按动作三档分组 */
+.xov-group { margin-top: 2px; }
+.xov-gh { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin: 14px 0 10px; padding: 8px 12px; background: #f8fafc; border: 1px solid var(--line, #e4e9f1); border-radius: 10px; }
+.xov-gbar { width: 4px; height: 16px; border-radius: 2px; flex-shrink: 0; }
+.xov-gtitle { font-size: 14px; font-weight: 700; color: var(--text, #0f172a); display: flex; align-items: center; gap: 4px; }
+.xov-gn { font-size: 11px; color: #fff; border-radius: 20px; padding: 1px 7px; font-weight: 600; }
+.xov-gdesc { font-size: 12px; color: var(--muted, #667085); margin-left: 2px; }
+.xov-gcards { display: grid; gap: 14px; }
+.xov-group + .xov-group { margin-top: 6px; }
+
 #view-smartmoney .sm-xov .xov-sec { display: flex; align-items: center; gap: 8px; margin: 16px 0 10px; font-size: 14px; font-weight: 700; }
 #view-smartmoney .sm-xov .xov-sec .bar { width: 4px; height: 14px; border-radius: 2px; background: #dc2626; display: inline-block; }
 #view-smartmoney .sm-xov .xov-sec .hint { font-size: 12px; color: #6b7280; font-weight: 400; }
@@ -20512,6 +20522,9 @@ function setSMMarket(m, silent) {
 /* fw2_v202_sm_xov_full：升级为唯一持仓穿透页（A股完整卡 + QDII温度计 + 重叠度 + 承压名单） */
 /* fw2_v203_sm_xov_fusion：基金卡流融合——不再按市场分栏；混合基金（012920）A股/美股同卡融合；
    每卡尾带「决策动作条」（角色映射 + 维持/观察/行动三档 + 策略出处 + 失效期）；019441 与 016452 并排共享 verdict */
+/* fw2_v203.2_sm_xov_decision：速览按「决策逻辑」分组（用户拍板）——不再按市场/单列平铺；
+   顶部 tab「跨市场速览」更名「决策看板」；卡流按 行动 → 观察 → 维持 三档分组（复用动作条 lv2/lv1/lv0 判定，
+   不新增口径）；A股/美股 tab 保留为纯市场研究入口；重叠度风险卡仍在本页（决策信息） */
 function _xovUsAct(st) {
   if (!st) return null;
   var ni = st.ni || 0, nd = st.nd || 0, dlt = st.dlt || 0;
@@ -20583,6 +20596,14 @@ function _xovTemp(sc) {
   var t = sc > 0.35 ? ['拥挤升温', '#dc2626'] : sc > 0.1 ? ['温和偏多', '#e07a3b'] : sc < -0.35 ? ['降温/拐点预警', '#047857'] : sc < -0.1 ? ['偏冷', '#1e8a6f'] : ['中性', '#667085'];
   return { label: t[0], color: t[1], score: sc };
 }
+function _xovGroupHtml(lv, title, desc, arr) { /* v203.2：决策分组容器（行动/观察/维持） */
+  if (!arr || !arr.length) return '';
+  var color = lv === 2 ? '#dc2626' : lv === 1 ? '#b7791f' : '#94a3b8';
+  return '<div class="xov-group"><div class="xov-gh"><span class="xov-gbar" style="background:' + color + '"></span>'
+    + '<span class="xov-gtitle">' + title + ' <b class="xov-gn" style="background:' + color + '">' + arr.length + '</b></span>'
+    + '<span class="xov-gdesc">' + desc + '</span></div>'
+    + '<div class="xov-gcards">' + arr.join('') + '</div></div>';
+}
 function _xovOverlap(fh) { /* 独立风险源 · 双基金重叠度（016452 × 012920） */
   var a = fh['016452'], b = fh['012920'];
   if (!a || !b || !a.top || !b.top) return '';
@@ -20613,7 +20634,7 @@ function renderXOverview() {
   var funds = SM_XOV.funds || [];
   var conclA = { up: 0, down: 0, hui: 0 }, conclUS = { up: 0, down: 0 };
   var qdiiTops = [];
-  var cards = '';
+  var gcards = { 2: [], 1: [], 0: [] }; /* v203.2：按决策动作分组 */
   var pressure = [];
   var usCard016452 = null, usRows016452 = '', usTemp016452 = null, usSw016452 = 0;
   var usFullCard = null;
@@ -20625,8 +20646,8 @@ function renderXOverview() {
     var isMixed = (f.scope || '') === 'mixed';
     if (isCash) {
       var r = _XOV_ROLE[f.code];
-      cards += '<div class="xov-fcard"><div class="xov-fhead"><h4>' + (f.name || '') + '</h4><span class="xov-role">' + r.role + '</span><span class="xov-chip">货币</span></div>'
-        + '<div class="xov-note">现金管理，不参与股票穿透</div>' + _xovActHtml(f.code, 0, '维持 · 现金管理') + '</div>';
+      gcards[0].push('<div class="xov-fcard"><div class="xov-fhead"><h4>' + (f.name || '') + '</h4><span class="xov-role">' + r.role + '</span><span class="xov-chip">货币</span></div>'
+        + '<div class="xov-note">现金管理，不参与股票穿透</div>' + _xovActHtml(f.code, 0, '维持 · 现金管理') + '</div>');
       return;
     }
     /* 美股/混合：前十大（QDII）与温度计 */
@@ -20692,7 +20713,7 @@ function renderXOverview() {
     else mixChips = '<span class="xov-chip" style="border-color:#fecaca;color:#dc2626">A股</span>';
     var role = _XOV_ROLE[f.code];
     var act = _xovAct(f, isUS ? null : aStats, isUS || isMixed ? (temp ? temp.score : null) : null);
-    /* 019441：与 016452 并排共享 verdict（同跟踪纳指100） */
+    /* 019441：与 016452 并排共享 verdict（同跟踪纳指100）——并入 016452 所在档位 */
     if (is019441) {
       if (usFullCard) {
         paired['019441'] = true;
@@ -20709,9 +20730,9 @@ function renderXOverview() {
           + '<div class="xov-shared"><div class="xov-vd ' + (u.temp && u.temp.score > 0.35 ? 'up' : 'flat') + '">共享 ' + (u.temp ? (u.temp.label + ' · 评分 +' + u.temp.score.toFixed(2)) : '未跟踪') + '</div>'
           + '<div class="xov-fmeta">13F 覆盖 ' + (u.sw ? u.sw.toFixed(0) + '% 净值' : '—') + ' · 13F 滞后约 45 天 · 失效期同 ' + u.code + '</div></div>'
           + _xovActHtml(f.code, act452.lv, '共享 ' + u.code + ' 动作：' + act452.act) + '</div>';
-        cards += '<div class="xov-fpair">' + left + right + '</div>';
+        gcards[act452.lv].push('<div class="xov-fpair">' + left + right + '</div>');
       } else {
-        cards += '<div class="xov-fcard"><div class="xov-fhead"><h4>' + (f.name || '') + '</h4><span class="xov-role">' + role.role + '</span></div><div class="xov-note">纳指100，成分与 016452 高度重合（未单独映射，参考其机构动作）</div></div>';
+        gcards[1].push('<div class="xov-fcard"><div class="xov-fhead"><h4>' + (f.name || '') + '</h4><span class="xov-role">' + role.role + '</span></div><div class="xov-note">纳指100，成分与 016452 高度重合（未单独映射，参考其机构动作）</div></div>');
       }
       return;
     }
@@ -20722,7 +20743,7 @@ function renderXOverview() {
     }
     if (isMixed) {
       var tempChip = temp ? '<span class="xov-temp" style="color:' + temp.color + '">海外温度 ' + temp.label + ' · ' + (temp.score >= 0 ? '+' : '') + temp.score.toFixed(2) + '</span>' : '';
-      cards += '<div class="xov-fcard"><div class="xov-fhead"><h4>' + (f.name || '') + '</h4><span class="xov-role">' + role.role + '</span>' + mixChips + '<span class="' + vdc + '">' + cardVd + '</span>' + tempChip + '</div>'
+      gcards[act.lv].push('<div class="xov-fcard"><div class="xov-fhead"><h4>' + (f.name || '') + '</h4><span class="xov-role">' + role.role + '</span>' + mixChips + '<span class="' + vdc + '">' + cardVd + '</span>' + tempChip + '</div>'
         + '<div class="xov-fmeta">' + (f.code || '') + ' · ' + cat + ' · 前十大重仓 · 报告期 ' + (SM_XOV.reportQ || '') + ' · 混合持仓：A股重仓走汇金/机构共识，海外重仓走 13F</div>'
         + '<div class="xov-mixgrid">'
         + '<div class="xov-mixcol"><div class="xov-mixh">A股重仓 × 汇金/机构共识' + (aStats.hitN != null ? '（命中 ' + aStats.hitN + '/3）' : '') + '</div>'
@@ -20732,17 +20753,17 @@ function renderXOverview() {
         + (usRows ? '<table><colgroup><col style="width:36%"><col style="width:15%"><col style="width:17%"><col style="width:18%"><col style="width:14%"></colgroup><thead><tr><th>持仓</th><th>持有机构</th><th>加/减</th><th>13F 动作</th><th>占净值</th></tr></thead><tbody>' + usRows + '</tbody></table>' : '<div class="xov-note">无海外重仓映射</div>')
         + (temp ? '<div class="xov-note">' + (temp.score > 0.1 ? '海外聪明钱仍在净加仓你重仓的方向，短期动能未散但拥挤度上升——守纪律、勿因上涨追加。' : temp.score < -0.1 ? '集中持仓机构本季在净减持你的重仓方向——止损线值得提前盯（滞后约 45 天，仅供佐证）。' : '海外聪明钱加减分歧不大，维持既定节奏。') + '</div>' : '') + '</div>'
         + '</div>'
-        + _xovActHtml(f.code, act.lv, act.act) + '</div>';
+        + _xovActHtml(f.code, act.lv, act.act) + '</div>');
       return;
     }
     /* A股纯基金卡 */
     var vdc2 = vd === '受益' ? 'xov-vd up' : vd === '承压' ? 'xov-vd down' : 'xov-vd flat';
-    cards += '<div class="xov-fcard"><div class="xov-fhead"><h4>' + (f.name || '') + '</h4><span class="xov-role">' + role.role + '</span>' + mixChips + '<span class="' + vdc2 + '">' + cardVd + '</span></div>'
+    gcards[act.lv].push('<div class="xov-fcard"><div class="xov-fhead"><h4>' + (f.name || '') + '</h4><span class="xov-role">' + role.role + '</span>' + mixChips + '<span class="' + vdc2 + '">' + cardVd + '</span></div>'
       + '<div class="xov-fmeta">' + (f.code || '') + ' · ' + cat + '</div>'
       + (aStats.hitN != null ? '<div class="xov-stats"><span>机构动向命中 <b>' + aStats.hitN + '/10</b></span><span>加仓信号 <b class="up">' + (aStats.addN || 0) + '</b></span><span>减仓信号 <b class="down">' + (aStats.decN || 0) + '</b></span><span>汇金底仓背书 <b>' + (aStats.heldN || 0) + '/10</b></span></div>' : '')
       + (rowsA ? '<table><colgroup><col style="width:44%"><col style="width:26%"><col style="width:30%"></colgroup><thead><tr><th>重仓</th><th>汇金</th><th>机构共识</th></tr></thead><tbody>' + rowsA + '</tbody></table>' : '')
       + (f.note ? '<div class="xov-note">' + f.note + '</div>' : '')
-      + _xovActHtml(f.code, act.lv, act.act) + '</div>';
+      + _xovActHtml(f.code, act.lv, act.act) + '</div>');
   });
   var concl = '';
   concl += '<div class="xov-c">A股（你的基金）：机构共识 ' + (conclA.up > 0 || conclA.down > 0 ? ('加仓 ' + conclA.up + ' / 减仓 ' + conclA.down) : '未形成方向') + '，汇金持股 ' + conclA.hui + ' 只重仓</div>';
@@ -20761,12 +20782,15 @@ function renderXOverview() {
     }
   }
   var secOV = _xovOverlap(fh);
-  box.innerHTML = '<div class="xov-title"><h3>你的持仓 × 聪明钱</h3><span class="xov-sub">跨市场速览 · 报告期 ' + (SM_XOV.reportQ || SM_XOV.asOf || '') + ' · 辅助决策，非投资建议</span></div>'
+  var gHtml = _xovGroupHtml(2, '行动', '——现在需要动手评估（减仓 / 止盈）', gcards[2])
+    + _xovGroupHtml(1, '观察', '——温度偏高 / 承压待复核，盯紧触发线', gcards[1])
+    + _xovGroupHtml(0, '维持', '——无信号，按原节奏持有', gcards[0]);
+  box.innerHTML = '<div class="xov-title"><h3>你的持仓 × 聪明钱</h3><span class="xov-sub">决策看板 · 报告期 ' + (SM_XOV.reportQ || SM_XOV.asOf || '') + ' · 辅助决策，非投资建议</span></div>'
     + '<div class="xov-concl">' + concl + '</div>'
-    + '<div class="xov-sec"><span class="bar"></span>基金 × 聪明钱（融合视图）<span class="hint">——每只基金一卡：A股底仓 × 汇金/机构共识 + 海外底仓 × SEC 13F，卡尾为决策动作条（维持 / 观察 / 行动）</span></div>'
-    + '<div class="xov-fcards">' + cards + '</div>'
+    + '<div class="xov-sec"><span class="bar"></span>决策看板 · 按动作分组<span class="hint">——行动 → 观察 → 维持；市场不拆开（A股/美股/混合同卡），卡尾动作条为该档依据</span></div>'
+    + gHtml
     + secOV
-    + '<div class="xov-foot">口径：A股侧＝基金十大重仓 × 东财汇金/机构共识（基金重仓为报告期末快照，存在滞后）；美股侧＝QDII 十大重仓 × SEC EDGAR 13F（全部 ' + (D && D.overview ? D.overview.inst_count : '—') + ' 家机构，约 45 天滞后）；012920 为混合基金：A股 12.6% 净值未入汇金/共识池，如实标注；019441 与 016452 同跟踪纳指100 共享评估；货币基金不参与股票穿透。本页是「我的持仓被聪明钱怎么对待」的唯一入口，机构名单 / 共识 / 反查请到 A股 / 美股页查看。</div>';
+    + '<div class="xov-foot">口径：A股侧＝基金十大重仓 × 东财汇金/机构共识（基金重仓为报告期末快照，存在滞后）；美股侧＝QDII 十大重仓 × SEC EDGAR 13F（全部 ' + (D && D.overview ? D.overview.inst_count : '—') + ' 家机构，约 45 天滞后）；012920 为混合基金：A股 12.6% 净值未入汇金/共识池，如实标注；019441 与 016452 同跟踪纳指100 共享评估；货币基金不参与股票穿透。分组判定＝决策动作条（承压且减仓≥2 / 温度≥0.8 → 行动；承压 / 温度≥0.5 或 ≤−0.35 → 观察；其余维持）。机构名单 / 共识 / 反查请到 A股 / 美股页查看。</div>';
 }
 if (document.getElementById('smXOverview')) renderXOverview();
 
