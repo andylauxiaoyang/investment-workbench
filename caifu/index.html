@@ -17710,8 +17710,23 @@ section.sm13f-view{display:none;padding-top:22px}
 .xov-gtitle { font-size: 14px; font-weight: 700; color: var(--text, #0f172a); display: flex; align-items: center; gap: 4px; }
 .xov-gn { font-size: 11px; color: #fff; border-radius: 20px; padding: 1px 7px; font-weight: 600; }
 .xov-gdesc { font-size: 12px; color: var(--muted, #667085); margin-left: 2px; }
-.xov-gcards { display: grid; gap: 14px; }
+.xov-gcards { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); }
 .xov-group + .xov-group { margin-top: 6px; }
+/* fw2_v203.10b_xov_tcards：每基金一磁贴 + 重仓 mini 行 */
+.xov-fpair { grid-column: 1 / -1; }
+.xov-tcard { background: var(--card); border: 1px solid var(--line); border-radius: 12px; box-shadow: var(--shadow); padding: 12px 14px; display: flex; flex-direction: column; min-width: 0; }
+.xov-fpair .xov-tcard { background: transparent; border: 0; box-shadow: none; padding: 0; }
+.xov-tcard .xov-act { margin-top: auto; }
+.xov-mlist { margin: 8px 0 4px; display: flex; flex-direction: column; gap: 5px; }
+.xov-mrow { display: flex; align-items: center; gap: 6px; font-size: 11.5px; flex-wrap: wrap; line-height: 1.35; }
+.xov-mn { font-weight: 600; color: var(--txt, #111827); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.xov-mn i { font-style: normal; color: var(--txt3, #98a2b3); font-size: 10.5px; margin-left: 3px; font-weight: 400; }
+.xov-mch2 { color: var(--txt2, #6b7280); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.xov-mchip { font-size: 10.5px; padding: 1px 7px; border-radius: 20px; border: 1px solid transparent; white-space: nowrap; }
+.xov-mchip.up { color: var(--up, #dc2626); background: #fef2f2; border-color: #fecaca; }
+.xov-mchip.down { color: var(--down, #16a34a); background: #f0fdf4; border-color: #bbf7d0; }
+.xov-mchip.flat { color: var(--txt2, #6b7280); background: #f8fafc; border-color: #e4e9f1; }
+@media (max-width: 720px) { .xov-gcards { grid-template-columns: 1fr; } }
 
 #view-smartmoney .sm-xov .xov-sec { display: flex; align-items: center; gap: 8px; margin: 16px 0 10px; font-size: 14px; font-weight: 700; }
 #view-smartmoney .sm-xov .xov-sec .bar { width: 4px; height: 14px; border-radius: 2px; background: #dc2626; display: inline-block; }
@@ -20915,14 +20930,14 @@ function renderXOverview() {
     var isMixed = (f.scope || '') === 'mixed';
     if (isCash) {
       var r = _XOV_ROLE[f.code];
-      gcards[0].push('<div class="xov-fcard"><div class="xov-fhead"><h4>' + (f.name || '') + '</h4><span class="xov-role">' + r.role + '</span><span class="xov-chip">货币</span></div>'
+      gcards[0].push('<div class="xov-tcard"><div class="xov-fhead"><h4>' + (f.name || '') + '</h4><span class="xov-role">' + r.role + '</span><span class="xov-chip">货币</span></div>'
         + '<div class="xov-note">现金管理，不参与股票穿透</div>' + _xovActHtml(f.code, 0, '维持 · 现金管理') + '</div>');
       return;
     }
     /* 美股/混合：前十大（QDII）与温度计 */
     var tops = fh[f.code] && fh[f.code].top;
     var is019441 = f.code === '019441';
-    var usRows = '', sw = 0, score = 0, temp = null;
+    var usRows = '', usMinis = '', sw = 0, score = 0, temp = null;
     if (tops && tops.length) {
       qdiiTops.push(tops);
       tops.forEach(function (t) {
@@ -20930,6 +20945,7 @@ function renderXOverview() {
         var w = t.weight || 0;
         if (st) { sw += w; score += (st.dir === 'up' ? w : st.dir === 'down' ? -w : 0); if (st.dir === 'up') conclUS.up++; else if (st.dir === 'down') conclUS.down++; }
         usRows += '<tr><td>' + (t.name || t.ticker || '') + (t.ticker ? '<div class="xov-code">' + t.ticker + '</div>' : '') + '</td><td class="num">' + (st ? st.nh + '/' + (D.overview ? D.overview.inst_count : '—') : '—') + '</td><td class="num">' + (st ? (st.ni + ' / ' + st.nd) : '—') + '</td><td>' + _xovUsBadge(st) + '</td><td class="num">' + (w != null ? w.toFixed(2) + '%' : '—') + '</td></tr>';
+        usMinis += '<div class="xov-mrow"><span class="xov-mn">' + (t.name || t.ticker || '') + (t.ticker ? '<i>' + t.ticker + '</i>' : '') + '</span>' + (st ? '<span class="xov-mch2">机构 ' + st.nh + '/' + (D.overview ? D.overview.inst_count : '—') + '</span><span class="xov-mchip ' + (st.dir === 'up' ? 'up' : st.dir === 'down' ? 'down' : 'flat') + '">' + (st.dir === 'up' ? '加仓 ' + st.ni + ' 家' : st.dir === 'down' ? '减仓 ' + st.nd + ' 家' : '分歧') + '</span>' : '<span class="xov-mchip flat">未覆盖</span>') + (w != null ? '<span class="xov-mch2">' + w.toFixed(2) + '%</span>' : '') + '</div>';
       });
       var sc = sw ? score / sw : 0;
       temp = _xovTemp(sc);
@@ -20941,7 +20957,7 @@ function renderXOverview() {
     /* A股部分（纯 A股基金 rows；混合基金 012920 的 A股行走 fund_pierce rows + usRows） */
     var aStats = f.stats || {};
     var vd = aStats.verdict || '';
-    var rowsA = '';
+    var rowsA = '', rowsAMini = '';
     if (isMixed) {
       (f.rows || []).forEach(function (r) {
         var h = r.hui || {}, c = r.cons || {};
@@ -20949,6 +20965,7 @@ function renderXOverview() {
         var consCell = c.hit ? '<span class="' + (c.dir > 0 ? 'up' : c.dir < 0 ? 'down' : 'flat') + '">' + (c.dir > 0 ? '共识加仓' : c.dir < 0 ? '共识减仓' : '共识持平') + '</span>' : '<span class="flat">池外</span>';
         if (h.held) conclA.hui++;
         rowsA += '<tr><td>' + (r.name || '') + (r.code ? '<div class="xov-code">' + r.code + '</div>' : '') + '<div class="xov-ratio">' + (r.ratio || '') + '</div></td><td>' + huiCell + '</td><td>' + consCell + '</td></tr>';
+        rowsAMini += '<div class="xov-mrow"><span class="xov-mn">' + (r.name || '') + (r.code ? '<i>' + r.code + '</i>' : '') + '</span>' + (r.ratio ? '<span class="xov-mch2">' + r.ratio + '</span>' : '') + (h.held ? '<span class="xov-mchip ' + (h.dir > 0 ? 'up' : h.dir < 0 ? 'down' : 'flat') + '">' + (h.dir > 0 ? '汇金增持' : h.dir < 0 ? '汇金减持' : '汇金持股') + '</span>' : '<span class="xov-mchip flat">池外</span>') + (c.hit ? '<span class="xov-mchip ' + (c.dir > 0 ? 'up' : c.dir < 0 ? 'down' : 'flat') + '">' + (c.dir > 0 ? '共识加仓' : c.dir < 0 ? '共识减仓' : '共识持平') + '</span>' : '<span class="xov-mchip flat">池外</span>') + '</div>';
       });
     } else if (!isUS) {
       (f.rows || []).forEach(function (r) {
@@ -20958,6 +20975,7 @@ function renderXOverview() {
         if (h.held) conclA.hui++;
         if (c.hit && c.dir > 0) conclA.up++; else if (c.hit && c.dir < 0) conclA.down++;
         rowsA += '<tr><td>' + (r.name || '') + (r.code ? '<div class="xov-code">' + r.code + '</div>' : '') + '</td><td>' + huiCell + '</td><td>' + consCell + '</td></tr>';
+        rowsAMini += '<div class="xov-mrow"><span class="xov-mn">' + (r.name || '') + (r.code ? '<i>' + r.code + '</i>' : '') + '</span>' + (h.held ? '<span class="xov-mchip ' + (h.dir > 0 ? 'up' : h.dir < 0 ? 'down' : 'flat') + '">' + (h.dir > 0 ? '汇金增持' : h.dir < 0 ? '汇金减持' : '汇金持股') + '</span>' : '') + (c.hit ? '<span class="xov-mchip ' + (c.dir > 0 ? 'up' : c.dir < 0 ? 'down' : 'flat') + '">' + (c.dir > 0 ? '共识加仓' : c.dir < 0 ? '共识减仓' : '共识持平') + '</span>' : '<span class="xov-mchip flat">未入共识</span>') + '</div>';
       });
     }
     if (vd === '承压' && !isUS) pressure.push(f.name || f.code);
@@ -20988,38 +21006,38 @@ function renderXOverview() {
         paired['019441'] = true;
         var u = usFullCard;
         var act452 = _xovAct({ code: '016452' }, null, u.temp ? u.temp.score : null);
-        var left = '<div class="xov-fcard"><div class="xov-fhead"><h4>' + u.name + '</h4><span class="xov-role">' + u.role.role + '</span><span class="xov-chip" style="border-color:#bfdbfe;color:#1d4ed8">美股/海外</span>'
+        var left = '<div class="xov-tcard"><div class="xov-fhead"><h4>' + u.name + '</h4><span class="xov-role">' + u.role.role + '</span><span class="xov-chip" style="border-color:#bfdbfe;color:#1d4ed8">美股/海外</span>'
           + (u.temp ? '<span class="xov-temp" style="color:' + u.temp.color + '">' + u.temp.label + '<span class="xov-fmeta" style="font-weight:400"> · 评分 ' + (u.temp.score >= 0 ? '+' : '') + u.temp.score.toFixed(2) + ' · 覆盖 ' + u.sw.toFixed(0) + '% 净值</span></span>' : '') + '</div>'
           + '<div class="xov-fmeta">' + u.code + ' · ' + u.cat + ' · 前十大重仓 · 报告期 ' + u.period + '</div>'
-          + (u.usRows ? '<table><colgroup><col style="width:36%"><col style="width:15%"><col style="width:17%"><col style="width:18%"><col style="width:14%"></colgroup><thead><tr><th>持仓</th><th>持有机构</th><th>加/减</th><th>13F 动作</th><th>占净值</th></tr></thead><tbody>' + u.usRows + '</tbody></table>' : '')
+          + (u.usMinis ? '<div class="xov-mlist">' + u.usMinis + '</div>' : (u.usRows ? '<table><colgroup><col style="width:36%"><col style="width:15%"><col style="width:17%"><col style="width:18%"><col style="width:14%"></colgroup><thead><tr><th>持仓</th><th>持有机构</th><th>加/减</th><th>13F 动作</th><th>占净值</th></tr></thead><tbody>' + u.usRows + '</tbody></table>' : ''))
           + (u.read ? '<div class="xov-note">' + u.read + '</div>' : '')
           + _xovActHtml(u.code, act452.lv, act452.act) + '</div>';
-        var right = '<div class="xov-fcard"><div class="xov-fhead"><h4>' + (f.name || '') + '</h4><span class="xov-role">' + role.role + '</span><span class="xov-chip" style="border-color:#bfdbfe;color:#1d4ed8">纳指100</span></div>'
-          + '<div class="xov-note">与 ' + u.code + ' 同跟踪纳指100（成分高度重合），<b>共享 verdict 与动作</b>，不重复评估。左侧为 ' + u.code + ' 的 13F 穿透结果。</div>'
+        var right = '<div class="xov-tcard"><div class="xov-fhead"><h4>' + (f.name || '') + '</h4><span class="xov-role">' + role.role + '</span><span class="xov-chip" style="border-color:#bfdbfe;color:#1d4ed8">纳指100</span></div>'
           + '<div class="xov-shared"><div class="xov-vd ' + (u.temp && u.temp.score > 0.35 ? 'up' : 'flat') + '">共享 ' + (u.temp ? (u.temp.label + ' · 评分 +' + u.temp.score.toFixed(2)) : '未跟踪') + '</div>'
           + '<div class="xov-fmeta">13F 覆盖 ' + (u.sw ? u.sw.toFixed(0) + '% 净值' : '—') + ' · 13F 滞后约 45 天 · 失效期同 ' + u.code + '</div></div>'
+          + '<div class="xov-note">与 ' + u.code + ' 同跟踪纳指100（成分高度重合），共享 verdict 与动作，不重复评估。</div>'
           + _xovActHtml(f.code, act452.lv, '共享 ' + u.code + ' 动作：' + act452.act) + '</div>';
         gcards[act452.lv].push('<div class="xov-fpair">' + left + right + '</div>');
       } else {
-        gcards[1].push('<div class="xov-fcard"><div class="xov-fhead"><h4>' + (f.name || '') + '</h4><span class="xov-role">' + role.role + '</span></div><div class="xov-note">纳指100，成分与 016452 高度重合（未单独映射，参考其机构动作）</div></div>');
+        gcards[1].push('<div class="xov-tcard"><div class="xov-fhead"><h4>' + (f.name || '') + '</h4><span class="xov-role">' + role.role + '</span></div><div class="xov-note">纳指100，成分与 016452 高度重合（未单独映射，参考其机构动作）</div></div>');
       }
       return;
     }
     if (isUS && f.code === '016452') {
       paired['016452'] = true;
-      usFullCard = { name: f.name, code: f.code, cat: cat, period: (fh[f.code] ? fh[f.code].period : '') || '', role: role, temp: temp, sw: sw, usRows: usRows, read: (temp ? usCard016452.read : '') };
+      usFullCard = { name: f.name, code: f.code, cat: cat, period: (fh[f.code] ? fh[f.code].period : '') || '', role: role, temp: temp, sw: sw, usRows: usRows, usMinis: usMinis, read: (temp ? usCard016452.read : '') };
       return;
     }
     if (isMixed) {
       var tempChip = temp ? '<span class="xov-temp" style="color:' + temp.color + '">海外温度 ' + temp.label + ' · ' + (temp.score >= 0 ? '+' : '') + temp.score.toFixed(2) + '</span>' : '';
-      gcards[act.lv].push('<div class="xov-fcard"><div class="xov-fhead"><h4>' + (f.name || '') + '</h4><span class="xov-role">' + role.role + '</span>' + mixChips + '<span class="' + vdc + '">' + cardVd + '</span>' + tempChip + '</div>'
-        + '<div class="xov-fmeta">' + (f.code || '') + ' · ' + cat + ' · 前十大重仓 · 报告期 ' + (SM_XOV.reportQ || '') + ' · 混合持仓：A股重仓走汇金/机构共识，海外重仓走 13F</div>'
+      gcards[act.lv].push('<div class="xov-tcard"><div class="xov-fhead"><h4>' + (f.name || '') + '</h4><span class="xov-role">' + role.role + '</span>' + mixChips + '<span class="' + vdc + '">' + cardVd + '</span>' + tempChip + '</div>'
+        + '<div class="xov-fmeta">' + (f.code || '') + ' · ' + cat + ' · 混合持仓：A股重仓走汇金/机构共识，海外重仓走 13F</div>'
         + '<div class="xov-mixgrid">'
         + '<div class="xov-mixcol"><div class="xov-mixh">A股重仓 × 汇金/机构共识' + (aStats.hitN != null ? '（命中 ' + aStats.hitN + '/3）' : '') + '</div>'
-        + (rowsA ? '<table><colgroup><col style="width:46%"><col style="width:24%"><col style="width:30%"></colgroup><thead><tr><th>重仓</th><th>汇金</th><th>机构共识</th></tr></thead><tbody>' + rowsA + '</tbody></table>' : '<div class="xov-note">无 A股重仓数据</div>')
-        + '<div class="xov-note">' + ((f.mix && f.mix.aShareUncovered && f.mix.aShareUncovered.length) ? '注：' + f.mix.aShareUncovered.join(' / ') + ' 未进入汇金十大股东与机构共识池（A股 ' + (f.mix.aShareWeight || 0).toFixed(1) + '% 无聪明钱信号），该部分请以基金自身与行业景气判断。' : '') + '</div></div>'
+        + (rowsAMini ? '<div class="xov-mlist">' + rowsAMini + '</div>' : (rowsA ? '<table><colgroup><col style="width:46%"><col style="width:24%"><col style="width:30%"></colgroup><thead><tr><th>重仓</th><th>汇金</th><th>机构共识</th></tr></thead><tbody>' + rowsA + '</tbody></table>' : '<div class="xov-note">无 A股重仓数据</div>'))
+        + ((f.mix && f.mix.aShareUncovered && f.mix.aShareUncovered.length) ? '<div class="xov-note">' + f.mix.aShareUncovered.join(' / ') + ' 未入池（A股 ' + (f.mix.aShareWeight || 0).toFixed(1) + '% 无聪明钱信号）</div>' : '') + '</div>'
         + '<div class="xov-mixcol"><div class="xov-mixh">海外重仓 × SEC 13F</div>'
-        + (usRows ? '<table><colgroup><col style="width:36%"><col style="width:15%"><col style="width:17%"><col style="width:18%"><col style="width:14%"></colgroup><thead><tr><th>持仓</th><th>持有机构</th><th>加/减</th><th>13F 动作</th><th>占净值</th></tr></thead><tbody>' + usRows + '</tbody></table>' : '<div class="xov-note">无海外重仓映射</div>')
+        + (usMinis ? '<div class="xov-mlist">' + usMinis + '</div>' : (usRows ? '<table><colgroup><col style="width:36%"><col style="width:15%"><col style="width:17%"><col style="width:18%"><col style="width:14%"></colgroup><thead><tr><th>持仓</th><th>持有机构</th><th>加/减</th><th>13F 动作</th><th>占净值</th></tr></thead><tbody>' + usRows + '</tbody></table>' : '<div class="xov-note">无海外重仓映射</div>'))
         + (temp ? '<div class="xov-note">' + (temp.score > 0.1 ? '海外聪明钱仍在净加仓你重仓的方向，短期动能未散但拥挤度上升——守纪律、勿因上涨追加。' : temp.score < -0.1 ? '集中持仓机构本季在净减持你的重仓方向——止损线值得提前盯（滞后约 45 天，仅供佐证）。' : '海外聪明钱加减分歧不大，维持既定节奏。') + '</div>' : '') + '</div>'
         + '</div>'
         + _xovActHtml(f.code, act.lv, act.act) + '</div>');
@@ -21027,10 +21045,10 @@ function renderXOverview() {
     }
     /* A股纯基金卡 */
     var vdc2 = vd === '受益' ? 'xov-vd up' : vd === '承压' ? 'xov-vd down' : 'xov-vd flat';
-    gcards[act.lv].push('<div class="xov-fcard"><div class="xov-fhead"><h4>' + (f.name || '') + '</h4><span class="xov-role">' + role.role + '</span>' + mixChips + '<span class="' + vdc2 + '">' + cardVd + '</span></div>'
+    gcards[act.lv].push('<div class="xov-tcard"><div class="xov-fhead"><h4>' + (f.name || '') + '</h4><span class="xov-role">' + role.role + '</span>' + mixChips + '<span class="' + vdc2 + '">' + cardVd + '</span></div>'
       + '<div class="xov-fmeta">' + (f.code || '') + ' · ' + cat + '</div>'
-      + (aStats.hitN != null ? '<div class="xov-stats"><span>机构动向命中 <b>' + aStats.hitN + '/10</b></span><span>加仓信号 <b class="up">' + (aStats.addN || 0) + '</b></span><span>减仓信号 <b class="down">' + (aStats.decN || 0) + '</b></span><span>汇金底仓背书 <b>' + (aStats.heldN || 0) + '/10</b></span></div>' : '')
-      + (rowsA ? '<table><colgroup><col style="width:44%"><col style="width:26%"><col style="width:30%"></colgroup><thead><tr><th>重仓</th><th>汇金</th><th>机构共识</th></tr></thead><tbody>' + rowsA + '</tbody></table>' : '')
+      + (aStats.hitN != null ? '<div class="xov-stats"><span>命中 <b>' + aStats.hitN + '/10</b></span><span>加仓 <b class="up">' + (aStats.addN || 0) + '</b></span><span>减仓 <b class="down">' + (aStats.decN || 0) + '</b></span><span>汇金 <b>' + (aStats.heldN || 0) + '/10</b></span></div>' : '')
+      + (rowsAMini ? '<div class="xov-mlist">' + rowsAMini + '</div>' : (rowsA ? '<table><colgroup><col style="width:44%"><col style="width:26%"><col style="width:30%"></colgroup><thead><tr><th>重仓</th><th>汇金</th><th>机构共识</th></tr></thead><tbody>' + rowsA + '</tbody></table>' : ''))
       + (f.note ? '<div class="xov-note">' + f.note + '</div>' : '')
       + _xovActHtml(f.code, act.lv, act.act) + '</div>');
   });
