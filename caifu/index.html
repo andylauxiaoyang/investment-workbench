@@ -1849,7 +1849,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
       <div class="card sm-xov" id="smXOverview" hidden></div>
       <div class="modal sm13f-scope" id="sm13f-modal"><div class="sheet" id="sm13f-sheet"></div></div>
       <div class="sm-conview" id="smConview" hidden>
-        <div id="smConA"></div>
+        <div class="sm13f-scope" id="smConA"></div>
         <div class="sm-sec-hd">美股 · 13F 共识</div>
         <div class="sm13f-scope" id="sm13f-con-consensus"></div>
         <div class="sm13f-scope" id="sm13f-con-detail"></div>
@@ -20560,18 +20560,51 @@ function renderConA() {
   var etfs = (D.nh && D.nh.etfs) || [];
   if (etfs.length) {
     h += '<div class="sm-sec-hd"><span class="bar" style="background:#b7791f"></span>国家队 · 宽基 ETF 具名持有人<span class="hint">——' + (D.nh.etfReport || '') + '</span></div>';
-    h += '<table><colgroup><col style="width:30%"><col style="width:12%"><col style="width:40%"><col style="width:18%"></colgroup><thead><tr><th>ETF</th><th>跟踪指数</th><th>前两大具名持有人</th><th>占比</th></tr></thead><tbody>';
-    etfs.slice(0, 8).forEach(function (e) {
-      var t = e.top25 || [];
-      var r1 = t[0] ? t[0].name : '—', r2 = t[1] ? t[1].name : '—';
-      var p1 = t[0] ? (t[0].pct != null ? t[0].pct + '%' : '') : '', p2 = t[1] ? (t[1].pct != null ? t[1].pct + '%' : '') : '';
-      h += '<tr><td>' + e.name + '<div class="xov-code">' + e.code + '</div></td><td class="small">' + (e.index || '') + '</td>'
-        + '<td class="small">' + r1 + '（' + p1 + '） / ' + r2 + '（' + p2 + '）</td><td class="num up">' + (t[0] && t[0].pct != null ? t[0].pct + '%' : '—') + '</td></tr>';
-    });
-    h += '</tbody></table>';
+    h += '<div class="ctl"><span class="sortbtn on" data-s="p1">按第一大持有人占比排序</span><span class="sortbtn" data-s="sum">按前二合计占比排序</span><input class="inp" id="smA-etfQ" placeholder="搜索 ETF / 指数 / 持有人…" style="margin-left:auto"><span class="res-count" id="smA-etfCount"></span></div>';
+    h += '<div class="inst-grid" id="smA-etfGrid"></div>';
     h += '<div class="xov-note">' + (D.nh.note || '') + '</div>';
   }
   host.innerHTML = h;
+  if (etfs.length) {
+    var etfQ = '', etfSort = 'p1';
+    function p1v(e) { var t = e.top25 || []; return t[0] && t[0].pct != null ? t[0].pct : -1; }
+    function sumv(e) { var t = e.top25 || []; var a = t[0] && t[0].pct != null ? t[0].pct : 0, b = t[1] && t[1].pct != null ? t[1].pct : 0; return a + b; }
+    function etfCard(e) {
+      var t = e.top25 || [];
+      var p1 = t[0] && t[0].pct != null ? t[0].pct : null;
+      var p2 = t[1] && t[1].pct != null ? t[1].pct : null;
+      var sum = (p1 != null ? p1 : 0) + (p2 != null ? p2 : 0);
+      var rows = t.slice(0, 2).map(function (x) {
+        return '<div class="row"><span>' + ((x.name || '—') + '').slice(0, 26) + '</span><span class="num mut">' + (x.pct != null ? x.pct + '%' : '—') + '</span></div>';
+      }).join('');
+      if (t.length > 2) rows += '<div class="row"><span class="mut">…另有 ' + (t.length - 2) + ' 位具名持有人</span></div>';
+      var bar = '';
+      if (p1 != null) {
+        var w1 = Math.min(100, p1), w2 = Math.min(100 - w1, p2 != null ? p2 : 0);
+        bar = '<div style="display:flex;height:8px;border-radius:4px;overflow:hidden;background:#eef0f3;margin-top:10px"><div style="width:' + w1 + '%;background:#b7791f"></div><div style="width:' + w2 + '%;background:#8aa0b8"></div></div>'
+          + '<div style="display:flex;gap:14px;font-size:11px;color:var(--muted);margin-top:6px"><span><i style="display:inline-block;width:8px;height:8px;border-radius:2px;background:#b7791f;margin-right:4px"></i>第一大 ' + (p1 != null ? p1 + '%' : '—') + '</span><span><i style="display:inline-block;width:8px;height:8px;border-radius:2px;background:#8aa0b8;margin-right:4px"></i>第二大 ' + (p2 != null ? p2 + '%' : '—') + '</span></div>';
+      }
+      return '<div class="card pad inst"><div class="top"><div class="who"><h3>' + e.name + '</h3><div class="person">' + (e.code || '') + '</div></div><span class="style">' + (e.index || '宽基') + '</span></div>'
+        + '<div class="stats"><div><div class="k">第一大持有人</div><div class="v">' + (p1 != null ? p1 + '%' : '—') + '</div></div><div><div class="k">前二合计</div><div class="v">' + (sum > 0 ? sum + '%' : '—') + '</div></div></div>'
+        + bar
+        + '<div class="mini-t">' + (rows || '<div class="row"><span class="mut">无持有人数据</span></div>') + '</div></div>';
+    }
+    function renderEtfs() {
+      var a = etfs.filter(function (e) {
+        return !etfQ || (e.name + ' ' + (e.code || '') + ' ' + (e.index || '') + ' ' + ((e.top25 || []).map(function (x) { return x.name || ''; }).join(' '))).toLowerCase().indexOf(etfQ) >= 0;
+      });
+      a = a.slice().sort(function (x, y) { return etfSort === 'sum' ? (sumv(y) - sumv(x)) : (p1v(y) - p1v(x)); });
+      var g = document.getElementById('smA-etfGrid');
+      g.innerHTML = a.map(etfCard).join('') || '<div class="empty">无匹配 ETF</div>';
+      var c = document.getElementById('smA-etfCount');
+      if (c) c.textContent = '共 ' + a.length + ' 只';
+    }
+    renderEtfs();
+    host.querySelectorAll('.sortbtn').forEach(function (b) {
+      b.onclick = function () { host.querySelectorAll('.sortbtn').forEach(function (x) { x.classList.remove('on'); }); b.classList.add('on'); etfSort = b.getAttribute('data-s'); renderEtfs(); };
+    });
+    document.getElementById('smA-etfQ').oninput = function (e) { etfQ = (e.target.value || '').trim().toLowerCase(); renderEtfs(); };
+  }
 }
 
 /* ---------- 反查页 · A股区块 ---------- */
