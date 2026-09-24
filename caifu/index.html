@@ -17628,6 +17628,16 @@ section.sm13f-view{display:none;padding-top:22px}
 #view-smartmoney .sm-xov .xov-concl .xov-c { padding: 8px 12px; border: 1px solid #e7eaf0; border-radius: 10px; background: #f7f8fa; line-height: 1.6; }
 #view-smartmoney .sm-xov .xov-concl .xov-c.b { background: #fff7ed; border-color: #f0d9a8; color: #7a5320; }
 #view-smartmoney .sm-xov .xov-concl b { font-weight: 700; }
+#view-smartmoney .sm-xov .xov-tiles { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 10px 0 14px; }
+#view-smartmoney .sm-xov .xov-tile { border: 1px solid #e7eaf0; border-radius: 12px; background: #fff; padding: 12px 14px; min-height: 88px; display: flex; flex-direction: column; justify-content: center; box-shadow: 0 1px 3px rgba(20,30,50,.05); }
+#view-smartmoney .sm-xov .xov-tile .lab { font-size: 11.5px; color: var(--faint, #8a93a5); margin-bottom: 6px; font-weight: 600; }
+#view-smartmoney .sm-xov .xov-tile .val { font-size: 22px; font-weight: 750; font-variant-numeric: tabular-nums; line-height: 1.15; }
+#view-smartmoney .sm-xov .xov-tile .sub { font-size: 11px; color: var(--muted, #5b6472); margin-top: 5px; line-height: 1.5; }
+#view-smartmoney .sm-xov .xov-tile .val .up { color: var(--up, #dc2626); }
+#view-smartmoney .sm-xov .xov-tile .val .down { color: var(--down, #16a34a); }
+#view-smartmoney .sm-xov .xov-tile.warn { background: #fff7ed; border-color: #f0d9a8; }
+#view-smartmoney .sm-xov .xov-tile.warn .lab, #view-smartmoney .sm-xov .xov-tile.warn .sub { color: #7a5320; }
+@media (max-width: 820px) { #view-smartmoney .sm-xov .xov-tiles { grid-template-columns: repeat(2, 1fr); } }
 #view-smartmoney .sm-xov .xov-funds { display: grid; grid-template-columns: repeat(auto-fill, minmax(330px, 1fr)); gap: 12px; }
 #view-smartmoney .sm-xov .xov-fund { border: 1px solid #e7eaf0; border-radius: 12px; padding: 12px 14px; background: #fff; }
 #view-smartmoney .sm-xov .xov-fund h4 { margin: 0 0 2px; font-size: 14px; font-weight: 700; }
@@ -21024,22 +21034,25 @@ function renderXOverview() {
       + (f.note ? '<div class="xov-note">' + f.note + '</div>' : '')
       + _xovActHtml(f.code, act.lv, act.act) + '</div>');
   });
-  var concl = '';
-  concl += '<div class="xov-c">A股（你的基金）：机构共识 ' + (conclA.up > 0 || conclA.down > 0 ? ('加仓 ' + conclA.up + ' / 减仓 ' + conclA.down) : '未形成方向') + '，汇金持股 ' + conclA.hui + ' 只重仓</div>';
-  if (pressure.length) concl += '<div class="xov-c b">建议关注（承压）：' + pressure.join(' / ') + ' —— 重仓被机构/汇金减持或方向降温，按卡内「决策动作条」评估</div>';
-  concl += '<div class="xov-c">美股（你的 QDII）：13F 机构 ' + (conclUS.up > 0 || conclUS.down > 0 ? ('加仓 ' + conclUS.up + ' / 减仓 ' + conclUS.down) : '未形成方向') + '</div>';
+  var inter = [];
   if (qdiiTops.length >= 2) {
-    var inter = [];
     var names0 = qdiiTops[0].map(function (t) { return (t.ticker || '').toUpperCase(); });
     qdiiTops[1].forEach(function (t) {
       var tk = (t.ticker || '').toUpperCase();
       if (tk && names0.indexOf(tk) >= 0) inter.push(tk);
     });
-    if (inter.length) {
-      concl += '<div class="xov-c b">' + inter.join(' / ') + ' 在你的多只 QDII 中重复出现'
-        + (conclUS.up > conclUS.down ? '，且 13F 机构整体加仓 —— AI 链双暴露升温' : '，但 13F 机构整体减持 —— 注意集中度风险') + '</div>';
-    }
   }
+  var tiles = '';
+  tiles += '<div class="xov-tile"><div class="lab">A股 · 机构共识</div><div class="val">' + (conclA.up > 0 || conclA.down > 0 ? '<span class="up">加仓 ' + conclA.up + '</span> / <span class="down">减仓 ' + conclA.down + '</span>' : '未形成方向') + '</div><div class="sub">你的基金重仓 × 汇金 / 机构共识（报告期 ' + (SM_XOV.reportQ || '') + '）</div></div>';
+  tiles += '<div class="xov-tile"><div class="lab">汇金底仓背书</div><div class="val">' + conclA.hui + ' 只</div><div class="sub">重仓股获汇金持股 · 底仓背书</div></div>';
+  tiles += '<div class="xov-tile"><div class="lab">美股 QDII · 13F</div><div class="val">' + (conclUS.up > 0 || conclUS.down > 0 ? '<span class="up">加仓 ' + conclUS.up + '</span> / <span class="down">减仓 ' + conclUS.down + '</span>' : '未形成方向') + '</div><div class="sub">前十大重仓 × SEC 13F 机构（约 45 天滞后）</div></div>';
+  if (inter.length) {
+    tiles += '<div class="xov-tile warn"><div class="lab">AI 链双暴露</div><div class="val" style="font-size:17px">' + inter.join(' / ') + '</div><div class="sub">' + (conclUS.up > conclUS.down ? '多只 QDII 重复出现，13F 整体加仓 · 升温' : '多只 QDII 重复出现，13F 整体减持 · 集中度风险') + '</div></div>';
+  } else {
+    tiles += '<div class="xov-tile"><div class="lab">决策跟踪</div><div class="val">' + funds.length + ' 只</div><div class="sub">基金已纳入决策看板</div></div>';
+  }
+  var concl = '<div class="xov-tiles">' + tiles + '</div>';
+  if (pressure.length) concl += '<div class="xov-c b">建议关注（承压）：' + pressure.join(' / ') + ' —— 重仓被机构/汇金减持或方向降温，按卡内「决策动作条」评估</div>';
   var secOV = _xovOverlap(fh);
   var gHtml = _xovGroupHtml(2, '行动', '——现在需要动手评估（减仓 / 止盈）', gcards[2])
     + _xovGroupHtml(1, '观察', '——温度偏高 / 承压待复核，盯紧触发线', gcards[1])
