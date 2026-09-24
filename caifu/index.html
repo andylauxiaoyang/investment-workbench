@@ -1783,7 +1783,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
     <section class="view" id="view-smartmoney">
       <!-- fw2_v194_sm_merge：聪明的钱 = A股/美股 分区（市场条 + 跨市场速览卡常驻） -->
       <div class="sm-market-bar" id="smMarketBar">
-        <span class="sm-mlab">市场</span>
+        <span class="sm-mlab" title="点击切换市场">市场</span>
         <button class="sm-m-btn on" data-sm-m="a">A股</button>
         <button class="sm-m-btn" data-sm-m="us">美股</button>
       </div>
@@ -16587,7 +16587,8 @@ section.sm13f-view{display:none;padding-top:22px}
 
 /* fw2_v194_sm_merge：聪明的钱 = A股/美股 分区（市场条 + 面板 + 跨市场速览卡） */
 #view-smartmoney .sm-market-bar { display: flex; align-items: center; gap: 6px; margin: 2px 0 12px; }
-#view-smartmoney .sm-mlab { font-size: 12px; color: #6b7280; margin-right: 2px; }
+#view-smartmoney .sm-mlab { font-size: 12px; color: #6b7280; margin-right: 2px; cursor: pointer; padding: 2px 6px; border-radius: 6px; user-select: none; }
+#view-smartmoney .sm-mlab:hover { color: #2563eb; background: #eef4ff; }
 #view-smartmoney .sm-m-btn { appearance: none; border: 1px solid #d9dee7; background: #fff; color: #6b7280; border-radius: 8px; padding: 5px 16px; font: inherit; font-size: 13px; cursor: pointer; }
 #view-smartmoney .sm-m-btn:hover { border-color: #c9d2e0; }
 #view-smartmoney .sm-m-btn.on { background: #2563eb; color: #fff; border-color: #2563eb; font-weight: 600; }
@@ -19447,10 +19448,11 @@ function setSMMarket(m, silent) {
 (function () {
   var bar = document.getElementById('smMarketBar'); if (!bar) return;
   bar.addEventListener('click', function (e) {
+    var sc = document.getElementById('view-smartmoney');
     var b = e.target && e.target.closest ? e.target.closest('.sm-m-btn') : null;
-    if (!b) return;
-    setSMMarket(b.getAttribute('data-sm-m'));
-    var sc = document.getElementById('view-smartmoney'); if (sc) sc.scrollTop = 0;
+    if (b) { setSMMarket(b.getAttribute('data-sm-m')); if (sc) sc.scrollTop = 0; return; }
+    var lab = e.target && e.target.closest ? e.target.closest('.sm-mlab') : null;
+    if (lab) { /* v195：点击「市场」标签切换到另一个市场 */ var cur = document.querySelector('#smMarketBar .sm-m-btn.on'); var next = (cur && cur.getAttribute('data-sm-m') === 'a') ? 'us' : 'a'; setSMMarket(next); if (sc) sc.scrollTop = 0; }
   });
 })();
 /* fw2_v194_sm_xov：跨市场速览卡「你的持仓 × 聪明钱」渲染 */
