@@ -17560,11 +17560,11 @@ section.sm13f-view{display:none;padding-top:22px}
 .sm13f-scope /* modal */
 .modal{position:fixed;inset:0;background:rgba(20,26,38,.42);display:none;z-index:60;align-items:flex-start;justify-content:center;padding:30px 16px;overflow:auto}
 .sm13f-scope .modal.on{display:flex}
-.sm13f-scope .sheet{background:var(--panel);border-radius:14px;max-width:860px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.28)}
+.sm13f-scope .sheet{background:var(--panel);border-radius:14px;max-width:1160px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.28)}
 .sm13f-scope .sheet .sh-hd{padding:18px 20px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
 .sm13f-scope .sheet .sh-bd{padding:0 20px 8px}
-.sm13f-scope .x{border:0;background:var(--line2);width:32px;height:32px;border-radius:8px;cursor:pointer;font-size:18px;color:var(--muted)}
-.sm13f-scope .x:hover{background:#e2e6ee}
+.sm13f-scope .x{border:0;background:var(--line2);width:40px;height:40px;border-radius:10px;cursor:pointer;font-size:20px;color:var(--muted);line-height:1;flex:none}
+.sm13f-scope .x:hover{background:#dc2626;color:#fff}
 .sm13f-scope .seg{display:inline-flex;background:var(--line2);border-radius:8px;padding:3px;margin:14px 0}
 .sm13f-scope .seg button{border:0;background:none;font:inherit;font-size:12.5px;padding:5px 14px;border-radius:6px;cursor:pointer;color:var(--muted)}
 .sm13f-scope .seg button.on{background:#fff;color:var(--ink);box-shadow:var(--shadow);font-weight:600}
@@ -17741,7 +17741,7 @@ section.sm13f-view{display:none;padding-top:22px}
    CSS 作用域化后的 .sm13f-scope .modal（后代选择器）不再匹配 modal 自身 → 17561 的 display:none 失效，
    445 基础 .modal{display:grid} 常显全屏罩层（半透明+backdrop blur 8px）→ 聪明的钱整页「灰色模糊」。
    id 选择器强制显隐（JS openModal/closeModal 已按 .on class 切换，无需改 JS）。 */
-#sm13f-modal { display: none; }
+#sm13f-modal { display: none; align-items: flex-start; justify-content: center; padding: 30px 16px; overflow: auto; }
 #sm13f-modal.on { display: flex; }
 /* fw2_v194_sm_merge：13F 面板位于 #view-smartmoney 内（与 A股面板同架构），滚动由 #view-smartmoney 统一处理 */
 </style>
@@ -20407,6 +20407,7 @@ function openInst(key){
   seg.querySelectorAll('[data-p]').forEach(x=>{ if(!x.classList.contains('on')){x.style.background='none';x.style.color='var(--muted)';} });
   seg.querySelector('[data-p=simple]').style.background='#fff'; seg.querySelector('[data-p=simple]').style.color='var(--ink)';
   paintSimple(); paintPro(); resort();
+  (function(){ var m=document.getElementById('sm13f-modal'); m.onclick=function(e){ var s=document.getElementById('sm13f-sheet'); if(e.target===m||(s&&!s.contains(e.target))) closeModal(); }; })();
   document.getElementById('sm13f-modal').classList.add('on'); document.body.style.overflow='hidden';
 }
 function closeModal(){ document.getElementById('sm13f-modal').classList.remove('on'); document.body.style.overflow=''; }
@@ -20657,21 +20658,25 @@ function openInstA(idx, aid) {
     adds = (it.qoq[latestQ].adds || []).map(function (k) { return '<span class="xov-chip up">' + ((idx.stocks[k] && idx.stocks[k].name) || k) + '</span>'; });
     trims = (it.qoq[latestQ].trims || []).map(function (k) { return '<span class="xov-chip down">' + ((idx.stocks[k] && idx.stocks[k].name) || k) + '</span>'; });
   }
-  sheet.innerHTML = '<div class="sh-hd"><div><h3 style="margin:0;font-size:17px">' + it.canon + '</h3>'
-    + '<div class="small mut" style="margin-top:4px">' + (it.typeLabel || '') + ' · 报告期 ' + (cur && cur.q || '—') + ' · A股机构（十大股东披露）</div></div>'
-    + '<button class="x" onclick="window.SM13F.closeModal()">×</button></div><div class="sh-bd">'
+  sheet.innerHTML = '<div class="sh-hd"><div><h3 style="margin:0;font-size:18px">' + it.canon + '</h3>'
+    + '<div class="small mut" style="margin-top:4px">' + (it.typeLabel || '') + ' · 报告期 ' + (cur && cur.q || '—') + ' · A股机构（十大股东披露） · 点击空白处或按 ESC 关闭</div></div>'
+    + '<button class="x" title="关闭" onclick="window.SM13F.closeModal()">×</button></div><div class="sh-bd">'
     + '<div class="grid-kpi" style="grid-template-columns:repeat(3,1fr);margin:16px 0 6px">'
       + '<div class="card pad"><div class="lab">最新季持仓市值</div><div class="val" style="font-size:20px">' + _smMoney(cur && cur.mktcap) + '</div></div>'
       + '<div class="card pad"><div class="lab">覆盖股票数</div><div class="val" style="font-size:20px">' + (cur && cur.num != null ? cur.num : '—') + '</div></div>'
       + '<div class="card pad"><div class="lab">本季环比</div><div class="val" style="font-size:20px">' + dlab + '</div></div>'
     + '</div>'
-    + '<h2 class="sec"><span class="bar" style="background:#b7791f"></span>季度持仓市值走势<span class="hint">——' + (latestQ || '') + ' 最新</span></h2>'
-    + '<div style="display:flex;align-items:flex-end;gap:4px;height:44px;padding:4px 2px 0"><span class="trend">' + spark + '</span></div>'
-    + '<h2 class="sec"><span class="bar" style="background:#b7791f"></span>最新季持仓明细（' + keys.length + ' 只代表股）</h2>'
-    + '<div class="scroll"><table><thead><tr><th class="l">股票</th><th>占比</th><th>持仓市值</th></tr></thead><tbody>' + posRows + '</tbody></table></div>'
-    + (latestQ ? '<h2 class="sec"><span class="bar" style="background:#dc2626"></span>本季增持（' + adds.length + '）<span class="hint">——' + latestQ + '</span></h2><div style="line-height:2.2">' + (adds.join('') || '<span class="flat small">无</span>') + '</div>'
-      + '<h2 class="sec"><span class="bar" style="background:#16a34a"></span>本季减持（' + trims.length + '）<span class="hint">——' + latestQ + '</span></h2><div style="line-height:2.2">' + (trims.join('') || '<span class="flat small">无</span>') + '</div>' : '')
+    + '<div style="display:grid;grid-template-columns:1.6fr 1fr;gap:16px;margin-top:14px;align-items:start">'
+      + '<div><h2 class="sec"><span class="bar" style="background:#b7791f"></span>最新季持仓明细（' + keys.length + ' 只代表股）</h2>'
+        + '<div class="scroll"><table><thead><tr><th class="l">股票</th><th>占比</th><th>持仓市值</th></tr></thead><tbody>' + posRows + '</tbody></table></div></div>'
+      + '<div><h2 class="sec"><span class="bar" style="background:#b7791f"></span>季度持仓市值走势<span class="hint">——' + (latestQ || '') + ' 最新</span></h2>'
+        + '<div style="display:flex;align-items:flex-end;gap:4px;height:44px;padding:4px 2px 0"><span class="trend">' + spark + '</span></div>'
+        + (latestQ ? '<h2 class="sec"><span class="bar" style="background:#dc2626"></span>本季增持（' + adds.length + '）<span class="hint">——' + latestQ + '</span></h2><div style="line-height:2.2">' + (adds.join('') || '<span class="flat small">无</span>') + '</div>'
+          + '<h2 class="sec"><span class="bar" style="background:#16a34a"></span>本季减持（' + trims.length + '）<span class="hint">——' + latestQ + '</span></h2><div style="line-height:2.2">' + (trims.join('') || '<span class="flat small">无</span>') + '</div>' : '<div class="flat small">无增减仓记录</div>')
+        + '</div>'
+    + '</div>'
     + '</div>';
+  (function(){ var m=document.getElementById('sm13f-modal'); m.onclick=function(e){ var s=document.getElementById('sm13f-sheet'); if(e.target===m||(s&&!s.contains(e.target))) window.SM13F.closeModal(); }; })();
   document.getElementById('sm13f-modal').classList.add('on'); document.body.style.overflow = 'hidden';
 }
 
