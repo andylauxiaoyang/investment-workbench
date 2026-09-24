@@ -20582,7 +20582,7 @@ function _smIdxBuild() {
   Object.keys(D.stocks || {}).forEach(function (k) { _smIdx.stocks[k] = { name: D.stocks[k].name, sector: D.stocks[k].sector }; });
   (D.insts || []).forEach(function (it) {
     var lastQ = it.pos && it.pos.length ? it.pos[it.pos.length - 1] : null;
-    _smIdx.insts.push({ canon: it.canon, typeLabel: it.typeLabel, q: it.q, pos: (lastQ && lastQ.pos) || {} });
+    _smIdx.insts.push({ canon: it.canon, typeLabel: it.typeLabel, q: it.q, pos: (lastQ && lastQ.pos) || {}, qoq: it.qoq || {} });
   });
   return _smIdx;
 }
@@ -20591,11 +20591,11 @@ function renderLookA() {
   var idx = _smIdxBuild();
   function instRows() {
     var h = '<table><colgroup><col style="width:34%"><col style="width:12%"><col style="width:22%"><col style="width:16%"><col style="width:16%"></colgroup><thead><tr><th>机构</th><th>类型</th><th>最新季市值</th><th>覆盖股票数</th><th>环比</th></tr></thead><tbody>';
-    idx.insts.forEach(function (it) {
+    idx.insts.forEach(function (it, ix) {
       var cur = _smInstLast(it), prev = _smInstPrev(it);
       var d = (cur && prev) ? cur.mktcap - prev.mktcap : null;
       var dlab = d == null ? '<span class="flat">—</span>' : d > 0 ? '<span class="up">增持</span>' : d < 0 ? '<span class="down">减持</span>' : '<span class="flat">持平</span>';
-      h += '<tr><td><span class="name">' + it.canon + '</span></td><td class="small">' + (it.typeLabel || '') + '</td>'
+      h += '<tr data-aid="' + ix + '" style="cursor:pointer" title="点击查看机构明细"><td><span class="name">' + it.canon + '</span></td><td class="small">' + (it.typeLabel || '') + '</td>'
         + '<td class="num">' + _smMoney(cur && cur.mktcap) + '</td><td class="num">' + (cur && cur.num != null ? cur.num : '—') + '</td><td>' + dlab + '</td></tr>';
     });
     return h + '</tbody></table>';
@@ -20606,6 +20606,7 @@ function renderLookA() {
   h += '<div class="ctl"><input class="inp" id="smA-lkq" placeholder="例如：600519 / 贵州茅台 …" style="flex:1;min-width:260px"><span class="res-count" id="smA-lkCount"></span></div>';
   h += '<div class="xov-fund" id="smA-lkRes"><div class="xov-note">输入关键词开始反查（' + Object.keys(idx.stocks).length + ' 只代表股）</div></div>';
   host.innerHTML = h;
+  host.querySelectorAll('tr[data-aid]').forEach(function (tr) { tr.onclick = function () { openInstA(idx, tr.getAttribute('data-aid')); }; });
   var inp = document.getElementById('smA-lkq'), res = document.getElementById('smA-lkRes');
   function search() {
     var q = (inp.value || '').trim().toLowerCase();
@@ -20630,6 +20631,48 @@ function renderLookA() {
   }
   inp.oninput = search;
   inp.onkeydown = function (e) { if (e.key === 'Enter') search(); };
+}
+
+/* ---------- A股机构明细弹层（复用 #sm13f-modal，v203.3f） ---------- */
+function openInstA(idx, aid) {
+  var it = idx.insts[+aid]; if (!it) return;
+  var sheet = document.getElementById('sm13f-sheet');
+  var cur = _smInstLast(it), prev = _smInstPrev(it);
+  var d = (cur && prev) ? cur.mktcap - prev.mktcap : null;
+  var dlab = d == null ? '<span class="flat">—</span>' : d > 0 ? '<span class="up">增持</span>' : d < 0 ? '<span class="down">减持</span>' : '<span class="flat">持平</span>';
+  var qs = it.q || [], mx = 1;
+  qs.forEach(function (q) { if (q.mktcap > mx) mx = q.mktcap; });
+  var spark = qs.map(function (q) { return '<i style="height:' + (4 + 30 * q.mktcap / mx) + 'px" title="' + q.q + ' ' + _smMoney(q.mktcap) + '"></i>'; }).join('');
+  var keys = Object.keys(it.pos || {}).sort(function (a, b) { return (it.pos[b].mk || 0) - (it.pos[a].mk || 0); });
+  var posRows = keys.map(function (k) {
+    var pp = it.pos[k], nm = (idx.stocks[k] && idx.stocks[k].name) || k;
+    return '<tr><td class="l"><span class="name">' + nm + '</span><div class="cusip">' + k + '</div></td>'
+      + '<td class="num">' + (pp.ratio != null ? pp.ratio.toFixed(1) + '%' : '—') + '</td>'
+      + '<td class="num">' + _smMoney(pp.mk) + '</td></tr>';
+  }).join('');
+  var qoqKeys = Object.keys(it.qoq || {});
+  var latestQ = qoqKeys.length ? qoqKeys[qoqKeys.length - 1] : null;
+  var adds = [], trims = [];
+  if (latestQ && it.qoq[latestQ]) {
+    adds = (it.qoq[latestQ].adds || []).map(function (k) { return '<span class="xov-chip up">' + ((idx.stocks[k] && idx.stocks[k].name) || k) + '</span>'; });
+    trims = (it.qoq[latestQ].trims || []).map(function (k) { return '<span class="xov-chip down">' + ((idx.stocks[k] && idx.stocks[k].name) || k) + '</span>'; });
+  }
+  sheet.innerHTML = '<div class="sh-hd"><div><h3 style="margin:0;font-size:17px">' + it.canon + '</h3>'
+    + '<div class="small mut" style="margin-top:4px">' + (it.typeLabel || '') + ' · 报告期 ' + (cur && cur.q || '—') + ' · A股机构（十大股东披露）</div></div>'
+    + '<button class="x" onclick="window.SM13F.closeModal()">×</button></div><div class="sh-bd">'
+    + '<div class="grid-kpi" style="grid-template-columns:repeat(3,1fr);margin:16px 0 6px">'
+      + '<div class="card pad"><div class="lab">最新季持仓市值</div><div class="val" style="font-size:20px">' + _smMoney(cur && cur.mktcap) + '</div></div>'
+      + '<div class="card pad"><div class="lab">覆盖股票数</div><div class="val" style="font-size:20px">' + (cur && cur.num != null ? cur.num : '—') + '</div></div>'
+      + '<div class="card pad"><div class="lab">本季环比</div><div class="val" style="font-size:20px">' + dlab + '</div></div>'
+    + '</div>'
+    + '<h2 class="sec"><span class="bar" style="background:#b7791f"></span>季度持仓市值走势<span class="hint">——' + (latestQ || '') + ' 最新</span></h2>'
+    + '<div style="display:flex;align-items:flex-end;gap:4px;height:44px;padding:4px 2px 0"><span class="trend">' + spark + '</span></div>'
+    + '<h2 class="sec"><span class="bar" style="background:#b7791f"></span>最新季持仓明细（' + keys.length + ' 只代表股）</h2>'
+    + '<div class="scroll"><table><thead><tr><th class="l">股票</th><th>占比</th><th>持仓市值</th></tr></thead><tbody>' + posRows + '</tbody></table></div>'
+    + (latestQ ? '<h2 class="sec"><span class="bar" style="background:#dc2626"></span>本季增持（' + adds.length + '）<span class="hint">——' + latestQ + '</span></h2><div style="line-height:2.2">' + (adds.join('') || '<span class="flat small">无</span>') + '</div>'
+      + '<h2 class="sec"><span class="bar" style="background:#16a34a"></span>本季减持（' + trims.length + '）<span class="hint">——' + latestQ + '</span></h2><div style="line-height:2.2">' + (trims.join('') || '<span class="flat small">无</span>') + '</div>' : '')
+    + '</div>';
+  document.getElementById('sm13f-modal').classList.add('on'); document.body.style.overflow = 'hidden';
 }
 
 /* ---------- 子模块切换（v203.3） ---------- */
