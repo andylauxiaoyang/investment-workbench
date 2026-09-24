@@ -14754,6 +14754,40 @@ function cycleEngine(d) {
     }
   };
 }
+function renderReplayCard(rp) {
+  /* v198 fw2_v198_cycle_replay：历史相似阶段回放卡（数据来自 replay，纯渲染） */
+  if (!rp || !rp.matched || !rp.matched.length || !rp.stats) return '';
+  var AS = ['沪深300', '中证500', '创业板指', '恒生指数', '黄金', '美债10Y'];
+  var body = AS.map(function (a) {
+    var s = rp.stats[a];
+    if (!s) return '';
+    function cell(k) {
+      var v = s['m' + k];
+      if (!v) return '<td class="muted">—</td>';
+      var cls = v.med >= 0 ? 'v-up' : 'v-down';
+      return '<td class="' + cls + '"><b>' + (v.med >= 0 ? '+' : '') + v.med.toFixed(1) + '%</b> <i class="muted" style="font-style:normal">胜率' + v.win + '%</i></td>';
+    }
+    return '<tr><td><b>' + a + '</b></td>' + cell(3) + cell(6) + cell(12) + '</tr>';
+  }).join('');
+  var med12 = {};
+  AS.forEach(function (a) { var s = rp.stats[a] && rp.stats[a].m12; if (s) med12[a] = s.med; });
+  var best12 = null, bestName = '';
+  Object.keys(med12).forEach(function (a) { if (best12 == null || med12[a] > best12) { best12 = med12[a]; bestName = a; } });
+  var gold = rp.stats['黄金'] && rp.stats['黄金'].m3;
+  var goldTxt = (gold && gold.win >= 100) ? '黄金 3个月胜率100%（滞胀对冲确认）'
+    : (gold && gold.win >= 80) ? '黄金胜率' + gold.win + '%（对冲偏强）' : '黄金表现分化';
+  var bond = rp.stats['美债10Y'] && rp.stats['美债10Y'].m3;
+  var bondTxt = (bond && bond.med < 0) ? ' · 美债价格承压（10Y 收益率上行，滞胀期利率压力）' : (bond && bond.med > 0 ? ' · 美债顺风（利率下行）' : '');
+  var insight = goldTxt + ' · 中期弹性最强：' + bestName + '（12个月中位 ' + (best12 >= 0 ? '+' : '') + best12.toFixed(1) + '%）' + bondTxt;
+  return '<div class="card dc-replay">'
+    + '<div class="card-h"><h3>历史相似阶段回放</h3><span class="hint">当前相位（' + rp.cur.l1 + '/' + rp.cur.l2 + '/' + rp.cur.l3 + '）· 历史同相位 ' + rp.matched.length + ' 期 · 之后 3/6/12 个月资产表现（中位数）</span></div>'
+    + '<div class="rv-line"><span class="tag tag-ai">匹配期</span><span>' + rp.matched.map(function (x) { return x.m + '（' + x.l1 + '/' + x.l2 + '/' + x.l3 + '）'; }).join(' · ') + '</span></div>'
+    + '<table class="cyc-tbl rp-tbl"><thead><tr><th style="width:22%">资产</th><th style="width:26%">3个月后</th><th style="width:26%">6个月后</th><th style="width:26%">12个月后</th></tr></thead><tbody>'
+    + body + '</tbody></table>'
+    + '<div class="rv-line"><span class="tag tag-ai">解读</span><span>' + insight + '</span></div>'
+    + '<div class="rv-line"><span class="tag tag-data">口径</span><span>' + rp.note + '</span></div>'
+    + '</div>';
+}
 function renderMacro() {
   const body = $('#macroBody'); if (!body) return;
   const d = state.macro;
