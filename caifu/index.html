@@ -19199,8 +19199,8 @@ RENDER.institutions=function(){
   const list=D.institutions;
   el.innerHTML='<h2 class="sec"><span class="bar"></span>机构名单<span class="hint">——点击查看前十大与新进/增持/减持/清仓；顶部排序按本季变化</span></h2>'+
    '<div class="ctl"><span class="sortbtn on" data-s="v">按最新季持仓市值排序</span><span class="sortbtn" data-s="c">按本季变化排序</span>'+
-   '<span class="sortbtn" data-s="n">按持仓股票数排序</span><input class="inp" id="instq" placeholder="搜索机构 / 代表人物 / 风格…" style="margin-left:auto"></div>'+
-   '<div class="inst-grid" id="instGrid"></div>';
+   '<span class="sortbtn" data-s="n">按持仓股票数排序</span><input class="inp" id="sm13f-instq" placeholder="搜索机构 / 代表人物 / 风格…" style="margin-left:auto"></div>'+
+   '<div class="inst-grid" id="sm13f-instGrid"></div>';
   let sort='v', q='';
   function render(){
     let a=list.filter(i=> !q || (i.name+' '+(i.person||'')+' '+i.style).toLowerCase().includes(q));
@@ -19241,7 +19241,7 @@ function openInst(key){
     '<div class="seg"><button class="on" data-p="simple">简明视图</button><button data-p="pro">专业视图</button>'+
       '<span style="width:14px"></span><button class="on" data-sort="v" style="border:1px solid var(--line);border-radius:6px;margin-left:8px;padding:4px 12px">按市值</button>'+
       '<button data-sort="c" style="border:1px solid var(--line);border-radius:6px;padding:4px 12px">按本季变动</button></div>'+
-    '<div class="panes"><div class="pane on" data-p="simple" id="pSimple"></div><div class="pane" data-p="pro" id="pPro"></div></div>'+
+    '<div class="panes"><div class="pane on" data-p="simple" id="sm13f-pSimple"></div><div class="pane" data-p="pro" id="sm13f-pPro"></div></div>'+
     '</div>';
   sheet.dataset.key=key;
   let mode='v';
@@ -19294,10 +19294,10 @@ RENDER.consensus=function(){
   const el=_13fRoot.querySelector('#sm13f-v-consensus');
   const stocks=D.stocks;
   el.innerHTML='<h2 class="sec"><span class="bar"></span>共识买入<span class="hint">——按共同持有的机构数与本季变化排序，机构数越多=越"聪明钱共识"</span></h2>'+
-   '<div class="ctl"><select class="inp" id="cMin"><option value="2">≥2 家持有</option><option value="3" selected>≥3 家持有</option><option value="5">≥5 家持有</option><option value="8">≥8 家持有</option><option value="12">≥12 家持有</option><option value="1">全部样本</option></select>'+
+   '<div class="ctl"><select class="inp" id="sm13f-cMin"><option value="2">≥2 家持有</option><option value="3" selected>≥3 家持有</option><option value="5">≥5 家持有</option><option value="8">≥8 家持有</option><option value="12">≥12 家持有</option><option value="1">全部样本</option></select>'+
    '<span class="sortbtn on" data-s="nh">按持有机构数</span><span class="sortbtn" data-s="net">按本季净加仓机构</span><span class="sortbtn" data-s="dlt">按本季市值变化</span><span class="sortbtn" data-s="nhc">按机构数变化</span>'+
-   '<input class="inp" id="cQ" placeholder="过滤标的 / 代码 / CUSIP" style="margin-left:auto"><span class="res-count" id="cCount"></span></div>'+
-   '<div class="card"><div class="scroll" style="max-height:70vh"><table id="cTbl"></table></div></div>';
+   '<input class="inp" id="sm13f-cQ" placeholder="过滤标的 / 代码 / CUSIP" style="margin-left:auto"><span class="res-count" id="sm13f-cCount"></span></div>'+
+   '<div class="card"><div class="scroll" style="max-height:70vh"><table id="sm13f-cTbl"></table></div></div>';
   let sort='nh', min=3, q='';
   function render(){
     const rows=stocks.map(s=>({s,m:S(s)}));
@@ -19317,8 +19317,8 @@ RENDER.consensus=function(){
     _13fRoot.querySelectorAll('#sm13f-cTbl tr[data-c]').forEach(r=>r.onclick=()=>{ show('lookup'); lookupDetail(r.dataset.c); });
   }
   el.querySelectorAll('[data-s]').forEach(b=>b.onclick=()=>{ el.querySelectorAll('[data-s]').forEach(x=>x.classList.remove('on')); b.classList.add('on'); sort=b.dataset.s; render(); });
-  el.querySelector('#cMin').onchange=e=>{ min=+e.target.value; render(); };
-  el.querySelector('#cQ').oninput=e=>{ q=e.target.value.trim().toLowerCase(); render(); };
+  el.querySelector('#sm13f-cMin').onchange=e=>{ min=+e.target.value; render(); };
+  el.querySelector('#sm13f-cQ').oninput=e=>{ q=e.target.value.trim().toLowerCase(); render(); };
   render();
 };
 
@@ -19326,24 +19326,24 @@ RENDER.consensus=function(){
 RENDER.lookup=function(){
   const el=_13fRoot.querySelector('#sm13f-v-lookup');
   el.innerHTML='<h2 class="sec"><span class="bar"></span>股票 / CUSIP 反查<span class="hint">——输入股票代码、公司名或 CUSIP，查看哪些机构持有及季度变化</span></h2>'+
-   '<div class="ctl"><input class="inp" id="lkq" placeholder="例如：AAPL / Nvidia / 67066D108 …" style="flex:1;min-width:280px"></div>'+
-   '<div class="two" style="grid-template-columns:1fr;gap:14px"><div class="card" id="lkResults"><div class="empty">输入关键词开始反查（'+D.stocks.length+' 只样本 / 全量 '+D.overview.full_positions.toLocaleString('en-US')+' 只可查机构归属的样本）</div></div><div id="lkDetail"></div></div>';
-  const inp=el.querySelector('#lkq');
+   '<div class="ctl"><input class="inp" id="sm13f-lkq" placeholder="例如：AAPL / Nvidia / 67066D108 …" style="flex:1;min-width:280px"></div>'+
+   '<div class="two" style="grid-template-columns:1fr;gap:14px"><div class="card" id="sm13f-lkResults"><div class="empty">输入关键词开始反查（'+D.stocks.length+' 只样本 / 全量 '+D.overview.full_positions.toLocaleString('en-US')+' 只可查机构归属的样本）</div></div><div id="sm13f-lkDetail"></div></div>';
+  const inp=el.querySelector('#sm13f-lkq');
   (function defaultPicks(){
     const picks=D.stocks.slice().sort((a,b)=> b.nh[3]-a.nh[3] || b.v[3]-a.v[3]).slice(0,8);
-    el.querySelector('#lkResults').innerHTML='<div class="pad"><div class="small mut" style="margin-bottom:8px">试试这些本季被最多机构共同持有的标的（也可在上方输入代码 / 名称 / CUSIP）：</div>'+
+    el.querySelector('#sm13f-lkResults').innerHTML='<div class="pad"><div class="small mut" style="margin-bottom:8px">试试这些本季被最多机构共同持有的标的（也可在上方输入代码 / 名称 / CUSIP）：</div>'+
       '<div class="hold-list">'+picks.map(s=>'<span class="hold-chip" data-c="'+s.cusip+'" style="cursor:pointer">'+(s.ticker?s.ticker+' · ':'')+s.issuer+' <b>'+s.nh[3]+'家</b></span>').join('')+'</div></div>';
-    el.querySelectorAll('#lkResults .hold-chip[data-c]').forEach(c=>c.onclick=()=>{ lookupDetail(c.dataset.c); el.querySelector('#lkResults').scrollIntoView({block:'nearest'}); });
+    el.querySelectorAll('#sm13f-lkResults .hold-chip[data-c]').forEach(c=>c.onclick=()=>{ lookupDetail(c.dataset.c); el.querySelector('#sm13f-lkResults').scrollIntoView({block:'nearest'}); });
   })();
   function search(term){
     term=term.trim().toLowerCase();
     if(!term){ return; }
     let a=D.stocks.filter(s=> (s.ticker||'').toLowerCase()===term ? true : (s.cusip.toLowerCase().startsWith(term)||s.issuer.toLowerCase().includes(term)||(s.ticker||'').toLowerCase().startsWith(term)) )
       .slice(0,12);
-    if(!a.length){ el.querySelector('#lkResults').innerHTML='<div class="empty">未在样本中找到「'+term+'」。可能是：① 不在覆盖机构本季持仓 / 731 样本内；② 非美股（13F 不含）；③ 名称与 SEC 申报不一致。试试股票代码或 CUSIP 前 6 位。</div>'; el.querySelector('#lkDetail').innerHTML=''; return; }
-    el.querySelector('#lkResults').innerHTML='<div class="scroll" style="max-height:none"><table><thead><tr><th class="l">标的</th><th>持有机构</th><th>合计市值</th><th>本季</th><th></th></tr></thead><tbody>'+
+    if(!a.length){ el.querySelector('#sm13f-lkResults').innerHTML='<div class="empty">未在样本中找到「'+term+'」。可能是：① 不在覆盖机构本季持仓 / 731 样本内；② 非美股（13F 不含）；③ 名称与 SEC 申报不一致。试试股票代码或 CUSIP 前 6 位。</div>'; el.querySelector('#sm13f-lkDetail').innerHTML=''; return; }
+    el.querySelector('#sm13f-lkResults').innerHTML='<div class="scroll" style="max-height:none"><table><thead><tr><th class="l">标的</th><th>持有机构</th><th>合计市值</th><th>本季</th><th></th></tr></thead><tbody>'+
       a.map(s=>{ const m=S(s); return '<tr style="cursor:pointer" data-c="'+s.cusip+'"><td class="l"><span class="name">'+s.issuer+'</span>'+tickerHTML(s.ticker?s.ticker.split('/')[0]:'')+'<div class="cusip">'+s.cusip+'</div></td><td class="num">'+m.nh+'/'+denom()+'</td><td class="num">'+money(m.v)+'</td><td>'+delta(m.dlt)+'</td><td class="mut">查看 ›</td></tr>'; }).join('')+'</tbody></table></div>';
-    el.querySelectorAll('#lkResults tr[data-c]').forEach(r=>r.onclick=()=>lookupDetail(r.dataset.c));
+    el.querySelectorAll('#sm13f-lkResults tr[data-c]').forEach(r=>r.onclick=()=>lookupDetail(r.dataset.c));
     lookupDetail(a[0].cusip);
   }
   inp.oninput=e=>search(e.target.value); inp.onkeydown=e=>{if(e.key==='Enter')search(inp.value);};
