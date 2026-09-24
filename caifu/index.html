@@ -1855,7 +1855,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
         <div class="sm13f-scope" id="sm13f-con-detail"></div>
       </div>
       <div class="sm-lookview" id="smLookview" hidden>
-        <div id="smLookA"></div>
+        <div class="sm13f-scope" id="smLookA"></div>
         <div class="sm-sec-hd">美股 · 13F 机构名单</div>
         <div class="sm13f-scope" id="sm13f-look-inst"></div>
         <div class="sm-sec-hd">美股 · 股票 / CUSIP 反查</div>
@@ -20590,24 +20590,45 @@ function _smIdxBuild() {
 function renderLookA() {
   var host = document.getElementById('smLookA'); if (!host || !window.SM_ASHARE) return;
   var idx = _smIdxBuild();
-  function instRows() {
-    var h = '<table><colgroup><col style="width:34%"><col style="width:12%"><col style="width:22%"><col style="width:16%"><col style="width:16%"></colgroup><thead><tr><th>机构</th><th>类型</th><th>最新季市值</th><th>覆盖股票数</th><th>环比</th></tr></thead><tbody>';
-    idx.insts.forEach(function (it, ix) {
-      var cur = _smInstLast(it), prev = _smInstPrev(it);
-      var d = (cur && prev) ? cur.mktcap - prev.mktcap : null;
-      var dlab = d == null ? '<span class="flat">—</span>' : d > 0 ? '<span class="up">增持</span>' : d < 0 ? '<span class="down">减持</span>' : '<span class="flat">持平</span>';
-      h += '<tr data-aid="' + ix + '" style="cursor:pointer" title="点击查看机构明细"><td><span class="name">' + it.canon + '</span></td><td class="small">' + (it.typeLabel || '') + '</td>'
-        + '<td class="num">' + _smMoney(cur && cur.mktcap) + '</td><td class="num">' + (cur && cur.num != null ? cur.num : '—') + '</td><td>' + dlab + '</td></tr>';
-    });
-    return h + '</tbody></table>';
+  function QoQ(it) { var cur = _smInstLast(it), prev = _smInstPrev(it); return (cur && prev) ? (cur.mktcap - prev.mktcap) : 0; }
+  function card(it, ix) {
+    var cur = _smInstLast(it), prev = _smInstPrev(it);
+    var d = (cur && prev) ? cur.mktcap - prev.mktcap : null;
+    var dlab = d == null ? '<span class="flat">—</span>' : d > 0 ? '<span class="up">增持</span>' : d < 0 ? '<span class="down">减持</span>' : '<span class="flat">持平</span>';
+    var qs = it.q || [], mx = 1;
+    qs.forEach(function (q) { if (q.mktcap > mx) mx = q.mktcap; });
+    var spark = qs.map(function (q) { return '<i style="height:' + (4 + 22 * q.mktcap / mx) + 'px" title="' + q.q + ' ' + _smMoney(q.mktcap) + '"></i>'; }).join('');
+    var keys = Object.keys(it.pos || {}).sort(function (a, b) { return (it.pos[b].mk || 0) - (it.pos[a].mk || 0); }).slice(0, 5);
+    var mini = keys.map(function (k) { return '<div class="row"><span>' + (((idx.stocks[k] && idx.stocks[k].name) || k) + '').slice(0, 22) + '</span><span class="num mut">' + _smMoney(it.pos[k].mk) + '</span></div>'; }).join('');
+    return '<div class="card pad inst" data-aid="' + ix + '" style="cursor:pointer" title="点击查看机构明细"><div class="top"><div class="who"><h3>' + it.canon + '</h3><div class="person">' + (it.typeLabel || '') + '</div></div><span class="style">' + (it.typeLabel || 'A股机构') + '</span></div>'
+      + '<div class="stats"><div><div class="k">最新季持仓</div><div class="v">' + _smMoney(cur && cur.mktcap) + '</div></div><div><div class="k">覆盖股票</div><div class="v">' + (cur && cur.num != null ? cur.num : '—') + '</div></div><div><div class="k">本季环比</div><div class="v ' + (d > 0 ? 'up' : d < 0 ? 'down' : 'flat') + '">' + dlab + '</div></div></div>'
+      + '<div class="spark">' + spark + '</div>'
+      + '<div class="mini-t">' + (mini || '<div class="row"><span class="mut">无持仓记录</span></div>') + '</div></div>';
   }
   var h = '<div class="sm-sec-hd"><span class="bar" style="background:#b7791f"></span>A股 · 机构名单<span class="hint">——' + idx.insts.length + ' 家（国家队 / 险资 / 外资 / 社保等）· ' + (window.SM_ASHARE.meta && window.SM_ASHARE.meta.asOf || '') + '</span></div>';
-  h += '<div class="xov-fund">' + instRows() + '</div>';
+  h += '<div class="ctl"><span class="sortbtn on" data-s="v">按最新季持仓市值排序</span><span class="sortbtn" data-s="c">按本季变化排序</span><span class="sortbtn" data-s="n">按覆盖股票数排序</span><input class="inp" id="smA-instq" placeholder="搜索机构 / 类型…" style="margin-left:auto"></div>';
+  h += '<div class="inst-grid" id="smA-instGrid"></div>';
   h += '<div class="sm-sec-hd"><span class="bar" style="background:#b7791f"></span>A股 · 股票 / 机构 反查<span class="hint">——输入股票代码或名称，查看哪些机构持有（最新报告期）</span></div>';
   h += '<div class="ctl"><input class="inp" id="smA-lkq" placeholder="例如：600519 / 贵州茅台 …" style="flex:1;min-width:260px"><span class="res-count" id="smA-lkCount"></span></div>';
   h += '<div class="xov-fund" id="smA-lkRes"><div class="xov-note">输入关键词开始反查（' + Object.keys(idx.stocks).length + ' 只代表股）</div></div>';
   host.innerHTML = h;
-  host.querySelectorAll('tr[data-aid]').forEach(function (tr) { tr.onclick = function () { openInstA(idx, tr.getAttribute('data-aid')); }; });
+  var instQ = '', instSort = 'v';
+  function renderInsts() {
+    var a = idx.insts.map(function (it, ix) { return { it: it, ix: ix }; })
+      .filter(function (x) { return !instQ || (x.it.canon + ' ' + (x.it.typeLabel || '')).toLowerCase().indexOf(instQ) >= 0; });
+    a.sort(function (x, y) {
+      if (instSort === 'c') return QoQ(y.it) - QoQ(x.it);
+      if (instSort === 'n') return ((_smInstLast(y.it) || {}).num || 0) - ((_smInstLast(x.it) || {}).num || 0);
+      return ((_smInstLast(y.it) || {}).mktcap || 0) - ((_smInstLast(x.it) || {}).mktcap || 0);
+    });
+    document.getElementById('smA-instGrid').innerHTML = a.map(function (x) { return card(x.it, x.ix); }).join('') || '<div class="empty">无匹配机构</div>';
+    host.querySelectorAll('.inst[data-aid]').forEach(function (c) { c.onclick = function () { openInstA(idx, c.getAttribute('data-aid')); }; });
+  }
+  renderInsts();
+  host.querySelectorAll('.sortbtn').forEach(function (b) {
+    b.onclick = function () { host.querySelectorAll('.sortbtn').forEach(function (x) { x.classList.remove('on'); }); b.classList.add('on'); instSort = b.getAttribute('data-s'); renderInsts(); };
+  });
+  document.getElementById('smA-instq').oninput = function (e) { instQ = (e.target.value || '').trim().toLowerCase(); renderInsts(); };
   var inp = document.getElementById('smA-lkq'), res = document.getElementById('smA-lkRes');
   function search() {
     var q = (inp.value || '').trim().toLowerCase();
