@@ -16229,10 +16229,10 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
         docScrollH==innerH==758、祖先链 ovY 全 visible）⇒ 激活时令其自身成为滚动容器
         （flex:1 1 auto + min-height:0 + overflow-y:auto + padding-bottom:38px）；
      ③ fitSmartMoney 改取 max(doc.scrollHeight, body.scrollHeight)，防漏量子应用真实高度。
-     verChip v208->v209（默认首页：决策总览）
+     verChip v209->v210（决策总览去重：②⑤ 加交易信号从属标注）
   */
   const vc = $('#verChip');
-  if (vc) vc.textContent = 'v209 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  if (vc) vc.textContent = 'v210 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
@@ -21012,6 +21012,7 @@ function renderDecision() {
   if (tw != null) gateRows.push('成交额 ' + amtYi.toFixed(0) + ' 亿（' + amtDay + '）→ ' + (tw >= 3 ? '过热区（≥3万亿 分批卖）' : tw >= 2 ? '关注区' : tw >= 1.5 ? '关注入场' : '网格定投区（<1.5万亿）'));
   if (pct8 != null) gateRows.push('资金系数 ' + pct8.toFixed(2) + '% → ' + (pct8 >= 1.5 ? '疯狂·清仓提示(D8)' : pct8 >= 1 ? '过热·分批卖' : pct8 <= 0.3 ? '低迷·机会区' : '中性'));
   if (erpPct != null) gateRows.push('ERP 分位 ' + erpPct + '% → ' + (erpPct >= 75 ? '增配股至 70-80%' : erpPct < 25 ? '减股至 20-30%' : '中性'));
+  gateRows.push('<a href="#" data-dcgo="signal" style="color:var(--brand,#2563eb)">环境明细（M7 成交额 / M8 两融 / M9 涨停 / 温度计）→ 交易信号·市场信号</a>');
   var l2 = { dir: envHot ? 'hot' : envCold ? 'cold' : 'neu', status: envHot ? '市场过热 · 买入降档' : envCold ? '市场低迷 · 网格定投/机会区' : '中性 · 正常节奏', rows: gateRows.length ? gateRows : ['资金面数据缺失'], asOf: md.updatedAt || '—' };
 
   /* ---------- ③ 聪明钱方向 ---------- */
@@ -21189,7 +21190,8 @@ function renderDecision() {
   h += layerCard('③', '聪明钱方向', l3.dir, l3.status, l3.rows, l3.asOf, 'smartmoney');
   h += layerCard('④', '持仓暴露', l4.rows.some(function (r) { return r.lv === 'neg'; }) ? 'neg' : l4.rows.some(function (r) { return r.lv === 'pos'; }) ? 'pos' : 'neu', l4.status, l4.rows.map(function (r) { return '<span class="dc-fund ' + dirCls[r.lv] + '">' + esc(r.name) + '</span> ' + esc(r.tag); }), l4.asOf, 'holdings');
   var gapTxt = l5.gaps.length ? l5.gaps.map(function (g) { return '<span class="dc-fund t-pos">' + esc(g.name) + '</span> 缺口 ' + money(g.gap) + '（已持 ' + money(g.held) + ' / 目标 ' + money(g.target) + '）'; }).join('') : '各策略标的均已达目标';
-  h += layerCard('⑤', '策略动作', l5.stopTrig ? 'hot' : l5.gaps.length ? 'pos' : 'neu', l5.stopTrig ? ('触发：' + l5.stopTrig) : (l5.gaps.length ? l5.gaps.length + ' 只低于目标' : '达标 · 无缺口'), [gapTxt].concat(l5.trigRows), l5.asOf, 'strategy');
+  var sigNote = '<a href="#" data-dcgo="signal" style="color:var(--brand,#2563eb)">标的级止盈 / 止损 / 买入时机 → 交易信号·持仓/自选信号</a>';
+  h += layerCard('⑤', '策略动作', l5.stopTrig ? 'hot' : l5.gaps.length ? 'pos' : 'neu', l5.stopTrig ? ('触发：' + l5.stopTrig) : (l5.gaps.length ? l5.gaps.length + ' 只低于目标' : '达标 · 无缺口'), [gapTxt].concat(l5.trigRows, [sigNote]), l5.asOf, 'strategy');
   h += layerCard('⑥', '资金约束', l6.cash != null && gapSum > l6.cash ? 'hot' : 'neu', '可用现金 ' + (l6.cash == null ? '未录入' : money(l6.cash)) + (gapSum > 0 ? ' · 缺口合计 ' + money(gapSum) : ''), [l6.src], cbDate, 'capbal');
   h += '</div>';
   h += '<div class="dc-note">决策总览 = 各模块结论的串联收口，不引入新数据口径；每条结论可点击进入对应模块复核。辅助决策，非投资建议。</div>';
