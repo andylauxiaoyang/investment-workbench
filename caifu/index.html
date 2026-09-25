@@ -147,10 +147,11 @@ button, input, select, textarea { font-family: inherit; font-size: var(--fs-md);
 .main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
 
 /* ---------- Bloomberg 滚动行情条 ---------- */
-.ticker { display: flex; align-items: center; height: 30px; background: var(--panel); border-bottom: 1px solid var(--line); overflow: hidden; flex: 0 0 auto; }
+.ticker { display: flex; align-items: stretch; min-height: 30px; background: var(--panel); border-bottom: 1px solid var(--line); overflow: hidden; flex: 0 0 auto; }
 .ticker-label { background: var(--amber); color: #fff; font-weight: 800; font-size: var(--fs-xs); padding: 0 11px; height: 100%; display: flex; align-items: center; letter-spacing: 1.5px; flex: 0 0 auto; font-family: var(--mono); }
 .ticker-mask { flex: 1; overflow: hidden; position: relative; }
-.ticker-track { display: inline-flex; white-space: nowrap; will-change: transform; animation: ticker-scroll 60s linear infinite; }
+/* fw2_fix_tickerwrap：行情条改多行换行网格（不再单行滚动；一行放不下自动换行） */
+.ticker-track { display: flex; flex-wrap: wrap; white-space: normal; padding: 3px 0; row-gap: 2px; }
 .ticker-track:hover { animation-play-state: paused; }
 .tk { display: inline-flex; align-items: center; gap: var(--sp-7); padding: 0 16px; font-size: var(--fs-sm); border-right: 1px solid var(--line); cursor: pointer; }
 .tk:hover { background: var(--panel-2); }
@@ -618,7 +619,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   .sidebar { display: none; }
   .main { padding-bottom: 60px; }
   .scroll-area { padding: 10px 10px 20px; }
-  .ticker { height: 28px; }
+  .ticker { min-height: 28px; }
   .topbar { height: 46px; padding: 0 12px; }
   .tb-l h1 { font-size: var(--fs-lg); }
   .index-strip { padding: 0 2px; }
@@ -648,7 +649,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   .tb-r .btn { padding: 3px 8px; font-size: var(--fs-xs); }
   .badge { font-size: var(--fs-2xs); padding: 1px 5px; line-height: 1.25; }
   /* 2. 行情条/指数条：更小更紧凑 */
-  .ticker { height: 24px; }
+  .ticker { min-height: 24px; }
   .ticker-label { padding: 0 6px; font-size: var(--fs-2xs); letter-spacing: 1px; }
   .tk { font-size: var(--fs-xs); padding: 0 8px; }
   .index-strip { padding: 0; }
@@ -11405,7 +11406,7 @@ function renderTicker() {
   if (!items.length) { box.innerHTML = '<div class="tk"><span class="n">暂无持仓与自选标的</span></div>'; return; }
   const html = items.join('');
 
-  box.innerHTML = html + html; // 复制一份实现无缝循环
+  box.innerHTML = html; /* fw2_fix_tickerwrap：多行网格不再复制循环 */
 }
 $('#tickerTrack') && ($('#tickerTrack').onclick = (e) => {
   const el = e.target.closest('.tk'); if (!el || !el.dataset.code) return;
