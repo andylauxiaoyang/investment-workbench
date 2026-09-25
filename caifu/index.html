@@ -11229,8 +11229,13 @@ async function refreshSnapshot() {
      f43=最新价×100 / f169=涨跌额×100 / f170=涨跌幅×100。失败仅告警，不阻断整条快照。 */
   if (STRIP_CODES.indexOf('100.N225') >= 0 && !quotes['100.N225']) {
     try {
-      const j = await (await fetch('https://push2delay.eastmoney.com/api/qt/stock/get'
-        + '?secid=100.N225&fields=f43,f57,f58,f169,f170')).json();
+      /* fw2_fix_tickerwrap：东财 push2delay 不可达时会挂起整个 refreshSnapshot → 顶部行情条留空；
+         加 6s 超时，失败快速降级为「—」，不阻塞后续渲染 */
+      const j = await (await Promise.race([
+        fetch('https://push2delay.eastmoney.com/api/qt/stock/get'
+          + '?secid=100.N225&fields=f43,f57,f58,f169,f170'),
+        new Promise((_, rej) => setTimeout(() => rej(new Error('nky fetch timeout')), 6000)),
+      ])).json();
       const g = (j && j.data) || null;
       if (g && g.f43 != null) {
         const px = g.f43 / 100, ch = (g.f169 == null ? null : g.f169 / 100),
@@ -15328,6 +15333,7 @@ function renderMacro() {
 })();
 function startLoop() {
   if (state.timer) clearInterval(state.timer);
+  renderTicker(); /* fw2_fix_tickerwrap：初始即渲染行情条（行情未到时显示名称+—），避免快照卡顿期间留空 */
   refreshSnapshot();
   if (window.fetchFxLive) window.fetchFxLive();
   if (state.fxTimer) clearInterval(state.fxTimer);
