@@ -10833,7 +10833,7 @@ let state = {
   snapshot: { id: '—', at: null, quotes: {}, market: null, marketError: '' },
   news: { fetchedAt: null, raw: 0, removed: 0, items: [] },
   newsFilter: { sources: new Set(NEWS_SOURCES.map((s) => s.key)), onlyRelated: false, kw: '' },
-  view: 'holdings',
+  view: 'decision',
   curveLmt: 60,
   hdSort: 'mv',
   hdAssetFilter: 'all',
@@ -16229,10 +16229,10 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
         docScrollH==innerH==758、祖先链 ovY 全 visible）⇒ 激活时令其自身成为滚动容器
         （flex:1 1 auto + min-height:0 + overflow-y:auto + padding-bottom:38px）；
      ③ fitSmartMoney 改取 max(doc.scrollHeight, body.scrollHeight)，防漏量子应用真实高度。
-     verChip v207->v208（导航顺序方案A：决策总览置顶 + 决策漏斗镜像）
+     verChip v208->v209（默认首页：决策总览）
   */
   const vc = $('#verChip');
-  if (vc) vc.textContent = 'v208 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  if (vc) vc.textContent = 'v209 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
@@ -16611,7 +16611,7 @@ loadWatchlistFromDB();
 $('#hdCny').checked = state.settings.cnyView !== false;
 renderNewsSourceChips();
 updateSessionBadge();
-showView(new URLSearchParams(location.search).get('view') || 'holdings'); /* fw2_capbal_merge：支持 ?view= 直达 */
+showView(new URLSearchParams(location.search).get('view') || 'decision'); /* fw2_capbal_merge：支持 ?view= 直达 */ /* v209：默认首页改为决策总览 */
 startLoop();
 setTimeout(() => { renderResearchChips(); if (!state.news.items.length) loadNews(); }, 800);
 setInterval(updateSessionBadge, 30000);
