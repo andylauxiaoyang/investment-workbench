@@ -1595,8 +1595,10 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
       /* v94 fw2_v94_mc_nav_horizontal：导航由左侧竖排 → 顶部单行横向（横向滚动）；按钮用简化名，全称仍在卡片标题 */
       #view-macro .dc-mc-layout{display:flex;flex-direction:column;gap:var(--sp-12);align-items:stretch}
       /* fw2_v170_ds_norm：宏观导航容器仅保留外观，布局（flex/nowrap/横向滚动/gap）交给 .v-tabs--soft */
-      /* fw2_fix_mcnavwrap：宏观周期顶部导航改自动换行——一行放不下时后面的标签另起一行（不再横向滚动挤压）；仅作用于宏观导航，策略/数据页 .v-tabs 不受影响 */
-      #view-macro .dc-mc-nav{border:1px solid var(--line-2);border-radius:var(--r-8);padding:6px;background:var(--panel-2);flex-wrap:wrap;overflow-x:visible}
+      /* fw2_fix_mcnav2row：宏观周期顶部导航两排——周期相关第一行，其他指标第二排（行内自动换行兜底）；仅作用于宏观导航，策略/数据页 .v-tabs 不受影响 */
+      #view-macro .dc-mc-nav{border:1px solid var(--line-2);border-radius:var(--r-8);padding:6px;background:var(--panel-2);flex-direction:column;align-items:stretch;overflow-x:visible}
+      #view-macro .dc-mc-nav .mc-nav-row{display:flex;gap:var(--sp-6);flex-wrap:wrap;min-width:0;align-items:center}
+      #view-macro .dc-mc-nav .mc-nav-row + .mc-nav-row{margin-top:6px;padding-top:6px;border-top:1px dashed var(--line-2)}
       /* fw2_v170_ds_norm：macro 导航按钮归一到 .v-tabs--soft .v-tab（style 块1） */
       #view-macro .dc-mc-main{flex:1 1 auto;min-width:0}
       #view-macro .dc-mc-tools{display:flex;align-items:center;gap:var(--sp-8);flex-wrap:wrap;margin:0 0 10px}
@@ -17083,15 +17085,23 @@ setInterval(updateSessionBadge, 30000);
     '美股估值温度（标普500）': '美股估值',
     '日经225 实时': '日经225'
   };
+  /* fw2_fix_mcnav2row：宏观导航两排——周期相关第一行，其他指标第二排 */
+  var MC_CYCLE_KEYS = ['周期', '层', '美元 / 黄金', '行业周期'];
   function renderDcMcNav(){
     var nav = $('dcMcNav'); if(!nav) return;
     var mods = Array.prototype.slice.call(document.querySelectorAll('#macroBody > .mc-mod'));
-    var h = '';
+    function btns(arr){
+      return arr.map(function(m){
+        var _full = m.getAttribute('data-title') || '';
+        return '<button class="v-tab" data-mod="' + m.getAttribute('data-mod') + '" type="button" title="' + esc(_full) + '">' + esc(MC_NAV_SHORT[_full] || _full) + '</button>';
+      }).join('');
+    }
+    var cyc = [], ind = [];
     mods.forEach(function(m){
       var _full = m.getAttribute('data-title') || '';
-      h += '<button class="v-tab" data-mod="' + m.getAttribute('data-mod') + '" type="button" title="' + esc(_full) + '">' + esc(MC_NAV_SHORT[_full] || _full) + '</button>';
+      (MC_CYCLE_KEYS.some(function(k){ return _full.indexOf(k) >= 0; }) ? cyc : ind).push(m);
     });
-    nav.innerHTML = h;
+    nav.innerHTML = '<div class="mc-nav-row">' + btns(cyc) + '</div><div class="mc-nav-row">' + btns(ind) + '</div>';
     Array.prototype.forEach.call(nav.querySelectorAll('button'), function(b){
       b.addEventListener('click', function(){ mcMod = b.getAttribute('data-mod'); window.__mcApply(); });
     });
