@@ -1205,6 +1205,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
       <button class="nav-item" data-view="strategy"><span class="ic"></span>策略执行<!--fw2_v120_strategy--></button>
       <button class="nav-item" data-view="capbal"><span class="ic"></span>资金平衡</button><!--fw2_capbal_merge--><!--fw2_v71_datacenter-->
       <button class="nav-item" data-view="smartmoney"><span class="ic"></span>聪明的钱</button><!-- fw2_v179_smartmoney：独立的「聪明的钱」模块（iframe 内嵌 A股聪明钱工作台） -->
+      <button class="nav-item" data-view="decision"><span class="ic"></span>决策总览</button><!-- fw2_v206_decision：跨模块决策主链路收口 -->
     </nav>
     <div data-page-node-id="NWwNSKf013miYG93pfpzol" class="side-foot">
       <div data-page-node-id="ftO6aqWRCbJJWBhMHmpotd" class="snap-box">
@@ -8974,6 +8975,9 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
       </section>
       </div>
 </section>
+      <section class="view" id="view-decision">
+        <div class="dc-wrap" id="dcRoot"></div>
+      </section>
     </main>
 </div>
 
@@ -13659,6 +13663,7 @@ const VIEW_META = {
   data: ['基金数据', '基金列表 · 收益曲线 · 基本面/技术面/持仓关联 · 财报 · 综合诊断'], /* fw2_v170_ds_norm：补 data 键（原缺失 → 顶栏标题/副标题空） */
   capbal: ['资金平衡', '投资记账 · 三张报表 · 盈亏台账（与持仓自动同步）'], /* fw2_capbal_merge */
   smartmoney: ['聪明的钱', '机构动向 · A股+美股 · 季度环比'], /* fw2_v194_sm_merge：并入美股聪明钱(13F)，双市场分区 */
+  decision: ['决策总览', '跨模块决策主链路：周期定位 → 环境闸门 → 聪明钱方向 → 持仓暴露 → 策略动作 → 资金约束 → 综合 verdict'], /* fw2_v206_decision */
 };
 function showView(name) {
   if (name === 'sm13f') { name = 'smartmoney'; } /* fw2_v194_sm_merge：美股聪明钱并入聪明的钱，旧链接兼容 */
@@ -13691,6 +13696,7 @@ function renderCurrentView() {
     else if (state.view === 'strategy') { renderStrategyView(); renderBarbell(); renderXMap(); } /* fw2_v120_strategy · v132 杠铃/场内外对照迁入 */
     else if (state.view === 'capbal') { if (window.CAPBAL) window.CAPBAL.render(); } /* fw2_capbal_merge */
     else if (state.view === 'smartmoney') { renderSmartMoney(); } /* fw2_v194_sm_merge：A股/美股分区切换 + 跨市场速览卡 */
+    else if (state.view === 'decision') { renderDecision(); } /* fw2_v206_decision */
   } catch (e) { console.error('[render]', e); }
 }
 /* ================= 宏观·情绪（v53 fw2_v53_macro） =================
@@ -13711,6 +13717,7 @@ async function loadMacroData() {
     state.macro = d; state.macroSrc = src || '';
     if (hint) hint.textContent = '数据截至 ' + d.updatedAt + ' · 理杏仁（' + (src || '内置') + '）';
     if (window.__dcMacroInit) window.__dcMacroInit(); else renderMacro();
+    if (state.view === 'decision' && typeof renderDecision === 'function') renderDecision(); /* fw2_v206_decision：宏观数据到位后重渲决策总览 */
   } else if (hint) {
     hint.textContent = '宏观数据未取得';
   }
@@ -16230,10 +16237,10 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
         docScrollH==innerH==758、祖先链 ovY 全 visible）⇒ 激活时令其自身成为滚动容器
         （flex:1 1 auto + min-height:0 + overflow-y:auto + padding-bottom:38px）；
      ③ fitSmartMoney 改取 max(doc.scrollHeight, body.scrollHeight)，防漏量子应用真实高度。
-     verChip v204->v205（版本号回归三位数体系：v201/v202/v203 → v204）
+     verChip v205->v206（决策总览联动页）
   */
   const vc = $('#verChip');
-  if (vc) vc.textContent = 'v205 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  if (vc) vc.textContent = 'v206 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
@@ -17661,6 +17668,45 @@ section.sm13f-view{display:none;padding-top:22px}
 #view-smartmoney .sm-xov[hidden] { display: none !important; }
 #view-smartmoney .sm-mlab.on { color: #2563eb; font-weight: 700; background: #eef4ff; }
 #view-smartmoney .sm-xov { margin: 0 0 14px; }
+/* fw2_v206_decision：决策总览（跨模块主链路） */
+.dc-wrap{display:flex;flex-direction:column;gap:14px}
+.dc-load{padding:40px;text-align:center;color:var(--muted)}
+.dc-verdict{border:1px solid var(--line);border-radius:var(--radius);padding:16px 18px;display:flex;flex-direction:column;gap:8px;background:var(--panel-2)}
+.dc-verdict.t-hot{border-left:4px solid var(--warn,#e5484d);background:#fef2f2}
+.dc-verdict.t-def{border-left:4px solid var(--ok,#0a7a3d);background:#f0fdf4}
+.dc-verdict.t-pos{border-left:4px solid var(--up,#dc2626);background:#fdf2f2}
+.dc-verdict.t-mid{border-left:4px solid var(--gold,#b7791f);background:#fffbeb}
+.dc-verdict.t-neu{border-left:4px solid var(--muted,#667085)}
+.dc-vmain{font-size:16px;font-weight:700;line-height:1.5}
+.dc-vevid{font-size:12px;color:var(--muted);line-height:1.6}
+.dc-vacts{display:flex;flex-wrap:wrap;gap:8px;margin-top:2px}
+.dc-vacts a{font-size:12px;color:var(--brand,#2563eb);text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:3px 10px;background:#fff}
+.dc-vacts a:hover{background:var(--brand-tint,#eaf2ff)}
+.dc-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(330px,1fr));gap:12px}
+.dc-card{display:flex;flex-direction:column;gap:8px;padding:14px 16px}
+.dc-hd{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.dc-idx{font-size:12px;font-weight:700;color:var(--muted);border:1px solid var(--line);border-radius:6px;padding:1px 6px}
+.dc-hd b{font-size:14px}
+.dc-dir{font-size:12px;font-weight:600;border-radius:999px;padding:1px 9px}
+.dc-dir.t-def{color:#0a7a3d;background:#f0fdf4}
+.dc-dir.t-bull{color:#dc2626;background:#fdf2f2}
+.dc-dir.t-neu{color:#667085;background:#f2f4f7}
+.dc-dir.t-hot{color:#e5484d;background:#fef2f2}
+.dc-dir.t-cold{color:#0a9d8f;background:#e6fffb}
+.dc-dir.t-pos{color:#dc2626;background:#fdf2f2}
+.dc-dir.t-neg{color:#047857;background:#ecfdf5}
+.dc-go{margin-left:auto;font-size:12px;color:var(--brand,#2563eb);text-decoration:none}
+.dc-go:hover{text-decoration:underline}
+.dc-st{font-size:13px;font-weight:600;line-height:1.5}
+.dc-body{display:flex;flex-direction:column;gap:5px;font-size:12.5px;color:var(--text-2,#6b7280);line-height:1.6}
+.dc-row{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.dc-fund{font-weight:600;border-radius:6px;padding:0 6px;background:#f2f4f7}
+.dc-fund.t-pos{color:#dc2626;background:#fdf2f2}
+.dc-fund.t-neg{color:#047857;background:#ecfdf5}
+.dc-src{font-size:11px;color:var(--muted)}
+.dc-note{font-size:12px;color:var(--muted);line-height:1.6;padding:2px 4px}
+@media (max-width:720px){.dc-grid{grid-template-columns:1fr}}
+
 #view-smartmoney .sm-xov .xov-title { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
 #view-smartmoney .sm-xov .xov-title h3 { margin: 0; font-size: 15px; font-weight: 700; }
 #view-smartmoney .sm-xov .xov-sub { font-size: 12px; color: #6b7280; }
@@ -20920,6 +20966,246 @@ function setSMMarket(m, silent) {
   });
 })();
 
+
+/* fw2_v206_decision：决策总览——跨模块决策主链路
+   数据全部复用现有全局（不重复采集，避免口径漂移）：
+   ① 周期定位：cycleEngine(state.macro || window.MACRO_SNAP)
+   ② 环境闸门：MACRO_SNAP.amtD / m2Ref / erp（与交易信号 M7/M8/M9 同口径）
+   ③ 聪明钱方向：window.SM_ASHARE.consensus + #sm13f-data（fastSignals / priceVerify / stocks）
+   ④ 持仓暴露：state.portfolio + #sm13f-data.fundHoldings + STRATEGY_SNAP.assets
+   ⑤ 策略动作：STRATEGY_SNAP（target / events）+ MKT_SNAP.idx + 持仓盈亏
+   ⑥ 资金约束：localStorage capital_balance_v1（与资金平衡 calcCash 同口径）
+   ⑦ 综合 verdict：保守规则合成，每条结论可追溯（点击层卡可跳对应模块） */
+function renderDecision() {
+  var host = document.getElementById('dcRoot'); if (!host) return;
+  if (!state.macro && window.MACRO_SNAP) state.macro = window.MACRO_SNAP;
+  if (!state.macro) { host.innerHTML = '<div class="dc-load">宏观数据加载中…</div>'; loadMacroData(); return; }
+  var D = null; try { var _el = document.getElementById('sm13f-data'); if (_el) D = JSON.parse(_el.textContent); } catch (e) {}
+  var md = state.macro;
+  var cyc = (typeof cycleEngine === 'function') ? cycleEngine(md) : null;
+  var AS = window.SM_ASHARE || null;
+  var S = window.STRATEGY_SNAP || null;
+  var pf = state.portfolio || [];
+  var quotes = (state.snapshot && state.snapshot.quotes) || {};
+  var esc = function (x) { return String(x == null ? '' : x).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); };
+  var fmt = function (n) { return n == null ? '—' : Number(n).toLocaleString('zh-CN'); };
+  var money = function (n) { if (n == null) return '—'; var a = Math.abs(n), sg = n < 0 ? '-' : ''; if (a >= 1e8) return sg + (a / 1e8).toFixed(2) + '亿'; if (a >= 1e4) return sg + (a / 1e4).toFixed(0) + '万'; return sg + Math.round(n); };
+
+  /* ---------- ① 周期定位 ---------- */
+  var l1 = { dir: 'neu', status: '宏观数据缺失', body: '—', asOf: md.updatedAt || '—' };
+  if (cyc) {
+    var v = cyc.verdict || '';
+    var def = /防御|共振向下|过热/.test(v), bull = /复苏|结构性偏多/.test(v);
+    l1.dir = def ? 'def' : bull ? 'bull' : 'neu';
+    l1.status = v || '中性';
+    l1.body = '共振得分 ' + (cyc.resonance && cyc.resonance.score >= 0 ? '+' : '') + (cyc.resonance ? cyc.resonance.score : '—')
+      + ' · ' + (cyc.resonance && cyc.resonance.warn ? cyc.resonance.warn : '') + ' · 温度 '
+      + (cyc.layers && cyc.layers.temp != null ? cyc.layers.temp : '—');
+  }
+
+  /* ---------- ② 环境闸门（同 M7/M8/M9 口径） ---------- */
+  var amtYi = null, amtDay = '';
+  if (md.amtD && Array.isArray(md.amtD.points) && md.amtD.points.length) {
+    var aPts = (md.amtD.settled === false) ? md.amtD.points.slice(0, -1) : md.amtD.points;
+    var aLast = aPts[aPts.length - 1];
+    if (aLast && aLast[1] > 0) { amtYi = aLast[1]; amtDay = aLast[0]; }
+  }
+  var m2v = (md.m2Ref && md.m2Ref.value) || null;
+  var tw = amtYi != null ? amtYi / 1e4 : null;
+  var pct8 = (tw != null && m2v) ? (tw / m2v) * 100 : null;
+  var erpPct = (md.erp && md.erp.erpPct != null) ? md.erp.erpPct : null;
+  var envHot = (tw != null && tw >= 3) || (pct8 != null && pct8 >= 1);
+  var envCold = (tw != null && tw < 1.5) || (pct8 != null && pct8 < 0.3);
+  var gateRows = [];
+  if (tw != null) gateRows.push('成交额 ' + amtYi.toFixed(0) + ' 亿（' + amtDay + '）→ ' + (tw >= 3 ? '过热区（≥3万亿 分批卖）' : tw >= 2 ? '关注区' : tw >= 1.5 ? '关注入场' : '网格定投区（<1.5万亿）'));
+  if (pct8 != null) gateRows.push('资金系数 ' + pct8.toFixed(2) + '% → ' + (pct8 >= 1.5 ? '疯狂·清仓提示(D8)' : pct8 >= 1 ? '过热·分批卖' : pct8 <= 0.3 ? '低迷·机会区' : '中性'));
+  if (erpPct != null) gateRows.push('ERP 分位 ' + erpPct + '% → ' + (erpPct >= 75 ? '增配股至 70-80%' : erpPct < 25 ? '减股至 20-30%' : '中性'));
+  var l2 = { dir: envHot ? 'hot' : envCold ? 'cold' : 'neu', status: envHot ? '市场过热 · 买入降档' : envCold ? '市场低迷 · 网格定投/机会区' : '中性 · 正常节奏', rows: gateRows.length ? gateRows : ['资金面数据缺失'], asOf: md.updatedAt || '—' };
+
+  /* ---------- ③ 聪明钱方向 ---------- */
+  var addN = 0, decN = 0, asOfSm = '—';
+  if (AS && AS.consensus) { AS.consensus.forEach(function (c) { if ((c.net || 0) > 0) addN++; else if ((c.net || 0) < 0) decN++; }); }
+  if (AS && AS.summary) asOfSm = AS.summary.latest || AS.summary.asOf || '—';
+  var addF = (AS && AS.summary && AS.summary.addFocused) || [];
+  var trimF = (AS && AS.summary && AS.summary.trimFocused) || [];
+  var fs = D && D.fastSignals;
+  var usN = 0, usF4 = 0, usD13 = 0, bdN = 0, mgN = 0;
+  if (fs) {
+    if (fs.us && fs.us.items) { usN = fs.us.items.length; fs.us.items.forEach(function (it) { if (it.form4 && it.form4.n) usF4 += it.form4.n; if (it.sc13d && it.sc13d.n) usD13 += it.sc13d.n; }); }
+    if (fs.cn) { bdN = (fs.cn.blockDeals || []).length; mgN = (fs.cn.margin || []).length; }
+  }
+  var pvItems = (D && D.priceVerify && D.priceVerify.items) || {};
+  var unDig = 0; Object.keys(pvItems).forEach(function (k) { var p = pvItems[k]; if (p && p.ab != null && p.ab >= 3 && p.pct < 0) unDig++; });
+  var smParts = [];
+  smParts.push('A股共识：加仓 ' + addN + ' / 减仓 ' + decN);
+  if (addF.length) smParts.push('集中加仓机构 ' + addF.join('/'));
+  if (trimF.length) smParts.push('集中减仓机构 ' + trimF.join('/'));
+  smParts.push('更快信号：美股内幕/举牌 ' + usF4 + '/' + usD13 + ' 笔（' + usN + ' 标）· A股大宗 ' + bdN + ' 笔 · 两融 ' + mgN + ' 条');
+  if (unDig) smParts.push('未消化信号 ' + unDig + ' 只（披露后仍下跌）');
+  var l3 = { dir: addN > decN ? 'pos' : decN > addN ? 'neg' : 'neu', status: addN > decN ? '聪明钱偏多' : decN > addN ? '聪明钱偏空' : '方向分歧', rows: smParts, asOf: asOfSm };
+
+  /* ---------- ④ 持仓暴露 ---------- */
+  var totalMv = 0, cashHold = 0, nHold = 0;
+  pf.forEach(function (h) {
+    var q = quotes[h.code];
+    var p = q && q.price != null ? q.price : (h.assetType === 'cash' ? (h.cost || 1) : null);
+    if (h.assetType === 'cash') cashHold += (h.cost || 0) * (h.qty || 0);
+    if (p != null && h.assetType !== 'cash') { totalMv += p * (h.qty || 0); nHold++; }
+  });
+  var fh = (D && D.fundHoldings) || {};
+  var fundLvs = [];
+  if (S && S.assets) {
+    S.assets.forEach(function (a) {
+      var code = a.code, nm = a.name || code;
+      var heldMv = 0; pf.forEach(function (h) { if (String(h.code) === String(code)) { var q = quotes[h.code]; var p = q && q.price != null ? q.price : (h.cost || 1); if (p != null) heldMv += p * (h.qty || 0); } });
+      if (heldMv <= 0) return;
+      var top = (fh[code] && fh[code].top) || [];
+      var hitUp = 0, hitDn = 0;
+      if (AS && AS.consensus && top.length) {
+        AS.consensus.forEach(function (c) {
+          var inTop = top.some(function (t) { return String(t.ticker) === String(c.code); });
+          if (inTop) { if ((c.net || 0) > 0) hitUp++; else if ((c.net || 0) < 0) hitDn++; }
+        });
+      }
+      var usStats = null;
+      if (D && D.stocks && top.length) {
+        top.forEach(function (t) {
+          D.stocks.forEach(function (s) {
+            var tks = (s.ticker || '').split('/').map(function (x) { return x.trim().toUpperCase(); });
+            if (tks.indexOf(String(t.ticker || '').toUpperCase()) >= 0 && !usStats) usStats = s;
+          });
+        });
+      }
+      var tag, lv;
+      if (hitDn >= 2) { tag = '承压（重仓被减持 ' + hitDn + ' 只）'; lv = 'neg'; }
+      else if (usStats && ((usStats.nd || 0) > (usStats.ni || 0))) { tag = '美股机构减持'; lv = 'neg'; }
+      else if (hitUp >= 1) { tag = '顺风（重仓被加仓 ' + hitUp + ' 只）'; lv = 'pos'; }
+      else { tag = '无信号'; lv = 'neu'; }
+      fundLvs.push({ code: code, name: nm, held: heldMv, tag: tag, lv: lv });
+    });
+  }
+  var l4 = { status: nHold + ' 只持仓 · 总市值 ' + money(totalMv), rows: fundLvs, asOf: (state.snapshot && state.snapshot.updatedAt) || '—' };
+
+  /* ---------- ⑤ 策略动作 ---------- */
+  var gaps = [];
+  if (S && S.assets) {
+    S.assets.forEach(function (a) {
+      var code = a.code, tgt = a.target || 0; if (tgt <= 0) return;
+      var held = 0; pf.forEach(function (h) { if (String(h.code) === String(code)) { var q = quotes[h.code]; var p = q && q.price != null ? q.price : (h.cost || 1); if (p != null) held += p * (h.qty || 0); } });
+      if (held < tgt) gaps.push({ code: code, name: a.name || code, target: tgt, held: held, gap: tgt - held });
+    });
+    gaps.sort(function (a, b) { return b.gap - a.gap; });
+  }
+  var ix = (window.MKT_SNAP && MKT_SNAP.idx) || {};
+  var pos300 = (ix['000300'] && ix['000300'].pos != null) ? Math.round(ix['000300'].pos * 100) : null;
+  var stopTrig = '';
+  function pnlP(code) {
+    var h = null; pf.forEach(function (x) { if (String(x.code) === String(code)) h = x; });
+    if (!h) return null;
+    var q = quotes[h.code]; var p = q && q.price != null ? q.price : (h.cost || 1);
+    if (p == null || !h.cost) return null;
+    return (p - h.cost) / h.cost * 100;
+  }
+  var p920 = pnlP('012920'), p452 = pnlP('016452');
+  if (p452 != null && p452 >= 15) stopTrig = '016452 盈利 +' + p452.toFixed(1) + '%（≥15% 减半 → 短融）';
+  else if (p920 != null && p920 >= 10) stopTrig = '012920 盈利 +' + p920.toFixed(1) + '%（+10% 减 1/4）';
+  else if (p452 != null && p452 <= -10) stopTrig = '016452 回撤 ' + p452.toFixed(1) + '%（≤-10% 全清 → 现金）';
+  else if (p920 != null && p920 <= -8) stopTrig = '012920 回撤 ' + p920.toFixed(1) + '%（≤-8% D8 硬止损全清）';
+  var trigRows = [];
+  if (pos300 != null) trigRows.push('沪深300 分位 ' + pos300 + '% → ' + (pos300 > 80 ? '阶梯止盈/停买' : pos300 > 70 ? '停买（分位>70）' : pos300 < 30 ? '加倍定投区' : '正常'));
+  trigRows.push('月定投基线 ≈' + ((S && S.monthlyNominal) || '—') + ' 元/月' + (S ? ' · 建仓期至 ' + S.buildEnd : ''));
+  var l5 = { gaps: gaps, trigRows: trigRows, stopTrig: stopTrig, asOf: (S && S.updatedAt) || '—' };
+
+  /* ---------- ⑥ 资金约束 ---------- */
+  var cb = null; try { cb = JSON.parse(localStorage.getItem('capital_balance_v1') || 'null'); } catch (e) {}
+  var cbCash = null, cbLiab = null, cbDate = '—';
+  if (cb && Array.isArray(cb.tx)) {
+    cbCash = 0;
+    cb.tx.forEach(function (t) { var a = Number(t.amt) || 0; if (t.type === 'in') cbCash += a; else if (t.type === 'out') cbCash -= a; else if (t.type === 'buy') cbCash -= a; else if (t.type === 'sell') cbCash += a; else if (t.type === 'div') cbCash += a; else if (t.type === 'fee') cbCash -= a; });
+    cbLiab = Number(cb.liability) || 0;
+    cbDate = (cb.updatedAt || '—').slice(0, 10);
+  }
+  var cashAvail = (cbCash != null) ? cbCash : cashHold;
+  var cashSrc = (cbCash != null) ? ('资金平衡现金余额 ' + money(cbCash) + (cbLiab ? '（负债 ' + money(cbLiab) + '）' : '') + ' · ' + cbDate) : '我的持仓现金 ' + money(cashHold) + '（资金平衡未录入）';
+  var gapSum = l5.gaps.reduce(function (s, g) { return s + g.gap; }, 0);
+  var l6 = { cash: cashAvail, src: cashSrc, gapSum: gapSum };
+
+  /* ---------- ⑦ 综合 verdict（保守合成，逐条可追溯） ---------- */
+  var main = '', evid = [], acts = [];
+  if (l5.stopTrig) {
+    main = '行动 · 止盈/止损线触发：按纪律执行';
+    evid.push('策略触发：' + l5.stopTrig);
+    acts.push({ t: '执行 ' + l5.stopTrig, to: 'strategy' });
+  } else {
+    var pressured = l4.rows.filter(function (r) { return r.lv === 'neg'; });
+    if (pressured.length) {
+      main = '行动 · 减仓评估：持仓基金重仓被聪明钱净减持';
+      evid.push('聪明钱承压：' + pressured.map(function (r) { return r.name + '(' + r.tag + ')'; }).join('、'));
+      acts.push({ t: '进入聪明的钱复核承压基金，按进攻仓纪律评估', to: 'smartmoney' });
+    } else if (l2.dir === 'hot') {
+      main = '防御 · 市场过热，暂缓加仓，按止盈档减仓';
+      evid.push('闸门：' + l2.status);
+      acts.push({ t: '交易信号 → 自选买入降档；止盈资金 → 短融', to: 'signal' });
+    } else if (l1.dir === 'def') {
+      main = '防御 · 周期下行/过热，现金+黄金+高评级债券优先';
+      evid.push('周期：' + l1.status);
+      acts.push({ t: '宏观周期 → 按防御配置基调执行', to: 'macro' });
+    } else if (l5.gaps.length) {
+      if (l6.cash != null && gapSum <= l6.cash) {
+        main = '买入 · 补齐低配标的（缺口 ' + money(gapSum) + '，现金可覆盖）';
+        evid.push('缺口：' + l5.gaps.length + ' 只低于目标，合计 ' + money(gapSum));
+        acts.push({ t: '优先补 ' + l5.gaps.slice(0, 3).map(function (g) { return g.name; }).join('/') + '，按建仓档执行', to: 'strategy' });
+      } else {
+        main = '排队 · 缺口 ' + money(gapSum) + ' > 可用现金 ' + (l6.cash == null ? '未录入' : money(l6.cash)) + '，优先补底仓';
+        evid.push('资金约束：' + (l6.cash == null ? '资金平衡/持仓现金未录入' : '现金 ' + money(l6.cash)));
+        acts.push({ t: '资金平衡 → 核对可用资金；缺口按现金流分月消化', to: 'capbal' });
+      }
+    } else {
+      main = '维持 · 按既定定投节奏执行，无新增动作';
+      evid.push('无触发：无止损/承压/过热，各标的均达目标');
+    }
+  }
+  if (l2.dir === 'cold' && main.indexOf('维持') === 0) acts.push({ t: '市场低迷 → 网格定投/加倍档机会区', to: 'signal' });
+  if (l3.dir === 'pos') acts.push({ t: '聪明钱偏多：重仓顺风，维持仓位', to: 'smartmoney' });
+  if (main.indexOf('维持') === 0 && l4.rows.length) {
+    var posFunds = l4.rows.filter(function (r) { return r.lv === 'pos'; });
+    if (posFunds.length) { main = '维持 + 顺风 · 你的 ' + posFunds.map(function (r) { return r.name; }).join('/') + ' 重仓被聪明钱加仓'; }
+  }
+
+  /* ---------- 渲染 ---------- */
+  var dirTxt = { def: '防御', bull: '偏多', neu: '中性', hot: '过热', cold: '低迷', pos: '偏多', neg: '偏空' };
+  var dirCls = { def: 't-def', bull: 't-bull', neu: 't-neu', hot: 't-hot', cold: 't-cold', pos: 't-pos', neg: 't-neg' };
+  function layerCard(idx, name, lv, status, bodyRows, asOf, go) {
+    var rows = (bodyRows || []).map(function (r) { return '<div class="dc-row">' + r + '</div>'; }).join('');
+    return '<div class="card dc-card"><div class="dc-hd"><span class="dc-idx">' + idx + '</span><b>' + name + '</b>'
+      + '<span class="dc-dir ' + (dirCls[lv] || 't-neu') + '">' + (dirTxt[lv] || status || '—') + '</span>'
+      + (go ? '<a class="dc-go" href="#" data-dcgo="' + go + '">进入模块 →</a>' : '')
+      + '</div><div class="dc-st">' + status + '</div>'
+      + (rows ? '<div class="dc-body">' + rows + '</div>' : '')
+      + '<div class="dc-src">' + (asOf ? '数据截至 ' + asOf : '') + '</div></div>';
+  }
+  var verdictTone = main.indexOf('行动') === 0 ? 't-hot' : main.indexOf('防御') === 0 ? 't-def' : main.indexOf('买入') === 0 ? 't-pos' : main.indexOf('排队') === 0 ? 't-mid' : 't-neu';
+  var h = '';
+  h += '<div class="dc-verdict ' + verdictTone + '">'
+    + '<div class="dc-vmain">' + esc(main) + '</div>'
+    + '<div class="dc-vevid">依据链：' + evid.map(esc).join(' → ') + '</div>'
+    + (acts.length ? '<div class="dc-vacts">' + acts.map(function (a) { return '<a href="#" data-dcgo="' + a.to + '">' + esc(a.t) + '</a>'; }).join('') + '</div>' : '')
+    + '</div>';
+  h += '<div class="dc-grid">';
+  h += layerCard('①', '周期定位', l1.dir, l1.status, [l1.body], l1.asOf, 'macro');
+  h += layerCard('②', '环境闸门', l2.dir, l2.status, l2.rows, l2.asOf, 'signal');
+  h += layerCard('③', '聪明钱方向', l3.dir, l3.status, l3.rows, l3.asOf, 'smartmoney');
+  h += layerCard('④', '持仓暴露', l4.rows.some(function (r) { return r.lv === 'neg'; }) ? 'neg' : l4.rows.some(function (r) { return r.lv === 'pos'; }) ? 'pos' : 'neu', l4.status, l4.rows.map(function (r) { return '<span class="dc-fund ' + dirCls[r.lv] + '">' + esc(r.name) + '</span> ' + esc(r.tag); }), l4.asOf, 'holdings');
+  var gapTxt = l5.gaps.length ? l5.gaps.map(function (g) { return '<span class="dc-fund t-pos">' + esc(g.name) + '</span> 缺口 ' + money(g.gap) + '（已持 ' + money(g.held) + ' / 目标 ' + money(g.target) + '）'; }).join('') : '各策略标的均已达目标';
+  h += layerCard('⑤', '策略动作', l5.stopTrig ? 'hot' : l5.gaps.length ? 'pos' : 'neu', l5.stopTrig ? ('触发：' + l5.stopTrig) : (l5.gaps.length ? l5.gaps.length + ' 只低于目标' : '达标 · 无缺口'), [gapTxt].concat(l5.trigRows), l5.asOf, 'strategy');
+  h += layerCard('⑥', '资金约束', l6.cash != null && gapSum > l6.cash ? 'hot' : 'neu', '可用现金 ' + (l6.cash == null ? '未录入' : money(l6.cash)) + (gapSum > 0 ? ' · 缺口合计 ' + money(gapSum) : ''), [l6.src], cbDate, 'capbal');
+  h += '</div>';
+  h += '<div class="dc-note">决策总览 = 各模块结论的串联收口，不引入新数据口径；每条结论可点击进入对应模块复核。辅助决策，非投资建议。</div>';
+  host.innerHTML = h;
+  host.querySelectorAll('[data-dcgo]').forEach(function (a) {
+    a.addEventListener('click', function (e) { e.preventDefault(); showView(a.getAttribute('data-dcgo')); });
+  });
+}
 
 /* fw2_v194_sm_xov：跨市场速览卡「你的持仓 × 聪明钱」渲染 */
 /* fw2_v202_sm_xov_full：升级为唯一持仓穿透页（A股完整卡 + QDII温度计 + 重叠度 + 承压名单） */
