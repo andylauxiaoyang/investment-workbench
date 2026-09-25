@@ -147,11 +147,10 @@ button, input, select, textarea { font-family: inherit; font-size: var(--fs-md);
 .main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
 
 /* ---------- Bloomberg 滚动行情条 ---------- */
-.ticker { display: flex; align-items: stretch; min-height: 30px; background: var(--panel); border-bottom: 1px solid var(--line); overflow: hidden; flex: 0 0 auto; }
+.ticker { display: flex; align-items: center; height: 30px; background: var(--panel); border-bottom: 1px solid var(--line); overflow: hidden; flex: 0 0 auto; }
 .ticker-label { background: var(--amber); color: #fff; font-weight: 800; font-size: var(--fs-xs); padding: 0 11px; height: 100%; display: flex; align-items: center; letter-spacing: 1.5px; flex: 0 0 auto; font-family: var(--mono); }
 .ticker-mask { flex: 1; overflow: hidden; position: relative; }
-/* fw2_fix_tickerwrap：行情条改多行换行网格（不再单行滚动；一行放不下自动换行） */
-.ticker-track { display: flex; flex-wrap: wrap; white-space: normal; padding: 3px 0; row-gap: 2px; }
+.ticker-track { display: inline-flex; white-space: nowrap; will-change: transform; animation: ticker-scroll 60s linear infinite; }
 .ticker-track:hover { animation-play-state: paused; }
 .tk { display: inline-flex; align-items: center; gap: var(--sp-7); padding: 0 16px; font-size: var(--fs-sm); border-right: 1px solid var(--line); cursor: pointer; }
 .tk:hover { background: var(--panel-2); }
@@ -619,7 +618,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   .sidebar { display: none; }
   .main { padding-bottom: 60px; }
   .scroll-area { padding: 10px 10px 20px; }
-  .ticker { min-height: 28px; }
+  .ticker { height: 28px; }
   .topbar { height: 46px; padding: 0 12px; }
   .tb-l h1 { font-size: var(--fs-lg); }
   .index-strip { padding: 0 2px; }
@@ -649,7 +648,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   .tb-r .btn { padding: 3px 8px; font-size: var(--fs-xs); }
   .badge { font-size: var(--fs-2xs); padding: 1px 5px; line-height: 1.25; }
   /* 2. 行情条/指数条：更小更紧凑 */
-  .ticker { min-height: 24px; }
+  .ticker { height: 24px; }
   .ticker-label { padding: 0 6px; font-size: var(--fs-2xs); letter-spacing: 1px; }
   .tk { font-size: var(--fs-xs); padding: 0 8px; }
   .index-strip { padding: 0; }
@@ -1596,7 +1595,8 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
       /* v94 fw2_v94_mc_nav_horizontal：导航由左侧竖排 → 顶部单行横向（横向滚动）；按钮用简化名，全称仍在卡片标题 */
       #view-macro .dc-mc-layout{display:flex;flex-direction:column;gap:var(--sp-12);align-items:stretch}
       /* fw2_v170_ds_norm：宏观导航容器仅保留外观，布局（flex/nowrap/横向滚动/gap）交给 .v-tabs--soft */
-      #view-macro .dc-mc-nav{border:1px solid var(--line-2);border-radius:var(--r-8);padding:6px;background:var(--panel-2)}
+      /* fw2_fix_mcnavwrap：宏观周期顶部导航改自动换行——一行放不下时后面的标签另起一行（不再横向滚动挤压）；仅作用于宏观导航，策略/数据页 .v-tabs 不受影响 */
+      #view-macro .dc-mc-nav{border:1px solid var(--line-2);border-radius:var(--r-8);padding:6px;background:var(--panel-2);flex-wrap:wrap;overflow-x:visible}
       /* fw2_v170_ds_norm：macro 导航按钮归一到 .v-tabs--soft .v-tab（style 块1） */
       #view-macro .dc-mc-main{flex:1 1 auto;min-width:0}
       #view-macro .dc-mc-tools{display:flex;align-items:center;gap:var(--sp-8);flex-wrap:wrap;margin:0 0 10px}
@@ -11229,13 +11229,8 @@ async function refreshSnapshot() {
      f43=最新价×100 / f169=涨跌额×100 / f170=涨跌幅×100。失败仅告警，不阻断整条快照。 */
   if (STRIP_CODES.indexOf('100.N225') >= 0 && !quotes['100.N225']) {
     try {
-      /* fw2_fix_tickerwrap：东财 push2delay 不可达时会挂起整个 refreshSnapshot → 顶部行情条留空；
-         加 6s 超时，失败快速降级为「—」，不阻塞后续渲染 */
-      const j = await (await Promise.race([
-        fetch('https://push2delay.eastmoney.com/api/qt/stock/get'
-          + '?secid=100.N225&fields=f43,f57,f58,f169,f170'),
-        new Promise((_, rej) => setTimeout(() => rej(new Error('nky fetch timeout')), 6000)),
-      ])).json();
+      const j = await (await fetch('https://push2delay.eastmoney.com/api/qt/stock/get'
+        + '?secid=100.N225&fields=f43,f57,f58,f169,f170')).json();
       const g = (j && j.data) || null;
       if (g && g.f43 != null) {
         const px = g.f43 / 100, ch = (g.f169 == null ? null : g.f169 / 100),
@@ -11411,7 +11406,7 @@ function renderTicker() {
   if (!items.length) { box.innerHTML = '<div class="tk"><span class="n">暂无持仓与自选标的</span></div>'; return; }
   const html = items.join('');
 
-  box.innerHTML = html; /* fw2_fix_tickerwrap：多行网格不再复制循环 */
+  box.innerHTML = html + html; // 复制一份实现无缝循环
 }
 $('#tickerTrack') && ($('#tickerTrack').onclick = (e) => {
   const el = e.target.closest('.tk'); if (!el || !el.dataset.code) return;
@@ -15333,7 +15328,6 @@ function renderMacro() {
 })();
 function startLoop() {
   if (state.timer) clearInterval(state.timer);
-  renderTicker(); /* fw2_fix_tickerwrap：初始即渲染行情条（行情未到时显示名称+—），避免快照卡顿期间留空 */
   refreshSnapshot();
   if (window.fetchFxLive) window.fetchFxLive();
   if (state.fxTimer) clearInterval(state.fxTimer);
