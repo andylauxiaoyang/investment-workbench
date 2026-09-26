@@ -1362,7 +1362,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 
 
       
-      <section class="view" id="view-strategy"><!-- fw2_v120_strategy --><div class="card" id="stratCycleCard"></div><div class="card strat-hero" id="stratHero"></div><div class="card" id="barbellCard"></div><!-- v132 fw2_v132_barbell_move：杠铃卡自 view-signal 迁入 --><div class="strat-tabs v-tabs" id="stratTabs"><button class="st-tab v-tab" data-st="alloc">资产配置</button><button class="st-tab v-tab active" data-st="cal">执行日历</button><button class="st-tab v-tab" data-st="cards">逐标的执行卡</button><button class="st-tab v-tab" data-st="plan">月度定投</button><button class="st-tab v-tab" data-st="review">季度复盘</button></div><div class="st-pane" id="stp-alloc" style="display:none"></div><div class="st-pane" id="stp-cal"></div><div class="st-pane" id="stp-cards" style="display:none"></div><!-- v167 fw2_v167_xmap_scope：场内外对照自共享层下移至「逐标的执行卡」tab 底部，默认折叠 --><div class="card" id="xmapCard" style="display:none"></div><div class="st-pane" id="stp-plan" style="display:none"></div><div class="st-pane" id="stp-review" style="display:none"></div><!-- v167：场内外对照已下移至 #stp-cards 之后（原共享层位置摘除）--><!-- v174 fw2_v174_events_scope：事件触发表只在「执行日历」tab 显示（其余三 tab 由 switchStratTab 隐藏） --><div class="card" id="stratEvents"></div></section>
+      <section class="view" id="view-strategy"><!-- fw2_v120_strategy --><div class="card" id="stratCycleCard"></div><div class="card strat-hero" id="stratHero"></div><div class="strat-tabs v-tabs" id="stratTabs"><button class="st-tab v-tab" data-st="alloc">资产配置</button><button class="st-tab v-tab active" data-st="cal">执行日历</button><button class="st-tab v-tab" data-st="cards">逐标的执行卡</button><button class="st-tab v-tab" data-st="plan">月度定投</button><button class="st-tab v-tab" data-st="review">季度复盘</button></div><div class="st-pane" id="stp-alloc" style="display:none"></div><div class="st-pane" id="stp-cal"></div><div class="st-pane" id="stp-cards" style="display:none"></div><!-- v167 fw2_v167_xmap_scope：场内外对照自共享层下移至「逐标的执行卡」tab 底部，默认折叠 --><div class="card" id="xmapCard" style="display:none"></div><div class="st-pane" id="stp-plan" style="display:none"></div><div class="st-pane" id="stp-review" style="display:none"></div><!-- v167：场内外对照已下移至 #stp-cards 之后（原共享层位置摘除）--><!-- v174 fw2_v174_events_scope：事件触发表只在「执行日历」tab 显示（其余三 tab 由 switchStratTab 隐藏） --><div class="card" id="stratEvents"></div></section>
       <!-- v91 fw2_v91_macro_merge：宏观·情绪 独立页曾并入 数据中心 → 宏观数据 分块（v135 已反向拆分，见下） -->
       <!-- fw2_v135_macro_view：宏观数据由「数据中心」分块迁出为独立模块（用户 2026-09-18「宏观数据单独作为一个模块放在数据中心上面」）；#view-data 改名「基金数据」并删除 dcBlocks 切换行（基金数据直接进入内容区，默认总览 Tab） -->
       <section class="view" id="view-macro">
@@ -13695,7 +13695,7 @@ function renderCurrentView() {
     else if (state.view === 'news') renderNews();
     else if (state.view === 'macro') { loadMacroData(); }
     else if (state.view === 'gold') { renderGold(); } /* fw2_v143_gold */ /* fw2_v135_macro_view：宏观独立模块，数据齐则 __dcMacroInit 直渲，否则 fetch */
-    else if (state.view === 'strategy') { renderStrategyView(); renderBarbell(); renderXMap(); } /* fw2_v120_strategy · v132 杠铃/场内外对照迁入 */
+    else if (state.view === 'strategy') { renderStrategyView(); renderXMap(); } /* fw2_v120_strategy · v132 杠铃/场内外对照迁入 */
     else if (state.view === 'capbal') { if (window.CAPBAL) window.CAPBAL.render(); } /* fw2_capbal_merge */
     else if (state.view === 'smartmoney') { renderSmartMoney(); } /* fw2_v194_sm_merge：A股/美股分区切换 + 跨市场速览卡 */
     else if (state.view === 'decision') { renderDecision(); } /* fw2_v206_decision */
@@ -16239,10 +16239,10 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
         docScrollH==innerH==758、祖先链 ovY 全 visible）⇒ 激活时令其自身成为滚动容器
         （flex:1 1 auto + min-height:0 + overflow-y:auto + padding-bottom:38px）；
      ③ fitSmartMoney 改取 max(doc.scrollHeight, body.scrollHeight)，防漏量子应用真实高度。
-     verChip v223->v224（资产配置表格模块 + 5 万全组合 10 只比例：宽基 45%/全球 30%/债 15%/商品 10%）
+     verChip v224->v225（资产配置整合档位再平衡四档数据，删除半杠铃配置卡）
   */
   const vc = $('#verChip');
-  if (vc) vc.textContent = 'v224 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  if (vc) vc.textContent = 'v225 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
@@ -18133,29 +18133,54 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
   }
 
 
+
   var ALLOC_DEF = [
     { grp: '宽基', meta: [
-      ['563360', 'A500', '华泰柏瑞 A500', '场内ETF', 'A股'],
-      ['510880', '红利', '华泰柏瑞上证红利ETF', '场内ETF', 'A股'],
-      ['159201', '现金流', '华夏国证自由现金流ETF', '场内ETF', 'A股'],
-      ['159949', '创业板50', '华安创业板50ETF', '场内ETF', 'A股'] ] },
+      ['563360', 'A500', '华泰柏瑞 A500', '场内ETF', 'A股', '底仓/缓冲'],
+      ['510880', '红利', '华泰柏瑞上证红利ETF', '场内ETF', 'A股', '底仓/缓冲'],
+      ['159201', '现金流', '华夏国证自由现金流ETF', '场内ETF', 'A股', '底仓/缓冲'],
+      ['159949', '创业板50', '华安创业板50ETF', '场内ETF', 'A股', '进攻/主题'] ] },
     { grp: '全球资产', meta: [
-      ['020712', '日经225', '华安日经 225 联接 A', 'QDII', '日本'],
-      ['012920', '全球成长', '易方达全球成长精选 A', 'QDII', '全球'],
-      ['016452', '纳指100', '南方纳指 100 A', 'QDII', '美国'] ] },
+      ['020712', '日经225', '华安日经 225 联接 A', 'QDII', '日本', '进攻/主题'],
+      ['012920', '全球成长', '易方达全球成长精选 A', 'QDII', '全球', '进攻/主题'],
+      ['016452', '纳指100', '南方纳指 100 A', 'QDII', '美国', '进攻/主题'] ] },
     { grp: '债券', meta: [
-      ['511260', '10年国债', '上证10年期国债ETF', '国债', 'A股'],
-      ['511360', '短融', '海富通中证短融ETF', '国债', 'A股'] ] },
+      ['511260', '10年国债', '上证10年期国债ETF', '国债', 'A股', '对冲'],
+      ['511360', '短融', '海富通中证短融ETF', '国债', 'A股', '安全垫'] ] },
     { grp: '商品', meta: [
-      ['159934', '黄金', '易方达黄金ETF', '场内ETF', 'A股'] ] }
+      ['159934', '黄金', '易方达黄金ETF', '场内ETF', 'A股', '对冲'] ] }
   ];
   function renderStratAlloc() {
     var el = document.getElementById('stp-alloc');
     if (!el) return;
     var total = S.totalTarget || 1;
-    var html = '<div class="st-card"><h4>资产配置（5 万计划 · 全组合 10 只）</h4><div class="strat-note">板块/标的比例按计划目标金额 ÷ 总目标 ' + fmt(total) + ' 计算；执行金额以「差额 ÷ 剩余月份」实时重算。001015 300增强本次不建仓（原策略 20 万口径保留参考）。</div><div class="tbl-scroll"><table class="st-tbl alloc-tbl">' +
-      '<colgroup><col style="width:9%"><col style="width:9%"><col style="width:8%"><col style="width:9%"><col style="width:22%"><col style="width:10%"><col style="width:9%"><col style="width:13%"></colgroup>' +
-      '<thead><tr><th>板块</th><th>比例</th><th>比例</th><th>代码</th><th>资产名称</th><th>类型</th><th>区域</th><th>投资金额</th></tr></thead><tbody>';
+    /* 档位再平衡（实盘四档，复用 barbellActual 持仓快照口径） */
+    var PILE = [
+      { k: 'base', name: '底仓/缓冲', color: '#4D6BFE' },
+      { k: 'off', name: '进攻/主题', color: '#d98c00' },
+      { k: 'bond', name: '安全垫', color: '#059669' },
+      { k: 'hedge', name: '对冲', color: '#b45309' }
+    ];
+    var act = (typeof barbellActual === 'function') ? barbellActual() : null;
+    var tot = act && act.tot > 0 ? act.tot : 0;
+    var tiles = PILE.map(function (p) {
+      var tgt = act ? act.cfg.target[p.k] : { base: 40, off: 35, bond: 10, hedge: 15 }[p.k];
+      var cur = tot > 0 ? act.pileMv[p.k] / tot * 100 : null;
+      var dev = cur == null ? null : cur - tgt;
+      var band = (act && act.cfg.band) || 5;
+      var warn = dev != null && Math.abs(dev) >= band;
+      return '<div class="bb-tile" style="--bc:' + p.color + '">'
+        + '<div class="bt-top"><b class="bt-name">' + p.name + '</b>'
+        + (dev != null ? '<span class="bt-dev ' + (warn ? 'd-warn' : 'd-ok') + '">' + (dev > 0 ? '+' : '') + dev.toFixed(1) + 'pp</span>' : '')
+        + '</div>'
+        + '<div class="bt-nums">目标 <b>' + tgt + '%</b>'
+        + (cur == null ? '' : '<span>· 实际</span><b class="bt-now' + (warn ? ' bt-warn' : '') + '">' + cur.toFixed(1) + '%</b>')
+        + '</div></div>';
+    }).join('');
+    var html = '<div class="st-card"><h4>档位再平衡（实盘四档 · 目标年化 8~10%）</h4><div class="strat-note">档位权重 = 实盘持仓快照 ÷ 持仓总市值；偏离目标 ≥ ±' + ((act && act.cfg.band) || 5) + 'pp 标红提示再平衡。</div><div class="bb-tiles">' + tiles + '</div></div>';
+    html += '<div class="st-card"><h4>资产配置（5 万计划 · 全组合 10 只）</h4><div class="strat-note">板块/标的比例按计划目标金额 ÷ 总目标 ' + fmt(total) + ' 计算；执行金额以「差额 ÷ 剩余月份」实时重算。001015 300增强本次不建仓（原策略 20 万口径保留参考）。</div><div class="tbl-scroll"><table class="st-tbl alloc-tbl">' +
+      '<colgroup><col style="width:8%"><col style="width:8%"><col style="width:7%"><col style="width:8%"><col style="width:19%"><col style="width:11%"><col style="width:9%"><col style="width:8%"><col style="width:12%"></colgroup>' +
+      '<thead><tr><th>板块</th><th>比例</th><th>比例</th><th>代码</th><th>资产名称</th><th>档位</th><th>类型</th><th>区域</th><th>投资金额</th></tr></thead><tbody>';
     ALLOC_DEF.forEach(function (g) {
       var gsum = 0;
       g.meta.forEach(function (m) { gsum += (assetOf(m[0]) || { target: 0 }).target || 0; });
@@ -18165,11 +18190,11 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
         var pct = (a.target || 0) / total * 100;
         html += '<tr>' +
           (first ? '<td class="grp" rowspan="' + g.meta.length + '"><b>' + esc(g.grp) + '</b></td><td class="grp" rowspan="' + g.meta.length + '">' + (gsum / total * 100).toFixed(2) + '%</td>' : '') +
-          '<td>' + pct.toFixed(2) + '%</td><td class="cd">' + m[0] + '</td><td class="nm"><b>' + esc(m[2]) + '</b></td><td>' + m[3] + '</td><td>' + m[4] + '</td><td class="qty">' + fmt(a.target || 0) + '</td></tr>';
+          '<td>' + pct.toFixed(2) + '%</td><td class="cd">' + m[0] + '</td><td class="nm"><b>' + esc(m[2]) + '</b></td><td><span style="font-size:11px;padding:1px 7px;border-radius:8px;background:var(--accent-soft,#eef2ff);color:var(--accent,#4D6BFE);white-space:nowrap">' + esc(m[5]) + '</span></td><td>' + m[3] + '</td><td>' + m[4] + '</td><td class="qty">' + fmt(a.target || 0) + '</td></tr>';
         first = false;
       });
     });
-    html += '<tr class="total-row"><td colspan="2"><b>合计</b></td><td>100.00%</td><td colspan="3"></td><td></td><td class="qty"><b>' + fmt(total) + '</b></td></tr>';
+    html += '<tr class="total-row"><td colspan="2"><b>合计</b></td><td>100.00%</td><td colspan="4"></td><td></td><td class="qty"><b>' + fmt(total) + '</b></td></tr>';
     html += '</tbody></table></div></div>';
     el.innerHTML = html;
   }
