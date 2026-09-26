@@ -1362,7 +1362,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 
 
       
-      <section class="view" id="view-strategy"><!-- fw2_v120_strategy --><div class="card" id="stratCycleCard"></div><div class="card strat-hero" id="stratHero"></div><div class="strat-tabs v-tabs" id="stratTabs"><button class="st-tab v-tab active" data-st="alloc">资产配置</button><button class="st-tab v-tab" data-st="cal">执行日历</button><button class="st-tab v-tab" data-st="cards">逐标的执行卡</button><button class="st-tab v-tab" data-st="plan">月度定投</button><button class="st-tab v-tab" data-st="review">季度复盘</button></div><div class="st-pane" id="stp-alloc"></div><div class="st-pane" id="stp-cal" style="display:none"></div><div class="st-pane" id="stp-cards" style="display:none"></div><!-- v167 fw2_v167_xmap_scope：场内外对照自共享层下移至「逐标的执行卡」tab 底部，默认折叠 --><div class="card" id="xmapCard" style="display:none"></div><div class="st-pane" id="stp-plan" style="display:none"></div><div class="st-pane" id="stp-review" style="display:none"></div><!-- v167：场内外对照已下移至 #stp-cards 之后（原共享层位置摘除）--><!-- v174 fw2_v174_events_scope：事件触发表只在「执行日历」tab 显示（其余三 tab 由 switchStratTab 隐藏） --><div class="card" id="stratEvents"></div></section>
+      <section class="view" id="view-strategy"><!-- fw2_v120_strategy --><div class="card" id="stratCycleCard"></div><div class="card strat-hero" id="stratHero"></div><div class="strat-tabs v-tabs" id="stratTabs"><button class="st-tab v-tab active" data-st="alloc">资产配置</button><button class="st-tab v-tab" data-st="cal">执行日历</button><button class="st-tab v-tab" data-st="cards">逐标的执行卡</button><button class="st-tab v-tab" data-st="plan">月度定投</button><button class="st-tab v-tab" data-st="review">季度复盘</button></div><div class="st-pane" id="stp-alloc"></div><div class="st-pane" id="stp-cal" style="display:none"></div><div class="st-pane" id="stp-cards" style="display:none"></div><!-- v167 fw2_v167_xmap_scope：场内外对照自共享层下移至「逐标的执行卡」tab 底部，默认折叠 --><div class="card" id="xmapCard" style="display:none"></div><div class="st-pane" id="stp-plan" style="display:none"></div><div class="st-pane" id="stp-review" style="display:none"></div><!-- v167：场内外对照已下移至 #stp-cards 之后（原共享层位置摘除）--></section>
       <!-- v91 fw2_v91_macro_merge：宏观·情绪 独立页曾并入 数据中心 → 宏观数据 分块（v135 已反向拆分，见下） -->
       <!-- fw2_v135_macro_view：宏观数据由「数据中心」分块迁出为独立模块（用户 2026-09-18「宏观数据单独作为一个模块放在数据中心上面」）；#view-data 改名「基金数据」并删除 dcBlocks 切换行（基金数据直接进入内容区，默认总览 Tab） -->
       <section class="view" id="view-macro">
@@ -16240,10 +16240,10 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
         （flex:1 1 auto + min-height:0 + overflow-y:auto + padding-bottom:38px）；
      ③ fitSmartMoney 改取 max(doc.scrollHeight, body.scrollHeight)，防漏量子应用真实高度。
      verChip v231->v232（资产配置表整体美化：表头强化 / 金额右对齐 / 板块分隔线 / hover / 合计底色）
-     verChip v232->v233（恢复 001015 沪深300增强建仓：宽基内让出 1250×4 保 45%，ALLOC_DEF 补 001015 行 → 资产配置表 11 只；STRATEGY_SNAP 5 万决策同步含 001015 的 plan/first/act）
+     verChip v233->v234（删除策略执行「事件触发表」：DOM/渲染/显隐逻辑整体移除，不再显示）
   */
   const vc = $('#verChip');
-  if (vc) vc.textContent = 'v233 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  if (vc) vc.textContent = 'v234 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
@@ -17978,7 +17978,6 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
     renderStratPlan();
     renderStratAlloc();
     renderStratReview();
-    renderStratEvents();
   }
 
   function renderStratHero() {
@@ -18443,19 +18442,6 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
       '%</b> · D8 −8% 硬止损线' + (trig ? ' <b>已触发 → 全清不回补</b>' : ' <b>未触发</b>（净值口径，回撤自高点另按净值序列复核）') + '</div>';
   }
 
-  function renderStratEvents() {
-    var el = document.getElementById('stratEvents');
-    if (!el) return;
-    var html = '<div class="card-h"><h3>事件触发表（8.8-C · 条件触发 · 发生才做）</h3></div>' +
-      '<div class="strat-note">事件轨优先级高于日历轨；触发 ≠ 自动交易，走 8.5 复核 → 确认 → 执行 → 记录。状态：分位类自动判定 / 净值类按持仓浮盈提示 / 其余手动。</div>' +
-      '<div class="tbl-scroll"><table class="ev-tbl"><colgroup><col style="width:5%"><col style="width:27%"><col style="width:46%"><col style="width:8%"><col style="width:14%"></colgroup>' +
-      '<thead><tr><th>#</th><th>触发条件</th><th>动作</th><th>参考</th><th>状态</th></tr></thead><tbody>';
-    S.events.forEach(function (e) {
-      html += '<tr><td>' + e.id + '</td><td>' + esc(e.cond) + '</td><td>' + esc(e.act) + '</td><td>' + e.ref + '</td><td>' + evStatus(e) + '</td></tr>';
-    });
-    html += '</tbody></table></div>';
-    el.innerHTML = html;
-  }
   function parseThr(cond) {
     var stop = null, tp = null, m;
     if ((m = cond.match(/[−-](\d+(?:\.\d+)?)%/))) stop = -parseFloat(m[1]);
@@ -18494,14 +18480,7 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
     /* v167 fw2_v167_xmap_scope：场内外对照只随「逐标的执行卡」tab 显隐 */
     var xm = document.getElementById('xmapCard');
     if (xm) xm.style.display = name === 'cards' ? '' : 'none';
-    /* v174 fw2_v174_events_scope：事件触发表只随「执行日历」tab 显隐（其余三 tab 隐藏）。
-       用户 2026-09-21：「这个页面目前在策略执行子模块中都有展示，只需要保留执行日历的显示，
-       其他三个模块将此页面删除，这个信息完全多余了。」
-       ★#stratEvents 是 view-strategy 末尾同级卡、不在任何 st-pane 内（故四 tab 全显）→ 沿用
-         v167 #xmapCard 同款模式按 tab 控 display，不搬 DOM（st-pane 会被 el.innerHTML 整体重写）。
-       ★renderStratEvents() 的 el.innerHTML 重写不改元素自身 style.display → 显隐不会被重绘重置。 */
-    var se = document.getElementById('stratEvents');
-    if (se) se.style.display = name === 'cal' ? '' : 'none';
+    /* v234：事件触发表已整体删除（用户 2026-09-26 要求不再显示） */
   }
   function bindStratTabs() {
     Array.prototype.forEach.call(document.querySelectorAll('#view-strategy .st-tab'), function (b) {
