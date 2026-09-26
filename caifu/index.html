@@ -847,22 +847,21 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   ::-webkit-scrollbar-track { background: transparent; }
 }
 /* v133 fw2_v133_sig_tiles：信号仪表盘 列表行 → 磁贴网格（行动/接近铺网格，观察折叠） */
-.sig-tiles { display: grid; grid-template-columns: 1fr; gap: 8px; }
-.sig-tile { position: relative; overflow: hidden; background: var(--panel-2); border: 1px solid var(--line); border-radius: var(--r-8); padding: 8px 12px; display: flex; flex-direction: column; gap: 3px; }
+.sig-tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 6px; }
+.sig-tile { position: relative; overflow: hidden; background: var(--panel-2); border: 1px solid var(--line); border-radius: var(--r-8); padding: 6px 10px; display: flex; flex-direction: column; gap: 2px; }
 .sig-tile::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 3px; }
 .sig-tile.t-act::before { background: var(--up, #dc2626); }
 .sig-tile.t-near::before { background: var(--warn, #d97706); }
 .sig-tile.t-watch::before { background: var(--line); }
 .sig-tile.sig-dim { opacity: .45; }
-.sig-tile .st-top { display: flex; align-items: baseline; gap: var(--sp-6); min-width: 0; }
-.sig-tile .st-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 1px; min-width: 0; }
+.sig-tile .st-top { display: flex; align-items: flex-start; gap: var(--sp-6); min-width: 0; }
 .sig-tile .st-top .st-name { font-size: var(--fs-sm); font-weight: 600; color: var(--text); line-height: 1.3; min-width: 0; }
 .sig-tile .st-top .st-name .lk-rs { color: var(--brand, #4D6BFE); }
 .sig-tile .st-badge { font-size: var(--fs-2xs); margin-left: auto; padding: 1px 7px; border-radius: var(--r-6); white-space: nowrap; flex: 0 0 auto; }
-.sig-tile .st-meta { font-size: var(--fs-2xs); color: var(--muted, #94a3b8); margin-left: 6px; min-width: 0; }
+.sig-tile .st-meta { font-size: var(--fs-2xs); color: var(--muted, #94a3b8); margin-top: 1px; }
 .sig-tile .st-meta b { color: var(--text-2, var(--text-2)); font-weight: 600; font-family: var(--mono); }
-.sig-tile .st-val { font-size: var(--fs-lg); font-weight: 700; font-family: var(--mono); line-height: 1.25; margin-top: 0; word-break: break-word; flex: 0 0 auto; }
-.sig-tile .st-foot { display: flex; align-items: center; gap: 4px 8px; flex-wrap: wrap; font-size: var(--fs-2xs); color: var(--muted, #94a3b8); margin-top: 0; flex: 1; min-width: 0; }
+.sig-tile .st-val { font-size: var(--fs-lg); font-weight: 700; font-family: var(--mono); line-height: 1.25; margin-top: 1px; word-break: break-word; }
+.sig-tile .st-foot { display: flex; align-items: center; gap: 4px 8px; flex-wrap: wrap; font-size: var(--fs-2xs); color: var(--muted, #94a3b8); margin-top: 2px; }
 .sig-tile .st-pct { display: inline-block; width: 56px; height: 4px; background: var(--panel-3, #eef1f6); border-radius: var(--r-3); overflow: hidden; vertical-align: middle; }
 .sig-tile .st-pct i { display: block; height: 4px; border-radius: var(--r-3); }
 .sig-tile .st-src { margin-left: auto; opacity: .8; }
@@ -873,8 +872,9 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .sig-watch .sig-tiles { margin-top: 4px; }
 .sig-tiles .empty { grid-column: 1 / -1; }
 /* fw2_v211_sig_dc：交易信号套用决策总览 dc 视觉（verdict 横幅 + 卡片网格） */
+#sigBody .dc-grid { grid-template-columns: 1fr; }
 .dc-card .sig-tiles { margin-top: 4px; }
-.dc-card .sig-tile { background: #fff; padding: 8px 12px; }
+.dc-card .sig-tile { background: #fff; padding: 6px 10px; }
 .dc-card .dc-body { padding-top: 4px; }
 .dc-card .dc-src { margin-top: -2px; }
 /* fw2_v213_shell：第一批外壳统一 —— 页签形态收敛为 v-tabs tint 胶囊（宏观周期 v-tabs--soft 已同款）
@@ -16239,10 +16239,10 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
         docScrollH==innerH==758、祖先链 ovY 全 visible）⇒ 激活时令其自身成为滚动容器
         （flex:1 1 auto + min-height:0 + overflow-y:auto + padding-bottom:38px）；
      ③ fitSmartMoney 改取 max(doc.scrollHeight, body.scrollHeight)，防漏量子应用真实高度。
-     verChip v218->v219（信号磁贴单列成行：每条信号独立一行全宽，不再并列多列）
+     verChip v219->v220（信号三类卡纵向堆叠各占整行 + 卡内磁贴恢复多列网格）
   */
   const vc = $('#verChip');
-  if (vc) vc.textContent = 'v219 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  if (vc) vc.textContent = 'v220 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
@@ -16399,16 +16399,15 @@ function renderSignalDash() {
       const nameHtml = r.noLink ? '<b>' + esc(r.name) + '</b>' : '<b class="lk-rs" data-rscode="' + esc(r.code) + '" style="cursor:pointer">' + esc(r.name) + '</b>';
       return '<div class="sig-tile' + (r.lvl === 'act' ? ' t-act' : r.lvl === 'near' ? ' t-near' : ' t-watch') + '"' + dim + '>'
         + '<div class="st-top"><span class="st-name">' + nameHtml + '</span>'
-        + '<span class="st-meta">' + esc(r.code) + ' · ' + esc(r.sig) + '</span>'
         + '<span class="st-badge" style="background:' + L[2] + ';color:' + L[3] + '">' + L[0] + '</span></div>'
-        + '<div class="st-row">'
+        + '<div class="st-meta"><b>' + esc(r.code) + '</b> · ' + esc(r.sig) + '</div>'
         + '<div class="st-val" style="color:' + curColor + '">' + esc(r.cur) + '</div>'
         + '<div class="st-foot">'
         + '<span>阈值 ' + esc(r.thr) + '</span>'
         + (/^M[123]$/.test(r.code) ? (function () { var mm = String(r.cur).match(/(\d+(?:\.\d+)?)\s*%/); var m = mm ? parseFloat(mm[1]) : 0; var w = Math.max(2, Math.min(100, m)); var bc = r.lvl === 'act' ? 'var(--up)' : r.lvl === 'near' ? 'var(--warn)' : 'var(--brand)'; return '<span title="十年分位" class="st-pct"><i style="width:' + w + '%;background:' + bc + '"></i></span>'; })() : '')
         + '<span class="st-src">' + (r.dd ? '<span style="opacity:.75">数据 ' + esc(r.dd) + '</span> · ' : '') + esc(r.src) + '</span>' /* fw2_v176_sig_dd */
         + (r.lvl === 'act' && !sigAcked(key) ? '<button class="btn btn-sm" data-sigack="' + esc(key) + '">知道了</button>' : '')
-        + '</div></div></div>';
+        + '</div></div>';
     };
     const GRP_COLOR = { '持仓信号': '#4D6BFE', '自选信号': '#BA7517', '市场信号': '#888780' };
     const GRP_KEY = 'fw2_sig_grp_v1';
