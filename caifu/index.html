@@ -16241,10 +16241,10 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
      ③ fitSmartMoney 改取 max(doc.scrollHeight, body.scrollHeight)，防漏量子应用真实高度。
      verChip v231->v232（资产配置表整体美化：表头强化 / 金额右对齐 / 板块分隔线 / hover / 合计底色）
      verChip v233->v234（删除策略执行「事件触发表」：DOM/渲染/显隐逻辑整体移除，不再显示）
-     verChip v236->v237（聪明的钱速览卡行：字号减小 / 建议关注并入卡片行统一 UI）
+     verChip v237->v238（聪明的钱速览卡行：修复 auto-fit 在 flex 容器塌陷，强制横向一行排列）
   */
   const vc = $('#verChip');
-  if (vc) vc.textContent = 'v237 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  if (vc) vc.textContent = 'v238 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
@@ -17727,7 +17727,7 @@ section.sm13f-view{display:none;padding-top:22px}
 #view-smartmoney .sm-xov .xov-concl .xov-c { padding: 8px 12px; border: 1px solid #e7eaf0; border-radius: 10px; background: #f7f8fa; line-height: 1.6; }
 #view-smartmoney .sm-xov .xov-concl .xov-c.b { background: #fff7ed; border-color: #f0d9a8; color: #7a5320; }
 #view-smartmoney .sm-xov .xov-concl b { font-weight: 700; }
-#view-smartmoney .sm-xov .xov-tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px; margin: 10px 0 14px; }
+#view-smartmoney .sm-xov .xov-tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px; margin: 10px 0 14px; flex: 1 1 100%; }
 #view-smartmoney .sm-xov .xov-tile { border: 1px solid #e7eaf0; border-radius: 12px; background: #fff; padding: 12px 14px; min-height: 88px; display: flex; flex-direction: column; justify-content: center; box-shadow: 0 1px 3px rgba(20,30,50,.05); }
 #view-smartmoney .sm-xov .xov-tile .lab { font-size: 11px; color: var(--faint, #8a93a5); margin-bottom: 5px; font-weight: 600; }
 #view-smartmoney .sm-xov .xov-tile .val { font-size: 17px; font-weight: 750; font-variant-numeric: tabular-nums; line-height: 1.25; }
@@ -18139,6 +18139,7 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
   /* fw2_v235_alloc_10col：资产配置表列对齐修复——表头恢复「标的占比」列成 10 列（板块|目标占比|标的占比|代码|资产名称|档位|目标金额|实际金额|差额|偏移），合计行补实际总占比，strat-note 补口径标注。 */
   /* fw2_v236_alloc_ui：资产配置表 UI——板块分隔线加强（grp-start 2px 深线）+ 金额列居中显示 + 数值列表头居中。 */
   /* fw2_v237_xov_tile：聪明的钱速览卡行 UI——卡片字号减小（val 22->17px）+「建议关注（承压）」并入 xov-tile 卡片行（5 卡统一，grid auto-fit）。 */
+  /* fw2_v238_xov_row：修复 .xov-tiles 在 flex 容器 .xov-concl 中宽度塌缩（auto-fit 变单列）——加 flex:1 1 100% 占满整行，5 卡横向一行排列。 */
   var ALLOC_DEF = [
     { grp: '宽基', meta: [
       ['563360', 'A500', '华泰柏瑞 A500', '场内ETF', 'A股', '底仓/缓冲'],
