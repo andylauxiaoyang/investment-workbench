@@ -847,8 +847,8 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   ::-webkit-scrollbar-track { background: transparent; }
 }
 /* v133 fw2_v133_sig_tiles：信号仪表盘 列表行 → 磁贴网格（行动/接近铺网格，观察折叠） */
-.sig-tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 6px; }
-.sig-tile { position: relative; overflow: hidden; background: var(--panel-2); border: 1px solid var(--line); border-radius: var(--r-8); padding: 6px 10px; display: flex; flex-direction: column; gap: 2px; }
+.sig-tiles { display: grid; grid-template-columns: 1fr; gap: 8px; }
+.sig-tile { position: relative; overflow: hidden; background: var(--panel-2); border: 1px solid var(--line); border-radius: var(--r-8); padding: 8px 12px; display: flex; flex-direction: column; gap: 3px; }
 .sig-tile::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 3px; }
 .sig-tile.t-act::before { background: var(--up, #dc2626); }
 .sig-tile.t-near::before { background: var(--warn, #d97706); }
@@ -874,7 +874,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .sig-tiles .empty { grid-column: 1 / -1; }
 /* fw2_v211_sig_dc：交易信号套用决策总览 dc 视觉（verdict 横幅 + 卡片网格） */
 .dc-card .sig-tiles { margin-top: 4px; }
-.dc-card .sig-tile { background: #fff; padding: 6px 10px; }
+.dc-card .sig-tile { background: #fff; padding: 8px 12px; }
 .dc-card .dc-body { padding-top: 4px; }
 .dc-card .dc-src { margin-top: -2px; }
 /* fw2_v213_shell：第一批外壳统一 —— 页签形态收敛为 v-tabs tint 胶囊（宏观周期 v-tabs--soft 已同款）
@@ -16239,10 +16239,10 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
         docScrollH==innerH==758、祖先链 ovY 全 visible）⇒ 激活时令其自身成为滚动容器
         （flex:1 1 auto + min-height:0 + overflow-y:auto + padding-bottom:38px）；
      ③ fitSmartMoney 改取 max(doc.scrollHeight, body.scrollHeight)，防漏量子应用真实高度。
-     verChip v217->v218（信号磁贴两行化：名称+代码+徽章 / 数值+阈值+按钮，信息全保留视觉变扁）
+     verChip v218->v219（信号磁贴单列成行：每条信号独立一行全宽，不再并列多列）
   */
   const vc = $('#verChip');
-  if (vc) vc.textContent = 'v218 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  if (vc) vc.textContent = 'v219 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
