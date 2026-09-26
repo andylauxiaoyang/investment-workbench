@@ -197,6 +197,8 @@ button, input, select, textarea { font-family: inherit; font-size: var(--fs-md);
    祖先链 ovY 全 visible）⇒ 用户报「底部没法显示完整，且不能下拉」。激活时令其自身成为滚动容器，
    撑满 main 剩余高度并纵向滚动；窄屏 .app 为 height:auto，此时高度随内容、由文档滚动，不受影响。 */
 #view-smartmoney.active { flex: 1 1 auto; min-height: 0; overflow-y: auto; padding-bottom: 38px; }
+/* fw2_v216_scroll_fix：决策总览/资金平衡位于 .main 直下（不在 .scroll-area 内），补视图内滚动，根治大视口下底部内容被裁且无滚动条 */
+#view-decision.active, #view-capbal.active { flex: 1 1 auto; min-height: 0; overflow-y: auto; padding-bottom: 38px; }
 .sm-fallback { margin: 0 0 10px; padding: 10px 12px; border: 1px solid #f0d9a8; border-radius: 10px; background: #fffaef; color: #7a5320; font-size: 12px; line-height: 1.7; }
 .sm-fallback[hidden] { display: none; }
 .sm-fallback a { color: #4D6BFE; text-decoration: underline; }
@@ -16236,10 +16238,10 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
         docScrollH==innerH==758、祖先链 ovY 全 visible）⇒ 激活时令其自身成为滚动容器
         （flex:1 1 auto + min-height:0 + overflow-y:auto + padding-bottom:38px）；
      ③ fitSmartMoney 改取 max(doc.scrollHeight, body.scrollHeight)，防漏量子应用真实高度。
-     verChip v214->v215（第三批页签收尾：策略/基金数据/黄金研究剩余实底靛蓝 active 统一为 tint 胶囊）
+     verChip v215->v216（滚动修复：决策总览/资金平衡补视图内滚动，根治无法下拉）
   */
   const vc = $('#verChip');
-  if (vc) vc.textContent = 'v215 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  if (vc) vc.textContent = 'v216 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
