@@ -16239,10 +16239,10 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
         docScrollH==innerH==758、祖先链 ovY 全 visible）⇒ 激活时令其自身成为滚动容器
         （flex:1 1 auto + min-height:0 + overflow-y:auto + padding-bottom:38px）；
      ③ fitSmartMoney 改取 max(doc.scrollHeight, body.scrollHeight)，防漏量子应用真实高度。
-     verChip v228->v229（资产配置回 tab 首位，点击策略执行默认显示资产配置）
+     verChip v229->v230（资产配置表新增 实际金额/差额/偏移 三列）
   */
   const vc = $('#verChip');
-  if (vc) vc.textContent = 'v229 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  if (vc) vc.textContent = 'v230 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
@@ -18154,6 +18154,13 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
     var el = document.getElementById('stp-alloc');
     if (!el) return;
     var total = S.totalTarget || 1;
+    /* 实盘市值快照（与 barbellActual 同口径：持仓 qty × price/cost） */
+    var mvMap = {};
+    (state.portfolio || []).forEach(function (h) {
+      var c6 = String(h.code || '').replace(/\D/g, '').slice(-6);
+      var mv = (+h.qty || 0) * (+h.price || +h.cost || 0);
+      if (c6 && mv > 0) mvMap[c6] = (mvMap[c6] || 0) + mv;
+    });
     /* 档位再平衡（实盘四档，复用 barbellActual 持仓快照口径） */
     var PILE = [
       { k: 'base', name: '底仓/缓冲', color: '#4D6BFE' },
@@ -18178,23 +18185,35 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
         + '</div></div>';
     }).join('');
     var html = '<div class="st-card"><h4>档位再平衡（实盘四档 · 目标年化 8~10%）</h4><div class="strat-note">档位权重 = 实盘持仓快照 ÷ 持仓总市值；偏离目标 ≥ ±' + ((act && act.cfg.band) || 5) + 'pp 标红提示再平衡。</div><div class="bb-tiles">' + tiles + '</div></div>';
-    html += '<div class="st-card"><h4>资产配置（5 万计划 · 全组合 10 只）</h4><div class="strat-note">板块/标的比例按计划目标金额 ÷ 总目标 ' + fmt(total) + ' 计算；执行金额以「差额 ÷ 剩余月份」实时重算。001015 300增强本次不建仓（原策略 20 万口径保留参考）。</div><div class="tbl-scroll"><table class="st-tbl alloc-tbl">' +
-      '<colgroup><col style="width:8%"><col style="width:8%"><col style="width:7%"><col style="width:8%"><col style="width:19%"><col style="width:11%"><col style="width:9%"><col style="width:8%"><col style="width:12%"></colgroup>' +
-      '<thead><tr><th>板块</th><th>比例</th><th>比例</th><th>代码</th><th>资产名称</th><th>档位</th><th>类型</th><th>区域</th><th>投资金额</th></tr></thead><tbody>';
+    html += '<div class="st-card"><h4>资产配置（5 万计划 · 全组合 10 只）</h4><div class="strat-note">目标金额 = 计划配置；实际金额 = 工作台持仓快照市值（qty × 价格/成本）；差额 = 实际 − 目标（+超配 / −欠配）；偏移 = 差额 ÷ 目标。执行金额以「差额 ÷ 剩余月份」实时重算。001015 300增强本次不建仓（原策略 20 万口径保留参考）。</div><div class="tbl-scroll"><table class="st-tbl alloc-tbl">' +
+      '<colgroup><col style="width:6%"><col style="width:6%"><col style="width:5%"><col style="width:6%"><col style="width:14%"><col style="width:8%"><col style="width:6%"><col style="width:6%"><col style="width:8%"><col style="width:10%"><col style="width:11%"><col style="width:7%"></colgroup>' +
+      '<thead><tr><th>板块</th><th>比例</th><th>比例</th><th>代码</th><th>资产名称</th><th>档位</th><th>类型</th><th>区域</th><th>目标金额</th><th>实际金额</th><th>差额</th><th>偏移</th></tr></thead><tbody>';
+    var sumAct = 0;
     ALLOC_DEF.forEach(function (g) {
       var gsum = 0;
       g.meta.forEach(function (m) { gsum += (assetOf(m[0]) || { target: 0 }).target || 0; });
+      var gact = 0;
+      g.meta.forEach(function (m) { gact += mvMap[m[0]] || 0; });
       var first = true;
       g.meta.forEach(function (m) {
         var a = assetOf(m[0]) || { target: 0 };
-        var pct = (a.target || 0) / total * 100;
+        var tgt = a.target || 0;
+        var mv = mvMap[m[0]] || 0;
+        var diff = mv - tgt;
+        var off = tgt > 0 ? diff / tgt * 100 : (mv > 0 ? 100 : 0);
+        sumAct += mv;
+        var diffCls = diff > 0.5 ? 'up' : diff < -0.5 ? 'down' : '';
+        var offCls = off > 0.5 ? 'up' : off < -0.5 ? 'down' : '';
+        var pct = tgt / total * 100;
         html += '<tr>' +
-          (first ? '<td class="grp" rowspan="' + g.meta.length + '"><b>' + esc(g.grp) + '</b></td><td class="grp" rowspan="' + g.meta.length + '">' + (gsum / total * 100).toFixed(2) + '%</td>' : '') +
-          '<td class="pct">' + pct.toFixed(2) + '%</td><td class="cd">' + m[0] + '</td><td class="nm"><b>' + esc(m[2]) + '</b></td><td><span style="font-size:11px;padding:1px 7px;border-radius:8px;background:var(--accent-soft,#eef2ff);color:var(--accent,#4D6BFE);white-space:nowrap">' + esc(m[5]) + '</span></td><td>' + m[3] + '</td><td>' + m[4] + '</td><td class="qty">' + fmt(a.target || 0) + '</td></tr>';
+          (first ? '<td class="grp" rowspan="' + g.meta.length + '"><b>' + esc(g.grp) + '</b></td><td class="grp" rowspan="' + g.meta.length + '">' + (gsum / total * 100).toFixed(2) + '%</td><td class="grp" rowspan="' + g.meta.length + '">' + (gact / total * 100).toFixed(2) + '%</td>' : '') +
+          '<td class="pct">' + pct.toFixed(2) + '%</td><td class="cd">' + m[0] + '</td><td class="nm"><b>' + esc(m[2]) + '</b></td><td><span style="font-size:11px;padding:1px 7px;border-radius:8px;background:var(--accent-soft,#eef2ff);color:var(--accent,#4D6BFE);white-space:nowrap">' + esc(m[5]) + '</span></td><td>' + m[3] + '</td><td>' + m[4] + '</td><td class="qty">' + fmt(tgt) + '</td><td class="qty">' + (mv > 0 ? fmt(mv) : '—') + '</td><td class="qty ' + diffCls + '">' + (diff === 0 ? '0' : (diff > 0 ? '+' : '') + fmt(diff)) + '</td><td class="pct ' + offCls + '">' + (off === 0 ? '0.00%' : (off > 0 ? '+' : '') + off.toFixed(2) + '%') + '</td></tr>';
         first = false;
       });
     });
-    html += '<tr class="total-row"><td colspan="2"><b>合计</b></td><td class="pct">100.00%</td><td colspan="4"></td><td></td><td class="qty"><b>' + fmt(total) + '</b></td></tr>';
+    var tdiff = sumAct - total;
+    var toff = total > 0 ? tdiff / total * 100 : 0;
+    html += '<tr class="total-row"><td colspan="2"><b>合计</b></td><td class="pct">100.00%</td><td class="pct">' + (sumAct / total * 100).toFixed(2) + '%</td><td colspan="4"></td><td class="qty"><b>' + fmt(total) + '</b></td><td class="qty"><b>' + fmt(sumAct) + '</b></td><td class="qty ' + (tdiff > 0.5 ? 'up' : tdiff < -0.5 ? 'down' : '') + '"><b>' + (tdiff > 0 ? '+' : '') + fmt(tdiff) + '</b></td><td class="pct ' + (toff > 0.5 ? 'up' : toff < -0.5 ? 'down' : '') + '"><b>' + (toff > 0 ? '+' : '') + toff.toFixed(2) + '%</b></td></tr>';
     html += '</tbody></table></div></div>';
     el.innerHTML = html;
   }
