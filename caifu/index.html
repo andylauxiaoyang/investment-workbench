@@ -1362,7 +1362,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 
 
       
-      <section class="view" id="view-strategy"><!-- fw2_v120_strategy --><div class="card" id="stratCycleCard"></div><div class="card strat-hero" id="stratHero"></div><div class="strat-tabs v-tabs" id="stratTabs"><button class="st-tab v-tab active" data-st="cal">执行日历</button><button class="st-tab v-tab" data-st="alloc">资产配置</button><button class="st-tab v-tab" data-st="cards">逐标的执行卡</button><button class="st-tab v-tab" data-st="plan">月度定投</button><button class="st-tab v-tab" data-st="review">季度复盘</button></div><div class="st-pane" id="stp-alloc" style="display:none"></div><div class="st-pane" id="stp-cal"></div><div class="st-pane" id="stp-cards" style="display:none"></div><!-- v167 fw2_v167_xmap_scope：场内外对照自共享层下移至「逐标的执行卡」tab 底部，默认折叠 --><div class="card" id="xmapCard" style="display:none"></div><div class="st-pane" id="stp-plan" style="display:none"></div><div class="st-pane" id="stp-review" style="display:none"></div><!-- v167：场内外对照已下移至 #stp-cards 之后（原共享层位置摘除）--><!-- v174 fw2_v174_events_scope：事件触发表只在「执行日历」tab 显示（其余三 tab 由 switchStratTab 隐藏） --><div class="card" id="stratEvents"></div></section>
+      <section class="view" id="view-strategy"><!-- fw2_v120_strategy --><div class="card" id="stratCycleCard"></div><div class="card strat-hero" id="stratHero"></div><div class="strat-tabs v-tabs" id="stratTabs"><button class="st-tab v-tab active" data-st="alloc">资产配置</button><button class="st-tab v-tab" data-st="cal">执行日历</button><button class="st-tab v-tab" data-st="cards">逐标的执行卡</button><button class="st-tab v-tab" data-st="plan">月度定投</button><button class="st-tab v-tab" data-st="review">季度复盘</button></div><div class="st-pane" id="stp-alloc"></div><div class="st-pane" id="stp-cal" style="display:none"></div><div class="st-pane" id="stp-cards" style="display:none"></div><!-- v167 fw2_v167_xmap_scope：场内外对照自共享层下移至「逐标的执行卡」tab 底部，默认折叠 --><div class="card" id="xmapCard" style="display:none"></div><div class="st-pane" id="stp-plan" style="display:none"></div><div class="st-pane" id="stp-review" style="display:none"></div><!-- v167：场内外对照已下移至 #stp-cards 之后（原共享层位置摘除）--><!-- v174 fw2_v174_events_scope：事件触发表只在「执行日历」tab 显示（其余三 tab 由 switchStratTab 隐藏） --><div class="card" id="stratEvents"></div></section>
       <!-- v91 fw2_v91_macro_merge：宏观·情绪 独立页曾并入 数据中心 → 宏观数据 分块（v135 已反向拆分，见下） -->
       <!-- fw2_v135_macro_view：宏观数据由「数据中心」分块迁出为独立模块（用户 2026-09-18「宏观数据单独作为一个模块放在数据中心上面」）；#view-data 改名「基金数据」并删除 dcBlocks 切换行（基金数据直接进入内容区，默认总览 Tab） -->
       <section class="view" id="view-macro">
@@ -16239,10 +16239,10 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
         docScrollH==innerH==758、祖先链 ovY 全 visible）⇒ 激活时令其自身成为滚动容器
         （flex:1 1 auto + min-height:0 + overflow-y:auto + padding-bottom:38px）；
      ③ fitSmartMoney 改取 max(doc.scrollHeight, body.scrollHeight)，防漏量子应用真实高度。
-     verChip v227->v228（资产配置「板块/比例」列垂直居中）
+     verChip v228->v229（资产配置回 tab 首位，点击策略执行默认显示资产配置）
   */
   const vc = $('#verChip');
-  if (vc) vc.textContent = 'v228 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  if (vc) vc.textContent = 'v229 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
