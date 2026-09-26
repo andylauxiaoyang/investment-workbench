@@ -869,6 +869,11 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .sig-watch summary { cursor: pointer; font-size: var(--fs-sm); color: var(--muted, #94a3b8); padding: 2px 0; user-select: none; }
 .sig-watch .sig-tiles { margin-top: 4px; }
 .sig-tiles .empty { grid-column: 1 / -1; }
+/* fw2_v211_sig_dc：交易信号套用决策总览 dc 视觉（verdict 横幅 + 卡片网格） */
+.dc-card .sig-tiles { margin-top: 4px; }
+.dc-card .sig-tile { background: #fff; }
+.dc-card .dc-body { padding-top: 4px; }
+.dc-card .dc-src { margin-top: -2px; }
 /* v137 fw2_v137_barbell_tiles：半杠铃四档 列表行 → 磁贴网格（沿用 v133 磁贴语言：
    等尺寸 / 按序 / 排满自动换行；顶部 3px 档位色条，--bc 变量取色） */
 .bb-tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: var(--sp-8); }
@@ -16229,10 +16234,10 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
         docScrollH==innerH==758、祖先链 ovY 全 visible）⇒ 激活时令其自身成为滚动容器
         （flex:1 1 auto + min-height:0 + overflow-y:auto + padding-bottom:38px）；
      ③ fitSmartMoney 改取 max(doc.scrollHeight, body.scrollHeight)，防漏量子应用真实高度。
-     verChip v209->v210（决策总览去重：②⑤ 加交易信号从属标注）
+     verChip v210->v211（交易信号页套用决策总览 dc 视觉：verdict 横幅 + 卡片网格）
   */
   const vc = $('#verChip');
-  if (vc) vc.textContent = 'v210 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  if (vc) vc.textContent = 'v211 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
@@ -16373,10 +16378,7 @@ function renderSignalDash() {
     sec.insertBefore(card, sec.firstChild);
   }
   /* v30b: 总标题与分组头同款格式 */ /* fw2_sig_dashhead_v1 */
-  card.innerHTML = '<div style="display:flex;align-items:center;gap:10px;padding:8px 10px;border-left:4px solid #2563eb;border-radius:0 6px 6px 0;background:rgba(37,99,235,.06)">'
-    + '<span style="font-size:16px;font-weight:600">信号仪表盘</span>'
-    + '<span class="hint" style="margin-left:auto">触发≠自动交易 · 阈值锁季度复盘日（T12/D9）· 市场信号=环境提示非指令</span></div>'
-    + '<div id="sigBody"><div class="empty st st-load">信号计算中（首次拉取净值序列约需数秒）…</div></div>';
+  card.innerHTML = '<div class="dc-wrap" id="sigBody"><div class="dc-load">信号计算中（首次拉取净值序列约需数秒）…</div></div>';
   const body = document.getElementById('sigBody');
   const hold = state.portfolio.filter((h) => (h.assetType || '') !== 'cash');
   const wl = (state.watchlist || []).map((c) => (typeof c === 'string' ? c : (c && c.code) || ''));
@@ -16414,22 +16416,25 @@ function renderSignalDash() {
       const main = mm ? mm[1] : title, sub = mm ? mm[2] : '';
       const color = GRP_COLOR[main] || '#888780';
       const folded = !!grpFold[main];
+      const gLv = act.length ? 't-hot' : near.length ? 't-pos' : 't-neu';
       const bd = (n, label, bg, fg) => (n ? '<span style="display:inline-block;background:' + bg + ';color:' + fg + ';font-size:11px;padding:2px 7px;border-radius:6px">' + label + ' ' + n + '</span>' : '');
-      let html = '<div class="sig-grp" data-grp="' + esc(main) + '" style="display:flex;align-items:center;gap:10px;margin:14px 0 6px;padding:7px 10px;cursor:pointer;border-left:4px solid ' + color + ';border-radius:0 6px 6px 0' + (act.length ? ';background:rgba(252,235,235,.35)' : '') + '">'
-        + '<span style="font-size: 16px;font-weight:500">' + esc(main) + '</span>'
-        + (sub ? '<span style="font-size:12px;opacity:.6">' + esc(sub) + '</span>' : '')
-        + '<span style="margin-left:auto;display:flex;gap:6px;align-items:center">'
+      let html = '<div class="card dc-card" data-grp="' + esc(main) + '" style="cursor:pointer;border-top:3px solid ' + color + '">'
+        + '<div class="dc-hd" data-grp="' + esc(main) + '" style="flex-wrap:wrap">'
+        + '<b style="font-size:15px">' + esc(main) + '</b>'
+        + (sub ? '<span style="font-size:11.5px;opacity:.6">' + esc(sub) + '</span>' : '')
+        + '<span class="dc-dir ' + gLv + '">' + (act.length ? '行动 ' + act.length : near.length ? '接近 ' + near.length : watch.length ? '观察 ' + watch.length : '无信号') + '</span>'
+        + '<span style="margin-left:auto;display:flex;gap:5px;align-items:center">'
         + bd(act.length, '行动', '#FCEBEB', '#A32D2D') + bd(near.length, '接近', '#FAEEDA', '#854F0B') + bd(watch.length, '观察', '#F1EFE8', '#5F5E5A')
         + '<span data-arrow style="opacity:.5;font-size:11px">' + (folded ? '\u25b8' : '\u25be') + '</span></span></div>';
-      if (srcNote) html += '<div class="hint" style="opacity:.55;font-size:10px;margin-bottom:3px">' + esc(srcNote) + '</div>';
-      if (metaList && metaList.length) html += '<div class="hint" style="opacity:.55;font-size:10px;margin-bottom:3px">未启用：' + metaList.map((m) => m.sig + '（' + m.why + '）').join('；') + '</div>';
-      html = html + '<div data-grpbody="' + esc(main) + '" class="sig-tiles" style="' + (folded ? 'display:none' : '') + '">';
+      if (srcNote) html += '<div class="dc-src" style="opacity:.8">' + esc(srcNote) + '</div>';
+      if (metaList && metaList.length) html += '<div class="dc-src" style="opacity:.55">未启用：' + metaList.map((m) => m.sig + '（' + m.why + '）').join('；') + '</div>';
+      html = html + '<div class="dc-body" data-grpbody="' + esc(main) + '" style="' + (folded ? 'display:none' : '') + '">';
       if (!list.length) html += '<div class="empty st st-empty">暂无标的</div>';
       else {
-        html += act.concat(near).map(rowHtml).join('');
+        html += '<div class="sig-tiles">' + act.concat(near).map(rowHtml).join('') + '</div>';
         if (watch.length) html += '<details class="sig-watch"><summary>观察 ' + watch.length + ' 条</summary><div class="sig-tiles">' + watch.map(rowHtml).join('') + '</div></details>';
       }
-      return html + '</div>';
+      return html + '</div></div>';
     };
     const w1 = rows.watch.filter((r) => r.sig.indexOf('W1') >= 0);
     const wAvg = w1.length ? w1.reduce((a, r) => a + (parseFloat(String(r.cur).replace(/[^\d.]/g, '')) || 0), 0) / w1.length : null;
@@ -16439,15 +16444,24 @@ function renderSignalDash() {
     const bnAll = ((mk && mk.banner) || []).concat(['<b>自选池</b>｜加权估值分位 ' + (wAvg == null ? '—' : wAvg.toFixed(0) + '%') + '｜行动档 ' + wAct + ' 只｜待过闸门 ' + wGate + ' 只' + (envTxt ? '｜' + envTxt : '')]);
     const bnFmt = (s) => { const i = s.indexOf('\uff5c'); return i > 0 ? '<span style="font-size:11px;color:var(--muted,#94a3b8)">' + s.slice(0, i) + '</span>' + s.slice(i) : s; };
     /* fw2_v173_rscale：--border 是幽灵 token（全文件无定义、恒走 #e3e7ee）-> 收编 --line */
-    body.innerHTML = '<div style="border:1px solid var(--line);border-radius:8px;padding:8px 12px;margin-bottom:10px;font-size: 13px;line-height:1.9;color:var(--text-2,#475569)">' + bnAll.map(bnFmt).join('<br>') + '</div>'
+    var actTot = (rows.hold.filter((r) => r.lvl === 'act').length + rows.watch.filter((r) => r.lvl === 'act').length + ((mk && mk.rows) || []).filter((r) => r.lvl === 'act').length);
+    var nearTot = (rows.hold.filter((r) => r.lvl === 'near').length + rows.watch.filter((r) => r.lvl === 'near').length + ((mk && mk.rows) || []).filter((r) => r.lvl === 'near').length);
+    var watchTot = (rows.hold.filter((r) => r.lvl === 'watch').length + rows.watch.filter((r) => r.lvl === 'watch').length + ((mk && mk.rows) || []).filter((r) => r.lvl === 'watch').length);
+    var vTone = actTot ? 't-hot' : (envTxt || '').indexOf('过热') >= 0 ? 't-hot' : (envTxt || '').indexOf('低迷') >= 0 ? 't-cold' : 't-neu';
+    var vMain = '信号仪表盘 · 行动 ' + actTot + ' · 接近 ' + nearTot + ' · 观察 ' + watchTot;
+    var vVid = bnAll.map(bnFmt).join('｜');
+    body.innerHTML = '<div class="dc-verdict ' + vTone + '"><div class="dc-vmain">' + vMain + '</div><div class="dc-vevid">' + vVid + '</div></div>'
+      + '<div class="dc-grid">'
       /* v31b: 市场信号置顶 */ /* fw2_sig_order_v31b */
       + grp('市场信号（环境 / 温度计 / 资金面）', (mk && mk.rows) || [], null)
       + grp('持仓信号（止盈 / 止损 / 加仓 / 仓位）', rows.hold, rows.meta.filter((m) => m.pool === 'hold'))
       + grp('自选信号（买入时机 / 风险）', rows.watch, rows.meta.filter((m) => m.pool === 'watch'),
         '自选来源：' + (state._wlSrc === 'DB' ? '资料库自选表' : state._wlSrc === '种子' ? '旁挂种子' : state._wlSrc === '内置' ? '页面内置快照' : '未取得') + ' ' + ((state.watchlist || []).length) + ' 只'
-        + (state._wlErr ? ' · ⚠ ' + state._wlErr : ''));
+        + (state._wlErr ? ' · ⚠ ' + state._wlErr : ''))
+      + '</div>'
+      + '<div class="dc-note">触发≠自动交易 · 阈值锁季度复盘日（T12/D9）· 市场信号=环境提示非指令 · 标的级明细在此，汇总结论见「决策总览」。</div>';
     body.onclick = (e) => {
-      const gb = e.target.closest('.sig-grp');
+      const gb = e.target.closest('.dc-hd[data-grp]');
       if (gb) {
         const k = gb.dataset.grp;
         grpFold[k] = !grpFold[k];
