@@ -10426,6 +10426,7 @@ window.HS_name = function (code) {
         { code: '012920', name: '全球成长', pile: 'off', w: 10, etf: '', inner: '', outerName: '', track: '全球科技' },
         { code: '016452', name: '纳指100', pile: 'off', w: 5, etf: '', inner: '', outerName: '', track: '纳斯达克100' },
         { code: '511360', name: '短融', pile: 'bond', w: 10, etf: '511360', inner: 'sh511360', outerName: '短融ETF', track: '中证短融' },
+        { code: '007866', name: '货币基金', pile: 'bond', w: 0, etf: '', inner: '', outerName: '', track: '货币基金' }, /* v258 fw2_v258_cash_bond：货基存量归安全垫（目标 0，档位目标不变 10%）；w=0 不占目标权重 */
         { code: '511260', name: '10年国债', pile: 'hedge', w: 5, etf: '511260', inner: 'sh511260', outerName: '10年国债ETF', track: '上证10年国债' },
         { code: '159934', name: '黄金', pile: 'hedge', w: 10, etf: '159934', inner: 'sz159934', outerName: '黄金ETF', track: '上海金' },
       ],
@@ -16241,10 +16242,10 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
      ③ fitSmartMoney 改取 max(doc.scrollHeight, body.scrollHeight)，防漏量子应用真实高度。
      verChip v231->v232（资产配置表整体美化：表头强化 / 金额右对齐 / 板块分隔线 / hover / 合计底色）
      verChip v233->v234（删除策略执行「事件触发表」：DOM/渲染/显隐逻辑整体移除，不再显示）
-     verChip v256->v257（真正落盘 v256 目标列修复：extra 存量行目标金额/占比「—」→「0 / 0.00%」，019441 纳指100/000746/007866 目标 0 = 清仓口径）
+     verChip v257->v258（007866 货币基金归入「安全垫」档位：barbell.funds +pile=bond(w=0)、extra 现金类自动归组、档位目标仍 10% 不变、实际计入 12%；未来货基自动同主题汇总）
   */
   const vc = $('#verChip');
-  if (vc) vc.textContent = 'v257 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  if (vc) vc.textContent = 'v258 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
@@ -18172,6 +18173,7 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
   /* fw2_v255_pile_align：档位目标与档位内标的目标占比对齐（A500 +1,250 / 创业板50 −1,250，宽基合计不变 45%）。 */
   /* fw2_v256_extra_tgt0：extra 存量行目标列「—」→「0 / 0.00%」（019441 纳指/计划外，目标 0 = 清仓口径）。 */
   /* fw2_v257_extra_tgt0_fix：v256 替换未落盘（脚本 print 崩溃），v257 补齐落盘并升版。 */
+  /* fw2_v258_cash_bond：007866 货币基金归「安全垫」（pile=bond w=0，档位目标不变 10%）；extra 现金类自动归组；未来货基同主题汇总。 */
   var ALLOC_DEF = [
     { grp: '宽基', meta: [
       ['563360', 'A500', '华泰柏瑞 A500', '场内ETF', 'A股', '底仓/缓冲'],
@@ -18221,7 +18223,8 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
         var xth = h.assetType === 'cash' ? '现金' : (h.sector || '基金');
         var xnm = h.name || c6;
         if (/纳指|纳斯达克|nasdaq/i.test(xnm)) xth = '纳指100'; /* v244 fw2_v244_theme_agg：纳指类（016452/019441/未来买入）本质统一为「纳指100」主题 */
-        extra.push({ code: c6, name: h.name || c6, theme: xth, grp: xth, sub: xth + ' · 存量', mv: mv, pile: (xth === '纳指100' ? '进攻/主题' : null) }); /* v246 fw2_v246_pile_theme：纳指类存量（万家纳斯达克100 019441）档位归入「进攻/主题」，与南方纳指100 同组相邻；其余存量仍归计划外 */
+        var pileOf = (xth === '纳指100') ? '进攻/主题' : (xth === '现金' ? '安全垫' : null); /* v246 fw2_v246_pile_theme：纳指类存量（019441）归「进攻/主题」；v258 fw2_v258_cash_bond：货币基金类存量（007866 活期宝）归「安全垫」——未来其他货基自动同主题「现金」汇总（thGroups ≥2 自动小计） */
+        extra.push({ code: c6, name: h.name || c6, theme: xth, grp: xth, sub: xth + ' · 存量', mv: mv, pile: pileOf });
       }
     });
     /* 档位再平衡（实盘四档，复用 barbellActual 持仓快照口径） */
@@ -18276,7 +18279,7 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
       themeStrip += '<div class="theme-chip ' + tcls + '"><b>' + esc(t.name) + '</b>' + (t.n > 1 ? '<em>×' + t.n + '</em>' : '') + '<span>目标 ' + amt(t.tgt) + '</span><span>实际 ' + amt(t.mv) + '</span><span class="t-off">' + (off > 0 ? '+' : '') + off.toFixed(1) + '%</span></div>';
     });
     themeStrip += '</div>';
-    html += '<div class="st-card"><h4>资产配置（5 万计划 · 目标 11 只' + (extra.length ? ' · 计划外 ' + extra.length + ' 只' : '') + '）</h4><div class="strat-note">目标 = 计划配置；实际 = 持仓市值（份额 × 最新净值/行情估值）；调仓金额 = 目标 − 实际（+需买入 / −需卖出）；目标偏移 = 调仓金额 ÷ 目标。未建仓标的暂不显示差额偏移，执行按「差额 ÷ 剩余月」逐月推进。001015 300增强已恢复建仓（宽基内让出）。计划外持仓 = 存量标的未纳入配置目标（含现金），相对目标 0 完全超配，建议按纪律调整。口径：表格按档位分组（底仓/缓冲、进攻/主题、安全垫、对冲、计划外），档位列合并显示档位平衡目标%（见上方「档位再平衡」卡）；「标的占比」= 持仓市值 ÷ 总目标（未建仓 0.00%，合计 = 各行之和）；第 5 列「主题」= 底层指数/资产本质，同本质资产同组相邻（如 纳指100 = 南方纳指100 + 万家纳斯达克100）；「目标占比」= 各标的目标金额 ÷ 总目标（合计 100.00%）；「标的占比」= 持仓市值 ÷ 总目标（未建仓 0.00%，合计 = 各行之和）；同主题 ≥2 只时输出主题小计行（如 纳指100 = 016452+019441，未来同类自动小计）；纳指类存量已按资产属性并入「进攻/主题」组，其目标仍为 0（调仓 = 清仓口径）。</div>' +
+    html += '<div class="st-card"><h4>资产配置（5 万计划 · 目标 11 只' + (extra.length ? ' · 计划外 ' + extra.length + ' 只' : '') + '）</h4><div class="strat-note">目标 = 计划配置；实际 = 持仓市值（份额 × 最新净值/行情估值）；调仓金额 = 目标 − 实际（+需买入 / −需卖出）；目标偏移 = 调仓金额 ÷ 目标。未建仓标的暂不显示差额偏移，执行按「差额 ÷ 剩余月」逐月推进。001015 300增强已恢复建仓（宽基内让出）。计划外持仓 = 存量标的未纳入配置目标（含现金），相对目标 0 完全超配，建议按纪律调整。口径：表格按档位分组（底仓/缓冲、进攻/主题、安全垫、对冲、计划外），档位列合并显示档位平衡目标%（见上方「档位再平衡」卡）；「标的占比」= 持仓市值 ÷ 总目标（未建仓 0.00%，合计 = 各行之和）；第 5 列「主题」= 底层指数/资产本质，同本质资产同组相邻（如 纳指100 = 南方纳指100 + 万家纳斯达克100）；「目标占比」= 各标的目标金额 ÷ 总目标（合计 100.00%）；「标的占比」= 持仓市值 ÷ 总目标（未建仓 0.00%，合计 = 各行之和）；同主题 ≥2 只时输出主题小计行（如 纳指100 = 016452+019441，未来同类自动小计）；纳指类存量已按资产属性并入「进攻/主题」组，其目标仍为 0（调仓 = 清仓口径）；货币基金类存量（007866 活期宝）并入「安全垫」组（档位目标合计不变，仍 10%），目标 0、实际计入档位（安全垫实际 ≈ 12%），未来其他货币基金自动同主题「现金」汇总小计。</div>' +
       (themeList.length ? '<div class="theme-head">主题敞口 · 同本质资产合并（含计划外）</div>' + themeStrip : '') +
       '<div class="tbl-scroll"><table class="st-tbl alloc-tbl">' +
       '<colgroup><col style="width:8%"><col style="width:8%"><col style="width:7%"><col style="width:16%"><col style="width:8%"><col style="width:9%"><col style="width:7%"><col style="width:9%"><col style="width:7%"><col style="width:9%"><col style="width:12%"></colgroup>' +
