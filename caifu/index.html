@@ -16176,20 +16176,25 @@ function renderRadarView() { /* 雷达：聪明钱在买什么 / 卖什么（A�
   var o = _smOverall(D, AS, D && D.fastSignals);
   var my = _smMySet();
   var esc2 = function (x) { return String(x == null ? '' : x).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); };
-  var rowsBuy = [], rowsSell = [];
+  var rowsBuyA = [], rowsSellA = [], rowsBuyU = [], rowsSellU = [];
   (AS && AS.consensus || []).forEach(function (c) {
     var net = c.net || 0;
     var it = { market: 'A股', name: c.name || c.code || '', code: c.code || '', extra: (c.sector || '') + ' · ' + (c.nHolders || 0) + ' 家持有', ni: c.add || 0, nd: c.dec || 0, dlt: net, sign: c.sign || (net > 0 ? '共识加仓' : '共识减仓') };
-    if (net > 0) rowsBuy.push(it); else if (net < 0) rowsSell.push(it);
+    if (net > 0) rowsBuyA.push(it); else if (net < 0) rowsSellA.push(it);
   });
   (D && D.stocks || []).forEach(function (s) {
     var ni = s.ni || 0, nd = s.nd || 0, diff = ni - nd, dlt = s.dlt || 0;
     if (!diff && !dlt) return;
     var it = { market: '美股', name: s.issuer || s.ticker || '', code: s.ticker || '', extra: (s.nh ? (Array.isArray(s.nh) ? (s.nh[3] || 0) : s.nh) : 0) + '/' + (o.usMkt || '—') + ' 家持有', ni: ni, nd: nd, dlt: dlt, sign: diff > 0 ? '机构加仓' : diff < 0 ? '机构减仓' : dlt > 0 ? '净额流入' : '净额流出' };
-    if (diff > 0 || dlt > 0) rowsBuy.push(it); else if (diff < 0 || dlt < 0) rowsSell.push(it);
+    if (diff > 0 || dlt > 0) rowsBuyU.push(it); else if (diff < 0 || dlt < 0) rowsSellU.push(it);
   });
-  rowsBuy.sort(function (a, b) { return (b.ni - b.nd) - (a.ni - a.nd) || b.dlt - a.dlt; });
-  rowsSell.sort(function (a, b) { return (a.ni - a.nd) - (b.ni - b.nd) || a.dlt - b.dlt; });
+  /* A股/美股 各取 Top6 配额合并（A股 consensus 净变化通常 1-2 家，不与美股 10+ 家混排，否则 A股 永远被挤出榜外） */
+  rowsBuyA.sort(function (a, b) { return (b.ni - b.nd) - (a.ni - a.nd) || b.dlt - a.dlt; });
+  rowsSellA.sort(function (a, b) { return (a.ni - a.nd) - (b.ni - b.nd) || a.dlt - b.dlt; });
+  rowsBuyU.sort(function (a, b) { return (b.ni - b.nd) - (a.ni - a.nd) || b.dlt - a.dlt; });
+  rowsSellU.sort(function (a, b) { return (a.ni - a.nd) - (b.ni - b.nd) || a.dlt - b.dlt; });
+  var rowsBuy = rowsBuyA.slice(0, 6).concat(rowsBuyU.slice(0, 6));
+  var rowsSell = rowsSellA.slice(0, 6).concat(rowsSellU.slice(0, 6));
   function rankTbl(rows, max, up) {
     if (!rows.length) return '<div class="xov-note">本方向暂无明显信号</div>';
     var h = '<table class="sm-radar-tbl"><thead><tr><th>标的</th><th>市场</th><th>持有</th><th>加仓</th><th>减仓</th><th class="num">净变化</th><th>信号</th><th>与我关系</th></tr></thead><tbody>';
@@ -16207,8 +16212,8 @@ function renderRadarView() { /* 雷达：聪明钱在买什么 / 卖什么（A�
   var h = '<div class="xov-title"><h3>聪明钱雷达</h3><span class="xov-sub">聪明钱正在买什么 / 卖什么 · 报告期 ' + (o.asOf || '—') + ' · 命中你的持仓/自选会高亮</span></div>';
   h += '<div class="xov-concl"><div class="xov-c">A股共识 ' + (o.aUp || 0) + ' 加 / ' + (o.aDown || 0) + ' 减</div><div class="xov-c">美股13F 集中加仓 ' + (o.usAdd || 0) + ' / 集中减仓 ' + (o.usTrim || 0) + '</div>'
     + '<div class="xov-c b">更快信号：美股内幕/举牌 ' + o.f4 + '/' + o.d13 + ' 笔 · A股大宗 ' + o.bd + ' 笔 · 两融 ' + o.mg + ' 条</div></div>';
-  h += '<div class="sm-2col"><div class="xov-fund"><div class="xov-mixh up">聪明钱在买入（净加仓 Top）</div>' + rankTbl(rowsBuy, 12, true) + '</div>'
-    + '<div class="xov-fund"><div class="xov-mixh down">聪明钱在卖出（净减仓 Top）</div>' + rankTbl(rowsSell, 12, false) + '</div></div>';
+  h += '<div class="sm-2col"><div class="xov-fund"><div class="xov-mixh up">聪明钱在买入<span class="hint" style="font-weight:400">（A股 Top' + Math.min(rowsBuyA.length, 6) + ' + 美股 Top' + Math.min(rowsBuyU.length, 6) + '）</span></div>' + rankTbl(rowsBuy, 12, true) + '</div>'
+    + '<div class="xov-fund"><div class="xov-mixh down">聪明钱在卖出<span class="hint" style="font-weight:400">（A股 Top' + Math.min(rowsSellA.length, 6) + ' + 美股 Top' + Math.min(rowsSellU.length, 6) + '）</span></div>' + rankTbl(rowsSell, 12, false) + '</div></div>';
   h += '<div class="xov-note">口径：A股 = 东财汇金/机构共识净变化（报告期快照，季度滞后）；美股 = SEC 13F 全部机构加/减机构数与金额净变化（约 45 天滞后）；更快信号为更早的领先参考（美股 Form4/13D、A股大宗/两融）。「与我关系」命中你的持仓/自选基金或其重仓股。榜项细节可到「数据抽屉」查机构明细。辅助决策，非投资建议。</div>';
   box.innerHTML = h;
 }
