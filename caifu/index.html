@@ -16194,7 +16194,7 @@ function renderRadarView() { /* 雷达：聪明钱在买什么 / 卖什么（A�
     if (!rows.length) return '<div class="xov-note">本方向暂无明显信号</div>';
     var h = '<table class="sm-radar-tbl"><thead><tr><th>标的</th><th>市场</th><th>持有</th><th>加仓</th><th>减仓</th><th class="num">净变化</th><th>信号</th><th>与我关系</th></tr></thead><tbody>';
     rows.slice(0, max).forEach(function (it) {
-      var d = (up ? it.ni - it.nd : -(it.ni - it.nd)) || it.dlt;
+      var d = (it.ni - it.nd) || it.dlt; /* 买卖榜统一：净变化=加仓-减仓，卖出榜自然为负 */
       h += '<tr><td><span class="name">' + esc2(it.name) + '</span><div class="xov-code">' + esc2(it.code) + '</div></td>'
         + '<td><span class="sm-mkt ' + (it.market === 'A股' ? 'sm-mkt-a' : 'sm-mkt-u') + '">' + it.market + '</span></td>'
         + '<td class="num">' + it.extra + '</td><td class="num up">' + (it.ni || 0) + '</td><td class="num down">' + (it.nd || 0) + '</td>'
@@ -16721,8 +16721,10 @@ function etfChgPct2(hist, n){
   return (hist[hist.length - 1].shares - base) / base * 100;
 }
 function renderEtfShares(){
-  var box = document.getElementById('etfSharesBox') || document.getElementById('nhbEtfSharesBox');
-  if (!box || !__ETF_SHARES__) return;
+  var boxes = [];
+  var b1 = document.getElementById('etfSharesBox'); if (b1) boxes.push(b1);
+  var b2 = document.getElementById('nhbEtfSharesBox'); if (b2) boxes.push(b2);
+  if (!boxes.length || !__ETF_SHARES__) return;
   var codes = __ETF_SHARES__.codes || {};
   var order = ['510300','510310','510330','159919','510050','510500','512100','159915','588000'];
   var names = {'510300':'沪深300ETF华泰柏瑞','510310':'沪深300ETF易方达','510330':'沪深300ETF华夏',
@@ -16779,7 +16781,7 @@ function renderEtfShares(){
   });
   h += '</tbody></table></div>';
   h += '<div class="mut" style="font-size:var(--fs-xs,12px);margin-top:8px;color:var(--txt3,#5b6472)">份额口径=ETF 总份额（东财 f84，含场内申赎与联接申购）；「1/5/20日」=相对前一/第五/第二十个交易日的份额变化%；历史序列每日由工作台自动抓取累积（官网仅留近几交易日，无法回溯），数据文件 caifu/data/etf-shares.json。国家队信号仅供参考：单日大额申购（份额跳增）常对应国家队/大资金入场窗口，连续净申购是最强信号；反之大额赎回提示资金流出。与上方「汇金具名持仓（年报/中报）」互为印证。</div>';
-  box.innerHTML = h;
+  boxes.forEach(function (box) { box.innerHTML = h; });
 }
 function loadEtfShares(){
   if (__ETF_SHARES__) { renderEtfShares(); return; }
