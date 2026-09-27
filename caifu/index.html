@@ -11061,10 +11061,10 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
      ③ fitSmartMoney 改取 max(doc.scrollHeight, body.scrollHeight)，防漏量子应用真实高度。
      verChip v231->v232（资产配置表整体美化：表头强化 / 金额右对齐 / 板块分隔线 / hover / 合计底色）
      verChip v233->v234（删除策略执行「事件触发表」：DOM/渲染/显隐逻辑整体移除，不再显示）
-     verChip v263->v264（聪明的钱「国家队 · 中央汇金」新增「国家队宽基 ETF · 每日份额跟踪」：9 只国家队宽基 ETF 每日总份额曲线/1-5-20日变化/增减持信号；数据 caifu/data/etf-shares.json 由 cron 每日抓取东财 f84 累积，替代手动看官网）
+     verChip v264->v265（份额面板从隐藏 iframe 子应用移到父页直渲染「决策看板」内——v203.3 重构后聪明的钱由父页渲染，iframe 宽高为 0 不可见；面板现位于决策看板卡流之后，9 只国家队宽基 ETF 每日份额/变化/信号 + cron 每日自动累积）
   */
   const vc = $('#verChip');
-  if (vc) vc.textContent = 'v264 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  if (vc) vc.textContent = 'v265 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
@@ -12516,6 +12516,22 @@ section.sm13f-view{display:none;padding-top:22px}
 
 /* fw2_v194_sm_merge：聪明的钱 = A股/美股 分区（市场条 + 面板 + 跨市场速览卡） */
 #view-smartmoney .sm-market-bar { display: flex; align-items: center; gap: 6px; margin: 2px 0 12px; }
+/* fw2_v265_etf_shares_sm：国家队宽基 ETF 每日份额面板（父页直渲染，决策看板内） */
+#view-smartmoney #etfSharesBox .spark{display:block;width:118px;height:30px;margin:0 auto}
+#view-smartmoney #etfSharesBox .sig-up{color:#d0302e;font-weight:600}
+#view-smartmoney #etfSharesBox .sig-down{color:#1a9c5c;font-weight:600}
+#view-smartmoney #etfSharesBox .sig-flat{color:var(--txt3,#5b6472)}
+#view-smartmoney #etfSharesBox .mut{color:var(--txt3,#5b6472)}
+#view-smartmoney #etfSharesBox .sec-head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:8px}
+#view-smartmoney #etfSharesBox .sec-head h2{font-size:15px;font-weight:700;margin:0}
+#view-smartmoney #etfSharesBox .tbl-wrap{overflow-x:auto}
+#view-smartmoney #etfSharesBox table{width:100%;border-collapse:collapse;background:#fff}
+#view-smartmoney #etfSharesBox th,#view-smartmoney #etfSharesBox td{border-bottom:1px solid #edf0f3;padding:7px 8px;font-size:12.5px;text-align:left;vertical-align:middle;white-space:nowrap}
+#view-smartmoney #etfSharesBox th{background:#f6f8fa;color:var(--txt2,#4b5563);font-weight:600}
+#view-smartmoney #etfSharesBox .num{text-align:right;font-variant-numeric:tabular-nums}
+#view-smartmoney #etfSharesBox .up{color:#d0302e}
+#view-smartmoney #etfSharesBox .down{color:#1a9c5c}
+
 #view-smartmoney .sm-mlab { font-size: 12px; color: #6b7280; margin-right: 2px; cursor: pointer; padding: 2px 6px; border-radius: 6px; user-select: none; }
 #view-smartmoney .sm-mlab:hover { color: #4D6BFE; background: #eef4ff; }
 #view-smartmoney .sm-m-btn { appearance: none; border: 1px solid var(--line); background: #fff; color: var(--text-2); border-radius: 8px; padding: 5px 14px; font: inherit; font-size: 12.5px; cursor: pointer; transition: background .15s; }
@@ -13012,6 +13028,7 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
   /* fw2_v262_tgt_denom：档位实际占比分母 = 总目标（5 万计划）；barbellActual 金额改市值口径，档位卡与资产配置表实际% 一致。 */
   /* fw2_v263_theme_pct：主题敞口 chips 增加「占比 ÷ 总目标」显示，与档位卡同口径。 */
   /* fw2_v264_etf_shares：聪明的钱新增国家队宽基 ETF 每日份额跟踪面板（数据 caifu/data/etf-shares.json）。 */
+  /* fw2_v265_etf_shares_sm：份额面板移入父页直渲染决策看板（iframe 不可见修复）。 */
   var ALLOC_DEF = [
     { grp: '宽基', meta: [
       ['563360', 'A500', '华泰柏瑞 A500', '场内ETF', 'A股', '底仓/缓冲'],
@@ -16477,6 +16494,93 @@ function _xovOverlap(fh) { /* 独立风险源 · 双基金重叠度（016452 × 
     + '<div class="c"><div class="lab">链条判定 · AI 算力/半导体</div><div class="val" style="color:' + warnColor + '">' + warn + '</div><div class="foot">016452 前十大 ' + chainA.toFixed(0) + '% / 012920 约 ' + chainB.toFixed(0) + '% 属该链条</div></div>'
     + '</div><div class="xov-note">' + a.fund + ' 前十大是<b>半导体/AI 算力产业链</b>（设备 LRCX·ASML、存储 KIOXIA·SNDK、代工 TSM、芯片 AMD·INTC + A股光模块 300502 新易盛 / 300308 中际旭创 / 688498 源杰科技），约 ' + chainA.toFixed(0) + '% 净值集中在同一链条；' + b.fund + ' 为纳指 100 宽基，半导体亦为第一大板块（NVDA·AMD·MU·INTC 约 ' + chainB.toFixed(0) + '%）。两者实为<b>同一 AI 算力链条的双份暴露</b>，回调时跌幅会同向放大——你的两条止损线（012920 −8% / 016452 −10%）可能<b>同源触发</b>，勿把「两只同时止损」误判为独立事件。与黄金/债券低相关：该链条属进攻腿，与债券（25–35%）、黄金（≥15%）防御腿相关性低，维持半杠铃再平衡即可。</div></div>';
 }
+/* ============ 国家队宽基 ETF · 每日份额（fw2_v265_etf_shares_sm，父页直渲染） ============ */
+var __ETF_SHARES__ = null, __ETF_SHARES_TRY__ = 0;
+function etfChgPct2(hist, n){
+  var i = hist.length - 1 - n;
+  if (i < 0) return null;
+  var base = hist[i].shares;
+  if (!base || base <= 0) return null;
+  return (hist[hist.length - 1].shares - base) / base * 100;
+}
+function renderEtfShares(){
+  var box = document.getElementById('etfSharesBox');
+  if (!box || !__ETF_SHARES__) return;
+  var codes = __ETF_SHARES__.codes || {};
+  var order = ['510300','510310','510330','159919','510050','510500','512100','159915','588000'];
+  var names = {'510300':'沪深300ETF华泰柏瑞','510310':'沪深300ETF易方达','510330':'沪深300ETF华夏',
+               '159919':'沪深300ETF嘉实','510050':'上证50ETF华夏','510500':'中证500ETF南方',
+               '512100':'中证1000ETF南方','159915':'创业板ETF易方达','588000':'科创50ETF华夏'};
+  var idxs = {'510300':'沪深300','510310':'沪深300','510330':'沪深300','159919':'沪深300',
+              '510050':'上证50','510500':'中证500','512100':'中证1000','159915':'创业板指','588000':'科创50'};
+  var h = '<div class="sec-head"><h2>国家队宽基 ETF · 每日份额</h2><span class="hint" style="color:var(--txt3,#5b6472);font-size:var(--fs-xs,12px)">每日抓取（东财 push2 f84，T 日晚 23:00 后更新）· 份额大增≈国家队入场 · 更新至 ' + esc(__ETF_SHARES__.updatedAt || '—') + '</span></div>';
+  h += '<div class="tbl-wrap"><table><thead><tr>'
+    + '<th style="min-width:150px">ETF</th><th>指数</th>'
+    + '<th class="num">最新份额<br>(亿份)</th><th class="num">1日</th><th class="num">5日</th><th class="num">20日</th>'
+    + '<th class="num">信号</th><th style="min-width:150px">近20交易日趋势</th></tr></thead><tbody>';
+  order.forEach(function(code){
+    var r = codes[code];
+    if (!r) return;
+    var hist = (r.hist || []).slice().sort(function(a, b){ return a.d < b.d ? -1 : 1; });
+    if (!hist.length) return;
+    var last = hist[hist.length - 1].shares;
+    var d1 = etfChgPct2(hist, 1), d5 = etfChgPct2(hist, 5), d20 = etfChgPct2(hist, 20);
+    var sigCls = 'sig-flat', sig = '平稳';
+    if (d1 != null && d1 > 0.5) { sigCls = 'sig-up'; sig = '增持'; }
+    else if (d1 != null && d1 < -0.5) { sigCls = 'sig-down'; sig = '减持'; }
+    var run = 0, dir = 0;
+    for (var i = hist.length - 1; i >= 1; i--) {
+      var diff = hist[i].shares - hist[i - 1].shares;
+      if (diff > 0) { if (dir >= 0) { run++; dir = 1; } else break; }
+      else if (diff < 0) { if (dir <= 0) { run++; dir = -1; } else break; }
+      else break;
+    }
+    if (run >= 3) { sigCls = dir > 0 ? 'sig-up' : 'sig-down'; sig = '连续' + run + '日' + (dir > 0 ? '增持' : '减持'); }
+    var win = hist.slice(-20), pts = [];
+    var mn = Infinity, mx = -Infinity;
+    win.forEach(function(h2){ if (h2.shares < mn) mn = h2.shares; if (h2.shares > mx) mx = h2.shares; });
+    if (mx === mn) mx = mn + 1;
+    win.forEach(function(h2, i2){
+      var x = 6 + i2 * (106 / Math.max(win.length - 1, 1));
+      var y = 26 - (h2.shares - mn) / (mx - mn) * 22;
+      pts.push(x.toFixed(1) + ',' + y.toFixed(1));
+    });
+    var up = win[win.length - 1].shares >= win[0].shares;
+    var poly = '<svg class="spark" viewBox="0 0 118 30" preserveAspectRatio="none"><polyline fill="none" stroke="' + (up ? '#d0302e' : '#1a9c5c') + '" stroke-width="1.4" points="' + pts.join(' ') + '"/></svg>';
+    function cell(v){
+      if (v == null) return '<span class="mut">—</span>';
+      return '<span class="' + (v > 0 ? 'up' : v < 0 ? 'down' : '') + '">' + (v > 0 ? '+' : '') + v.toFixed(1) + '%</span>';
+    }
+    h += '<tr><td><b>' + esc(r.name || names[code] || code) + '</b><span class="mut" style="font-family:monospace;margin-left:4px">' + code + '</span></td>'
+      + '<td><span style="background:#eef2f7;color:#33475b;border-radius:4px;padding:1px 6px;font-size:12px">' + esc(idxs[code] || '—') + '</span></td>'
+      + '<td class="num"><b>' + (last / 1e8).toFixed(1) + '</b></td>'
+      + '<td class="num">' + cell(d1) + '</td>'
+      + '<td class="num">' + cell(d5) + '</td>'
+      + '<td class="num">' + cell(d20) + '</td>'
+      + '<td class="num"><span class="' + sigCls + '">' + esc(sig) + '</span></td>'
+      + '<td>' + poly + '</td></tr>';
+  });
+  h += '</tbody></table></div>';
+  h += '<div class="mut" style="font-size:var(--fs-xs,12px);margin-top:8px;color:var(--txt3,#5b6472)">份额口径=ETF 总份额（东财 f84，含场内申赎与联接申购）；「1/5/20日」=相对前一/第五/第二十个交易日的份额变化%；历史序列每日由工作台自动抓取累积（官网仅留近几交易日，无法回溯），数据文件 caifu/data/etf-shares.json。国家队信号仅供参考：单日大额申购（份额跳增）常对应国家队/大资金入场窗口，连续净申购是最强信号；反之大额赎回提示资金流出。与上方「汇金具名持仓（年报/中报）」互为印证。</div>';
+  box.innerHTML = h;
+}
+function loadEtfShares(){
+  if (__ETF_SHARES__) { renderEtfShares(); return; }
+  if (__ETF_SHARES_TRY__ > 2) return;
+  __ETF_SHARES_TRY__++;
+  var urls = [
+    'data/etf-shares.json',
+    'https://raw.githubusercontent.com/andylauxiaoyang/investment-workbench/master/caifu/data/etf-shares.json?cb=' + Date.now()
+  ];
+  var i = 0;
+  function next(){
+    if (i >= urls.length) { renderEtfShares(); return; }
+    fetch(urls[i++]).then(function(r){ if (!r.ok) throw new Error('http ' + r.status); return r.json(); })
+      .then(function(j){ __ETF_SHARES__ = j; renderEtfShares(); })
+      .catch(function(){ next(); });
+  }
+  next();
+}
 function renderXOverview() {
   var box = document.getElementById('smXOverview'); if (!box || !window.SM_XOV) return;
   var D = null;
@@ -16649,7 +16753,9 @@ function renderXOverview() {
     + '<div class="xov-sec"><span class="bar"></span>决策看板 · 按动作分组<span class="hint">——行动 → 观察 → 维持；市场不拆开（A股/美股/混合同卡），卡尾动作条为该档依据</span></div>'
     + gHtml
     + secOV
+    + '<div class="sec" id="etfSharesBox" style="margin-top:18px;padding:14px 16px;border:1px solid #e8ecf2;border-radius:10px;background:#fff"><div class="mut" style="font-size:var(--fs-xs,12px);color:var(--txt3,#5b6472)">每日份额数据加载中…</div></div>'
     + '<div class="xov-foot">口径：A股侧＝基金十大重仓 × 东财汇金/机构共识（基金重仓为报告期末快照，存在滞后）；美股侧＝QDII 十大重仓 × SEC EDGAR 13F（全部 ' + (D && D.overview ? D.overview.inst_count : '—') + ' 家机构，约 45 天滞后）；012920 为混合基金：A股 12.6% 净值未入汇金/共识池，如实标注；019441 与 016452 同跟踪纳指100 共享评估；货币基金不参与股票穿透。分组判定＝决策动作条（承压且减仓≥2 / 温度≥0.8 → 行动；承压 / 温度≥0.5 或 ≤−0.35 → 观察；其余维持）。机构名单 / 共识 / 反查请到 A股 / 美股页查看。</div>';
+  loadEtfShares();
 }
 if (document.getElementById('smXOverview')) renderXOverview();
 
