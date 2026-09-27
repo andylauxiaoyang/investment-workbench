@@ -16241,10 +16241,10 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
      ③ fitSmartMoney 改取 max(doc.scrollHeight, body.scrollHeight)，防漏量子应用真实高度。
      verChip v231->v232（资产配置表整体美化：表头强化 / 金额右对齐 / 板块分隔线 / hover / 合计底色）
      verChip v233->v234（删除策略执行「事件触发表」：DOM/渲染/显隐逻辑整体移除，不再显示）
-     verChip v240->v241（资产配置表：差额/偏移 改为 调仓金额/目标偏移——算法反转，调仓金额 = 目标 − 实际，+需买入 / −需卖出）
+     verChip v241->v242（资产配置表：修复「标的占比」列口径——改为该标的市值 ÷ 总目标（原误用目标占比，与合计口径不一致））
   */
   const vc = $('#verChip');
-  if (vc) vc.textContent = 'v241 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  if (vc) vc.textContent = 'v242 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
@@ -18143,6 +18143,7 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
   /* fw2_v239_mv_nav + fw2_v239_extra_holdings：资产配置表——实际金额=份额×最新估值/行情（市值，非成本）；计划外持仓（存量未纳入目标、含现金）并入表格，合计含计划外市值。 */
   /* fw2_v240_nav_fb：市值口径补强——quotes 估值不可用时回退 fund-daily 最新净值（异步加载缓存 __ALLOC_NAV__，加载后重渲染），再无则成本兜底。 */
   /* fw2_v241_adjust_amt：差额/偏移 → 调仓金额/目标偏移——算法反转（调仓金额 = 目标 − 实际），+需买入（红）/-需卖出（绿）；计划外目标 0 → -100% 全部需卖出；合计 = 总目标 − 总市值。 */
+  /* fw2_v242_pct_mv：修复「标的占比」列——每行 = 该标的市值 ÷ 总目标（未建仓 0.00%），合计 = 各行之和（原误用目标占比导致行合计对不上）。 */
   var ALLOC_DEF = [
     { grp: '宽基', meta: [
       ['563360', 'A500', '华泰柏瑞 A500', '场内ETF', 'A股', '底仓/缓冲'],
@@ -18215,7 +18216,7 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
     }).join('');
     var html = '<div class="st-card"><h4>档位再平衡（实盘四档 · 目标年化 8~10%）</h4><div class="strat-note">档位权重 = 实盘持仓快照 ÷ 持仓总市值；偏离目标 ≥ ±' + ((act && act.cfg.band) || 5) + 'pp 标红提示再平衡。</div><div class="bb-tiles">' + tiles + '</div></div>';
     var PILE_COLOR = { '底仓/缓冲': '#4D6BFE', '进攻/主题': '#d98c00', '安全垫': '#059669', '对冲': '#b45309' };
-    html += '<div class="st-card"><h4>资产配置（5 万计划 · 目标 11 只' + (extra.length ? ' · 计划外 ' + extra.length + ' 只' : '') + '）</h4><div class="strat-note">目标 = 计划配置；实际 = 持仓市值（份额 × 最新净值/行情估值）；调仓金额 = 目标 − 实际（+需买入 / −需卖出）；目标偏移 = 调仓金额 ÷ 目标。未建仓标的暂不显示差额偏移，执行按「差额 ÷ 剩余月」逐月推进。001015 300增强已恢复建仓（宽基内让出）。计划外持仓 = 存量标的未纳入配置目标（含现金），相对目标 0 完全超配，建议按纪律调整。口径：表格内「实际占比」= 持仓市值 ÷ 总目标（与目标占比同基准）；档位卡「实际」= 各档位 ÷ 持仓总市值（内部结构）。</div><div class="tbl-scroll"><table class="st-tbl alloc-tbl">' +
+    html += '<div class="st-card"><h4>资产配置（5 万计划 · 目标 11 只' + (extra.length ? ' · 计划外 ' + extra.length + ' 只' : '') + '）</h4><div class="strat-note">目标 = 计划配置；实际 = 持仓市值（份额 × 最新净值/行情估值）；调仓金额 = 目标 − 实际（+需买入 / −需卖出）；目标偏移 = 调仓金额 ÷ 目标。未建仓标的暂不显示差额偏移，执行按「差额 ÷ 剩余月」逐月推进。001015 300增强已恢复建仓（宽基内让出）。计划外持仓 = 存量标的未纳入配置目标（含现金），相对目标 0 完全超配，建议按纪律调整。口径：表格内「标的占比/实际占比」= 持仓市值 ÷ 总目标（未建仓 0.00%，合计 = 各行之和）；档位卡「实际」= 各档位 ÷ 持仓总市值（内部结构）。</div><div class="tbl-scroll"><table class="st-tbl alloc-tbl">' +
       '<colgroup><col style="width:8%"><col style="width:7%"><col style="width:7%"><col style="width:7%"><col style="width:16%"><col style="width:10%"><col style="width:11%"><col style="width:12%"><col style="width:12%"><col style="width:10%"></colgroup>' +
       '<thead><tr><th>板块</th><th>目标占比</th><th>标的占比</th><th>代码</th><th>资产名称</th><th>档位</th><th>目标金额</th><th>实际金额</th><th>调仓金额</th><th>目标偏移</th></tr></thead><tbody>';
     var sumAct = 0;
@@ -18242,7 +18243,7 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
         var rowCls = (first && gi > 0 ? 'grp-start' : '') + (held ? '' : ' row-mute');
         html += '<tr' + (rowCls ? ' class="' + rowCls.trim() + '"' : '') + '>' +
           (first ? '<td class="grp" rowspan="' + g.meta.length + '"><b>' + esc(g.grp) + '</b></td><td class="grp" rowspan="' + g.meta.length + '"><b>' + (gsum / total * 100).toFixed(2) + '%</b><div class="gsub">实际 ' + (gact / total * 100).toFixed(2) + '%</div></td>' : '') +
-          '<td class="pct">' + (tgt / total * 100).toFixed(2) + '%</td><td class="cd">' + m[0] + '</td>' +
+          '<td class="pct">' + (mv / total * 100).toFixed(2) + '%</td><td class="cd">' + m[0] + '</td>' + /* v242 fw2_v242_pct_mv：标的占比 = 该标的市值 ÷ 总目标（未建仓 0.00%），与合计同口径 */
           '<td class="nm"><b>' + esc(m[2]) + '</b><div class="gsub">' + m[3] + ' · ' + m[4] + '</div></td><td>' + pill + '</td>' +
           '<td class="qty">' + amt(tgt) + '</td><td class="qty">' + (held ? amt(mv) : '—') + '</td>' +
           '<td class="qty ' + dCls + '">' + diffTxt + '</td><td class="pct ' + oCls + '">' + offTxt + '</td></tr>';
