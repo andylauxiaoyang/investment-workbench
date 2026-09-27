@@ -16241,10 +16241,10 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
      ③ fitSmartMoney 改取 max(doc.scrollHeight, body.scrollHeight)，防漏量子应用真实高度。
      verChip v231->v232（资产配置表整体美化：表头强化 / 金额右对齐 / 板块分隔线 / hover / 合计底色）
      verChip v233->v234（删除策略执行「事件触发表」：DOM/渲染/显隐逻辑整体移除，不再显示）
-     verChip v254->v255（档位对齐：563360 A500 target 6,250→7,500、159949 创业板50 target 3,750→2,500，档位（40/35/10/15）与板块（45/30/15/10）双口径对齐；同步 act.b/plan.build/first/planNote）
+     verChip v255->v256（资产配置表 extra 存量行目标列「—」→「0 / 0.00%」：019441 纳指/000746/007866 目标 0（清仓口径），避免误解为数据缺失）
   */
   const vc = $('#verChip');
-  if (vc) vc.textContent = 'v255 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  if (vc) vc.textContent = 'v256 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
@@ -18170,6 +18170,7 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
   /* fw2_v253_extrapl_fix：修复 v252 误伤——计划外组标名恢复固定加粗（isSubGrp 仅限主题组内）。 */
   /* fw2_v254_subtle_style：小计行去浅蓝背景（仅虚线+加粗），sub-detail 明细行字号缩小至 12px。 */
   /* fw2_v255_pile_align：档位目标与档位内标的目标占比对齐（A500 +1,250 / 创业板50 −1,250，宽基合计不变 45%）。 */
+  /* fw2_v256_extra_tgt0：extra 存量行目标列「—」→「0 / 0.00%」（019441 纳指/计划外，目标 0 = 清仓口径）。 */
   var ALLOC_DEF = [
     { grp: '宽基', meta: [
       ['563360', 'A500', '华泰柏瑞 A500', '场内ETF', 'A股', '底仓/缓冲'],
