@@ -16241,10 +16241,10 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
      ③ fitSmartMoney 改取 max(doc.scrollHeight, body.scrollHeight)，防漏量子应用真实高度。
      verChip v231->v232（资产配置表整体美化：表头强化 / 金额右对齐 / 板块分隔线 / hover / 合计底色）
      verChip v233->v234（删除策略执行「事件触发表」：DOM/渲染/显隐逻辑整体移除，不再显示）
-     verChip v237->v238（聪明的钱速览卡行：修复 auto-fit 在 flex 容器塌陷，强制横向一行排列）
+     verChip v238->v239（资产配置表：实际金额改市值口径（份额×最新估值/行情） / 计划外持仓并入表格以便调整）
   */
   const vc = $('#verChip');
-  if (vc) vc.textContent = 'v238 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  if (vc) vc.textContent = 'v239 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
@@ -18140,6 +18140,7 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
   /* fw2_v236_alloc_ui：资产配置表 UI——板块分隔线加强（grp-start 2px 深线）+ 金额列居中显示 + 数值列表头居中。 */
   /* fw2_v237_xov_tile：聪明的钱速览卡行 UI——卡片字号减小（val 22->17px）+「建议关注（承压）」并入 xov-tile 卡片行（5 卡统一，grid auto-fit）。 */
   /* fw2_v238_xov_row：修复 .xov-tiles 在 flex 容器 .xov-concl 中宽度塌缩（auto-fit 变单列）——加 flex:1 1 100% 占满整行，5 卡横向一行排列。 */
+  /* fw2_v239_mv_nav + fw2_v239_extra_holdings：资产配置表——实际金额=份额×最新估值/行情（市值，非成本）；计划外持仓（存量未纳入目标、含现金）并入表格，合计含计划外市值。 */
   var ALLOC_DEF = [
     { grp: '宽基', meta: [
       ['563360', 'A500', '华泰柏瑞 A500', '场内ETF', 'A股', '底仓/缓冲'],
@@ -18163,12 +18164,24 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
     var total = S.totalTarget || 1;
     /* 金额统一整数千分位（取整，避免 13,200.209 这类小数噪声） */
     function amt(n) { return n == null ? '—' : Math.round(n).toLocaleString('zh-CN'); }
-    /* 实盘市值快照（与 barbellActual 同口径：持仓 qty × price/cost） */
+    /* v239 fw2_v239_mv_nav：实际金额改市值口径 = 份额 × 最新估值/行情（priceOf → quotes：场外基金天天估值、场内行情价），无估值按成本兜底 */
     var mvMap = {};
     (state.portfolio || []).forEach(function (h) {
       var c6 = String(h.code || '').replace(/\D/g, '').slice(-6);
-      var mv = (+h.qty || 0) * (+h.price || +h.cost || 0);
+      var p = priceOf(h);
+      var mv = (+h.qty || 0) * (p != null ? p : (+h.cost || 0));
       if (c6 && mv > 0) mvMap[c6] = (mvMap[c6] || 0) + mv;
+    });
+    /* v239 fw2_v239_extra_holdings：计划外持仓并入表格（存量未纳入配置目标，含现金） */
+    var planCodes = {};
+    ALLOC_DEF.forEach(function (g) { g.meta.forEach(function (m) { planCodes[m[0]] = 1; }); });
+    var extra = [];
+    (state.portfolio || []).forEach(function (h) {
+      var c6 = String(h.code || '').replace(/\D/g, '').slice(-6);
+      if (!c6 || planCodes[c6]) return;
+      var p = priceOf(h);
+      var mv = (+h.qty || 0) * (p != null ? p : (+h.cost || 0));
+      if (mv > 0) extra.push({ code: c6, name: h.name || c6, sub: (h.assetType === 'cash' ? '现金' : (h.sector || '基金')) + ' · 存量', mv: mv });
     });
     /* 档位再平衡（实盘四档，复用 barbellActual 持仓快照口径） */
     var PILE = [
@@ -18195,7 +18208,7 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
     }).join('');
     var html = '<div class="st-card"><h4>档位再平衡（实盘四档 · 目标年化 8~10%）</h4><div class="strat-note">档位权重 = 实盘持仓快照 ÷ 持仓总市值；偏离目标 ≥ ±' + ((act && act.cfg.band) || 5) + 'pp 标红提示再平衡。</div><div class="bb-tiles">' + tiles + '</div></div>';
     var PILE_COLOR = { '底仓/缓冲': '#4D6BFE', '进攻/主题': '#d98c00', '安全垫': '#059669', '对冲': '#b45309' };
-    html += '<div class="st-card"><h4>资产配置（5 万计划 · 全组合 11 只）</h4><div class="strat-note">目标 = 计划配置；实际 = 持仓快照市值；差额 = 实际 − 目标（+超配 / −欠配）；偏移 = 差额 ÷ 目标。未建仓标的暂不显示差额偏移，执行按「差额 ÷ 剩余月」逐月推进。001015 300增强已恢复建仓（宽基内让出）。口径：表格内「实际占比」= 持仓市值 ÷ 总目标（与目标占比同基准）；档位卡「实际」= 各档位 ÷ 持仓总市值（内部结构）。</div><div class="tbl-scroll"><table class="st-tbl alloc-tbl">' +
+    html += '<div class="st-card"><h4>资产配置（5 万计划 · 目标 11 只' + (extra.length ? ' · 计划外 ' + extra.length + ' 只' : '') + '）</h4><div class="strat-note">目标 = 计划配置；实际 = 持仓市值（份额 × 最新估值/行情）；差额 = 实际 − 目标（+超配 / −欠配）；偏移 = 差额 ÷ 目标。未建仓标的暂不显示差额偏移，执行按「差额 ÷ 剩余月」逐月推进。001015 300增强已恢复建仓（宽基内让出）。计划外持仓 = 存量标的未纳入配置目标（含现金），相对目标 0 完全超配，建议按纪律调整。口径：表格内「实际占比」= 持仓市值 ÷ 总目标（与目标占比同基准）；档位卡「实际」= 各档位 ÷ 持仓总市值（内部结构）。</div><div class="tbl-scroll"><table class="st-tbl alloc-tbl">' +
       '<colgroup><col style="width:8%"><col style="width:7%"><col style="width:7%"><col style="width:7%"><col style="width:16%"><col style="width:10%"><col style="width:11%"><col style="width:12%"><col style="width:12%"><col style="width:10%"></colgroup>' +
       '<thead><tr><th>板块</th><th>目标占比</th><th>标的占比</th><th>代码</th><th>资产名称</th><th>档位</th><th>目标金额</th><th>实际金额</th><th>差额</th><th>偏移</th></tr></thead><tbody>';
     var sumAct = 0;
@@ -18229,6 +18242,20 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
         first = false;
       });
     });
+    /* 计划外持仓行（板块=计划外，目标 0 → 完全超配提示） */
+    if (extra.length) {
+      var xsum = 0;
+      extra.forEach(function (x) { xsum += x.mv; });
+      sumAct += xsum;
+      html += '<tr class="grp-start"><td class="grp" rowspan="' + extra.length + '"><b>计划外</b></td><td class="grp" rowspan="' + extra.length + '"><b>—</b><div class="gsub">实际 ' + (xsum / total * 100).toFixed(2) + '%</div></td>';
+      extra.forEach(function (x, xi) {
+        html += '<td class="pct">' + (x.mv / total * 100).toFixed(2) + '%</td><td class="cd">' + x.code + '</td>' +
+          '<td class="nm"><b>' + esc(x.name) + '</b><div class="gsub">' + x.sub + '</div></td>' +
+          '<td><span style="font-size:11px;padding:1px 8px;border-radius:9px;background:#8a93a51A;color:#8a93a5;white-space:nowrap">计划外</span></td>' +
+          '<td class="qty">—</td><td class="qty up">' + amt(x.mv) + '</td>' +
+          '<td class="qty up">+' + amt(x.mv) + '</td><td class="pct up">+100.0%</td></tr>';
+      });
+    }
     var tdiff = sumAct - total;
     var toff = total > 0 ? tdiff / total * 100 : 0;
     html += '<tr class="total-row"><td><b>合计</b></td><td class="pct">100.00%</td><td class="pct">' + (sumAct / total * 100).toFixed(2) + '%</td><td></td><td></td><td></td><td class="qty"><b>' + amt(total) + '</b></td><td class="qty"><b>' + amt(sumAct) + '</b></td><td class="qty ' + (tdiff > 0.5 ? 'up' : tdiff < -0.5 ? 'down' : '') + '"><b>' + (tdiff > 0 ? '+' : '') + amt(tdiff) + '</b></td><td class="pct ' + (toff > 0.5 ? 'up' : toff < -0.5 ? 'down' : '') + '"><b>' + (toff > 0 ? '+' : '') + toff.toFixed(1) + '%</b></td></tr>';
