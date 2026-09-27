@@ -16274,10 +16274,10 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
      ③ fitSmartMoney 改取 max(doc.scrollHeight, body.scrollHeight)，防漏量子应用真实高度。
      verChip v231->v232（资产配置表整体美化：表头强化 / 金额右对齐 / 板块分隔线 / hover / 合计底色）
      verChip v233->v234（删除策略执行「事件触发表」：DOM/渲染/显隐逻辑整体移除，不再显示）
-     verChip v260->v261（补全「我的持仓」市值回退链 preclose → price → fund-daily(__ALLOC_NAV__) → cost(cash)：QDII/场外基金无行情时与资产配置表/决策总览/资金平衡同源，避免跨模块对不上；renderHoldings 未加载时主动拉取 fund-daily.json）
+     verChip v261->v262（档位实际占比分母统一为「总目标 5 万」：档位再平衡卡/杠铃配置卡/表格档位组头实际% 与资产配置表「标的占比」同口径（目标% 与实际% 同分母可比，007866 货基 1,000 = 2.00%）；barbellActual 金额改市值口径 preclose→price→fund-daily→cost，两卡实际% 一致）
   */
   const vc = $('#verChip');
-  if (vc) vc.textContent = 'v261 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  if (vc) vc.textContent = 'v262 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
@@ -16538,7 +16538,16 @@ function barbellActual() {
     const c6 = String(h.code || '').replace(/\D/g, '').slice(-6);
     const f = wMap[c6];
     if (!f) return;
-    const mv = (+h.qty || 0) * (+h.price || +h.cost || 0);
+    /* v262 fw2_v262_tgt_denom：金额改市值口径（preclose→price→fund-daily→cost），与资产配置表 mvMap 同源 */
+    const mv = (+h.qty || 0) * (function () {
+      const q = (state.snapshot && state.snapshot.quotes) ? state.snapshot.quotes[h.code] : null;
+      if (q && q.preclose != null && q.preclose > 0) return q.preclose;
+      if (q && q.price != null) return q.price;
+      const c6 = String(h.code || '').replace(/\D/g, '').slice(-6);
+      const nav = (window.__ALLOC_NAV__ && window.__ALLOC_NAV__[c6]) ? window.__ALLOC_NAV__[c6].nav : null;
+      if (nav != null && nav > 0) return nav;
+      return +h.cost || 0;
+    })();
     if (mv > 0) { pileMv[f.pile] += mv; tot += mv; }
   });
   return { pileMv: pileMv, tot: tot, cfg: bb };
@@ -16556,7 +16565,8 @@ function renderBarbell() {
   const tot = act && act.tot > 0 ? act.tot : 0;
   const tiles = PILE.map((p) => {
     const tgt = act ? act.cfg.target[p.k] : { base: 40, off: 35, bond: 10, hedge: 15 }[p.k];
-    const cur = tot > 0 ? act.pileMv[p.k] / tot * 100 : null;
+    /* v262 fw2_v262_tgt_denom：实际占比分母 = 总目标（5 万计划），与「资产配置」表标的占比口径一致（目标% 与实际% 同分母可比） */
+    const cur = (window.STRATEGY_SNAP && window.STRATEGY_SNAP.totalTarget > 0) ? act.pileMv[p.k] / window.STRATEGY_SNAP.totalTarget * 100 : null;
     const dev = cur == null ? null : cur - tgt;
     const band = (act && act.cfg.band) || 5;
     const warn = dev != null && Math.abs(dev) >= band;
@@ -18211,6 +18221,7 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
   /* fw2_v259_note_fix：修正 v258 note「≈12%」口径错误（511360 未建仓，实际 6.58%）。 */
   /* fw2_v260_px_unify：市值/总盈亏统一昨收（preclose）口径——我的持仓/资产配置/决策总览 vs 资金平衡（v181 收盘价）跨模块一致；当日盈亏保留现价差。 */
   /* fw2_v261_nav_fb：我的持仓市值回退链补全（preclose→price→fund-daily→cost），无行情 QDII 与资产配置/资金平衡同源。 */
+  /* fw2_v262_tgt_denom：档位实际占比分母 = 总目标（5 万计划）；barbellActual 金额改市值口径，档位卡与资产配置表实际% 一致。 */
   var ALLOC_DEF = [
     { grp: '宽基', meta: [
       ['563360', 'A500', '华泰柏瑞 A500', '场内ETF', 'A股', '底仓/缓冲'],
@@ -18275,7 +18286,8 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
     var tot = act && act.tot > 0 ? act.tot : 0;
     var tiles = PILE.map(function (p) {
       var tgt = act ? act.cfg.target[p.k] : { base: 40, off: 35, bond: 10, hedge: 15 }[p.k];
-      var cur = tot > 0 ? act.pileMv[p.k] / tot * 100 : null;
+      /* v262 fw2_v262_tgt_denom：实际占比分母 = 总目标（5 万计划），与「资产配置」表标的占比口径一致 */
+      var cur = (window.STRATEGY_SNAP && window.STRATEGY_SNAP.totalTarget > 0) ? act.pileMv[p.k] / window.STRATEGY_SNAP.totalTarget * 100 : null;
       var dev = cur == null ? null : cur - tgt;
       var band = (act && act.cfg.band) || 5;
       var warn = dev != null && Math.abs(dev) >= band;
@@ -18287,7 +18299,7 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
         + (cur == null ? '' : '<span>· 实际</span><b class="bt-now' + (warn ? ' bt-warn' : '') + '">' + cur.toFixed(1) + '%</b>')
         + '</div></div>';
     }).join('');
-    var html = '<div class="st-card"><h4>档位再平衡（实盘四档 · 目标年化 8~10%）</h4><div class="strat-note">档位权重 = 实盘持仓快照 ÷ 持仓总市值；偏离目标 ≥ ±' + ((act && act.cfg.band) || 5) + 'pp 标红提示再平衡。</div><div class="bb-tiles">' + tiles + '</div></div>';
+    var html = '<div class="st-card"><h4>档位再平衡（实盘四档 · 目标年化 8~10%）</h4><div class="strat-note">档位权重 = 实盘持仓快照 ÷ 总目标（5 万计划），与表格「标的占比」同口径；偏离目标 ≥ ±' + ((act && act.cfg.band) || 5) + 'pp 标红提示再平衡。</div><div class="bb-tiles">' + tiles + '</div></div>';
     var PILE_COLOR = { '底仓/缓冲': '#4D6BFE', '进攻/主题': '#d98c00', '安全垫': '#059669', '对冲': '#b45309' };
     /* v244 fw2_v244_theme_agg：主题敞口——跨档位同本质资产合并（含计划外），纳指100 = 016452 + 019441 */
     var themeAgg = {};
@@ -18353,7 +18365,7 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
       var pl = null;
       PILE.forEach(function (p) { if (p.name === pn) pl = p; });
       var tgtPct = (pl && act && act.cfg && act.cfg.target) ? (act.cfg.target[pl.k] != null ? act.cfg.target[pl.k] : null) : null;
-      var curPct = (pl && act && act.pileMv && tot > 0) ? (act.pileMv[pl.k] / tot * 100) : null;
+      var curPct = (pl && act && act.pileMv && window.STRATEGY_SNAP && window.STRATEGY_SNAP.totalTarget > 0) ? (act.pileMv[pl.k] / window.STRATEGY_SNAP.totalTarget * 100) : null; /* v262 fw2_v262_tgt_denom：÷ 总目标 */
       var first = true;
       /* v249 fw2_v249_theme_subtotal：同主题 ≥2 只时在该主题行后输出「主题小计行」（如 纳指100 = 016452 南方纳指100 + 019441 万家纳斯达克100，未来同类继续自动小计） */
       var thGroups = [];
