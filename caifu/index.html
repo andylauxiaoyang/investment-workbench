@@ -16241,10 +16241,10 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
      ③ fitSmartMoney 改取 max(doc.scrollHeight, body.scrollHeight)，防漏量子应用真实高度。
      verChip v231->v232（资产配置表整体美化：表头强化 / 金额右对齐 / 板块分隔线 / hover / 合计底色）
      verChip v233->v234（删除策略执行「事件触发表」：DOM/渲染/显隐逻辑整体移除，不再显示）
-     verChip v249->v250（决策总览·资金约束：缺口改「净缺口」= 总目标 − 持仓总市值（含超额/计划外抵扣；修复此前逐资产未达标合计 4.4万 偏大），持仓总市值补强 fund-daily 净值兜底）
+     verChip v250->v251（决策总览·资金约束：净缺口再扣持仓现金（007866 活期宝可抵扣，与资产配置表合计口径一致），缺口显示一位小数（2.9万））
   */
   const vc = $('#verChip');
-  if (vc) vc.textContent = 'v250 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  if (vc) vc.textContent = 'v251 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
@@ -18165,6 +18165,7 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
   /* fw2_v248_cols：目标占比独立列（目标金额后），标的占比移至实际金额后，档位目标组头列。 */
   /* fw2_v249_theme_subtotal：同主题 ≥2 只输出主题小计行（纳指100 = 016452+019441），组头 rowspan 含小计行。 */
   /* fw2_v250_net_gap：资金约束缺口=总目标−持仓总市值（净缺口），总市值 quotes→fund-daily→成本兜底，异步加载重渲染。 */
+  /* fw2_v251_net_gap2：净缺口再扣持仓现金（007866 活期宝），缺口显示一位小数（2.9万）。 */
   var ALLOC_DEF = [
     { grp: '宽基', meta: [
       ['563360', 'A500', '华泰柏瑞 A500', '场内ETF', 'A股', '底仓/缓冲'],
@@ -21413,7 +21414,9 @@ function renderDecision() {
   /* v250 fw2_v250_net_gap：缺口改「净缺口」= 总目标 − 持仓总市值（含超额/计划外，可再平衡抵扣；不再逐资产未达标合计，012920 超额不再“不抵扣”） */
   var totalTgt = 0;
   if (S && S.assets) S.assets.forEach(function (a) { totalTgt += a.target || 0; });
-  var gapSum = Math.max(0, totalTgt - totalMv);
+  /* v251 fw2_v251_net_gap2：净缺口再精化——总目标 − 持仓市值 − 持仓现金（007866 活期宝可抵扣，与资产配置表合计口径一致）；显示用一位小数（2.9万） */
+  var gapSum = Math.max(0, totalTgt - totalMv - cashHold);
+  var moneyNet = function (n) { if (n == null) return '—'; var a = Math.abs(n), sg = n < 0 ? '-' : ''; if (a >= 1e4) return sg + (a / 1e4).toFixed(1) + '万'; if (a >= 1e3) return sg + (a / 1e3).toFixed(1) + '千'; return sg + Math.round(n); };
   var l6 = { cash: cashAvail, src: cashSrc, gapSum: gapSum };
   /* v250：净值缓存未加载时主动拉取 fund-daily.json（与资产配置表同源），加载后重渲染让缺口/总市值变准 */
   if (!window.__ALLOC_NAV__ && !window.__ALLOC_NAV_TRY__) {
@@ -21505,7 +21508,7 @@ function renderDecision() {
   var gapTxt = l5.gaps.length ? l5.gaps.map(function (g) { return '<span class="dc-fund t-pos">' + esc(g.name) + '</span> 缺口 ' + money(g.gap) + '（已持 ' + money(g.held) + ' / 目标 ' + money(g.target) + '）'; }).join('') : '各策略标的均已达目标';
   var sigNote = '<a href="#" data-dcgo="signal" style="color:var(--brand,#4D6BFE)">标的级止盈 / 止损 / 买入时机 → 交易信号·持仓/自选信号</a>';
   h += layerCard('⑤', '策略动作', l5.stopTrig ? 'hot' : l5.gaps.length ? 'pos' : 'neu', l5.stopTrig ? ('触发：' + l5.stopTrig) : (l5.gaps.length ? l5.gaps.length + ' 只低于目标' : '达标 · 无缺口'), [gapTxt].concat(l5.trigRows, [sigNote]), l5.asOf, 'strategy');
-  h += layerCard('⑥', '资金约束', l6.cash != null && gapSum > l6.cash ? 'hot' : 'neu', '可用现金 ' + (l6.cash == null ? '未录入' : money(l6.cash)) + (gapSum > 0 ? ' · 缺口合计 ' + money(gapSum) : ''), [l6.src], cbDate, 'capbal');
+  h += layerCard('⑥', '资金约束', l6.cash != null && gapSum > l6.cash ? 'hot' : 'neu', '可用现金 ' + (l6.cash == null ? '未录入' : money(l6.cash)) + (gapSum > 0 ? ' · 缺口合计 ' + moneyNet(gapSum) : ''), [l6.src], cbDate, 'capbal');
   h += '</div>';
   h += '<div class="dc-note">决策总览 = 各模块结论的串联收口，不引入新数据口径；每条结论可点击进入对应模块复核。辅助决策，非投资建议。</div>';
   host.innerHTML = h;
