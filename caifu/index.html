@@ -16241,10 +16241,10 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
      ③ fitSmartMoney 改取 max(doc.scrollHeight, body.scrollHeight)，防漏量子应用真实高度。
      verChip v231->v232（资产配置表整体美化：表头强化 / 金额右对齐 / 板块分隔线 / hover / 合计底色）
      verChip v233->v234（删除策略执行「事件触发表」：DOM/渲染/显隐逻辑整体移除，不再显示）
-     verChip v251->v252（资产配置表·纳指100 组显示优化：小计行主题列改胶囊左对齐与其他行一致；同主题 ≥2 只时明细行淡化（opacity .6）且标名不加粗）
+     verChip v252->v253（修复 v252 事故：replace 误把「计划外」组标名改为 isSubGrp 条件版致渲染中断，恢复其固定加粗；纳指100 组淡化/不加粗/小计胶囊左对齐保留）
   */
   const vc = $('#verChip');
-  if (vc) vc.textContent = 'v252 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  if (vc) vc.textContent = 'v253 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
@@ -18167,6 +18167,7 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
   /* fw2_v250_net_gap：资金约束缺口=总目标−持仓总市值（净缺口），总市值 quotes→fund-daily→成本兜底，异步加载重渲染。 */
   /* fw2_v251_net_gap2：净缺口再扣持仓现金（007866 活期宝），缺口显示一位小数（2.9万）。 */
   /* fw2_v252_sub_detail：纳指100 组明细行淡化+标名不加粗，小计行主题列改胶囊左对齐。 */
+  /* fw2_v253_extrapl_fix：修复 v252 误伤——计划外组标名恢复固定加粗（isSubGrp 仅限主题组内）。 */
   var ALLOC_DEF = [
     { grp: '宽基', meta: [
       ['563360', 'A500', '华泰柏瑞 A500', '场内ETF', 'A股', '底仓/缓冲'],
@@ -18387,7 +18388,7 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
       html += '<tr class="grp-start"><td class="grp" rowspan="' + extraPl.length + '"><b>计划外</b></td><td class="grp" rowspan="' + extraPl.length + '"><b>—</b><div class="gsub">实际 ' + (xsum / total * 100).toFixed(2) + '%</div></td>';
       extraPl.forEach(function (x) {
         html += '<td class="cd">' + x.code + '</td>' +
-          '<td class="nm">' + (isSubGrp ? '' : '<b>') + esc(x.name) + (isSubGrp ? '' : '</b>') + '<div class="gsub">' + x.sub + '</div></td>' +
+          '<td class="nm"><b>' + esc(x.name) + '</b><div class="gsub">' + x.sub + '</div></td>' +
           '<td><span style="font-size:11px;padding:1px 8px;border-radius:9px;background:#8a93a51A;color:#8a93a5;white-space:nowrap">' + esc(x.theme) + '</span></td>' +
           '<td class="qty">—</td><td class="pct">—</td><td class="qty up">' + amt(x.mv) + '</td><td class="pct">' + (x.mv / total * 100).toFixed(2) + '%</td>' +
           '<td class="qty down">-' + amt(x.mv) + '</td><td class="pct down">-100.0%</td></tr>';
