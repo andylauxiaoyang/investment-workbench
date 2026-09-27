@@ -30,6 +30,15 @@ body{font-family:var(--sans);background:var(--bg);color:var(--txt);font-size:var
 .brand h1{font-size:var(--fs-xl);font-weight:700;letter-spacing:.2px}
 .brand .sub{font-size:var(--fs-xs);color:var(--txt2)}
 .verchip{margin-left:auto;font-size:var(--fs-xs);color:var(--txt2);display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+/* fw2_v264_etf_shares：国家队宽基 ETF 每日份额面板 */
+#etfSharesBox .spark{display:block;width:118px;height:30px;margin:0 auto}
+#etfSharesBox .sig-up{color:#d0302e;font-weight:600}
+#etfSharesBox .sig-down{color:#1a9c5c;font-weight:600}
+#etfSharesBox .sig-flat{color:var(--txt3)}
+#etfSharesBox .mut{color:var(--txt3)}
+#etfSharesBox .sec-head h2{font-size:15px;font-weight:700;margin:0}
+#etfSharesBox .sec-head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:8px}
+
 .src-pill{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:3px 10px;font-size:var(--fs-2xs);color:var(--txt2);display:inline-flex;gap:6px;align-items:center}
 .src-pill b{color:var(--down)}
 /* nav */
@@ -24139,6 +24148,95 @@ function renderAqSection(){
   h+='</div>';
   return h;
 }
+/* ============ 国家队宽基 ETF · 每日份额（fw2_v264_etf_shares） ============ */
+var __ETF_SHARES__ = null, __ETF_SHARES_TRY__ = 0;
+function etfChgPct(hist, n){
+  var i = hist.length - 1 - n;
+  if (i < 0) return null;
+  var base = hist[i].shares;
+  if (!base || base <= 0) return null;
+  return (hist[hist.length - 1].shares - base) / base * 100;
+}
+function renderEtfShares(){
+  var box = document.getElementById('etfSharesBox');
+  if (!box || !__ETF_SHARES__) return;
+  var codes = __ETF_SHARES__.codes || {};
+  var order = ['510300','510310','510330','159919','510050','510500','512100','159915','588000'];
+  var names = {'510300':'沪深300ETF华泰柏瑞','510310':'沪深300ETF易方达','510330':'沪深300ETF华夏',
+               '159919':'沪深300ETF嘉实','510050':'上证50ETF华夏','510500':'中证500ETF南方',
+               '512100':'中证1000ETF南方','159915':'创业板ETF易方达','588000':'科创50ETF华夏'};
+  var idxs = {'510300':'沪深300','510310':'沪深300','510330':'沪深300','159919':'沪深300',
+              '510050':'上证50','510500':'中证500','512100':'中证1000','159915':'创业板指','588000':'科创50'};
+  var h = '<div class="sec-head"><h2>国家队宽基 ETF · 每日份额</h2><span class="hint">每日抓取（东财 push2 f84，T 日晚 23:00 后更新）· 份额大增≈国家队入场 · 更新至 ' + esc(__ETF_SHARES__.updatedAt || '—') + '</span></div>';
+  h += '<div class="tbl-wrap"><table class="tbl"><thead><tr>'
+    + '<th style="min-width:150px">ETF</th><th>指数</th>'
+    + '<th class="num">最新份额<br>(亿份)</th><th class="num">1日</th><th class="num">5日</th><th class="num">20日</th>'
+    + '<th class="num">信号</th><th style="min-width:150px">近20交易日趋势</th></tr></thead><tbody>';
+  order.forEach(function(code){
+    var r = codes[code];
+    if (!r) return;
+    var hist = (r.hist || []).slice().sort(function(a, b){ return a.d < b.d ? -1 : 1; });
+    if (!hist.length) return;
+    var last = hist[hist.length - 1].shares;
+    var d1 = etfChgPct(hist, 1), d5 = etfChgPct(hist, 5), d20 = etfChgPct(hist, 20);
+    // 信号：1日阈值 ±0.5%；连续3日及以上给「连续N日增/减持」
+    var sigCls = 'sig-flat', sig = '平稳';
+    if (d1 != null && d1 > 0.5) { sigCls = 'sig-up'; sig = '增持'; }
+    else if (d1 != null && d1 < -0.5) { sigCls = 'sig-down'; sig = '减持'; }
+    var run = 0, dir = 0;
+    for (var i = hist.length - 1; i >= 1; i--) {
+      var diff = hist[i].shares - hist[i - 1].shares;
+      if (diff > 0) { if (dir >= 0) { run++; dir = 1; } else break; }
+      else if (diff < 0) { if (dir <= 0) { run++; dir = -1; } else break; }
+      else break;
+    }
+    if (run >= 3) { sigCls = dir > 0 ? 'sig-up' : 'sig-down'; sig = '连续' + run + '日' + (dir > 0 ? '增持' : '减持'); }
+    // sparkline：近20日
+    var win = hist.slice(-20), pts = [];
+    var mn = Infinity, mx = -Infinity;
+    win.forEach(function(h2){ if (h2.shares < mn) mn = h2.shares; if (h2.shares > mx) mx = h2.shares; });
+    if (mx === mn) mx = mn + 1;
+    win.forEach(function(h2, i2){
+      var x = 6 + i2 * (106 / Math.max(win.length - 1, 1));
+      var y = 26 - (h2.shares - mn) / (mx - mn) * 22;
+      pts.push(x.toFixed(1) + ',' + y.toFixed(1));
+    });
+    var up = win[win.length - 1].shares >= win[0].shares;
+    var poly = '<svg class="spark" viewBox="0 0 118 30" preserveAspectRatio="none"><polyline fill="none" stroke="' + (up ? '#d0302e' : '#1a9c5c') + '" stroke-width="1.4" points="' + pts.join(' ') + '"/></svg>';
+    function cell(v){
+      if (v == null) return '<span class="mut">—</span>';
+      return '<span class="' + (v > 0 ? 'up' : v < 0 ? 'down' : '') + '">' + (v > 0 ? '+' : '') + v.toFixed(1) + '%</span>';
+    }
+    h += '<tr><td><b>' + esc(r.name || names[code] || code) + '</b><span class="mut mono"> ' + code + '</span></td>'
+      + '<td><span class="badge type">' + esc(idxs[code] || '—') + '</span></td>'
+      + '<td class="num"><b>' + (last / 1e8).toFixed(1) + '</b></td>'
+      + '<td class="num">' + cell(d1) + '</td>'
+      + '<td class="num">' + cell(d5) + '</td>'
+      + '<td class="num">' + cell(d20) + '</td>'
+      + '<td class="num"><span class="' + sigCls + '">' + esc(sig) + '</span></td>'
+      + '<td>' + poly + '</td></tr>';
+  });
+  h += '</tbody></table></div>';
+  h += '<div class="mut" style="font-size:var(--fs-xs);margin-top:8px">份额口径=ETF 总份额（东财 f84，含场内申赎与联接申购）；「1/5/20日」=相对前一/第五/第二十个交易日的份额变化%；历史序列每日由工作台自动抓取累积（官网仅留近几交易日，无法回溯），数据文件 caifu/data/etf-shares.json。国家队信号仅供参考：单日大额申购（份额跳增）常对应国家队/大资金入场窗口，连续净申购是最强信号；反之大额赎回提示资金流出。与上方「汇金具名持仓（年报/中报）」互为印证。</div>';
+  box.innerHTML = h;
+}
+function loadEtfShares(){
+  if (__ETF_SHARES__) { renderEtfShares(); return; }
+  if (__ETF_SHARES_TRY__ > 2) return;
+  __ETF_SHARES_TRY__++;
+  var urls = [
+    '../data/etf-shares.json',
+    'https://raw.githubusercontent.com/andylauxiaoyang/investment-workbench/master/caifu/data/etf-shares.json?cb=' + Date.now()
+  ];
+  var i = 0;
+  function next(){
+    if (i >= urls.length) { renderEtfShares(); return; }
+    fetch(urls[i++]).then(function(r){ if (!r.ok) throw new Error('http ' + r.status); return r.json(); })
+      .then(function(j){ __ETF_SHARES__ = j; renderEtfShares(); })
+      .catch(function(){ next(); });
+  }
+  next();
+}
 function renderNhb(){
   var nh=D.nh, ET=(nh&&nh.etfs)||[], STS=(nh&&nh.stocks)||[];
   var etfCount=ET.length;
@@ -24159,6 +24257,8 @@ function renderNhb(){
   kpi.forEach(function(k){h+='<div class="hk '+k[3]+'"><div class="k">'+k[1]+'</div><div class="v" style="font-size:var(--fs-2xl)">'+k[0]+'</div><div class="s">'+k[2]+'</div></div>';});
   h+='</div>';
   h+='<div class="callout" style="margin:10px 0 4px;padding:8px 12px;border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:6px;font-size:var(--fs-xs);color:var(--txt2);background:var(--card)">2026 年最新具名汇金持仓（持股数/市值，含 2026-06-30 中报）见下方「<b>汇金 A股持仓·季度</b>」面板；ETF 份额维度因法规限制（前十名持有人仅年报披露），26H1 仅更新规模与机构占比。</div>';
+  // 国家队宽基 ETF · 每日份额（fw2_v264_etf_shares）
+  h+='<div class="sec" id="etfSharesBox" style="margin-top:16px"><div class="mut" style="font-size:var(--fs-xs);color:var(--txt3)">每日份额数据加载中…</div></div>';
 
   // ETF 明细
   h+='<div class="sec"><div class="sec-head"><h2>宽基指数ETF · 汇金具名持仓</h2><span class="hint">汇金具名份额仅年报披露（最近 '+esc(nh.etfReport)+'）；2026-06-30 半年报按证监会格式准则不披露「前十名持有人」（季报/半年报均无）——26H1 仅提供规模与机构占比</span></div>';
@@ -24216,6 +24316,7 @@ function renderNhb(){
   h+='<div class="sec"><div class="card" style="padding:16px 18px;font-size:var(--fs-xs);color:var(--txt2);line-height:1.8"><b style="color:var(--txt)">数据口径：</b>'+esc(nh.note)+'<br>'+esc(nh.meta.disclaimer)+'<br><span style="color:var(--txt3)">“中央汇金”为中央汇金投资有限责任公司与中央汇金资产管理有限责任公司合并口径；证券金融为“中国证券金融”相关持仓。均以前十大持有人/股东披露为限。</span></div></div>';
 
   $('#view-nhb').innerHTML=h;
+  loadEtfShares();
 }
 /* ============ 机构名单 ============ */
 function renderInst(){
