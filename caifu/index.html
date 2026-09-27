@@ -16241,10 +16241,10 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
      ③ fitSmartMoney 改取 max(doc.scrollHeight, body.scrollHeight)，防漏量子应用真实高度。
      verChip v231->v232（资产配置表整体美化：表头强化 / 金额右对齐 / 板块分隔线 / hover / 合计底色）
      verChip v233->v234（删除策略执行「事件触发表」：DOM/渲染/显隐逻辑整体移除，不再显示）
-     verChip v245->v246（资产配置表：档位/主题列换位——档位列回首位合并（含档位平衡目标%），主题列第 6 位行内显示；组内按主题排序（016452+019441 同组相邻）；万家纳斯达克100 档位归入「进攻/主题」）
+     verChip v246->v247（资产配置表：目标金额列补回各标的「目标占比」副行（目标金额÷总目标），合计行显示 100.00%）
   */
   const vc = $('#verChip');
-  if (vc) vc.textContent = 'v246 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  if (vc) vc.textContent = 'v247 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
@@ -18161,6 +18161,7 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
   /* fw2_v244_theme_agg：主题敞口——资产副行显示「主题·类型·区域」；计划外纳指类归入「纳指100」主题；表格上方 chips 按主题聚合目标/实际/偏移（跨档位含计划外，红=欠配需买入/绿=超配需卖出）。 */
   /* fw2_v245_theme_rows：资产配置表改按主题分组（同本质资产行相邻），档位降为行内标签，组头=主题目标%/实际%，与上方主题敞口 chips 双口径呼应。 */
   /* fw2_v246_pile_theme：档位/主题列换位（档位列回首位合并），组内按主题排序（016452+019441 同组相邻），万家纳斯达克100 档位归入「进攻/主题」（目标仍 0）。 */
+  /* fw2_v247_tgt_pct：目标金额列补回各标的「目标占比」副行（目标金额÷总目标），合计行 100.00%。 */
   var ALLOC_DEF = [
     { grp: '宽基', meta: [
       ['563360', 'A500', '华泰柏瑞 A500', '场内ETF', 'A股', '底仓/缓冲'],
@@ -18265,7 +18266,7 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
       themeStrip += '<div class="theme-chip ' + tcls + '"><b>' + esc(t.name) + '</b>' + (t.n > 1 ? '<em>×' + t.n + '</em>' : '') + '<span>目标 ' + amt(t.tgt) + '</span><span>实际 ' + amt(t.mv) + '</span><span class="t-off">' + (off > 0 ? '+' : '') + off.toFixed(1) + '%</span></div>';
     });
     themeStrip += '</div>';
-    html += '<div class="st-card"><h4>资产配置（5 万计划 · 目标 11 只' + (extra.length ? ' · 计划外 ' + extra.length + ' 只' : '') + '）</h4><div class="strat-note">目标 = 计划配置；实际 = 持仓市值（份额 × 最新净值/行情估值）；调仓金额 = 目标 − 实际（+需买入 / −需卖出）；目标偏移 = 调仓金额 ÷ 目标。未建仓标的暂不显示差额偏移，执行按「差额 ÷ 剩余月」逐月推进。001015 300增强已恢复建仓（宽基内让出）。计划外持仓 = 存量标的未纳入配置目标（含现金），相对目标 0 完全超配，建议按纪律调整。口径：表格按档位分组（底仓/缓冲、进攻/主题、安全垫、对冲、计划外），档位列合并显示档位平衡目标%（见上方「档位再平衡」卡）；「标的占比」= 持仓市值 ÷ 总目标（未建仓 0.00%，合计 = 各行之和）；第 6 列「主题」= 底层指数/资产本质，同本质资产同组相邻（如 纳指100 = 南方纳指100 + 万家纳斯达克100）；纳指类存量已按资产属性并入「进攻/主题」组，其目标仍为 0（调仓 = 清仓口径）。</div>' +
+    html += '<div class="st-card"><h4>资产配置（5 万计划 · 目标 11 只' + (extra.length ? ' · 计划外 ' + extra.length + ' 只' : '') + '）</h4><div class="strat-note">目标 = 计划配置；实际 = 持仓市值（份额 × 最新净值/行情估值）；调仓金额 = 目标 − 实际（+需买入 / −需卖出）；目标偏移 = 调仓金额 ÷ 目标。未建仓标的暂不显示差额偏移，执行按「差额 ÷ 剩余月」逐月推进。001015 300增强已恢复建仓（宽基内让出）。计划外持仓 = 存量标的未纳入配置目标（含现金），相对目标 0 完全超配，建议按纪律调整。口径：表格按档位分组（底仓/缓冲、进攻/主题、安全垫、对冲、计划外），档位列合并显示档位平衡目标%（见上方「档位再平衡」卡）；「标的占比」= 持仓市值 ÷ 总目标（未建仓 0.00%，合计 = 各行之和）；第 6 列「主题」= 底层指数/资产本质，同本质资产同组相邻（如 纳指100 = 南方纳指100 + 万家纳斯达克100）；「目标金额」列副行 = 各标的目标占比（目标金额 ÷ 总目标，合计 100.00%）；纳指类存量已按资产属性并入「进攻/主题」组，其目标仍为 0（调仓 = 清仓口径）。</div>' +
       (themeList.length ? '<div class="theme-head">主题敞口 · 同本质资产合并（含计划外）</div>' + themeStrip : '') +
       '<div class="tbl-scroll"><table class="st-tbl alloc-tbl">' +
       '<colgroup><col style="width:8%"><col style="width:7%"><col style="width:7%"><col style="width:7%"><col style="width:16%"><col style="width:10%"><col style="width:11%"><col style="width:12%"><col style="width:12%"><col style="width:10%"></colgroup>' +
@@ -18324,7 +18325,7 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
             '<td class="pct">' + (mv / total * 100).toFixed(2) + '%</td><td class="cd">' + m[0] + '</td>' +
             '<td class="nm"><b>' + esc(m[2]) + '</b><div class="gsub">' + m[1] + ' · ' + m[3] + ' · ' + m[4] + '</div></td>' +
             '<td><span style="font-size:11px;padding:1px 8px;border-radius:9px;background:#64748b1A;color:#64748b;white-space:nowrap">' + esc(m[1]) + '</span></td>' +
-            '<td class="qty">' + amt(tgt) + '</td><td class="qty">' + (held ? amt(mv) : '—') + '</td>' +
+            '<td class="qty"><b>' + amt(tgt) + '</b><div class="gsub">' + (tgt > 0 ? (tgt / total * 100).toFixed(2) + '%' : '—') + '</div></td><td class="qty">' + (held ? amt(mv) : '—') + '</td>' +
             '<td class="qty ' + dCls + '">' + diffTxt + '</td><td class="pct ' + oCls + '">' + offTxt + '</td></tr>';
           first = false;
         } else {
@@ -18358,7 +18359,7 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
     }
     var tdiff = total - sumAct; /* v241：合计调仓金额 = 总目标 − 总市值（+需买入） */
     var toff = total > 0 ? tdiff / total * 100 : 0;
-    html += '<tr class="total-row"><td><b>合计</b></td><td class="pct">100.00%</td><td class="pct">' + (sumAct / total * 100).toFixed(2) + '%</td><td></td><td></td><td></td><td class="qty"><b>' + amt(total) + '</b></td><td class="qty"><b>' + amt(sumAct) + '</b></td><td class="qty ' + (tdiff > 0.5 ? 'up' : tdiff < -0.5 ? 'down' : '') + '"><b>' + (tdiff > 0 ? '+' : '') + amt(tdiff) + '</b></td><td class="pct ' + (toff > 0.5 ? 'up' : toff < -0.5 ? 'down' : '') + '"><b>' + (toff > 0 ? '+' : '') + toff.toFixed(1) + '%</b></td></tr>';
+    html += '<tr class="total-row"><td><b>合计</b></td><td class="pct">100.00%</td><td class="pct">' + (sumAct / total * 100).toFixed(2) + '%</td><td></td><td></td><td></td><td class="qty"><b>' + amt(total) + '</b><div class="gsub">100.00%</div></td><td class="qty"><b>' + amt(sumAct) + '</b></td><td class="qty ' + (tdiff > 0.5 ? 'up' : tdiff < -0.5 ? 'down' : '') + '"><b>' + (tdiff > 0 ? '+' : '') + amt(tdiff) + '</b></td><td class="pct ' + (toff > 0.5 ? 'up' : toff < -0.5 ? 'down' : '') + '"><b>' + (toff > 0 ? '+' : '') + toff.toFixed(1) + '%</b></td></tr>';
     html += '</tbody></table></div></div>';
     el.innerHTML = html;
     /* v240 fw2_v240_nav_fb：异步加载 fund-daily.json 净值缓存（quotes 不可用时兜底市值），加载完重渲染 */
