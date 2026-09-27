@@ -11331,8 +11331,16 @@ function buildRows() {
     const price = quote && quote.price ? quote.price : (h.assetType === 'cash' ? (h.cost || 1) : null);
     const pre = quote && quote.preclose ? quote.preclose : null;
     /* v260 fw2_v260_px_unify：市值/总盈亏统一「昨收（preclose，已结算收盘价）」口径，与资金平衡 v181 收盘价口径一致；
-       当日盈亏 dayLocal 保留现价差（盘中实时）；无 preclose 时回落现价。 */
-    const mvPx = (pre != null && pre > 0) ? pre : price;
+       当日盈亏 dayLocal 保留现价差（盘中实时）。
+       v261 fw2_v261_nav_fb：市值回退链 preclose → price → fund-daily(__ALLOC_NAV__) → cost(cash)——
+       QDII/场外基金无行情时与资产配置表/决策总览/资金平衡同源（fund-daily.json 净值），避免跨模块对不上。 */
+    let mvPx = (pre != null && pre > 0) ? pre : (quote && quote.price != null ? quote.price : null);
+    if (mvPx == null && h.assetType !== 'cash') {
+      const c6 = String(h.code || '').replace(/\D/g, '').slice(-6);
+      const nav = (window.__ALLOC_NAV__ && window.__ALLOC_NAV__[c6]) ? window.__ALLOC_NAV__[c6].nav : null;
+      if (nav != null && nav > 0) mvPx = nav;
+    }
+    if (mvPx == null && h.assetType === 'cash') mvPx = h.cost || 1;
     const fx = fxOf(market);
     const costLocal = h.cost * h.qty;
     const mvLocal = mvPx != null ? mvPx * h.qty : null;
@@ -12192,6 +12200,27 @@ function renderDiscipline(all) {
 }
 
 function renderHoldings() {
+  /* v261 fw2_v261_nav_fb：净值缓存未加载时主动拉取 fund-daily.json（与资产配置表/决策总览同源），
+     加载后重渲染让 QDII/场外基金市值变准（__ALLOC_NAV_TRY__ 防重；renderHoldings 内重渲染只发生一次） */
+  if (!window.__ALLOC_NAV__ && !window.__ALLOC_NAV_TRY__) {
+    window.__ALLOC_NAV_TRY__ = 1;
+    var urls = ['data/fund-daily.json', 'https://raw.githubusercontent.com/andylauxiaoyang/investment-workbench/master/caifu/data/fund-daily.json'];
+    (function tryLoad(i) {
+      if (i >= urls.length) return;
+      fetch(urls[i], { cache: 'no-store' }).then(function (r) { return r.ok ? r.json() : null; }).then(function (d) {
+        if (d && d.rows) {
+          var map = {};
+          d.rows.forEach(function (row) {
+            if (!row || !row.code || row.nav == null) return;
+            var c6 = String(row.code).replace(/\D/g, '').slice(-6);
+            if (!map[c6] || row.d > map[c6].d) map[c6] = { d: row.d, nav: row.nav };
+          });
+          window.__ALLOC_NAV__ = map;
+          if (typeof renderHoldings === 'function') renderHoldings();
+        } else if (i + 1 < urls.length) { tryLoad(i + 1); }
+      }).catch(function () { if (i + 1 < urls.length) tryLoad(i + 1); });
+    })(0);
+  }
   renderHdFilter();
   const all = buildRows();
   const filter = state.hdAssetFilter || 'all';
@@ -16245,10 +16274,10 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
      ③ fitSmartMoney 改取 max(doc.scrollHeight, body.scrollHeight)，防漏量子应用真实高度。
      verChip v231->v232（资产配置表整体美化：表头强化 / 金额右对齐 / 板块分隔线 / hover / 合计底色）
      verChip v233->v234（删除策略执行「事件触发表」：DOM/渲染/显隐逻辑整体移除，不再显示）
-     verChip v259->v260（跨模块取数口径统一：市值/总盈亏改「昨收 preclose 收盘价」优先——我的持仓 buildRows / priceOf（资产配置表·策略联动）/ 决策总览持仓暴露·fundLvs，与资金平衡 v181 收盘价口径一致；当日盈亏保留盘中现价差）
+     verChip v260->v261（补全「我的持仓」市值回退链 preclose → price → fund-daily(__ALLOC_NAV__) → cost(cash)：QDII/场外基金无行情时与资产配置表/决策总览/资金平衡同源，避免跨模块对不上；renderHoldings 未加载时主动拉取 fund-daily.json）
   */
   const vc = $('#verChip');
-  if (vc) vc.textContent = 'v260 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  if (vc) vc.textContent = 'v261 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
@@ -18181,6 +18210,7 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
   /* fw2_v258_cash_bond：007866 货币基金归「安全垫」（pile=bond w=0，档位目标不变 10%）；extra 现金类自动归组；未来货基同主题汇总。 */
   /* fw2_v259_note_fix：修正 v258 note「≈12%」口径错误（511360 未建仓，实际 6.58%）。 */
   /* fw2_v260_px_unify：市值/总盈亏统一昨收（preclose）口径——我的持仓/资产配置/决策总览 vs 资金平衡（v181 收盘价）跨模块一致；当日盈亏保留现价差。 */
+  /* fw2_v261_nav_fb：我的持仓市值回退链补全（preclose→price→fund-daily→cost），无行情 QDII 与资产配置/资金平衡同源。 */
   var ALLOC_DEF = [
     { grp: '宽基', meta: [
       ['563360', 'A500', '华泰柏瑞 A500', '场内ETF', 'A股', '底仓/缓冲'],
