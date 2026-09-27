@@ -16241,10 +16241,10 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
      ③ fitSmartMoney 改取 max(doc.scrollHeight, body.scrollHeight)，防漏量子应用真实高度。
      verChip v231->v232（资产配置表整体美化：表头强化 / 金额右对齐 / 板块分隔线 / hover / 合计底色）
      verChip v233->v234（删除策略执行「事件触发表」：DOM/渲染/显隐逻辑整体移除，不再显示）
-     verChip v241->v242（资产配置表：修复「标的占比」列口径——改为该标的市值 ÷ 总目标（原误用目标占比，与合计口径不一致））
+     verChip v242->v243（资产配置表：板块↔档位列对调，档位合并显示平衡目标（底仓/进攻/安全垫/对冲），板块取消合并，同类档位放一起）
   */
   const vc = $('#verChip');
-  if (vc) vc.textContent = 'v242 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  if (vc) vc.textContent = 'v243 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
@@ -18144,6 +18144,7 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
   /* fw2_v240_nav_fb：市值口径补强——quotes 估值不可用时回退 fund-daily 最新净值（异步加载缓存 __ALLOC_NAV__，加载后重渲染），再无则成本兜底。 */
   /* fw2_v241_adjust_amt：差额/偏移 → 调仓金额/目标偏移——算法反转（调仓金额 = 目标 − 实际），+需买入（红）/-需卖出（绿）；计划外目标 0 → -100% 全部需卖出；合计 = 总目标 − 总市值。 */
   /* fw2_v242_pct_mv：修复「标的占比」列——每行 = 该标的市值 ÷ 总目标（未建仓 0.00%），合计 = 各行之和（原误用目标占比导致行合计对不上）。 */
+  /* fw2_v243_pile_group：资产配置表按档位分组——板块/档位列对调，档位列合并（同档位 rowspan）并显示档位平衡目标%+实际%，板块列不合并每行显示，行序=底仓/进攻/安全垫/对冲/计划外。 */
   var ALLOC_DEF = [
     { grp: '宽基', meta: [
       ['563360', 'A500', '华泰柏瑞 A500', '场内ETF', 'A股', '底仓/缓冲'],
@@ -18189,7 +18190,7 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
       var p = priceOf(h);
       if (p == null) p = navOf(c6);
       var mv = (+h.qty || 0) * (p != null ? p : (+h.cost || 0));
-      if (mv > 0) extra.push({ code: c6, name: h.name || c6, sub: (h.assetType === 'cash' ? '现金' : (h.sector || '基金')) + ' · 存量', mv: mv });
+      if (mv > 0) extra.push({ code: c6, name: h.name || c6, grp: h.assetType === 'cash' ? '现金' : (h.sector || '基金'), sub: (h.assetType === 'cash' ? '现金' : (h.sector || '基金')) + ' · 存量', mv: mv });
     });
     /* 档位再平衡（实盘四档，复用 barbellActual 持仓快照口径） */
     var PILE = [
@@ -18216,17 +18217,31 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
     }).join('');
     var html = '<div class="st-card"><h4>档位再平衡（实盘四档 · 目标年化 8~10%）</h4><div class="strat-note">档位权重 = 实盘持仓快照 ÷ 持仓总市值；偏离目标 ≥ ±' + ((act && act.cfg.band) || 5) + 'pp 标红提示再平衡。</div><div class="bb-tiles">' + tiles + '</div></div>';
     var PILE_COLOR = { '底仓/缓冲': '#4D6BFE', '进攻/主题': '#d98c00', '安全垫': '#059669', '对冲': '#b45309' };
-    html += '<div class="st-card"><h4>资产配置（5 万计划 · 目标 11 只' + (extra.length ? ' · 计划外 ' + extra.length + ' 只' : '') + '）</h4><div class="strat-note">目标 = 计划配置；实际 = 持仓市值（份额 × 最新净值/行情估值）；调仓金额 = 目标 − 实际（+需买入 / −需卖出）；目标偏移 = 调仓金额 ÷ 目标。未建仓标的暂不显示差额偏移，执行按「差额 ÷ 剩余月」逐月推进。001015 300增强已恢复建仓（宽基内让出）。计划外持仓 = 存量标的未纳入配置目标（含现金），相对目标 0 完全超配，建议按纪律调整。口径：表格内「标的占比/实际占比」= 持仓市值 ÷ 总目标（未建仓 0.00%，合计 = 各行之和）；档位卡「实际」= 各档位 ÷ 持仓总市值（内部结构）。</div><div class="tbl-scroll"><table class="st-tbl alloc-tbl">' +
+    html += '<div class="st-card"><h4>资产配置（5 万计划 · 目标 11 只' + (extra.length ? ' · 计划外 ' + extra.length + ' 只' : '') + '）</h4><div class="strat-note">目标 = 计划配置；实际 = 持仓市值（份额 × 最新净值/行情估值）；调仓金额 = 目标 − 实际（+需买入 / −需卖出）；目标偏移 = 调仓金额 ÷ 目标。未建仓标的暂不显示差额偏移，执行按「差额 ÷ 剩余月」逐月推进。001015 300增强已恢复建仓（宽基内让出）。计划外持仓 = 存量标的未纳入配置目标（含现金），相对目标 0 完全超配，建议按纪律调整。口径：表格按档位分组，「目标占比」= 档位平衡目标（杠铃四档）；「标的占比/实际占比」= 持仓市值 ÷ 总目标（未建仓 0.00%，合计 = 各行之和）；档位组「实际」= 各档位 ÷ 持仓总市值。</div><div class="tbl-scroll"><table class="st-tbl alloc-tbl">' +
       '<colgroup><col style="width:8%"><col style="width:7%"><col style="width:7%"><col style="width:7%"><col style="width:16%"><col style="width:10%"><col style="width:11%"><col style="width:12%"><col style="width:12%"><col style="width:10%"></colgroup>' +
-      '<thead><tr><th>板块</th><th>目标占比</th><th>标的占比</th><th>代码</th><th>资产名称</th><th>档位</th><th>目标金额</th><th>实际金额</th><th>调仓金额</th><th>目标偏移</th></tr></thead><tbody>';
+      '<thead><tr><th>档位</th><th>目标占比</th><th>标的占比</th><th>代码</th><th>资产名称</th><th>板块</th><th>目标金额</th><th>实际金额</th><th>调仓金额</th><th>目标偏移</th></tr></thead><tbody>'; /* v243 fw2_v243_pile_group：板块↔档位列对调 */
     var sumAct = 0;
-    ALLOC_DEF.forEach(function (g, gi) {
-      var gsum = 0;
-      g.meta.forEach(function (m) { gsum += (assetOf(m[0]) || { target: 0 }).target || 0; });
-      var gact = 0;
-      g.meta.forEach(function (m) { gact += mvMap[m[0]] || 0; });
-      var first = true;
+    /* v243 fw2_v243_pile_group：按档位分组（PILE 顺序）——档位列合并显示档位平衡目标，板块列每行显示不合并 */
+    var pileGroup = {};
+    ALLOC_DEF.forEach(function (g) {
       g.meta.forEach(function (m) {
+        var pn = m[5];
+        if (!pileGroup[pn]) pileGroup[pn] = [];
+        pileGroup[pn].push({ m: m, grp: g.grp });
+      });
+    });
+    var PILE_ORDER = ['底仓/缓冲', '进攻/主题', '安全垫', '对冲'];
+    var gi = 0;
+    PILE_ORDER.forEach(function (pn) {
+      var items = pileGroup[pn] || [];
+      if (!items.length) return;
+      var pl = null;
+      PILE.forEach(function (p) { if (p.name === pn) pl = p; });
+      var tgtPct = (pl && act && act.cfg && act.cfg.target) ? (act.cfg.target[pl.k] != null ? act.cfg.target[pl.k] : null) : null;
+      var curPct = (pl && act && act.pileMv && tot > 0) ? (act.pileMv[pl.k] / tot * 100) : null;
+      var first = true;
+      items.forEach(function (it) {
+        var m = it.m;
         var a = assetOf(m[0]) || { target: 0 };
         var tgt = a.target || 0;
         var mv = mvMap[m[0]] || 0;
@@ -18234,23 +18249,23 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
         var off = tgt > 0 ? diff / tgt * 100 : (mv > 0 ? -100 : 0);
         sumAct += mv;
         var held = mv > 0;
-        var pc = PILE_COLOR[m[5]] || '#4D6BFE';
-        var pill = '<span style="font-size:11px;padding:1px 8px;border-radius:9px;background:' + pc + '1A;color:' + pc + ';white-space:nowrap">' + esc(m[5]) + '</span>';
         var dCls = held ? (diff > 0.5 ? 'up' : diff < -0.5 ? 'down' : '') : '';
         var oCls = held ? (off > 0.5 ? 'up' : off < -0.5 ? 'down' : '') : '';
         var diffTxt = held ? (diff === 0 ? '0' : (diff > 0 ? '+' : '') + amt(diff)) : '—';
         var offTxt = held ? (off === 0 ? '0.0%' : (off > 0 ? '+' : '') + off.toFixed(1) + '%') : '—';
         var rowCls = (first && gi > 0 ? 'grp-start' : '') + (held ? '' : ' row-mute');
         html += '<tr' + (rowCls ? ' class="' + rowCls.trim() + '"' : '') + '>' +
-          (first ? '<td class="grp" rowspan="' + g.meta.length + '"><b>' + esc(g.grp) + '</b></td><td class="grp" rowspan="' + g.meta.length + '"><b>' + (gsum / total * 100).toFixed(2) + '%</b><div class="gsub">实际 ' + (gact / total * 100).toFixed(2) + '%</div></td>' : '') +
+          (first ? '<td class="grp" rowspan="' + items.length + '"><b>' + esc(pn) + '</b></td><td class="grp" rowspan="' + items.length + '"><b>' + (tgtPct != null ? tgtPct.toFixed(2) + '%' : '—') + '</b><div class="gsub">实际 ' + (curPct != null ? curPct.toFixed(2) + '%' : '—') + '</div></td>' : '') +
           '<td class="pct">' + (mv / total * 100).toFixed(2) + '%</td><td class="cd">' + m[0] + '</td>' + /* v242 fw2_v242_pct_mv：标的占比 = 该标的市值 ÷ 总目标（未建仓 0.00%），与合计同口径 */
-          '<td class="nm"><b>' + esc(m[2]) + '</b><div class="gsub">' + m[3] + ' · ' + m[4] + '</div></td><td>' + pill + '</td>' +
+          '<td class="nm"><b>' + esc(m[2]) + '</b><div class="gsub">' + m[3] + ' · ' + m[4] + '</div></td>' +
+          '<td><span style="font-size:11px;padding:1px 8px;border-radius:9px;background:#64748b1A;color:#64748b;white-space:nowrap">' + esc(it.grp) + '</span></td>' +
           '<td class="qty">' + amt(tgt) + '</td><td class="qty">' + (held ? amt(mv) : '—') + '</td>' +
           '<td class="qty ' + dCls + '">' + diffTxt + '</td><td class="pct ' + oCls + '">' + offTxt + '</td></tr>';
         first = false;
       });
+      gi++;
     });
-    /* 计划外持仓行（板块=计划外，目标 0 → 完全超配提示） */
+    /* v243：计划外持仓行（档位=计划外合并，目标 —；板块列显示存量类型） */
     if (extra.length) {
       var xsum = 0;
       extra.forEach(function (x) { xsum += x.mv; });
@@ -18259,7 +18274,7 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
       extra.forEach(function (x, xi) {
         html += '<td class="pct">' + (x.mv / total * 100).toFixed(2) + '%</td><td class="cd">' + x.code + '</td>' +
           '<td class="nm"><b>' + esc(x.name) + '</b><div class="gsub">' + x.sub + '</div></td>' +
-          '<td><span style="font-size:11px;padding:1px 8px;border-radius:9px;background:#8a93a51A;color:#8a93a5;white-space:nowrap">计划外</span></td>' +
+          '<td><span style="font-size:11px;padding:1px 8px;border-radius:9px;background:#8a93a51A;color:#8a93a5;white-space:nowrap">' + esc(x.grp) + '</span></td>' +
           '<td class="qty">—</td><td class="qty up">' + amt(x.mv) + '</td>' +
           '<td class="qty down">-' + amt(x.mv) + '</td><td class="pct down">-100.0%</td></tr>';
       });
