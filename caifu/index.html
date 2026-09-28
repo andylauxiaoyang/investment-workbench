@@ -16905,7 +16905,7 @@ function renderXOverview() {
         var w = t.weight || 0;
         if (st) { sw += w; score += (st.dir === 'up' ? w : st.dir === 'down' ? -w : 0); if (st.dir === 'up') conclUS.up++; else if (st.dir === 'down') conclUS.down++; }
         usRows += '<tr><td>' + (t.name || t.ticker || '') + (t.ticker ? '<div class="xov-code">' + t.ticker + '</div>' : '') + '</td><td class="num">' + (st ? st.nh + '/' + (D.overview ? D.overview.inst_count : '—') : '—') + '</td><td class="num">' + (st ? (st.ni + ' / ' + st.nd) : '—') + '</td><td>' + _xovUsBadge(st) + '</td><td class="num">' + (w != null ? w.toFixed(2) + '%' : '—') + '</td></tr>';
-        usMinis += '<div class="xov-mrow xov-mrow-link" data-tk="' + esc2(t.ticker || '') + '" data-name="' + esc2(t.name || '') + '"><span class="xov-mn">' + (t.name || t.ticker || '') + (t.ticker ? '<i>' + t.ticker + '</i>' : '') + '</span>' + (st ? '<span class="xov-mch2">机构 ' + st.nh + '/' + (D.overview ? D.overview.inst_count : '—') + '</span><span class="xov-mchip ' + (st.dir === 'up' ? 'up' : st.dir === 'down' ? 'down' : 'flat') + '">' + (st.dir === 'up' ? '加仓 ' + st.ni + ' 家' : st.dir === 'down' ? '减仓 ' + st.nd + ' 家' : '分歧') + '</span>' : '<span class="xov-mchip flat">未覆盖</span>') + (w != null ? '<span class="xov-mch2">' + w.toFixed(2) + '%</span>' : '') + '</div>';
+        usMinis += '<div class="xov-mrow xov-mrow-link" data-mkt="us" data-tk="' + esc2(t.ticker || '') + '" data-name="' + esc2(t.name || '') + '"><span class="xov-mn">' + (t.name || t.ticker || '') + (t.ticker ? '<i>' + t.ticker + '</i>' : '') + '</span>' + (st ? '<span class="xov-mch2">机构 ' + st.nh + '/' + (D.overview ? D.overview.inst_count : '—') + '</span><span class="xov-mchip ' + (st.dir === 'up' ? 'up' : st.dir === 'down' ? 'down' : 'flat') + '">' + (st.dir === 'up' ? '加仓 ' + st.ni + ' 家' : st.dir === 'down' ? '减仓 ' + st.nd + ' 家' : '分歧') + '</span>' : '<span class="xov-mchip flat">未覆盖</span>') + (w != null ? '<span class="xov-mch2">' + w.toFixed(2) + '%</span>' : '') + '</div>';
       });
       var sc = sw ? score / sw : 0;
       temp = _xovTemp(sc);
@@ -17046,6 +17046,49 @@ function renderXOverview() {
     + '<div class="xov-foot">口径：A股侧＝基金十大重仓 × 东财汇金/机构共识（基金重仓为报告期末快照，存在滞后）；美股侧＝QDII 十大重仓 × SEC EDGAR 13F（全部 ' + (D && D.overview ? D.overview.inst_count : '—') + ' 家机构，约 45 天滞后）；012920 为混合基金：A股 12.6% 净值未入汇金/共识池，如实标注；019441 与 016452 同跟踪纳指100 共享评估；货币基金不参与股票穿透。分组判定＝决策动作条（承压且减仓≥2 / 温度≥0.8 → 行动；承压 / 温度≥0.5 或 ≤−0.35 → 观察；其余维持）。机构名单 / 共识 / 反查请到 A股 / 美股页查看。</div>';
   loadEtfShares();
   if (window.renderSmSummary) renderSmSummary();
+  /* v275：美股标的 → 13F 机构明细（标的视角弹层，数据与看板同源 #sm13f-data） */
+  window.openStock13F = function (tk) {
+    var D = null;
+    try { var el = document.getElementById('sm13f-data'); if (el) D = JSON.parse(el.textContent); } catch (e2) {}
+    if (!D || !tk) return;
+    function m13(v) { v = +v || 0; var a = Math.abs(v), s = v < 0 ? '−' : ''; if (a >= 1e9) return s + '$' + (a / 1e9).toFixed(1) + 'B'; if (a >= 1e6) return s + '$' + (a / 1e6).toFixed(0) + 'M'; return s + '$' + Math.round(a); }
+    function d13(n) { if (n == null || !n) return '<span class="flat">—</span>'; var up = n > 0; return '<span class="' + (up ? 'up' : 'down') + '">' + (up ? '+' : '−') + m13(Math.abs(n)).replace('−', '') + '</span>'; }
+    function b13(a) { var m = { new: ['b-new', '新进'], inc: ['b-inc', '增持'], dec: ['b-dec', '减持'], close: ['b-close', '清仓'], add: ['b-add', '加仓'], trim: ['b-trim', '减仓'], exit: ['b-exit', '退出'], same: ['b-same', '持平'] }; var x = m[a] || ['b-same', a || '—']; return '<span class="badge ' + x[0] + '">' + x[1] + '</span>'; }
+    var upT = String(tk).toUpperCase();
+    var insts = [];
+    (D.institutions || []).forEach(function (i) {
+      var f = null;
+      (i.top || []).forEach(function (t) { if ((t.ticker || '').toUpperCase() === upT) f = t; });
+      if (!f) return;
+      insts.push({ name: i.name, person: i.person || '', style: i.style || '', tier: i.tier, v: f.v != null ? f.v : 0, prev: f.pv != null ? f.pv : null, delta: f.delta, action: f.action || 'same', filingDate: i.filingDate || '' });
+    });
+    insts.sort(function (a, b) { return (b.v || 0) - (a.v || 0); });
+    var sheet = document.getElementById('sm13f-sheet'), modal = document.getElementById('sm13f-modal');
+    if (!sheet || !modal) return;
+    var nmT = D.stocks ? D.stocks.filter(function (x) { return (x.ticker || '').toUpperCase() === upT; }).map(function (x) { return x.issuer; })[0] || upT : upT;
+    var rows = insts.length ? insts.map(function (it) {
+      return '<tr><td class="l"><span class="name">' + it.name + '</span><div class="cusip">' + it.person + ' · ' + it.style + (it.filingDate ? ' · 申报 ' + it.filingDate : '') + '</div></td>'
+        + '<td class="num">' + m13(it.v) + '</td>'
+        + '<td class="num mut">' + (it.prev != null ? m13(it.prev) : '—') + '</td>'
+        + '<td>' + d13(it.delta) + '</td>'
+        + '<td>' + b13(it.action) + '</td></tr>';
+    }).join('') : '';
+    var totV = 0; insts.forEach(function (x) { totV += (x.v || 0); });
+    var adds = insts.filter(function (x) { return x.action === 'inc' || x.action === 'new' || x.action === 'add'; }).length;
+    var cuts = insts.filter(function (x) { return x.action === 'dec' || x.action === 'trim' || x.action === 'close' || x.action === 'exit'; }).length;
+    sheet.innerHTML = '<div class="sh-hd"><div><h3 style="margin:0;font-size:17px">' + nmT + ' <span class="tk" style="font-size:12px">' + upT + '</span></h3>'
+      + '<div class="small mut" style="margin-top:4px">' + insts.length + ' 家 13F 机构持有 · ' + (adds ? '<span class="up">加/新进 ' + adds + ' 家</span>' : '') + (adds && cuts ? ' · ' : '') + (cuts ? '<span class="down">减/清 ' + cuts + ' 家</span>' : '') + ' · 合计 $' + m13(totV).replace('$', '') + '（报告期 ' + (D.overview ? D.overview.latest : '—') + '，约 45 天滞后）</div></div>'
+      + '<button class="x" onclick="window.SM13F&&SM13F.closeModal?SM13F.closeModal():(document.getElementById('sm13f-modal').classList.remove('on'),document.body.style.overflow='')">×</button></div>'
+      + '<div class="sh-bd"><div class="grid-kpi" style="grid-template-columns:repeat(3,1fr);margin:14px 0 6px">'
+      + '<div class="card pad"><div class="lab">持有机构</div><div class="val" style="font-size:20px">' + insts.length + ' 家</div></div>'
+      + '<div class="card pad"><div class="lab">加/新进</div><div class="val" style="font-size:20px"><span class="up">' + adds + '</span></div></div>'
+      + '<div class="card pad"><div class="lab">减/清仓</div><div class="val" style="font-size:20px"><span class="down">' + cuts + '</span></div></div></div>'
+      + '<div class="scroll"><table><thead><tr><th class="l">机构</th><th>本季市值</th><th>上季</th><th>变动</th><th>动作</th></tr></thead><tbody>'
+      + (rows || '<tr><td colspan="5"><div class="empty small">13F 机构中无机构持有该标的（或未进入前十大持仓）</div></td></tr>')
+      + '</tbody></table></div>'
+      + '<div class="small mut" style="margin-top:8px">口径：SEC 13F 前十大持仓聚合（集中持仓型机构计入），市值 USD；动作=本季相对上季。点击外部/× 关闭，Esc 亦可。辅助决策，非投资建议。</div></div>';
+    modal.classList.add('on'); document.body.style.overflow = 'hidden';
+  };
   /* v273：看板 mini 行点击 → 雷达定位高亮（与 v272 雷达→看板 双向闭环） */
   if (box && !box.__smLink2) {
     box.__smLink2 = 1;
@@ -17053,6 +17096,9 @@ function renderXOverview() {
       var row = e.target && e.target.closest ? e.target.closest('.xov-mrow-link') : null;
       if (!row) return;
       var tk = row.getAttribute('data-tk') || '', nm = row.getAttribute('data-name') || '';
+      if (row.getAttribute('data-mkt') === 'us') { /* v275：美股行 → 13F 标的机构明细弹层 */
+        if (tk && window.openStock13F) { window.openStock13F(tk); return; }
+      }
       setSMMarket('radar');
       setTimeout(function () {
         var trs = document.querySelectorAll('#smRadarview .sm-radar-tbl tbody tr');
