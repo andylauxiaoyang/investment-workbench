@@ -16417,9 +16417,11 @@ function initSmFast() { /* 更快信号 */
 
 /* ---------- 子模块切换（v203.3） ---------- */
 function renderSmartMoney() {
+  /* v302：点击「聪明的钱」一律进入看板（不再读取 localStorage 记忆，避免停留在上次的机构反查等） */
   var m = 'dash';
-  try { m = (localStorage && localStorage.getItem('smMarket')) || 'dash'; if (['dash', 'radar', 'nhb', 'drawer', 'con', 'look', 'fast'].indexOf(m) < 0) m = 'dash'; if (m === 'con' || m === 'drawer') m = 'look'; } catch (e) {}
-  if (new URLSearchParams(location.search).get('view') === 'sm13f') m = 'look'; /* 旧链接兼容：13F 工作台 → 机构反查 */
+  try {
+    if (new URLSearchParams(location.search).get('view') === 'sm13f') m = 'look'; /* 旧链接兼容：13F 工作台 → 机构反查 */
+  } catch (e) {}
   setSMMarket(m, true);
 }
 function setSMMarket(m, silent) {
