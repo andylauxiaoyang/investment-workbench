@@ -12685,6 +12685,13 @@ section.sm13f-view{display:none;padding-top:22px}
 .xov-table .up { color: #dc2626; font-weight: 600; }
 .xov-table .down { color: #16a34a; font-weight: 600; }
 .xov-table .flat { color: #6b7280; }
+/* fw2_v286_sm_xov_merge：顶部三块融合为一个结论块 */
+.xov-concl .xov-risk { font-size: 13px; font-weight: 700; color: #dc2626; background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 8px 12px; margin-bottom: 8px; line-height: 1.6; }
+.xov-concl .xov-risk.sm-dir-pos { color: #047857; background: #ecfdf5; border-color: #a7f3d0; }
+.xov-concl .xov-risk.sm-dir-mid { color: #b7791f; background: #fffbeb; border-color: #fde68a; }
+.xov-concl .xov-acts { margin-top: 8px; font-size: 12px; color: #5b6472; }
+.xov-concl .xov-acts a { color: #2563eb; text-decoration: none; margin-right: 14px; }
+.xov-concl .xov-acts a:hover { text-decoration: underline; }
 /* fw2_v202_sm_xov_full：跨市场速览完整版（A股完整卡 / QDII 温度计 / 重叠度 / 承压名单） */
 
 /* fw2_v203_sm_xov_fusion：基金卡流 + 决策动作条（v203） */
@@ -16195,18 +16202,8 @@ function renderSmSummary() { /* 看板顶部：聪明钱整体 × 我的组合 �
   else if (dirTxt === '偏多') main = '顺风：聪明钱整体' + dirTxt + '，你的持仓方向多数获加仓印证，维持节奏';
   else if (dirTxt === '偏空') main = '逆风：聪明钱整体' + dirTxt + '，留意减仓与止损线，减少追高';
   else main = '中性：聪明钱加减分歧，按纪律定投/再平衡，不追信号';
-  var h = '<div class="sm-summary ' + dirCls + '">'
-    + '<div class="sm-sum-main">' + main + '</div>'
-    + '<div class="sm-sum-acts">'
-    + '<a href="#" data-smgo="radar">聪明钱在买什么/卖什么 → 雷达</a>'
-    + '<a href="#" data-smgo="nhb">国家队动向 → 国家队</a>'
-    + '<a href="#" data-smgo="look">机构名单/反查 → 机构反查</a>'
-    + '</div>'
-    + '</div>';
-  box.innerHTML = h;
-  box.querySelectorAll('[data-smgo]').forEach(function (a) {
-    a.addEventListener('click', function (e) { e.preventDefault(); var g = a.getAttribute('data-smgo'); if (g === 'radar') setSMMarket('radar'); else if (g === 'nhb') setSMMarket('nhb'); else if (g === 'look') setSMMarket('look'); else if (g === 'fast') setSMMarket('fast'); });
-  });
+  window.__SM_SUMMARY = { main: main, dirCls: dirCls }; /* v286：与看板 verdict 融合（风险/风向句渲染进 xov-concl），不再独立展示 */
+  box.innerHTML = '';
 }
 function renderRadarView() { /* 雷达：聪明钱在买什么 / 卖什么（A股共识 + 美股13F 合并榜） */
   var box = document.getElementById('smRadarview'); if (!box) return;
@@ -17065,9 +17062,16 @@ function renderXOverview() {
   var totalVerdict = '聪明钱对你的持仓：A股共识' + (conclA.up > conclA.down ? '偏加仓（加 <b>' + conclA.up + '</b> / 减 <b>' + conclA.down + '</b>）' : conclA.down > conclA.up ? '偏减仓（加 <b>' + conclA.up + '</b> / 减 <b>' + conclA.down + '</b>）' : '未形成方向')
     + '；美股 13F ' + (conclUS.up > conclUS.down ? '偏加仓（加 <b>' + conclUS.up + '</b> / 减 <b>' + conclUS.down + '</b>）' : conclUS.down > conclUS.up ? '偏减仓（加 <b>' + conclUS.up + '</b> / 减 <b>' + conclUS.down + '</b>）' : '未形成方向')
     + '；汇金背书 <b>' + conclA.hui + '</b> 只重仓'
-    + (inter.length ? '；AI 链双暴露 <b>' + inter.join(' / ') + '</b>（' + (conclUS.up > conclUS.down ? '13F 整体加仓 · 升温' : '13F 整体减持 · 集中度风险') + '）' : '')
-    + (pressure.length ? '；建议关注：<b>' + pressure.join('、') + '</b>（重仓被机构/汇金减持或方向降温，按卡内动作条评估）' : '') + '。';
-  var concl = '<div class="xov-verdict">' + totalVerdict + '</div>'; /* v285：磁贴删除（数字与 verdict 重复），只留一句话总判断 */
+    + (inter.length ? '；AI 链双暴露 <b>' + inter.join(' / ') + '</b>（' + (conclUS.up > conclUS.down ? '13F 整体加仓 · 升温' : '13F 整体减持 · 集中度风险') + '）' : '') + '。';
+  if (window.renderSmSummary) renderSmSummary(); /* v286：先算风险/风向句（只存 window，不独立渲染） */
+  var sms = window.__SM_SUMMARY || {};
+  var concl = (sms.main ? '<div class="xov-risk ' + (sms.dirCls || '') + '">' + sms.main + '</div>' : '')
+    + '<div class="xov-verdict">' + totalVerdict + '</div>'
+    + '<div class="xov-acts">'
+    + '<a href="#" data-smgo="radar">聪明钱在买什么/卖什么 → 雷达</a>'
+    + '<a href="#" data-smgo="nhb">国家队动向 → 国家队</a>'
+    + '<a href="#" data-smgo="look">机构名单/反查 → 机构反查</a>'
+    + '</div>'; /* v286：三块融合为一个结论块 */
   var secOV = _xovOverlap(fh);
   function _xovGrow(lv, title, gsum, n) {
     var color = lv === 2 ? '#dc2626' : lv === 1 ? '#b7791f' : '#94a3b8';
@@ -17086,7 +17090,9 @@ function renderXOverview() {
     + secOV
     + '<details class="xov-details"><summary>数据口径与滞后说明</summary><div class="xov-foot">口径：A股侧＝基金十大重仓 × 东财汇金/机构共识（基金重仓为报告期末快照，存在滞后）；美股侧＝QDII 十大重仓 × SEC EDGAR 13F（全部 ' + (D && D.overview ? D.overview.inst_count : '—') + ' 家机构，约 45 天滞后）；012920 为混合基金：A股 12.6% 净值未入汇金/共识池，如实标注；019441 与 016452 同跟踪纳指100 共享评估；货币基金不参与股票穿透。分组判定＝决策动作条（承压且减仓≥2 / 温度≥0.8 → 行动；承压 / 温度≥0.5 或 ≤−0.35 → 观察；其余维持）。机构名单 / 共识 / 反查请到 A股 / 美股页查看。</div></details>';
   loadEtfShares();
-  if (window.renderSmSummary) renderSmSummary();
+  box.querySelectorAll('[data-smgo]').forEach(function (a) {
+    a.addEventListener('click', function (e) { e.preventDefault(); var g = a.getAttribute('data-smgo'); if (g === 'radar') setSMMarket('radar'); else if (g === 'nhb') setSMMarket('nhb'); else if (g === 'look') setSMMarket('look'); else if (g === 'fast') setSMMarket('fast'); });
+  });
   /* v275：美股标的 → 13F 机构明细（标的视角弹层，数据与看板同源 #sm13f-data） */
   window.openStock13F = function (tk) {
     var D = null;
