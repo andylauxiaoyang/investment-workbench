@@ -12719,6 +12719,9 @@ section.sm13f-view{display:none;padding-top:22px}
 .xov-tcard .xov-act { margin-top: auto; }
 .xov-mlist { margin: 8px 0 4px; display: flex; flex-direction: column; gap: 5px; }
 .xov-mrow { display: flex; align-items: center; gap: 6px; font-size: 11.5px; flex-wrap: wrap; line-height: 1.35; }
+.xov-mrow-link { cursor: pointer; }
+.xov-mrow-link:hover { background: rgba(77, 107, 254, .06); border-radius: 6px; }
+.xov-mrow-link:hover .xov-mn i { color: var(--brand, #4D6BFE); }
 .xov-mn { font-weight: 600; color: var(--txt, #111827); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .xov-mn i { font-style: normal; color: var(--txt3, #98a2b3); font-size: 10.5px; margin-left: 3px; font-weight: 400; }
 .xov-mch2 { color: var(--txt2, #6b7280); font-variant-numeric: tabular-nums; white-space: nowrap; }
@@ -16839,6 +16842,7 @@ function loadEtfShares(){
 }
 function renderXOverview() {
   var box = document.getElementById('smXOverview'); if (!box || !window.SM_XOV) return;
+  var esc2 = function (x) { return String(x == null ? '' : x).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); };
   var D = null;
   try { var el = document.getElementById('sm13f-data'); if (el) D = JSON.parse(el.textContent); } catch (e) {}
   var fh = D && D.fundHoldings ? D.fundHoldings : {};
@@ -16872,7 +16876,7 @@ function renderXOverview() {
         var w = t.weight || 0;
         if (st) { sw += w; score += (st.dir === 'up' ? w : st.dir === 'down' ? -w : 0); if (st.dir === 'up') conclUS.up++; else if (st.dir === 'down') conclUS.down++; }
         usRows += '<tr><td>' + (t.name || t.ticker || '') + (t.ticker ? '<div class="xov-code">' + t.ticker + '</div>' : '') + '</td><td class="num">' + (st ? st.nh + '/' + (D.overview ? D.overview.inst_count : '—') : '—') + '</td><td class="num">' + (st ? (st.ni + ' / ' + st.nd) : '—') + '</td><td>' + _xovUsBadge(st) + '</td><td class="num">' + (w != null ? w.toFixed(2) + '%' : '—') + '</td></tr>';
-        usMinis += '<div class="xov-mrow"><span class="xov-mn">' + (t.name || t.ticker || '') + (t.ticker ? '<i>' + t.ticker + '</i>' : '') + '</span>' + (st ? '<span class="xov-mch2">机构 ' + st.nh + '/' + (D.overview ? D.overview.inst_count : '—') + '</span><span class="xov-mchip ' + (st.dir === 'up' ? 'up' : st.dir === 'down' ? 'down' : 'flat') + '">' + (st.dir === 'up' ? '加仓 ' + st.ni + ' 家' : st.dir === 'down' ? '减仓 ' + st.nd + ' 家' : '分歧') + '</span>' : '<span class="xov-mchip flat">未覆盖</span>') + (w != null ? '<span class="xov-mch2">' + w.toFixed(2) + '%</span>' : '') + '</div>';
+        usMinis += '<div class="xov-mrow xov-mrow-link" data-tk="' + esc2(t.ticker || '') + '" data-name="' + esc2(t.name || '') + '"><span class="xov-mn">' + (t.name || t.ticker || '') + (t.ticker ? '<i>' + t.ticker + '</i>' : '') + '</span>' + (st ? '<span class="xov-mch2">机构 ' + st.nh + '/' + (D.overview ? D.overview.inst_count : '—') + '</span><span class="xov-mchip ' + (st.dir === 'up' ? 'up' : st.dir === 'down' ? 'down' : 'flat') + '">' + (st.dir === 'up' ? '加仓 ' + st.ni + ' 家' : st.dir === 'down' ? '减仓 ' + st.nd + ' 家' : '分歧') + '</span>' : '<span class="xov-mchip flat">未覆盖</span>') + (w != null ? '<span class="xov-mch2">' + w.toFixed(2) + '%</span>' : '') + '</div>';
       });
       var sc = sw ? score / sw : 0;
       temp = _xovTemp(sc);
@@ -16892,7 +16896,7 @@ function renderXOverview() {
         var consCell = c.hit ? '<span class="' + (c.dir > 0 ? 'up' : c.dir < 0 ? 'down' : 'flat') + '">' + (c.dir > 0 ? '共识加仓' : c.dir < 0 ? '共识减仓' : '共识持平') + '</span>' : '<span class="flat">池外</span>';
         if (h.held) conclA.hui++;
         rowsA += '<tr><td>' + (r.name || '') + (r.code ? '<div class="xov-code">' + r.code + '</div>' : '') + '<div class="xov-ratio">' + (r.ratio || '') + '</div></td><td>' + huiCell + '</td><td>' + consCell + '</td></tr>';
-        rowsAMini += '<div class="xov-mrow"><span class="xov-mn">' + (r.name || '') + (r.code ? '<i>' + r.code + '</i>' : '') + '</span>' + (r.ratio ? '<span class="xov-mch2">' + r.ratio + '</span>' : '') + (h.held ? '<span class="xov-mchip ' + (h.dir > 0 ? 'up' : h.dir < 0 ? 'down' : 'flat') + '">' + (h.dir > 0 ? '汇金增持' : h.dir < 0 ? '汇金减持' : '汇金持股') + '</span>' : '<span class="xov-mchip flat">池外</span>') + (c.hit ? '<span class="xov-mchip ' + (c.dir > 0 ? 'up' : c.dir < 0 ? 'down' : 'flat') + '">' + (c.dir > 0 ? '共识加仓' : c.dir < 0 ? '共识减仓' : '共识持平') + '</span>' : '<span class="xov-mchip flat">池外</span>') + '</div>';
+        rowsAMini += '<div class="xov-mrow xov-mrow-link" data-tk="' + esc2(r.code || '') + '" data-name="' + esc2(r.name || '') + '"><span class="xov-mn">' + (r.name || '') + (r.code ? '<i>' + r.code + '</i>' : '') + '</span>' + (r.ratio ? '<span class="xov-mch2">' + r.ratio + '</span>' : '') + (h.held ? '<span class="xov-mchip ' + (h.dir > 0 ? 'up' : h.dir < 0 ? 'down' : 'flat') + '">' + (h.dir > 0 ? '汇金增持' : h.dir < 0 ? '汇金减持' : '汇金持股') + '</span>' : '<span class="xov-mchip flat">池外</span>') + (c.hit ? '<span class="xov-mchip ' + (c.dir > 0 ? 'up' : c.dir < 0 ? 'down' : 'flat') + '">' + (c.dir > 0 ? '共识加仓' : c.dir < 0 ? '共识减仓' : '共识持平') + '</span>' : '<span class="xov-mchip flat">池外</span>') + '</div>';
       });
     } else if (!isUS) {
       (f.rows || []).forEach(function (r) {
@@ -16902,7 +16906,7 @@ function renderXOverview() {
         if (h.held) conclA.hui++;
         if (c.hit && c.dir > 0) conclA.up++; else if (c.hit && c.dir < 0) conclA.down++;
         rowsA += '<tr><td>' + (r.name || '') + (r.code ? '<div class="xov-code">' + r.code + '</div>' : '') + '</td><td>' + huiCell + '</td><td>' + consCell + '</td></tr>';
-        rowsAMini += '<div class="xov-mrow"><span class="xov-mn">' + (r.name || '') + (r.code ? '<i>' + r.code + '</i>' : '') + '</span>' + (h.held ? '<span class="xov-mchip ' + (h.dir > 0 ? 'up' : h.dir < 0 ? 'down' : 'flat') + '">' + (h.dir > 0 ? '汇金增持' : h.dir < 0 ? '汇金减持' : '汇金持股') + '</span>' : '') + (c.hit ? '<span class="xov-mchip ' + (c.dir > 0 ? 'up' : c.dir < 0 ? 'down' : 'flat') + '">' + (c.dir > 0 ? '共识加仓' : c.dir < 0 ? '共识减仓' : '共识持平') + '</span>' : '<span class="xov-mchip flat">未入共识</span>') + '</div>';
+        rowsAMini += '<div class="xov-mrow xov-mrow-link" data-tk="' + esc2(r.code || '') + '" data-name="' + esc2(r.name || '') + '"><span class="xov-mn">' + (r.name || '') + (r.code ? '<i>' + r.code + '</i>' : '') + '</span>' + (h.held ? '<span class="xov-mchip ' + (h.dir > 0 ? 'up' : h.dir < 0 ? 'down' : 'flat') + '">' + (h.dir > 0 ? '汇金增持' : h.dir < 0 ? '汇金减持' : '汇金持股') + '</span>' : '') + (c.hit ? '<span class="xov-mchip ' + (c.dir > 0 ? 'up' : c.dir < 0 ? 'down' : 'flat') + '">' + (c.dir > 0 ? '共识加仓' : c.dir < 0 ? '共识减仓' : '共识持平') + '</span>' : '<span class="xov-mchip flat">未入共识</span>') + '</div>';
       });
     }
     if (vd === '承压' && !isUS) pressure.push(f.name || f.code);
@@ -17013,6 +17017,27 @@ function renderXOverview() {
     + '<div class="xov-foot">口径：A股侧＝基金十大重仓 × 东财汇金/机构共识（基金重仓为报告期末快照，存在滞后）；美股侧＝QDII 十大重仓 × SEC EDGAR 13F（全部 ' + (D && D.overview ? D.overview.inst_count : '—') + ' 家机构，约 45 天滞后）；012920 为混合基金：A股 12.6% 净值未入汇金/共识池，如实标注；019441 与 016452 同跟踪纳指100 共享评估；货币基金不参与股票穿透。分组判定＝决策动作条（承压且减仓≥2 / 温度≥0.8 → 行动；承压 / 温度≥0.5 或 ≤−0.35 → 观察；其余维持）。机构名单 / 共识 / 反查请到 A股 / 美股页查看。</div>';
   loadEtfShares();
   if (window.renderSmSummary) renderSmSummary();
+  /* v273：看板 mini 行点击 → 雷达定位高亮（与 v272 雷达→看板 双向闭环） */
+  if (box && !box.__smLink2) {
+    box.__smLink2 = 1;
+    box.addEventListener('click', function (e) {
+      var row = e.target && e.target.closest ? e.target.closest('.xov-mrow-link') : null;
+      if (!row) return;
+      var tk = row.getAttribute('data-tk') || '', nm = row.getAttribute('data-name') || '';
+      setSMMarket('radar');
+      setTimeout(function () {
+        var trs = document.querySelectorAll('#smRadarview .sm-radar-tbl tbody tr');
+        var found = null;
+        trs.forEach(function (tr2) { var t = tr2.textContent || ''; if (!found && tk && t.indexOf(tk) >= 0) found = tr2; });
+        if (!found) { trs.forEach(function (tr2) { var t = tr2.textContent || ''; if (!found && nm && t.indexOf(nm) >= 0) found = tr2; }); }
+        if (found) {
+          found.style.outline = '2px solid #4D6BFE'; found.style.outlineOffset = '-1px'; found.style.background = 'rgba(77,107,254,.10)';
+          try { found.scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch (e2) {}
+          setTimeout(function () { found.style.outline = ''; found.style.background = ''; }, 4000);
+        }
+      }, 250);
+    });
+  }
 }
 if (document.getElementById('smXOverview')) renderXOverview();
 
