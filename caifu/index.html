@@ -12377,7 +12377,7 @@ setInterval(updateSessionBadge, 30000);
   --line:#e5e7eb; --line2:#f0f2f5; --accent:#4D6BFE; --accent-soft:rgba(77,107,254,.10); --accent-line:rgba(77,107,254,.45);
   /* A股/工作台惯例：红涨绿跌 */
   --up:#dc2626; --up-soft:rgba(220,38,38,.12); --down:#047857; --down-soft:rgba(4,120,87,.12);
-  --warn:#b45309; --warn-soft:rgba(180,83,9,.12); --new:#4D6BFE;
+  --warn:#b45309; --warn-soft:rgba(180,83,9,.12); --new:#4D6BFE; --ok:#0a7a3d;
   --r:12px; --shadow:0 1px 2px rgba(16,24,40,.04), 0 3px 10px rgba(16,24,40,.04);
   --mono:"SF Mono",ui-monospace,"Cascadia Mono",Consolas,"Liberation Mono",monospace;
   --sans:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",system-ui,sans-serif;
@@ -12601,8 +12601,8 @@ section.sm13f-view{display:none;padding-top:22px}
 .dc-dir.t-def{color:#0a7a3d;background:#f0fdf4}
 .dc-dir.t-bull{color:#dc2626;background:#fdf2f2}
 .dc-dir.t-neu{color:#667085;background:#f2f4f7}
-.dc-dir.t-hot{color:#e5484d;background:#fef2f2}
-.dc-dir.t-cold{color:#0a9d8f;background:#e6fffb}
+.dc-dir.t-hot{color:var(--warn,#b45309);background:var(--warn-soft,rgba(180,83,9,.12))}
+.dc-dir.t-cold{color:var(--ok,#0a7a3d);background:var(--down-soft,rgba(4,120,87,.12))}
 .dc-dir.t-pos{color:#dc2626;background:#fdf2f2}
 .dc-dir.t-neg{color:#047857;background:#ecfdf5}
 .dc-go{margin-left:auto;font-size:12px;color:var(--brand,#4D6BFE);text-decoration:none}
@@ -16772,7 +16772,7 @@ function renderEtfShares(){
       pts.push(x.toFixed(1) + ',' + y.toFixed(1));
     });
     var up = win[win.length - 1].shares >= win[0].shares;
-    var poly = '<svg class="spark" viewBox="0 0 118 30" preserveAspectRatio="none"><polyline fill="none" stroke="' + (up ? '#d0302e' : '#1a9c5c') + '" stroke-width="1.4" points="' + pts.join(' ') + '"/></svg>';
+    var poly = '<svg class="spark" viewBox="0 0 118 30" preserveAspectRatio="none"><polyline fill="none" stroke="' + (up ? '#dc2626' : '#047857') + '" stroke-width="1.4" points="' + pts.join(' ') + '"/></svg>';
     function cell(v){
       if (v == null) return '<span class="mut">—</span>';
       return '<span class="' + (v > 0 ? 'up' : v < 0 ? 'down' : '') + '">' + (v > 0 ? '+' : '') + v.toFixed(1) + '%</span>';
