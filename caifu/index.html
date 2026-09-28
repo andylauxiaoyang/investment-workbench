@@ -1072,6 +1072,29 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 ★ --r-14 保留 1 个消费者：.mobile-sheet .panel（底部弹层＝浮动层，故意 14px）。改圆角勿全局替换 --r-14。
 ★ 改卡片结构 / 字体 / 颜色前先跑 _precheck_markers.py。 */
 
+
+/* ============ v304 UI 一致性统一（tab条 / 表头 / 宏观判读行卡片化） ============ */
+/* A1 页内 tab 条统一为 v-tab 胶囊规范（active = 品牌浅底 + 描边 + 加粗） */
+.seg-tabs, .tab-bar { display: flex; gap: 6px; flex-wrap: nowrap; overflow-x: auto; min-width: 0; margin-bottom: 12px; scrollbar-width: none; }
+.seg-tabs::-webkit-scrollbar, .tab-bar::-webkit-scrollbar { height: 0; }
+.seg-tabs { background: transparent; border: 0; border-radius: 0; }
+.seg-tabs button, .tab-bar .tab { border: 1px solid var(--line); background: var(--panel); color: var(--text-2); padding: 5px 12px; border-radius: 8px; cursor: pointer; font-size: var(--fs-md); white-space: nowrap; flex: 0 0 auto; line-height: 1.45; }
+.seg-tabs button + button { border-left: 0; }
+.seg-tabs button:hover, .tab-bar .tab:hover { background: var(--panel-2); }
+.seg-tabs button.active, .seg-tabs button.on, .tab-bar .tab.active, .tab-bar .tab.on { background: var(--brand-tint); color: var(--brand); border-color: var(--brand-line); font-weight: 600; }
+@media (max-width: 820px) { .seg-tabs button, .tab-bar .tab { font-size: var(--fs-sm); padding: 6px 10px; } }
+/* A2 表头统一：浅灰底 + 加粗（补齐未用 --panel-3 的表） */
+#view-macro .cyc-tbl thead th,
+#view-gold table thead th,
+#view-capbal .cb-sub-table thead th,
+.dc-cal-tbl thead th,
+#view-strategy table thead th { background: var(--panel-3); color: var(--text-2); font-weight: 600; }
+/* B4 宏观周期判读行卡片化（标签上、内容下，与决策总览六卡呼应） */
+#view-macro .rv-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 10px; margin: 10px 0 4px; }
+#view-macro .rv-grid .rv-line { flex-direction: column; gap: 5px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--panel); padding: 10px 12px; margin: 0; }
+#view-macro .rv-grid .rv-line .tag { margin: 0; }
+@media (max-width: 820px) { #view-macro .rv-grid { grid-template-columns: 1fr; } }
+
 </style>
 <meta name="theme-color" content="#4D6BFE">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -8481,13 +8504,13 @@ const VIEW_META = {
   holdings: ['我的持仓', '在线持仓数据表 · 支持新增 / 修改 / 删除 · 未登录时改动存本机草稿'],
   signal: ['交易信号', '信号仪表盘 · 杠铃失衡 · 持仓/自选/市场信号'],
   news: ['财经资讯', '五源聚合 · 去重 · 持仓相关性标记'],
-  macro: ['宏观周期', '四周期嵌套（康波60y·库兹涅茨20y·朱格拉10y·基钦3-4y）→ 共振合成 → 决策输出 · 美元黄金大宗联动 · 14 项指标明细'], /* fw2_v201_wave_cycle */
+  macro: ['宏观周期', '四周期嵌套 · 共振合成 · 14 项指标明细'], /* fw2_v201_wave_cycle */
   strategy: ['策略执行', '行动中心 · 标的主表 · 计划与记录'],
   gold: ['黄金研究', '金价走势 · 非农 · 央行购金 · CSV 数据'], /* fw2_v143_gold fw2_v147_gold_zh */
-  data: ['基金数据', '基金列表 · 收益曲线 · 基本面/技术面/持仓关联 · 财报 · 综合诊断'], /* fw2_v170_ds_norm：补 data 键（原缺失 → 顶栏标题/副标题空） */
+  data: ['基金数据', '基金列表 · 收益曲线 · 分析诊断'], /* fw2_v170_ds_norm：补 data 键（原缺失 → 顶栏标题/副标题空） */
   capbal: ['资金平衡', '投资记账 · 三张报表 · 盈亏台账（与持仓自动同步）'], /* fw2_capbal_merge */
   smartmoney: ['聪明的钱', '机构动向 · A股+美股 · 季度环比'], /* fw2_v194_sm_merge：并入美股聪明钱(13F)，双市场分区 */
-  decision: ['决策总览', '跨模块决策主链路：周期定位 → 环境闸门 → 聪明钱方向 → 持仓暴露 → 策略动作 → 资金约束 → 综合 verdict'], /* fw2_v206_decision */
+  decision: ['决策总览', '跨模块决策主链路 · 六层收口'], /* fw2_v206_decision */
 };
 function showView(name) {
   if (name === 'sm13f') { name = 'smartmoney'; } /* fw2_v194_sm_merge：美股聪明钱并入聪明的钱，旧链接兼容 */
@@ -9657,12 +9680,14 @@ function renderMacro() {
       <div class="cyc-nest-lv dn"><b>朱格拉（10y）</b><span>${cyc.layers.k3.phase.s}</span><small>${cyc.layers.k3.phase.c}</small></div>
       <div class="cyc-nest-lv"><b>基钦（3-4y）</b><span>${cyc.layers.l3.phase.s}</span><small>${cyc.layers.l3.phase.c}</small></div>
     </div>
+    <div class="rv-grid">
     <div class="rv-line"><span class="tag tag-ai">周期共振</span><span><b>${cyc.resonance.warn}</b></span></div>
     <div class="rv-line"><span class="tag tag-data">五维方向</span><span>${cyc.resonance.parts.join(' · ')} · 共振得分 <b>${cyc.resonance.score >= 0 ? '+' : ''}${cyc.resonance.score}</b></span></div>
     <div class="rv-line"><span class="tag tag-data">康波代理</span><span>${cyc.layers.konbo.proxy}</span></div>
     <div class="rv-line"><span class="tag tag-data">库兹涅茨</span><span>${cyc.layers.k2.proxy}</span></div>
     <div class="rv-line"><span class="tag tag-data">朱格拉</span><span>${cyc.layers.k3.proxy}</span></div>
     <div class="rv-line"><span class="tag tag-data">口径</span><span>康波＝理论定位（周金涛时间表+AI 修正）；地产/设备＝数据驱动（理杏仁/东财，单月同比自算）；共振＝五维短中周期同向得分，同向=大波动窗口</span></div>
+    </div>
   </div>
   <!-- ===== v196 宏观周期：四层周期定位 + 决策输出（规则引擎实时计算） ===== -->
   <div class="card dc-cyc">
