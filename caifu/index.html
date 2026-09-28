@@ -12678,6 +12678,11 @@ section.sm13f-view{display:none;padding-top:22px}
 .xov-modal-x { border: 0; background: transparent; font-size: 20px; color: #667085; cursor: pointer; line-height: 1; padding: 2px 4px; }
 .xov-modal-x:hover { color: #dc2626; }
 .xov-modal-body { padding: 14px 18px 18px; overflow-y: auto; }
+/* fw2_v299_sm_radar_split：雷达上下双市场模块——A股在上、美股在下，每模块买入/卖出各取前十 */
+.sm-radar-sec { margin-top: 16px; }
+.sm-radar-sec .sm-sec-hd { display: flex; align-items: center; gap: 8px; font-size: 13.5px; font-weight: 700; color: #1f2430; margin-bottom: 8px; }
+.sm-radar-sec .sm-sec-hd .bar { display: inline-block; width: 4px; height: 14px; border-radius: 2px; margin-right: 4px; }
+.sm-radar-sec .sm-sec-hd .hint { font-size: 11.5px; color: #8a93a5; font-weight: 400; }
 /* fw2_v293_sm_xov_7col：7 列结构——策略/基金名称/基金代码/行动/角色/市场/聪明钱信号 */
 .xov-table .xov-trow td.c-strat { width: 64px; vertical-align: middle; } /* v297：提高特异性，覆盖 .xov-trow td 的 top，徽章上下居中 */
 .xov-trow .c-code { color: #5b6472; font-family: var(--mono, monospace); font-size: 12px; }
@@ -16300,16 +16305,16 @@ function renderRadarView() { /* 雷达：聪明钱在买什么 / 卖什么（A�
   rowsSellU.sort(function (a, b) { return (a.ni - a.nd) - (b.ni - b.nd) || a.dlt - b.dlt; });
   var rowsBuy = rowsBuyA.slice(0, 6).concat(rowsBuyU.slice(0, 6));
   var rowsSell = rowsSellA.slice(0, 6).concat(rowsSellU.slice(0, 6));
-  function rankTbl(rows, max, up, exKey) {
+  function rankTbl(rows, max, up, exKey, showMkt) {
     if (!rows.length) return '<div class="xov-note">本方向暂无明显信号</div>';
     var showN = exKey && window.__SM_RADAR_EXP[exKey] ? rows.length : max;
-    var h = '<table class="sm-radar-tbl"><thead><tr><th>标的</th><th>市场</th><th>持有</th><th>加仓</th><th>减仓</th><th class="num">净变化</th><th>信号</th><th>与我关系</th></tr></thead><tbody>';
+    var h = '<table class="sm-radar-tbl"><thead><tr><th>标的</th>' + (showMkt ? '<th>市场</th>' : '') + '<th>持有</th><th>加仓</th><th>减仓</th><th class="num">净变化</th><th>信号</th><th>与我关系</th></tr></thead><tbody>';
     rows.slice(0, showN).forEach(function (it) {
       var d = (it.ni - it.nd) || it.dlt; /* 买卖榜统一：净变化=加仓-减仓，卖出榜自然为负 */
       var hit = _smHitTag(my, it.code, it.name); /* v272：命中可点击跳看板 */
       var trCls = hit ? ' class="sm-rd-hit" data-tk="' + esc2(it.code) + '" data-name="' + esc2(it.name) + '"' : '';
       h += '<tr' + trCls + '><td><span class="name">' + esc2(it.name) + '</span><div class="xov-code">' + esc2(it.code) + '</div></td>'
-        + '<td><span class="sm-mkt ' + (it.market === 'A股' ? 'sm-mkt-a' : 'sm-mkt-u') + '">' + it.market + '</span></td>'
+        + (showMkt ? '<td><span class="sm-mkt ' + (it.market === 'A股' ? 'sm-mkt-a' : 'sm-mkt-u') + '">' + it.market + '</span></td>' : '')
         + '<td class="num">' + it.extra + '</td><td class="num up">' + (it.ni || 0) + '</td><td class="num down">' + (it.nd || 0) + '</td>'
         + '<td class="num"><span class="' + (d > 0 ? 'up' : d < 0 ? 'down' : '') + '">' + (d > 0 ? '+' : '') + d + '</span></td>'
         + '<td><span class="' + (d > 0 ? 'up' : d < 0 ? 'down' : 'flat') + '">' + esc2(it.sign) + '</span>' + ((it.f4 || it.d13) ? '<span style="display:block;margin-top:3px;font-size:11px;color:#b45309;background:#fef3e2;border:1px solid #f5d8a8;border-radius:4px;padding:0 5px;white-space:nowrap">⚡F4×' + it.f4 + (it.d13 ? ' · 13D×' + it.d13 : '') + (it.fLast ? ' · ' + it.fLast : '') + '</span>' : '') + '</td>'
@@ -16320,9 +16325,14 @@ function renderRadarView() { /* 雷达：聪明钱在买什么 / 卖什么（A�
   var h = '<div class="xov-title"><h3>聪明钱雷达</h3><span class="xov-sub">聪明钱正在买什么 / 卖什么 · 报告期 ' + (o.asOf || '—') + ' · 命中你的持仓/自选会高亮</span></div>';
   h += '<div class="xov-concl"><div class="xov-c b">方向：A股共识 ' + ((o.aUp || 0) >= (o.aDown || 0) ? '偏多' : '偏空') + ' · 美股13F ' + ((o.usAdd || 0) >= (o.usTrim || 0) ? '集中偏多' : '集中偏空') + '</div>'
     + '<div class="xov-c b">更快信号：美股内幕/举牌 ' + o.f4 + '/' + o.d13 + ' 笔 · A股大宗 ' + o.bd + ' 笔 · 两融 ' + o.mg + ' 条</div></div>'; /* v267：统计数字收敛到看板结论条，雷达只留方向 + 更快信号 */
-  var nBuy = window.__SM_RADAR_EXP.buy ? rowsBuy.length : 12, nSell = window.__SM_RADAR_EXP.sell ? rowsSell.length : 12;
-  h += '<div class="sm-2col"><div class="xov-fund"><div class="xov-mixh up">聪明钱在买入<span class="hint" style="font-weight:400">（A股 ' + rowsBuyA.length + ' + 美股 ' + rowsBuyU.length + ' · 显示 ' + nBuy + ' 行）</span><button class="sm-exp" data-t="buy">' + (window.__SM_RADAR_EXP.buy ? '收起' : '展开全部') + '</button></div>' + rankTbl(rowsBuy, 12, true, 'buy') + '</div>'
-    + '<div class="xov-fund"><div class="xov-mixh down">聪明钱在卖出<span class="hint" style="font-weight:400">（A股 ' + rowsSellA.length + ' + 美股 ' + rowsSellU.length + ' · 显示 ' + nSell + ' 行）</span><button class="sm-exp" data-t="sell">' + (window.__SM_RADAR_EXP.sell ? '收起' : '展开全部') + '</button></div>' + rankTbl(rowsSell, 12, false, 'sell') + '</div></div>';
+  function radSec(title, barCls, rowsBuy, rowsSell, hintBuy, hintSell) {
+    var bN = rowsBuy.length, sN = rowsSell.length;
+    return '<div class="sm-radar-sec"><div class="sm-sec-hd"><span class="bar" style="background:' + barCls + '"></span>' + title + '<span class="hint">' + hintBuy + '</span></div>'
+      + '<div class="sm-2col"><div class="xov-fund"><div class="xov-mixh up">聪明的钱在买入<span class="hint" style="font-weight:400">前 10 · 共 ' + bN + ' 只</span><button class="sm-exp" data-t="' + (title.indexOf('A股') >= 0 ? 'buyA' : 'buyU') + '">' + (window.__SM_RADAR_EXP[title.indexOf('A股') >= 0 ? 'buyA' : 'buyU'] ? '收起' : '展开全部') + '</button></div>' + rankTbl(rowsBuy, 10, true, title.indexOf('A股') >= 0 ? 'buyA' : 'buyU', false) + '</div>'
+      + '<div class="xov-fund"><div class="xov-mixh down">聪明的钱在卖出<span class="hint" style="font-weight:400">前 10 · 共 ' + sN + ' 只</span><button class="sm-exp" data-t="' + (title.indexOf('A股') >= 0 ? 'sellA' : 'sellU') + '">' + (window.__SM_RADAR_EXP[title.indexOf('A股') >= 0 ? 'sellA' : 'sellU'] ? '收起' : '展开全部') + '</button></div>' + rankTbl(rowsSell, 10, false, title.indexOf('A股') >= 0 ? 'sellA' : 'sellU', false) + '</div></div></div>';
+  }
+  h += radSec('A股 · 聪明钱雷达', '#b7791f', rowsBuyA.slice(0, 10), rowsSellA.slice(0, 10), '机构共识净变化 · 报告期快照（季度滞后）', '');
+  h += radSec('美股 · 聪明钱雷达', '#2563eb', rowsBuyU.slice(0, 10), rowsSellU.slice(0, 10), 'SEC 13F 机构加/减 · 约 45 天滞后', '');
   h += '<div class="xov-note">口径：A股 = 东财汇金/机构共识净变化（报告期快照，季度滞后）；美股 = SEC 13F 全部机构加/减机构数与金额净变化（约 45 天滞后）；<b>⚡徽章 = 更快信号</b>（该标的近 30 天有 Form 4 内幕交易 / SC 13D 举牌，SEC EDGAR 逐日公开，比季度 13F 快一个量级，作领先参考）。「与我关系」命中你的持仓/自选基金或其重仓股。榜项细节可到「数据抽屉」查机构明细。辅助决策，非投资建议。</div>';
   box.innerHTML = h;
   box.onclick = function (e) { /* v268：展开/收起 · v272：命中行跳看板 */
