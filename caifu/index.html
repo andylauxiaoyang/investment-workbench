@@ -16194,10 +16194,18 @@ function renderRadarView() { /* 雷达：聪明钱在买什么 / 卖什么（A�
     var it = { market: 'A股', name: c.name || c.code || '', code: c.code || '', extra: (c.sector || '') + ' · ' + (c.nHolders || 0) + ' 家持有', ni: c.add || 0, nd: c.dec || 0, dlt: net, sign: c.sign || (net > 0 ? '共识加仓' : '共识减仓') };
     if (net > 0) rowsBuyA.push(it); else if (net < 0) rowsSellA.push(it);
   });
+  /* v277：更快信号映射（美股 Form4/SC13D，与更快信号面板同源 D.fastSignals.us.items） */
+  var fsMap = {};
+  if (D && D.fastSignals && D.fastSignals.us && D.fastSignals.us.items) {
+    D.fastSignals.us.items.forEach(function (fi) {
+      fsMap[String(fi.ticker || '').toUpperCase()] = { f4: (fi.form4 && fi.form4.n) || 0, d13: (fi.sc13d && fi.sc13d.n) || 0, fLast: (fi.form4 && fi.form4.last) || '', dLast: (fi.sc13d && fi.sc13d.last) || '' };
+    });
+  }
   (D && D.stocks || []).forEach(function (s) {
     var ni = s.ni || 0, nd = s.nd || 0, diff = ni - nd, dlt = s.dlt || 0;
     if (!diff && !dlt) return;
-    var it = { market: '美股', name: s.issuer || s.ticker || '', code: s.ticker || '', extra: (s.nh ? (Array.isArray(s.nh) ? (s.nh[3] || 0) : s.nh) : 0) + '/' + (o.usMkt || '—') + ' 家持有', ni: ni, nd: nd, dlt: dlt, sign: diff > 0 ? '机构加仓' : diff < 0 ? '机构减仓' : dlt > 0 ? '净额流入' : '净额流出' };
+    var fm = fsMap[String(s.ticker || '').toUpperCase()] || null;
+    var it = { market: '美股', name: s.issuer || s.ticker || '', code: s.ticker || '', extra: (s.nh ? (Array.isArray(s.nh) ? (s.nh[3] || 0) : s.nh) : 0) + '/' + (o.usMkt || '—') + ' 家持有', ni: ni, nd: nd, dlt: dlt, sign: diff > 0 ? '机构加仓' : diff < 0 ? '机构减仓' : dlt > 0 ? '净额流入' : '净额流出', f4: fm ? fm.f4 : 0, d13: fm ? fm.d13 : 0, fLast: fm ? fm.fLast : '', dLast: fm ? fm.dLast : '' };
     if (diff > 0 || dlt > 0) rowsBuyU.push(it); else if (diff < 0 || dlt < 0) rowsSellU.push(it);
   });
   /* A股/美股 各取 Top6 配额合并（A股 consensus 净变化通常 1-2 家，不与美股 10+ 家混排，否则 A股 永远被挤出榜外） */
@@ -16219,7 +16227,7 @@ function renderRadarView() { /* 雷达：聪明钱在买什么 / 卖什么（A�
         + '<td><span class="sm-mkt ' + (it.market === 'A股' ? 'sm-mkt-a' : 'sm-mkt-u') + '">' + it.market + '</span></td>'
         + '<td class="num">' + it.extra + '</td><td class="num up">' + (it.ni || 0) + '</td><td class="num down">' + (it.nd || 0) + '</td>'
         + '<td class="num"><span class="' + (d > 0 ? 'up' : d < 0 ? 'down' : '') + '">' + (d > 0 ? '+' : '') + d + '</span></td>'
-        + '<td><span class="' + (d > 0 ? 'up' : d < 0 ? 'down' : 'flat') + '">' + esc2(it.sign) + '</span></td>'
+        + '<td><span class="' + (d > 0 ? 'up' : d < 0 ? 'down' : 'flat') + '">' + esc2(it.sign) + '</span>' + ((it.f4 || it.d13) ? '<span style="display:block;margin-top:3px;font-size:11px;color:#b45309;background:#fef3e2;border:1px solid #f5d8a8;border-radius:4px;padding:0 5px;white-space:nowrap">⚡F4×' + it.f4 + (it.d13 ? ' · 13D×' + it.d13 : '') + (it.fLast ? ' · ' + it.fLast : '') + '</span>' : '') + '</td>'
         + '<td>' + (hit ? hit + '<span class="sm-go">看我的卡 →</span>' : '—') + '</td></tr>';
     });
     return h + '</tbody></table>';
@@ -16230,7 +16238,7 @@ function renderRadarView() { /* 雷达：聪明钱在买什么 / 卖什么（A�
   var nBuy = window.__SM_RADAR_EXP.buy ? rowsBuy.length : 12, nSell = window.__SM_RADAR_EXP.sell ? rowsSell.length : 12;
   h += '<div class="sm-2col"><div class="xov-fund"><div class="xov-mixh up">聪明钱在买入<span class="hint" style="font-weight:400">（A股 ' + rowsBuyA.length + ' + 美股 ' + rowsBuyU.length + ' · 显示 ' + nBuy + ' 行）</span><button class="sm-exp" data-t="buy">' + (window.__SM_RADAR_EXP.buy ? '收起' : '展开全部') + '</button></div>' + rankTbl(rowsBuy, 12, true, 'buy') + '</div>'
     + '<div class="xov-fund"><div class="xov-mixh down">聪明钱在卖出<span class="hint" style="font-weight:400">（A股 ' + rowsSellA.length + ' + 美股 ' + rowsSellU.length + ' · 显示 ' + nSell + ' 行）</span><button class="sm-exp" data-t="sell">' + (window.__SM_RADAR_EXP.sell ? '收起' : '展开全部') + '</button></div>' + rankTbl(rowsSell, 12, false, 'sell') + '</div></div>';
-  h += '<div class="xov-note">口径：A股 = 东财汇金/机构共识净变化（报告期快照，季度滞后）；美股 = SEC 13F 全部机构加/减机构数与金额净变化（约 45 天滞后）；更快信号为更早的领先参考（美股 Form4/13D、A股大宗/两融）。「与我关系」命中你的持仓/自选基金或其重仓股。榜项细节可到「数据抽屉」查机构明细。辅助决策，非投资建议。</div>';
+  h += '<div class="xov-note">口径：A股 = 东财汇金/机构共识净变化（报告期快照，季度滞后）；美股 = SEC 13F 全部机构加/减机构数与金额净变化（约 45 天滞后）；<b>⚡徽章 = 更快信号</b>（该标的近 30 天有 Form 4 内幕交易 / SC 13D 举牌，SEC EDGAR 逐日公开，比季度 13F 快一个量级，作领先参考）。「与我关系」命中你的持仓/自选基金或其重仓股。榜项细节可到「数据抽屉」查机构明细。辅助决策，非投资建议。</div>';
   box.innerHTML = h;
   box.onclick = function (e) { /* v268：展开/收起 · v272：命中行跳看板 */
     var b = e.target && e.target.closest ? e.target.closest('.sm-exp') : null;
@@ -16404,7 +16412,8 @@ function renderDecision() {
     l1.status = v || '中性';
     l1.body = '共振得分 ' + (cyc.resonance && cyc.resonance.score >= 0 ? '+' : '') + (cyc.resonance ? cyc.resonance.score : '—')
       + ' · ' + (cyc.resonance && cyc.resonance.warn ? cyc.resonance.warn : '') + ' · 温度 '
-      + (cyc.layers && cyc.layers.temp != null ? cyc.layers.temp : '—');
+      + (cyc.layers && cyc.layers.temp != null ? cyc.layers.temp : '—')
+      + (cyc.indTilt ? ' · 行业周期 ' + ((cyc.indTilt.mainLine || []).slice(0, 3).join('/') || '主线数据不足') + (cyc.indTilt.avoid && cyc.indTilt.avoid.length ? ' ｜回避 ' + cyc.indTilt.avoid.slice(0, 3).join('/') : '') : '');
   }
 
   /* ---------- ② 环境闸门（同 M7/M8/M9 口径） ---------- */
