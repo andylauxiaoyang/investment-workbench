@@ -17063,6 +17063,19 @@ function renderXOverview() {
       insts.push({ name: i.name, person: i.person || '', style: i.style || '', tier: i.tier, v: f.v != null ? f.v : 0, prev: f.pv != null ? f.pv : null, delta: f.delta, action: f.action || 'same', filingDate: i.filingDate || '' });
     });
     insts.sort(function (a, b) { return (b.v || 0) - (a.v || 0); });
+    var sheet = document.getElementById('sm13f-sheet'), modal = document.getElementById('sm13f-modal');
+    if (!sheet || !modal) return;
+    var nmT = D.stocks ? D.stocks.filter(function (x) { return (x.ticker || '').toUpperCase() === upT; }).map(function (x) { return x.issuer; })[0] || upT : upT;
+    var rows = insts.length ? insts.map(function (it) {
+      return '<tr><td class="l"><span class="name">' + it.name + '</span><div class="cusip">' + it.person + ' · ' + it.style + (it.filingDate ? ' · 申报 ' + it.filingDate : '') + '</div></td>'
+        + '<td class="num">' + m13(it.v) + '</td>'
+        + '<td class="num mut">' + (it.prev != null ? m13(it.prev) : '—') + '</td>'
+        + '<td>' + d13(it.delta) + '</td>'
+        + '<td>' + b13(it.action) + '</td></tr>';
+    }).join('') : '';
+    var totV = 0; insts.forEach(function (x) { totV += (x.v || 0); });
+    var adds = insts.filter(function (x) { return x.action === 'inc' || x.action === 'new' || x.action === 'add'; }).length;
+    var cuts = insts.filter(function (x) { return x.action === 'dec' || x.action === 'trim' || x.action === 'close' || x.action === 'exit'; }).length;
     /* v276：你的持仓暴露（QDII 前十大穿透，与看板同源 D.fundHoldings） */
     var fh276 = (D && D.fundHoldings) || {};
     var expo = [], expoW = 0;
@@ -17092,19 +17105,6 @@ function renderXOverview() {
     } else if (cuts > adds) {
       hint = '<div style="margin:12px 0;padding:10px 12px;border-radius:10px;font-size:12.5px;line-height:1.7;background:#f0faf2;border:1px solid #cfe8d6"><span class="down">聪明钱净减持该标的（' + adds + ' 家加 / ' + cuts + ' 家减）</span>——领先警示，勿急于抄底，观察下季是否延续。</div>';
     }
-    var sheet = document.getElementById('sm13f-sheet'), modal = document.getElementById('sm13f-modal');
-    if (!sheet || !modal) return;
-    var nmT = D.stocks ? D.stocks.filter(function (x) { return (x.ticker || '').toUpperCase() === upT; }).map(function (x) { return x.issuer; })[0] || upT : upT;
-    var rows = insts.length ? insts.map(function (it) {
-      return '<tr><td class="l"><span class="name">' + it.name + '</span><div class="cusip">' + it.person + ' · ' + it.style + (it.filingDate ? ' · 申报 ' + it.filingDate : '') + '</div></td>'
-        + '<td class="num">' + m13(it.v) + '</td>'
-        + '<td class="num mut">' + (it.prev != null ? m13(it.prev) : '—') + '</td>'
-        + '<td>' + d13(it.delta) + '</td>'
-        + '<td>' + b13(it.action) + '</td></tr>';
-    }).join('') : '';
-    var totV = 0; insts.forEach(function (x) { totV += (x.v || 0); });
-    var adds = insts.filter(function (x) { return x.action === 'inc' || x.action === 'new' || x.action === 'add'; }).length;
-    var cuts = insts.filter(function (x) { return x.action === 'dec' || x.action === 'trim' || x.action === 'close' || x.action === 'exit'; }).length;
     sheet.innerHTML = '<div class="sh-hd"><div><h3 style="margin:0;font-size:17px">' + nmT + ' <span class="tk" style="font-size:12px">' + upT + '</span></h3>'
       + '<div class="small mut" style="margin-top:4px">' + insts.length + ' 家 13F 机构持有 · ' + (adds ? '<span class="up">加/新进 ' + adds + ' 家</span>' : '') + (adds && cuts ? ' · ' : '') + (cuts ? '<span class="down">减/清 ' + cuts + ' 家</span>' : '') + ' · 合计 $' + m13(totV).replace('$', '') + '（报告期 ' + (D.meta ? D.meta.latest : (D.overview ? D.overview.latest : '—')) + '，约 45 天滞后）</div></div>'
       + '<button class="x" onclick="window.SM13F.closeModal()">×</button></div>'
