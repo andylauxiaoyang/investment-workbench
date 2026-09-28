@@ -12669,7 +12669,7 @@ section.sm13f-view{display:none;padding-top:22px}
 .c-concl .act-src { font-size: 11px; color: #8a93a5; margin-top: 4px; line-height: 1.5; }
 /* fw2_v294_sm_xov_cleanlines：划线精简——去掉档位色左条/浅红行底色/特殊 hover，统一白底 + 每列竖线贯穿（thead 与行 border-right 对齐）+ 行间横线，简单直接 */
 /* fw2_v293_sm_xov_7col：7 列结构——策略/基金名称/基金代码/行动/角色/市场/聪明钱信号 */
-.xov-trow .c-strat { width: 64px; }
+.xov-trow .c-strat { width: 64px; vertical-align: middle; }
 .xov-trow .c-code { color: #5b6472; font-family: var(--mono, monospace); font-size: 12px; }
 .xov-trow .c-role { color: #5b6472; font-size: 12px; }
 .xov-trow .c-name .n { font-weight: 600; }
@@ -17151,6 +17151,8 @@ function renderXOverview() {
     + gHtml
     + secOV
     + '<details class="xov-details"><summary>数据口径与滞后说明</summary><div class="xov-foot">口径：A股侧＝基金十大重仓 × 东财汇金/机构共识（基金重仓为报告期末快照，存在滞后）；美股侧＝QDII 十大重仓 × SEC EDGAR 13F（全部 ' + (D && D.overview ? D.overview.inst_count : '—') + ' 家机构，约 45 天滞后）；012920 为混合基金：A股 12.6% 净值未入汇金/共识池，如实标注；019441 与 016452 同跟踪纳指100 共享评估；货币基金不参与股票穿透。分组判定＝决策动作条（承压且减仓≥2 / 温度≥0.8 → 行动；承压 / 温度≥0.5 或 ≤−0.35 → 观察；其余维持）。机构名单 / 共识 / 反查请到 A股 / 美股页查看。</div></details>';
+  /* v295：策略列合并——相邻同档位（行动/观察/维持）纵向 rowspan 合并，组内只显示一次 */
+  (function () { var tb = box.querySelector('.xov-table tbody'); if (!tb) return; var prevV = '', prevCell = null; var rows = tb.querySelectorAll('.xov-trow'); for (var i = 0; i < rows.length; i++) { var c = rows[i].querySelector('td.c-strat'); if (!c) continue; var v = (c.innerText || '').replace(/\s+/g, '').trim(); if (prevCell && v === prevV) { prevCell.setAttribute('rowspan', (parseInt(prevCell.getAttribute('rowspan') || '1', 10) + 1)); c.style.display = 'none'; } else { prevV = v; prevCell = c; } } })();
   loadEtfShares();
   box.querySelectorAll('[data-smgo]').forEach(function (a) {
     a.addEventListener('click', function (e) { e.preventDefault(); var g = a.getAttribute('data-smgo'); if (g === 'radar') setSMMarket('radar'); else if (g === 'nhb') setSMMarket('nhb'); else if (g === 'look') setSMMarket('look'); else if (g === 'fast') setSMMarket('fast'); });
