@@ -12558,6 +12558,8 @@ section.sm13f-view{display:none;padding-top:22px}
 
 /* fw2_v265_etf_shares_sm：国家队宽基 ETF 每日份额面板（父页直渲染，决策看板内） */
 #view-smartmoney #nhbEtfSharesBox .spark{display:block;width:118px;height:30px;margin:0 auto}
+#view-smartmoney #nhbEtfSharesBox .etf-share-row { cursor: pointer; }
+#view-smartmoney #nhbEtfSharesBox .etf-share-row:hover td { background: rgba(77, 107, 254, .05); }
 #view-smartmoney #nhbEtfSharesBox .sig-up{color:var(--up,#dc2626);font-weight:600}
 #view-smartmoney #nhbEtfSharesBox .sig-down{color:var(--down,#047857);font-weight:600}
 #view-smartmoney #nhbEtfSharesBox .sig-flat{color:var(--txt3,#5b6472)}
@@ -16810,7 +16812,7 @@ function renderEtfShares(){
       if (v == null) return '<span class="mut">—</span>';
       return '<span class="' + (v > 0 ? 'up' : v < 0 ? 'down' : '') + '">' + (v > 0 ? '+' : '') + v.toFixed(1) + '%</span>';
     }
-    h += '<tr><td><b>' + esc(r.name || names[code] || code) + '</b><span class="mut" style="font-family:monospace;margin-left:4px">' + code + '</span></td>'
+    h += '<tr class="etf-share-row" data-code="' + code + '"><td><b>' + esc(r.name || names[code] || code) + '</b><span class="mut" style="font-family:monospace;margin-left:4px">' + code + '</span></td>'
       + '<td><span style="background:#eef2f7;color:#33475b;border-radius:4px;padding:1px 6px;font-size:12px">' + esc(idxs[code] || '—') + '</span></td>'
       + '<td class="num"><b>' + (last / 1e8).toFixed(1) + '</b></td>'
       + '<td class="num">' + cell(d1) + '</td>'
@@ -16821,7 +16823,34 @@ function renderEtfShares(){
   });
   h += '</tbody></table></div>';
   h += '<div class="mut" style="font-size:var(--fs-xs,12px);margin-top:8px;color:var(--txt3,#5b6472)">份额口径=ETF 总份额（东财 f84，含场内申赎与联接申购）；「1/5/20日」=相对前一/第五/第二十个交易日的份额变化%；历史序列每日由工作台自动抓取累积（官网仅留近几交易日，无法回溯），数据文件 caifu/data/etf-shares.json。国家队信号仅供参考：单日大额申购（份额跳增）常对应国家队/大资金入场窗口，连续净申购是最强信号；反之大额赎回提示资金流出。与上方「汇金具名持仓（年报/中报）」互为印证。</div>';
-  boxes.forEach(function (box) { box.innerHTML = h; });
+  boxes.forEach(function (box) {
+    box.innerHTML = h;
+    /* v274：点击份额行展开近 10 日历史明细 */
+    if (!box.__etfClick) {
+      box.__etfClick = 1;
+      box.addEventListener('click', function (e) {
+        var tr = e.target && e.target.closest ? e.target.closest('.etf-share-row') : null;
+        if (!tr || !__ETF_SHARES__) return;
+        var code = tr.getAttribute('data-code');
+        if (!code || !__ETF_SHARES__.codes[code]) return;
+        var next = tr.nextElementSibling;
+        if (next && next.classList && next.classList.contains('etf-hist-row')) { next.remove(); return; }
+        var hist = __ETF_SHARES__.codes[code].hist.slice().sort(function (a, b) { return a.d < b.d ? -1 : 1; });
+        var rows = hist.slice(-10).reverse();
+        var cells = rows.map(function (h2, i) {
+          var sh = h2.shares != null ? (h2.shares / 1e8).toFixed(2) : '—';
+          var mv = (h2.mv != null && h2.mv !== '-' && h2.mv !== '') ? (Number(h2.mv) / 1e8).toFixed(1) + '亿' : '';
+          var prev = (i < rows.length - 1) ? rows[i + 1].shares : null;
+          var chg = (prev != null && h2.shares != null && prev) ? '<span class="' + (h2.shares >= prev ? 'up' : 'down') + '">' + (((h2.shares - prev) / prev) * 100).toFixed(2) + '%</span>' : '';
+          return '<span style="display:inline-block;margin:2px 12px 2px 0;font-size:11px;color:var(--text-2,#475467)"><b style="font-family:monospace;color:#0f172a">' + esc(h2.d) + '</b> ' + sh + '亿份' + (mv ? ' · ' + mv : '') + (chg ? ' ' + chg : '') + '</span>';
+        }).join('');
+        var div = document.createElement('tr');
+        div.className = 'etf-hist-row';
+        div.innerHTML = '<td colspan="8" style="background:#f8fafc;padding:8px 10px;border-bottom:1px solid #eef0f4"><div style="font-size:11px;color:var(--faint,#98a2b3);margin-bottom:4px">近 10 个交易日份额明细（再点收起）</div>' + cells + '</td>';
+        tr.parentNode.insertBefore(div, next);
+      });
+    }
+  });
 }
 function loadEtfShares(){
   if (__ETF_SHARES__) { renderEtfShares(); return; }
