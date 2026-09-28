@@ -12547,6 +12547,9 @@ section.sm13f-view{display:none;padding-top:22px}
 #view-smartmoney .sm-mkt-a { background: #eef2f7; color: #33475b; }
 #view-smartmoney .sm-mkt-u { background: var(--brand-tint, #eef0ff); color: var(--brand, #4D6BFE); }
 #view-smartmoney .sm-hit { background: var(--up-soft, rgba(220,38,38,.12)); color: var(--up, #dc2626); border-radius: 4px; padding: 1px 6px; font-size: 11px; font-weight: 600; }
+#view-smartmoney .sm-rd-hit { cursor: pointer; }
+#view-smartmoney .sm-rd-hit:hover td { background: rgba(77, 107, 254, .06); }
+#view-smartmoney .sm-go { margin-left: 6px; font-size: 11px; color: var(--brand, #4D6BFE); font-weight: 600; white-space: nowrap; }
 #view-smartmoney .nhb-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 8px; margin: 6px 0 10px; }
 #view-smartmoney .nhb-card { border: 1px solid var(--line, #e5e7eb); border-radius: 12px; padding: 8px 10px; background: var(--panel, #fff); }
 #view-smartmoney .nhb-name { font-size: 12.5px; font-weight: 700; color: #1f2329; margin-bottom: 5px; }
@@ -16205,12 +16208,14 @@ function renderRadarView() { /* 雷达：聪明钱在买什么 / 卖什么（A�
     var h = '<table class="sm-radar-tbl"><thead><tr><th>标的</th><th>市场</th><th>持有</th><th>加仓</th><th>减仓</th><th class="num">净变化</th><th>信号</th><th>与我关系</th></tr></thead><tbody>';
     rows.slice(0, showN).forEach(function (it) {
       var d = (it.ni - it.nd) || it.dlt; /* 买卖榜统一：净变化=加仓-减仓，卖出榜自然为负 */
-      h += '<tr><td><span class="name">' + esc2(it.name) + '</span><div class="xov-code">' + esc2(it.code) + '</div></td>'
+      var hit = _smHitTag(my, it.code, it.name); /* v272：命中可点击跳看板 */
+      var trCls = hit ? ' class="sm-rd-hit" data-tk="' + esc2(it.code) + '" data-name="' + esc2(it.name) + '"' : '';
+      h += '<tr' + trCls + '><td><span class="name">' + esc2(it.name) + '</span><div class="xov-code">' + esc2(it.code) + '</div></td>'
         + '<td><span class="sm-mkt ' + (it.market === 'A股' ? 'sm-mkt-a' : 'sm-mkt-u') + '">' + it.market + '</span></td>'
         + '<td class="num">' + it.extra + '</td><td class="num up">' + (it.ni || 0) + '</td><td class="num down">' + (it.nd || 0) + '</td>'
         + '<td class="num"><span class="' + (d > 0 ? 'up' : d < 0 ? 'down' : '') + '">' + (d > 0 ? '+' : '') + d + '</span></td>'
         + '<td><span class="' + (d > 0 ? 'up' : d < 0 ? 'down' : 'flat') + '">' + esc2(it.sign) + '</span></td>'
-        + '<td>' + _smHitTag(my, it.code, it.name) + '</td></tr>';
+        + '<td>' + (hit ? hit + '<span class="sm-go">看我的卡 →</span>' : '—') + '</td></tr>';
     });
     return h + '</tbody></table>';
   }
@@ -16222,12 +16227,37 @@ function renderRadarView() { /* 雷达：聪明钱在买什么 / 卖什么（A�
     + '<div class="xov-fund"><div class="xov-mixh down">聪明钱在卖出<span class="hint" style="font-weight:400">（A股 ' + rowsSellA.length + ' + 美股 ' + rowsSellU.length + ' · 显示 ' + nSell + ' 行）</span><button class="sm-exp" data-t="sell">' + (window.__SM_RADAR_EXP.sell ? '收起' : '展开全部') + '</button></div>' + rankTbl(rowsSell, 12, false, 'sell') + '</div></div>';
   h += '<div class="xov-note">口径：A股 = 东财汇金/机构共识净变化（报告期快照，季度滞后）；美股 = SEC 13F 全部机构加/减机构数与金额净变化（约 45 天滞后）；更快信号为更早的领先参考（美股 Form4/13D、A股大宗/两融）。「与我关系」命中你的持仓/自选基金或其重仓股。榜项细节可到「数据抽屉」查机构明细。辅助决策，非投资建议。</div>';
   box.innerHTML = h;
-  box.onclick = function (e) { /* v268：展开/收起 */
+  box.onclick = function (e) { /* v268：展开/收起 · v272：命中行跳看板 */
     var b = e.target && e.target.closest ? e.target.closest('.sm-exp') : null;
-    if (!b) return;
-    var k = b.getAttribute('data-t');
-    window.__SM_RADAR_EXP[k] = !window.__SM_RADAR_EXP[k];
-    renderRadarView();
+    if (b) {
+      var k = b.getAttribute('data-t');
+      window.__SM_RADAR_EXP[k] = !window.__SM_RADAR_EXP[k];
+      renderRadarView();
+      return;
+    }
+    var tr = e.target && e.target.closest ? e.target.closest('.sm-rd-hit') : null;
+    if (!tr) return; /* v272：雷达命中行 → 看板联动（数据→结论→建议闭环） */
+    var nm = tr.getAttribute('data-name') || '', tk = tr.getAttribute('data-tk') || '';
+    setSMMarket('dash');
+    var sm = document.getElementById('smXOverview');
+    if (sm) { try { sm.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch (e2) {} }
+    var hitN = 0;
+    document.querySelectorAll('.xov-mrow').forEach(function (row) {
+      var t = row.textContent || '';
+      var m = (nm && t.indexOf(nm) >= 0) || (tk && t.indexOf(tk) >= 0);
+      if (!m) return;
+      hitN++;
+      row.style.outline = '2px solid #4D6BFE';
+      row.style.background = 'rgba(77,107,254,.10)';
+      row.style.borderRadius = '6px';
+    });
+    var sum = document.getElementById('smSmSummary');
+    if (sum && hitN > 0) {
+      var tag = document.createElement('div');
+      tag.style.cssText = 'font-size:12px;color:#4D6BFE;background:#eef4ff;border:1px dashed rgba(77,107,254,.5);border-radius:8px;padding:6px 10px;margin-top:8px';
+      tag.textContent = '↳ 你刚在雷达点了「' + nm + '」——看板已定位并高亮 ' + hitN + ' 处对应重仓行，按上方案动作执行。';
+      sum.appendChild(tag);
+    }
   };
 }
 function renderNhbView() { /* 国家队：汇金具名持仓 + ETF每日份额 + 我的重仓×汇金命中 */
