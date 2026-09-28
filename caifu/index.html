@@ -1849,15 +1849,13 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
         <button class="sm-m-btn on" data-sm-m="dash">看板</button>
         <button class="sm-m-btn" data-sm-m="radar">雷达</button>
         <button class="sm-m-btn" data-sm-m="nhb">国家队</button>
-        <button class="sm-m-btn" data-sm-m="drawer">数据抽屉</button>
+        <button class="sm-m-btn" data-sm-m="look">机构反查</button>
+        <button class="sm-m-btn" data-sm-m="fast">更快信号</button>
       </div>
       <div class="card sm-xov" id="smXOverview" hidden></div>
       <div class="card sm-xov" id="smRadarview" hidden></div>
       <div class="card sm-xov" id="smNhbview" hidden></div>
-      <div class="card sm-xov" id="smDrawerview" hidden>
-        <div class="sm-drawer-tabs" id="smDrawerTabs"></div>
-        <div class="sm-drawer-panels" id="smDrawerPanels"></div>
-      </div>
+      <!-- v282：数据抽屉拉平，机构反查/更快信号直挂主容器 -->
       <div class="modal sm13f-scope" id="sm13f-modal"><div class="sheet" id="sm13f-sheet"></div></div>
       <div class="sm-conview" id="smConview" hidden>
         <div class="sm13f-scope" id="smConA"></div>
@@ -12520,10 +12518,8 @@ section.sm13f-view{display:none;padding-top:22px}
 
 /* fw2_v194_sm_merge：聪明的钱 = A股/美股 分区（市场条 + 面板 + 跨市场速览卡） */
 #view-smartmoney .sm-market-bar { display: flex; align-items: center; gap: 6px; margin: 2px 0 12px; }
-#view-smartmoney .sm-drawer-tabs { display: flex; gap: 6px; margin: 4px 0 12px; flex-wrap: wrap; }
 #view-smartmoney .sm-dtab { border: 1px solid #e0e4ec; background: #fff; color: #4b5563; border-radius: 8px; padding: 6px 14px; font-size: 13px; cursor: pointer; }
 #view-smartmoney .sm-dtab.on { background: var(--brand, #4D6BFE); border-color: var(--brand, #4D6BFE); color: #fff; font-weight: 600; }
-#view-smartmoney .sm-drawer-panels { min-height: 60px; }
 #view-smartmoney .sm-summary { border: 1px solid #e0e4ec; border-radius: 12px; padding: 12px 14px; background: #f7f9fc; }
 #view-smartmoney .sm-summary.sm-dir-pos { border-color: #cfe8d6; background: #f0faf2; }
 #view-smartmoney .sm-summary.sm-dir-neg { border-color: #f0d0cc; background: #fdf2f1; }
@@ -16107,7 +16103,6 @@ function openInstA(idx, aid) {
 }
 
 /* ============ v266：聪明的钱重构 —— 组合级结论 / 雷达 / 国家队 / 数据抽屉 ============ */
-var __SM_DRAWER_TAB__ = 'look'; /* v267：共识 tab 移除，默认机构反查 */
 function _smMySet() { /* 我的持仓 + 自选 + 基金重仓 的 代码/名称 集合（用于命中高亮） */
   var s = { code: {}, name: {} };
   try {
@@ -16169,13 +16164,13 @@ function renderSmSummary() { /* 看板顶部：聪明钱整体 × 我的组合 �
     + '<div class="sm-sum-acts">'
     + '<a href="#" data-smgo="radar">聪明钱在买什么/卖什么 → 雷达</a>'
     + '<a href="#" data-smgo="nhb">国家队动向 → 国家队</a>'
-    + '<a href="#" data-smgo="drawer:look">机构名单/反查 → 数据抽屉</a>'
+    + '<a href="#" data-smgo="look">机构名单/反查 → 机构反查</a>'
     + '</div>'
     + '<div class="sm-sum-src">口径：聪明钱方向 = A股共识净变化 + 美股13F集中加/减（报告期 ' + (o.asOf || '—') + '）；建议为规则合成辅助判断，非投资建议。</div>'
     + '</div>';
   box.innerHTML = h;
   box.querySelectorAll('[data-smgo]').forEach(function (a) {
-    a.addEventListener('click', function (e) { e.preventDefault(); var g = a.getAttribute('data-smgo'); if (g === 'radar') setSMMarket('radar'); else if (g === 'nhb') setSMMarket('nhb'); else if (g === 'drawer:look') { __SM_DRAWER_TAB__ = 'look'; setSMMarket('drawer'); } });
+    a.addEventListener('click', function (e) { e.preventDefault(); var g = a.getAttribute('data-smgo'); if (g === 'radar') setSMMarket('radar'); else if (g === 'nhb') setSMMarket('nhb'); else if (g === 'look') setSMMarket('look'); else if (g === 'fast') setSMMarket('fast'); });
   });
 }
 function renderRadarView() { /* 雷达：聪明钱在买什么 / 卖什么（A股共识 + 美股13F 合并榜） */
@@ -16300,64 +16295,40 @@ function renderNhbView() { /* 国家队：汇金具名持仓 + ETF每日份额 +
   box.innerHTML = h;
   loadEtfShares();
 }
-function initSmDrawer() { /* 数据抽屉：把现有 共识/机构反查/更快信号 三个视图收进 tab 切换 */
-  var dr = document.getElementById('smDrawerview'); if (!dr || dr.dataset.built) return;
-  dr.dataset.built = '1';
-  var tabs = document.getElementById('smDrawerTabs'), panels = document.getElementById('smDrawerPanels');
-  if (!tabs || !panels) return;
-  var defs = [
-    { k: 'look', label: '机构反查', panel: document.getElementById('smLookview') },
-    { k: 'fast', label: '更快信号', panel: document.getElementById('smFastview') }
-  ]; /* v267：共识 tab 删除（市场级共识由雷达承担，看板结论条给汇总） */
-  var tabHtml = defs.map(function (d) { return '<button class="sm-dtab" data-dtab="' + d.k + '">' + d.label + '</button>'; }).join('');
-  tabs.innerHTML = tabHtml;
-  defs.forEach(function (d) { if (d.panel) panels.appendChild(d.panel); });
-  tabs.addEventListener('click', function (e) {
-    var b = e.target && e.target.closest ? e.target.closest('.sm-dtab') : null;
-    if (!b) return;
-    __SM_DRAWER_TAB__ = b.getAttribute('data-dtab');
-    switchDrawerTab(__SM_DRAWER_TAB__);
-  });
+/* v282：数据抽屉拉平——机构反查 / 更快信号直挂主容器（与看板/雷达/国家队并列） */
+function initSmLook() { /* 机构反查 */
+  renderLookA();
+  if (window.SM13F && window.SM13F.mount) {
+    var h2 = document.getElementById('sm13f-look-inst');
+    if (h2 && !h2.dataset.built) { SM13F.renderModeBox(h2); SM13F.mount('institutions', h2); }
+    SM13F.renderMeta(h2, true);
+    var h3 = document.getElementById('sm13f-look-lookup');
+    if (h3 && !h3.dataset.built) { SM13F.mount('lookup', h3); SM13F.renderFooter(h3); }
+  }
 }
-function switchDrawerTab(tab) {
-  var panels = document.getElementById('smDrawerPanels'); if (!panels) return;
-  __SM_DRAWER_TAB__ = tab;
-  document.querySelectorAll('#smDrawerTabs .sm-dtab').forEach(function (b) { b.classList.toggle('on', b.getAttribute('data-dtab') === tab); });
-  var map = { look: 'smLookview', fast: 'smFastview' };
-  ['smLookview', 'smFastview'].forEach(function (id) {
-    var el = document.getElementById(id); if (el) el.hidden = (id !== map[tab]);
-  });
-  if (tab === 'fast') {
-    if (window.SM13F && window.SM13F.mount) {
-      var h4 = document.getElementById('sm13f-fast-root');
-      if (h4 && !h4.dataset.built) { SM13F.renderMeta(h4); SM13F.mount('fast', h4); SM13F.renderFooter(h4); }
-    }
-  } else if (tab === 'look') {
-    renderLookA();
-    if (window.SM13F && window.SM13F.mount) {
-      var h2 = document.getElementById('sm13f-look-inst');
-      if (h2 && !h2.dataset.built) { SM13F.renderModeBox(h2); SM13F.mount('institutions', h2); }
-      SM13F.renderMeta(h2, true);
-      var h3 = document.getElementById('sm13f-look-lookup');
-      if (h3 && !h3.dataset.built) { SM13F.mount('lookup', h3); SM13F.renderFooter(h3); }
-    }
+function initSmFast() { /* 更快信号 */
+  if (window.SM13F && window.SM13F.mount) {
+    var h4 = document.getElementById('sm13f-fast-root');
+    if (h4 && !h4.dataset.built) { SM13F.renderMeta(h4); SM13F.mount('fast', h4); SM13F.renderFooter(h4); }
   }
 }
 
 /* ---------- 子模块切换（v203.3） ---------- */
 function renderSmartMoney() {
   var m = 'dash';
-  try { m = (localStorage && localStorage.getItem('smMarket')) || 'dash'; if (['dash', 'radar', 'nhb', 'drawer', 'con', 'look', 'fast'].indexOf(m) < 0) m = 'dash'; } catch (e) {}
+  try { m = (localStorage && localStorage.getItem('smMarket')) || 'dash'; if (['dash', 'radar', 'nhb', 'drawer', 'con', 'look', 'fast'].indexOf(m) < 0) m = 'dash'; if (m === 'con' || m === 'drawer') m = 'look'; } catch (e) {}
   if (new URLSearchParams(location.search).get('view') === 'sm13f') m = 'look'; /* 旧链接兼容：13F 工作台 → 机构反查 */
   setSMMarket(m, true);
 }
 function setSMMarket(m, silent) {
-  /* v266 重构：4 个主入口 看板/雷达/国家队/数据抽屉；原 con/look/fast 平级收进数据抽屉 tab */
+  /* v282：5 个主入口 看板/雷达/国家队/机构反查/更快信号（数据抽屉拉平） */
   var dash = document.getElementById('smXOverview'), radar = document.getElementById('smRadarview'),
-      nhb = document.getElementById('smNhbview'), drawer = document.getElementById('smDrawerview');
-  if (!dash || !radar || !nhb || !drawer) return;
-  if (m === 'con' || m === 'look' || m === 'fast') m = 'drawer'; /* 旧 localStorage 兼容 */
-  dash.hidden = (m !== 'dash'); radar.hidden = (m !== 'radar'); nhb.hidden = (m !== 'nhb'); drawer.hidden = (m !== 'drawer');
+      nhb = document.getElementById('smNhbview'), look = document.getElementById('smLookview'),
+      fast = document.getElementById('smFastview');
+  if (!dash || !radar || !nhb || !look || !fast) return;
+  if (m === 'con' || m === 'drawer') m = 'look'; /* 旧 localStorage 兼容 */
+  dash.hidden = (m !== 'dash'); radar.hidden = (m !== 'radar'); nhb.hidden = (m !== 'nhb');
+  look.hidden = (m !== 'look'); fast.hidden = (m !== 'fast');
   document.querySelectorAll('#smMarketBar .sm-m-btn').forEach(function (b) {
     b.classList.toggle('on', b.getAttribute('data-sm-m') === m);
   });
@@ -16365,7 +16336,8 @@ function setSMMarket(m, silent) {
   if (m === 'dash') { if (window.renderXOverview) renderXOverview(); }
   else if (m === 'radar') { if (window.renderRadarView) renderRadarView(); }
   else if (m === 'nhb') { if (window.renderNhbView) renderNhbView(); }
-  else if (m === 'drawer') { initSmDrawer(); switchDrawerTab(__SM_DRAWER_TAB__ || 'look'); }
+  else if (m === 'look') { if (window.initSmLook) initSmLook(); }
+  else if (m === 'fast') { if (window.initSmFast) initSmFast(); }
 }
 (function () {
   var bar = document.getElementById('smMarketBar'); if (!bar) return;
