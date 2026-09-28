@@ -17063,6 +17063,35 @@ function renderXOverview() {
       insts.push({ name: i.name, person: i.person || '', style: i.style || '', tier: i.tier, v: f.v != null ? f.v : 0, prev: f.pv != null ? f.pv : null, delta: f.delta, action: f.action || 'same', filingDate: i.filingDate || '' });
     });
     insts.sort(function (a, b) { return (b.v || 0) - (a.v || 0); });
+    /* v276：你的持仓暴露（QDII 前十大穿透，与看板同源 D.fundHoldings） */
+    var fh276 = (D && D.fundHoldings) || {};
+    var expo = [], expoW = 0;
+    Object.keys(fh276).forEach(function (fc) {
+      var t10 = fh276[fc] && fh276[fc].top;
+      if (!t10) return;
+      t10.forEach(function (t) {
+        if ((t.ticker || '').toUpperCase() === upT) {
+          var fn = fc;
+          if (window.SM_XOV && SM_XOV.funds) {
+            SM_XOV.funds.forEach(function (fu) { if (fu.code === fc) fn = fu.name || fc; });
+          }
+          expo.push({ code: fc, name: fn, w: t.weight != null ? t.weight : 0 });
+          expoW += (t.weight != null ? t.weight : 0);
+        }
+      });
+    });
+    var hint = '';
+    if (expo.length) {
+      var dirTag = adds > cuts ? '<span class="up">聪明钱加仓多于减仓 → 与你的持仓同向（顺风，注意拥挤度，守纪律不追加）</span>'
+        : cuts > adds ? '<span class="down">聪明钱减持多于加仓 → 你重仓方向的领先警示（滞后约 45 天，对照止损线，勿追高勿加仓）</span>'
+        : '<span class="flat">加减分歧 → 维持既有节奏，下季披露再确认</span>';
+      var dirBg = adds > cuts ? 'background:#fdf2f1;border:1px solid #f0d0cc' : cuts > adds ? 'background:#f0faf2;border:1px solid #cfe8d6' : 'background:#f7f9fc;border:1px solid #e0e4ec';
+      hint = '<div style="margin:12px 0;padding:10px 12px;border-radius:10px;font-size:12.5px;line-height:1.7;' + dirBg + '"><b>你的持仓暴露</b>：' + expo.map(function (x) { return x.name + ' <b>' + x.w.toFixed(2) + '%</b>'; }).join('、') + '（合计 ' + expoW.toFixed(2) + '%）<br>' + dirTag + '</div>';
+    } else if (adds > cuts) {
+      hint = '<div style="margin:12px 0;padding:10px 12px;border-radius:10px;font-size:12.5px;line-height:1.7;background:#fdf2f1;border:1px solid #f0d0cc"><span class="up">聪明钱净加仓该标的（' + adds + ' 家加 / ' + cuts + ' 家减）</span>——若你考虑建仓，注意拥挤度与 45 天滞后，分批为宜。</div>';
+    } else if (cuts > adds) {
+      hint = '<div style="margin:12px 0;padding:10px 12px;border-radius:10px;font-size:12.5px;line-height:1.7;background:#f0faf2;border:1px solid #cfe8d6"><span class="down">聪明钱净减持该标的（' + adds + ' 家加 / ' + cuts + ' 家减）</span>——领先警示，勿急于抄底，观察下季是否延续。</div>';
+    }
     var sheet = document.getElementById('sm13f-sheet'), modal = document.getElementById('sm13f-modal');
     if (!sheet || !modal) return;
     var nmT = D.stocks ? D.stocks.filter(function (x) { return (x.ticker || '').toUpperCase() === upT; }).map(function (x) { return x.issuer; })[0] || upT : upT;
@@ -17083,6 +17112,7 @@ function renderXOverview() {
       + '<div class="card pad"><div class="lab">持有机构</div><div class="val" style="font-size:20px">' + insts.length + ' 家</div></div>'
       + '<div class="card pad"><div class="lab">加/新进</div><div class="val" style="font-size:20px"><span class="up">' + adds + '</span></div></div>'
       + '<div class="card pad"><div class="lab">减/清仓</div><div class="val" style="font-size:20px"><span class="down">' + cuts + '</span></div></div></div>'
+      + hint
       + '<div class="scroll"><table><thead><tr><th class="l">机构</th><th>本季市值</th><th>上季</th><th>变动</th><th>动作</th></tr></thead><tbody>'
       + (rows || '<tr><td colspan="5"><div class="empty small">13F 机构中无机构持有该标的（或未进入前十大持仓）</div></td></tr>')
       + '</tbody></table></div>'
