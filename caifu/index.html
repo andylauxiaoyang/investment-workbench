@@ -16197,17 +16197,11 @@ function renderSmSummary() { /* 看板顶部：聪明钱整体 × 我的组合 �
   else main = '中性：聪明钱加减分歧，按纪律定投/再平衡，不追信号';
   var h = '<div class="sm-summary ' + dirCls + '">'
     + '<div class="sm-sum-main">' + main + '</div>'
-    + '<div class="sm-sum-rows">'
-    + '<span class="sm-sum-k">A股共识</span><span class="sm-sum-v">加仓 ' + o.aUp + ' / 减仓 ' + o.aDown + '</span>'
-    + '<span class="sm-sum-k">美股 13F(' + (o.usMkt || '—') + ' 家)</span><span class="sm-sum-v">集中加仓 ' + o.usAdd + ' / 集中减仓 ' + o.usTrim + '</span>'
-    + '<span class="sm-sum-k">更快信号</span><span class="sm-sum-v">美股内幕/举牌 ' + o.f4 + '/' + o.d13 + ' · 大宗 ' + o.bd + ' · 两融 ' + o.mg + '</span>'
-    + '</div>'
     + '<div class="sm-sum-acts">'
     + '<a href="#" data-smgo="radar">聪明钱在买什么/卖什么 → 雷达</a>'
     + '<a href="#" data-smgo="nhb">国家队动向 → 国家队</a>'
     + '<a href="#" data-smgo="look">机构名单/反查 → 机构反查</a>'
     + '</div>'
-    + '<div class="sm-sum-src">口径：聪明钱方向 = A股共识净变化 + 美股13F集中加/减（报告期 ' + (o.asOf || '—') + '）；建议为规则合成辅助判断，非投资建议。</div>'
     + '</div>';
   box.innerHTML = h;
   box.querySelectorAll('[data-smgo]').forEach(function (a) {
@@ -17073,13 +17067,7 @@ function renderXOverview() {
     + '；汇金背书 <b>' + conclA.hui + '</b> 只重仓'
     + (inter.length ? '；AI 链双暴露 <b>' + inter.join(' / ') + '</b>（' + (conclUS.up > conclUS.down ? '13F 整体加仓 · 升温' : '13F 整体减持 · 集中度风险') + '）' : '')
     + (pressure.length ? '；建议关注：<b>' + pressure.join('、') + '</b>（重仓被机构/汇金减持或方向降温，按卡内动作条评估）' : '') + '。';
-  var tiles = '<div class="xov-verdict">' + totalVerdict + '</div>';
-  tiles += '<div class="xov-tiles">';
-  tiles += '<div class="xov-tile"><div class="lab">A股 · 机构共识</div><div class="val">' + (conclA.up > 0 || conclA.down > 0 ? '<span class="up">加仓 ' + conclA.up + '</span> / <span class="down">减仓 ' + conclA.down + '</span>' : '未形成方向') + '</div><div class="sub">你的基金重仓 × 汇金 / 机构共识（报告期 ' + (SM_XOV.reportQ || '') + '）</div></div>';
-  tiles += '<div class="xov-tile"><div class="lab">汇金底仓背书</div><div class="val">' + conclA.hui + ' 只</div><div class="sub">重仓股获汇金持股 · 底仓背书</div></div>';
-  tiles += '<div class="xov-tile"><div class="lab">美股 QDII · 13F</div><div class="val">' + (conclUS.up > 0 || conclUS.down > 0 ? '<span class="up">加仓 ' + conclUS.up + '</span> / <span class="down">减仓 ' + conclUS.down + '</span>' : '未形成方向') + '</div><div class="sub">前十大重仓 × SEC 13F 机构（约 45 天滞后）</div></div>';
-  tiles += '</div>';
-  var concl = tiles;
+  var concl = '<div class="xov-verdict">' + totalVerdict + '</div>'; /* v285：磁贴删除（数字与 verdict 重复），只留一句话总判断 */
   var secOV = _xovOverlap(fh);
   function _xovGrow(lv, title, gsum, n) {
     var color = lv === 2 ? '#dc2626' : lv === 1 ? '#b7791f' : '#94a3b8';
