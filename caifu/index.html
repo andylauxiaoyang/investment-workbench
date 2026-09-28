@@ -12538,6 +12538,8 @@ section.sm13f-view{display:none;padding-top:22px}
 #view-smartmoney .sm-sum-acts a:hover { text-decoration: underline; }
 #view-smartmoney .sm-sum-src { font-size: 11px; color: #9aa3b2; }
 #view-smartmoney .sm-radar-tbl { width: 100%; border-collapse: collapse; font-size: 12px; }
+#view-smartmoney .sm-exp { margin-left: 8px; font-size: 11px; color: var(--accent, #4D6BFE); background: #fff; border: 1px solid rgba(77, 107, 254, .45); border-radius: 20px; padding: 1px 10px; cursor: pointer; font-weight: 600; vertical-align: 1px; }
+#view-smartmoney .sm-exp:hover { background: rgba(77, 107, 254, .10); }
 #view-smartmoney .sm-radar-tbl th { text-align: left; color: #6b7280; font-weight: 600; padding: 5px 6px; border-bottom: 1px solid #eef0f4; white-space: nowrap; }
 #view-smartmoney .sm-radar-tbl td { padding: 5px 6px; border-bottom: 1px solid #f3f4f7; white-space: nowrap; }
 #view-smartmoney .sm-radar-tbl .num { text-align: right; font-variant-numeric: tabular-nums; }
@@ -12708,7 +12710,8 @@ section.sm13f-view{display:none;padding-top:22px}
 .xov-group + .xov-group { margin-top: 6px; }
 /* fw2_v203.10b_xov_tcards：每基金一磁贴 + 重仓 mini 行 */
 .xov-fpair { grid-column: 1 / -1; }
-.xov-tcard { background: var(--card); border: 1px solid var(--line); border-radius: 12px; box-shadow: var(--shadow); padding: 12px 14px; display: flex; flex-direction: column; min-width: 0; }
+.xov-tcard { background: var(--card); border: 1px solid var(--line); border-radius: 12px; box-shadow: var(--shadow); padding: 12px 14px; display: flex; flex-direction: column; min-width: 0; transition: box-shadow .15s ease, transform .15s ease; }
+.xov-tcard:hover { box-shadow: 0 6px 18px rgba(15, 23, 42, .10); }
 .xov-fpair .xov-tcard { background: transparent; border: 0; box-shadow: none; padding: 0; }
 .xov-tcard .xov-act { margin-top: auto; }
 .xov-mlist { margin: 8px 0 4px; display: flex; flex-direction: column; gap: 5px; }
@@ -16171,6 +16174,7 @@ function renderSmSummary() { /* 看板顶部：聪明钱整体 × 我的组合 �
 }
 function renderRadarView() { /* 雷达：聪明钱在买什么 / 卖什么（A股共识 + 美股13F 合并榜） */
   var box = document.getElementById('smRadarview'); if (!box) return;
+  window.__SM_RADAR_EXP = window.__SM_RADAR_EXP || {}; /* v268：买入/卖出榜独立展开状态 */
   var D = null; try { var el = document.getElementById('sm13f-data'); if (el) D = JSON.parse(el.textContent); } catch (e) {}
   var AS = window.SM_ASHARE || null;
   var o = _smOverall(D, AS, D && D.fastSignals);
@@ -16195,10 +16199,11 @@ function renderRadarView() { /* 雷达：聪明钱在买什么 / 卖什么（A�
   rowsSellU.sort(function (a, b) { return (a.ni - a.nd) - (b.ni - b.nd) || a.dlt - b.dlt; });
   var rowsBuy = rowsBuyA.slice(0, 6).concat(rowsBuyU.slice(0, 6));
   var rowsSell = rowsSellA.slice(0, 6).concat(rowsSellU.slice(0, 6));
-  function rankTbl(rows, max, up) {
+  function rankTbl(rows, max, up, exKey) {
     if (!rows.length) return '<div class="xov-note">本方向暂无明显信号</div>';
+    var showN = exKey && window.__SM_RADAR_EXP[exKey] ? rows.length : max;
     var h = '<table class="sm-radar-tbl"><thead><tr><th>标的</th><th>市场</th><th>持有</th><th>加仓</th><th>减仓</th><th class="num">净变化</th><th>信号</th><th>与我关系</th></tr></thead><tbody>';
-    rows.slice(0, max).forEach(function (it) {
+    rows.slice(0, showN).forEach(function (it) {
       var d = (it.ni - it.nd) || it.dlt; /* 买卖榜统一：净变化=加仓-减仓，卖出榜自然为负 */
       h += '<tr><td><span class="name">' + esc2(it.name) + '</span><div class="xov-code">' + esc2(it.code) + '</div></td>'
         + '<td><span class="sm-mkt ' + (it.market === 'A股' ? 'sm-mkt-a' : 'sm-mkt-u') + '">' + it.market + '</span></td>'
@@ -16212,10 +16217,18 @@ function renderRadarView() { /* 雷达：聪明钱在买什么 / 卖什么（A�
   var h = '<div class="xov-title"><h3>聪明钱雷达</h3><span class="xov-sub">聪明钱正在买什么 / 卖什么 · 报告期 ' + (o.asOf || '—') + ' · 命中你的持仓/自选会高亮</span></div>';
   h += '<div class="xov-concl"><div class="xov-c b">方向：A股共识 ' + ((o.aUp || 0) >= (o.aDown || 0) ? '偏多' : '偏空') + ' · 美股13F ' + ((o.usAdd || 0) >= (o.usTrim || 0) ? '集中偏多' : '集中偏空') + '</div>'
     + '<div class="xov-c b">更快信号：美股内幕/举牌 ' + o.f4 + '/' + o.d13 + ' 笔 · A股大宗 ' + o.bd + ' 笔 · 两融 ' + o.mg + ' 条</div></div>'; /* v267：统计数字收敛到看板结论条，雷达只留方向 + 更快信号 */
-  h += '<div class="sm-2col"><div class="xov-fund"><div class="xov-mixh up">聪明钱在买入<span class="hint" style="font-weight:400">（A股 Top' + Math.min(rowsBuyA.length, 6) + ' + 美股 Top' + Math.min(rowsBuyU.length, 6) + '）</span></div>' + rankTbl(rowsBuy, 12, true) + '</div>'
-    + '<div class="xov-fund"><div class="xov-mixh down">聪明钱在卖出<span class="hint" style="font-weight:400">（A股 Top' + Math.min(rowsSellA.length, 6) + ' + 美股 Top' + Math.min(rowsSellU.length, 6) + '）</span></div>' + rankTbl(rowsSell, 12, false) + '</div></div>';
+  var nBuy = window.__SM_RADAR_EXP.buy ? rowsBuy.length : 12, nSell = window.__SM_RADAR_EXP.sell ? rowsSell.length : 12;
+  h += '<div class="sm-2col"><div class="xov-fund"><div class="xov-mixh up">聪明钱在买入<span class="hint" style="font-weight:400">（A股 ' + rowsBuyA.length + ' + 美股 ' + rowsBuyU.length + ' · 显示 ' + nBuy + ' 行）</span><button class="sm-exp" data-t="buy">' + (window.__SM_RADAR_EXP.buy ? '收起' : '展开全部') + '</button></div>' + rankTbl(rowsBuy, 12, true, 'buy') + '</div>'
+    + '<div class="xov-fund"><div class="xov-mixh down">聪明钱在卖出<span class="hint" style="font-weight:400">（A股 ' + rowsSellA.length + ' + 美股 ' + rowsSellU.length + ' · 显示 ' + nSell + ' 行）</span><button class="sm-exp" data-t="sell">' + (window.__SM_RADAR_EXP.sell ? '收起' : '展开全部') + '</button></div>' + rankTbl(rowsSell, 12, false, 'sell') + '</div></div>';
   h += '<div class="xov-note">口径：A股 = 东财汇金/机构共识净变化（报告期快照，季度滞后）；美股 = SEC 13F 全部机构加/减机构数与金额净变化（约 45 天滞后）；更快信号为更早的领先参考（美股 Form4/13D、A股大宗/两融）。「与我关系」命中你的持仓/自选基金或其重仓股。榜项细节可到「数据抽屉」查机构明细。辅助决策，非投资建议。</div>';
   box.innerHTML = h;
+  box.onclick = function (e) { /* v268：展开/收起 */
+    var b = e.target && e.target.closest ? e.target.closest('.sm-exp') : null;
+    if (!b) return;
+    var k = b.getAttribute('data-t');
+    window.__SM_RADAR_EXP[k] = !window.__SM_RADAR_EXP[k];
+    renderRadarView();
+  };
 }
 function renderNhbView() { /* 国家队：汇金具名持仓 + ETF每日份额 + 我的重仓×汇金命中 */
   var box = document.getElementById('smNhbview'); if (!box) return;
