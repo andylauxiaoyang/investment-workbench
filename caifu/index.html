@@ -13494,12 +13494,15 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
         '<td><div class="qty">' + esc(p.build) + '</div></td><td>' + esc(p.normal) + '</td><td>' + esc(p.dbl) + '</td><td>' + esc(p.src) + '</td></tr>';
     });
     html += '</tbody></table></div></div>';
-    html += '<div class="st-card"><h4>首次定投执行单（2026-09-30 · 本月最后一个交易日 · 合计 ≈' + fmt(S.firstInvest) + '）</h4><div class="strat-note">' + esc(S.firstNote) + '</div><div class="tbl-scroll"><table class="st-tbl">' +
+    html += '<div class="st-card"><h4>首次定投执行单（2026-09-30 · 本月最后一个交易日 · 预算 ≈' + fmt(S.firstInvest) + '）</h4><div class="strat-note">' + esc(S.firstNote) + '</div><div class="tbl-scroll"><table class="st-tbl">' +
       '<colgroup><col style="width:8%"><col style="width:14%"><col style="width:22%"><col style="width:14%"><col style="width:14%"><col style="width:28%"></colgroup>' +
       '<thead><tr><th>顺序</th><th>标的</th><th>代码</th><th>金额</th><th>渠道</th><th>备注</th></tr></thead><tbody>';
     S.first.forEach(function (f) {
       html += '<tr><td>' + f.i + '</td><td class="nm"><b class="lk-rs" data-rscode="' + f.code + '">' + esc(f.name) + '</b></td><td class="cd">' + f.code + '</td><td class="qty">' + fmt(f.amount) + '</td><td>' + f.chan + '</td><td>' + esc(f.note || '') + '</td></tr>';
     });
+    /* v310 fw2_v310_first_total：金额列下加合计行——明细现算（不写死预算值，避免与行和不符） */
+    var _ft = S.first.reduce(function (_a, _f) { return _a + (Number(_f.amount) || 0); }, 0);
+    html += '<tr class="st-total" style="font-weight:700;border-top:2px solid var(--line-mid)"><td colspan="3">合计（明细行和）</td><td class="qty">' + fmt(_ft) + '</td><td colspan="2"></td></tr>';
     html += '</tbody></table></div></div>';
     html += '<div class="st-card"><h4>执行记录（触发 → 复核 → 确认 → 执行 → 记录 · 8.5）</h4>' + recForm() + '<div class="rec-list" id="stratRecList"></div></div>';
     el.innerHTML = html;
