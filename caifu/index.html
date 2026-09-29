@@ -1567,7 +1567,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
             <span data-page-node-id="1tYNTqEbqNQRtvoZcDMp9W" class="flbl"><!--pnid:9wTVum6ntnQpThvDUQM28N-->选择</span>
             <select data-page-node-id="ytqOAaTQnUAlAV3d84SXD0" class="inp-sm sel" id="rsPick">
               <option data-page-node-id="dBdl5B3ockpTkZSdlssjuf" value><!--pnid:uffUrO7CKLEtAQ6KTRyigz-->持仓 / 自选…</option>
-            </select><span data-page-node-id="fw2v52bVerchip" class="hint" id="verChip" style="white-space:nowrap;flex:none"><!--fw2_v52b_verchip fw2_v54c_verchip fw2_v55_verchip fw2_v56_verchip fw2_v57_verchip fw2_v58_verchip fw2_v59_verchip fw2_v60_verchip fw2_v61_verchip fw2_v61_wltext fw2_v62_fundbasic fw2_v63_xmap_wlfix fw2_v64_macro_xasset fw2_v65_macro_spxnky fw2_v66_macro_amtd fw2_v67_nky_ts fw2_v68_split_spx_nky fw2_v69_nky_curve fw2_v70_nky_daily_ma fw2_v70b_extreme_label fw2_v71_datacenter fw2_v72_data_icon fw2_v73_pivot_desc fw2_v74_null_ret fw2_v75_recent_first fw2_v76_interval_macro fw2_v77_legend_wrap fw2_v83_vixcboe fw2_v104_index_strip13 fw2_v106_hero_compact fw2_v107_holdings_table_first fw2_v108_dd_above_cal fw2_v109_health_col fw2_v110_health_to_holdings fw2_v111_del_diagnose fw2_v112_risk_merge fw2_v113_risk_cfg fw2_v114_hold_cost_col fw2_v115_tb_pad fw2_v116_cost_label fw2_v117_treemap_to_holdings fw2_v118_first_open_fix fw2_v119_datafix fw2_v120_strategy fw2_v121_del_healthdiag fw2_v122_del_overview fw2_v129_theme_verchip fw2_v319_sig_risk_fusion fw2_v320_m6_into_signals fw2_v321_m6_tiles-->v321</span>
+            </select><span data-page-node-id="fw2v52bVerchip" class="hint" id="verChip" style="white-space:nowrap;flex:none"><!--fw2_v52b_verchip fw2_v54c_verchip fw2_v55_verchip fw2_v56_verchip fw2_v57_verchip fw2_v58_verchip fw2_v59_verchip fw2_v60_verchip fw2_v61_verchip fw2_v61_wltext fw2_v62_fundbasic fw2_v63_xmap_wlfix fw2_v64_macro_xasset fw2_v65_macro_spxnky fw2_v66_macro_amtd fw2_v67_nky_ts fw2_v68_split_spx_nky fw2_v69_nky_curve fw2_v70_nky_daily_ma fw2_v70b_extreme_label fw2_v71_datacenter fw2_v72_data_icon fw2_v73_pivot_desc fw2_v74_null_ret fw2_v75_recent_first fw2_v76_interval_macro fw2_v77_legend_wrap fw2_v83_vixcboe fw2_v104_index_strip13 fw2_v106_hero_compact fw2_v107_holdings_table_first fw2_v108_dd_above_cal fw2_v109_health_col fw2_v110_health_to_holdings fw2_v111_del_diagnose fw2_v112_risk_merge fw2_v113_risk_cfg fw2_v114_hold_cost_col fw2_v115_tb_pad fw2_v116_cost_label fw2_v117_treemap_to_holdings fw2_v118_first_open_fix fw2_v119_datafix fw2_v120_strategy fw2_v121_del_healthdiag fw2_v122_del_overview fw2_v129_theme_verchip fw2_v319_sig_risk_fusion fw2_v320_m6_into_signals fw2_v321_m6_tiles fw2_v322_grid_track-->v322</span>
           </div>
           <div data-page-node-id="5FsFNsGZ6QN0HN0rpWLIlR" class="tools-l inline-form rs-combo">
             <span data-page-node-id="KyCNIch2B6qjWLrmQxqPCX" class="flbl"><!--pnid:1qPkNVbSL0r9sGQSgNifJN-->名称</span>
@@ -5239,6 +5239,7 @@ window.HS_name = function (code) {
     },
     wDD1: -20, wDD2: -30, wValLow: 30,                     /* W2 自选回撤买线 / W1 自选估值买线 */
     nearBand: 2,                                           /* 接近阈值带宽（百分点） */
+    grid: { step: 3, conflictDays: 3 },                        /* v322 fw2_v322_grid_track T13 网格跟踪：距上次购买（单位成本近似）跌 3% 触发网格买入；与定投日历日期 ≤3 天提示时间冲突（用户决策合并/择一） */
   };
   function sigValPct(c6) { /* 加权估值分位：HOLDINGS_SNAP.bench 配比 × benchData.pos(0-1)；自选池回退 WATCH_BENCH(v28b) */
     const s = window.HOLDINGS_SNAP;
@@ -5292,6 +5293,7 @@ window.HS_name = function (code) {
       { pool: 'hold', sig: 'T5 时间止损', why: '持仓表无买入日期，待数据补齐' },
       { pool: 'hold', sig: 'T6 定投日打卡', why: '手动打卡模式：每月自行确认扣款正常' },
       { pool: 'hold', sig: 'T11 扣款计数器', why: '待启用：20 次前只加不止（D6）' },
+      { pool: 'hold', sig: 'T13 网格跟踪', why: '网格基准＝持仓单位成本（近似上次购买价），触发买入后成本自动更新重算；与定投日接近时提示冲突由用户决策' },
       { pool: 'watch', sig: 'W4 买入闸门', why: 'v29：W1/W2 触发时自动升级为 W6 行动行（D1 五格 + D2/D3）' },
     ] };
     async function one(code6, pool, h) {
@@ -5336,6 +5338,35 @@ window.HS_name = function (code) {
         if (mv > 0) {
           rows.hold.push(Object.assign({}, base, { sig: 'T9 CAP 超限', cur: '¥' + mv.toFixed(0), thr: '> ¥' + C.cap + ' 禁补', lvl: mv > C.cap ? 'act' : mv > C.cap * 0.9 ? 'near' : 'watch', src: 'CAP 硬限制' }));
         }
+        /* v322 fw2_v322_grid_track T13 网格跟踪：距上次购买（单位成本近似）跌 3% 触发网格买入；
+           与定投日历日期 ≤3 天 → 提示时间冲突（用户决策是否合并/择一买入） */
+        try {
+          const uCost = +h.cost || 0;
+          if (uCost > 0) {
+            const gDD = (last / uCost - 1) * 100;
+            let conf = '';
+            const SS = window.STRATEGY_SNAP;
+            if (SS && SS.calendar && SS.calendar.length) {
+              const now = new Date();
+              let best = null, bd = 1e9;
+              SS.calendar.forEach((c) => {
+                if (!c || !c.drip) return;
+                const d = new Date(c.drip);
+                if (isNaN(d.getTime())) return;
+                const diff = Math.round((d - now) / 86400000);
+                if (diff >= 0 && diff < bd) { bd = diff; best = c; }
+              });
+              if (best && bd <= C.grid.conflictDays) conf = ' ｜ ⚠距定投日 ' + best.drip.slice(5).replace('-', '/') + ' 仅 ' + bd + ' 天，建议合并或择一';
+            }
+            rows.hold.push(Object.assign({}, base, {
+              sig: 'T13 网格跟踪',
+              cur: (gDD <= -C.grid.step ? '较上次购买 ' + gDD.toFixed(1) + '% · 网格买入' : '较上次购买 ' + gDD.toFixed(1) + '% · 距触发还需跌 ' + (-(gDD + C.grid.step)).toFixed(1) + '%') + conf,
+              thr: '距上次购买跌 ' + C.grid.step + '% → 网格买入；与定投日 ≤' + C.grid.conflictDays + ' 天提示冲突',
+              lvl: gDD <= -C.grid.step ? 'act' : gDD <= -C.grid.step + C.nearBand ? 'near' : 'watch',
+              src: conf ? '网格×定投冲突' : '网格'
+            }));
+          }
+        } catch (e) { /* 网格跟踪失败不影响其他信号 */ }
       } else {
         const held = holdCodes.indexOf(code6) >= 0;
         if (held) base.name = base.name + '（已持仓·按加仓处理）';
@@ -11079,7 +11110,7 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
   */
   const vc = $('#verChip');
   /* v319 fw2_v319_sig_risk_fusion：动态 verChip 同步升版（v266 起文本停更，本次修正为当前版本） */
-  if (vc) vc.textContent = 'v321 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  if (vc) vc.textContent = 'v322 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
