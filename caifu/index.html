@@ -13087,7 +13087,9 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
       var last = new Date(d.getFullYear(), d.getMonth() + 1, 0);
       var ym = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
       var ds = last.getFullYear() + '-' + String(last.getMonth() + 1).padStart(2, '0') + '-' + String(last.getDate()).padStart(2, '0');
-      var rem = 12 - k;
+      /* v314 fw2_v314_rem_fix：剩余月数与建仓进度 hero 同口径（monthsLeft 实算，逐格递减），
+         不再用硬编码 12-k 格子序号（曾致「hero 剩10月 vs 待办剩12月」不一致） */
+      var rem = Math.max(1, ((typeof monthsLeft === 'function') ? monthsLeft() : 12) - k);
       cells.push({ ym: ym, drip: ds, rem: rem, note: notes[ym] || [] });
     }
     return cells;
