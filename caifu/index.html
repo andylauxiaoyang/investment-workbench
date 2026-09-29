@@ -11270,7 +11270,7 @@ function renderSignalDash() {
   /* v30b: 总标题与分组头同款格式 */ /* fw2_sig_dashhead_v1 */
   card.innerHTML = '<div class="dc-wrap" id="sigBody"><div class="dc-load">信号计算中（首次拉取净值序列约需数秒）…</div></div>';
   const body = document.getElementById('sigBody');
-  const _sigScroll = window.scrollY || 0; /* v325 fw2_v325_sig_scroll：渲染/ack 重渲染后恢复滚动位置，防跳回顶部 */
+  const _sigScroll = ((document.scrollingElement && document.scrollingElement.scrollTop) || 0); /* v325b fw2_v325b_sig_scroll：用 scrollingElement（window.scrollY 与滚动容器不同步导致恢复失效） */
   const hold = state.portfolio.filter((h) => (h.assetType || '') !== 'cash');
   const wl = (state.watchlist || []).map((c) => (typeof c === 'string' ? c : (c && c.code) || ''));
   const mkP = (window.marketEvalAll ? window.marketEvalAll() : Promise.resolve(null)).catch(() => null);
@@ -11437,7 +11437,7 @@ function renderSignalDash() {
       + '</div>'
       + '<div class="dc-note">触发≠自动交易 · 阈值锁季度复盘日（T12/D9）· 市场信号=环境提示非指令 · 标的级明细在此，汇总结论见「决策总览」。</div>';
     /* v325 fw2_v325_sig_scroll：内容重建后恢复滚动位置（ack「知道了」等触发重渲染时防止跳回顶部） */
-    if (_sigScroll) requestAnimationFrame(function () { window.scrollTo(0, _sigScroll); });
+    if (_sigScroll) requestAnimationFrame(function () { var se = document.scrollingElement; if (se) se.scrollTop = _sigScroll; });
     body.onclick = (e) => {
       const gb = e.target.closest('.dc-hd[data-grp]');
       if (gb) {
