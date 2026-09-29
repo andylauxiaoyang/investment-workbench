@@ -13494,15 +13494,33 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
         '<td><div class="qty">' + esc(p.build) + '</div></td><td>' + esc(p.normal) + '</td><td>' + esc(p.dbl) + '</td><td>' + esc(p.src) + '</td></tr>';
     });
     html += '</tbody></table></div></div>';
-    html += '<div class="st-card"><h4>首次定投执行单（2026-09-30 · 本月最后一个交易日 · 预算 ≈' + fmt(S.firstInvest) + '）</h4><div class="strat-note">' + esc(S.firstNote) + '</div><div class="tbl-scroll"><table class="st-tbl">' +
+    /* v311 fw2_v311_first_dyn：首次定投执行单金额动态化——首月总额=实时差额÷剩余月（与 hero 建仓进度同口径），
+       按各标的目标金额比例分摊、末行吸收取整差（合计恒等于当月建议额）；日期取日历轨当月定投日；note 去掉静态金额句。 */
+    var _budget = (function () {
+      var _df = Math.max(0, S.totalTarget - totalMv()), _m = monthsLeft();
+      return _m ? Math.round(_df / _m) : 0;
+    })();
+    var _rows = S.first.map(function (f) { return { f: f, t: (assetOf(f.code) || {}).target || 0 }; });
+    var _tsum = _rows.reduce(function (a, r) { return a + r.t; }, 0);
+    var _alloc = [], _assigned = 0;
+    _rows.forEach(function (r, i) {
+      var amt = (_tsum > 0 && _budget > 0) ? Math.round(_budget * r.t / _tsum) : 0;
+      if (i === _rows.length - 1) amt = Math.max(0, _budget - _assigned);
+      _alloc.push(amt); _assigned += amt;
+    });
+    var _drip = (function () {
+      var _cur = calCells().filter(function (c) { return c.ym === todayStr().slice(0, 7); })[0];
+      return _cur ? _cur.drip : '';
+    })();
+    var _note = String(S.firstNote || '').split('；').filter(function (x) { return x.indexOf('001015 本次建仓') < 0; }).join('；').replace(/；+$/, '')
+      + ' 金额=实时差额÷剩余月（≈' + fmt(_budget) + '/月）按目标比例动态分摊；已达标标的首月不做。';
+    html += '<div class="st-card"><h4>首次定投执行单（' + _drip + ' · 本月最后一个交易日 · 当月建议 ≈' + fmt(_budget) + '）</h4><div class="strat-note">' + esc(_note) + '</div><div class="tbl-scroll"><table class="st-tbl">' +
       '<colgroup><col style="width:8%"><col style="width:14%"><col style="width:22%"><col style="width:14%"><col style="width:14%"><col style="width:28%"></colgroup>' +
       '<thead><tr><th>顺序</th><th>标的</th><th>代码</th><th>金额</th><th>渠道</th><th>备注</th></tr></thead><tbody>';
-    S.first.forEach(function (f) {
-      html += '<tr><td>' + f.i + '</td><td class="nm"><b class="lk-rs" data-rscode="' + f.code + '">' + esc(f.name) + '</b></td><td class="cd">' + f.code + '</td><td class="qty">' + fmt(f.amount) + '</td><td>' + f.chan + '</td><td>' + esc(f.note || '') + '</td></tr>';
+    S.first.forEach(function (f, i) {
+      html += '<tr><td>' + f.i + '</td><td class="nm"><b class="lk-rs" data-rscode="' + f.code + '">' + esc(f.name) + '</b></td><td class="cd">' + f.code + '</td><td class="qty">' + fmt(_alloc[i]) + '</td><td>' + f.chan + '</td><td>' + esc(f.note || '') + '</td></tr>';
     });
-    /* v310 fw2_v310_first_total：金额列下加合计行——明细现算（不写死预算值，避免与行和不符） */
-    var _ft = S.first.reduce(function (_a, _f) { return _a + (Number(_f.amount) || 0); }, 0);
-    html += '<tr class="st-total" style="font-weight:700;border-top:2px solid var(--line-mid)"><td colspan="3">合计（明细行和）</td><td class="qty">' + fmt(_ft) + '</td><td colspan="2"></td></tr>';
+    html += '<tr class="st-total" style="font-weight:700;border-top:2px solid var(--line-mid)"><td colspan="3">合计（明细行和）</td><td class="qty">' + fmt(_assigned) + '</td><td colspan="2"></td></tr>';
     html += '</tbody></table></div></div>';
     html += '<div class="st-card"><h4>执行记录（触发 → 复核 → 确认 → 执行 → 记录 · 8.5）</h4>' + recForm() + '<div class="rec-list" id="stratRecList"></div></div>';
     el.innerHTML = html;
