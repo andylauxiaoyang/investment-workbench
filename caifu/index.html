@@ -5356,11 +5356,11 @@ window.HS_name = function (code) {
                 const diff = Math.round((d - now) / 86400000);
                 if (diff >= 0 && diff < bd) { bd = diff; best = c; }
               });
-              if (best && bd <= C.grid.conflictDays) conf = ' ｜ ⚠距定投日 ' + best.drip.slice(5).replace('-', '/') + ' 仅 ' + bd + ' 天，建议合并或择一';
+              if (best && bd <= C.grid.conflictDays) conf = ' ｜ ⚠距定投日 ' + best.drip.slice(5).replace('-', '/') + (bd === 0 ? '（今日即定投日）' : ' 仅 ' + bd + ' 天') + '，建议合并或择一';
             }
             rows.hold.push(Object.assign({}, base, {
               sig: 'T13 网格跟踪',
-              cur: (gDD <= -C.grid.step ? '较上次购买 ' + gDD.toFixed(1) + '% · 网格买入' : '较上次购买 ' + gDD.toFixed(1) + '% · 距触发还需跌 ' + (-(gDD + C.grid.step)).toFixed(1) + '%') + conf,
+              cur: (gDD <= -C.grid.step ? '较上次购买 ' + gDD.toFixed(1) + '% · 网格买入' : '较上次购买 ' + gDD.toFixed(1) + '% · 距触发还需跌 ' + (C.grid.step + gDD).toFixed(1) + '%') + conf,
               thr: '距上次购买跌 ' + C.grid.step + '% → 网格买入；与定投日 ≤' + C.grid.conflictDays + ' 天提示冲突',
               lvl: gDD <= -C.grid.step ? 'act' : gDD <= -C.grid.step + C.nearBand ? 'near' : 'watch',
               src: conf ? '网格×定投冲突' : '网格'
