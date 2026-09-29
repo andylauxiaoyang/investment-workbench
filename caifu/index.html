@@ -13551,9 +13551,12 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
   function renderStratTodo() {
     var today = todayStr(), ym = today.slice(0, 7);
     var cal = (S.calendar || []).filter(function (c) { return c.ym === ym; })[0] || null;
+    /* v315 fw2_v315_todo_rem：待办「剩 X 月」改用 monthsLeft() 动态口径（与建仓 hero 一致），
+       不再读静态 S.calendar[].rem（曾写死 12，与 hero 剩 10 月冲突） */
+    var _rm = (typeof monthsLeft === 'function') ? monthsLeft() : ((cal && cal.rem != null) ? cal.rem : null);
     var items = [];
     if (cal) {
-      items.push({ t: '定投日 ' + (cal.drip || '—') + (cal.rem != null ? '（剩 ' + cal.rem + ' 月）' : ''), c: 'cal' });
+      items.push({ t: '定投日 ' + (cal.drip || '—') + (_rm != null ? '（剩 ' + _rm + ' 月）' : ''), c: 'cal' });
       (cal.note || []).forEach(function (n) { items.push({ t: n, c: 'note' }); });
     }
     (S.reviews || []).forEach(function (r) { if (r[0] === today || r[0].slice(0, 7) === ym) items.push({ t: r[1], c: 'rev' }); });
