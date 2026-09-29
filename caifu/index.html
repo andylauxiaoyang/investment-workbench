@@ -11300,7 +11300,7 @@ function renderSignalDash() {
       const mRows = (dd || []).filter((x) => x.kind === 'money');
       if (fRows.length || mRows.length) {
         /* v320 fw2_v320_m6_into_signals：回撤警示行升级为完整 M6 明细（与持仓·回撤与超额监控同源 fetchDdRows，数据/口径完全一致） */
-        h += '<div class="dc-src" style="opacity:.9"><b>回撤与超额（M6）</b> <span style="opacity:.6">（近1年＝自然日365天口径·与总览「组合收益走势」同源 · 回撤区间近500自然日 · 累计净值含分红再投 · >15% 黄 / >20% 红 · 超额＝基金月收益−沪深300月末收盘）</span></div>';
+        h += '<div class="dc-src" style="opacity:.9"><b>回撤与超额（M6）</b> <span style="opacity:.6">（近1年＝自然日365天口径·与总览「组合收益走势」同源 · 回撤区间近500自然日 · 累计净值含分红再投 · >15% 黄 / >20% 红 · 超额＝基金月收益−沪深300月末收盘（价格指数，未含成分股分红，超额略有高估））</span></div>';
         h += '<div style="display:flex;flex-direction:column;gap:5px;margin:6px 0 10px">' + fRows.map((x) => {
           const col = x.curDD < -20 ? 'var(--down)' : x.curDD < -15 ? '#92600a' : 'inherit';
           const verTxt = x.ver && x.ver.ok === true ? ' <span style="color:var(--down)">✓' + (x.ver.alts && x.ver.alts.length > 1 ? '双源' : '副源') + '校验通过(' + (x.ver.alts || []).map((a) => a.src).join('+') + ')</span>' : x.ver && x.ver.ok === false ? ' <b style="color:var(--up)">⚠副源偏差' + x.ver.diff.toFixed(2) + '%</b>' : ' <span style="opacity:.6">·副源不可用</span>';
