@@ -5332,6 +5332,11 @@ window.HS_name = function (code) {
           rows.hold.push(Object.assign({}, base, { sig: 'T2 峰值回撤止盈', cur: (armed ? '已激活·' : '未激活·') + fmtRet(holdDD), thr: '峰涨≥' + C.tpPeakArm + '%后 回撤≥' + C.tpPeakDD + '% → 减半', lvl: armed && holdDD <= -C.tpPeakDD ? 'act' : armed && holdDD <= -(C.tpPeakDD - C.nearBand) ? 'near' : 'watch', src: 'D7/grid G' }));
         }
         rows.hold.push(Object.assign({}, base, { sig: 'T7 回撤补仓', cur: fmtRet(ddPeak), thr: C.addDD1 + '% / ' + C.addDD2 + '% 分档', lvl: ddPeak <= C.addDD2 ? 'act' : ddPeak <= C.addDD1 ? 'near' : ddPeak <= C.addDD1 + C.nearBand ? 'near' : 'watch', src: '补仓双机制' }));
+        /* v313 fw2_v313_lowdist：距 5Y/10Y 最低净值还需跌多少（按点位·非估值分位） */
+        var _minN = function (_n) { var _a = ys.slice(-_n); return _a.length ? Math.min.apply(null, _a) : null; };
+        var _m5 = _minN(1250), _m10 = _minN(2500);
+        var _dd2 = function (_m) { return _m == null ? '—' : ((_m / last - 1) * 100).toFixed(1) + '%'; };
+        rows.hold.push(Object.assign({}, base, { sig: 'T12 距历史低点', cur: '5Y 再跌 ' + _dd2(_m5) + ' ｜ 10Y 再跌 ' + _dd2(_m10), thr: '距 5Y/10Y 最低净值点位（距5Y低点 ≤10% 关注）', lvl: (last && _m5 && (last - _m5) / last <= 0.10) ? 'near' : 'watch', src: '点位·非估值分位' }));
         if (vp != null) {
           rows.hold.push(Object.assign({}, base, { sig: 'T3 估值止盈 / T8 估值加仓', cur: '分位 ' + vp.toFixed(0) + '%', thr: '≥' + C.valHigh + '% 减 · ≤' + C.valLow + '% 加', lvl: (vp >= C.valHigh || vp <= C.valLow) ? 'act' : (vp >= C.valHigh - 5 || vp <= C.valLow + 5) ? 'near' : 'watch', src: 'grid E' }));
         }
@@ -5353,6 +5358,11 @@ window.HS_name = function (code) {
         if (ma20 != null && ma60 != null) {
           const bull = last > ma20 && last > ma60 && ma20 > ma60;
           rows.watch.push(Object.assign({}, base, { sig: 'W3 趋势（净值对MA20/MA60）', cur: (last > ma20 ? '上方' : '下方') + ' / ' + (last > ma60 ? '上方' : '下方'), thr: '多头排列=右侧确认', lvl: bull ? 'near' : 'watch', src: '右侧入场' }));
+          /* v313 fw2_v313_lowdist：距 5Y/10Y 最低净值还需跌多少（按点位·非估值分位） */
+          var _minN2 = function (_n) { var _a = ys.slice(-_n); return _a.length ? Math.min.apply(null, _a) : null; };
+          var _m52 = _minN2(1250), _m102 = _minN2(2500);
+          var _dd3 = function (_m) { return _m == null ? '—' : ((_m / last - 1) * 100).toFixed(1) + '%'; };
+          rows.watch.push(Object.assign({}, base, { sig: 'W7 距历史低点', cur: '5Y 再跌 ' + _dd3(_m52) + ' ｜ 10Y 再跌 ' + _dd3(_m102), thr: '距 5Y/10Y 最低净值点位（距5Y低点 ≤10% 关注）', lvl: (last && _m52 && (last - _m52) / last <= 0.10) ? 'near' : 'watch', src: '点位·非估值分位' }));
         }
         const mgrY = r.manager && r.manager[0] ? (typeof parseMgrYears === 'function' ? parseMgrYears(r.manager[0].workTime || '') : null) : null;
         const sc = r.scale && r.scale.length ? r.scale[r.scale.length - 1].v : null;
