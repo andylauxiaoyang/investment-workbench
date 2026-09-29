@@ -13503,18 +13503,9 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
     var html = renderStratTodo() +
       '<div class="strat-note">' + esc(S.planNote) + '</div><div class="st-card"><h4>月度定投表（8.2 · 每月固定日）</h4><div class="tbl-scroll"><table class="st-tbl">' +
       '<colgroup><col style="width:16%"><col style="width:16%"><col style="width:17%"><col style="width:34%"><col style="width:17%"></colgroup>' +
-      '<thead><tr><th>标的</th><th>建仓期（补差额÷剩余月份）</th><th>常态期（建满后）</th><th>分位 &lt;30 加倍档</th><th>资金源</th></tr></thead><tbody>';
-    S.plan.forEach(function (p) {
-      var g = gapOf(p.code), lm = liveMonthly(p.code);
-      var info = (g && g.gap > 0) ? '<div style="font-size: 11px;color:var(--muted);margin-top:2px">实时缺口 ' + fmt(Math.round(g.gap)) + ' · 建议 ' + fmt(lm) + '/月</div>' : '';
-      var _bcell = (p.code === '020712') ? '日定投 10/日（限额）' : p.build;
-      html += '<tr><td><div class="nm"><b class="lk-rs" data-rscode="' + p.code + '">' + esc(p.name) + '</b></div><div class="cd">' + p.code + '</div>' + info + '</td>' +
-        '<td><div class="qty">' + esc(_bcell) + '</div></td><td>' + esc(p.normal) + '</td><td>' + esc(p.dbl) + '</td><td>' + esc(p.src) + '</td></tr>';
-    });
-    html += '</tbody></table></div></div>';
-    /* v312 fw2_v312_first_daily：执行单动态分摊升级——
-       (a) 020712 日经每日限额 10 元 → 转「日定投 10/日」：金额列显示文案、不占月预算、不参与分摊；
-       (b) 分摊改最大余数法（floor+余数降序补 1 元），合计恒等于当月建议额，避免行多时末行兜底失真。 */
+      '<thead><tr><th>标的</th><th>建仓期（当月实投·差额÷剩余月×目标比例）</th><th>常态期（建满后）</th><th>分位 &lt;30 加倍档</th><th>资金源</th></tr></thead><tbody>';
+    /* v317 fw2_v317_plan_alloc：月度定投表建仓期列改用「当月实投」口径（= 执行单分摊值，全局差额÷剩余月×目标比例），
+       与执行单/hero 一致；此前用静态 p.build（各标的独立补缺月均）造成「表 750 vs 单 530」不一致 */
     var _daily = { '020712': '日定投 10/日（限额）' };
     var _budget = (function () {
       var _df = Math.max(0, S.totalTarget - totalMv()), _m = monthsLeft();
@@ -13533,6 +13524,21 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
       .filter(function (o) { return o.v >= 0; }).sort(function (x, y) { return y.v - x.v; });
     for (var _k = 0; _k < _left && _k < _order.length; _k++) _base[_order[_k].i] += 1;
     var _alloc = _base, _assigned = _base.reduce(function (a, b) { return a + b; }, 0);
+    var _allocMap = {};
+    _rows.forEach(function (r, _i) { _allocMap[r.f.code] = _alloc[_i]; });
+    S.plan.forEach(function (p) {
+      var g = gapOf(p.code), lm = liveMonthly(p.code);
+      var _am = _allocMap[p.code];
+      var info = (g && g.gap > 0) ? '<div style="font-size: 11px;color:var(--muted);margin-top:2px">实时缺口 ' + fmt(Math.round(g.gap)) + ' · 本月建议 ' + (_am != null ? fmt(_am) : fmt(lm)) + '</div>' : '';
+      var _bcell = (p.code === '020712') ? '日定投 10/日（限额）' : ((_am != null) ? fmt(_am) : esc(p.build));
+      html += '<tr><td><div class="nm"><b class="lk-rs" data-rscode="' + p.code + '">' + esc(p.name) + '</b></div><div class="cd">' + p.code + '</div>' + info + '</td>' +
+        '<td><div class="qty">' + esc(_bcell) + '</div></td><td>' + esc(p.normal) + '</td><td>' + esc(p.dbl) + '</td><td>' + esc(p.src) + '</td></tr>';
+    });
+    html += '</tbody></table></div></div>';
+    /* v312 fw2_v312_first_daily：执行单动态分摊升级——
+       (a) 020712 日经每日限额 10 元 → 转「日定投 10/日」：金额列显示文案、不占月预算、不参与分摊；
+       (b) 分摊改最大余数法（floor+余数降序补 1 元），合计恒等于当月建议额，避免行多时末行兜底失真。 */
+    /* v317：分摊定义已上移至月度定投表之前（保证两表同值），此处直接复用 _daily/_budget/_rows/_tsum/_base/_rem/_left/_order/_alloc/_assigned/_allocMap */
     var _drip = (function () {
       var _cur = calCells().filter(function (c) { return c.ym === todayStr().slice(0, 7); })[0];
       return _cur ? _cur.drip : '';
