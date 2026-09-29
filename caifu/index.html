@@ -5811,6 +5811,7 @@ function renderPfSrcNote() {
     DB: '资料库持仓表（实时）',
     'seed-inline': '内置只读镜像快照',
     'seed-file': '旁挂快照 holdings-data.json',
+    local: '本地草稿', /* v323b fw2_v323_bdmerge：补 v177 遗漏的 local 标签（此前显示为「未取到持仓数据」误导） */
     'empty': '未取到持仓数据',
   };
   var label = map[state._pfSrc] || '未取到持仓数据';
@@ -5840,6 +5841,13 @@ async function loadPortfolioFromDB() {
     if (Array.isArray(list) && list.length) { state.portfolio = list; state._pfSrc = 'DB'; state._pfAt = ''; }
   } catch (e) { /* 主通道不可用：保持种子（与「空列表不误清库」原则一致） */ }
   if (!state.portfolio.length) state._pfSrc = 'empty';
+  /* v323b fw2_v323_bdmerge：本地草稿/旧格式持仓缺 buyDate（T5 时间止损基准）→ 用内嵌种子按 code 补齐。
+     背景：v177 本地草稿优先于种子，草稿是历史保存的无 buyDate 版本，直接覆盖导致 T5 永不触发。 */
+  try {
+    const _smap = {};
+    ((window.HOLDINGS_SEED && window.HOLDINGS_SEED.holdings) || []).forEach((_s) => { if (_s && _s.code) _smap[String(_s.code)] = _s.buyDate || ''; });
+    state.portfolio.forEach((_hh) => { if (_hh && !_hh.buyDate && _smap[String(_hh.code)]) _hh.buyDate = _smap[String(_hh.code)]; });
+  } catch (e) { /* 合并失败不阻断 */ }
   renderPfSrcNote();
   /* 持仓晚到：重试基金重仓关键词（若仍在初始化时空跑过一轮），资讯相关标注补齐（v22） */
   if (state.portfolio.length && typeof ensureFundTopKeys === 'function') {
