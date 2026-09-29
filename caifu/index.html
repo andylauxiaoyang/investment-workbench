@@ -11345,7 +11345,25 @@ function renderSignalDash() {
           const top = hasAct ? 'act' : hasNear ? 'near' : 'watch';
           return { code, name: rows[0].name, rows, top, nAct: rows.filter((r) => r.lvl === 'act').length, nNear: rows.filter((r) => r.lvl === 'near').length };
         });
-        targets.sort((a, b) => (lvlRank[a.top] - lvlRank[b.top]) || String(a.code).localeCompare(String(b.code)));
+        /* v326 fw2_v326_sig_base_first：底仓/缓冲（杠铃 base 档）持仓标的置顶显示——
+           底仓/缓冲属整体持仓压舱石，优先于信号等级展示；其余标的仍按最高等级排 */
+        const _pileOf = (t) => {
+          const bb = (window.SIGNALS_CFG || {}).barbell;
+          const f = ((bb && bb.funds) || []).find((x) => String(x.code) === String(t.code));
+          if (f) return f.pile;
+          const n = String(t.name || '');
+          if (/纳指|创业板|日经|全球|精选|主题/.test(n)) return 'off';
+          if (/沪深300|中证|A500|红利|现金流|增强/.test(n)) return 'base';
+          if (/货币|短融|债/.test(n)) return 'bond';
+          if (/国债|黄金/.test(n)) return 'hedge';
+          return 'other';
+        };
+        const PILE_LABEL = {
+          base: ['底仓/缓冲', '#EEF3FF', '#4D6BFE'], off: ['进攻/主题', '#FFF5E8', '#d98c00'],
+          bond: ['安全垫', '#E9F9F1', '#059669'], hedge: ['对冲', '#F1EFE8', '#5F5E5A'], other: ['其他', '#F1EFE8', '#5F5E5A']
+        };
+        const _pileRank = { base: 0, off: 1, bond: 2, hedge: 3, other: 4 };
+        targets.sort((a, b) => (_pileRank[_pileOf(a)] - _pileRank[_pileOf(b)]) || (lvlRank[a.top] - lvlRank[b.top]) || String(a.code).localeCompare(String(b.code)));
         const TAR = { act: ['行动', '#A32D2D', '#FCEBEB'], near: ['接近', '#854F0B', '#FAEEDA'], watch: ['观察', '#5F5E5A', '#F1EFE8'] };
         const bdC = (n, label, bg, fg) => (n ? '<span style="display:inline-block;background:' + bg + ';color:' + fg + ';font-size:11px;padding:1px 6px;border-radius:6px;margin-left:3px">' + label + ' ' + n + '</span>' : '');
         html += targets.map((t) => {
@@ -11353,11 +11371,14 @@ function renderSignalDash() {
           return '<div class="sig-target" style="border:1px solid ' + T[2] + 'aa;border-left:3px solid ' + T[2] + ';border-radius:10px;background:#fff;padding:8px 10px;margin-bottom:8px">'
             + '<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding-bottom:6px;margin-bottom:6px;border-bottom:1px dashed var(--line,#e3e7ee)">'
             + '<b class="lk-rs" data-rscode="' + esc(t.code) + '" style="cursor:pointer;font-size:13px">' + esc(t.name) + '</b>'
+            + (PILE_LABEL[_pileOf(t)] ? '<span style="display:inline-block;font-size:10.5px;padding:1px 6px;border-radius:5px;background:' + PILE_LABEL[_pileOf(t)][1] + ';color:' + PILE_LABEL[_pileOf(t)][2] + ';white-space:nowrap">' + PILE_LABEL[_pileOf(t)][0] + '</span>' : '')
             + '<span class="muted" style="font-size:11.5px">' + esc(t.code) + '</span>'
             + '<span style="display:inline-block;background:' + T[2] + ';color:' + T[1] + ';font-size:11px;padding:1px 7px;border-radius:6px;font-weight:600">最高·' + T[0] + '</span>'
             + bdC(t.nAct, '行动', '#FCEBEB', '#A32D2D') + bdC(t.nNear, '接近', '#FAEEDA', '#854F0B') + bdC(t.rows.length - t.nAct - t.nNear, '观察', '#F1EFE8', '#5F5E5A')
             + '</div>'
-            + '<div class="sig-tiles">' + t.rows.map((r) => rowHtml(r, false)).join('') + '</div></div>';
+            + '<div class="sig-tiles">' + t.rows.map((r) => rowHtml(r, false)).join('') + '</div>'
+            + (ddByCode[t.code] ? ddTileHtml(ddByCode[t.code]) : '')
+            + '</div>';
         }).join('');
       } else {
         html += '<div class="sig-tiles">' + act.concat(near).map(rowHtml).join('') + '</div>';
@@ -11368,6 +11389,26 @@ function renderSignalDash() {
     };
     /* v319 fw2_v319_sig_risk_fusion：持仓信号组内嵌「组合风险确认 + 回撤警示」——
        风险/机会 = diagnoseSignals（与持仓·风险与机会扫描同引擎）；回撤警示 = fetchDdRows（与持仓·回撤与超额监控 M6 同口径） */
+    /* v327 fw2_v327_sig_dd_in_tile：回撤与超额（M6）明细并入持仓标卡——
+       每只持仓基金的标卡内直接显示回撤/最大回撤/近1年/累计净值/逐月超额；
+       组合风险确认保留组合级 + 风险/机会标签，普通基金磁贴不再重复回撤明细 */
+    const verTxtOf = (x) => x.ver && x.ver.ok === true ? ' <span style="color:var(--down)">✓' + (x.ver.alts && x.ver.alts.length > 1 ? '双源' : '副源') + '校验通过(' + (x.ver.alts || []).map((a) => a.src).join('+') + ')</span>' : x.ver && x.ver.ok === false ? ' <b style="color:var(--up)">⚠副源偏差' + x.ver.diff.toFixed(2) + '%</b>' : ' <span style="opacity:.6">·副源不可用</span>';
+    const ddTileHtml = (ddRow) => {
+      if (!ddRow) return '';
+      let b = '<div class="sig-dd" style="margin-top:5px;padding-top:5px;border-top:1px dashed var(--line,#e3e7ee);font-size:11.5px;color:var(--muted,#94a3b8);line-height:1.6">';
+      if (ddRow.kind === 'money') {
+        b += '货币基金（不适用回撤口径）· 七日年化 <b>' + (ddRow.sd != null ? ddRow.sd.toFixed(3) + '%' : '—') + '</b>（近7日均 ' + (ddRow.sd7avg != null ? ddRow.sd7avg.toFixed(3) + '%' : '—') + '）· 万份收益 <b>' + (ddRow.mi != null ? ddRow.mi.toFixed(4) : '—') + '</b>（近30日均 ' + (ddRow.mi30avg != null ? ddRow.mi30avg.toFixed(4) : '—') + '）' + (ddRow.miDate ? ' · ' + esc(ddRow.miDate) : '') + verTxtOf(ddRow) + '</div>';
+      } else {
+        const col = ddRow.curDD < -20 ? 'var(--down)' : ddRow.curDD < -15 ? '#92600a' : 'inherit';
+        b += '<b>回撤与超额（M6）</b>：当前回撤 <b style="color:' + col + '">' + fmtPct(ddRow.curDD) + '</b> · 区间最大回撤 ' + fmtPct(ddRow.mdd) + (ddRow.r1y != null ? ' · 近1年 ' + fmtPct(ddRow.r1y) : '') + (ddRow.lastNav != null ? ' · 累计净值 ' + ddRow.lastNav.toFixed(4) + '（' + esc(ddRow.navDate) + '）' : '') + verTxtOf(ddRow);
+        if (ddRow.excess && ddRow.excess.length) b += '<div style="margin-top:2px">逐月超额 vs 沪深300：' + ddRow.excess.map((e2) => '<span style="color:' + (e2.e >= 0 ? 'var(--up)' : 'var(--down)') + '">' + fmtPct(e2.e) + '</span>').join(' · ') + '</div>';
+      }
+      b += '</div>';
+      return b;
+    };
+    const ddByCode = {};
+    (ddRows || []).forEach((x) => { ddByCode[x.code] = x; });
+    const _tileCodes = new Set((rows.hold || []).map((r) => String(r.code)));
     const sigRiskHtml = (risk, dd) => {
       if (!risk) return '';
       const rks = risk.risks || [], ops = risk.opps || [];
@@ -11382,7 +11423,6 @@ function renderSignalDash() {
           .concat(fRows.map((x) => x.code)).concat(mRows.map((x) => x.code))));
       const comb = all.filter((a) => !a.code);
       const tagOf = (a) => { const sm = SEV_META[a.sev] || SEV_META.info; return '<span class="tag" style="color:' + sm.color + ';border-color:' + sm.color + ';background:' + sm.color + '24;padding:1px 8px;font-size:11px">' + sm.label + '</span>'; };
-      const verTxtOf = (x) => x.ver && x.ver.ok === true ? ' <span style="color:var(--down)">✓' + (x.ver.alts && x.ver.alts.length > 1 ? '双源' : '副源') + '校验通过(' + (x.ver.alts || []).map((a) => a.src).join('+') + ')</span>' : x.ver && x.ver.ok === false ? ' <b style="color:var(--up)">⚠副源偏差' + x.ver.diff.toFixed(2) + '%</b>' : ' <span style="opacity:.6">·副源不可用</span>';
       const TILE = 'background:#fff;border:1px solid var(--line,#e3e7ee);border-radius:10px;padding:8px 10px;box-shadow:0 1px 3px rgba(15,23,42,.05)';
       const TILE_H = 'display:flex;align-items:baseline;gap:6px;flex-wrap:wrap;padding-bottom:5px;margin-bottom:5px;border-bottom:1px dashed var(--line,#e3e7ee)';
       let h = '<div class="dc-src" style="opacity:.9;margin-top:10px"><b>组合风险确认</b> · 风险 ' + rks.length + ' · 机会 ' + ops.length + ' <span style="opacity:.6">（与持仓·风险与机会扫描同引擎 diagnoseSignals）</span></div>';
@@ -11401,12 +11441,10 @@ function renderSignalDash() {
         let b = '';
         if (its.length) b += its.map((a) => '<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin:3px 0">' + tagOf(a) + '<span style="font-size:12px;opacity:.92">' + esc(a.txt) + '</span></div>').join('');
         if (ddRow) {
-          if (ddRow.kind === 'money') {
-            b += '<div class="muted" style="font-size:11.5px;margin-top:4px;line-height:1.55">货币基金（不适用回撤口径）· 七日年化 <b>' + (ddRow.sd != null ? ddRow.sd.toFixed(3) + '%' : '—') + '</b>（近7日均 ' + (ddRow.sd7avg != null ? ddRow.sd7avg.toFixed(3) + '%' : '—') + '）· 万份收益 <b>' + (ddRow.mi != null ? ddRow.mi.toFixed(4) : '—') + '</b>（近30日均 ' + (ddRow.mi30avg != null ? ddRow.mi30avg.toFixed(4) : '—') + '）' + (ddRow.miDate ? ' · ' + esc(ddRow.miDate) : '') + verTxtOf(ddRow) + '</div>';
+          if (ddRow.kind === 'money' || !_tileCodes.has(String(code))) {
+            b += ddTileHtml(ddRow); /* v327：货基不入持仓标卡 / 该基金无持仓信号 → 兜底展示 */
           } else {
-            const col = ddRow.curDD < -20 ? 'var(--down)' : ddRow.curDD < -15 ? '#92600a' : 'inherit';
-            b += '<div class="muted" style="font-size:11.5px;margin-top:4px;line-height:1.6">当前回撤 <b style="color:' + col + '">' + fmtPct(ddRow.curDD) + '</b> · 区间最大回撤 ' + fmtPct(ddRow.mdd) + (ddRow.r1y != null ? ' · 近1年 ' + fmtPct(ddRow.r1y) : '') + (ddRow.lastNav != null ? ' · 累计净值 ' + ddRow.lastNav.toFixed(4) + '（' + esc(ddRow.navDate) + '）' : '') + verTxtOf(ddRow) + '</div>';
-            if (ddRow.excess && ddRow.excess.length) b += '<div class="muted" style="font-size:11px;margin-top:2px;line-height:1.6">逐月超额 vs 沪深300：' + ddRow.excess.map((e2) => '<span style="color:' + (e2.e >= 0 ? 'var(--up)' : 'var(--down)') + '">' + fmtPct(e2.e) + '</span>').join(' · ') + '</div>';
+            b += '<div class="muted" style="font-size:11px;margin-top:2px;opacity:.72">回撤与超额明细已并入上方持仓标卡</div>';
           }
         }
         tiles.push('<div style="' + TILE + '"><div style="' + TILE_H + '"><b style="font-size:12.5px">' + esc(nm) + '</b><span class="muted" style="font-size:11px">' + esc(code) + '</span></div>' + b + '</div>');
