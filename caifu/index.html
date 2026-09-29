@@ -5643,7 +5643,23 @@ const CUR_SYMBOL = { CN: '¥', HK: 'HK$', US: '$' };
 const MARKET_LABEL = { CN: 'A股', HK: '港股', US: '美股' };
 /* v127 fw2_v127_fund_label：场外基金/QDII/货基此前被 marketOf 兜底误标「A股」——资产类型优先的市场标签 */
 const AT_MARKET_LABEL = { fund: '基金', etf: 'ETF', bond: '债券', gold: '黄金/商品', cash: '现金' };
-const marketLabelOf = (atKey, market) => AT_MARKET_LABEL[atKey] || MARKET_LABEL[market] || '—';
+/* v309 fw2_v309_market_label：市场列改为「真实市场」优先——按基金名称/类型推导投资市场（现金仍显现金），
+   不再让资产类型（基金/现金）霸占市场列。与资金平衡/资产配置的市场口径（A股/港股/美股/日股/全球）一致。 */
+const FUND_MARKET_RULES = [
+  [/(纳斯达克|纳指|标普|道琼斯|罗素|MSCI|美元债|美债)/, '美股'],
+  [/(日经|日本)/, '日股'],
+  [/(全球|环球)/, '全球'],
+  [/(恒生|港股|中概互联)/, '港股'],
+  [/(货币|活期宝|现金宝)/, '现金'],
+];
+const marketLabelOf = (atKey, market, name) => {
+  if (atKey === 'cash') return '现金';
+  const nm = name || '';
+  for (const [re, lab] of FUND_MARKET_RULES) if (re.test(nm)) return lab;
+  if (market === 'HK') return '港股';
+  if (market === 'US') return '美股';
+  return 'A股';
+};
 
 /* ---------------- 状态 ---------------- */
 const DEFAULT_SETTINGS = { refreshMs: 30000, cash: 0, fx: { HKD: 0.92, USD: 7.18 }, cnyView: true };
@@ -6160,7 +6176,7 @@ function buildRows() {
     const totLocal = mvLocal != null ? mvLocal - costLocal : null;
     return {
       code: h.code, name: (quote && quote.name) || h.name || shortCode(h.code),
-      market, marketLabel: marketLabelOf(atKey, market), cur: CUR_SYMBOL[market],
+      market, marketLabel: marketLabelOf(atKey, market, h.name), cur: CUR_SYMBOL[market],
       assetType: atKey,
       sector: state.sectors[h.code] || h.sector || '—',
       qty: h.qty, cost: h.cost, price, pre,
