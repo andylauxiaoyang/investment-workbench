@@ -11270,6 +11270,7 @@ function renderSignalDash() {
   /* v30b: 总标题与分组头同款格式 */ /* fw2_sig_dashhead_v1 */
   card.innerHTML = '<div class="dc-wrap" id="sigBody"><div class="dc-load">信号计算中（首次拉取净值序列约需数秒）…</div></div>';
   const body = document.getElementById('sigBody');
+  const _sigScroll = window.scrollY || 0; /* v325 fw2_v325_sig_scroll：渲染/ack 重渲染后恢复滚动位置，防跳回顶部 */
   const hold = state.portfolio.filter((h) => (h.assetType || '') !== 'cash');
   const wl = (state.watchlist || []).map((c) => (typeof c === 'string' ? c : (c && c.code) || ''));
   const mkP = (window.marketEvalAll ? window.marketEvalAll() : Promise.resolve(null)).catch(() => null);
@@ -11277,6 +11278,10 @@ function renderSignalDash() {
   const ddP = window.fetchDdRows ? window.fetchDdRows().catch(() => []) : Promise.resolve([]);
   Promise.all([window.signalEvalAll(hold, wl), mkP, riskP, ddP]).then(([rows, mk, risk, ddRows]) => {
     if (state.view !== 'signal') return;
+    /* v325 fw2_v325_watch_nodup：自选信号剔除已持仓标的（其信号已由持仓信号 T 系列覆盖，避免跨类重复展示） */
+    const _heldCodes = new Set(hold.map((h) => String(h.code)));
+    const _watchDup = rows.watch.filter((r) => _heldCodes.has(String(r.code))).length;
+    const watchRows = rows.watch.filter((r) => !_heldCodes.has(String(r.code)));
     const LVL = { act: ['行动', '#A32D2D', '#FCEBEB', '#A32D2D'], near: ['接近', '#854F0B', '#FAEEDA', '#854F0B'], watch: ['观察', '#5F5E5A', '#F1EFE8', '#5F5E5A'] }; /* fw2_row_v32 */
     const rowHtml = (r, showName) => {
       const key = r.pool + ':' + r.code + ':' + r.sig;
@@ -11406,17 +11411,17 @@ function renderSignalDash() {
       h += '<div class="dc-src" style="opacity:.6;font-size:11px"><b>回撤与超额（M6）</b> 口径：近1年＝自然日365天口径·与总览「组合收益走势」同源 · 回撤区间近500自然日 · 累计净值含分红再投 · >15% 黄 / >20% 红 · 超额＝基金月收益−沪深300月末收盘（价格指数，未含成分股分红，超额略有高估）</div>';
       return h;
     };
-    const w1 = rows.watch.filter((r) => r.sig.indexOf('W1') >= 0);
+    const w1 = watchRows.filter((r) => r.sig.indexOf('W1') >= 0);
     const wAvg = w1.length ? w1.reduce((a, r) => a + (parseFloat(String(r.cur).replace(/[^\d.]/g, '')) || 0), 0) / w1.length : null;
-    const wAct = rows.watch.filter((r) => (r.sig.indexOf('W1') >= 0 || r.sig.indexOf('W2') >= 0) && r.lvl === 'act').length;
-    const wGate = rows.watch.filter((r) => r.sig.indexOf('W6') >= 0).length;
+    const wAct = watchRows.filter((r) => (r.sig.indexOf('W1') >= 0 || r.sig.indexOf('W2') >= 0) && r.lvl === 'act').length;
+    const wGate = watchRows.filter((r) => r.sig.indexOf('W6') >= 0).length;
     const envTxt = mk && mk.env ? (mk.env.hot ? '市场过热·自选买入降档' : mk.env.cold ? '市场低迷·自选买入升档' : '资金面中性') : '';
     const bnAll = ((mk && mk.banner) || []).concat(['<b>自选池</b>｜加权估值分位 ' + (wAvg == null ? '—' : wAvg.toFixed(0) + '%') + '｜行动档 ' + wAct + ' 只｜待过闸门 ' + wGate + ' 只' + (envTxt ? '｜' + envTxt : '')]);
     const bnFmt = (s) => { const i = s.indexOf('\uff5c'); return i > 0 ? '<span style="font-size:11px;color:var(--muted,#94a3b8)">' + s.slice(0, i) + '</span>' + s.slice(i) : s; };
     /* fw2_v173_rscale：--border 是幽灵 token（全文件无定义、恒走 #e3e7ee）-> 收编 --line */
-    var actTot = (rows.hold.filter((r) => r.lvl === 'act').length + rows.watch.filter((r) => r.lvl === 'act').length + ((mk && mk.rows) || []).filter((r) => r.lvl === 'act').length);
-    var nearTot = (rows.hold.filter((r) => r.lvl === 'near').length + rows.watch.filter((r) => r.lvl === 'near').length + ((mk && mk.rows) || []).filter((r) => r.lvl === 'near').length);
-    var watchTot = (rows.hold.filter((r) => r.lvl === 'watch').length + rows.watch.filter((r) => r.lvl === 'watch').length + ((mk && mk.rows) || []).filter((r) => r.lvl === 'watch').length);
+    var actTot = (rows.hold.filter((r) => r.lvl === 'act').length + watchRows.filter((r) => r.lvl === 'act').length + ((mk && mk.rows) || []).filter((r) => r.lvl === 'act').length);
+    var nearTot = (rows.hold.filter((r) => r.lvl === 'near').length + watchRows.filter((r) => r.lvl === 'near').length + ((mk && mk.rows) || []).filter((r) => r.lvl === 'near').length);
+    var watchTot = (rows.hold.filter((r) => r.lvl === 'watch').length + watchRows.filter((r) => r.lvl === 'watch').length + ((mk && mk.rows) || []).filter((r) => r.lvl === 'watch').length);
     var vTone = actTot ? 't-hot' : (envTxt || '').indexOf('过热') >= 0 ? 't-hot' : (envTxt || '').indexOf('低迷') >= 0 ? 't-cold' : 't-neu';
     var vMain = '信号仪表盘 · 行动 ' + actTot + ' · 接近 ' + nearTot + ' · 观察 ' + watchTot;
     var vVid = bnAll.map(bnFmt).join('｜');
@@ -11425,11 +11430,14 @@ function renderSignalDash() {
       /* v31b: 市场信号置顶 */ /* fw2_sig_order_v31b */
       + grp('市场信号（环境 / 温度计 / 资金面）', (mk && mk.rows) || [], null)
       + grp('持仓信号（止盈 / 止损 / 加仓 / 仓位）', rows.hold, rows.meta.filter((m) => m.pool === 'hold'), null, sigRiskHtml(risk, ddRows), true)
-      + grp('自选信号（买入时机 / 风险）', rows.watch, rows.meta.filter((m) => m.pool === 'watch'),
+      + grp('自选信号（买入时机 / 风险）', watchRows, rows.meta.filter((m) => m.pool === 'watch'),
         '自选来源：' + (state._wlSrc === 'DB' ? '资料库自选表' : state._wlSrc === '种子' ? '旁挂种子' : state._wlSrc === '内置' ? '页面内置快照' : '未取得') + ' ' + ((state.watchlist || []).length) + ' 只'
+        + (_watchDup ? ' · 已剔除与持仓重复 ' + _watchDup + ' 只' : '')
         + (state._wlErr ? ' · ⚠ ' + state._wlErr : ''), null, true)
       + '</div>'
       + '<div class="dc-note">触发≠自动交易 · 阈值锁季度复盘日（T12/D9）· 市场信号=环境提示非指令 · 标的级明细在此，汇总结论见「决策总览」。</div>';
+    /* v325 fw2_v325_sig_scroll：内容重建后恢复滚动位置（ack「知道了」等触发重渲染时防止跳回顶部） */
+    if (_sigScroll) requestAnimationFrame(function () { window.scrollTo(0, _sigScroll); });
     body.onclick = (e) => {
       const gb = e.target.closest('.dc-hd[data-grp]');
       if (gb) {
