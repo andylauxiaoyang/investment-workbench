@@ -5240,6 +5240,7 @@ window.HS_name = function (code) {
     wDD1: -20, wDD2: -30, wValLow: 30,                     /* W2 自选回撤买线 / W1 自选估值买线 */
     nearBand: 2,                                           /* 接近阈值带宽（百分点） */
     grid: { step: 3, conflictDays: 3 },                        /* v322 fw2_v322_grid_track T13 网格跟踪：距上次购买（单位成本近似）跌 3% 触发网格买入；与定投日历日期 ≤3 天提示时间冲突（用户决策合并/择一） */
+    t5: { months: 6 },                                            /* v323 fw2_v323_t5 T5 时间止损：买入满 6 个月仍亏损 → 止损复核（buyDate 来自天天基金对账单最早确认日） */
   };
   function sigValPct(c6) { /* 加权估值分位：HOLDINGS_SNAP.bench 配比 × benchData.pos(0-1)；自选池回退 WATCH_BENCH(v28b) */
     const s = window.HOLDINGS_SNAP;
@@ -5290,10 +5291,8 @@ window.HS_name = function (code) {
     };
     const fmtRet = (v) => (v == null ? '—' : (v > 0 ? '+' : '') + v.toFixed(2) + '%');
     const rows = { hold: [], watch: [], meta: [
-      { pool: 'hold', sig: 'T5 时间止损', why: '持仓表无买入日期，待数据补齐' },
       { pool: 'hold', sig: 'T6 定投日打卡', why: '手动打卡模式：每月自行确认扣款正常' },
       { pool: 'hold', sig: 'T11 扣款计数器', why: '待启用：20 次前只加不止（D6）' },
-      { pool: 'hold', sig: 'T13 网格跟踪', why: '网格基准＝持仓单位成本（近似上次购买价），触发买入后成本自动更新重算；与定投日接近时提示冲突由用户决策' },
       { pool: 'watch', sig: 'W4 买入闸门', why: 'v29：W1/W2 触发时自动升级为 W6 行动行（D1 五格 + D2/D3）' },
     ] };
     async function one(code6, pool, h) {
@@ -5320,6 +5319,15 @@ window.HS_name = function (code) {
         if (ret != null) {
           rows.hold.push(Object.assign({}, base, { sig: 'T1 阶梯止盈', cur: fmtRet(ret), thr: '≥ +' + C.tpStep + '% → 卖1/3', lvl: ret >= C.tpStep ? 'act' : ret >= C.tpStep - C.nearBand ? 'near' : 'watch', src: 'D7' }));
           rows.hold.push(Object.assign({}, base, { sig: 'T4 硬止损', cur: fmtRet(ret), thr: '≤ ' + C.slHard + '% → 全出', lvl: ret <= C.slHard ? 'act' : ret <= C.slHard + C.nearBand ? 'near' : 'watch', src: 'D8' }));
+          /* v323 fw2_v323_t5 T5 时间止损：买入满 N 个月仍亏损 → 止损复核（buyDate=天天基金对账单最早买入确认日；货币基金豁免） */
+          if (h.buyDate && h.assetType !== 'cash' && ret != null) {
+            const _bd = new Date(h.buyDate);
+            if (!isNaN(_bd.getTime())) {
+              const _hm = Math.round((Date.now() - _bd.getTime()) / 86400000) / 30.44;
+              const _tm = (C.t5 && C.t5.months) || 6;
+              rows.hold.push(Object.assign({}, base, { sig: 'T5 时间止损', cur: '持仓 ' + _hm.toFixed(1) + ' 个月 · ' + fmtRet(ret), thr: '买入满 ' + _tm + ' 个月仍亏损 → 止损复核', lvl: (ret < 0 && _hm >= _tm) ? 'act' : (ret < 0 && _hm >= _tm - 2) ? 'near' : 'watch', src: '时间止损' }));
+            }
+          }
         }
         if (maxRet != null) {
           const holdDD = (last / peakEver - 1) * 100;
@@ -5776,6 +5784,7 @@ function applySeed(j, tag) {
       cost: x.unitCost != null ? +x.unitCost : (+x.cost || 0),
       assetType: x.assetType || x.type || 'stock', /* v129 fw2_v129_assettype_fix：v128 写入端已改 assetType、读取端漏改→现金资产误判 stock，活期宝市值 — */
       sector: x.sector || '',
+      buyDate: x.buyDate || '', /* v323 fw2_v323_t5 T5 时间止损：买入日期（最早买入确认日） */
     };
   }).filter(function (h) { return h.code && h.qty > 0; });
   if (!list.length) return false;
@@ -13890,7 +13899,7 @@ if ('serviceWorker' in navigator) {
 }
 </script>
 <script>/* v123 fw2_v123_pf_seed：持仓只读镜像（由 gen_holdings_seed.py 生成的 holdings-data.json 内嵌而来，与该文件同源；勿手改） */
-window.HOLDINGS_SEED = {"syncedAt":"2026-09-18T14:53:38+08:00","source":"资料库持仓表（database_id GjLvwNekmiaDCgMZrhaa29）的只读镜像；字段口径与资料库一致（份额=天天基金 ACCOUNT_HOLDING，成本价=单位成本）。★改持仓请改资料库表，然后重跑 gen_holdings_seed.py——勿手改本文件。","total":"15410.47","holdings":[{"name":"招商行业精选股票基金","code":"000746","shares":16.34,"unitCost":6.12,"cost":100.0,"assetType":"fund","sector":"主动权益"},{"name":"华夏沪深300指数增强A","code":"001015","shares":420.02,"unitCost":2.3808,"cost":999.98,"assetType":"fund","sector":"宽基指数"},{"name":"创金合信货币C（活期宝）","code":"007866","shares":1000.28,"unitCost":1.0,"cost":1000.28,"assetType":"cash","sector":"现金管理"},{"name":"易方达全球成长精选混合(QDII)人民币A","code":"012920","shares":5045.18,"unitCost":2.6164,"cost":13200.21,"assetType":"fund","sector":"海外权益"},{"name":"南方纳斯达克100指数发起(QDII)A","code":"016452","shares":4.42,"unitCost":2.2624,"cost":10.0,"assetType":"fund","sector":"海外权益"},{"name":"万家纳斯达克100指数发起式(QDII)A","code":"019441","shares":59.87,"unitCost":1.6703,"cost":100.0,"assetType":"fund","sector":"海外权益"}]};
+window.HOLDINGS_SEED = {"syncedAt":"2026-09-18T14:53:38+08:00","source":"资料库持仓表（database_id GjLvwNekmiaDCgMZrhaa29）的只读镜像；字段口径与资料库一致（份额=天天基金 ACCOUNT_HOLDING，成本价=单位成本）。★改持仓请改资料库表，然后重跑 gen_holdings_seed.py——勿手改本文件。","total":"15410.47","holdings":[{"name":"招商行业精选股票基金","code":"000746","shares":16.34,"unitCost":6.12,"cost":100.0,"assetType":"fund","sector":"主动权益","buyDate":"2025-07-25"},{"name":"华夏沪深300指数增强A","code":"001015","shares":420.02,"unitCost":2.3808,"cost":999.98,"assetType":"fund","sector":"宽基指数","buyDate":"2026-08-10"},{"name":"创金合信货币C（活期宝）","code":"007866","shares":1000.28,"unitCost":1.0,"cost":1000.28,"assetType":"cash","sector":"现金管理","buyDate":"2026-09-09"},{"name":"易方达全球成长精选混合(QDII)人民币A","code":"012920","shares":5045.18,"unitCost":2.6164,"cost":13200.21,"assetType":"fund","sector":"海外权益","buyDate":"2025-11-24"},{"name":"南方纳斯达克100指数发起(QDII)A","code":"016452","shares":4.42,"unitCost":2.2624,"cost":10.0,"assetType":"fund","sector":"海外权益","buyDate":"2025-06-25"},{"name":"万家纳斯达克100指数发起式(QDII)A","code":"019441","shares":59.87,"unitCost":1.6703,"cost":100.0,"assetType":"fund","sector":"海外权益","buyDate":"2026-09-16"}]};
 </script>
 <script>
 /* ==========================================================
