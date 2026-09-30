@@ -13927,9 +13927,13 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
       + '<div id="btOut"><div style="color:#71717A;font-size:13px;padding:20px;text-align:center">回测数据加载中…（约 ' + (BT_CACHE ? '已缓存' : '2MB JSON') + '）</div></div>';
     var go = function () {
       var c = {};
-      ['budget', 'start', 'end', 'gridStep', 'gridAmt', 'tp1', 'tp2', 'sl', 'band'].forEach(function (k) {
+      ['budget', 'gridStep', 'gridAmt', 'tp1', 'tp2', 'sl', 'band'].forEach(function (k) {
         var v = parseFloat((document.getElementById('btIn_' + k) || {}).value);
         if (!isNaN(v)) c[k] = v;
+      });
+      ['start', 'end'].forEach(function (k) {
+        var v = (document.getElementById('btIn_' + k) || {}).value;
+        if (v) c[k] = String(v).trim();
       });
       var rb = document.getElementById('btIn_rebal');
       c.rebal = !rb || rb.checked;
