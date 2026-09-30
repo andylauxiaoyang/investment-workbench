@@ -8597,7 +8597,7 @@ function renderCurrentView() {
     else if (state.view === 'strategy') { renderStrategyView(); renderXMap(); } /* fw2_v120_strategy · v132 杠铃/场内外对照迁入 */
     else if (state.view === 'capbal') { if (window.CAPBAL) window.CAPBAL.render(); } /* fw2_capbal_merge */
     else if (state.view === 'smartmoney') { renderSmartMoney(); } /* fw2_v194_sm_merge：A股/美股分区切换 + 跨市场速览卡 */
-    else if (state.view === 'decision') { renderDecision(); } /* fw2_v206_decision */
+    else if (state.view === 'decision') { if (typeof renderDecision === 'function') renderDecision(); } /* fw2_v206_decision · v343：与 8621 同款 typeof 守卫（renderDecision 定义于页尾脚本块，初始化首渲时尚未就绪） */
   } catch (e) { console.error('[render]', e); }
 }
 /* ================= 宏观·情绪（v53 fw2_v53_macro） =================
@@ -13323,6 +13323,7 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
     var agg = ledgerAgg(ld);
     var totalBuy = agg.reduce(function (s, o) { return s + o.buyAmt; }, 0);
     var totalSell = agg.reduce(function (s, o) { return s + o.sellAmt; }, 0);
+    var netIn = totalBuy - totalSell;
     var t = ld.trades;
     var rowsHtml = t.length ? t.slice().reverse().map(function (tr, ri) {
       var idx = t.length - 1 - ri;
