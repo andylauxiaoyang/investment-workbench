@@ -11349,6 +11349,9 @@ function renderSignalDash() {
           (riskByCode[c] = riskByCode[c] || []).push(a);
         });
         ddKeys.forEach((code) => { if (!byCode[code]) byCode[code] = []; });
+        const codeName = {};
+        Object.keys(ddByCode || {}).forEach((c) => { if (ddByCode[c] && ddByCode[c].name) codeName[c] = ddByCode[c].name; });
+        if (risk) (risk.risks || []).concat(risk.opps || []).forEach((a) => { if (a.code && a.name) codeName[String(a.code)] = a.name; });
         const riskTileHtml = (arr) => {
           const rks2 = arr.filter((a) => a.sev !== 'opp');
           const ops2 = arr.filter((a) => a.sev === 'opp');
@@ -11363,7 +11366,7 @@ function renderSignalDash() {
           const hasAct = rows.some((r) => r.lvl === 'act');
           const hasNear = rows.some((r) => r.lvl === 'near');
           const top = hasAct ? 'act' : hasNear ? 'near' : 'watch';
-          return { code, name: rows[0].name, rows, top, nAct: rows.filter((r) => r.lvl === 'act').length, nNear: rows.filter((r) => r.lvl === 'near').length };
+          return { code, name: (rows[0] && rows[0].name) || codeName[code] || code, rows, top, nAct: rows.filter((r) => r.lvl === 'act').length, nNear: rows.filter((r) => r.lvl === 'near').length };
         });
         /* v326 fw2_v326_sig_base_first：底仓/缓冲（杠铃 base 档）持仓标的置顶显示——
            底仓/缓冲属整体持仓压舱石，优先于信号等级展示；其余标的仍按最高等级排 */
