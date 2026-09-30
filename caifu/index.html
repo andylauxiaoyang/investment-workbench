@@ -14054,10 +14054,18 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
     var runBtn = document.getElementById('btRunBtn');
     if (runBtn) runBtn.onclick = go;
     /* v351f：参数改动即时生效——start/end 等任一表单变化自动保存并重跑，无需再点「运行回测」 */
-    var _autoT = null;
-    el.querySelectorAll('input, select').forEach(function (ipt) {
-      ipt.addEventListener('change', function () { if (_autoT) clearTimeout(_autoT); _autoT = setTimeout(function () { try { go(); } catch (e) {} }, 250); });
-    });
+    window.__btGo = go;
+    if (!window.__btAutoBound) {
+      window.__btAutoBound = true;
+      window.__btAutoT = null;
+      document.addEventListener('change', function (e) {
+        var t = e.target;
+        if (t && t.id && t.id.indexOf('btIn_') === 0 && window.__btGo) {
+          if (window.__btAutoT) clearTimeout(window.__btAutoT);
+          window.__btAutoT = setTimeout(function () { try { window.__btGo(); } catch (e2) {} }, 250);
+        }
+      });
+    }
     go();
   }
   window.renderBacktest = renderBacktest;
