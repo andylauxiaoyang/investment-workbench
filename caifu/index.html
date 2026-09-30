@@ -13728,6 +13728,8 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"ä¸ªä
   function btCfg() {
     var d = { budget: 50000, start: '2024-02-07', end: '2026-09-28', gridStep: 3, gridAmt: 500, tp1: 10, tp2: 20, sl: 8, drip: false, dripAmt: 500, dripDays: 5, rebal: true, band: 5 };
     try { var raw = localStorage.getItem(BT_KEY); if (raw) { var c = JSON.parse(raw); for (var k in d) if (c[k] != null) d[k] = c[k]; } } catch (e) {}
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(String(d.start))) d.start = '2024-02-07';
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(String(d.end))) d.end = '2026-09-28';
     return d;
   }
   function btSave(c) { try { localStorage.setItem(BT_KEY, JSON.stringify(c)); } catch (e) {} }
