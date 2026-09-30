@@ -13308,13 +13308,13 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
         var cells = line.split(/[\t，；]+/).map(function (c) { return c.trim(); });
         if (cells.length < 3) return;
         if (/确认日期|基金代码|基金简称|业务类型|关联银行卡|投顾/.test(line)) return; /* 表头/区块标题 */
-        var m = line.match(/(\d{4}-\d{2}-\d{2})\s*(\d{6})\s*(.*?)\s*(买基金|卖基金|卖出|赎回|申购|定投|活期宝充值|活期宝转出|转换|分红)\s*(成功|失败)?\s*([\d.]+)\s*([\d.]+)\s*(?:([\d.]+)\s+)?([\d.]+)?/);
+        var m = line.match(/(\d{4}-\d{2}-\d{2})\s*(\d{6})\s*(.*?)\s*(买基金|卖基金|卖出|赎回|申购|定投|活期宝充值|活期宝转出|转换|分红|红利再投资|结转收益)\s*(成功|失败)?\s*([\d.]+)\s*([\d.]+)\s*(?:([\d.]+)\s+)?([\d.]+)?/);
         if (!m) return;
         var d = normDate(m[1]); if (!d) return;
         if (m[5] && /失败/.test(m[5])) { skippedBill++; return; }
         var side = /卖基金|卖出|赎回|转出/.test(m[4]) ? 'sell' : 'buy';
         var qty = +m[6] || 0, amt = +m[7] || 0, fee = m[8] ? (+m[8] || 0) : 0, nav = m[9] ? (+m[9] || 0) : 0;
-        if (/分红/.test(m[4])) amt = 0; /* 分红：份额增加、金额记 0 */
+        if (/分红|红利再投资|结转收益/.test(m[4])) amt = 0; /* 分红/收益：份额增加、金额记 0 */
         ob.push({ d: d, code: m[2], name: (m[3] || '').replace(/\s+/g, ' ').trim(), side: side, amt: amt, qty: qty, fee: fee, nav: nav, src: 'ttjj·对账单' });
       });
       ob.skipped = skippedBill;
