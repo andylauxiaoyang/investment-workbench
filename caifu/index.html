@@ -13726,7 +13726,7 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
   var BT_KEY = 'fw2_bt_cfg_v1';
   var BT_CACHE = null;
   function btCfg() {
-    var d = { budget: 50000, start: '2024-02-07', end: '2026-09-28', gridStep: 3, gridAmt: 500, tp1: 10, tp2: 20, sl: 8, drip: false, dripAmt: 500, dripDays: 5, rebal: true, band: 5 };
+    var d = { budget: 50000, start: '2024-02-07', end: '2026-09-28', gridStep: 3, gridAmt: 500, tp1: 10, tp2: 20, sl: 8, drip: false, dripAmt: 500, dripDays: 5, rebal: true, band: 5, mode: 'fixed', gridExt: false, gridFund: 10000 };
     try { var raw = localStorage.getItem(BT_KEY); if (raw) { var c = JSON.parse(raw); for (var k in d) if (c[k] != null) d[k] = c[k]; } } catch (e) {}
     if (!/^\d{4}-\d{2}-\d{2}$/.test(String(d.start))) d.start = '2024-02-07';
     if (!/^\d{4}-\d{2}-\d{2}$/.test(String(d.end))) d.end = '2026-09-28';
@@ -13770,6 +13770,23 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
   function btRun(cfg, data) {
     var T = btTargets(cfg.budget);
     var seriesBy = {}, allDays = {}, start = cfg.start, end = cfg.end;
+    /* v351 回测扩展①：真实持仓口径——读取台账真实买入序列（最早一笔作为建仓/入场驱动），
+       覆盖理想化的「按档位目标金额建仓」；无台账数据时自动回退 fixed 规则建仓 */
+    var ledgerBy = {};
+    if (cfg.mode === 'real') {
+      try {
+        var lraw = localStorage.getItem(LEDGER_KEY);
+        if (lraw) {
+          var ld = JSON.parse(lraw);
+          (ld.trades || []).forEach(function (t) {
+            if (String(t.side) === 'sell') return;
+            var a = +t.amt || 0, d = normDate(t.d);
+            if (a > 0 && d >= start && d <= end) (ledgerBy[String(t.code)] = ledgerBy[String(t.code)] || []).push({ d: d, amt: a });
+          });
+          Object.keys(ledgerBy).forEach(function (k) { ledgerBy[k].sort(function (a, b) { return a.d < b.d ? -1 : a.d > b.d ? 1 : 0; }); });
+        }
+      } catch (e) { ledgerBy = {}; }
+    }
     T.funds.forEach(function (f) {
       var rows = (data.rowsByCode[f.code] || []).filter(function (r) { return r.d >= start && r.d <= end; });
       if (!rows.length) return;
@@ -13779,7 +13796,7 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
     });
     var days = Object.keys(allDays).sort();
     if (!days.length) return null;
-    var P = { cash: cfg.budget, pos: {}, trades: [] };
+    var P = { cash: cfg.budget, pos: {}, trades: [], gridFund: cfg.gridExt ? (+cfg.gridFund || 0) : 0, gridUsed: 0 };
     var B = { cash: cfg.budget, pos: {} };
     T.funds.forEach(function (f) {
       if (!seriesBy[f.code]) return;
@@ -13792,13 +13809,19 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
       var nm = i + 1 < days.length ? parseInt(days[i + 1].slice(5, 7), 10) : -1;
       if ((m === 3 || m === 6 || m === 9 || m === 12) && nm !== m) qEnds[days[i]] = 1;
     }
-    function tryBuy(code, amt, d, type, Px) {
+    function tryBuy(code, amt, d, type, Px, src) {
       var s = seriesBy[code], pos = Px.pos[code], row = s.seq[d];
-      if (!row || row.nav == null || !amt || amt <= 0 || Px.cash < amt) return false;
+      /* v351 回测扩展②：网格预算外资金——网格买入优先从备用金池扣（不占用固定预算），
+         备用金不足时回退 budget 现金；其余类型（建仓/再平衡）始终只用 budget 现金 */
+      var pool = (src === 'grid' && Px.gridFund != null && Px.gridFund >= amt) ? 'grid' : 'cash';
+      var need = pool === 'grid' ? Px.gridFund : Px.cash;
+      if (!row || row.nav == null || !amt || amt <= 0 || need < amt) return false;
       var qty = amt / row.nav;
-      pos.qty += qty; pos.cost += amt; Px.cash -= amt;
+      pos.qty += qty; pos.cost += amt;
+      if (pool === 'grid') { Px.gridFund -= amt; Px.gridUsed += amt; }
+      else Px.cash -= amt;
       if (type === '建仓' || type === '网格') pos.lastBuyNav = row.nav;
-      Px.trades.push({ d: d, code: code, name: s.name, pile: s.pile, type: type, nav: row.nav, amt: Math.round(amt) });
+      Px.trades.push({ d: d, code: code, name: s.name, pile: s.pile, type: type, nav: row.nav, amt: Math.round(amt), src: pool === 'grid' ? '备用金' : '预算' });
       return true;
     }
     function trySell(code, amt, d, type, Px) {
@@ -13861,11 +13884,21 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
         var s = seriesBy[code], pp = P.pos[code], bp = B.pos[code];
         if (!pp.entered && d >= s.dataFrom) {
           pp.entered = true;
-          var amt = Math.min(s.targetAmt, Math.max(0, P.cash - futureRes));
-          if (amt > 0) tryBuy(code, amt, d, '建仓', P);
+          /* v351 真实口径：该标的有真实买入序列 → 以首笔真实买入金额建仓（日期=真实首笔日）；
+             无序列或无当日净值 → 回退按档位目标金额建仓（保持可运行） */
+          var amt = s.targetAmt, realFirst = null;
+          if (cfg.mode === 'real' && ledgerBy[code] && ledgerBy[code].length) {
+            for (var li = 0; li < ledgerBy[code].length; li++) {
+              if (ledgerBy[code][li].d >= s.dataFrom) { realFirst = ledgerBy[code][li]; break; }
+            }
+            if (realFirst) { amt = realFirst.amt; if (d < realFirst.d) { /* 尚未到真实建仓日，先不建仓 */ pp.entered = false; return; } }
+            else { pp.entered = false; return; }
+          }
+          var buyAmt = Math.min(amt, Math.max(0, P.cash - futureRes));
+          if (buyAmt > 0) tryBuy(code, buyAmt, d, '建仓', P);
           if (!bp.entered) {
             bp.entered = true;
-            var bamt = Math.min(s.targetAmt, Math.max(0, B.cash - futureRes)), row = s.seq[d];
+            var bamt = Math.min(amt, Math.max(0, B.cash - futureRes)), row = s.seq[d];
             if (bamt > 0 && row && row.nav != null) { B.cash -= bamt; bp.qty += bamt / row.nav; bp.cost += bamt; }
           }
         }
@@ -13874,7 +13907,8 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
         var pp = P.pos[code]; if (!pp.entered || pp.qty <= 0) return;
         var s = seriesBy[code], row = s.seq[d];
         if (!row || row.nav == null || pp.lastBuyNav == null) return;
-        if (row.nav <= pp.lastBuyNav * (1 - cfg.gridStep / 100) && P.cash - futureRes >= cfg.gridAmt) tryBuy(code, Math.min(cfg.gridAmt, P.cash - futureRes), d, '网格', P);
+        var gridOk = (P.gridFund >= cfg.gridAmt) || (P.cash - futureRes >= cfg.gridAmt);
+        if (row.nav <= pp.lastBuyNav * (1 - cfg.gridStep / 100) && gridOk) tryBuy(code, Math.min(cfg.gridAmt, Math.max(P.gridFund, P.cash - futureRes)), d, '网格', P, 'grid');
       });
       Object.keys(P.pos).forEach(function (code) {
         var pp = P.pos[code]; if (!pp.entered || pp.qty <= 0) return;
@@ -13902,7 +13936,8 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
     var stats = {
       strat: { end: endV, ret: (endV / cfg.budget - 1) * 100, ann: annRet(endV / cfg.budget, n), mdd: maxDD(curve.map(function (x) { return x.v; })), vol: annVol(curve.map(function (x) { return x.v; })), trades: P.trades.length },
       hold: { end: endB, ret: (endB / cfg.budget - 1) * 100, ann: annRet(endB / cfg.budget, n), mdd: maxDD(curve.map(function (x) { return x.b; })), vol: annVol(curve.map(function (x) { return x.b; })), trades: 0 },
-      days: n, start: days[0], end: days[n - 1]
+      days: n, start: days[0], end: days[n - 1],
+      gridUsed: P.gridUsed || 0, gridFundLeft: P.gridFund || 0, gridExt: !!cfg.gridExt
     };
     var endPiles = {};
     Object.keys(P.pos).forEach(function (code) {
@@ -13921,9 +13956,15 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
     var chk = function (key, label, val) {
       return '<label style="display:inline-flex;align-items:center;gap:6px;font-size:12px;color:#3F3F46;margin:2px 10px 2px 0"><input id="btIn_' + key + '" type="checkbox" ' + (val ? 'checked' : '') + '>' + label + '</label>';
     };
+    var sel = function (key, label, opts) {
+      var o = '';
+      opts.forEach(function (x) { o += '<option value="' + x.v + '"' + (String(cfg[key]) === x.v ? ' selected' : '') + '>' + x.t + '</option>'; });
+      return '<label style="display:inline-flex;align-items:center;gap:6px;font-size:12px;color:#3F3F46;margin:2px 10px 2px 0"><span style="min-width:46px">' + label + '</span><select id="btIn_' + key + '" style="padding:4px 6px;border:1px solid #D4D4D8;border-radius:6px;font-size:13px;background:#fff">' + o + '</select></label>';
+    };
     el.innerHTML = '<div class="card-h"><h3>组合回测 · 杠铃策略组合模拟</h3><span class="hint">阶段③ · 历史净值组合级检验（数据：' + (BT_CACHE && BT_CACHE.meta ? 'fund-daily asOf ' + BT_CACHE.meta.asOf : '加载中…') + '）</span></div>'
-      + '<div class="rv-line"><span class="tag tag-data">口径</span><span>建仓=标的可用即纳入按档位目标金额（底仓40/进攻35/安全垫10/对冲15）；网格=距上次买入跌' + cfg.gridStep + '%买¥' + cfg.gridAmt + '；进攻档止盈+' + cfg.tp1 + '%减1/4、+' + cfg.tp2 + '%再减1/4；止损-' + cfg.sl + '%全清；季度再平衡偏离>' + cfg.band + 'pct；对照=同口径买入持有不动</span></div>'
-      + '<div style="background:#FAFAF9;border:1px solid #E8E6DF;border-radius:10px;padding:10px 12px;margin:8px 0 12px">' + inp('budget', '可投资金', cfg.budget) + inp('start', '起始日', cfg.start, 60) + inp('end', '截止日', cfg.end, 60)
+      + '<div class="rv-line"><span class="tag tag-data">口径</span><span>建仓=' + (cfg.mode === 'real' ? '真实持仓口径（台账首笔买入驱动）' : '固定预算按档位目标金额（底仓40/进攻35/安全垫10/对冲15）') + '；网格=距上次买入跌' + cfg.gridStep + '%买¥' + cfg.gridAmt + (cfg.gridExt ? '（预算外备用金 ¥' + cfg.gridFund + ' 优先，不足回退预算）' : '（预算内）') + '；进攻档止盈+' + cfg.tp1 + '%减1/4、+' + cfg.tp2 + '%再减1/4；止损-' + cfg.sl + '%全清；季度再平衡偏离>' + cfg.band + 'pct；对照=同口径买入持有不动</span></div>'
+      + '<div style="background:#FAFAF9;border:1px solid #E8E6DF;border-radius:10px;padding:10px 12px;margin:8px 0 12px">' + sel('mode', '模式', [{ v: 'fixed', t: '固定预算（5万从零建仓）' }, { v: 'real', t: '真实持仓口径（台账买入驱动）' }]) + inp('budget', '可投资金', cfg.budget) + inp('start', '起始日', cfg.start, 60) + inp('end', '截止日', cfg.end, 60)
+      + sel('gridExt', '网格资金', [{ v: 'false', t: '预算内' }, { v: 'true', t: '预算外备用金' }]) + inp('gridFund', '备用金额', cfg.gridFund)
       + inp('gridStep', '网格%', cfg.gridStep) + inp('gridAmt', '网格额', cfg.gridAmt) + inp('tp1', '止盈1%', cfg.tp1) + inp('tp2', '止盈2%', cfg.tp2) + inp('sl', '止损%', cfg.sl) + inp('band', '再平衡带', cfg.band) + chk('rebal', '季度再平衡', cfg.rebal)
       + '<button id="btRunBtn" style="padding:6px 18px;background:#4D6BFE;color:#fff;border:none;border-radius:8px;font-size:13px;cursor:pointer;margin-left:8px">运行回测</button></div>'
       + '<div id="btOut"><div style="color:#71717A;font-size:13px;padding:20px;text-align:center">回测数据加载中…（约 ' + (BT_CACHE ? '已缓存' : '2MB JSON') + '）</div></div>';
@@ -13937,11 +13978,20 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
         var v = (document.getElementById('btIn_' + k) || {}).value;
         if (v) c[k] = String(v).trim();
       });
+      var mm = document.getElementById('btIn_mode');
+      if (mm) c.mode = mm.value === 'real' ? 'real' : 'fixed';
+      var ge = document.getElementById('btIn_gridExt');
+      c.gridExt = !!ge && ge.value === 'true';
+      var gf = parseFloat((document.getElementById('btIn_gridFund') || {}).value);
+      if (!isNaN(gf)) c.gridFund = gf;
       var rb = document.getElementById('btIn_rebal');
       c.rebal = !rb || rb.checked;
       btSave(c);
       var out = document.getElementById('btOut');
       out.innerHTML = '<div style="color:#71717A;font-size:13px;padding:20px;text-align:center">正在跑组合模拟…</div>';
+      var ledgerCnt = 0;
+      try { var lr = localStorage.getItem(LEDGER_KEY); if (lr) { var ld2 = JSON.parse(lr); ledgerCnt = (ld2.trades || []).length; } } catch (e) {}
+      if (c.mode === 'real' && !ledgerCnt) { out.innerHTML = '<div style="color:#A32D2D;padding:16px">真实持仓口径需要台账数据：当前台账为空，请先在「交易台账」导入成交记录，或改用「固定预算」模式</div>'; return; }
       btLoad().then(function (data) {
         var res = btRun(c, data);
         if (!res) { out.innerHTML = '<div style="color:#A32D2D;padding:16px">无有效数据（区间内无标的覆盖）</div>'; return; }
@@ -13958,6 +14008,7 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
           + card('对照 · 最大回撤', fmtN(S.hold.mdd) + '%', 0)
           + card('策略 · 年化波动', fmtN(S.strat.vol) + '%', S.hold.vol - S.strat.vol)
           + card('交易笔数', String(S.strat.trades), 0)
+          + (S.gridExt ? card('预算外网格投入', '¥' + fmtN(S.gridUsed), 0) : '')
           + '</div>';
         var curve = res.curve;
         var step = Math.ceil(curve.length / 500);
@@ -13990,10 +14041,10 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
           + '<table style="width:100%;border-collapse:collapse;font-size:13px"><thead><tr style="border-bottom:1px solid #E8E6DF"><th style="text-align:left;padding:6px 8px">档位</th><th style="text-align:right;padding:6px 8px">目标</th><th style="text-align:right;padding:6px 8px">期末市值</th><th style="text-align:right;padding:6px 8px">实际占比</th><th style="text-align:right;padding:6px 8px">偏离</th></tr></thead><tbody>' + pileRows + '</tbody></table>';
         var trs = res.trades.slice(0, 200).map(function (t) {
           var col = { 建仓: '#059669', 网格: '#4D6BFE', 止盈1: '#BA7517', 止盈2: '#BA7517', 止损: '#A32D2D', 再平衡: '#7C6FF0' }[t.type] || '#71717A';
-          return '<tr><td style="white-space:nowrap">' + t.d + '</td><td>' + esc(t.name) + '</td><td>' + esc(t.code) + '</td><td>' + esc(t.pile) + '</td><td><span style="color:' + col + ';font-weight:600">' + t.type + '</span></td><td class="num" style="text-align:right">' + t.nav.toFixed(4) + '</td><td class="num" style="text-align:right">¥' + fmtN(t.amt) + '</td></tr>';
+          return '<tr><td style="white-space:nowrap">' + t.d + '</td><td>' + esc(t.name) + '</td><td>' + esc(t.code) + '</td><td>' + esc(t.pile) + '</td><td><span style="color:' + col + ';font-weight:600">' + t.type + '</span></td><td>' + (t.src === '备用金' ? '<span style="color:#4D6BFE;font-size:11px">备用金</span>' : '<span style="color:#A1A1AA;font-size:11px">预算</span>') + '</td><td class="num" style="text-align:right">' + t.nav.toFixed(4) + '</td><td class="num" style="text-align:right">¥' + fmtN(t.amt) + '</td></tr>';
         }).join('');
-        var tradeHtml = '<div class="card-h" style="margin-top:12px"><h3>交易流水</h3><span class="hint">共 ' + S.strat.trades + ' 笔，显示前 200 笔（按日期）</span></div>'
-          + '<table style="width:100%;border-collapse:collapse;font-size:12px"><thead><tr style="border-bottom:1px solid #E8E6DF"><th style="text-align:left;padding:5px 8px">日期</th><th style="text-align:left;padding:5px 8px">标的</th><th style="text-align:left;padding:5px 8px">代码</th><th style="text-align:left;padding:5px 8px">档位</th><th style="text-align:left;padding:5px 8px">动作</th><th style="text-align:right;padding:5px 8px">净值</th><th style="text-align:right;padding:5px 8px">金额</th></tr></thead><tbody>' + (trs || '<tr><td colspan="7" style="padding:8px;color:#71717A">无交易（区间内未触发任何规则）</td></tr>') + '</tbody></table>';
+        var tradeHtml = '<div class="card-h" style="margin-top:12px"><h3>交易流水</h3><span class="hint">共 ' + S.strat.trades + ' 笔，显示前 200 笔（按日期）' + (S.gridExt ? ' · 网格优先用预算外备用金' : '') + '</span></div>'
+          + '<table style="width:100%;border-collapse:collapse;font-size:12px"><thead><tr style="border-bottom:1px solid #E8E6DF"><th style="text-align:left;padding:5px 8px">日期</th><th style="text-align:left;padding:5px 8px">标的</th><th style="text-align:left;padding:5px 8px">代码</th><th style="text-align:left;padding:5px 8px">档位</th><th style="text-align:left;padding:5px 8px">动作</th><th style="text-align:left;padding:5px 8px">资金</th><th style="text-align:right;padding:5px 8px">净值</th><th style="text-align:right;padding:5px 8px">金额</th></tr></thead><tbody>' + (trs || '<tr><td colspan="8" style="padding:8px;color:#71717A">无交易（区间内未触发任何规则）</td></tr>') + '</tbody></table>';
         out.innerHTML = statCards
           + '<div class="card-h" style="margin-top:8px"><h3>净值曲线（1 = 起点可投资金）</h3><span class="hint">区间 ' + S.start + ' → ' + S.end + ' · ' + S.days + ' 个交易日 · 策略 vs 买入持有对照</span></div><div id="btChart" style="width:100%;height:300px"></div>'
           + pileHtml + tradeHtml;
