@@ -11448,10 +11448,10 @@ function renderSignalDash() {
         if (ddRow) {
           if (ddRow.kind === 'money' || !_tileCodes.has(String(code))) {
             b += ddTileHtml(ddRow); /* v327：货基不入持仓标卡 / 该基金无持仓信号 → 兜底展示 */
-          } else {
-            b += '<div class="muted" style="font-size:11px;margin-top:2px;opacity:.72">回撤与超额明细已并入上方持仓标卡</div>';
           }
+          /* v328b：普通基金回撤与超额明细已并入上方持仓标卡（磁贴内嵌），此处不再重复提示 */
         }
+        if (!b) return; /* 回撤已并入标卡且无风险标签 → 不生成空磁贴 */
         tiles.push('<div style="' + TILE + '"><div style="' + TILE_H + '"><b style="font-size:12.5px">' + esc(nm) + '</b><span class="muted" style="font-size:11px">' + esc(code) + '</span></div>' + b + '</div>');
       });
       h += '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:8px;margin:8px 0 10px">' + tiles.join('') + '</div>';
