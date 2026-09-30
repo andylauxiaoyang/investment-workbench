@@ -11326,7 +11326,9 @@ function renderSignalDash() {
       const color = GRP_COLOR[main] || '#888780';
       const folded = !!grpFold[main];
       const gLv = act.length ? 't-hot' : near.length ? 't-pos' : 't-neu';
-      const bd = (n, label, bg, fg) => (n ? '<span style="display:inline-block;background:' + bg + ';color:' + fg + ';font-size:11px;padding:2px 7px;border-radius:6px">' + label + ' ' + n + '</span>' : '');
+      /* v336 fw2_v336_grp_mark_plain：组标题统计徽章去按钮化——纯文本小字（去背景/边框），明确"只是数字"；
+         折叠功能仅由标题右侧箭头 ▾/▸ 承担，消除"徽章像可点 tab 实则触发整组折叠"的误导 */
+      const bd = (n, label, bg, fg) => (n ? '<span style="display:inline-block;color:' + fg + ';font-size:11.5px;font-weight:600;margin-right:5px;opacity:.85">' + label + ' ' + n + '</span>' : '');
       let html = '<div class="card dc-card" data-grp="' + esc(main) + '" style="cursor:pointer">'
         + '<div class="dc-hd" data-grp="' + esc(main) + '" style="flex-wrap:wrap">'
         + '<b style="font-size:15px">' + esc(main) + '</b>'
