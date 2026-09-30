@@ -11285,8 +11285,9 @@ function renderSignalDash() {
   const ddP = window.fetchDdRows ? window.fetchDdRows().catch(() => []) : Promise.resolve([]);
   Promise.all([window.signalEvalAll(hold, wl), mkP, riskP, ddP]).then(([rows, mk, risk, ddRows]) => {
     if (state.view !== 'signal') return;
-    /* v325 fw2_v325_watch_nodup：自选信号剔除已持仓标的（其信号已由持仓信号 T 系列覆盖，避免跨类重复展示） */
-    const _heldCodes = new Set(hold.map((h) => String(h.code)));
+    /* v325 fw2_v325_watch_nodup：自选信号剔除已持仓标的（其信号已由持仓信号 T 系列覆盖，避免跨类重复展示）；
+       v333 fw2_v333_watch_nodup_all：剔除基准改用全量持仓（含货币基金等 cash 类），避免货基等 cash 资产仍残留自选区 */
+    const _heldCodes = new Set(state.portfolio.map((h) => String(h.code)));
     const _watchDup = rows.watch.filter((r) => _heldCodes.has(String(r.code))).length;
     const watchRows = rows.watch.filter((r) => !_heldCodes.has(String(r.code)));
     const LVL = { act: ['行动', '#A32D2D', '#FCEBEB', '#A32D2D'], near: ['接近', '#854F0B', '#FAEEDA', '#854F0B'], watch: ['观察', '#5F5E5A', '#F1EFE8', '#5F5E5A'] }; /* fw2_row_v32 */
@@ -11351,7 +11352,9 @@ function renderSignalDash() {
           if (!byCode[c] && !ddByCode[c]) return; /* 非持仓标的（自选等）：不在此内嵌 */
           (riskByCode[c] = riskByCode[c] || []).push(a);
         });
-        ddKeys.forEach((code) => { if (!byCode[code]) byCode[code] = []; });
+        /* v333 fw2_v333_watch_nodup_all：ddByCode 空标卡兜底仅对「持仓信号」分组生效（补无信号但持有的基金如货基）；
+           自选分组不再把持仓基金补回 byCode（否则被剔除的持仓标的会以 M6/风险磁贴形式重新出现在自选区造成跨类重复） */
+        if (main === '持仓信号') ddKeys.forEach((code) => { if (!byCode[code]) byCode[code] = []; });
         const codeName = {};
         Object.keys(ddByCode || {}).forEach((c) => { if (ddByCode[c] && ddByCode[c].name) codeName[c] = ddByCode[c].name; });
         if (risk) (risk.risks || []).concat(risk.opps || []).forEach((a) => { if (a.code && a.name) codeName[String(a.code)] = a.name; });
