@@ -13626,10 +13626,10 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
       var tgtAmt = Math.round(budget * tgtPct / 100);
       var put = Math.round(pileSum[k] || 0);
       var rest = tgtAmt - put;
-      var st = put > tgtAmt ? 'act' : rest <= Math.round(tgtAmt * 0.2) ? 'near' : 'watch';
-      var stTxt = st === 'act' ? '超限 · 停买' : st === 'near' ? '接近上限' : '正常';
-      var stBg = st === 'act' ? '#FCEBEB' : st === 'near' ? '#FAEEDA' : '#E9F9F1';
-      var stFg = st === 'act' ? '#A32D2D' : st === 'near' ? '#854F0B' : '#059669';
+      var st = tgtAmt <= 0 ? 'na' : put > tgtAmt ? 'act' : rest <= Math.round(tgtAmt * 0.2) ? 'near' : 'watch';
+      var stTxt = st === 'na' ? '无目标' : st === 'act' ? '超限 · 停买' : st === 'near' ? '接近上限' : '正常';
+      var stBg = st === 'na' ? '#F1EFE8' : st === 'act' ? '#FCEBEB' : st === 'near' ? '#FAEEDA' : '#E9F9F1';
+      var stFg = st === 'na' ? '#5F5E5A' : st === 'act' ? '#A32D2D' : st === 'near' ? '#854F0B' : '#059669';
       pileHtml += '<tr><td>' + label + '</td><td class="num" style="text-align:right">' + tgtPct + '%</td><td class="num" style="text-align:right">¥' + fmt(tgtAmt) + '</td><td class="num" style="text-align:right">¥' + fmt(put) + '</td><td class="num" style="text-align:right">¥' + fmt(rest) + '</td><td><span style="display:inline-block;background:' + stBg + ';color:' + stFg + ';font-size:11px;padding:1px 8px;border-radius:6px;font-weight:600">' + stTxt + '</span></td></tr>';
     });
     var rows = items.slice().sort(function (a, b) {
