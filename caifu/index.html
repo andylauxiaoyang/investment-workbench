@@ -11382,6 +11382,8 @@ function renderSignalDash() {
           const f = ((bb && bb.funds) || []).find((x) => String(x.code) === String(t.code));
           if (f) return f.pile;
           const n = String(t.name || '');
+          /* v334 fw2_v334_t10_base：T10 杠铃档位=整体持仓的底仓/缓冲监控，恒置顶（base rank 0），不随名称正则落到 other */
+          if (String(t.code) === 'T10' || /杠铃|底仓|缓冲/.test(n)) return 'base';
           if (/纳指|创业板|日经|全球|精选|主题/.test(n)) return 'off';
           if (/沪深300|中证|A500|红利|现金流|增强/.test(n)) return 'base';
           if (/货币|短融|债/.test(n)) return 'bond';
