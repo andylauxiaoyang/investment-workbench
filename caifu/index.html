@@ -11395,14 +11395,19 @@ function renderSignalDash() {
     const verTxtOf = (x) => x.ver && x.ver.ok === true ? ' <span style="color:var(--down)">✓' + (x.ver.alts && x.ver.alts.length > 1 ? '双源' : '副源') + '校验通过(' + (x.ver.alts || []).map((a) => a.src).join('+') + ')</span>' : x.ver && x.ver.ok === false ? ' <b style="color:var(--up)">⚠副源偏差' + x.ver.diff.toFixed(2) + '%</b>' : ' <span style="opacity:.6">·副源不可用</span>';
     const ddTileHtml = (ddRow) => {
       if (!ddRow) return '';
-      let b = '<div class="sig-dd" style="margin-top:5px;padding-top:5px;border-top:1px dashed var(--line,#e3e7ee);font-size:11.5px;color:var(--muted,#94a3b8);line-height:1.6">';
       if (ddRow.kind === 'money') {
-        b += '货币基金（不适用回撤口径）· 七日年化 <b>' + (ddRow.sd != null ? ddRow.sd.toFixed(3) + '%' : '—') + '</b>（近7日均 ' + (ddRow.sd7avg != null ? ddRow.sd7avg.toFixed(3) + '%' : '—') + '）· 万份收益 <b>' + (ddRow.mi != null ? ddRow.mi.toFixed(4) : '—') + '</b>（近30日均 ' + (ddRow.mi30avg != null ? ddRow.mi30avg.toFixed(4) : '—') + '）' + (ddRow.miDate ? ' · ' + esc(ddRow.miDate) : '') + verTxtOf(ddRow) + '</div>';
-      } else {
-        const col = ddRow.curDD < -20 ? 'var(--down)' : ddRow.curDD < -15 ? '#92600a' : 'inherit';
-        b += '<b>回撤与超额（M6）</b>：当前回撤 <b style="color:' + col + '">' + fmtPct(ddRow.curDD) + '</b> · 区间最大回撤 ' + fmtPct(ddRow.mdd) + (ddRow.r1y != null ? ' · 近1年 ' + fmtPct(ddRow.r1y) : '') + (ddRow.lastNav != null ? ' · 累计净值 ' + ddRow.lastNav.toFixed(4) + '（' + esc(ddRow.navDate) + '）' : '') + verTxtOf(ddRow);
-        if (ddRow.excess && ddRow.excess.length) b += '<div style="margin-top:2px">逐月超额 vs 沪深300：' + ddRow.excess.map((e2) => '<span style="color:' + (e2.e >= 0 ? 'var(--up)' : 'var(--down)') + '">' + fmtPct(e2.e) + '</span>').join(' · ') + '</div>';
+        return '<div class="sig-tile t-watch" style="margin-top:6px">'
+          + '<div class="st-top"><span class="st-name">货币基金（M6）</span><span class="st-badge" style="background:#E9F9F1;color:#059669">现金管理</span></div>'
+          + '<div class="st-val" style="color:inherit">' + (ddRow.sd != null ? ddRow.sd.toFixed(3) + '%' : '—') + '</div>'
+          + '<div class="st-foot"><span>近7日均 ' + (ddRow.sd7avg != null ? ddRow.sd7avg.toFixed(3) + '%' : '—') + '</span><span>万份收益 ' + (ddRow.mi != null ? ddRow.mi.toFixed(4) : '—') + '</span><span>近30日均 ' + (ddRow.mi30avg != null ? ddRow.mi30avg.toFixed(4) : '—') + '</span>' + (ddRow.miDate ? '<span>' + esc(ddRow.miDate) + '</span>' : '') + '<span class="st-src">' + verTxtOf(ddRow) + '</span></div>'
+          + '</div>';
       }
+      const col = ddRow.curDD < -20 ? 'var(--down)' : ddRow.curDD < -15 ? '#92600a' : 'inherit';
+      let b = '<div class="sig-tile t-watch" style="margin-top:6px">'
+        + '<div class="st-top"><span class="st-name">回撤与超额（M6）</span><span class="st-badge" style="background:#F1EFE8;color:#5F5E5A">' + (ddRow.curDD < -20 ? '深回撤' : ddRow.curDD < -15 ? '回撤警示' : '回撤') + '</span></div>'
+        + '<div class="st-val" style="color:' + col + '">' + fmtPct(ddRow.curDD) + '</div>'
+        + '<div class="st-foot"><span>区间最大回撤 ' + fmtPct(ddRow.mdd) + '</span>' + (ddRow.r1y != null ? '<span>近1年 ' + fmtPct(ddRow.r1y) + '</span>' : '') + (ddRow.lastNav != null ? '<span>累计净值 ' + ddRow.lastNav.toFixed(4) + '（' + esc(ddRow.navDate) + '）</span>' : '') + '<span class="st-src">' + verTxtOf(ddRow) + '</span></div>';
+      if (ddRow.excess && ddRow.excess.length) b += '<div class="st-foot">逐月超额 vs 沪深300：' + ddRow.excess.map((e2) => '<span style="color:' + (e2.e >= 0 ? 'var(--up)' : 'var(--down)') + '">' + fmtPct(e2.e) + '</span>').join(' · ') + '</div>';
       b += '</div>';
       return b;
     };
