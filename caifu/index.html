@@ -5403,7 +5403,7 @@ window.HS_name = function (code) {
         if (mgrY != null && mgrY < 3) risks.push('经理任职' + mgrY.toFixed(1) + '年<3年');
         rows.watch.push(Object.assign({}, base, { sig: 'W5 标的风险', cur: risks.length ? risks.join('；') : '未见明显风险', thr: '规模/经理任职', lvl: risks.length ? 'near' : 'watch', src: 'M2/M4' }));
         if (gate) {
-          rows.watch.push(Object.assign({}, base, { sig: 'W6 买入闸门', cur: 'W1/W2 已触发·待过闸门', thr: 'D1 五格（≤20%资产 / 系统盈利≥3月 / 8%止损·1月时限 / 闲钱 / 成本≤3%）+ D2/D3', lvl: 'act', src: 'D1/D2/D3' }));
+          rows.watch.push(Object.assign({}, base, { sig: 'W6 买入闸门', cur: 'W1/W2 已触发·待过闸门', thr: 'D1 五格（≤20%资产·盈利≥3月·止损8%·闲钱·成本≤3%）+D2/D3', lvl: 'act', src: 'D1/D2/D3' }));
         }
       }
     }
@@ -5559,7 +5559,7 @@ window.HS_name = function (code) {
       if (mc9.credit && mc9.credit.cur && mc9.credit.cur.gap != null) {
         const g10 = mc9.credit.cur.gap;
         const lvl10 = g10 >= 0 ? 'act' : g10 >= -2 ? 'watch' : 'near';
-        rows.push(mkRow('M10', 'M10 信用脉冲（M1−M2 剪刀差）', '月度同比差 · 定仓位中枢', '剪刀差 ' + fmtNum(g10, 1) + 'pct（M1 ' + fmtNum(mc9.credit.cur.m1, 1) + '% / M2 ' + fmtNum(mc9.credit.cur.m2, 1) + '%）', '≥0 盈利扩张顺风 · -2~0 等拐点 · <-2 收缩逆风（拐点领先约6个月）', lvl10, '理杏仁 ' + (mc9.updatedAt || '') + (mc9.meta && mc9.meta.creditYoYSelfCalc ? ' · 同比自算' : '')));
+        rows.push(mkRow('M10', 'M10 信用脉冲（M1−M2 剪刀差）', '月度同比差 · 定仓位中枢', '剪刀差 ' + fmtNum(g10, 1) + 'pct（M1 ' + fmtNum(mc9.credit.cur.m1, 1) + '% / M2 ' + fmtNum(mc9.credit.cur.m2, 1) + '%）', '≥0 顺风 · -2~0 拐点 · <-2 逆风（领先约6月）', lvl10, '理杏仁 ' + (mc9.updatedAt || '') + (mc9.meta && mc9.meta.creditYoYSelfCalc ? ' · 同比自算' : '')));
       }
       if (mc9.fx && mc9.fx.points && mc9.fx.points.length > 6) { /* v54 fw2_v54_macroext M11 外围红绿灯 */
         const fxp = mc9.fx.points, FL = fxp[fxp.length - 1], FP = fxp[fxp.length - 7];
