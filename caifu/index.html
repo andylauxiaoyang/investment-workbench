@@ -11333,7 +11333,7 @@ function renderSignalDash() {
     const lvlRank = { act: 0, near: 1, watch: 2 };
     /* v324 fw2_v324_target_grp：按标的组织（持仓/自选）——标卡内信号按等级排序、标间按最高等级排序、全观察标的照常显示；
        市场信号类（byTarget 缺省 false）保持「行动/接近/观察」分档现状；extraHtml（组合风险确认）移到列表下方 */
-    const grp = (title, list, metaList, srcNote, extraHtml, byTarget) => {
+    const grp = (title, list, metaList, srcNote, extraHtml, byTarget, preHtml) => {
       const act = list.filter((r) => r.lvl === 'act');
       const near = list.filter((r) => r.lvl === 'near');
       const watch = list.filter((r) => r.lvl === 'watch');
@@ -11355,7 +11355,7 @@ function renderSignalDash() {
         + '<span data-arrow style="opacity:.5;font-size:11px">' + (folded ? '\u25b8' : '\u25be') + '</span></span></div>';
       if (srcNote) html += '<div class="dc-src" style="opacity:.8">' + esc(srcNote) + '</div>';
       if (metaList && metaList.length) html += '<div class="dc-src" style="opacity:.55">未启用：' + metaList.map((m) => m.sig + '（' + m.why + '）').join('；') + '</div>';
-      html = html + '<div class="dc-body" data-grpbody="' + esc(main) + '" style="' + (folded ? 'display:none' : '') + '">';
+      html = html + '<div class="dc-body" data-grpbody="' + esc(main) + '" style="' + (folded ? 'display:none' : '') + '">' + (preHtml || '');
       if (!list.length) html += '<div class="empty st st-empty">暂无标的</div>';
       else if (byTarget) {
         const byCode = {};
@@ -11531,7 +11531,8 @@ function renderSignalDash() {
       + '<div class="dc-grid">'
       /* v31b: 市场信号置顶 */ /* fw2_sig_order_v31b */
       + grp('市场信号（环境 / 温度计 / 资金面）', (mk && mk.rows) || [], null)
-      + grp('持仓信号（止盈 / 止损 / 加仓 / 仓位）', rows.hold, rows.meta.filter((m) => m.pool === 'hold'), null, null, true)
+      + grp('持仓信号（止盈 / 止损 / 加仓 / 仓位）', rows.hold, rows.meta.filter((m) => m.pool === 'hold'), null, null, true,
+        (window.rulesBannerHtml ? window.rulesBannerHtml() : ''))
       + grp('自选信号（买入时机 / 风险）', watchRows, rows.meta.filter((m) => m.pool === 'watch'),
         '自选来源：' + (state._wlSrc === 'DB' ? '资料库自选表' : state._wlSrc === '种子' ? '旁挂种子' : state._wlSrc === '内置' ? '页面内置快照' : '未取得') + ' ' + ((state.watchlist || []).length) + ' 只'
         + (_watchDup ? ' · 已剔除与持仓重复 ' + _watchDup + ' 只' : '')
@@ -13470,6 +13471,7 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
       + '<button class="btn btn-sm" data-lnew="1">＋ 新增一笔</button>'
       + '<button class="btn btn-sm" data-limp="1">导入记录</button>'
       + '</span></div></div>'
+      + (window.rulesBannerHtml ? window.rulesBannerHtml() : '')
       + '<div class="st-card" style="display:none" id="ldgNew"></div>'
       + '<div class="st-card" style="display:none" id="ldgImp"></div>'
       + '<div class="st-card"><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px">'
@@ -13593,9 +13595,7 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
     if (/纳斯达克100|纳指100/.test(String(name || ''))) return 'n100';
     return '';
   }
-  function renderRules() {
-    var el = document.getElementById('stp-rules');
-    if (!el) return;
+  function rulesEngine() {
     var budget = rulesBudget();
     var ld = ledgerLoad();
     var agg = ledgerAgg(ld);
@@ -13619,44 +13619,78 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
     var TGT = BB.target || { base: 40, off: 35, bond: 10, hedge: 15 };
     var pileSum = {};
     items.forEach(function (it) { pileSum[it.pile] = (pileSum[it.pile] || 0) + it.put; });
-    var pileHtml = '';
-    PILES.forEach(function (P) {
+    var piles = PILES.map(function (P) {
       var k = P[0], label = P[1];
       var tgtPct = TGT[k] != null ? TGT[k] : 0;
       var tgtAmt = Math.round(budget * tgtPct / 100);
       var put = Math.round(pileSum[k] || 0);
       var rest = tgtAmt - put;
       var st = tgtAmt <= 0 ? 'na' : put > tgtAmt ? 'act' : rest <= Math.round(tgtAmt * 0.2) ? 'near' : 'watch';
-      var stTxt = st === 'na' ? '无目标' : st === 'act' ? '超限 · 停买' : st === 'near' ? '接近上限' : '正常';
-      var stBg = st === 'na' ? '#F1EFE8' : st === 'act' ? '#FCEBEB' : st === 'near' ? '#FAEEDA' : '#E9F9F1';
-      var stFg = st === 'na' ? '#5F5E5A' : st === 'act' ? '#A32D2D' : st === 'near' ? '#854F0B' : '#059669';
-      pileHtml += '<tr><td>' + label + '</td><td class="num" style="text-align:right">' + tgtPct + '%</td><td class="num" style="text-align:right">¥' + fmt(tgtAmt) + '</td><td class="num" style="text-align:right">¥' + fmt(put) + '</td><td class="num" style="text-align:right">¥' + fmt(rest) + '</td><td><span style="display:inline-block;background:' + stBg + ';color:' + stFg + ';font-size:11px;padding:1px 8px;border-radius:6px;font-weight:600">' + stTxt + '</span></td></tr>';
+      return { k: k, label: label, tgtPct: tgtPct, tgtAmt: tgtAmt, put: put, rest: rest, st: st };
     });
-    var rows = items.slice().sort(function (a, b) {
-      var r = (PILE_ORDER[a.pile] != null ? PILE_ORDER[a.pile] : 4) - (PILE_ORDER[b.pile] != null ? PILE_ORDER[b.pile] : 4);
+    var n100Sum = items.reduce(function (s, it) { return s + (it.tribe === 'n100' ? it.put : 0); }, 0);
+    var n100Cap = Math.round(budget * (TGT.off != null ? TGT.off : 35) / 100);
+    var n100Rest = n100Cap - n100Sum;
+    var nSt = n100Rest <= 0 ? 'act' : n100Rest <= Math.round(n100Cap * 0.2) ? 'near' : 'watch';
+    return {
+      budget: budget, piles: piles, items: items, TGT: TGT, PILES: PILES, PILE_ORDER: PILE_ORDER,
+      n100: { cap: n100Cap, put: Math.round(n100Sum), rest: n100Rest, st: nSt }
+    };
+  }
+  function rulesBannerHtml() {
+    try {
+      var E = rulesEngine();
+      var warns = [];
+      E.piles.forEach(function (p) {
+        if (p.st === 'act') warns.push({ st: 'act', txt: p.label + ' 已超限：投入 ¥' + fmt(p.put) + ' / 目标 ¥' + fmt(p.tgtAmt) + '（超支 ¥' + fmt(-p.rest) + '）→ 停买，调仓再平衡' });
+        else if (p.st === 'near' && p.tgtAmt > 0) warns.push({ st: 'near', txt: p.label + ' 接近上限：剩余 ¥' + fmt(p.rest) + ' 即停买' });
+      });
+      var n = E.n100;
+      if (n.st === 'act') warns.push({ st: 'act', txt: '纳指100 同族已超限：投入 ¥' + fmt(n.put) + ' / 上限 ¥' + fmt(n.cap) + ' → 同族停买' });
+      else if (n.st === 'near') warns.push({ st: 'near', txt: '纳指100 同族接近上限：剩余 ¥' + fmt(n.rest) + ' 即停买' });
+      if (!warns.length) return '';
+      var act = warns.filter(function (w) { return w.st === 'act'; });
+      var near = warns.filter(function (w) { return w.st === 'near'; });
+      var tiles = warns.map(function (w) {
+        var bg = w.st === 'act' ? '#FCEBEB' : '#FAEEDA', fg = w.st === 'act' ? '#A32D2D' : '#854F0B';
+        return '<div class="sig-tile ' + (w.st === 'act' ? 't-act' : 't-near') + '" style="margin-bottom:6px"><div class="st-top"><span class="st-name">上限引擎提醒</span><span class="st-badge" style="background:' + bg + ';color:' + fg + '">' + (w.st === 'act' ? '停买' : '接近上限') + '</span></div><div class="st-val" style="color:' + fg + ';font-size:12.5px">' + esc(w.txt) + '</div><div class="st-foot"><span>可投资金 ¥' + fmt(E.budget) + '</span><span>详情见「策略执行 · 策略规则」</span></div></div>';
+      }).join('');
+      return '<div style="margin:8px 0 2px"><b style="font-size:12.5px;color:' + (act.length ? '#A32D2D' : '#854F0B') + '">杠铃上限提醒</b> · 档位/纳指同族按投入金额限制买入</div>' + tiles;
+    } catch (e2) { return ''; }
+  }
+  function renderRules() {
+    var el = document.getElementById('stp-rules');
+    if (!el) return;
+    var E = rulesEngine();
+    var budget = E.budget, TGT = E.TGT, PILES = E.PILES;
+    var pileHtml = '';
+    E.piles.forEach(function (p) {
+      var stTxt = p.st === 'na' ? '无目标' : p.st === 'act' ? '超限 · 停买' : p.st === 'near' ? '接近上限' : '正常';
+      var stBg = p.st === 'na' ? '#F1EFE8' : p.st === 'act' ? '#FCEBEB' : p.st === 'near' ? '#FAEEDA' : '#E9F9F1';
+      var stFg = p.st === 'na' ? '#5F5E5A' : p.st === 'act' ? '#A32D2D' : p.st === 'near' ? '#854F0B' : '#059669';
+      pileHtml += '<tr><td>' + p.label + '</td><td class="num" style="text-align:right">' + p.tgtPct + '%</td><td class="num" style="text-align:right">¥' + fmt(p.tgtAmt) + '</td><td class="num" style="text-align:right">¥' + fmt(p.put) + '</td><td class="num" style="text-align:right">¥' + fmt(p.rest) + '</td><td><span style="display:inline-block;background:' + stBg + ';color:' + stFg + ';font-size:11px;padding:1px 8px;border-radius:6px;font-weight:600">' + stTxt + '</span></td></tr>';
+    });
+    var rows = E.items.slice().sort(function (a, b) {
+      var r = (E.PILE_ORDER[a.pile] != null ? E.PILE_ORDER[a.pile] : 4) - (E.PILE_ORDER[b.pile] != null ? E.PILE_ORDER[b.pile] : 4);
       if (r) return r;
       return String(a.code).localeCompare(String(b.code));
     });
     var itHtml = '';
-    var n100Sum = 0;
     rows.forEach(function (it) {
       var pile = PILES.filter(function (P) { return P[0] === it.pile; })[0];
       var pileLabel = pile ? pile[1] : '其他';
       itHtml += '<tr><td>' + esc(it.name) + '</td><td>' + esc(it.code) + '</td><td>' + pileLabel + '</td><td>' + (it.tribe === 'n100' ? '<span style="font-size:11px;padding:1px 6px;border-radius:5px;background:#EEF3FF;color:#4D6BFE">纳指100</span>' : '—') + '</td><td class="num" style="text-align:right">¥' + fmt(it.put) + '</td><td class="num" style="text-align:right">' + (budget ? (it.put / budget * 100).toFixed(1) + '%' : '—') + '</td><td>' + (it.legacy ? '<span style="font-size:10.5px;color:var(--muted)">存量</span>' : '<span style="font-size:10.5px;color:#059669">台账</span>') + '</td></tr>';
-      if (it.tribe === 'n100') n100Sum += it.put;
     });
-    var n100Cap = Math.round(budget * (TGT.off != null ? TGT.off : 35) / 100);
-    var n100Rest = n100Cap - n100Sum;
-    var nSt = n100Rest <= 0 ? 'act' : n100Rest <= Math.round(n100Cap * 0.2) ? 'near' : 'watch';
-    var nStTxt = nSt === 'act' ? '超限 · 停买' : nSt === 'near' ? '接近上限' : '正常';
-    var nStBg = nSt === 'act' ? '#FCEBEB' : nSt === 'near' ? '#FAEEDA' : '#E9F9F1';
-    var nStFg = nSt === 'act' ? '#A32D2D' : nSt === 'near' ? '#854F0B' : '#059669';
+    var n = E.n100;
+    var nStTxt = n.st === 'act' ? '超限 · 停买' : n.st === 'near' ? '接近上限' : '正常';
+    var nStBg = n.st === 'act' ? '#FCEBEB' : n.st === 'near' ? '#FAEEDA' : '#E9F9F1';
+    var nStFg = n.st === 'act' ? '#A32D2D' : n.st === 'near' ? '#854F0B' : '#059669';
     var n100Html = '<div class="card" style="margin:10px 0 0;padding:11px 13px">'
       + '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">'
       + '<b style="font-size:13px">纳指100 同族上限引擎</b>'
       + '<span style="display:inline-block;background:' + nStBg + ';color:' + nStFg + ';font-size:11px;padding:1px 8px;border-radius:6px;font-weight:600">' + nStTxt + '</span>'
       + '<span class="hint" style="font-weight:400">同族合并计（016452+019441+未来同族），不算单基金上限；上限 = 进攻/主题档目标金额（' + (TGT.off != null ? TGT.off : 35) + '% × 可投资金）</span></div>'
-      + '<div style="display:flex;gap:22px;flex-wrap:wrap;margin-top:8px;font-family:var(--mono)"><span style="font-size:16px;font-weight:600">¥' + fmt(n100Cap) + '</span><span class="muted" style="font-size:11px;align-self:center">上限</span><span style="font-size:16px;font-weight:600">¥' + fmt(n100Sum) + '</span><span class="muted" style="font-size:11px;align-self:center">已投入</span><span style="font-size:16px;font-weight:600;color:' + (nSt === 'act' ? '#A32D2D' : '#059669') + '">¥' + fmt(n100Rest) + '</span><span class="muted" style="font-size:11px;align-self:center">剩余可买</span></div></div>';
+      + '<div style="display:flex;gap:22px;flex-wrap:wrap;margin-top:8px;font-family:var(--mono)"><span style="font-size:16px;font-weight:600">¥' + fmt(n.cap) + '</span><span class="muted" style="font-size:11px;align-self:center">上限</span><span style="font-size:16px;font-weight:600">¥' + fmt(n.put) + '</span><span class="muted" style="font-size:11px;align-self:center">已投入</span><span style="font-size:16px;font-weight:600;color:' + (n.st === 'act' ? '#A32D2D' : '#059669') + '">¥' + fmt(n.rest) + '</span><span class="muted" style="font-size:11px;align-self:center">剩余可买</span></div></div>';
     el.innerHTML = ''
       + '<div class="card" style="margin:0 0 10px;padding:11px 13px">'
       + '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><b style="font-size:13px">可投资金</b>'
@@ -13676,6 +13710,8 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
     }
   }
   window.renderRules = renderRules;
+  window.rulesEngine = rulesEngine;
+  window.rulesBannerHtml = rulesBannerHtml;
 
   function renderStratHero() {
     var el = document.getElementById('stratHero');
