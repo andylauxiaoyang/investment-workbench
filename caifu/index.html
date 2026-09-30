@@ -12629,7 +12629,7 @@ setInterval(updateSessionBadge, 30000);
   }
   function renderPoolWatch(){
     var wrap=$('dcPoolWatchWrap'); if(!wrap) return;
-    var fbObj = (window.FB&&FB.funds)?FB.funds:{};
+    var fbObj = (FB&&FB.funds)?FB.funds:{};   /* fw2_v361_fix：FB 为 IIFE 闭包变量，window.FB 恒 undefined → 画像恒空（存量 bug） */
     var held=poolHeldCodes(), added=poolWatchAdded(), removed=poolWatchRemoved();
     var rows=[];
     var wl=window.POOL_WATCHLIST||[];
@@ -12687,7 +12687,7 @@ setInterval(updateSessionBadge, 30000);
       var sp=window.SCREEN_POOL;
       if(!sp||!sp.funds){ wrap.innerHTML='<div style="padding:24px;color:var(--warn,#d97706);text-align:center">筛选池数据加载失败（screen-pool.json 不可达）。</div>'; return; }
       var held=poolHeldCodes(), added=poolWatchAdded(), removed=poolScreenRemoved();
-      var fbObj=(window.FB&&FB.funds)?FB.funds:{};
+      var fbObj=(FB&&FB.funds)?FB.funds:{};   /* fw2_v361_fix：FB 为 IIFE 闭包变量，window.FB 恒 undefined → 画像恒空（存量 bug） */
       var list=Object.keys(sp.funds).map(function(c){ return {code:c, e:sp.funds[c], f:poolFb(c,fbObj)}; }).filter(function(r){ return !removed[r.code]; });
       list.sort(function(a,b){ var ra=a.e.role||'', rb=b.e.role||''; return ra<rb?-1:(ra>rb?1:(((b.e.score||0))-((a.e.score||0)))); });
       /* fw2_v357_pool_unify：筛选池改为与持仓池同结构完整表（OVC 全列 + 操作列），画像优先 fund-basic.json；
