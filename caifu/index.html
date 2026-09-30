@@ -5339,7 +5339,7 @@ window.HS_name = function (code) {
         var _minN = function (_n) { var _a = ys.slice(-_n); return _a.length ? Math.min.apply(null, _a) : null; };
         var _m5 = _minN(1250), _m10 = _minN(2500);
         var _dd2 = function (_m) { return _m == null ? '—' : ((_m / last - 1) * 100).toFixed(1) + '%'; };
-        rows.hold.push(Object.assign({}, base, { sig: 'T12 距历史低点', cur: '5Y 再跌 ' + _dd2(_m5) + ' ｜ 10Y 再跌 ' + _dd2(_m10), thr: '距 5Y/10Y 最低净值点位（距5Y低点 ≤10% 关注）', lvl: (last && _m5 && (last - _m5) / last <= 0.10) ? 'near' : 'watch', src: '点位·非估值分位' }));
+        rows.hold.push(Object.assign({}, base, { sig: 'T12 距历史低点', cur: '5Y 再跌 ' + _dd2(_m5) + ' ｜ 10Y 再跌 ' + _dd2(_m10), thr: '距 5Y/10Y 最低点位（≤10% 关注）', lvl: (last && _m5 && (last - _m5) / last <= 0.10) ? 'near' : 'watch', src: '点位·非估值分位' }));
         if (vp != null) {
           rows.hold.push(Object.assign({}, base, { sig: 'T3 估值止盈 / T8 估值加仓', cur: '分位 ' + vp.toFixed(0) + '%', thr: '≥' + C.valHigh + '% 减 · ≤' + C.valLow + '% 加', lvl: (vp >= C.valHigh || vp <= C.valLow) ? 'act' : (vp >= C.valHigh - 5 || vp <= C.valLow + 5) ? 'near' : 'watch', src: 'grid E' }));
         }
@@ -5364,12 +5364,12 @@ window.HS_name = function (code) {
                 const diff = Math.round((d - now) / 86400000);
                 if (diff >= 0 && diff < bd) { bd = diff; best = c; }
               });
-              if (best && bd <= C.grid.conflictDays) conf = ' ｜ ⚠距定投日 ' + best.drip.slice(5).replace('-', '/') + (bd === 0 ? '（今日即定投日）' : ' 仅 ' + bd + ' 天') + '，建议合并或择一';
+              if (best && bd <= C.grid.conflictDays) conf = '｜⚠定投 ' + best.drip.slice(5).replace('-', '/') + (bd === 0 ? '今日' : bd + '天后');
             }
             rows.hold.push(Object.assign({}, base, {
               sig: 'T13 网格跟踪',
-              cur: (gDD <= -C.grid.step ? '较上次购买 ' + gDD.toFixed(1) + '% · 网格买入' : '较上次购买 ' + gDD.toFixed(1) + '% · 距触发还需跌 ' + (C.grid.step + gDD).toFixed(1) + '%') + conf,
-              thr: '距上次购买跌 ' + C.grid.step + '% → 网格买入；与定投日 ≤' + C.grid.conflictDays + ' 天提示冲突',
+              cur: (gDD <= -C.grid.step ? '较上次购买 ' + gDD.toFixed(1) + '% · 网格买入' : '较上次购买 ' + gDD.toFixed(1) + '% · 距触发还需跌 ' + (C.grid.step + gDD).toFixed(1) + '%') + (conf ? ' ' + conf : ''),
+              thr: '距上次购买跌 ' + C.grid.step + '% → 网格买入' + (conf ? '；定投日冲突' : ''),
               lvl: gDD <= -C.grid.step ? 'act' : gDD <= -C.grid.step + C.nearBand ? 'near' : 'watch',
               src: conf ? '网格×定投冲突' : '网格'
             }));
@@ -5394,7 +5394,7 @@ window.HS_name = function (code) {
           var _minN2 = function (_n) { var _a = ys.slice(-_n); return _a.length ? Math.min.apply(null, _a) : null; };
           var _m52 = _minN2(1250), _m102 = _minN2(2500);
           var _dd3 = function (_m) { return _m == null ? '—' : ((_m / last - 1) * 100).toFixed(1) + '%'; };
-          rows.watch.push(Object.assign({}, base, { sig: 'W7 距历史低点', cur: '5Y 再跌 ' + _dd3(_m52) + ' ｜ 10Y 再跌 ' + _dd3(_m102), thr: '距 5Y/10Y 最低净值点位（距5Y低点 ≤10% 关注）', lvl: (last && _m52 && (last - _m52) / last <= 0.10) ? 'near' : 'watch', src: '点位·非估值分位' }));
+          rows.watch.push(Object.assign({}, base, { sig: 'W7 距历史低点', cur: '5Y 再跌 ' + _dd3(_m52) + ' ｜ 10Y 再跌 ' + _dd3(_m102), thr: '距 5Y/10Y 最低点位（≤10% 关注）', lvl: (last && _m52 && (last - _m52) / last <= 0.10) ? 'near' : 'watch', src: '点位·非估值分位' }));
         }
         const mgrY = r.manager && r.manager[0] ? (typeof parseMgrYears === 'function' ? parseMgrYears(r.manager[0].workTime || '') : null) : null;
         const sc = r.scale && r.scale.length ? r.scale[r.scale.length - 1].v : null;
@@ -11400,9 +11400,9 @@ function renderSignalDash() {
             + '<span style="display:inline-block;background:' + T[2] + ';color:' + T[1] + ';font-size:11px;padding:1px 7px;border-radius:6px;font-weight:600">最高·' + T[0] + '</span>'
             + bdC(t.nAct, '行动', '#FCEBEB', '#A32D2D') + bdC(t.nNear, '接近', '#FAEEDA', '#854F0B') + bdC(t.rows.length - t.nAct - t.nNear, '观察', '#F1EFE8', '#5F5E5A')
             + '</div>'
-            + '<div class="sig-tiles">' + (t.rows.length ? t.rows.map((r) => rowHtml(r, false)).join('') : '<div class="st-foot" style="opacity:.55">暂无信号 · 持仓兜底</div>') + '</div>'
+            + '<div class="sig-tiles">' + (t.rows.length ? t.rows.map((r) => rowHtml(r, false)).join('') : '<div class="st-foot" style="opacity:.55">暂无信号 · 持仓兜底</div>')
             + (ddByCode[t.code] ? ddTileHtml(ddByCode[t.code]) : '')
-            + (riskByCode[t.code] && riskByCode[t.code].length ? riskTileHtml(riskByCode[t.code]) : '')
+            + (riskByCode[t.code] && riskByCode[t.code].length ? riskTileHtml(riskByCode[t.code]) : '') + '</div>'
             + '</div>';
         }).join('');
       } else {
@@ -11431,8 +11431,8 @@ function renderSignalDash() {
       let b = '<div class="sig-tile t-watch" style="margin-top:6px">'
         + '<div class="st-top"><span class="st-name">回撤与超额（M6）</span><span class="st-badge" style="background:#F1EFE8;color:#5F5E5A">' + (ddRow.curDD < -20 ? '深回撤' : ddRow.curDD < -15 ? '回撤警示' : '回撤') + '</span></div>'
         + '<div class="st-val" style="color:' + col + '">' + fmtPct(ddRow.curDD) + '</div>'
-        + '<div class="st-foot"><span>区间最大回撤 ' + fmtPct(ddRow.mdd) + '</span>' + (ddRow.r1y != null ? '<span>近1年 ' + fmtPct(ddRow.r1y) + '</span>' : '') + (ddRow.lastNav != null ? '<span>累计净值 ' + ddRow.lastNav.toFixed(4) + '（' + esc(ddRow.navDate) + '）</span>' : '') + '<span class="st-src">' + verTxtOf(ddRow) + '</span></div>';
-      if (ddRow.excess && ddRow.excess.length) b += '<div class="st-foot">逐月超额 vs 沪深300：' + ddRow.excess.map((e2) => '<span style="color:' + (e2.e >= 0 ? 'var(--up)' : 'var(--down)') + '">' + fmtPct(e2.e) + '</span>').join(' · ') + '</div>';
+        + '<div class="st-foot"><span>区间最大回撤 ' + fmtPct(ddRow.mdd) + '</span>' + (ddRow.r1y != null ? '<span>近1年 ' + fmtPct(ddRow.r1y) + '</span>' : '') + (ddRow.lastNav != null ? '<span>净值 ' + ddRow.lastNav.toFixed(4) + '</span>' : '') + '<span class="st-src">' + verTxtOf(ddRow) + '</span></div>';
+      if (ddRow.excess && ddRow.excess.length) b += '<div class="st-foot" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">逐月超额 ' + ddRow.excess.map((e2) => '<span style="color:' + (e2.e >= 0 ? 'var(--up)' : 'var(--down)') + '">' + fmtPct(e2.e) + '</span>').join(' · ') + '</div>';
       b += '</div>';
       return b;
     };
