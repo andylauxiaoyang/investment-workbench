@@ -13950,8 +13950,9 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
     var el = document.getElementById('stp-bt');
     if (!el) return;
     var cfg = btCfg();
-    var inp = function (key, label, val, w) {
-      return '<label style="display:inline-flex;align-items:center;gap:6px;font-size:12px;color:#3F3F46;margin:2px 10px 2px 0"><span style="min-width:' + (w || 46) + 'px">' + label + '</span><input id="btIn_' + key + '" value="' + esc(val) + '" style="width:110px;padding:4px 6px;border:1px solid #D4D4D8;border-radius:6px;font-size:13px"></label>';
+    var inp = function (key, label, val, w, type) {
+      var t = type || 'text';
+      return '<label style="display:inline-flex;align-items:center;gap:6px;font-size:12px;color:#3F3F46;margin:2px 10px 2px 0"><span style="min-width:' + (w || 46) + 'px">' + label + '</span><input id="btIn_' + key + '" type="' + t + '" value="' + esc(val) + '"' + (t === 'date' ? ' min="2007-01-01" max="2026-09-28" style="width:132px;padding:4px 6px;border:1px solid #D4D4D8;border-radius:6px;font-size:13px;color-scheme:light"' : ' style="width:110px;padding:4px 6px;border:1px solid #D4D4D8;border-radius:6px;font-size:13px"') + '></label>';
     };
     var chk = function (key, label, val) {
       return '<label style="display:inline-flex;align-items:center;gap:6px;font-size:12px;color:#3F3F46;margin:2px 10px 2px 0"><input id="btIn_' + key + '" type="checkbox" ' + (val ? 'checked' : '') + '>' + label + '</label>';
@@ -13963,7 +13964,7 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
     };
     el.innerHTML = '<div class="card-h"><h3>组合回测 · 杠铃策略组合模拟</h3><span class="hint">阶段③ · 历史净值组合级检验（数据：' + (BT_CACHE && BT_CACHE.meta ? 'fund-daily asOf ' + BT_CACHE.meta.asOf : '加载中…') + '）</span></div>'
       + '<div class="rv-line"><span class="tag tag-data">口径</span><span>建仓=' + (cfg.mode === 'real' ? '真实持仓口径（台账首笔买入驱动）' : '固定预算按档位目标金额（底仓40/进攻35/安全垫10/对冲15）') + '；网格=距上次买入跌' + cfg.gridStep + '%买¥' + cfg.gridAmt + (cfg.gridExt ? '（预算外备用金 ¥' + cfg.gridFund + ' 优先，不足回退预算）' : '（预算内）') + '；进攻档止盈+' + cfg.tp1 + '%减1/4、+' + cfg.tp2 + '%再减1/4；止损-' + cfg.sl + '%全清；季度再平衡偏离>' + cfg.band + 'pct；对照=同口径买入持有不动</span></div>'
-      + '<div style="background:#FAFAF9;border:1px solid #E8E6DF;border-radius:10px;padding:10px 12px;margin:8px 0 12px">' + sel('mode', '模式', [{ v: 'fixed', t: '固定预算（5万从零建仓）' }, { v: 'real', t: '真实持仓口径（台账买入驱动）' }]) + inp('budget', '可投资金', cfg.budget) + inp('start', '起始日', cfg.start, 60) + inp('end', '截止日', cfg.end, 60)
+      + '<div style="background:#FAFAF9;border:1px solid #E8E6DF;border-radius:10px;padding:10px 12px;margin:8px 0 12px">' + sel('mode', '模式', [{ v: 'fixed', t: '固定预算（5万从零建仓）' }, { v: 'real', t: '真实持仓口径（台账买入驱动）' }]) + inp('budget', '可投资金', cfg.budget) + inp('start', '起始日', cfg.start, 60, 'date') + inp('end', '截止日', cfg.end, 60, 'date')
       + sel('gridExt', '网格资金', [{ v: 'false', t: '预算内' }, { v: 'true', t: '预算外备用金' }]) + inp('gridFund', '备用金额', cfg.gridFund)
       + inp('gridStep', '网格%', cfg.gridStep) + inp('gridAmt', '网格额', cfg.gridAmt) + inp('tp1', '止盈1%', cfg.tp1) + inp('tp2', '止盈2%', cfg.tp2) + inp('sl', '止损%', cfg.sl) + inp('band', '再平衡带', cfg.band) + chk('rebal', '季度再平衡', cfg.rebal)
       + '<button id="btRunBtn" style="padding:6px 18px;background:#4D6BFE;color:#fff;border:none;border-radius:8px;font-size:13px;cursor:pointer;margin-left:8px">运行回测</button></div>'
