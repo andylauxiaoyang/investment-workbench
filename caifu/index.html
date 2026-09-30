@@ -11831,6 +11831,8 @@ setInterval(updateSessionBadge, 30000);
   }
 
   async function ensureDc(){
+    /* fw2_v357_fix：三池数据预加载不依赖月频 DC 成败（原位于 DC 成功分支内，DC 失败时自选/筛选池永久空白无法重试） */
+    if(typeof loadPoolData==='function') loadPoolData();
     var meta = $('dcMeta');
     if(!DC_LOADED){
       elText('dcMeta','数据加载中…');
@@ -11847,7 +11849,6 @@ setInterval(updateSessionBadge, 30000);
       loadDcBasic().then(function(){ if(FB_LOADED) renderDcOverview(); });
       updateDcFselUi(); renderDcFsel();
       elText('dcMeta', d.meta.fundCount+' 只基金 · '+d.meta.monthCount+' 个月 · 截至 '+d.meta.asOf + staleTxt(d.meta.asOf, 5, '净值'));
-      if(typeof loadPoolData==='function') loadPoolData();   /* v353 fw2_v353_pool_tabs：预加载三池数据（自选表 + 筛选池） */
     }
     /* v93 fw2_v93_drop_dc_head：标题区已删除，无需按分块设标题 */
   }
