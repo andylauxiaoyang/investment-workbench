@@ -11338,6 +11338,26 @@ function renderSignalDash() {
       else if (byTarget) {
         const byCode = {};
         list.forEach((r) => { (byCode[r.code] = byCode[r.code] || []).push(r); });
+        /* v329b fw2_v329b_risk_in_tile：组合风险确认取消单独展示——
+           基金级风险/机会标签内嵌到对应持仓标卡；无信号但持有的基金（如货币基金）生成空标卡兜底 */
+        const ddKeys = ddByCode ? Object.keys(ddByCode) : [];
+        const riskByCode = {};
+        if (risk) (risk.risks || []).concat(risk.opps || []).forEach((a) => {
+          const c = String(a.code || '');
+          if (!/^\d{6}$/.test(c)) return;
+          if (!byCode[c] && !ddByCode[c]) return; /* 非持仓标的（自选等）：不在此内嵌 */
+          (riskByCode[c] = riskByCode[c] || []).push(a);
+        });
+        ddKeys.forEach((code) => { if (!byCode[code]) byCode[code] = []; });
+        const riskTileHtml = (arr) => {
+          const rks2 = arr.filter((a) => a.sev !== 'opp');
+          const ops2 = arr.filter((a) => a.sev === 'opp');
+          return '<div class="sig-tile t-watch" style="margin-top:6px">'
+            + '<div class="st-top"><span class="st-name">风险 / 机会</span>'
+            + '<span class="st-badge" style="background:' + (rks2.length ? '#FCEBEB' : '#E9F9F1') + ';color:' + (rks2.length ? '#A32D2D' : '#059669') + '">' + (rks2.length ? '风险 ' + rks2.length + (ops2.length ? ' · 机会 ' + ops2.length : '') : '机会 ' + ops2.length) + '</span></div>'
+            + arr.map((a) => { const sm = SEV_META[a.sev] || SEV_META.info; return '<div class="st-foot" style="margin-top:2px"><span class="tag" style="color:' + sm.color + ';border-color:' + sm.color + ';background:' + sm.color + '24;padding:0 7px;font-size:10.5px;border-radius:5px">' + sm.label + '</span><span style="font-size:11.5px;opacity:.92">' + esc(a.txt) + '</span></div>'; }).join('')
+            + '</div>';
+        };
         const targets = Object.keys(byCode).map((code) => {
           const rows = byCode[code].slice().sort((a, b) => lvlRank[a.lvl] - lvlRank[b.lvl]);
           const hasAct = rows.some((r) => r.lvl === 'act');
@@ -11376,8 +11396,9 @@ function renderSignalDash() {
             + '<span style="display:inline-block;background:' + T[2] + ';color:' + T[1] + ';font-size:11px;padding:1px 7px;border-radius:6px;font-weight:600">最高·' + T[0] + '</span>'
             + bdC(t.nAct, '行动', '#FCEBEB', '#A32D2D') + bdC(t.nNear, '接近', '#FAEEDA', '#854F0B') + bdC(t.rows.length - t.nAct - t.nNear, '观察', '#F1EFE8', '#5F5E5A')
             + '</div>'
-            + '<div class="sig-tiles">' + t.rows.map((r) => rowHtml(r, false)).join('') + '</div>'
+            + '<div class="sig-tiles">' + (t.rows.length ? t.rows.map((r) => rowHtml(r, false)).join('') : '<div class="st-foot" style="opacity:.55">暂无信号 · 持仓兜底</div>') + '</div>'
             + (ddByCode[t.code] ? ddTileHtml(ddByCode[t.code]) : '')
+            + (riskByCode[t.code] && riskByCode[t.code].length ? riskTileHtml(riskByCode[t.code]) : '')
             + '</div>';
         }).join('');
       } else {
@@ -11476,7 +11497,7 @@ function renderSignalDash() {
       + '<div class="dc-grid">'
       /* v31b: 市场信号置顶 */ /* fw2_sig_order_v31b */
       + grp('市场信号（环境 / 温度计 / 资金面）', (mk && mk.rows) || [], null)
-      + grp('持仓信号（止盈 / 止损 / 加仓 / 仓位）', rows.hold, rows.meta.filter((m) => m.pool === 'hold'), null, sigRiskHtml(risk, ddRows), true)
+      + grp('持仓信号（止盈 / 止损 / 加仓 / 仓位）', rows.hold, rows.meta.filter((m) => m.pool === 'hold'), null, null, true)
       + grp('自选信号（买入时机 / 风险）', watchRows, rows.meta.filter((m) => m.pool === 'watch'),
         '自选来源：' + (state._wlSrc === 'DB' ? '资料库自选表' : state._wlSrc === '种子' ? '旁挂种子' : state._wlSrc === '内置' ? '页面内置快照' : '未取得') + ' ' + ((state.watchlist || []).length) + ' 只'
         + (_watchDup ? ' · 已剔除与持仓重复 ' + _watchDup + ' 只' : '')
