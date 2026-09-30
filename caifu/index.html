@@ -13270,9 +13270,9 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
       var k = String(t.code || '');
       m[k] = m[k] || { code: k, name: t.name || '', buyAmt: 0, sellAmt: 0, qty: 0, costQty: 0, costAmt: 0, cnt: 0 };
       var o = m[k]; o.cnt++;
-      var a = +t.amt || 0, q = +t.qty || 0;
+      var a = +t.amt || 0, q = +t.qty || 0, f = +t.fee || 0;
       if (String(t.side) === 'sell') { o.sellAmt += a; o.qty -= q; }
-      else { o.buyAmt += a; o.qty += q; if (a > 0 && q > 0) { o.costQty += q; o.costAmt += a; } } /* 分红/收益份额零成本，不计入加权成本分母 */
+      else { o.buyAmt += a; o.qty += q; if (a > 0 && q > 0) { o.costQty += q; o.costAmt += a + f; } } /* 分红/收益份额零成本，不计入加权成本分母；买入成本含手续费 */
     });
     return Object.keys(m).map(function (k) {
       var o = m[k];
@@ -13300,6 +13300,26 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
     var lines = String(s).split(/\r?\n/);
     /* 天天基金「交易查询」网页表格（整表复制）识别：表头含 产品名称/业务类型 */
     var isTT = lines.some(function (l) { return /产品名称|业务类型|交易发起时间/.test(l); });
+    /* 天天基金「月度对账单」文本识别：表头含 确认日期/基金代码 */
+    var isBill = lines.some(function (l) { return /确认日期/.test(l) && /基金代码/.test(l); });
+    if (isBill) {
+      var ob = [], skippedBill = 0;
+      lines.forEach(function (line) {
+        var cells = line.split(/[\t，；]+/).map(function (c) { return c.trim(); });
+        if (cells.length < 3) return;
+        if (/确认日期|基金代码|基金简称|业务类型|关联银行卡|投顾/.test(line)) return; /* 表头/区块标题 */
+        var m = line.match(/(\d{4}-\d{2}-\d{2})\s*(\d{6})\s*(.*?)\s*(买基金|卖基金|卖出|赎回|申购|定投|活期宝充值|活期宝转出|转换|分红)\s*(成功|失败)?\s*([\d.]+)\s*([\d.]+)\s*(?:([\d.]+)\s+)?([\d.]+)?/);
+        if (!m) return;
+        var d = normDate(m[1]); if (!d) return;
+        if (m[5] && /失败/.test(m[5])) { skippedBill++; return; }
+        var side = /卖基金|卖出|赎回|转出/.test(m[4]) ? 'sell' : 'buy';
+        var qty = +m[6] || 0, amt = +m[7] || 0, fee = m[8] ? (+m[8] || 0) : 0, nav = m[9] ? (+m[9] || 0) : 0;
+        if (/分红/.test(m[4])) amt = 0; /* 分红：份额增加、金额记 0 */
+        ob.push({ d: d, code: m[2], name: (m[3] || '').replace(/\s+/g, ' ').trim(), side: side, amt: amt, qty: qty, fee: fee, nav: nav, src: 'ttjj·对账单' });
+      });
+      ob.skipped = skippedBill;
+      return ob;
+    }
     if (isTT) {
       var out = [], skipped = 0;
       lines.forEach(function (line) {
@@ -13370,11 +13390,12 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
         + '<td>' + (String(tr.side) === 'sell' ? '<span style="color:var(--down);font-weight:600">卖出</span>' : '<span style="color:var(--up);font-weight:600">买入</span>') + '</td>'
         + '<td style="text-align:right">¥' + fmt(+tr.amt || 0) + '</td>'
         + '<td style="text-align:right">' + (+tr.qty || 0).toFixed(2) + '</td>'
+        + '<td style="text-align:right">' + (+tr.fee || 0).toFixed(2) + '</td>'
         + '<td style="text-align:right">' + (+tr.nav || 0).toFixed(4) + '</td>'
-        + '<td><span class="tg">' + (tr.src === 'ttjj' ? '天天基金' : tr.src === 'csv' ? 'CSV' : tr.src === 'json' ? '导入' : '手动') + '</span></td>'
+        + '<td><span class="tg">' + (tr.src === 'ttjj' ? '天天基金' : tr.src === 'ttjj·对账单' ? '对账单' : tr.src === 'csv' ? 'CSV' : tr.src === 'json' ? '导入' : '手动') + '</span></td>'
         + '<td><button class="btn btn-sm" data-ldel="' + idx + '">删</button></td>'
         + '</tr>';
-    }).join('') : '<tr><td colspan="8" style="text-align:center;opacity:.55;padding:18px">暂无成交记录 · 点上方「新增一笔」或粘贴天天基金交易记录导入</td></tr>';
+    }).join('') : '<tr><td colspan="9" style="text-align:center;opacity:.55;padding:18px">暂无成交记录 · 点上方「新增一笔」或粘贴天天基金交易记录导入</td></tr>';
     var aggHtml = agg.length ? agg.map(function (o) {
       return '<tr>'
         + '<td><span class="nm" style="font-size:12.5px">' + esc(o.name || '') + '</span><div class="cd">' + esc(o.code) + '</div></td>'
@@ -13402,7 +13423,7 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
       + '<div class="sh-cell"><div class="k">净投入</div><div class="v">' + fmt(netIn) + '</div></div>'
       + '<div class="sh-cell"><div class="k">成交笔数</div><div class="v">' + t.length + '</div></div>'
       + '</div></div>'
-      + '<div class="st-card"><h4>成交明细</h4><div style="overflow-x:auto"><table class="st-tbl"><thead><tr><th>日期</th><th>基金</th><th>方向</th><th style="text-align:right">金额</th><th style="text-align:right">份额</th><th style="text-align:right">净值</th><th>来源</th><th></th></tr></thead><tbody>' + rowsHtml + '</tbody></table></div></div>'
+      + '<div class="st-card"><h4>成交明细</h4><div style="overflow-x:auto"><table class="st-tbl"><thead><tr><th>日期</th><th>基金</th><th>方向</th><th style="text-align:right">金额</th><th style="text-align:right">份额</th><th style="text-align:right">手续费</th><th style="text-align:right">净值</th><th>来源</th><th></th></tr></thead><tbody>' + rowsHtml + '</tbody></table></div></div>'
       + '<div class="st-card"><h4>按基金聚合 <span class="hint" style="font-weight:400">净份额 / 净投入 / 加权成本（持仓权威增量来源，后续联动持仓与盈亏）</span></h4><div style="overflow-x:auto"><table class="st-tbl"><thead><tr><th>基金</th><th style="text-align:right">笔数</th><th style="text-align:right">买入总额</th><th style="text-align:right">卖出总额</th><th style="text-align:right">净投入</th><th style="text-align:right">净份额</th><th style="text-align:right">加权成本</th></tr></thead><tbody>' + aggHtml + '</tbody></table></div></div>'
       + '<div class="strat-note">导入格式：①天天基金网页「交易查询」表格整表复制粘贴（自动识别表头与状态，撤单/失败自动跳过，分红/收益计份额不计金额）②CSV（日期,代码,名称,方向,金额,份额,净值）③JSON 数组备份。成交后点「导出 JSON」定期备份；台账数据仅存本浏览器 localStorage，换设备需导入备份。</div>';
     var btn = function (sel, fn) { var b = el.querySelector(sel); if (b) b.addEventListener('click', fn); };
