@@ -13965,7 +13965,7 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
         for (var i = 0; i < curve.length; i += step) { xd.push(curve[i].d); yv.push(+(curve[i].v / cfg.budget).toFixed(4)); yb.push(+(curve[i].b / cfg.budget).toFixed(4)); }
         if (xd[xd.length - 1] !== curve[curve.length - 1].d) { xd.push(curve[curve.length - 1].d); yv.push(+(curve[curve.length - 1].v / cfg.budget).toFixed(4)); yb.push(+(curve[curve.length - 1].b / cfg.budget).toFixed(4)); }
         setTimeout(function () {
-          mountChart('btChart', {
+          var inst = mountChart('btChart', {
             backgroundColor: 'transparent', color: ['#4D6BFE', '#94A3B8'],
             tooltip: { trigger: 'axis', valueFormatter: function (v) { return v.toFixed(2); } },
             legend: { data: ['策略执行', '买入持有对照'], top: 2, textStyle: { color: '#3F3F46', fontSize: 12 } },
@@ -13977,6 +13977,8 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
               { name: '买入持有对照', type: 'line', data: yb, showSymbol: false, lineStyle: { width: 1.5, type: 'dashed' } }
             ]
           });
+          window.__btChart = inst;
+          try { if (inst && inst.resize) inst.resize(); } catch (e) {}
         }, 0);
         var pileRows = Object.keys(res.target).map(function (pile) {
           var label = ({ base: '底仓/缓冲', off: '进攻/主题', bond: '安全垫', hedge: '对冲' })[pile] || pile;
@@ -14744,10 +14746,11 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
     var xm = document.getElementById('xmapCard');
     if (xm) xm.style.display = name === 'cards' ? '' : 'none';
     /* v234：事件触发表已整体删除（用户 2026-09-26 要求不再显示） */
-    /* v350：组合回测 pane 兜底渲染（init 竞态下确保内容存在） */
+    /* v350：组合回测 pane 兜底渲染（init 竞态下确保内容存在）+ 净值曲线 resize（隐藏容器 init 尺寸异常修复） */
     if (name === 'bt') {
       var btEl = document.getElementById('stp-bt');
       if (btEl && btEl.textContent.trim().length < 20 && typeof renderBacktest === 'function') { try { renderBacktest(); } catch (e) {} }
+      if (window.__btChart && window.__btChart.resize) { try { setTimeout(function () { window.__btChart.resize(); }, 80); } catch (e) {} }
     }
   }
   function bindStratTabs() {
