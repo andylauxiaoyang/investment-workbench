@@ -13246,16 +13246,16 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
       + '<div class="rv-line"><span class="tag tag-data">口径</span><span>由宏观周期引擎实时计算（与宏观周期模块同口径）；加倍/停买档位与 STRATEGY_SNAP 五步规则对齐；不构成投资建议</span></div>';
   }
   function renderStrategyView() {
-    renderStratCycle();
-    renderStratHero();
-    renderStratCal();
-    renderStratCards();
-    renderLedger();
-    renderRules();   /* v348 阶段②：策略规则（可投资金 + 档位规则表 + 纳指同族上限引擎） */
-    renderBacktest(); /* v350 阶段③：组合模拟回测（杠铃策略历史组合模拟） */
-    renderStratPlan();
-    renderStratAlloc();
-    renderStratReview();
+    try { renderStratCycle(); } catch (e) {}
+    try { renderStratHero(); } catch (e) {}
+    try { renderStratCal(); } catch (e) {}
+    try { renderStratCards(); } catch (e) {}
+    try { renderLedger(); } catch (e) {}
+    try { renderRules(); } catch (e) {}   /* v348 阶段②：策略规则（可投资金 + 档位规则表 + 纳指同族上限引擎） */
+    try { renderBacktest(); } catch (e) {} /* v350 阶段③：组合模拟回测（杠铃策略历史组合模拟） */
+    try { renderStratPlan(); } catch (e) {}
+    try { renderStratAlloc(); } catch (e) {}
+    try { renderStratReview(); } catch (e) {}
   }
 
   /* ===== v342 fw2_v342_trade_ledger：交易台账（策略执行 tab）=====
@@ -14744,6 +14744,11 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
     var xm = document.getElementById('xmapCard');
     if (xm) xm.style.display = name === 'cards' ? '' : 'none';
     /* v234：事件触发表已整体删除（用户 2026-09-26 要求不再显示） */
+    /* v350：组合回测 pane 兜底渲染（init 竞态下确保内容存在） */
+    if (name === 'bt') {
+      var btEl = document.getElementById('stp-bt');
+      if (btEl && btEl.textContent.trim().length < 20 && typeof renderBacktest === 'function') { try { renderBacktest(); } catch (e) {} }
+    }
   }
   function bindStratTabs() {
     Array.prototype.forEach.call(document.querySelectorAll('#view-strategy .st-tab'), function (b) {
