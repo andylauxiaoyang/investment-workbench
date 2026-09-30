@@ -11835,7 +11835,13 @@ setInterval(updateSessionBadge, 30000);
     if(!DC_LOADED){
       elText('dcMeta','数据加载中…');
       var d = await loadDcData(false);
-      if(!d){ elText('dcMeta','⚠ 数据加载失败（请检查网络后点「重新加载」）'); return; }
+      if(!d){
+        /* v356b fw2_v356b_dc_fallback：月频净值（DC）失败不阻断总览——总览仅依赖 fund-basic（FB），
+           失败时降级渲染基础信息表并提示，避免整个「基金数据」空白（取数失败不能默认留白）。 */
+        elText('dcMeta','⚠ 月频净值加载失败，仅显示基础信息（可点「重新加载」重试）');
+        loadDcBasic().then(function(){ if(FB_LOADED) renderDcOverview(); });
+        return;
+      }
       DC=d; DC_LOADED=true;
       renderDcCaliber(d);
       loadDcBasic().then(function(){ if(FB_LOADED) renderDcOverview(); });
