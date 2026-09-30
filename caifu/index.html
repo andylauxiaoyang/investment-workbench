@@ -12344,14 +12344,28 @@ setInterval(updateSessionBadge, 30000);
     var arr = keys.map(function(c){ return Object.assign({code:c}, FB.funds[c]); });
     /* fw2_v355_ov_held_only：v353 三池后「持仓基金」Tab 只显示实际持仓（台账 + HOLDINGS_SEED + 手动标记），
        不再放 fund-basic.json 全集画像；自选/筛选池见 pool-watch/pool-screen Tab。持仓集为空 → 返回 []，由渲染层引导。 */
+    var heldSet = null;
     try{
-      var heldSet = (typeof poolHeldCodes==='function') ? poolHeldCodes() : null;
+      heldSet = (typeof poolHeldCodes==='function') ? poolHeldCodes() : null;
       if(heldSet && Object.keys(heldSet).length) arr = arr.filter(function(r){ return heldSet[r.code]; });
       else arr = [];
     }catch(e){ /* 兜底：异常时保持原全集，避免空屏 */ }
+    /* fw2_v356_held_trades_fix：持仓基金不在 fund-basic 画像库时（如 019441）补占位行，不丢持仓 */
+    if(heldSet && Object.keys(heldSet).length){
+      var have={}; arr.forEach(function(r){ have[r.code]=1; });
+      Object.keys(heldSet).forEach(function(c){
+        if(have[c]) return;
+        var nm=c;
+        try{
+          if(window.HOLDINGS_SEED && window.HOLDINGS_SEED.holdings){ window.HOLDINGS_SEED.holdings.forEach(function(h){ if(h && String(h.code)===c && h.name) nm=h.name; }); }
+          if(nm===c){ var ld2=JSON.parse(localStorage.getItem('fw2_trade_ledger_v1')||'null'); if(ld2){ (ld2.trades||ld2.orders||[]).forEach(function(o){ if(o && String(o.code)===c && o.name) nm=o.name; }); } }
+        }catch(e){}
+        arr.push({code:c, name:nm, scale:null, fee:null, tenure:'—', aum:null, mgr:'—', estab:'—', ftype:'', noProfile:true});
+      });
+    }
     arr.forEach(function(r){
       var sales = (typeof r.salesExp==='number') ? r.salesExp : 0;
-      r.fee = (r.mgExp||0) + (r.trustExp||0) + sales;
+      r.fee = (r.mgExp!=null || r.trustExp!=null) ? ((r.mgExp||0) + (r.trustExp||0) + sales) : null;   /* fw2_v356：占位行（无画像）费率显示 — */
       r.tenure = r.mgrTenureText || (r.mgrTenure!=null ? r.mgrTenure+'年' : '—');
       r.aum = (typeof r.mgrAUM==='number') ? r.mgrAUM : null;
       r.liq = liqRisk(r.scale);
@@ -12421,7 +12435,8 @@ setInterval(updateSessionBadge, 30000);
       + '「总费率」＝管理＋托管＋销售（销售为空计 0）；「清盘风险」按规模派生：&lt;0.5亿=高风险(清盘线)、0.5~2亿=关注、≥2亿=低。'
       + '风险指标列为<b>推断·自算</b>（非官方披露，全历史·月频）：年化波动率=月收益标准差×√12；最大回撤=月度净值峰谷；夏普=(年化收益−1.5%)/年化波动率；卡玛=年化收益/|最大回撤|；索提诺=(年化收益−1.5%)/下行波动×√12；分红型按<b>累计净值</b>（含分红再投）、其余按单位净值，货币型（净值恒 1）显示「—」。点击表头排序（默认按规模最大）。</div>';
     var OVC = ovColsAll();   // v89：区间收益列插在总费率后、基金经理前；v90：基础信息列 11→9（删类型/基金公司）
-    var h = '<table class="dc-tbl dc-ov-tbl"><thead><tr>';
+    var h = '<div class="pool-note" style="font-size:12px;color:var(--muted,#64748b);margin:2px 2px 10px;line-height:1.6">持仓基金池：仅展示<b>实际持仓</b>的基金（'+arr.length+' 只，来源：交易台账 + 持仓种子 + 手动标记）。买卖/清仓请先在「交易台账」记录自动归池；从自选池点「已买入」也会标记持仓。</div>';
+    h += '<table class="dc-tbl dc-ov-tbl"><thead><tr>';
     OVC.forEach(function(c){
       var arrow = dcUI.ovSortKey===c.k ? (dcUI.ovSortDir>0?' ▲':' ▼') : '';
       h += '<th data-k="'+c.k+'" class="'+((c.num?'num':'')+(c.k==='liq'?' liq':'')+(c.iv?' iv':'')+(c.sep?' sep':'')).trim()+'">'+c.t+arrow+'</th>';
@@ -12524,7 +12539,8 @@ setInterval(updateSessionBadge, 30000);
     var set={};
     try{
       var led=JSON.parse(localStorage.getItem('fw2_trade_ledger_v1')||'null');
-      if(led && led.orders){ led.orders.forEach(function(o){ if(o&&o.code){ var c=String(o.code).replace(/[^0-9]/g,'').slice(-6); if(c) set[c]=1; } }); }
+      /* fw2_v356_held_trades_fix：台账键名是 trades（非 orders），此前漏读导致台账持仓进不了持仓池 */
+      if(led){ var tr=led.trades||led.orders||[]; tr.forEach(function(o){ if(o&&o.code){ var c=String(o.code).replace(/[^0-9]/g,'').slice(-6); if(c) set[c]=1; } }); }
     }catch(e){}
     if(window.HOLDINGS_SEED && window.HOLDINGS_SEED.holdings){ window.HOLDINGS_SEED.holdings.forEach(function(h){ if(h&&h.code) set[String(h.code)]=1; }); }
     var mh=poolLsGet(POOL_LS.manual_held)||{};
