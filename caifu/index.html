@@ -5346,9 +5346,7 @@ window.HS_name = function (code) {
         if (vp != null) {
           rows.hold.push(Object.assign({}, base, { sig: 'T3 估值止盈 / T8 估值加仓', cur: '分位 ' + vp.toFixed(0) + '%', thr: '≥' + C.valHigh + '% 减 · ≤' + C.valLow + '% 加', lvl: (vp >= C.valHigh || vp <= C.valLow) ? 'act' : (vp >= C.valHigh - 5 || vp <= C.valLow + 5) ? 'near' : 'watch', src: 'grid E' }));
         }
-        if (mv > 0) {
-          rows.hold.push(Object.assign({}, base, { sig: 'T9 CAP 超限', cur: '¥' + mv.toFixed(0), thr: '> ¥' + C.cap + ' 禁补', lvl: mv > C.cap ? 'act' : mv > C.cap * 0.9 ? 'near' : 'watch', src: 'CAP 硬限制' }));
-        }
+        /* v337 fw2_v337_t9_combo：T9 CAP 超限改为组合级（整体组合累计投入上限），不再按单标的市值逐条生成 */
         /* v322 fw2_v322_grid_track T13 网格跟踪：距上次购买（单位成本近似）跌 3% 触发网格买入；
            与定投日历日期 ≤3 天 → 提示时间冲突（用户决策是否合并/择一买入） */
         try {
@@ -5445,6 +5443,24 @@ window.HS_name = function (code) {
         }
       }
     } catch (e) { /* 杠铃数据不足时跳过 */ }
+    /* v337 fw2_v337_t9_combo：T9 CAP 超限 = 组合级（整个组合累计投入上限），并入组合级 T10 标卡；
+       口径：组合累计投入 = Σ(成本 × 份额)，阈值 C.cap；不再按单标的市值逐条展示 */
+    try {
+      let capSum = 0;
+      (holdList || []).forEach((h) => {
+        const _c = +h.cost || 0, _q = +h.qty || 0;
+        if (_c > 0 && _q > 0) capSum += _c * _q;
+      });
+      if (capSum > 0) {
+        rows.hold.push({
+          code: 'T10', name: '底仓/缓冲（杠铃档位）', pool: 'hold', noLink: true,
+          sig: 'T9 CAP 超限', cur: '¥' + capSum.toFixed(0),
+          thr: '组合投入 > ¥' + C.cap + ' 禁补',
+          lvl: capSum > C.cap ? 'act' : capSum > C.cap * 0.9 ? 'near' : 'watch',
+          src: 'CAP 硬限制 · 组合级',
+        });
+      }
+    } catch (e) { /* CAP 计算失败跳过 */ }
     return rows;
   };
 
