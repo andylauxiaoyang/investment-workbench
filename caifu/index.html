@@ -1542,7 +1542,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
           <span class="dc-meta" id="dcMeta"></span>
         </div>
         <div id="dcOverviewWrap" class="dc-pane"><!-- fw2_v85_overview --><!-- fw2_v88_overview_interval：区间收益并入总览、取消独立 Tab --><!-- fw2_v89_iv_merged_cols：区间收益由独立表改为并入基础信息表的列（总费率后 / 基金经理前） --><!-- fw2_v90_drop_cols：删除「类型」「基金公司」两列（总览表 21 列 → 19 列） -->
-          <div class="pool-note" style="font-size:12px;color:var(--muted,#64748b);margin:6px 2px 10px;line-height:1.6">持仓基金池：fund-basic.json 持仓+自选画像全集（21 只）。买卖/清仓请先在「交易台账」记录，自动归池；从自选池点「已买入」也会标记持仓。</div>
+          <div class="pool-note" style="font-size:12px;color:var(--muted,#64748b);margin:6px 2px 10px;line-height:1.6">持仓基金池：仅展示<b>实际持仓</b>的基金（来源：交易台账 + 持仓种子 + 手动标记）。买卖/清仓请先在「交易台账」记录自动归池；从自选池点「已买入」也会标记持仓。清仓后请到筛选/自选池操作。</div>
         </div>
         <div id="dcPoolWatchWrap" class="dc-pane" style="display:none"><!-- v353 fw2_v353_pool_tabs：自选基金池（watchlist-data.json + 筛选池加入，剔除已持仓/已移除） --></div>
         <div id="dcPoolScreenWrap" class="dc-pane" style="display:none"><!-- v353 fw2_v353_pool_tabs：筛选基金池（screen-pool.json 20 只候选，可加入自选/永久删除） --></div>
@@ -12342,6 +12342,13 @@ setInterval(updateSessionBadge, 30000);
     if(!FB) return [];
     var keys = Object.keys(FB.funds);
     var arr = keys.map(function(c){ return Object.assign({code:c}, FB.funds[c]); });
+    /* fw2_v355_ov_held_only：v353 三池后「持仓基金」Tab 只显示实际持仓（台账 + HOLDINGS_SEED + 手动标记），
+       不再放 fund-basic.json 全集画像；自选/筛选池见 pool-watch/pool-screen Tab。持仓集为空 → 返回 []，由渲染层引导。 */
+    try{
+      var heldSet = (typeof poolHeldCodes==='function') ? poolHeldCodes() : null;
+      if(heldSet && Object.keys(heldSet).length) arr = arr.filter(function(r){ return heldSet[r.code]; });
+      else arr = [];
+    }catch(e){ /* 兜底：异常时保持原全集，避免空屏 */ }
     arr.forEach(function(r){
       var sales = (typeof r.salesExp==='number') ? r.salesExp : 0;
       r.fee = (r.mgExp||0) + (r.trustExp||0) + sales;
@@ -12403,7 +12410,11 @@ setInterval(updateSessionBadge, 30000);
       return;
     }
     var arr = ovRows();
-    if(!arr.length){ wrap.innerHTML = '<div class="dc-empty">无匹配基金（试试清空搜索词或基金筛选）</div>'; return; }
+    var heldEmpty = false;
+    if(!arr.length){ try{ var hc=(typeof poolHeldCodes==='function')?poolHeldCodes():null; heldEmpty = !hc || !Object.keys(hc).length; }catch(e){} }
+    if(!arr.length){ wrap.innerHTML = heldEmpty
+      ? '<div class="dc-empty">暂无持仓基金——请在「策略执行 → 交易台账」记录买入，或在「自选基金」点「已买入」标记持仓后，持仓会自动进入本池。</div>'
+      : '<div class="dc-empty">无匹配基金（试试清空搜索词或基金筛选）</div>'; return; }
     var sd = FB.funds[Object.keys(FB.funds)[0]].scaleDate;
     var ovNote = '<div class="dc-ov-note">数据来源：fund-basic.json（天天基金 fundf10 jbgk ＋ 基金经理页）。'
       + '「最新规模」为 <b>'+sd+'</b> 中报点时点，非月度序列；'
@@ -12442,7 +12453,7 @@ setInterval(updateSessionBadge, 30000);
       h += '</tr>';
     });
     h += '</tbody></table>';
-    h += '<div class="dc-foot">共 '+arr.length+' 只基金（基础信息库 '+Object.keys(FB.funds).length+' 只）'
+    h += '<div class="dc-foot">持仓基金 '+arr.length+' 只'
       + (dcUI.sel?' ｜ 已按筛选基金收窄':'') + (dcUI.search?' ｜ 含搜索词':'') + '</div>';
     // v89：区间收益已改为「列」并入上方基础信息表（总费率后、基金经理前），底部独立块与小标题取消
     h += ovNote;   // v87：数据说明移至表格下方，顶部直接展示数据
