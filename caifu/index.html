@@ -13259,11 +13259,59 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
      逐笔成交记录（天天基金导入 / CSV 粘贴 / JSON 备份 / 手动增删），localStorage 持久化；
      聚合视图按基金汇总净份额 / 净投入 / 加权成本，作为持仓与盈亏的权威增量来源 */
   var LEDGER_KEY = 'fw2_trade_ledger_v1';
+  var SNAP_KEY = 'fw2_all_snapshot_v1';
   function ledgerLoad() {
     try { var raw = localStorage.getItem(LEDGER_KEY); if (raw) { var d = JSON.parse(raw); if (d && Array.isArray(d.trades)) return d; } } catch (e) {}
     return { updatedAt: '', trades: [] };
   }
-  function ledgerSave(ld) { ld.updatedAt = new Date().toISOString().slice(0, 10); try { localStorage.setItem(LEDGER_KEY, JSON.stringify(ld)); } catch (e) {} }
+  function ledgerSave(ld) { ld.updatedAt = new Date().toISOString().slice(0, 10); try { localStorage.setItem(LEDGER_KEY, JSON.stringify(ld)); } catch (e) {} persistAllSnapshot(); }
+  /* ===== v347 阶段①B：台账 → 持仓 → 资金平衡 联动 + 统一落盘 =====
+     台账是持仓的权威增量来源：导入/新增/删除成交后自动重算持仓净份额与加权成本；
+     新标的自动进入持仓；随后通知资金平衡模块（CAPBAL）同步标的/净值与期初快照。 */
+  function syncPortfolioFromLedger(ld) {
+    if (typeof state === 'undefined' || !state || !Array.isArray(state.portfolio)) return false;
+    var agg = ledgerAgg(ld);
+    var byCode = {};
+    var map = {};
+    state.portfolio.forEach(function (h) { map[String(h.code)] = h; });
+    var changed = false;
+    agg.forEach(function (o) {
+      if (!o.code) return;
+      var h = map[o.code];
+      var q = Math.round((+o.qty || 0) * 100) / 100;
+      var c = Math.round((+o.cost || 0) * 10000) / 10000;
+      if (h) {
+        if (Math.abs((+h.qty || 0) - q) > 1e-9 || Math.abs((+h.cost || 0) - c) > 1e-9) { h.qty = q; h.cost = c; changed = true; }
+      } else if (q > 0) {
+        var firstD = '';
+        (ld.trades || []).forEach(function (t) { if (String(t.code) === o.code && t.d && (!firstD || t.d < firstD)) firstD = t.d; });
+        state.portfolio.push({ _id: 'ledger-' + o.code, code: o.code, name: o.name || '', qty: q, cost: c, assetType: (o.code === '007866' ? 'cash' : 'fund'), buyDate: firstD });
+        changed = true;
+      }
+    });
+    if (changed) { try { saveStore(); } catch (e) {} }
+    return changed;
+  }
+  /* 统一落盘：台账/持仓/资金平衡镜像 合并快照 → localStorage（A+B 方案 B 的本地侧）；
+     AI 侧每月同步 ledger-import.json 即线上镜像（换设备/免登录入口可恢复） */
+  function persistAllSnapshot() {
+    try {
+      var snap = {
+        updatedAt: new Date().toISOString().slice(0, 10),
+        ledger: ledgerLoad(),
+        portfolio: (typeof state !== 'undefined' && state && Array.isArray(state.portfolio)) ? state.portfolio : [],
+        capbalMirrorAt: (window.CAPBAL_MIRROR_INLINE && window.CAPBAL_MIRROR_INLINE.mirrorAt) || ''
+      };
+      localStorage.setItem(SNAP_KEY, JSON.stringify(snap));
+    } catch (e) {}
+  }
+  /* 台账变更后通知资金平衡：同步标的/净值（不覆盖手工）+ 空流水时补期初快照 */
+  function notifyCapBal() {
+    if (!window.CAPBAL) return;
+    try { if (typeof window.CAPBAL.syncFromWorkbench === 'function') window.CAPBAL.syncFromWorkbench(false); } catch (e) {}
+    try { if (typeof window.CAPBAL.maybeAutoSync === 'function') window.CAPBAL.maybeAutoSync(); } catch (e) {}
+    try { if (typeof window.CAPBAL.render === 'function') window.CAPBAL.render(); } catch (e) {}
+  }
   function ledgerAgg(ld) {
     var m = {};
     (ld.trades || []).forEach(function (t) {
@@ -13377,6 +13425,9 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
     var el = document.getElementById('stp-ledger');
     if (!el) return;
     var ld = ledgerLoad();
+    /* v347 阶段①B：台账→持仓 联动（幂等，仅差异更新）→ 通知资金平衡 */
+    try { syncPortfolioFromLedger(ld); } catch (e) {}
+    try { notifyCapBal(); } catch (e) {}
     var agg = ledgerAgg(ld);
     var totalBuy = agg.reduce(function (s, o) { return s + o.buyAmt; }, 0);
     var totalSell = agg.reduce(function (s, o) { return s + o.sellAmt; }, 0);
@@ -13409,9 +13460,10 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
     }).join('') : '<tr><td colspan="7" style="text-align:center;opacity:.55;padding:14px">暂无数据</td></tr>';
     el.innerHTML =
       '<div class="st-card"><div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">'
-      + '<h4 style="margin:0">交易台账 <span class="hint" style="font-weight:400">逐笔成交 · 天天基金导入 · localStorage 本地保存（可导出 JSON 备份）</span></h4>'
+      + '<h4 style="margin:0">交易台账 <span class="hint" style="font-weight:400">逐笔成交 · 天天基金导入 · 已联动持仓/资金平衡（本地快照 fw2_all_snapshot_v1）</span></h4>'
       + '<span style="display:flex;gap:6px;flex-wrap:wrap">'
       + '<button class="btn btn-sm" data-lexp="1">导出 JSON</button>'
+      + '<button class="btn btn-sm" data-lexpsnap="1">导出完整快照</button>'
       + '<button class="btn btn-sm" data-lnew="1">＋ 新增一笔</button>'
       + '<button class="btn btn-sm" data-limp="1">导入记录</button>'
       + '</span></div></div>'
@@ -13425,13 +13477,30 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
       + '</div></div>'
       + '<div class="st-card"><h4>成交明细</h4><div style="overflow-x:auto"><table class="st-tbl"><thead><tr><th>日期</th><th>基金</th><th>方向</th><th style="text-align:right">金额</th><th style="text-align:right">份额</th><th style="text-align:right">手续费</th><th style="text-align:right">净值</th><th>来源</th><th></th></tr></thead><tbody>' + rowsHtml + '</tbody></table></div></div>'
       + '<div class="st-card"><h4>按基金聚合 <span class="hint" style="font-weight:400">净份额 / 净投入 / 加权成本（持仓权威增量来源，后续联动持仓与盈亏）</span></h4><div style="overflow-x:auto"><table class="st-tbl"><thead><tr><th>基金</th><th style="text-align:right">笔数</th><th style="text-align:right">买入总额</th><th style="text-align:right">卖出总额</th><th style="text-align:right">净投入</th><th style="text-align:right">净份额</th><th style="text-align:right">加权成本</th></tr></thead><tbody>' + aggHtml + '</tbody></table></div></div>'
-      + '<div class="strat-note">导入格式：①天天基金网页「交易查询」表格整表复制粘贴（自动识别表头与状态，撤单/失败自动跳过，分红/收益计份额不计金额）②CSV（日期,代码,名称,方向,金额,份额,净值）③JSON 数组备份。成交后点「导出 JSON」定期备份；台账数据仅存本浏览器 localStorage，换设备需导入备份。</div>';
+      + '<div class="strat-note">导入格式：①天天基金网页「交易查询」表格整表复制粘贴（自动识别表头与状态，撤单/失败自动跳过，分红/收益计份额不计金额）②CSV（日期,代码,名称,方向,金额,份额,净值）③JSON 数组备份。成交后点「导出 JSON」定期备份；台账数据仅存本浏览器 localStorage，换设备需导入备份。v347：台账为持仓权威增量来源——导入/新增/删除成交后自动联动持仓（净份额/加权成本）与资金平衡；「导出完整快照」下载 台账+持仓+资金平衡 合并备份。</div>';
     var btn = function (sel, fn) { var b = el.querySelector(sel); if (b) b.addEventListener('click', fn); };
     btn('[data-lexp="1"]', function () {
       var blob = new Blob([JSON.stringify(ld, null, 1)], { type: 'application/json' });
       var a = document.createElement('a');
       a.href = URL.createObjectURL(blob);
       a.download = 'trade-ledger-' + (ld.updatedAt || 'backup') + '.json';
+      a.click();
+      setTimeout(function () { URL.revokeObjectURL(a.href); }, 500);
+    });
+    btn('[data-lexpsnap="1"]', function () {
+      /* v347：导出完整快照（台账 + 持仓 + 资金平衡镜像），统一落盘备份 */
+      try { syncPortfolioFromLedger(ld); } catch (e) {}
+      var snap = {
+        updatedAt: new Date().toISOString().slice(0, 10),
+        ledger: ld,
+        portfolio: (typeof state !== 'undefined' && state && Array.isArray(state.portfolio)) ? state.portfolio : [],
+        capbalMirrorAt: (window.CAPBAL_MIRROR_INLINE && window.CAPBAL_MIRROR_INLINE.mirrorAt) || '',
+        note: '完整快照：台账(权威增量源) + 持仓(联动结果) + 资金平衡镜像时间'
+      };
+      var blob = new Blob([JSON.stringify(snap, null, 1)], { type: 'application/json' });
+      var a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'all-snapshot-' + snap.updatedAt + '.json';
       a.click();
       setTimeout(function () { URL.revokeObjectURL(a.href); }, 500);
     });
