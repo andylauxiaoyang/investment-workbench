@@ -13312,7 +13312,16 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
       if (nums.length >= 3) { nav = nums[nums.length - 1]; qty = nums[nums.length - 2]; amt = nums[nums.length - 3]; }
       else if (nums.length === 2) { amt = nums[0]; qty = nums[1]; }
       else if (nums.length === 1) { amt = nums[0]; }
-      out.push({ d: d, code: code.length === 6 ? code : '', name: cells[1] || '', side: side, amt: amt, qty: qty, nav: nav, src: 'csv' });
+      /* 名称列：跳过日期列后，取第一个非纯数字、非方向词、非金额单位的文字列 */
+      var name = '';
+      for (var ni = 1; ni < cells.length; ni++) {
+        var cc = cells[ni];
+        if (/^\d+(\.\d+)?$/.test(cc)) continue;
+        if (/买入|卖出|申购|赎回|定投|转入|转出|确认/.test(cc)) continue;
+        if (/^[¥￥]|^(元|份|金额|份额|净值)$/.test(cc)) continue;
+        name = cc; break;
+      }
+      out.push({ d: d, code: code.length === 6 ? code : '', name: name, side: side, amt: amt, qty: qty, nav: nav, src: 'csv' });
     });
     return out;
   }
@@ -13334,7 +13343,7 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
         + '<td style="text-align:right">¥' + fmt(+tr.amt || 0) + '</td>'
         + '<td style="text-align:right">' + (+tr.qty || 0).toFixed(2) + '</td>'
         + '<td style="text-align:right">' + (+tr.nav || 0).toFixed(4) + '</td>'
-        + '<td><span class="tg">' + (tr.src === 'ttjj' ? '天天基金' : tr.src === 'json' ? '导入' : '手动') + '</span></td>'
+        + '<td><span class="tg">' + (tr.src === 'ttjj' ? '天天基金' : tr.src === 'csv' ? 'CSV' : tr.src === 'json' ? '导入' : '手动') + '</span></td>'
         + '<td><button class="btn btn-sm" data-ldel="' + idx + '">删</button></td>'
         + '</tr>';
     }).join('') : '<tr><td colspan="8" style="text-align:center;opacity:.55;padding:18px">暂无成交记录 · 点上方「新增一笔」或粘贴天天基金交易记录导入</td></tr>';
