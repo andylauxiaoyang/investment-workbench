@@ -1511,7 +1511,10 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
         <div class="v-head">
           <!-- v93 fw2_v93_drop_dc_head：删除本分块标题+副标题（#dcTitle/#dcSub，基金/宏观共用） -->
           <div class="vh-r dc-tabs v-tabs" id="dcTabs">
-            <button class="dc-tab v-tab active" data-dc="overview">基金列表</button>
+            <button class="dc-tab v-tab active" data-dc="overview">持仓基金</button>
+            <!-- v353 fw2_v353_pool_tabs：基金数据三池重构——「基金列表」更名「持仓基金」（data-dc="overview" 路由键/契约不动），新增「自选基金」(pool-watch)「筛选基金」(pool-screen) 两 Tab；自选池=watchlist-data.json+筛选池加入，筛选池=screen-pool.json（20 只候选） -->
+            <button class="dc-tab v-tab" data-dc="pool-watch">自选基金</button>
+            <button class="dc-tab v-tab" data-dc="pool-screen">筛选基金</button>
             <!-- v156 fw2_v156_fundlist_label：Tab「总览」更名「基金列表」（用户 2026-09-20 截图指定）。纯文案：data-dc="overview" 路由键 / #dcOverviewWrap / dcExportOverviewCsv 等 id 与 JS 函数名均不动（数据契约） -->
             <button class="dc-tab v-tab" data-dc="chart">收益曲线</button>
             <!-- v97 fw2_v97_research_merge：原「标的分析」6 个模块迁入本分块，作为与总览并列的 Tab -->
@@ -1538,7 +1541,11 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
           <button class="btn-mini" id="dcReload">重新加载</button>
           <span class="dc-meta" id="dcMeta"></span>
         </div>
-        <div id="dcOverviewWrap" class="dc-pane"><!-- fw2_v85_overview --><!-- fw2_v88_overview_interval：区间收益并入总览、取消独立 Tab --><!-- fw2_v89_iv_merged_cols：区间收益由独立表改为并入基础信息表的列（总费率后 / 基金经理前） --><!-- fw2_v90_drop_cols：删除「类型」「基金公司」两列（总览表 21 列 → 19 列） --></div>
+        <div id="dcOverviewWrap" class="dc-pane"><!-- fw2_v85_overview --><!-- fw2_v88_overview_interval：区间收益并入总览、取消独立 Tab --><!-- fw2_v89_iv_merged_cols：区间收益由独立表改为并入基础信息表的列（总费率后 / 基金经理前） --><!-- fw2_v90_drop_cols：删除「类型」「基金公司」两列（总览表 21 列 → 19 列） -->
+          <div class="pool-note" style="font-size:12px;color:var(--muted,#64748b);margin:6px 2px 10px;line-height:1.6">持仓基金池：fund-basic.json 持仓+自选画像全集（21 只）。买卖/清仓请先在「交易台账」记录，自动归池；从自选池点「已买入」也会标记持仓。</div>
+        </div>
+        <div id="dcPoolWatchWrap" class="dc-pane" style="display:none"><!-- v353 fw2_v353_pool_tabs：自选基金池（watchlist-data.json + 筛选池加入，剔除已持仓/已移除） --></div>
+        <div id="dcPoolScreenWrap" class="dc-pane" style="display:none"><!-- v353 fw2_v353_pool_tabs：筛选基金池（screen-pool.json 20 只候选，可加入自选/永久删除） --></div>
         <!-- v95 fw2_v95_drop_table_pivot：表格视图与透视视图（含其内部控件）已删除 -->
         <div id="dcChartWrap" class="dc-pane" style="display:none">
           <div class="dc-chart-ctrl">
@@ -1781,6 +1788,13 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
         #view-data .dc-tbl{font-size:var(--fs-sm)}
         #view-data .dc-tbl th,#view-data .dc-tbl td{padding:4px 6px}
       }
+      /* v353 fw2_v353_pool_tabs：三池表格（持仓/自选/筛选）——仿 .st-tbl 简洁表格风格 */
+      #view-data .pool-tbl th{text-align:left;padding:7px 10px;background:var(--panel-3,#f1f5f9);color:var(--text-2,#475569);border-bottom:2px solid var(--line,#e2e8f0);font-weight:700;font-size:11px;white-space:nowrap;letter-spacing:.3px}
+      #view-data .pool-tbl td{padding:8px 10px;border-bottom:1px solid var(--line-2,#eef2f7);vertical-align:middle;overflow:hidden;font-variant-numeric:tabular-nums}
+      #view-data .pool-tbl tr:last-child td{border-bottom:0}
+      #view-data .pool-tbl tbody tr:hover td{background:var(--panel-3,#f8fafc)}
+      #view-data .pool-tbl .btn-mini{margin-right:4px}
+      @media (max-width:760px){ #view-data .pool-tbl{font-size:12px} #view-data .pool-tbl th,#view-data .pool-tbl td{padding:5px 6px} }
     </style>
         <section class="view" id="view-capbal">
       <div class="toolbar" style="flex-wrap:wrap;gap:8px;align-items:center">
@@ -11827,6 +11841,7 @@ setInterval(updateSessionBadge, 30000);
       loadDcBasic().then(function(){ if(FB_LOADED) renderDcOverview(); });
       updateDcFselUi(); renderDcFsel();
       elText('dcMeta', d.meta.fundCount+' 只基金 · '+d.meta.monthCount+' 个月 · 截至 '+d.meta.asOf + staleTxt(d.meta.asOf, 5, '净值'));
+      if(typeof loadPoolData==='function') loadPoolData();   /* v353 fw2_v353_pool_tabs：预加载三池数据（自选表 + 筛选池） */
     }
     /* v93 fw2_v93_drop_dc_head：标题区已删除，无需按分块设标题 */
   }
@@ -12486,6 +12501,116 @@ setInterval(updateSessionBadge, 30000);
     dl('基金列表.csv', '﻿'+lines.join('\r\n'), 'text/csv;charset=utf-8');
   }
 
+  /* ================= v353 fw2_v353_pool_tabs：基金三池（持仓/自选/筛选） =================
+     数据源：持仓池=fund-basic.json（21 只画像，台账/持仓种子/manual 标记定持仓集）；
+             自选池=watchlist-data.json + localStorage fw2_watch_added_v1（从筛选池加入）；
+             筛选池=screen-pool.json（market_screen.py 产出 20 只候选）。
+     流转：筛选→自选（fw2_watch_added_v1）→持仓（fw2_manual_held_v1）；删除永久=fw2_screen_removed_v1 / fw2_watch_removed_v1。 */
+  var POOL_LS = { watch_added:'fw2_watch_added_v1', watch_removed:'fw2_watch_removed_v1', screen_removed:'fw2_screen_removed_v1', manual_held:'fw2_manual_held_v1' };
+  function poolLsGet(k){ try{ return JSON.parse(localStorage.getItem(k)||'null')||null; }catch(e){ return null; } }
+  function poolLsSet(k,v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} }
+  function poolHeldCodes(){
+    var set={};
+    try{
+      var led=JSON.parse(localStorage.getItem('fw2_trade_ledger_v1')||'null');
+      if(led && led.orders){ led.orders.forEach(function(o){ if(o&&o.code){ var c=String(o.code).replace(/[^0-9]/g,'').slice(-6); if(c) set[c]=1; } }); }
+    }catch(e){}
+    if(window.HOLDINGS_SEED && window.HOLDINGS_SEED.holdings){ window.HOLDINGS_SEED.holdings.forEach(function(h){ if(h&&h.code) set[String(h.code)]=1; }); }
+    var mh=poolLsGet(POOL_LS.manual_held)||{};
+    Object.keys(mh).forEach(function(c){ set[c]=1; });
+    return set;
+  }
+  function poolWatchAdded(){ return poolLsGet(POOL_LS.watch_added)||{}; }
+  function poolWatchRemoved(){ return poolLsGet(POOL_LS.watch_removed)||{}; }
+  function poolScreenRemoved(){ return poolLsGet(POOL_LS.screen_removed)||{}; }
+  function poolFb(code, fbObj){ return (fbObj&&fbObj[code])?fbObj[code]:null; }
+  function loadPoolData(){
+    if(!window.POOL_WATCHLIST){
+      var urls=['./watchlist-data.json','https://raw.githubusercontent.com/andylauxiaoyang/investment-workbench/master/caifu/watchlist-data.json'];
+      var i=0;
+      (function next(){
+        if(i>=urls.length) return;
+        fetch(urls[i],{cache:'no-store'}).then(function(r){ if(!r.ok) throw 0; return r.json(); }).then(function(j){
+          window.POOL_WATCHLIST=(j&&j.watchlist)?j.watchlist:[];
+        }).catch(function(){ i++; next(); });
+      })();
+    }
+    loadScreenPool();
+  }
+  function renderPoolWatch(){
+    var wrap=$('dcPoolWatchWrap'); if(!wrap) return;
+    var fbObj = (window.FB&&FB.funds)?FB.funds:{};
+    var held=poolHeldCodes(), added=poolWatchAdded(), removed=poolWatchRemoved();
+    var rows=[];
+    var wl=window.POOL_WATCHLIST||[];
+    wl.forEach(function(w){ if(w&&w.code) rows.push({code:String(w.code), name:w.name||'', note:w.note||'', watchAt:w.watchAt||'', source:'自选表', f:poolFb(String(w.code),fbObj)}); });
+    Object.keys(added).forEach(function(c){ rows.push({code:c, name:added[c].name||'', note:'从筛选池加入 '+esc(added[c].addedAt||''), watchAt:added[c].addedAt||'', source:'筛选池', f:poolFb(c,fbObj)}); });
+    var seen={}, list=[];
+    rows.forEach(function(r){ if(seen[r.code]) return; seen[r.code]=1; if(removed[r.code]) return; if(held[r.code]) return; list.push(r); });
+    list.sort(function(a,b){ return (a.name||'').localeCompare(b.name||'','zh'); });
+    var h='<div class="pool-note" style="font-size:12px;color:var(--muted,#64748b);margin:6px 2px 10px;line-height:1.6">自选基金池（'+list.length+' 只）：自选表 '+wl.length+' 只 + 筛选池加入 '+Object.keys(added).length+' 只；已持仓 / 已移除不在此池。点「已买入」标记持仓 → 归入持仓池；点「移除」从自选池删除。</div>';
+    if(!list.length){ wrap.innerHTML=h+'<div style="padding:24px;color:var(--muted,#94a3b8);text-align:center">自选池为空。可到「筛选基金」Tab 把候选基金加入自选。</div>'; return; }
+    h+='<table class="pool-tbl" style="width:100%;border-collapse:collapse;font-size:13px"><thead><tr><th>代码</th><th>基金名称</th><th>来源</th><th>关注日期</th><th>备注</th><th style="text-align:center;width:150px">操作</th></tr></thead><tbody>';
+    list.forEach(function(r){
+      var sub='';
+      if(r.f){ sub='<div style="font-size:11px;color:var(--muted,#94a3b8)">'+esc(r.f.ftype||'')+' · 规模 '+(r.f.scale!=null?(+r.f.scale).toFixed(1)+'亿':'—')+' · 总费率 '+(r.f.mgExp!=null?((+r.f.mgExp+(+r.f.trustExp||0)+(+r.f.salesExp||0)).toFixed(2))+'%':'—')+'</div>'; }
+      h+='<tr><td style="font-family:var(--mono,monospace)">'+esc(r.code)+'</td><td><b>'+esc(r.name)+'</b>'+sub+'</td><td>'+esc(r.source)+'</td><td style="font-family:var(--mono,monospace);color:var(--muted,#64748b)">'+(r.watchAt||'—')+'</td><td style="font-size:12px;color:var(--muted,#64748b)">'+esc(r.note||'')+'</td>'
+       +'<td style="text-align:center;white-space:nowrap"><button class="btn-mini" data-pool-act="toHeld" data-code="'+r.code+'" data-name="'+esc(r.name)+'">已买入</button> <button class="btn-mini" data-pool-act="rmWatch" data-code="'+r.code+'" data-name="'+esc(r.name)+'">移除</button></td></tr>';
+    });
+    h+='</tbody></table>';
+    wrap.innerHTML=h;
+    wrap.querySelectorAll('[data-pool-act]').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        var act=btn.dataset.poolAct, code=btn.dataset.code, name=btn.dataset.name;
+        if(act==='toHeld'){ var mh=poolLsGet(POOL_LS.manual_held)||{}; mh[code]={name:name, heldAt:new Date().toISOString().slice(0,10)}; poolLsSet(POOL_LS.manual_held,mh); toast('已标记持仓：'+name+'（归入持仓池；实盘请同步到交易台账）'); renderPoolWatch(); }
+        else if(act==='rmWatch'){ var rm=poolLsGet(POOL_LS.watch_removed)||{}; rm[code]=1; poolLsSet(POOL_LS.watch_removed,rm); toast('已从自选池移除：'+name); renderPoolWatch(); }
+      });
+    });
+  }
+  function loadScreenPool(cb){
+    if(window.SCREEN_POOL){ if(cb)cb(); return; }
+    var urls=['./screen-pool.json','https://raw.githubusercontent.com/andylauxiaoyang/investment-workbench/master/caifu/screen-pool.json'];
+    var i=0;
+    (function next(){
+      if(i>=urls.length){ if(cb)cb(); return; }
+      fetch(urls[i],{cache:'no-store'}).then(function(r){ if(!r.ok) throw 0; return r.json(); }).then(function(j){ window.SCREEN_POOL=j; if(cb)cb(); }).catch(function(){ i++; next(); });
+    })();
+  }
+  function renderPoolScreen(){
+    var wrap=$('dcPoolScreenWrap'); if(!wrap) return;
+    wrap.innerHTML='<div style="padding:24px;color:var(--muted,#94a3b8);text-align:center">加载筛选池…</div>';
+    loadScreenPool(function(){
+      var sp=window.SCREEN_POOL;
+      if(!sp||!sp.funds){ wrap.innerHTML='<div style="padding:24px;color:var(--warn,#d97706);text-align:center">筛选池数据加载失败（screen-pool.json 不可达）。</div>'; return; }
+      var held=poolHeldCodes(), added=poolWatchAdded(), removed=poolScreenRemoved();
+      var list=Object.keys(sp.funds).map(function(c){ return {code:c, e:sp.funds[c]}; }).filter(function(r){ return !removed[r.code]; });
+      list.sort(function(a,b){ var ra=a.e.role||'', rb=b.e.role||''; return ra<rb?-1:(ra>rb?1:(((b.e.score||0))-((a.e.score||0)))); });
+      var h='<div class="pool-note" style="font-size:12px;color:var(--muted,#64748b);margin:6px 2px 10px;line-height:1.6">筛选基金池（'+list.length+' 只，updatedAt '+esc(sp.updatedAt||'')+'，规则 '+esc(sp.rulesFile||'')+'）：全市场筛出的候选苗子。点「加入自选」→ 自选池分析；点「删除」永久移除（重跑筛选不复活）。已持仓 / 已自选有角标。</div>'
+       +'<table class="pool-tbl" style="width:100%;border-collapse:collapse;font-size:13px"><thead><tr><th>代码</th><th>基金名称</th><th>档位</th><th>家族</th><th>3年</th><th>1年</th><th>规模(亿)</th><th>费率</th><th>申赎</th><th>评分</th><th style="width:170px;text-align:center">操作</th></tr></thead><tbody>';
+      list.forEach(function(r){
+        var e=r.e||{}, sc=(e.score!=null?Number(e.score):null);
+        var st=held[r.code]?'<span style="color:var(--down,#16a34a);font-weight:600">已持仓</span>':(added[r.code]?'<span style="color:var(--brand,#4D6BFE);font-weight:600">已自选</span>':'');
+        h+='<tr><td style="font-family:var(--mono,monospace)">'+esc(r.code)+'</td><td><b>'+esc(e.name||'')+'</b>'+(st?' <span style="font-size:11px">'+st+'</span>':'')+'</td><td>'+esc(e.role||'')+'</td><td>'+esc(e.family||'—')+'</td>'
+         +'<td style="font-family:var(--mono,monospace)">'+(e.r3y!=null?(+e.r3y).toFixed(1)+'%':'—')+'</td>'
+         +'<td style="font-family:var(--mono,monospace)">'+(e.r1y!=null?(+e.r1y).toFixed(1)+'%':'—')+'</td>'
+         +'<td style="font-family:var(--mono,monospace)">'+(e.scale!=null?(+e.scale).toFixed(1):'—')+'</td>'
+         +'<td style="font-family:var(--mono,monospace)">'+(e.feeTotal!=null?(+e.feeTotal).toFixed(2)+'%':'—')+'</td>'
+         +'<td style="font-size:12px">'+esc(e.sgzt||'—')+(e.limitNote?'<div style="font-size:11px;color:var(--warn,#d97706)">'+esc(e.limitNote)+'</div>':'')+'</td>'
+         +'<td style="text-align:center"><b style="font-family:var(--mono,monospace);color:var(--brand,#4D6BFE)">'+(sc!=null?sc.toFixed(1):'—')+'</b></td>'
+         +'<td style="text-align:center;white-space:nowrap"><button class="btn-mini" data-pool-act="toWatch" data-code="'+r.code+'" data-name="'+esc(e.name||'')+'">加入自选</button> <button class="btn-mini" data-pool-act="rmScreen" data-code="'+r.code+'" data-name="'+esc(e.name||'')+'">删除</button></td></tr>';
+      });
+      h+='</tbody></table>';
+      wrap.innerHTML=h;
+      wrap.querySelectorAll('[data-pool-act]').forEach(function(btn){
+        btn.addEventListener('click', function(){
+          var act=btn.dataset.poolAct, code=btn.dataset.code, name=btn.dataset.name;
+          if(act==='toWatch'){ var wa=poolLsGet(POOL_LS.watch_added)||{}; wa[code]={name:name, addedAt:new Date().toISOString().slice(0,10)}; poolLsSet(POOL_LS.watch_added,wa); toast('已加入自选：'+name); renderPoolScreen(); }
+          else if(act==='rmScreen'){ var sr=poolLsGet(POOL_LS.screen_removed)||{}; sr[code]=1; poolLsSet(POOL_LS.screen_removed,sr); toast('已从筛选池删除（永久生效）：'+name); renderPoolScreen(); }
+        });
+      });
+    });
+  }
+
   // 事件绑定（元素均为静态 HTML，加载即可绑定）
   // v71：视图切到 data 即触发数据加载——覆盖「桌面点击 nav 按钮」「移动端『更多』弹层 showView」等所有路径
   if (typeof showView === 'function') {
@@ -12504,10 +12629,14 @@ setInterval(updateSessionBadge, 30000);
       var rc=RC_TABS[t];   /* v97 */
       $('dcChartWrap').style.display = t==='chart'?'':'none';
       $('dcOverviewWrap').style.display = t==='overview'?'':'none';
+      var pw=$('dcPoolWatchWrap'); if(pw) pw.style.display = t==='pool-watch'?'':'none';   /* v353 fw2_v353_pool_tabs */
+      var ps=$('dcPoolScreenWrap'); if(ps) ps.style.display = t==='pool-screen'?'':'none';   /* v353 */
       var rw=$('dcResearchWrap'); if(rw) rw.style.display = rc?'':'none';   /* v97 */
-      var bar=$('dcBar'); if(bar) bar.style.display = rc?'none':'';   /* v97 */
+      var bar=$('dcBar'); if(bar) bar.style.display = (rc||t==='pool-watch'||t==='pool-screen')?'none':'';   /* v97 + v353：三池 Tab 自带操作，隐藏公共筛选栏 */
       if(t==='overview'){ if(FB_LOADED) renderDcOverview(); else loadDcBasic().then(function(){ if(FB_LOADED) renderDcOverview(); }); }
       else if(t==='chart' && DC_LOADED){ ensureDcDaily(); renderDcChart(); }
+      else if(t==='pool-watch'){ renderPoolWatch(); }   /* v353 fw2_v353_pool_tabs */
+      else if(t==='pool-screen'){ renderPoolScreen(); }   /* v353 */
       else if(rc){ state.research.tab=rc; if(typeof fillRsPick==='function') fillRsPick(); if(typeof renderResearchChips==='function') renderResearchChips(); renderResearch(); }   /* v97 fw2_v97_research_merge */
     });
   });
