@@ -11127,7 +11127,7 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
   */
   const vc = $('#verChip');
   /* v319 fw2_v319_sig_risk_fusion：动态 verChip 同步升版（v266 起文本停更，本次修正为当前版本） */
-  if (vc) vc.textContent = 'v322 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  if (vc) vc.textContent = 'v331 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
@@ -11366,6 +11366,7 @@ function renderSignalDash() {
           const hasAct = rows.some((r) => r.lvl === 'act');
           const hasNear = rows.some((r) => r.lvl === 'near');
           const top = hasAct ? 'act' : hasNear ? 'near' : 'watch';
+          /* v331 fw2_v331_crash_guard：空标卡 name 兜底，修复 Cannot read properties of undefined 渲染崩溃 */
           return { code, name: (rows[0] && rows[0].name) || codeName[code] || code, rows, top, nAct: rows.filter((r) => r.lvl === 'act').length, nNear: rows.filter((r) => r.lvl === 'near').length };
         });
         /* v326 fw2_v326_sig_base_first：底仓/缓冲（杠铃 base 档）持仓标的置顶显示——
