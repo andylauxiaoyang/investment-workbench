@@ -11413,10 +11413,11 @@ function renderSignalDash() {
           bond: ['安全垫', '#E9F9F1', '#059669'], hedge: ['对冲', '#F1EFE8', '#5F5E5A'], other: ['其他', '#F1EFE8', '#5F5E5A']
         };
         const _pileRank = { base: 0, off: 1, bond: 2, hedge: 3, other: 4 };
-        /* v335 fw2_v335_n100_family：T10 杠铃档位恒排持仓信号组第一位（整体持仓监控）；
-           其余按档位（base 优先）→ 纳指100 族（同指数标的前后相邻，不被隔开）→ 信号等级 → 代码 */
+        /* v338 fw2_v338_sig_sort_lvl：持仓/自选标卡排序 = T10 恒置顶 → 等级（行动→接近→观察）→
+           同等级内按该等级信号数量降序（行动越多越前）→ 纳指100 族相邻 → 代码 */
         const _fam = (t) => (/纳斯达克100|纳指100/.test(String(t.name || '')) ? 'n100' : 'z' + String(t.code));
-        targets.sort((a, b) => (String(a.code) === 'T10' ? -1 : String(b.code) === 'T10' ? 1 : 0) || (_pileRank[_pileOf(a)] - _pileRank[_pileOf(b)]) || String(_fam(a)).localeCompare(String(_fam(b))) || (lvlRank[a.top] - lvlRank[b.top]) || String(a.code).localeCompare(String(b.code)));
+        const _cnt = (t) => (t.top === 'act' ? t.nAct : t.top === 'near' ? t.nNear : (t.rows.length - t.nAct - t.nNear));
+        targets.sort((a, b) => (String(a.code) === 'T10' ? -1 : String(b.code) === 'T10' ? 1 : 0) || (lvlRank[a.top] - lvlRank[b.top]) || (_cnt(b) - _cnt(a)) || String(_fam(a)).localeCompare(String(_fam(b))) || String(a.code).localeCompare(String(b.code)));
         const TAR = { act: ['行动', '#A32D2D', '#FCEBEB'], near: ['接近', '#854F0B', '#FAEEDA'], watch: ['观察', '#5F5E5A', '#F1EFE8'] };
         const bdC = (n, label, bg, fg) => (n ? '<span style="display:inline-block;background:' + bg + ';color:' + fg + ';font-size:11px;padding:1px 6px;border-radius:6px;margin-left:3px">' + label + ' ' + n + '</span>' : '');
         html += targets.map((t) => {
