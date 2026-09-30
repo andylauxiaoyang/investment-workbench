@@ -11395,7 +11395,8 @@ function renderSignalDash() {
           bond: ['安全垫', '#E9F9F1', '#059669'], hedge: ['对冲', '#F1EFE8', '#5F5E5A'], other: ['其他', '#F1EFE8', '#5F5E5A']
         };
         const _pileRank = { base: 0, off: 1, bond: 2, hedge: 3, other: 4 };
-        targets.sort((a, b) => (_pileRank[_pileOf(a)] - _pileRank[_pileOf(b)]) || (lvlRank[a.top] - lvlRank[b.top]) || String(a.code).localeCompare(String(b.code)));
+        /* v334 fw2_v334_t10_base：T10 杠铃档位=整体持仓监控，恒排持仓信号组第一位；其余按档位（base 优先）→ 信号等级 → 代码 */
+        targets.sort((a, b) => (String(a.code) === 'T10' ? -1 : String(b.code) === 'T10' ? 1 : 0) || (_pileRank[_pileOf(a)] - _pileRank[_pileOf(b)]) || (lvlRank[a.top] - lvlRank[b.top]) || String(a.code).localeCompare(String(b.code)));
         const TAR = { act: ['行动', '#A32D2D', '#FCEBEB'], near: ['接近', '#854F0B', '#FAEEDA'], watch: ['观察', '#5F5E5A', '#F1EFE8'] };
         const bdC = (n, label, bg, fg) => (n ? '<span style="display:inline-block;background:' + bg + ';color:' + fg + ';font-size:11px;padding:1px 6px;border-radius:6px;margin-left:3px">' + label + ' ' + n + '</span>' : '');
         html += targets.map((t) => {
