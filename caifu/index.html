@@ -13392,9 +13392,31 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
      聚合视图按基金汇总净份额 / 净投入 / 加权成本，作为持仓与盈亏的权威增量来源 */
   var LEDGER_KEY = 'fw2_trade_ledger_v1';
   var SNAP_KEY = 'fw2_all_snapshot_v1';
+  var __ledgerRestored = false;   /* v354 fw2_v354_ledger_cloud_restore：云端自动恢复标记 */
   function ledgerLoad() {
-    try { var raw = localStorage.getItem(LEDGER_KEY); if (raw) { var d = JSON.parse(raw); if (d && Array.isArray(d.trades)) return d; } } catch (e) {}
+    try { var raw = localStorage.getItem(LEDGER_KEY); if (raw) { var d = JSON.parse(raw); if (d && Array.isArray(d.trades) && d.trades.length) return d; } } catch (e) {}
     return { updatedAt: '', trades: [] };
+  }
+  /* v354 fw2_v354_ledger_cloud_restore：台账本地为空时自动从云端镜像 ledger-import.json 恢复
+     （换浏览器/清缓存/换设备 localStorage 丢失的场景，避免台账凭空消失）；幂等：只补一次，
+     成功写入本地并回调刷新。★触发条件=localStorage 完全没有台账键（用户主动清空/已有空台账不覆盖） */
+  function ledgerCloudRestore(cb) {
+    if (__ledgerRestored) { if (cb) cb(); return; }
+    var raw = null;
+    try { raw = localStorage.getItem(LEDGER_KEY); } catch (e) {}
+    if (raw !== null) { __ledgerRestored = true; if (cb) cb(); return; }   /* 键已存在（含空台账）：视为已初始化，不覆盖 */
+    var urls = ['./data/ledger-import.json', 'https://raw.githubusercontent.com/andylauxiaoyang/investment-workbench/master/caifu/data/ledger-import.json'];
+    var i = 0;
+    (function next(){
+      if (i >= urls.length) { __ledgerRestored = true; if (cb) cb(); return; }
+      fetch(urls[i], { cache: 'no-store' }).then(function (r) { if (!r.ok) throw 0; return r.json(); }).then(function (j) {
+        if (j && Array.isArray(j.trades) && j.trades.length) {
+          try { localStorage.setItem(LEDGER_KEY, JSON.stringify(j)); } catch (e) {}
+          __ledgerRestored = true;
+          if (cb) cb();
+        } else { i++; next(); }
+      }).catch(function () { i++; next(); });
+    })();
   }
   function ledgerSave(ld) { ld.updatedAt = new Date().toISOString().slice(0, 10); try { localStorage.setItem(LEDGER_KEY, JSON.stringify(ld)); } catch (e) {} persistAllSnapshot(); }
   /* ===== v347 阶段①B：台账 → 持仓 → 资金平衡 联动 + 统一落盘 =====
@@ -13556,6 +13578,12 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
   function renderLedger() {
     var el = document.getElementById('stp-ledger');
     if (!el) return;
+    /* v354 fw2_v354_ledger_cloud_restore：本地台账键不存在时自动从云端恢复（一次性），恢复后重渲染 */
+    if (!__ledgerRestored) {
+      var _raw = null;
+      try { _raw = localStorage.getItem(LEDGER_KEY); } catch (e) {}
+      if (_raw === null) { ledgerCloudRestore(function () { try { renderLedger(); } catch (e) {} }); }
+    }
     var ld = ledgerLoad();
     /* v347 阶段①B：台账→持仓 联动（幂等，仅差异更新）→ 通知资金平衡 */
     try { syncPortfolioFromLedger(ld); } catch (e) {}
