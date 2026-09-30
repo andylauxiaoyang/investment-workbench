@@ -13268,15 +13268,16 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
     var m = {};
     (ld.trades || []).forEach(function (t) {
       var k = String(t.code || '');
-      m[k] = m[k] || { code: k, name: t.name || '', buyAmt: 0, sellAmt: 0, qty: 0, cnt: 0 };
+      m[k] = m[k] || { code: k, name: t.name || '', buyAmt: 0, sellAmt: 0, qty: 0, costQty: 0, costAmt: 0, cnt: 0 };
       var o = m[k]; o.cnt++;
       var a = +t.amt || 0, q = +t.qty || 0;
-      if (String(t.side) === 'sell') { o.sellAmt += a; o.qty -= q; } else { o.buyAmt += a; o.qty += q; }
+      if (String(t.side) === 'sell') { o.sellAmt += a; o.qty -= q; }
+      else { o.buyAmt += a; o.qty += q; if (a > 0 && q > 0) { o.costQty += q; o.costAmt += a; } } /* 分红/收益份额零成本，不计入加权成本分母 */
     });
     return Object.keys(m).map(function (k) {
       var o = m[k];
       o.net = o.buyAmt - o.sellAmt;
-      o.cost = o.qty > 0.0001 ? o.net / o.qty : 0;
+      o.cost = o.costQty > 0.0001 ? o.costAmt / o.costQty : 0;
       return o;
     }).sort(function (a, b) { return a.code.localeCompare(b.code); });
   }
@@ -13296,8 +13297,35 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
         if (j && (j.d || j.code)) return [j];
       } catch (e) {}
     }
-    var out = [];
-    String(s).split(/\r?\n/).forEach(function (line) {
+    var lines = String(s).split(/\r?\n/);
+    /* 天天基金「交易查询」网页表格（整表复制）识别：表头含 产品名称/业务类型 */
+    var isTT = lines.some(function (l) { return /产品名称|业务类型|交易发起时间/.test(l); });
+    if (isTT) {
+      var out = [], skipped = 0;
+      lines.forEach(function (line) {
+        var cells = line.split(/[\t,，；]+/).map(function (c) { return c.trim(); });
+        if (cells.length < 3) return;
+        if (/产品名称|业务类型|交易发起时间|^操作$/.test(line)) return; /* 表头行 */
+        var d = normDate(cells[0]); if (!d) return;
+        var status = cells[6] || '成功';
+        if (/撤单|失败|待还款|未成功|已驳回/.test(status)) { skipped++; return; } /* 非成交状态跳过 */
+        var biz = cells[2] || '';
+        var side = /卖出|赎回|取现|转出/.test(biz) ? 'sell' : 'buy';
+        var amt = 0, qty = 0;
+        var ma = (cells[3] || '').match(/\d+(\.\d+)?/); if (ma) amt = +ma[0];
+        var mq = (cells[4] || '').match(/\d+(\.\d+)?/); if (mq) qty = +mq[0];
+        if (/分红|收益|结转/.test(biz)) amt = 0; /* 分红/收益：份额增加、不占现金投入 */
+        var nc = cells[1] || '';
+        var mcode = nc.match(/\d{6}/);
+        var code = mcode ? mcode[0] : '';
+        var name = nc.replace(/\d{6}/g, '').replace(/\s+/g, ' ').trim();
+        out.push({ d: d, code: code, name: name || '活期宝', side: side, amt: amt, qty: qty, nav: 0, src: 'ttjj' });
+      });
+      out.skipped = skipped;
+      return out;
+    }
+    var out2 = [];
+    lines.forEach(function (line) {
       var cells = line.split(/[,\t，；]+/).map(function (c) { return c.trim(); });
       if (cells.length < 2) return;
       var d = normDate(cells[0]); if (!d) return;
@@ -13321,9 +13349,9 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
         if (/^[¥￥]|^(元|份|金额|份额|净值)$/.test(cc)) continue;
         name = cc; break;
       }
-      out.push({ d: d, code: code.length === 6 ? code : '', name: name, side: side, amt: amt, qty: qty, nav: nav, src: 'csv' });
+      out2.push({ d: d, code: code.length === 6 ? code : '', name: name, side: side, amt: amt, qty: qty, nav: nav, src: 'csv' });
     });
-    return out;
+    return out2;
   }
   function renderLedger() {
     var el = document.getElementById('stp-ledger');
@@ -13376,7 +13404,7 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
       + '</div></div>'
       + '<div class="st-card"><h4>成交明细</h4><div style="overflow-x:auto"><table class="st-tbl"><thead><tr><th>日期</th><th>基金</th><th>方向</th><th style="text-align:right">金额</th><th style="text-align:right">份额</th><th style="text-align:right">净值</th><th>来源</th><th></th></tr></thead><tbody>' + rowsHtml + '</tbody></table></div></div>'
       + '<div class="st-card"><h4>按基金聚合 <span class="hint" style="font-weight:400">净份额 / 净投入 / 加权成本（持仓权威增量来源，后续联动持仓与盈亏）</span></h4><div style="overflow-x:auto"><table class="st-tbl"><thead><tr><th>基金</th><th style="text-align:right">笔数</th><th style="text-align:right">买入总额</th><th style="text-align:right">卖出总额</th><th style="text-align:right">净投入</th><th style="text-align:right">净份额</th><th style="text-align:right">加权成本</th></tr></thead><tbody>' + aggHtml + '</tbody></table></div></div>'
-      + '<div class="strat-note">导入格式：支持①天天基金交易记录 CSV（日期,代码,名称,方向,金额,份额,净值，表头自动跳过）②助手解析后的 JSON 数组（可粘贴备份/截图解析结果）。成交后点「导出 JSON」定期备份；台账数据仅存本浏览器 localStorage，换设备需导入备份。</div>';
+      + '<div class="strat-note">导入格式：①天天基金网页「交易查询」表格整表复制粘贴（自动识别表头与状态，撤单/失败自动跳过，分红/收益计份额不计金额）②CSV（日期,代码,名称,方向,金额,份额,净值）③JSON 数组备份。成交后点「导出 JSON」定期备份；台账数据仅存本浏览器 localStorage，换设备需导入备份。</div>';
     var btn = function (sel, fn) { var b = el.querySelector(sel); if (b) b.addEventListener('click', fn); };
     btn('[data-lexp="1"]', function () {
       var blob = new Blob([JSON.stringify(ld, null, 1)], { type: 'application/json' });
@@ -13419,7 +13447,7 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
       if (!box) return;
       if (box.style.display !== 'none') { box.style.display = 'none'; return; }
       box.innerHTML = '<h4>导入成交记录</h4>'
-        + '<div class="strat-note">粘贴天天基金交易记录（CSV/表格文本）或助手解析好的 JSON，点击「解析并导入」。识别规则：第一列为日期（2025-07-25 或 2025/07/25）；方向含「卖出/赎回」为卖出否则买入；数字列按 金额,份额,净值 从右到左取。</div>'
+        + '<div class="strat-note">粘贴天天基金交易记录或助手解析好的 JSON，点击「解析并导入」。支持三种格式：①天天基金网页「交易查询」整表复制（交易发起时间/产品名称/业务类型/申请数额/确认数额/关联账户/状态/操作，自动跳过表头与撤单/失败记录，分红计入份额、金额记 0）；②CSV（日期,代码,名称,方向,金额,份额,净值，表头自动跳过）；③JSON 数组（导出备份/助手解析结果）。</div>'
         + '<textarea class="inp-sm" id="ldTxt" rows="5" style="width:100%;box-sizing:border-box" placeholder="2025-07-25,000746,招商行业精选,买入,1000,812.34,1.2310"></textarea>'
         + '<div style="margin-top:6px;display:flex;gap:6px;align-items:center;flex-wrap:wrap"><button class="btn btn-sm" data-ldparse="1">解析并导入</button><span class="hint" id="ldPv"></span></div>';
       box.style.display = '';
@@ -13427,9 +13455,10 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
         var txt = document.getElementById('ldTxt').value;
         var arr = parseLedgerText(txt);
         if (!arr.length) { document.getElementById('ldPv').textContent = '未解析到有效记录，请检查格式'; return; }
+        var sk = arr.skipped || 0;
         arr.forEach(function (r) { ld.trades.push(r); });
         ledgerSave(ld);
-        document.getElementById('ldPv').textContent = '已导入 ' + arr.length + ' 笔';
+        document.getElementById('ldPv').textContent = '已导入 ' + arr.length + ' 笔' + (sk ? '，跳过 ' + sk + ' 笔（撤单/失败/无交易日）' : '');
         renderLedger();
       });
     });
