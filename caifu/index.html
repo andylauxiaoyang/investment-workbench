@@ -12344,6 +12344,27 @@ setInterval(updateSessionBadge, 30000);
     return '低';
   }
   function liqCls(level){ return level==='高风险'?'liq-high':(level==='关注'?'liq-watch':'liq-low'); }
+  /* fw2_v357_pool_unify：行增强公共函数——三池（持仓/自选/筛选）共用同一套行构造
+     （fee/tenure/aum/liq/mgr + 区间收益列 iv_* + 风险指标 vol/mdd/sharpe/calmar/sortino），
+     保证「三个基金模块字段一致、显示一致」。 */
+  function enrichPoolRow(r){
+    var sales = (typeof r.salesExp==='number') ? r.salesExp : 0;
+    r.fee = (r.mgExp!=null || r.trustExp!=null) ? ((r.mgExp||0) + (r.trustExp||0) + sales) : null;   /* 占位行（无画像）费率显示 — */
+    r.tenure = r.mgrTenureText || (r.mgrTenure!=null ? r.mgrTenure+'年' : '—');
+    r.aum = (typeof r.mgrAUM==='number') ? r.mgrAUM : null;
+    r.liq = liqRisk(r.scale);
+    r.mgr = r.mgrNames || '—';
+    var _m = ivMap(), _rws = (_m && _m[r.code]) || [], _money = (r.isMoney === true || /货币/.test(r.ftype || ''));
+    var _basis = basisOf(r.code);
+    IV_DEFS.forEach(function(d){ r['iv_'+d.k] = ivSeries(_rws, d, _money, _basis); });
+    var _rm = anMetrics(_rws, _money, _basis);
+    r.vol = _rm ? _rm.vol : null; r.mdd = _rm ? _rm.mdd : null; r.sharpe = _rm ? _rm.sharpe : null;
+    r.calmar = _rm ? _rm.calmar : null; r.sortino = _rm ? _rm.sortino : null;
+    return r;
+  }
+  function poolRowPlaceholder(code, name){
+    return enrichPoolRow({code:code, name:name||code, scale:null, fee:null, tenure:'—', aum:null, mgr:'—', estab:'—', ftype:'', noProfile:true});
+  }
   function ovRows(){
     if(!FB) return [];
     var keys = Object.keys(FB.funds);
@@ -12369,22 +12390,8 @@ setInterval(updateSessionBadge, 30000);
         arr.push({code:c, name:nm, scale:null, fee:null, tenure:'—', aum:null, mgr:'—', estab:'—', ftype:'', noProfile:true});
       });
     }
-    arr.forEach(function(r){
-      var sales = (typeof r.salesExp==='number') ? r.salesExp : 0;
-      r.fee = (r.mgExp!=null || r.trustExp!=null) ? ((r.mgExp||0) + (r.trustExp||0) + sales) : null;   /* fw2_v356：占位行（无画像）费率显示 — */
-      r.tenure = r.mgrTenureText || (r.mgrTenure!=null ? r.mgrTenure+'年' : '—');
-      r.aum = (typeof r.mgrAUM==='number') ? r.mgrAUM : null;
-      r.liq = liqRisk(r.scale);
-      r.mgr = r.mgrNames || '—';   // v89 修复：fund-basic.json 字段名为 mgrNames，原「基金经理」列键 mgr 恒取不到值（列一直空白）
-      // v89：区间收益并入同一行（由月度净值派生）
-      var _m = ivMap(), _rws = (_m && _m[r.code]) || [], _money = (r.isMoney === true || /货币/.test(r.ftype || ''));
-      var _basis = basisOf(r.code);
-      IV_DEFS.forEach(function(d){ r['iv_'+d.k] = ivSeries(_rws, d, _money, _basis); });
-      // v159 fw2_v159_risk_cols：风险指标并入同一行（复用 anMetrics，全历史·月频自算）
-      var _rm = anMetrics(_rws, _money, _basis);
-      r.vol = _rm ? _rm.vol : null; r.mdd = _rm ? _rm.mdd : null; r.sharpe = _rm ? _rm.sharpe : null;
-      r.calmar = _rm ? _rm.calmar : null; r.sortino = _rm ? _rm.sortino : null;
-    });
+    /* fw2_v357_pool_unify：行增强抽成公共函数 enrichPoolRow（三池共用同一套列口径） */
+    arr.forEach(enrichPoolRow);
     if(dcUI.sel) arr = arr.filter(function(r){ return dcUI.sel.has(r.code); });
     var q = (dcUI.search||'').trim().toLowerCase();
     if(q) arr = arr.filter(function(r){ return (r.code+' '+(r.name||'')+' '+(r.ftype||'')).toLowerCase().indexOf(q)>=0; });
@@ -12539,6 +12546,55 @@ setInterval(updateSessionBadge, 30000);
              筛选池=screen-pool.json（market_screen.py 产出 20 只候选）。
      流转：筛选→自选（fw2_watch_added_v1）→持仓（fw2_manual_held_v1）；删除永久=fw2_screen_removed_v1 / fw2_watch_removed_v1。 */
   var POOL_LS = { watch_added:'fw2_watch_added_v1', watch_removed:'fw2_watch_removed_v1', screen_removed:'fw2_screen_removed_v1', manual_held:'fw2_manual_held_v1' };
+  /* fw2_v357_pool_unify：三池统一完整表渲染（自选/筛选池与持仓池同结构：OVC 全列 + 操作列 + 口径说明）。
+     列集 = ovColsAll()（与持仓池完全一致），行数据由 enrichPoolRow 统一构造，保证三个基金模块字段一致、显示一致。 */
+  function poolTableHtml(rows, o){
+    var OVC=ovColsAll();
+    var h='<div class="pool-note" style="font-size:12px;color:var(--muted,#64748b);margin:2px 2px 10px;line-height:1.6">'+(o.note||'')+'</div>';
+    if(!rows.length) return h+(o.empty||'<div style="padding:24px;color:var(--muted,#94a3b8);text-align:center">暂无基金</div>');
+    h+='<table class="dc-tbl dc-ov-tbl"><thead><tr>';
+    OVC.forEach(function(c){
+      h+='<th class="'+((c.num?'num':'')+(c.k==='liq'?' liq':'')+(c.iv?' iv':'')+(c.sep?' sep':'')).trim()+'">'+c.t+'</th>';
+    });
+    if(o.opLabel) h+='<th style="text-align:center;width:'+(o.opW||150)+'px">'+o.opLabel+'</th>';
+    h+='</tr></thead><tbody>';
+    rows.forEach(function(r){
+      h+='<tr>';
+      OVC.forEach(function(c){
+        var v=r[c.k];
+        var cls=((c.num?'num':'')+(c.iv?' iv':'')+(c.sep?' sep':'')).trim();
+        if(c.iv){
+          if(v==null){
+            var why = !DC ? '月度净值数据加载中…'
+                    : (!(ivMap() || {})[r.code]) ? '该基金未纳入月度净值表'
+                    : (c.def.k==='since') ? '数据不足'
+                    : (c.def.k==='ytd') ? '缺上一年末基准月'
+                    : (r.estab ? '成立于 '+r.estab+'，不足 '+c.def.m+' 个月' : '历史不足 '+c.def.m+' 个月');
+            h+='<td class="'+(cls+' na').trim()+'" title="'+esc(why)+'">—</td>';
+          } else {
+            h+='<td class="'+(cls+(v<0?' neg':(v>0?' pos':''))).trim()+'">'+(v>=0?'+':'')+v.toFixed(2)+'</td>';
+          }
+        }
+        else if(c.k==='scale'||c.k==='fee'||c.k==='aum'){ h+='<td class="'+cls+'">'+(v==null?'—':(+v).toFixed(2))+'</td>'; }
+        else if(c.risk){ h+='<td class="'+(cls+(c.k==='mdd'&&v!=null&&v<0?' neg':'')).trim()+'" title="推断·自算，全历史·月频；分红型按累计净值">'+(v==null?'—':v.toFixed(2))+'</td>'; }
+        else if(c.k==='liq'){ h+='<td class="'+(liqCls(v)+' '+cls).trim()+'" title="按规模派生评估，非官方判定">'+(v||'—')+'</td>'; }
+        else if(c.k==='name'||c.k==='mgr'||c.k==='estab'){
+          var cell=esc(v||'');
+          if(c.k==='name' && o.nameSub){
+            var sub=o.nameSub(r);
+            if(sub) cell+='<div style="font-size:11px;color:var(--muted,#94a3b8);line-height:1.5;margin-top:2px">'+sub+'</div>';
+          }
+          h+='<td class="'+cls+'">'+cell+'</td>';
+        }
+        else { h+='<td class="'+cls+'">'+(v==null?'—':esc(v))+'</td>'; }
+      });
+      if(o.opCell) h+='<td style="text-align:center;white-space:nowrap">'+o.opCell(r)+'</td>';
+      h+='</tr>';
+    });
+    h+='</tbody></table>';
+    h+='<div class="dc-foot">'+(o.foot||('共 '+rows.length+' 只'))+'</div>';
+    return h;
+  }
   function poolLsGet(k){ try{ return JSON.parse(localStorage.getItem(k)||'null')||null; }catch(e){ return null; } }
   function poolLsSet(k,v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} }
   function poolHeldCodes(){
@@ -12581,16 +12637,30 @@ setInterval(updateSessionBadge, 30000);
     var seen={}, list=[];
     rows.forEach(function(r){ if(seen[r.code]) return; seen[r.code]=1; if(removed[r.code]) return; if(held[r.code]) return; list.push(r); });
     list.sort(function(a,b){ return (a.name||'').localeCompare(b.name||'','zh'); });
-    var h='<div class="pool-note" style="font-size:12px;color:var(--muted,#64748b);margin:6px 2px 10px;line-height:1.6">自选基金池（'+list.length+' 只）：自选表 '+wl.length+' 只 + 筛选池加入 '+Object.keys(added).length+' 只；已持仓 / 已移除不在此池。点「已买入」标记持仓 → 归入持仓池；点「移除」从自选池删除。</div>';
-    if(!list.length){ wrap.innerHTML=h+'<div style="padding:24px;color:var(--muted,#94a3b8);text-align:center">自选池为空。可到「筛选基金」Tab 把候选基金加入自选。</div>'; return; }
-    h+='<table class="pool-tbl" style="width:100%;border-collapse:collapse;font-size:13px"><thead><tr><th>代码</th><th>基金名称</th><th>来源</th><th>关注日期</th><th>备注</th><th style="text-align:center;width:150px">操作</th></tr></thead><tbody>';
+    /* fw2_v357_pool_unify：自选池改为与持仓池同结构完整表（OVC 全列 + 操作列），画像优先 fund-basic.json；
+       无画像走占位行（口径同持仓池）。来源/关注日期/备注下沉到名称列小字。 */
     list.forEach(function(r){
-      var sub='';
-      if(r.f){ sub='<div style="font-size:11px;color:var(--muted,#94a3b8)">'+esc(r.f.ftype||'')+' · 规模 '+(r.f.scale!=null?(+r.f.scale).toFixed(1)+'亿':'—')+' · 总费率 '+(r.f.mgExp!=null?((+r.f.mgExp+(+r.f.trustExp||0)+(+r.f.salesExp||0)).toFixed(2))+'%':'—')+'</div>'; }
-      h+='<tr><td style="font-family:var(--mono,monospace)">'+esc(r.code)+'</td><td><b>'+esc(r.name)+'</b>'+sub+'</td><td>'+esc(r.source)+'</td><td style="font-family:var(--mono,monospace);color:var(--muted,#64748b)">'+(r.watchAt||'—')+'</td><td style="font-size:12px;color:var(--muted,#64748b)">'+esc(r.note||'')+'</td>'
-       +'<td style="text-align:center;white-space:nowrap"><button class="btn-mini" data-pool-act="toHeld" data-code="'+r.code+'" data-name="'+esc(r.name)+'">已买入</button> <button class="btn-mini" data-pool-act="rmWatch" data-code="'+r.code+'" data-name="'+esc(r.name)+'">移除</button></td></tr>';
+      r.row = r.f ? enrichPoolRow(Object.assign({code:r.code}, r.f)) : poolRowPlaceholder(r.code, r.name);
+      r.row._meta = {name:r.name, source:r.source, watchAt:r.watchAt, note:r.note};
     });
-    h+='</tbody></table>';
+    var note='自选基金池（'+list.length+' 只）：自选表 '+wl.length+' 只 + 筛选池加入 '+Object.keys(added).length+' 只；已持仓 / 已移除不在此池。点「已买入」标记持仓 → 归入持仓池；点「移除」从自选池删除。';
+    var h=poolTableHtml(list.map(function(r){ return r.row; }), {
+      note:note,
+      foot:'自选基金 '+list.length+' 只',
+      nameSub:function(row){
+        var m=row._meta||{}, bits=[];
+        if(m.source) bits.push(esc(m.source));
+        if(m.watchAt) bits.push('关注 '+esc(m.watchAt));
+        if(m.note) bits.push(esc(m.note));
+        return bits.join(' · ');
+      },
+      opLabel:'操作',
+      opCell:function(row){
+        var m=row._meta||{}, nm=m.name||'';
+        return '<button class="btn-mini" data-pool-act="toHeld" data-code="'+row.code+'" data-name="'+esc(nm)+'">已买入</button> <button class="btn-mini" data-pool-act="rmWatch" data-code="'+row.code+'" data-name="'+esc(nm)+'">移除</button>';
+      },
+      empty:'<div style="padding:24px;color:var(--muted,#94a3b8);text-align:center">自选池为空。可到「筛选基金」Tab 把候选基金加入自选。</div>'
+    });
     wrap.innerHTML=h;
     wrap.querySelectorAll('[data-pool-act]').forEach(function(btn){
       btn.addEventListener('click', function(){
@@ -12616,23 +12686,38 @@ setInterval(updateSessionBadge, 30000);
       var sp=window.SCREEN_POOL;
       if(!sp||!sp.funds){ wrap.innerHTML='<div style="padding:24px;color:var(--warn,#d97706);text-align:center">筛选池数据加载失败（screen-pool.json 不可达）。</div>'; return; }
       var held=poolHeldCodes(), added=poolWatchAdded(), removed=poolScreenRemoved();
-      var list=Object.keys(sp.funds).map(function(c){ return {code:c, e:sp.funds[c]}; }).filter(function(r){ return !removed[r.code]; });
+      var fbObj=(window.FB&&FB.funds)?FB.funds:{};
+      var list=Object.keys(sp.funds).map(function(c){ return {code:c, e:sp.funds[c], f:poolFb(c,fbObj)}; }).filter(function(r){ return !removed[r.code]; });
       list.sort(function(a,b){ var ra=a.e.role||'', rb=b.e.role||''; return ra<rb?-1:(ra>rb?1:(((b.e.score||0))-((a.e.score||0)))); });
-      var h='<div class="pool-note" style="font-size:12px;color:var(--muted,#64748b);margin:6px 2px 10px;line-height:1.6">筛选基金池（'+list.length+' 只，updatedAt '+esc(sp.updatedAt||'')+'，规则 '+esc(sp.rulesFile||'')+'）：全市场筛出的候选苗子。点「加入自选」→ 自选池分析；点「删除」永久移除（重跑筛选不复活）。已持仓 / 已自选有角标。</div>'
-       +'<table class="pool-tbl" style="width:100%;border-collapse:collapse;font-size:13px"><thead><tr><th>代码</th><th>基金名称</th><th>档位</th><th>家族</th><th>3年</th><th>1年</th><th>规模(亿)</th><th>费率</th><th>申赎</th><th>评分</th><th style="width:170px;text-align:center">操作</th></tr></thead><tbody>';
+      /* fw2_v357_pool_unify：筛选池改为与持仓池同结构完整表（OVC 全列 + 操作列），画像优先 fund-basic.json；
+         档位/家族/评分/申赎/区间收益等筛选字段下沉到名称列小字。 */
       list.forEach(function(r){
-        var e=r.e||{}, sc=(e.score!=null?Number(e.score):null);
-        var st=held[r.code]?'<span style="color:var(--down,#16a34a);font-weight:600">已持仓</span>':(added[r.code]?'<span style="color:var(--brand,#4D6BFE);font-weight:600">已自选</span>':'');
-        h+='<tr><td style="font-family:var(--mono,monospace)">'+esc(r.code)+'</td><td><b>'+esc(e.name||'')+'</b>'+(st?' <span style="font-size:11px">'+st+'</span>':'')+'</td><td>'+esc(e.role||'')+'</td><td>'+esc(e.family||'—')+'</td>'
-         +'<td style="font-family:var(--mono,monospace)">'+(e.r3y!=null?(+e.r3y).toFixed(1)+'%':'—')+'</td>'
-         +'<td style="font-family:var(--mono,monospace)">'+(e.r1y!=null?(+e.r1y).toFixed(1)+'%':'—')+'</td>'
-         +'<td style="font-family:var(--mono,monospace)">'+(e.scale!=null?(+e.scale).toFixed(1):'—')+'</td>'
-         +'<td style="font-family:var(--mono,monospace)">'+(e.feeTotal!=null?(+e.feeTotal).toFixed(2)+'%':'—')+'</td>'
-         +'<td style="font-size:12px">'+esc(e.sgzt||'—')+(e.limitNote?'<div style="font-size:11px;color:var(--warn,#d97706)">'+esc(e.limitNote)+'</div>':'')+'</td>'
-         +'<td style="text-align:center"><b style="font-family:var(--mono,monospace);color:var(--brand,#4D6BFE)">'+(sc!=null?sc.toFixed(1):'—')+'</b></td>'
-         +'<td style="text-align:center;white-space:nowrap"><button class="btn-mini" data-pool-act="toWatch" data-code="'+r.code+'" data-name="'+esc(e.name||'')+'">加入自选</button> <button class="btn-mini" data-pool-act="rmScreen" data-code="'+r.code+'" data-name="'+esc(e.name||'')+'">删除</button></td></tr>';
+        r.row = r.f ? enrichPoolRow(Object.assign({code:r.code}, r.f)) : poolRowPlaceholder(r.code, r.e.name||'');
+        r.row._meta = {e:r.e, held:!!held[r.code], added:!!added[r.code]};
       });
-      h+='</tbody></table>';
+      var note='筛选基金池（'+list.length+' 只，updatedAt '+esc(sp.updatedAt||'')+'，规则 '+esc(sp.rulesFile||'')+'）：全市场筛出的候选苗子。点「加入自选」→ 自选池分析；点「删除」永久移除（重跑筛选不复活）。已持仓 / 已自选有角标。';
+      var h=poolTableHtml(list.map(function(r){ return r.row; }), {
+        note:note,
+        foot:'筛选基金 '+list.length+' 只（按档位·评分排序）',
+        nameSub:function(row){
+          var e=row._meta.e||{}, st=row._meta.held?'<span style="color:var(--down,#16a34a);font-weight:600">已持仓</span>':(row._meta.added?'<span style="color:var(--brand,#4D6BFE);font-weight:600">已自选</span>':'');
+          var parts=[];
+          if(e.role) parts.push('档位 '+esc(e.role));
+          if(e.family) parts.push('家族 '+esc(e.family));
+          if(e.score!=null) parts.push('评分 <b style="color:var(--brand,#4D6BFE)">'+Number(e.score).toFixed(1)+'</b>');
+          if(e.r3y!=null) parts.push('3年 '+(+e.r3y).toFixed(1)+'%');
+          if(e.r1y!=null) parts.push('1年 '+(+e.r1y).toFixed(1)+'%');
+          if(e.sgzt) parts.push('申赎 '+esc(e.sgzt));
+          var s=parts.join(' · ');
+          return (st?'<div style="font-size:11px;line-height:1.4">'+st+'</div>':'')+(s?'<div style="font-size:11px;color:var(--muted,#94a3b8);line-height:1.5;margin-top:2px">'+s+'</div>':'')+(e.limitNote?'<div style="font-size:11px;color:var(--warn,#d97706);line-height:1.5">'+esc(e.limitNote)+'</div>':'');
+        },
+        opLabel:'操作',
+        opW:170,
+        opCell:function(row){
+          var nm=row._meta.e.name||'';
+          return '<button class="btn-mini" data-pool-act="toWatch" data-code="'+row.code+'" data-name="'+esc(nm)+'">加入自选</button> <button class="btn-mini" data-pool-act="rmScreen" data-code="'+row.code+'" data-name="'+esc(nm)+'">删除</button>';
+        }
+      });
       wrap.innerHTML=h;
       wrap.querySelectorAll('[data-pool-act]').forEach(function(btn){
         btn.addEventListener('click', function(){
