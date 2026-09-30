@@ -1379,7 +1379,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 
 
       
-      <section class="view" id="view-strategy"><!-- fw2_v120_strategy --><div class="card" id="stratCycleCard"></div><div class="card strat-hero" id="stratHero"></div><div class="strat-tabs v-tabs" id="stratTabs"><button class="st-tab v-tab active" data-st="alloc">资产配置</button><button class="st-tab v-tab" data-st="cal">执行日历</button><button class="st-tab v-tab" data-st="cards">逐标的执行卡</button><button class="st-tab v-tab" data-st="plan">月度定投</button><button class="st-tab v-tab" data-st="review">季度复盘</button></div><div class="st-pane" id="stp-alloc"></div><div class="st-pane" id="stp-cal" style="display:none"></div><div class="st-pane" id="stp-cards" style="display:none"></div><!-- v167 fw2_v167_xmap_scope：场内外对照自共享层下移至「逐标的执行卡」tab 底部，默认折叠 --><div class="card" id="xmapCard" style="display:none"></div><div class="st-pane" id="stp-plan" style="display:none"></div><div class="st-pane" id="stp-review" style="display:none"></div><!-- v167：场内外对照已下移至 #stp-cards 之后（原共享层位置摘除）--></section>
+      <section class="view" id="view-strategy"><!-- fw2_v120_strategy --><div class="card" id="stratCycleCard"></div><div class="card strat-hero" id="stratHero"></div><div class="strat-tabs v-tabs" id="stratTabs"><button class="st-tab v-tab active" data-st="alloc">资产配置</button><button class="st-tab v-tab" data-st="cal">执行日历</button><button class="st-tab v-tab" data-st="cards">逐标的执行卡</button><button class="st-tab v-tab" data-st="ledger">交易台账</button><button class="st-tab v-tab" data-st="plan">月度定投</button><button class="st-tab v-tab" data-st="review">季度复盘</button></div><div class="st-pane" id="stp-alloc"></div><div class="st-pane" id="stp-cal" style="display:none"></div><div class="st-pane" id="stp-cards" style="display:none"></div><!-- v167 fw2_v167_xmap_scope：场内外对照自共享层下移至「逐标的执行卡」tab 底部，默认折叠 --><div class="card" id="xmapCard" style="display:none"></div><div class="st-pane" id="stp-ledger" style="display:none"></div><div class="st-pane" id="stp-plan" style="display:none"></div><div class="st-pane" id="stp-review" style="display:none"></div><!-- v167：场内外对照已下移至 #stp-cards 之后（原共享层位置摘除）--></section>
       <!-- v91 fw2_v91_macro_merge：宏观·情绪 独立页曾并入 数据中心 → 宏观数据 分块（v135 已反向拆分，见下） -->
       <!-- fw2_v135_macro_view：宏观数据由「数据中心」分块迁出为独立模块（用户 2026-09-18「宏观数据单独作为一个模块放在数据中心上面」）；#view-data 改名「基金数据」并删除 dcBlocks 切换行（基金数据直接进入内容区，默认总览 Tab） -->
       <section class="view" id="view-macro">
@@ -13249,10 +13249,188 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
     renderStratHero();
     renderStratCal();
     renderStratCards();
+    renderLedger();
     renderStratPlan();
     renderStratAlloc();
     renderStratReview();
   }
+
+  /* ===== v342 fw2_v342_trade_ledger：交易台账（策略执行 tab）=====
+     逐笔成交记录（天天基金导入 / CSV 粘贴 / JSON 备份 / 手动增删），localStorage 持久化；
+     聚合视图按基金汇总净份额 / 净投入 / 加权成本，作为持仓与盈亏的权威增量来源 */
+  var LEDGER_KEY = 'fw2_trade_ledger_v1';
+  function ledgerLoad() {
+    try { var raw = localStorage.getItem(LEDGER_KEY); if (raw) { var d = JSON.parse(raw); if (d && Array.isArray(d.trades)) return d; } } catch (e) {}
+    return { updatedAt: '', trades: [] };
+  }
+  function ledgerSave(ld) { ld.updatedAt = new Date().toISOString().slice(0, 10); try { localStorage.setItem(LEDGER_KEY, JSON.stringify(ld)); } catch (e) {} }
+  function ledgerAgg(ld) {
+    var m = {};
+    (ld.trades || []).forEach(function (t) {
+      var k = String(t.code || '');
+      m[k] = m[k] || { code: k, name: t.name || '', buyAmt: 0, sellAmt: 0, qty: 0, cnt: 0 };
+      var o = m[k]; o.cnt++;
+      var a = +t.amt || 0, q = +t.qty || 0;
+      if (String(t.side) === 'sell') { o.sellAmt += a; o.qty -= q; } else { o.buyAmt += a; o.qty += q; }
+    });
+    return Object.keys(m).map(function (k) {
+      var o = m[k];
+      o.net = o.buyAmt - o.sellAmt;
+      o.cost = o.qty > 0.0001 ? o.net / o.qty : 0;
+      return o;
+    }).sort(function (a, b) { return a.code.localeCompare(b.code); });
+  }
+  function normDate(s) {
+    var m = String(s).match(/(\d{4})[-/.](\d{1,2})[-/.](\d{1,2})/);
+    if (!m) return '';
+    return m[1] + '-' + (m[2].length < 2 ? '0' + m[2] : m[2]) + '-' + (m[3].length < 2 ? '0' + m[3] : m[3]);
+  }
+  function parseLedgerText(txt) {
+    var s = String(txt || '').trim();
+    if (!s) return [];
+    if (s.charAt(0) === '{' || s.charAt(0) === '[') {
+      try {
+        var j = JSON.parse(s);
+        if (Array.isArray(j)) return j;
+        if (j && Array.isArray(j.trades)) return j.trades;
+        if (j && (j.d || j.code)) return [j];
+      } catch (e) {}
+    }
+    var out = [];
+    String(s).split(/\r?\n/).forEach(function (line) {
+      var cells = line.split(/[,\t，；]+/).map(function (c) { return c.trim(); });
+      if (cells.length < 2) return;
+      var d = normDate(cells[0]); if (!d) return;
+      var code = (cells[1] || '').replace(/\D/g, '');
+      var side = 'buy';
+      cells.forEach(function (c) {
+        if (/卖出|赎回|转出/.test(c)) side = 'sell';
+        else if (/买入|申购|确认|定投|转入/.test(c)) side = 'buy';
+      });
+      var nums = cells.filter(function (c) { return /^\d+(\.\d+)?$/.test(c); }).map(Number);
+      var amt = 0, qty = 0, nav = 0;
+      if (nums.length >= 3) { nav = nums[nums.length - 1]; qty = nums[nums.length - 2]; amt = nums[nums.length - 3]; }
+      else if (nums.length === 2) { amt = nums[0]; qty = nums[1]; }
+      else if (nums.length === 1) { amt = nums[0]; }
+      out.push({ d: d, code: code.length === 6 ? code : '', name: cells[1] || '', side: side, amt: amt, qty: qty, nav: nav, src: 'csv' });
+    });
+    return out;
+  }
+  function renderLedger() {
+    var el = document.getElementById('stp-ledger');
+    if (!el) return;
+    var ld = ledgerLoad();
+    var agg = ledgerAgg(ld);
+    var totalBuy = agg.reduce(function (s, o) { return s + o.buyAmt; }, 0);
+    var totalSell = agg.reduce(function (s, o) { return s + o.sellAmt; }, 0);
+    var t = ld.trades;
+    var rowsHtml = t.length ? t.slice().reverse().map(function (tr, ri) {
+      var idx = t.length - 1 - ri;
+      return '<tr>'
+        + '<td style="white-space:nowrap">' + esc(tr.d) + '</td>'
+        + '<td><span class="nm" style="font-size:12.5px">' + esc(tr.name || '') + '</span><div class="cd">' + esc(tr.code || '') + '</div></td>'
+        + '<td>' + (String(tr.side) === 'sell' ? '<span style="color:var(--down);font-weight:600">卖出</span>' : '<span style="color:var(--up);font-weight:600">买入</span>') + '</td>'
+        + '<td style="text-align:right">¥' + fmt(+tr.amt || 0) + '</td>'
+        + '<td style="text-align:right">' + (+tr.qty || 0).toFixed(2) + '</td>'
+        + '<td style="text-align:right">' + (+tr.nav || 0).toFixed(4) + '</td>'
+        + '<td><span class="tg">' + (tr.src === 'ttjj' ? '天天基金' : tr.src === 'json' ? '导入' : '手动') + '</span></td>'
+        + '<td><button class="btn btn-sm" data-ldel="' + idx + '">删</button></td>'
+        + '</tr>';
+    }).join('') : '<tr><td colspan="8" style="text-align:center;opacity:.55;padding:18px">暂无成交记录 · 点上方「新增一笔」或粘贴天天基金交易记录导入</td></tr>';
+    var aggHtml = agg.length ? agg.map(function (o) {
+      return '<tr>'
+        + '<td><span class="nm" style="font-size:12.5px">' + esc(o.name || '') + '</span><div class="cd">' + esc(o.code) + '</div></td>'
+        + '<td style="text-align:right">' + o.cnt + ' 笔</td>'
+        + '<td style="text-align:right">' + fmt(o.buyAmt) + '</td>'
+        + '<td style="text-align:right">' + (o.sellAmt ? fmt(o.sellAmt) : '<span style="opacity:.4">—</span>') + '</td>'
+        + '<td style="text-align:right;font-weight:600">' + fmt(o.net) + '</td>'
+        + '<td style="text-align:right">' + o.qty.toFixed(2) + '</td>'
+        + '<td style="text-align:right">' + (o.cost ? o.cost.toFixed(4) : '<span style="opacity:.4">—</span>') + '</td>'
+        + '</tr>';
+    }).join('') : '<tr><td colspan="7" style="text-align:center;opacity:.55;padding:14px">暂无数据</td></tr>';
+    el.innerHTML =
+      '<div class="st-card"><div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">'
+      + '<h4 style="margin:0">交易台账 <span class="hint" style="font-weight:400">逐笔成交 · 天天基金导入 · localStorage 本地保存（可导出 JSON 备份）</span></h4>'
+      + '<span style="display:flex;gap:6px;flex-wrap:wrap">'
+      + '<button class="btn btn-sm" data-lexp="1">导出 JSON</button>'
+      + '<button class="btn btn-sm" data-lnew="1">＋ 新增一笔</button>'
+      + '<button class="btn btn-sm" data-limp="1">导入记录</button>'
+      + '</span></div></div>'
+      + '<div class="st-card" style="display:none" id="ldgNew"></div>'
+      + '<div class="st-card" style="display:none" id="ldgImp"></div>'
+      + '<div class="st-card"><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px">'
+      + '<div class="sh-cell"><div class="k">累计买入</div><div class="v">' + fmt(totalBuy) + '</div></div>'
+      + '<div class="sh-cell"><div class="k">累计卖出</div><div class="v">' + fmt(totalSell) + '</div></div>'
+      + '<div class="sh-cell"><div class="k">净投入</div><div class="v">' + fmt(netIn) + '</div></div>'
+      + '<div class="sh-cell"><div class="k">成交笔数</div><div class="v">' + t.length + '</div></div>'
+      + '</div></div>'
+      + '<div class="st-card"><h4>成交明细</h4><div style="overflow-x:auto"><table class="st-tbl"><thead><tr><th>日期</th><th>基金</th><th>方向</th><th style="text-align:right">金额</th><th style="text-align:right">份额</th><th style="text-align:right">净值</th><th>来源</th><th></th></tr></thead><tbody>' + rowsHtml + '</tbody></table></div></div>'
+      + '<div class="st-card"><h4>按基金聚合 <span class="hint" style="font-weight:400">净份额 / 净投入 / 加权成本（持仓权威增量来源，后续联动持仓与盈亏）</span></h4><div style="overflow-x:auto"><table class="st-tbl"><thead><tr><th>基金</th><th style="text-align:right">笔数</th><th style="text-align:right">买入总额</th><th style="text-align:right">卖出总额</th><th style="text-align:right">净投入</th><th style="text-align:right">净份额</th><th style="text-align:right">加权成本</th></tr></thead><tbody>' + aggHtml + '</tbody></table></div></div>'
+      + '<div class="strat-note">导入格式：支持①天天基金交易记录 CSV（日期,代码,名称,方向,金额,份额,净值，表头自动跳过）②助手解析后的 JSON 数组（可粘贴备份/截图解析结果）。成交后点「导出 JSON」定期备份；台账数据仅存本浏览器 localStorage，换设备需导入备份。</div>';
+    var btn = function (sel, fn) { var b = el.querySelector(sel); if (b) b.addEventListener('click', fn); };
+    btn('[data-lexp="1"]', function () {
+      var blob = new Blob([JSON.stringify(ld, null, 1)], { type: 'application/json' });
+      var a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'trade-ledger-' + (ld.updatedAt || 'backup') + '.json';
+      a.click();
+      setTimeout(function () { URL.revokeObjectURL(a.href); }, 500);
+    });
+    btn('[data-lnew="1"]', function () {
+      var box = document.getElementById('ldgNew');
+      if (!box) return;
+      if (box.style.display !== 'none') { box.style.display = 'none'; return; }
+      var today = new Date().toISOString().slice(0, 10);
+      box.innerHTML = '<h4>新增成交</h4>'
+        + '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin-bottom:8px">'
+        + '<span><span class="flbl">日期</span><input class="inp-sm" id="ldD" type="date" value="' + today + '"></span>'
+        + '<span><span class="flbl">代码(6位)</span><input class="inp-sm" id="ldCode" type="text" maxlength="6" placeholder="000746"></span>'
+        + '<span><span class="flbl">名称</span><input class="inp-sm" id="ldName" type="text" placeholder="基金名称"></span>'
+        + '<span><span class="flbl">方向</span><select class="inp-sm" id="ldSide"><option value="buy">买入</option><option value="sell">卖出</option></select></span>'
+        + '<span><span class="flbl">金额(元)</span><input class="inp-sm" id="ldAmt" type="number" step="0.01" placeholder="1000"></span>'
+        + '<span><span class="flbl">份额</span><input class="inp-sm" id="ldQty" type="number" step="0.01" placeholder="123.45"></span>'
+        + '<span><span class="flbl">确认净值</span><input class="inp-sm" id="ldNav" type="number" step="0.0001" placeholder="1.2345"></span>'
+        + '</div>'
+        + '<button class="btn btn-sm" data-ldadd="1">保存成交</button> <button class="btn btn-sm btn-ghost" data-ldcancel="1">取消</button>';
+      box.style.display = '';
+      btn('[data-ldadd="1"]', function () {
+        var d = document.getElementById('ldD').value, code = document.getElementById('ldCode').value.trim();
+        var name = document.getElementById('ldName').value.trim();
+        var side = document.getElementById('ldSide').value, amt = +document.getElementById('ldAmt').value || 0;
+        var qty = +document.getElementById('ldQty').value || 0, nav = +document.getElementById('ldNav').value || 0;
+        if (!d || (!code && !name)) { alert('请填写日期与基金代码/名称'); return; }
+        ld.trades.push({ d: d, code: code, name: name, side: side, amt: amt, qty: qty, nav: nav, src: '手动' });
+        ledgerSave(ld); renderLedger();
+      });
+      btn('[data-ldcancel="1"]', function () { box.style.display = 'none'; });
+    });
+    btn('[data-limp="1"]', function () {
+      var box = document.getElementById('ldgImp');
+      if (!box) return;
+      if (box.style.display !== 'none') { box.style.display = 'none'; return; }
+      box.innerHTML = '<h4>导入成交记录</h4>'
+        + '<div class="strat-note">粘贴天天基金交易记录（CSV/表格文本）或助手解析好的 JSON，点击「解析并导入」。识别规则：第一列为日期（2025-07-25 或 2025/07/25）；方向含「卖出/赎回」为卖出否则买入；数字列按 金额,份额,净值 从右到左取。</div>'
+        + '<textarea class="inp-sm" id="ldTxt" rows="5" style="width:100%;box-sizing:border-box" placeholder="2025-07-25,000746,招商行业精选,买入,1000,812.34,1.2310"></textarea>'
+        + '<div style="margin-top:6px;display:flex;gap:6px;align-items:center;flex-wrap:wrap"><button class="btn btn-sm" data-ldparse="1">解析并导入</button><span class="hint" id="ldPv"></span></div>';
+      box.style.display = '';
+      btn('[data-ldparse="1"]', function () {
+        var txt = document.getElementById('ldTxt').value;
+        var arr = parseLedgerText(txt);
+        if (!arr.length) { document.getElementById('ldPv').textContent = '未解析到有效记录，请检查格式'; return; }
+        arr.forEach(function (r) { ld.trades.push(r); });
+        ledgerSave(ld);
+        document.getElementById('ldPv').textContent = '已导入 ' + arr.length + ' 笔';
+        renderLedger();
+      });
+    });
+    Array.prototype.forEach.call(el.querySelectorAll('[data-ldel]'), function (b) {
+      b.addEventListener('click', function () {
+        var idx = +b.getAttribute('data-ldel');
+        if (idx >= 0 && idx < ld.trades.length) { ld.trades.splice(idx, 1); ledgerSave(ld); renderLedger(); }
+      });
+    });
+  }
+  window.renderLedger = renderLedger;
 
   function renderStratHero() {
     var el = document.getElementById('stratHero');
