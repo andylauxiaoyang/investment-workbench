@@ -12904,8 +12904,15 @@ setInterval(updateSessionBadge, 30000);
           if(e.r3y!=null) parts.push('3年 '+(+e.r3y).toFixed(1)+'%');
           if(e.r1y!=null) parts.push('1年 '+(+e.r1y).toFixed(1)+'%');
           if(e.sgzt) parts.push('申赎 '+esc(e.sgzt));
+          /* fw2_v363_mgr：经理能力小字（生涯任职分档 / 现基金任职 / 任期年化），换人红色警示 */
+          if(e.mgrTenure!=null) parts.push('经理生涯 '+Number(e.mgrTenure).toFixed(1)+'年');
+          if(e.fundTenure!=null) parts.push('现基金 '+Number(e.fundTenure).toFixed(1)+'年');
+          if(e.mgrAnnRet!=null) parts.push('任期年化 '+Number(e.mgrAnnRet).toFixed(1)+'%');
+          if(e.mgrScaleSum!=null) parts.push('在管 '+((e.mgrFundCnt!=null)?e.mgrFundCnt+'只/':'')+Number(e.mgrScaleSum).toFixed(0)+'亿');
           var s=parts.join(' · ');
-          return (st?'<div style="font-size:11px;line-height:1.4">'+st+'</div>':'')+(s?'<div style="font-size:11px;color:var(--muted,#94a3b8);line-height:1.5;margin-top:2px">'+s+'</div>':'')+(e.limitNote?'<div style="font-size:11px;color:var(--warn,#d97706);line-height:1.5">'+esc(e.limitNote)+'</div>':'');
+          var warn='';
+          if(e.mgrChanged) warn='<div style="font-size:11px;color:var(--warn,#d97706);font-weight:600;line-height:1.5">⚠ 换经理风险：'+esc(e.mgrChanged)+(e.fundTenure!=null?'（现任上任 '+Number(e.fundTenure).toFixed(1)+'年）':'')+'</div>';
+          return (st?'<div style="font-size:11px;line-height:1.4">'+st+'</div>':'')+(s?'<div style="font-size:11px;color:var(--muted,#94a3b8);line-height:1.5;margin-top:2px">'+s+'</div>':'')+warn+(e.limitNote?'<div style="font-size:11px;color:var(--warn,#d97706);line-height:1.5">'+esc(e.limitNote)+'</div>':'');
         },
         opLabel:'操作',
         opW:170,
