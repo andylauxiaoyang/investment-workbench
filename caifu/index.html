@@ -12461,7 +12461,8 @@ setInterval(updateSessionBadge, 30000);
     var IV=IV_DEFS||[];
     return []
       /* —— 基础 —— */
-      .concat([{k:'code', t:'代码'}, {k:'name', t:'名称'}])
+      /* fw2_v379_pool_cols_name_first：名称置首列、代码第二列；配合 line 1766 的 first-child sticky，向右滚动时冻结「名称」列，手机/小屏可直接识别基金（原冻结代码列看不出是哪个基金且占空间） */
+      .concat([{k:'name', t:'名称'}, {k:'code', t:'代码'}])
       /* —— 筛选定位 —— */
       .concat([{k:'st', t:'状态', get:function(row){ var e=row._meta.e||{}, st=row._meta.held?'已持仓':(row._meta.added?'已自选':''); return st?('<span style="color:'+(row._meta.held?'var(--down,#16a34a)':'var(--brand,#4D6BFE)')+';font-weight:600">'+esc(st)+'</span>'):null; }, html:true}])
       .concat([{k:'role', t:'档位', get:function(row){ var e=row._meta.e||{}; return e.role||null; }}])
