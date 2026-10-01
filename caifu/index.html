@@ -12944,6 +12944,33 @@ setInterval(updateSessionBadge, 30000);
       +'<div style="font-size:10px;color:var(--muted,#94a3b8);margin-top:6px;line-height:1.5">数据源：天天基金 jjjl 历任基金一览（任职≥180 天产品）；排除分级/原油油气/被动指数（增强保留）。</div>';
     openModal('经理生涯曲线 · '+esc(e.name||code), html);
   }
+  function openTopHoldings(code){
+    var sp=window.SCREEN_POOL;
+    if(!sp||!sp.funds||!sp.funds[code]){ toast('重仓数据未就绪'); return; }
+    var e=sp.funds[code], top=(e.topStocks||[]).slice();
+    var head='<div style="margin-bottom:10px;line-height:1.8">'
+      +'<b>'+esc(e.name||code)+'</b> <span style="color:var(--muted,#94a3b8)">'+esc(code||'')+'</span>'
+      +(e.family?' · '+esc(e.family):'')
+      +(e.concPct!=null?' · 前十大占比 <b style="color:var(--brand,#4D6BFE)">'+Number(e.concPct).toFixed(1)+'%</b>':'')
+      +(e.concDate?' · 截至 '+esc(e.concDate):'')
+      +'</div>';
+    if(!top.length){ openModal('重仓明细 · '+esc(e.name||code), head+'<div style="color:var(--muted,#94a3b8);padding:12px 0">指数基金不披露个股重仓（跟踪指数权重），无明细。</div>'); return; }
+    var rows=top.map(function(x,i){
+      return '<tr>'
+        +'<td style="padding:6px 8px;border-bottom:1px solid var(--line-2,#eef2f7);font-size:12px;text-align:center;color:var(--muted,#94a3b8);width:36px">'+(i+1)+'</td>'
+        +'<td style="padding:6px 8px;border-bottom:1px solid var(--line-2,#eef2f7);font-size:12px">'+esc(x.n||'—')+'</td>'
+        +'<td style="padding:6px 8px;border-bottom:1px solid var(--line-2,#eef2f7);font-size:12px;text-align:right;font-family:var(--mono)">'+(x.pct!=null?Number(x.pct).toFixed(2)+'%':'—')+'</td>'
+        +'</tr>';
+    }).join('');
+    var html=head+'<div style="max-height:380px;overflow:auto;border:1px solid var(--line,#e2e8f0);border-radius:8px">'
+      +'<table style="width:100%;border-collapse:collapse"><thead><tr>'
+      +'<th style="text-align:center;padding:6px 8px;font-size:11px;color:var(--muted,#94a3b8);border-bottom:2px solid var(--line,#e2e8f0);background:var(--panel-3,#f1f5f9);width:36px">#</th>'
+      +'<th style="text-align:left;padding:6px 8px;font-size:11px;color:var(--muted,#94a3b8);border-bottom:2px solid var(--line,#e2e8f0);background:var(--panel-3,#f1f5f9)">重仓股票</th>'
+      +'<th style="text-align:right;padding:6px 8px;font-size:11px;color:var(--muted,#94a3b8);border-bottom:2px solid var(--line,#e2e8f0);background:var(--panel-3,#f1f5f9)">占净值比例</th>'
+      +'</tr></thead><tbody>'+rows+'</tbody></table></div>'
+      +'<div style="font-size:10px;color:var(--muted,#94a3b8);margin-top:6px;line-height:1.5">数据源：天天基金 FundArchivesDatas?type=jjcc 最新季前十大重仓（'+esc(e.concDate||'—')+'）；集中度过高（>70%）存在单票风险，指数基金按指数权重豁免。</div>';
+    openModal('重仓明细 · '+esc(e.name||code), html);
+  }
   function renderPoolScreen(){
     var wrap=$('dcPoolScreenWrap'); if(!wrap) return;
     wrap.innerHTML='<div style="padding:24px;color:var(--muted,#94a3b8);text-align:center">加载筛选池…</div>';
@@ -12987,6 +13014,28 @@ setInterval(updateSessionBadge, 30000);
             if(e.instInnerPct!=null && Number(e.instInnerPct)>=0.1) parts.push('内部持有 '+Number(e.instInnerPct).toFixed(2)+'%');
             if(e.instHoldPct>70) parts.push('<span style="color:var(--warn,#d97706);font-weight:600">机构占比偏高</span>');
           }
+          /* fw2_v368_bc：B/C 类画像小字（夏普/卡玛/回撤、持仓集中度、任期Alpha、业绩评级/星级、申赎活跃度） */
+          if(e.sharpe!=null && e.calmar!=null){
+            var _sp=Number(e.sharpe).toFixed(2), _cm=Number(e.calmar).toFixed(2);
+            parts.push('夏普 '+_sp+' · 卡玛 '+_cm);
+          }
+          if(e.mdd!=null){
+            parts.push((e.mdd>25?'<span style="color:#dc2626;font-weight:600">回撤 '+Number(e.mdd).toFixed(1)+'%</span>':'回撤 '+Number(e.mdd).toFixed(1)+'%'));
+          }
+          if(e.concPct!=null){
+            var _cp=Number(e.concPct).toFixed(0);
+            parts.push(e.concPct>70?'<span style="color:var(--warn,#d97706);font-weight:600">前十大 '+_cp+'% 集中</span>':(e.concPct<20?'前十大 '+_cp+'% 分散':'前十大 '+_cp+'%'));
+          }
+          if(e.alphaPeer!=null){
+            var _ap=Number(e.alphaPeer).toFixed(1);
+            parts.push(_ap>=0?'跑赢同类 +'+_ap+'pp':'<span style="color:#dc2626">跑输同类 '+_ap+'pp</span>');
+          }
+          if(e.alphaBench!=null && e.alphaBench>0) parts.push('跑赢沪深300 +'+Number(e.alphaBench).toFixed(1)+'pp');
+          if(e.ratingAvr!=null) parts.push('评级 '+Number(e.ratingAvr).toFixed(0));
+          if(e.managerStar!=null && e.managerStar>0) parts.push('★'+e.managerStar);
+          if(e.turnApprox!=null){
+            parts.push(e.turnApprox>200?'<span style="color:var(--warn,#d97706);font-weight:600">申赎活跃 '+Number(e.turnApprox).toFixed(0)+'%</span>':'申赎活跃 '+Number(e.turnApprox).toFixed(0)+'%');
+          }
           /* fw2_v363_mgr：经理能力小字（生涯任职分档 / 现基金任职 / 任期年化），换人红色警示 */
           if(e.mgrTenure!=null) parts.push('经理生涯 '+Number(e.mgrTenure).toFixed(1)+'年');
           if(e.fundTenure!=null) parts.push('现基金 '+Number(e.fundTenure).toFixed(1)+'年');
@@ -12999,7 +13048,10 @@ setInterval(updateSessionBadge, 30000);
           if(e.mwBlow && e.mwBlow.length) warn+='<div style="font-size:11px;color:#dc2626;font-weight:600;line-height:1.5">⚠ 爆冲警示：'+esc(e.mwBlow.join('；'))+'</div>';
           /* fw2_v365_mgr_career：季度/6月胜率 + 生涯踩雷红黄警示 + 生涯曲线弹层入口 */
           var mgrBits=poolMgrBits(e, row.code);
-          return (st?'<div style="font-size:11px;line-height:1.4">'+st+'</div>':'')+(s?'<div style="font-size:11px;color:var(--muted,#94a3b8);line-height:1.5;margin-top:2px">'+s+'</div>':'')+warn+mgrBits+(e.limitNote?'<div style="font-size:11px;color:var(--warn,#d97706);line-height:1.5">'+esc(e.limitNote)+'</div>':'');
+          var holdLnk='';
+          /* fw2_v368_bc：重仓明细弹层入口（jjcc 前十大；指数基金无个股披露则无入口） */
+          if(e.topStocks && e.topStocks.length) holdLnk='<div style="line-height:1.5;margin-top:1px"><a href="javascript:void(0)" data-top-hold="'+esc(row.code)+'" style="font-size:11px;color:var(--brand,#4D6BFE);text-decoration:underline">重仓明细 →</a></div>';
+          return (st?'<div style="font-size:11px;line-height:1.4">'+st+'</div>':'')+(s?'<div style="font-size:11px;color:var(--muted,#94a3b8);line-height:1.5;margin-top:2px">'+s+'</div>':'')+warn+mgrBits+holdLnk+(e.limitNote?'<div style="font-size:11px;color:var(--warn,#d97706);line-height:1.5">'+esc(e.limitNote)+'</div>':'');
         },
         opLabel:'操作',
         opW:170,
@@ -13023,6 +13075,10 @@ setInterval(updateSessionBadge, 30000);
       });
       wrap.querySelectorAll('[data-mgr-career]').forEach(function(a){
         a.addEventListener('click', function(){ openMgrCareer(a.dataset.mgrCareer); });
+      });
+      /* fw2_v368_bc：重仓明细弹层 */
+      wrap.querySelectorAll('[data-top-hold]').forEach(function(a){
+        a.addEventListener('click', function(){ openTopHoldings(a.dataset.topHold); });
       });
     });
     }
