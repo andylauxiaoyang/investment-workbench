@@ -12740,21 +12740,30 @@ setInterval(updateSessionBadge, 30000);
       +'<th style="text-align:left;padding:6px 8px;background:var(--panel-3,#f1f5f9);border-bottom:1px solid var(--line,#e2e8f0);font-size:11px;color:var(--muted,#94a3b8)">说明</th>'
       +'<th style="text-align:left;padding:6px 8px;background:var(--panel-3,#f1f5f9);border-bottom:1px solid var(--line,#e2e8f0);font-size:11px;color:var(--muted,#94a3b8);white-space:nowrap">权重</th>'
       +'<th style="text-align:left;padding:6px 8px;background:var(--panel-3,#f1f5f9);border-bottom:1px solid var(--line,#e2e8f0);font-size:11px;color:var(--muted,#94a3b8);white-space:nowrap">状态</th></tr>';
-    Object.keys(bonus).forEach(function(k){
-      var it=bonus[k]||{};
-      var on=!(it.enabled===false);
-      var cat=BONUS_CATS[k]||'—';
-      var nm=esc(k)+(BONUS_ZH[k]?'（'+esc(BONUS_ZH[k])+'）':'');
+    var CAT_ORDER=['业绩排名','风险收益','基金经理','基金产品','组合与市场'];
+    var _groups={};
+    Object.keys(bonus).forEach(function(k){ var _c=BONUS_CATS[k]||'—'; (_groups[_c]=_groups[_c]||[]).push(k); });
+    var _catSeq=CAT_ORDER.filter(function(c){return _groups[c];}).concat(Object.keys(_groups).filter(function(c){return CAT_ORDER.indexOf(c)<0;}));
+    _catSeq.forEach(function(cat){
+      var _items=_groups[cat];
       var catCol = cat==='基金经理' ? 'var(--brand,#4D6BFE)'
                  : (cat==='业绩排名' ? 'var(--down,#16a34a)'
                  : (cat==='风险收益' ? '#0891b2'
                  : (cat==='基金产品' ? '#7c3aed'
                  : (cat==='组合与市场' ? 'var(--warn,#d97706)' : 'var(--muted,#94a3b8)'))));
-      h+='<tr><td style="padding:6px 8px;border-bottom:1px solid var(--line-2,#f1f5f9);white-space:nowrap;font-size:11px;color:'+catCol+';font-weight:600">'+esc(cat)+'</td>'
-        +'<td style="padding:6px 8px;border-bottom:1px solid var(--line-2,#f1f5f9);white-space:nowrap;font-weight:600">'+nm+'</td>'
-        +'<td style="padding:6px 8px;border-bottom:1px solid var(--line-2,#f1f5f9);font-size:11px;color:var(--muted,#94a3b8);line-height:1.5">'+esc(it.desc||'')+(it.note?' <span style="color:var(--warn,#d97706)">（'+esc(it.note)+'）</span>':'')+'</td>'
-        +'<td style="padding:6px 8px;border-bottom:1px solid var(--line-2,#f1f5f9);white-space:nowrap">×'+(it.weight!=null?it.weight:'—')+'</td>'
-        +'<td style="padding:6px 8px;border-bottom:1px solid var(--line-2,#f1f5f9);white-space:nowrap">'+stBadge(on, on?'':(it.note||''))+'</td></tr>';
+      _items.forEach(function(k,i){
+        var it=bonus[k]||{};
+        var on=!(it.enabled===false);
+        var nm=esc(k)+(BONUS_ZH[k]?'（'+esc(BONUS_ZH[k])+'）':'');
+        h+='<tr>'
+          +(i===0
+            ? '<td rowspan="'+_items.length+'" style="padding:6px 8px;border-bottom:1px solid var(--line-2,#f1f5f9);text-align:center;vertical-align:middle;white-space:nowrap;font-size:11px;color:'+catCol+';font-weight:600">'+esc(cat)+'</td>'
+            : '')
+          +'<td style="padding:6px 8px;border-bottom:1px solid var(--line-2,#f1f5f9);white-space:nowrap;font-weight:600">'+nm+'</td>'
+          +'<td style="padding:6px 8px;border-bottom:1px solid var(--line-2,#f1f5f9);font-size:11px;color:var(--muted,#94a3b8);line-height:1.5">'+esc(it.desc||'')+(it.note?' <span style="color:var(--warn,#d97706)">（'+esc(it.note)+'）</span>':'')+'</td>'
+          +'<td style="padding:6px 8px;border-bottom:1px solid var(--line-2,#f1f5f9);white-space:nowrap">×'+(it.weight!=null?it.weight:'—')+'</td>'
+          +'<td style="padding:6px 8px;border-bottom:1px solid var(--line-2,#f1f5f9);white-space:nowrap">'+stBadge(on, on?'':(it.note||''))+'</td></tr>';
+      });
     });
     h+='</table>';
     /* ---- 批次规则 ---- */
