@@ -12980,6 +12980,13 @@ setInterval(updateSessionBadge, 30000);
           if(e.sgzt) parts.push('申赎 '+esc(e.sgzt));
           /* fw2_v366_mw：多窗口排名稳定性（3年/2年/1年/6月/3月 分位，越小越好） */
           if(e.wStab) parts.push('五窗排名 '+esc(e.wStab));
+          /* fw2_v367_holder：持有人结构小字（机构/内部持有比例 + 自购信号；>70% 标偏高警示） */
+          if(e.instHoldPct!=null){
+            var _ih=Number(e.instHoldPct).toFixed(1);
+            parts.push('机构持有 '+_ih+'%');
+            if(e.instInnerPct!=null && Number(e.instInnerPct)>=0.1) parts.push('内部持有 '+Number(e.instInnerPct).toFixed(2)+'%');
+            if(e.instHoldPct>70) parts.push('<span style="color:var(--warn,#d97706);font-weight:600">机构占比偏高</span>');
+          }
           /* fw2_v363_mgr：经理能力小字（生涯任职分档 / 现基金任职 / 任期年化），换人红色警示 */
           if(e.mgrTenure!=null) parts.push('经理生涯 '+Number(e.mgrTenure).toFixed(1)+'年');
           if(e.fundTenure!=null) parts.push('现基金 '+Number(e.fundTenure).toFixed(1)+'年');
