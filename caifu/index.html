@@ -12614,6 +12614,113 @@ setInterval(updateSessionBadge, 30000);
   function poolWatchRemoved(){ return poolLsGet(POOL_LS.watch_removed)||{}; }
   function poolScreenRemoved(){ return poolLsGet(POOL_LS.screen_removed)||{}; }
   function poolFb(code, fbObj){ return (fbObj&&fbObj[code])?fbObj[code]:null; }
+  /* fw2_v362_screen_rules：筛选规则卡（入选标准展示 + 可编辑 + localStorage 自定义 + 导出 JSON）。
+     静态托管限制：前端编辑的规则存 localStorage，需把导出的 JSON 发 AI 更新 screen-rules.json 后才实际生效于下次筛选。 */
+  var SCREEN_RULES = null, SCREEN_RULES_LOADED = false;
+  var SR_LS = 'fw2_screen_rules_v1';
+  function loadScreenRules(force, cb){
+    if(SCREEN_RULES_LOADED && !force){ return cb && cb(SCREEN_RULES); }
+    var urls=['./screen-rules.json','https://raw.githubusercontent.com/andylauxiaoyang/investment-workbench/master/caifu/screen-rules.json'];
+    var i=0;
+    (function next(){
+      if(i>=urls.length){ cb && cb(null); return; }
+      var u=urls[i++];
+      var c=new AbortController(); setTimeout(function(){ c.abort(); }, 30000);
+      fetch(u,{signal:c.signal}).then(function(r){ if(!r.ok) throw 0; return r.json(); }).then(function(d){
+        if(d && d.hardGates){ SCREEN_RULES=d; SCREEN_RULES_LOADED=true; cb && cb(d); } else next();
+      }).catch(next);
+    })();
+  }
+  function srGetCustom(){ try{ var v=localStorage.getItem(SR_LS); return v?JSON.parse(v):null; }catch(e){ return null; } }
+  function srSaveCustom(d){ try{ localStorage.setItem(SR_LS, JSON.stringify(d)); }catch(e){} }
+  function srClearCustom(){ try{ localStorage.removeItem(SR_LS); }catch(e){} }
+  function srFnum(label, v, step, min){
+    return '<label style="font-size:11px;color:var(--muted,#94a3b8)">'+esc(label)+'<br><input type="number" step="'+step+'" min="'+min+'" value="'+(v===''||v==null?'':v)+'" style="width:100%;box-sizing:border-box;margin-top:2px;padding:4px 6px;border:1px solid var(--line,#e2e8f0);border-radius:6px;font-size:12px;color:var(--ink,#0f172a)" data-sr-f="'+esc(label)+'"></label>';
+  }
+  function poolRulesCard(){
+    var cust=srGetCustom();
+    var rules = cust ? cust : SCREEN_RULES;
+    if(!rules) return '';
+    var hg=rules.hardGates||{}, b=rules.batch||{}, bonus=rules.bonus||{};
+    function row(d, v){ return '<tr><td style="padding:3px 8px;color:var(--muted,#94a3b8);white-space:nowrap">'+d+'</td><td style="padding:3px 8px">'+v+'</td></tr>'; }
+    var rows=[];
+    rows.push(row('类型限定', hg.typeAllow ? esc(hg.typeAllow.allow.join(' / ')) : '—'));
+    rows.push(row('规模 ≥', (hg.scaleMin && hg.scaleMin.value!=null ? hg.scaleMin.value : '—') + ' 亿'));
+    rows.push(row('成立 ≥', (hg.estabMinYears && hg.estabMinYears.value!=null ? hg.estabMinYears.value : '—') + ' 年（新族豁免：' + ((hg.estabExempt&&hg.estabExempt.families)?Object.keys(hg.estabExempt.families).join('/'):'无') + '）'));
+    rows.push(row('总费率 ≤', (hg.feeTotalMax && hg.feeTotalMax.value!=null ? hg.feeTotalMax.value : '—') + ' %/年'));
+    rows.push(row('同族去重', hg.tribeDedup ? ('每族 ≤' + (hg.tribeDedup.maxPerTribe!=null?hg.tribeDedup.maxPerTribe:'—') + ' 只') : '—'));
+    rows.push(row('可申赎', (hg.redeemable && hg.redeemable.enabled===false) ? '停用' : '启用'));
+    rows.push(row('每批上限', (b.maxPerBatch!=null ? b.maxPerBatch : '—') + ' 只'));
+    var qs=b.roleQuota||{};
+    rows.push(row('档位配额', ['底仓/缓冲','进攻/主题','海外独立','对冲','灵活/待定'].map(function(k){ return k+' '+(qs[k]!=null?qs[k]:'—'); }).join(' · ')));
+    var bs=Object.keys(bonus).map(function(k){ var it=bonus[k]; return '<span>'+esc(k)+' ×'+(it.weight!=null?it.weight:'—')+(it.enabled===false?' <span style="color:var(--warn,#d97706)">(未启用)</span>':'')+'</span>'; }).join(' · ');
+    var srcLine = cust
+      ? '<span style="color:var(--warn,#d97706)">自定义规则（已保存，发我同步生效）</span> · ' + esc(cust._savedAt||'')
+      : '规则 ' + esc((rules.meta&&rules.meta.version)||'') + ' · 更新 ' + esc((rules.meta&&rules.meta.updatedAt)||'');
+    return '<div style="border:1px solid var(--line,#e2e8f0);border-radius:10px;padding:10px 12px;margin:0 2px 10px;background:var(--panel,#ffffff)">'
+      +'<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap">'
+      +'<div style="font-size:13px;font-weight:600">筛选规则 · 入选标准</div>'
+      +'<div style="font-size:11px;color:var(--muted,#94a3b8)">'+srcLine+'</div>'
+      +'<div style="display:flex;gap:6px">'
+      +'<button class="btn-mini" id="srEditBtn">调整规则</button>'
+      +(cust?'<button class="btn-mini" id="srResetBtn" style="color:var(--warn,#d97706)">恢复默认</button>':'')
+      +'</div></div>'
+      +'<table style="width:100%;border-collapse:collapse;font-size:12px;margin-top:6px"><tbody>'+rows.join('')+'</tbody></table>'
+      +'<div style="font-size:11px;color:var(--muted,#94a3b8);margin-top:6px;line-height:1.5">加分项权重：'+bs+'</div>'
+      +'<div id="srEditWrap" style="display:none;margin-top:10px;border-top:1px dashed var(--line,#e2e8f0);padding-top:10px"></div>'
+      +'</div>';
+  }
+  function poolRulesEditHtml(rules){
+    var hg=rules.hardGates||{}, b=rules.batch||{}, qs=b.roleQuota||{};
+    var h='<div style="font-size:13px;font-weight:600;margin-bottom:6px">调整筛选条件（保存后自动复制新规则 JSON，发我更新规则文件即可生效于下次筛选）</div>';
+    h+='<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px">';
+    h+=srFnum('规模下限（亿）', hg.scaleMin?hg.scaleMin.value:2, 0.5, 0);
+    h+=srFnum('成立年限（年）', hg.estabMinYears?hg.estabMinYears.value:3, 0.5, 0);
+    h+=srFnum('总费率上限（%/年）', hg.feeTotalMax?hg.feeTotalMax.value:1.5, 0.05, 0);
+    h+=srFnum('每批最多（只）', b.maxPerBatch!=null?b.maxPerBatch:20, 1, 1);
+    h+=srFnum('同族最多（只）', (hg.tribeDedup&&hg.tribeDedup.maxPerTribe!=null)?hg.tribeDedup.maxPerTribe:2, 1, 1);
+    ['底仓/缓冲','进攻/主题','海外独立','对冲','灵活/待定'].forEach(function(k){ h+=srFnum(k+'（只）', qs[k]!=null?qs[k]:'', 1, 0); });
+    h+='</div>';
+    h+='<div style="margin-top:10px;display:flex;align-items:center;gap:12px;flex-wrap:wrap">'
+      +'<label style="font-size:12px;display:flex;align-items:center;gap:4px"><input type="checkbox" id="srRedeem" '+( (hg.redeemable&&hg.redeemable.enabled===false)?'':'checked')+'> 可申赎（非暂停申购 / 非清盘）</label>'
+      +'<button class="btn-mini" id="srSaveBtn" style="background:var(--brand,#4D6BFE);color:#fff">保存规则</button>'
+      +'<button class="btn-mini" id="srCancelBtn">取消</button>'
+      +'<span style="font-size:11px;color:var(--muted,#94a3b8)">类型白名单 / 加分项权重 / 家族词表等高级项只读，要改直接告诉我</span>'
+      +'</div>';
+    return h;
+  }
+  function bindSrEvents(wrap){
+    var ed=wrap.querySelector('#srEditBtn');
+    if(ed) ed.addEventListener('click', function(){
+      var rules = srGetCustom() || SCREEN_RULES; if(!rules) return;
+      var w=wrap.querySelector('#srEditWrap'); if(!w) return;
+      w.innerHTML=poolRulesEditHtml(rules); w.style.display='';
+      var sv=wrap.querySelector('#srSaveBtn');
+      if(sv) sv.addEventListener('click', function(){
+        var n=JSON.parse(JSON.stringify(rules));
+        wrap.querySelectorAll('#srEditWrap input[data-sr-f]').forEach(function(inp){
+          var k=inp.dataset.srF, val=parseFloat(inp.value);
+          if(k==='规模下限（亿）'){ if(n.hardGates.scaleMin) n.hardGates.scaleMin.value=isNaN(val)?2:val; }
+          else if(k==='成立年限（年）'){ if(n.hardGates.estabMinYears) n.hardGates.estabMinYears.value=isNaN(val)?3:val; }
+          else if(k==='总费率上限（%/年）'){ if(n.hardGates.feeTotalMax) n.hardGates.feeTotalMax.value=isNaN(val)?1.5:val; }
+          else if(k==='每批最多（只）'){ n.batch.maxPerBatch=isNaN(val)?20:Math.max(1,val|0); }
+          else if(k==='同族最多（只）'){ if(n.hardGates.tribeDedup) n.hardGates.tribeDedup.maxPerTribe=isNaN(val)?2:Math.max(1,val|0); }
+          else { var qk=k.replace('（只）',''); if(n.batch.roleQuota) n.batch.roleQuota[qk]=isNaN(val)?undefined:Math.max(0,val|0); }
+        });
+        if(n.hardGates.redeemable){ var ch=wrap.querySelector('#srRedeem'); n.hardGates.redeemable.enabled = !ch || ch.checked; }
+        n._savedAt=new Date().toISOString().slice(0,10);
+        srSaveCustom(n);
+        var txt=JSON.stringify(n,null,2);
+        if(navigator.clipboard && navigator.clipboard.writeText){ try{ navigator.clipboard.writeText(txt); }catch(e){} }
+        toast('规则已保存并复制 JSON——把 JSON 发给豆包即可更新规则文件，下次筛选按新标准执行');
+        renderPoolScreen();
+      });
+      var c2=wrap.querySelector('#srCancelBtn');
+      if(c2) c2.addEventListener('click', function(){ w.style.display='none'; });
+    });
+    var rs=wrap.querySelector('#srResetBtn');
+    if(rs) rs.addEventListener('click', function(){ srClearCustom(); toast('已恢复默认规则（screen-rules.json）'); renderPoolScreen(); });
+  }
   function loadPoolData(){
     if(!window.POOL_WATCHLIST){
       var urls=['./watchlist-data.json','https://raw.githubusercontent.com/andylauxiaoyang/investment-workbench/master/caifu/watchlist-data.json'];
@@ -12683,6 +12790,8 @@ setInterval(updateSessionBadge, 30000);
   function renderPoolScreen(){
     var wrap=$('dcPoolScreenWrap'); if(!wrap) return;
     wrap.innerHTML='<div style="padding:24px;color:var(--muted,#94a3b8);text-align:center">加载筛选池…</div>';
+    loadScreenRules(false, function(){ finish(); });
+    function finish(){
     loadScreenPool(function(){
       var sp=window.SCREEN_POOL;
       if(!sp||!sp.funds){ wrap.innerHTML='<div style="padding:24px;color:var(--warn,#d97706);text-align:center">筛选池数据加载失败（screen-pool.json 不可达）。</div>'; return; }
@@ -12719,7 +12828,8 @@ setInterval(updateSessionBadge, 30000);
           return '<button class="btn-mini" data-pool-act="toWatch" data-code="'+row.code+'" data-name="'+esc(nm)+'">加入自选</button> <button class="btn-mini" data-pool-act="rmScreen" data-code="'+row.code+'" data-name="'+esc(nm)+'">删除</button>';
         }
       });
-      wrap.innerHTML=h;
+      wrap.innerHTML=poolRulesCard()+h;
+      bindSrEvents(wrap);
       wrap.querySelectorAll('[data-pool-act]').forEach(function(btn){
         btn.addEventListener('click', function(){
           var act=btn.dataset.poolAct, code=btn.dataset.code, name=btn.dataset.name;
@@ -12728,6 +12838,7 @@ setInterval(updateSessionBadge, 30000);
         });
       });
     });
+    }
   }
 
   // 事件绑定（元素均为静态 HTML，加载即可绑定）
