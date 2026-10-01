@@ -12645,6 +12645,21 @@ setInterval(updateSessionBadge, 30000);
       ? '<span style="display:inline-block;font-size:11px;font-weight:600;padding:1px 7px;border-radius:10px;background:var(--warn-soft,#fef3c7);color:var(--warn,#d97706);margin-right:6px">未启用</span>'+(note?'<span style="font-size:11px;color:var(--muted,#94a3b8)">'+esc(note)+'</span>':'')
       : '<span style="display:inline-block;font-size:11px;font-weight:600;padding:1px 7px;border-radius:10px;background:var(--down-soft,#dcfce7);color:var(--down,#16a34a)">启用</span>';
   }
+  /* fw2_v368_cat：加分项分类 + 中文简名（规则页表格；缺省 key 显示原英文、分类 —，新增加分项自动兼容） */
+  var BONUS_CATS={
+    'rankQuantile':'业绩排名','multiWindow':'业绩排名','ret3y':'业绩排名','riskAdj':'风险收益','concentration':'风险收益',
+    'alpha':'基金经理','rating':'基金产品','turnover':'基金产品','awards':'基金产品','valuation':'组合与市场',
+    'holder':'基金产品','managerTenure':'基金经理','fundTenure':'基金经理','mgrAnnRet':'基金经理','mgrScale':'基金经理',
+    'managerChange':'基金经理','qdiiLimit':'基金产品','mgrWinQ':'基金经理','mgrWin6':'基金经理','mgrCareer':'基金经理',
+    'feeLow':'基金产品','scaleFit':'基金产品','independence':'组合与市场'
+  };
+  var BONUS_ZH={
+    'rankQuantile':'排名分位','multiWindow':'多窗口排名','ret3y':'三年年化','riskAdj':'风险收益比','concentration':'持仓集中度',
+    'alpha':'经理超额','rating':'评级星级','turnover':'换手活跃','awards':'获奖情况','valuation':'估值分位',
+    'holder':'持有人结构','managerTenure':'经理生涯年限','fundTenure':'现基金任职','mgrAnnRet':'经理任期年化','mgrScale':'在管规模',
+    'managerChange':'换经理提醒','qdiiLimit':'QDII限额','mgrWinQ':'季度胜率','mgrWin6':'六月胜率','mgrCareer':'生涯踩雷',
+    'feeLow':'低费率','scaleFit':'规模适中','independence':'独立风险'
+  };
   function srSect(title){ return '<div style="font-size:13px;font-weight:600;color:var(--text,#0f172a);margin:14px 0 6px;padding:6px 10px;background:var(--panel-3,#f1f5f9);border-radius:8px">'+title+'</div>'; }
   function poolRulesDocHtml(rules, cust){
     var hg=rules.hardGates||{}, b=rules.batch||{}, bonus=rules.bonus||{}, meta=rules.meta||{};
@@ -12720,14 +12735,23 @@ setInterval(updateSessionBadge, 30000);
     /* ---- 加分项 ---- */
     h+=srSect('加分项 · 综合打分（'+Object.keys(bonus).length+' 项，当前生效 '+Object.keys(bonus).filter(function(k){return !(bonus[k]&&bonus[k].enabled===false);}).length+' 项）');
     h+='<table style="width:100%;border-collapse:collapse;font-size:12px;margin-top:4px">'
-      +'<tr><th style="text-align:left;padding:6px 8px;background:var(--panel-3,#f1f5f9);border-bottom:1px solid var(--line,#e2e8f0);font-size:11px;color:var(--muted,#94a3b8);white-space:nowrap">加分项</th>'
+      +'<tr><th style="text-align:left;padding:6px 8px;background:var(--panel-3,#f1f5f9);border-bottom:1px solid var(--line,#e2e8f0);font-size:11px;color:var(--muted,#94a3b8);white-space:nowrap">分类</th>'
+      +'<th style="text-align:left;padding:6px 8px;background:var(--panel-3,#f1f5f9);border-bottom:1px solid var(--line,#e2e8f0);font-size:11px;color:var(--muted,#94a3b8);white-space:nowrap">加分项</th>'
       +'<th style="text-align:left;padding:6px 8px;background:var(--panel-3,#f1f5f9);border-bottom:1px solid var(--line,#e2e8f0);font-size:11px;color:var(--muted,#94a3b8)">说明</th>'
       +'<th style="text-align:left;padding:6px 8px;background:var(--panel-3,#f1f5f9);border-bottom:1px solid var(--line,#e2e8f0);font-size:11px;color:var(--muted,#94a3b8);white-space:nowrap">权重</th>'
       +'<th style="text-align:left;padding:6px 8px;background:var(--panel-3,#f1f5f9);border-bottom:1px solid var(--line,#e2e8f0);font-size:11px;color:var(--muted,#94a3b8);white-space:nowrap">状态</th></tr>';
     Object.keys(bonus).forEach(function(k){
       var it=bonus[k]||{};
       var on=!(it.enabled===false);
-      h+='<tr><td style="padding:6px 8px;border-bottom:1px solid var(--line-2,#f1f5f9);white-space:nowrap;font-weight:600">'+esc(k)+'</td>'
+      var cat=BONUS_CATS[k]||'—';
+      var nm=esc(k)+(BONUS_ZH[k]?'（'+esc(BONUS_ZH[k])+'）':'');
+      var catCol = cat==='基金经理' ? 'var(--brand,#4D6BFE)'
+                 : (cat==='业绩排名' ? 'var(--down,#16a34a)'
+                 : (cat==='风险收益' ? '#0891b2'
+                 : (cat==='基金产品' ? '#7c3aed'
+                 : (cat==='组合与市场' ? 'var(--warn,#d97706)' : 'var(--muted,#94a3b8)'))));
+      h+='<tr><td style="padding:6px 8px;border-bottom:1px solid var(--line-2,#f1f5f9);white-space:nowrap;font-size:11px;color:'+catCol+';font-weight:600">'+esc(cat)+'</td>'
+        +'<td style="padding:6px 8px;border-bottom:1px solid var(--line-2,#f1f5f9);white-space:nowrap;font-weight:600">'+nm+'</td>'
         +'<td style="padding:6px 8px;border-bottom:1px solid var(--line-2,#f1f5f9);font-size:11px;color:var(--muted,#94a3b8);line-height:1.5">'+esc(it.desc||'')+(it.note?' <span style="color:var(--warn,#d97706)">（'+esc(it.note)+'）</span>':'')+'</td>'
         +'<td style="padding:6px 8px;border-bottom:1px solid var(--line-2,#f1f5f9);white-space:nowrap">×'+(it.weight!=null?it.weight:'—')+'</td>'
         +'<td style="padding:6px 8px;border-bottom:1px solid var(--line-2,#f1f5f9);white-space:nowrap">'+stBadge(on, on?'':(it.note||''))+'</td></tr>';
