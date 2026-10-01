@@ -13037,24 +13037,31 @@ setInterval(updateSessionBadge, 30000);
       var h=poolTableHtml(list.map(function(r){ return r.row; }), {
         note:note,
         foot:'筛选基金 '+list.length+' 只（按档位·评分排序）',
-        /* fw2_v373_pool_cols_order：筛选池改完整列集（o.cols），按规则五类归组二egonic同类字段相邻，
-           且消除 OVC 风险指标与 extCols 夏普/卡玛/回撤的重复列 */
-        cols:[
-          /* —— 定位 —— */
-          {k:'st', t:'状态', get:function(row){ var e=row._meta.e||{}, st=row._meta.held?'已持仓':(row._meta.added?'已自选':''); return st?('<span style="color:'+(row._meta.held?'var(--down,#16a34a)':'var(--brand,#4D6BFE)')+';font-weight:600">'+esc(st)+'</span>'):null; }, html:true},
+        /* fw2_v373_pool_cols_order → 还原 v371：保留 OVC 全列（含名称/代码/区间收益/风险指标），
+           扩展筛选字段经 preCols+extCols 追加、按类型分组（用户要求：不删字段，仅按类型归组展示） */
+        preCols:[
+          {k:'st', t:'状态', get:function(row){ var e=row._meta.e||{}, st=row._meta.held?'已持仓':(row._meta.added?'已自选':''); return st?('<span style="color:'+(row._meta.held?'var(--down,#16a34a)':'var(--brand,#4D6BFE)')+';font-weight:600">'+esc(st)+'</span>'):null; }, html:true}
+        ],
+        extCols:[
+          /* 筛选定位 */
           {k:'role', t:'档位', get:function(row){ var e=row._meta.e||{}; return e.role||null; }},
           {k:'family', t:'家族', get:function(row){ var e=row._meta.e||{}; return e.family||null; }},
           {k:'score', t:'评分', num:true, get:function(row){ var e=row._meta.e||{}; return e.score!=null?'<b style="color:var(--brand,#4D6BFE)">'+Number(e.score).toFixed(1)+'</b>':null; }, html:true},
-          /* —— 业绩排名 —— */
+          {k:'sgzt', t:'申赎', get:function(row){ var e=row._meta.e||{}; return e.sgzt?('<span style="color:'+(/限/.test(e.sgzt)?'var(--warn,#d97706)':'var(--muted,#94a3b8)')+';font-weight:'+(/限/.test(e.sgzt)?'600':'400')+'">'+esc(e.sgzt)+'</span>'):null; }, html:true},
+          /* 区间收益 */
           {k:'r3y', t:'3年', num:true, get:function(row){ var e=row._meta.e||{}; return e.r3y!=null?(+e.r3y).toFixed(1)+'%':null; }},
           {k:'r1y', t:'1年', num:true, get:function(row){ var e=row._meta.e||{}; return e.r1y!=null?(+e.r1y).toFixed(1)+'%':null; }},
+          /* 排名稳定性 */
           {k:'wStab', t:'五窗排名', get:function(row){ var e=row._meta.e||{}; return e.wStab?esc(e.wStab):null; }},
-          /* —— 风险收益 —— */
+          /* 持有人结构 */
+          {k:'instHoldPct', t:'机构持有%', num:true, get:function(row){ var e=row._meta.e||{}; return e.instHoldPct!=null?(Number(e.instHoldPct).toFixed(1)+'%'+(e.instHoldPct>70?' ⚠':'')):null; }},
+          {k:'instInnerPct', t:'内部持有%', num:true, get:function(row){ var e=row._meta.e||{}; return (e.instInnerPct!=null&&Number(e.instInnerPct)>=0.1)?Number(e.instInnerPct).toFixed(2)+'%':null; }},
+          /* 风险收益 */
           {k:'sharpe', t:'夏普', num:true, get:function(row){ var e=row._meta.e||{}; return e.sharpe!=null?Number(e.sharpe).toFixed(2):null; }},
           {k:'calmar', t:'卡玛', num:true, get:function(row){ var e=row._meta.e||{}; return e.calmar!=null?Number(e.calmar).toFixed(2):null; }},
           {k:'mdd', t:'最大回撤%', num:true, get:function(row){ var e=row._meta.e||{}; return e.mdd!=null?'<span style="'+(e.mdd>25?'color:#dc2626;font-weight:600':'')+'">'+Number(e.mdd).toFixed(1)+'%</span>':null; }, html:true},
           {k:'concPct', t:'前十大%', num:true, get:function(row){ var e=row._meta.e||{}; return e.concPct!=null?'<span style="'+(e.concPct>70?'color:var(--warn,#d97706);font-weight:600':(e.concPct<20?'color:var(--muted,#94a3b8)':''))+'">'+Number(e.concPct).toFixed(0)+'%</span>':null; }, html:true},
-          /* —— 基金经理 —— */
+          /* 基金经理 */
           {k:'mgrTenure', t:'经理生涯年', num:true, get:function(row){ var e=row._meta.e||{}; return e.mgrTenure!=null?Number(e.mgrTenure).toFixed(1):null; }},
           {k:'fundTenure', t:'现基金年', num:true, get:function(row){ var e=row._meta.e||{}; return e.fundTenure!=null?Number(e.fundTenure).toFixed(1):null; }},
           {k:'mgrAnnRet', t:'任期年化%', num:true, get:function(row){ var e=row._meta.e||{}; return e.mgrAnnRet!=null?Number(e.mgrAnnRet).toFixed(1):null; }},
@@ -13066,15 +13073,12 @@ setInterval(updateSessionBadge, 30000);
           {k:'warnCareer', t:'生涯警示', html:true, get:function(row){ var e=row._meta.e||{}, w=e.mgrBlowupProd; if(e.mgrBlowup==='severe') return '<span style="color:#dc2626;font-weight:600">✕ 生涯踩雷（红牌）'+((w&&w.n)?'：'+esc(w.n):'')+' 任职 '+(w&&w.ret!=null?Number(w.ret).toFixed(1)+'%':'—')+' / 同类 '+(w&&w.avg!=null?Number(w.avg).toFixed(1)+'%':'—')+'</span>'; if(e.mgrBlowup==='career') return '<span style="color:#d97706;font-weight:600">⚠ 生涯跑输（标黄）'+((w&&w.n)?'：'+esc(w.n):'')+' 超额 '+(w&&w.ret!=null&&w.avg!=null?Number(w.ret-w.avg).toFixed(1)+'%':'—')+'</span>'; return null; }},
           {k:'warnMgr', t:'换经理风险', html:true, get:function(row){ var e=row._meta.e||{}; return e.mgrChanged?'<span style="color:var(--warn,#d97706);font-weight:600">'+esc(e.mgrChanged)+(e.fundTenure!=null?'（现任上任 '+Number(e.fundTenure).toFixed(1)+'年）':'')+'</span>':null; }},
           /* —— 基金产品 —— */
-          {k:'instHoldPct', t:'机构持有%', num:true, get:function(row){ var e=row._meta.e||{}; return e.instHoldPct!=null?(Number(e.instHoldPct).toFixed(1)+'%'+(e.instHoldPct>70?' ⚠':'')):null; }},
-          {k:'instInnerPct', t:'内部持有%', num:true, get:function(row){ var e=row._meta.e||{}; return (e.instInnerPct!=null&&Number(e.instInnerPct)>=0.1)?Number(e.instInnerPct).toFixed(2)+'%':null; }},
           {k:'ratingAvr', t:'评级', num:true, get:function(row){ var e=row._meta.e||{}; return e.ratingAvr!=null?Number(e.ratingAvr).toFixed(0):null; }},
           {k:'managerStar', t:'星级', get:function(row){ var e=row._meta.e||{}; return (e.managerStar!=null&&e.managerStar>0)?'★'+e.managerStar:null; }},
           {k:'turnApprox', t:'申赎活跃%', num:true, get:function(row){ var e=row._meta.e||{}; return e.turnApprox!=null?'<span style="'+(e.turnApprox>200?'color:var(--warn,#d97706);font-weight:600':'')+'">'+Number(e.turnApprox).toFixed(0)+'</span>':null; }, html:true},
           /* —— 风险警示 / 产品限制 —— */
           {k:'warnBlow', t:'爆冲警示', html:true, get:function(row){ var e=row._meta.e||{}; return (e.mwBlow&&e.mwBlow.length)?'<span style="color:#dc2626;font-weight:600">'+esc(e.mwBlow.join('；'))+'</span>':null; }},
           {k:'limitNote', t:'申购限制', html:true, get:function(row){ var e=row._meta.e||{}; return e.limitNote?('<span style="color:var(--warn,#d97706);font-weight:600">'+esc(e.limitNote)+'</span>'):null; }},
-          {k:'sgzt', t:'申赎', get:function(row){ var e=row._meta.e||{}; return e.sgzt?('<span style="color:'+(/限/.test(e.sgzt)?'var(--warn,#d97706)':'var(--muted,#94a3b8)')+';font-weight:'+(/限/.test(e.sgzt)?'600':'400')+'">'+esc(e.sgzt)+'</span>'):null; }, html:true},
           /* —— 详情入口 —— */
           {k:'detail', t:'详情', html:true, get:function(row){ var e=row._meta.e||{}, lnks=[]; if(e.mgrProducts&&e.mgrProducts.length) lnks.push('<a href="javascript:void(0)" data-mgr-career="'+esc(row.code)+'" style="color:var(--brand,#4D6BFE);text-decoration:underline">生涯曲线</a>'); if(e.topStocks&&e.topStocks.length) lnks.push('<a href="javascript:void(0)" data-top-hold="'+esc(row.code)+'" style="color:var(--brand,#4D6BFE);text-decoration:underline">重仓明细</a>'); return lnks.length?lnks.join(' · '):null; }}
         ],
