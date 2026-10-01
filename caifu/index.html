@@ -12629,7 +12629,7 @@ setInterval(updateSessionBadge, 30000);
       if(i>=urls.length){ cb && cb(null); return; }
       var u=urls[i++];
       var c=new AbortController(); setTimeout(function(){ c.abort(); }, 30000);
-      fetch(u,{signal:c.signal}).then(function(r){ if(!r.ok) throw 0; return r.json(); }).then(function(d){
+      fetch(u,{signal:c.signal, cache:'no-store'}).then(function(r){ if(!r.ok) throw 0; return r.json(); }).then(function(d){
         if(d && d.hardGates){ SCREEN_RULES=d; SCREEN_RULES_LOADED=true; cb && cb(d); } else next();
       }).catch(next);
     })();
@@ -12870,6 +12870,66 @@ setInterval(updateSessionBadge, 30000);
       fetch(urls[i],{cache:'no-store'}).then(function(r){ if(!r.ok) throw 0; return r.json(); }).then(function(j){ window.SCREEN_POOL=j; if(cb)cb(); }).catch(function(){ i++; next(); });
     })();
   }
+  /* fw2_v365_mgr_career：经理能力小字增强（季度/6月胜率 + 生涯踩雷红黄警示 + 生涯曲线弹层入口），数据字段缺失时自然省略 */
+  function poolMgrBits(e, code){
+    if(!e) return '';
+    var parts=[];
+    if(e.mgrWinQ!=null) parts.push('季度胜率 '+Math.round(e.mgrWinQ*100)+'%');
+    if(e.mgrWin6!=null) parts.push('6月胜率 '+Math.round(e.mgrWin6*100)+'%');
+    var s=parts.join(' · ');
+    var warn='';
+    var w=e.mgrBlowupProd;
+    if(e.mgrBlowup==='severe') warn='<div style="font-size:11px;color:#dc2626;font-weight:600;line-height:1.5">✕ 生涯踩雷（红牌）：'+esc((w&&w.n)||'—')+' 任职 '+(w&&w.ret!=null?Number(w.ret).toFixed(1)+'%':'—')+' / 同类 '+(w&&w.avg!=null?Number(w.avg).toFixed(1)+'%':'—')+'</div>';
+    else if(e.mgrBlowup==='career') warn='<div style="font-size:11px;color:#d97706;font-weight:600;line-height:1.5">⚠ 生涯跑输（标黄）：'+esc((w&&w.n)||'—')+' 超额 '+(w&&w.ret!=null&&w.avg!=null?Number(w.ret-w.avg).toFixed(1)+'%':'—')+'</div>';
+    var lnk='';
+    if(e.mgrProducts && e.mgrProducts.length) lnk='<a href="javascript:void(0)" data-mgr-career="'+esc(code||'')+'" style="font-size:11px;color:var(--brand,#4D6BFE);text-decoration:underline;margin-top:1px;display:inline-block">生涯曲线 →</a>';
+    return (s?'<div style="font-size:11px;color:var(--muted,#94a3b8);line-height:1.5;margin-top:2px">'+s+'</div>':'')+warn+(lnk?'<div style="line-height:1.5">'+lnk+'</div>':'');
+  }
+  function openMgrCareer(code){
+    var sp=window.SCREEN_POOL;
+    if(!sp||!sp.funds||!sp.funds[code]){ toast('经理数据未就绪'); return; }
+    var e=sp.funds[code], prods=(e.mgrProducts||[]).slice();
+    prods.sort(function(a,b){ return (b.days||0)-(a.days||0); });
+    var head='<div style="margin-bottom:10px;line-height:1.8">'
+      +'<b>'+esc(e.name||code)+'</b> <span style="color:var(--muted,#94a3b8)">'+esc(code||'')+'</span>'
+      +(e.mgrNames?' · 经理 '+esc(e.mgrNames):'')
+      +(e.fundTenure!=null?' · 现基金任职 '+Number(e.fundTenure).toFixed(1)+'年':'')
+      +(e.mgrAnnRet!=null?' · 任期年化 '+Number(e.mgrAnnRet).toFixed(1)+'%':'')
+      +(e.mgrWinQ!=null?' · 季度胜率 '+Math.round(e.mgrWinQ*100)+'%':'')
+      +(e.mgrWin6!=null?' · 6月持有胜率 '+Math.round(e.mgrWin6*100)+'%':'')
+      +'</div>'
+      +(e.mgrBlowup==='severe'?'<div style="font-size:12px;color:#dc2626;font-weight:600;margin-bottom:8px">✕ 生涯踩雷（红牌）：曾管理产品大幅跑输同类（超额 ≤−40%）</div>':(e.mgrBlowup==='career'?'<div style="font-size:12px;color:#d97706;font-weight:600;margin-bottom:8px">⚠ 生涯跑输（标黄）：曾管理产品跑输同类（超额 ≤−20% 或排名后 1/4）</div>':''));
+    if(!prods.length){ openModal('经理生涯曲线 · '+esc(e.name||code), head+'<div style="color:var(--muted,#94a3b8);padding:12px 0">暂无生涯产品数据。</div>'); return; }
+    var maxAbs=1;
+    prods.forEach(function(p){ var ex=((p.ret!=null?p.ret:0)-(p.avg!=null?p.avg:0)); var a=Math.abs(ex); if(a>maxAbs) maxAbs=a; });
+    var rows=prods.map(function(p){
+      var ex=((p.ret!=null?p.ret:0)-(p.avg!=null?p.avg:0));
+      var wdt=Math.max(2, Math.round(Math.abs(ex)/maxAbs*100));
+      var col = ex<=-40 ? '#dc2626' : (ex<=-20 ? '#d97706' : (ex>=0 ? '#16a34a' : '#94a3b8'));
+      var bar='<div style="display:inline-block;width:'+wdt+'%;min-width:4px;height:8px;border-radius:4px;background:'+col+';vertical-align:middle"></div>';
+      var d = p.days!=null ? Math.round(p.days/30.4)+'月' : '—';
+      var rk = (p.rank!=null&&p.total)?(p.rank+'/'+p.total):'—';
+      return '<tr>'
+        +'<td style="padding:5px 8px;border-bottom:1px solid var(--line-2,#eef2f7);font-size:12px">'+esc(p.n||'—')+'<div style="font-size:10px;color:var(--muted,#94a3b8)">'+esc(p.c||'')+' · '+esc(p.t||'')+' · '+d+'</div></td>'
+        +'<td style="padding:5px 8px;border-bottom:1px solid var(--line-2,#eef2f7);font-size:12px;text-align:right;font-family:var(--mono);color:'+(p.ret<0?'#dc2626':'#16a34a')+'">'+(p.ret!=null?Number(p.ret).toFixed(1)+'%':'—')+'</td>'
+        +'<td style="padding:5px 8px;border-bottom:1px solid var(--line-2,#eef2f7);font-size:12px;text-align:right;font-family:var(--mono);color:var(--muted,#94a3b8)">'+(p.avg!=null?Number(p.avg).toFixed(1)+'%':'—')+'</td>'
+        +'<td style="padding:5px 8px;border-bottom:1px solid var(--line-2,#eef2f7);font-size:12px;text-align:right;font-family:var(--mono);color:'+col+'">'+(ex>=0?'+':'')+Number(ex).toFixed(1)+'%</td>'
+        +'<td style="padding:5px 8px;border-bottom:1px solid var(--line-2,#eef2f7);font-size:12px;text-align:right;font-family:var(--mono);color:var(--muted,#94a3b8)">'+rk+'</td>'
+        +'<td style="padding:5px 8px;border-bottom:1px solid var(--line-2,#eef2f7);width:140px">'+bar+'</td>'
+        +'</tr>';
+    }).join('');
+    var html=head+'<div style="max-height:380px;overflow:auto;border:1px solid var(--line,#e2e8f0);border-radius:8px">'
+      +'<table style="width:100%;border-collapse:collapse"><thead><tr>'
+      +'<th style="text-align:left;padding:6px 8px;font-size:11px;color:var(--muted,#94a3b8);border-bottom:2px solid var(--line,#e2e8f0);background:var(--panel-3,#f1f5f9)">产品</th>'
+      +'<th style="text-align:right;padding:6px 8px;font-size:11px;color:var(--muted,#94a3b8);border-bottom:2px solid var(--line,#e2e8f0);background:var(--panel-3,#f1f5f9)">任职回报</th>'
+      +'<th style="text-align:right;padding:6px 8px;font-size:11px;color:var(--muted,#94a3b8);border-bottom:2px solid var(--line,#e2e8f0);background:var(--panel-3,#f1f5f9)">同类平均</th>'
+      +'<th style="text-align:right;padding:6px 8px;font-size:11px;color:var(--muted,#94a3b8);border-bottom:2px solid var(--line,#e2e8f0);background:var(--panel-3,#f1f5f9)">超额</th>'
+      +'<th style="text-align:right;padding:6px 8px;font-size:11px;color:var(--muted,#94a3b8);border-bottom:2px solid var(--line,#e2e8f0);background:var(--panel-3,#f1f5f9)">排名</th>'
+      +'<th style="text-align:left;padding:6px 8px;font-size:11px;color:var(--muted,#94a3b8);border-bottom:2px solid var(--line,#e2e8f0);background:var(--panel-3,#f1f5f9)">超额分布（红 ≤−40 · 黄 ≤−20 · 绿为正）</th>'
+      +'</tr></thead><tbody>'+rows+'</tbody></table></div>'
+      +'<div style="font-size:10px;color:var(--muted,#94a3b8);margin-top:6px;line-height:1.5">数据源：天天基金 jjjl 历任基金一览（任职≥180 天产品）；排除分级/原油油气/被动指数（增强保留）。</div>';
+    openModal('经理生涯曲线 · '+esc(e.name||code), html);
+  }
   function renderPoolScreen(){
     var wrap=$('dcPoolScreenWrap'); if(!wrap) return;
     wrap.innerHTML='<div style="padding:24px;color:var(--muted,#94a3b8);text-align:center">加载筛选池…</div>';
@@ -12912,7 +12972,9 @@ setInterval(updateSessionBadge, 30000);
           var s=parts.join(' · ');
           var warn='';
           if(e.mgrChanged) warn='<div style="font-size:11px;color:var(--warn,#d97706);font-weight:600;line-height:1.5">⚠ 换经理风险：'+esc(e.mgrChanged)+(e.fundTenure!=null?'（现任上任 '+Number(e.fundTenure).toFixed(1)+'年）':'')+'</div>';
-          return (st?'<div style="font-size:11px;line-height:1.4">'+st+'</div>':'')+(s?'<div style="font-size:11px;color:var(--muted,#94a3b8);line-height:1.5;margin-top:2px">'+s+'</div>':'')+warn+(e.limitNote?'<div style="font-size:11px;color:var(--warn,#d97706);line-height:1.5">'+esc(e.limitNote)+'</div>':'');
+          /* fw2_v365_mgr_career：季度/6月胜率 + 生涯踩雷红黄警示 + 生涯曲线弹层入口 */
+          var mgrBits=poolMgrBits(e, row.code);
+          return (st?'<div style="font-size:11px;line-height:1.4">'+st+'</div>':'')+(s?'<div style="font-size:11px;color:var(--muted,#94a3b8);line-height:1.5;margin-top:2px">'+s+'</div>':'')+warn+mgrBits+(e.limitNote?'<div style="font-size:11px;color:var(--warn,#d97706);line-height:1.5">'+esc(e.limitNote)+'</div>':'');
         },
         opLabel:'操作',
         opW:170,
@@ -12933,6 +12995,9 @@ setInterval(updateSessionBadge, 30000);
           if(act==='toWatch'){ var wa=poolLsGet(POOL_LS.watch_added)||{}; wa[code]={name:name, addedAt:new Date().toISOString().slice(0,10)}; poolLsSet(POOL_LS.watch_added,wa); toast('已加入自选：'+name); renderPoolScreen(); }
           else if(act==='rmScreen'){ var sr=poolLsGet(POOL_LS.screen_removed)||{}; sr[code]=1; poolLsSet(POOL_LS.screen_removed,sr); toast('已从筛选池删除（永久生效）：'+name); renderPoolScreen(); }
         });
+      });
+      wrap.querySelectorAll('[data-mgr-career]').forEach(function(a){
+        a.addEventListener('click', function(){ openMgrCareer(a.dataset.mgrCareer); });
       });
     });
     }
