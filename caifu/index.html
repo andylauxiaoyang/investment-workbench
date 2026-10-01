@@ -1515,6 +1515,8 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
             <!-- v353 fw2_v353_pool_tabs：基金数据三池重构——「基金列表」更名「持仓基金」（data-dc="overview" 路由键/契约不动），新增「自选基金」(pool-watch)「筛选基金」(pool-screen) 两 Tab；自选池=watchlist-data.json+筛选池加入，筛选池=screen-pool.json（20 只候选） -->
             <button class="dc-tab v-tab" data-dc="pool-watch">自选基金</button>
             <button class="dc-tab v-tab" data-dc="pool-screen">筛选基金</button>
+            <!-- v363 fw2_v363_pool_rules_tab：完整筛选规则文档独立 Tab（含启用+未启用），筛选基金 Tab 回归纯净表格 -->
+            <button class="dc-tab v-tab" data-dc="pool-rules">筛选规则</button>
             <!-- v156 fw2_v156_fundlist_label：Tab「总览」更名「基金列表」（用户 2026-09-20 截图指定）。纯文案：data-dc="overview" 路由键 / #dcOverviewWrap / dcExportOverviewCsv 等 id 与 JS 函数名均不动（数据契约） -->
             <button class="dc-tab v-tab" data-dc="chart">收益曲线</button>
             <!-- v97 fw2_v97_research_merge：原「标的分析」6 个模块迁入本分块，作为与总览并列的 Tab -->
@@ -1546,6 +1548,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
         </div>
         <div id="dcPoolWatchWrap" class="dc-pane" style="display:none"><!-- v353 fw2_v353_pool_tabs：自选基金池（watchlist-data.json + 筛选池加入，剔除已持仓/已移除） --></div>
         <div id="dcPoolScreenWrap" class="dc-pane" style="display:none"><!-- v353 fw2_v353_pool_tabs：筛选基金池（screen-pool.json 20 只候选，可加入自选/永久删除） --></div>
+        <div id="dcPoolRulesWrap" class="dc-pane" style="display:none"><!-- v363 fw2_v363_pool_rules_tab：完整筛选规则文档（漏斗全流程/硬门槛/加分项/批次/族表，启用+未启用全展示，含调整规则编辑面板） --></div>
         <!-- v95 fw2_v95_drop_table_pivot：表格视图与透视视图（含其内部控件）已删除 -->
         <div id="dcChartWrap" class="dc-pane" style="display:none">
           <div class="dc-chart-ctrl">
@@ -12637,38 +12640,118 @@ setInterval(updateSessionBadge, 30000);
   function srFnum(label, v, step, min){
     return '<label style="font-size:11px;color:var(--muted,#94a3b8)">'+esc(label)+'<br><input type="number" step="'+step+'" min="'+min+'" value="'+(v===''||v==null?'':v)+'" style="width:100%;box-sizing:border-box;margin-top:2px;padding:4px 6px;border:1px solid var(--line,#e2e8f0);border-radius:6px;font-size:12px;color:var(--ink,#0f172a)" data-sr-f="'+esc(label)+'"></label>';
   }
-  function poolRulesCard(){
-    var cust=srGetCustom();
-    var rules = cust ? cust : SCREEN_RULES;
-    if(!rules) return '';
-    var hg=rules.hardGates||{}, b=rules.batch||{}, bonus=rules.bonus||{};
-    function row(d, v){ return '<tr><td style="padding:3px 8px;color:var(--muted,#94a3b8);white-space:nowrap">'+d+'</td><td style="padding:3px 8px">'+v+'</td></tr>'; }
-    var rows=[];
-    rows.push(row('类型限定', hg.typeAllow ? esc(hg.typeAllow.allow.join(' / ')) : '—'));
-    rows.push(row('规模 ≥', (hg.scaleMin && hg.scaleMin.value!=null ? hg.scaleMin.value : '—') + ' 亿'));
-    rows.push(row('成立 ≥', (hg.estabMinYears && hg.estabMinYears.value!=null ? hg.estabMinYears.value : '—') + ' 年（新族豁免：' + ((hg.estabExempt&&hg.estabExempt.families)?Object.keys(hg.estabExempt.families).join('/'):'无') + '）'));
-    rows.push(row('总费率 ≤', (hg.feeTotalMax && hg.feeTotalMax.value!=null ? hg.feeTotalMax.value : '—') + ' %/年'));
-    rows.push(row('同族去重', hg.tribeDedup ? ('每族 ≤' + (hg.tribeDedup.maxPerTribe!=null?hg.tribeDedup.maxPerTribe:'—') + ' 只') : '—'));
-    rows.push(row('可申赎', (hg.redeemable && hg.redeemable.enabled===false) ? '停用' : '启用'));
-    rows.push(row('每批上限', (b.maxPerBatch!=null ? b.maxPerBatch : '—') + ' 只'));
-    var qs=b.roleQuota||{};
-    rows.push(row('档位配额', ['底仓/缓冲','进攻/主题','海外独立','对冲','灵活/待定'].map(function(k){ return k+' '+(qs[k]!=null?qs[k]:'—'); }).join(' · ')));
-    var bs=Object.keys(bonus).map(function(k){ var it=bonus[k]; return '<span>'+esc(k)+' ×'+(it.weight!=null?it.weight:'—')+(it.enabled===false?' <span style="color:var(--warn,#d97706)">(未启用)</span>':'')+'</span>'; }).join(' · ');
+  function stBadge(on, note){
+    return on===false
+      ? '<span style="display:inline-block;font-size:11px;font-weight:600;padding:1px 7px;border-radius:10px;background:var(--warn-soft,#fef3c7);color:var(--warn,#d97706);margin-right:6px">未启用</span>'+(note?'<span style="font-size:11px;color:var(--muted,#94a3b8)">'+esc(note)+'</span>':'')
+      : '<span style="display:inline-block;font-size:11px;font-weight:600;padding:1px 7px;border-radius:10px;background:var(--down-soft,#dcfce7);color:var(--down,#16a34a)">启用</span>';
+  }
+  function srSect(title){ return '<div style="font-size:13px;font-weight:600;color:var(--text,#0f172a);margin:14px 0 6px;padding:6px 10px;background:var(--panel-3,#f1f5f9);border-radius:8px">'+title+'</div>'; }
+  function poolRulesDocHtml(rules, cust){
+    var hg=rules.hardGates||{}, b=rules.batch||{}, bonus=rules.bonus||{}, meta=rules.meta||{};
     var srcLine = cust
       ? '<span style="color:var(--warn,#d97706)">自定义规则（已保存，发我同步生效）</span> · ' + esc(cust._savedAt||'')
-      : '规则 ' + esc((rules.meta&&rules.meta.version)||'') + ' · 更新 ' + esc((rules.meta&&rules.meta.updatedAt)||'');
-    return '<div style="border:1px solid var(--line,#e2e8f0);border-radius:10px;padding:10px 12px;margin:0 2px 10px;background:var(--panel,#ffffff)">'
+      : '规则 ' + esc(meta.version||'') + ' · 更新 ' + esc(meta.updatedAt||'') + (meta.source?' · 依据：'+esc(meta.source):'');
+    var h='<div style="border:1px solid var(--line,#e2e8f0);border-radius:10px;padding:10px 12px;margin:0 2px;background:var(--panel,#ffffff)">'
       +'<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap">'
-      +'<div style="font-size:13px;font-weight:600">筛选规则 · 入选标准</div>'
-      +'<div style="font-size:11px;color:var(--muted,#94a3b8)">'+srcLine+'</div>'
+      +'<div style="font-size:14px;font-weight:700">基金筛选规则 · 完整文档</div>'
       +'<div style="display:flex;gap:6px">'
       +'<button class="btn-mini" id="srEditBtn">调整规则</button>'
       +(cust?'<button class="btn-mini" id="srResetBtn" style="color:var(--warn,#d97706)">恢复默认</button>':'')
       +'</div></div>'
-      +'<table style="width:100%;border-collapse:collapse;font-size:12px;margin-top:6px"><tbody>'+rows.join('')+'</tbody></table>'
-      +'<div style="font-size:11px;color:var(--muted,#94a3b8);margin-top:6px;line-height:1.5">加分项权重：'+bs+'</div>'
+      +'<div style="font-size:11px;color:var(--muted,#94a3b8);margin-top:4px;line-height:1.6">'+srcLine+'</div>'
       +'<div id="srEditWrap" style="display:none;margin-top:10px;border-top:1px dashed var(--line,#e2e8f0);padding-top:10px"></div>'
       +'</div>';
+    /* ---- 漏斗全流程 ---- */
+    h+=srSect('筛选漏斗 · 全市场 → 入池 20 只（核心机制）');
+    var funnel=[
+      ['① 全市场基金（约 2 万只）','fundcode_search 全量清单，含全部类型','约 20000'],
+      ['② 类型过滤（约 6000~8000 只）','只要 指数型/股票型/QDII/混合型；名称剔除 货币/短债/纯债/利率债/信用债/政金债/国债/同业存单/可转债/FOF/养老/REITs/理财','硬性'],
+      ['③ 硬门槛（剩约 2000~3000 只）','成立 ≥3 年（A500 新族豁免 1 年）· 规模 ≥2 亿 · 有近3年业绩 · 排除已持仓/自选','硬性'],
+      ['④ 收益初筛 → 候选池 80 只','按 近3年收益 排序，各档位取「配额×4」，A/C 份额去重，合并取前 80；A500 保底补回','截断'],
+      ['⑤ 逐只体检（80 → 淘汰部分）','抓 fundf10 画像：费率/公司/经理任职 + lsjz 申赎状态 → 总费率 >1.5% 或 暂停申购 淘汰','硬性'],
+      ['⑥ 去重（剩约 30~50 只）','同基金 A/C 份额只留一只 · 同族指数每族限 '+((hg.tribeDedup&&hg.tribeDedup.maxPerTribe!=null)?hg.tribeDedup.maxPerTribe:2)+' 只','硬性'],
+      ['⑦ 综合打分排序 + 配额收口 → '+((b.maxPerBatch!=null)?b.maxPerBatch:20)+' 只','8 项加分加权打分降序入池，每档位封顶 6/7/4/2/1，满 '+((b.maxPerBatch!=null)?b.maxPerBatch:20)+' 只即止；A500 缺位强制保底替换','配额'],
+    ];
+    var fw=100;
+    funnel.forEach(function(f){
+      h+='<div style="width:'+fw+'%;box-sizing:border-box;margin:0 auto 6px;background:#f8fafc;border:1px solid #e2e8f0;border-left:3px solid var(--brand,#4D6BFE);border-radius:8px;padding:7px 10px">'
+        +'<div style="font-size:12px;font-weight:600">'+f[0]+'</div>'
+        +'<div style="font-size:11px;color:#475569;margin-top:2px;line-height:1.5">'+f[1]+'</div></div>';
+      fw-=9;
+    });
+    /* ---- 硬门槛 ---- */
+    h+=srSect('硬门槛 · 不合格直接淘汰（'+ (hg.typeAllow?'9 条':'') +'，含未启用）');
+    h+='<table style="width:100%;border-collapse:collapse;font-size:12px;margin-top:4px">'
+      +'<tr><th style="text-align:left;padding:6px 8px;background:var(--panel-3,#f1f5f9);border-bottom:1px solid var(--line,#e2e8f0);font-size:11px;color:var(--muted,#94a3b8);white-space:nowrap">规则</th>'
+      +'<th style="text-align:left;padding:6px 8px;background:var(--panel-3,#f1f5f9);border-bottom:1px solid var(--line,#e2e8f0);font-size:11px;color:var(--muted,#94a3b8)">说明</th>'
+      +'<th style="text-align:left;padding:6px 8px;background:var(--panel-3,#f1f5f9);border-bottom:1px solid var(--line,#e2e8f0);font-size:11px;color:var(--muted,#94a3b8);white-space:nowrap">当前值</th>'
+      +'<th style="text-align:left;padding:6px 8px;background:var(--panel-3,#f1f5f9);border-bottom:1px solid var(--line,#e2e8f0);font-size:11px;color:var(--muted,#94a3b8);white-space:nowrap">状态</th></tr>';
+    var hgRows=[
+      ['类型限定', hg.typeAllow?hg.typeAllow.desc:'', (hg.typeAllow?hg.typeAllow.allow.join(' / '):'—'), true],
+      ['规模下限', hg.scaleMin?hg.scaleMin.desc:'', (hg.scaleMin&&hg.scaleMin.value!=null?hg.scaleMin.value:'—')+' 亿', true],
+      ['成立年限', hg.estabMinYears?hg.estabMinYears.desc:'', (hg.estabMinYears&&hg.estabMinYears.value!=null?hg.estabMinYears.value:'—')+' 年（豁免：'+((hg.estabExempt&&hg.estabExempt.families)?Object.keys(hg.estabExempt.families).join('/'):'无')+'）', true],
+      ['总费率上限', hg.feeTotalMax?hg.feeTotalMax.desc:'', (hg.feeTotalMax&&hg.feeTotalMax.value!=null?hg.feeTotalMax.value:'—')+' %/年', true],
+      ['同族去重', hg.tribeDedup?hg.tribeDedup.desc:'', '每族 ≤'+(hg.tribeDedup&&hg.tribeDedup.maxPerTribe!=null?hg.tribeDedup.maxPerTribe:'—')+' 只', true],
+      ['可申赎', hg.redeemable?hg.redeemable.desc:'', (hg.redeemable&&hg.redeemable.enabled===false)?'停用':'启用', !(hg.redeemable&&hg.redeemable.enabled===false)],
+      ['公司实力（剔除后1/3公司）', hg.companyGate?hg.companyGate.desc:'', hg.companyGate&&hg.companyGate.enabled!==false?'启用':'未启用', !(hg.companyGate&&hg.companyGate.enabled===false)],
+      ['持有人结构（机构>90%回避）', hg.holderGate?hg.holderGate.desc:'', hg.holderGate&&hg.holderGate.enabled!==false?'启用':'未启用', !(hg.holderGate&&hg.holderGate.enabled===false)],
+    ];
+    hgRows.forEach(function(r){
+      h+='<tr><td style="padding:6px 8px;border-bottom:1px solid var(--line-2,#f1f5f9);white-space:nowrap;font-weight:600">'+esc(r[0])+'</td>'
+        +'<td style="padding:6px 8px;border-bottom:1px solid var(--line-2,#f1f5f9);font-size:11px;color:var(--muted,#94a3b8);line-height:1.5">'+esc(r[1])+'</td>'
+        +'<td style="padding:6px 8px;border-bottom:1px solid var(--line-2,#f1f5f9);white-space:nowrap">'+esc(r[2])+'</td>'
+        +'<td style="padding:6px 8px;border-bottom:1px solid var(--line-2,#f1f5f9);white-space:nowrap">'+stBadge(r[3], r[3]?'':((r[0]==='公司实力（剔除后1/3公司）'?(hg.companyGate&&hg.companyGate.note):(hg.holderGate&&hg.holderGate.note))||''))+'</td></tr>';
+    });
+    h+='</table>';
+    /* ---- 加分项 ---- */
+    h+=srSect('加分项 · 综合打分（'+Object.keys(bonus).length+' 项，当前生效 '+Object.keys(bonus).filter(function(k){return !(bonus[k]&&bonus[k].enabled===false);}).length+' 项）');
+    h+='<table style="width:100%;border-collapse:collapse;font-size:12px;margin-top:4px">'
+      +'<tr><th style="text-align:left;padding:6px 8px;background:var(--panel-3,#f1f5f9);border-bottom:1px solid var(--line,#e2e8f0);font-size:11px;color:var(--muted,#94a3b8);white-space:nowrap">加分项</th>'
+      +'<th style="text-align:left;padding:6px 8px;background:var(--panel-3,#f1f5f9);border-bottom:1px solid var(--line,#e2e8f0);font-size:11px;color:var(--muted,#94a3b8)">说明</th>'
+      +'<th style="text-align:left;padding:6px 8px;background:var(--panel-3,#f1f5f9);border-bottom:1px solid var(--line,#e2e8f0);font-size:11px;color:var(--muted,#94a3b8);white-space:nowrap">权重</th>'
+      +'<th style="text-align:left;padding:6px 8px;background:var(--panel-3,#f1f5f9);border-bottom:1px solid var(--line,#e2e8f0);font-size:11px;color:var(--muted,#94a3b8);white-space:nowrap">状态</th></tr>';
+    Object.keys(bonus).forEach(function(k){
+      var it=bonus[k]||{};
+      var on=!(it.enabled===false);
+      h+='<tr><td style="padding:6px 8px;border-bottom:1px solid var(--line-2,#f1f5f9);white-space:nowrap;font-weight:600">'+esc(k)+'</td>'
+        +'<td style="padding:6px 8px;border-bottom:1px solid var(--line-2,#f1f5f9);font-size:11px;color:var(--muted,#94a3b8);line-height:1.5">'+esc(it.desc||'')+(it.note?' <span style="color:var(--warn,#d97706)">（'+esc(it.note)+'）</span>':'')+'</td>'
+        +'<td style="padding:6px 8px;border-bottom:1px solid var(--line-2,#f1f5f9);white-space:nowrap">×'+(it.weight!=null?it.weight:'—')+'</td>'
+        +'<td style="padding:6px 8px;border-bottom:1px solid var(--line-2,#f1f5f9);white-space:nowrap">'+stBadge(on, on?'':(it.note||''))+'</td></tr>';
+    });
+    h+='</table>';
+    /* ---- 批次规则 ---- */
+    h+=srSect('批次与配额');
+    var qs=b.roleQuota||{};
+    h+='<div style="font-size:12px;line-height:2;padding:2px 10px">'
+      +'<div>每批上限：<b>'+((b.maxPerBatch!=null)?b.maxPerBatch:20)+' 只</b>（一次筛选只入池 20 只，逐只人工可审）</div>'
+      +'<div>档位配额：'+['底仓/缓冲','进攻/主题','海外独立','对冲','灵活/待定'].map(function(k){ return k+' <b>'+(qs[k]!=null?qs[k]:'—')+'</b>'; }).join(' · ')+'（保证入池结构与杠铃策略档位匹配）</div>'
+      +'<div>海外关键词：'+((b.overseasKw&&b.overseasKw.length)?esc(b.overseasKw.join(' / ')):'—')+'（命中即归「海外独立」档）</div>'
+      +'<div>去重：'+(b.dedup?esc(b.dedup.note||''):'—')+'</div>'
+      +'<div>候选池：每档位取 配额×4 按近3年收益排序合并前 80；A500 缺位时强制保底替换底仓最低分</div>'
+      +'<div>待审下限：'+(b.minForReview!=null?b.minForReview:'—')+' 只</div>'
+      +'</div>';
+    /* ---- 族表 / 主题词 / 角色匹配（折叠） ---- */
+    h+=srSect('家族词表（同族去重依据）'+((rules.families&&Object.keys(rules.families).length)?' · '+Object.keys(rules.families).length+' 族':''));
+    h+='<details style="font-size:12px;margin:2px 10px"><summary style="cursor:pointer;color:var(--brand,#4D6BFE);font-weight:600">展开家族词表</summary>'
+      +'<div style="margin-top:6px;line-height:1.9">'+Object.keys(rules.families||{}).map(function(f){ return '<span style="display:inline-block;background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;padding:2px 8px;margin:2px"><b>'+esc(f)+'</b> <span style="color:var(--muted,#94a3b8)">'+esc(rules.families[f].join('/'))+'</span></span>'; }).join(' ')+'</div></details>';
+    h+=srSect('主题词 / 档位匹配（名称命中判定）');
+    h+='<details style="font-size:12px;margin:2px 10px"><summary style="cursor:pointer;color:var(--brand,#4D6BFE);font-weight:600">展开主题词与档位匹配</summary>'
+      +'<div style="margin-top:6px;line-height:1.9"><b>主题词（命中优先判进攻/主题）：</b><br>'+esc((rules.themeWords&&rules.themeWords.words||[]).join(' / '))+'</div>'
+      +'<div style="margin-top:6px;line-height:1.9"><b>档位匹配：</b>'+Object.keys(rules.roleMatch||{}).map(function(r){ return '<div>'+esc(r)+'：'+esc(rules.roleMatch[r].join(' / '))+'</div>'; }).join('')+'</div></details>';
+    h+=srSect('如何让调整生效');
+    h+='<div style="font-size:12px;color:var(--muted,#94a3b8);padding:2px 10px;line-height:1.8">① 点「调整规则」改数值 → ② 「保存规则」自动存本地并复制新规则 JSON → ③ 把复制的 JSON 发给豆包，更新 screen-rules.json 后重跑筛选 → 筛选池按新标准刷新。<br>类型白名单 / 加分项权重 / 家族词表 / 主题词 等高级项只读（避免误改破坏结构），要改直接告诉豆包。</div>';
+    return h;
+  }
+  function renderPoolRules(){
+    var wrap=$('dcPoolRulesWrap'); if(!wrap) return;
+    wrap.innerHTML='<div style="padding:24px;color:var(--muted,#94a3b8);text-align:center">加载筛选规则…</div>';
+    loadScreenRules(false, function(){
+      var cust=srGetCustom();
+      var rules = cust ? cust : SCREEN_RULES;
+      if(!rules){ wrap.innerHTML='<div style="padding:24px;color:var(--warn,#d97706);text-align:center">规则文件加载失败（screen-rules.json 不可达）。</div>'; return; }
+      wrap.innerHTML=poolRulesDocHtml(rules, cust);
+      bindSrEvents(wrap);
+    });
   }
   function poolRulesEditHtml(rules){
     var hg=rules.hardGates||{}, b=rules.batch||{}, qs=b.roleQuota||{};
@@ -12805,7 +12888,10 @@ setInterval(updateSessionBadge, 30000);
         r.row = r.f ? enrichPoolRow(Object.assign({code:r.code}, r.f)) : poolRowPlaceholder(r.code, r.e.name||'');
         r.row._meta = {e:r.e, held:!!held[r.code], added:!!added[r.code]};
       });
-      var note='筛选基金池（'+list.length+' 只，updatedAt '+esc(sp.updatedAt||'')+'，规则 '+esc(sp.rulesFile||'')+'）：全市场筛出的候选苗子。点「加入自选」→ 自选池分析；点「删除」永久移除（重跑筛选不复活）。已持仓 / 已自选有角标。';
+      var cust=srGetCustom();
+      var rv=SCREEN_RULES&&SCREEN_RULES.meta?SCREEN_RULES.meta:'';
+      var ruleLine='<div style="font-size:11px;color:var(--muted,#94a3b8);margin-top:4px;line-height:1.6">筛选依据：规则 '+esc((rv&&rv.version)||'')+' · 更新 '+esc((rv&&rv.updatedAt)||'')+(cust?' · <span style="color:var(--warn,#d97706)">自定义规则生效中（'+esc(cust._savedAt||'')+'）</span>':'')+' ｜ <a href="javascript:void(0)" id="gotoPoolRules" style="color:var(--brand,#4D6BFE);text-decoration:underline">完整规则与调整 →</a></div>';
+      var note='<div>筛选基金池（'+list.length+' 只，updatedAt '+esc(sp.updatedAt||'')+'）：全市场筛出的候选苗子。点「加入自选」→ 自选池分析；点「删除」永久移除（重跑筛选不复活）。已持仓 / 已自选有角标。</div>'+ruleLine;
       var h=poolTableHtml(list.map(function(r){ return r.row; }), {
         note:note,
         foot:'筛选基金 '+list.length+' 只（按档位·评分排序）',
@@ -12828,8 +12914,12 @@ setInterval(updateSessionBadge, 30000);
           return '<button class="btn-mini" data-pool-act="toWatch" data-code="'+row.code+'" data-name="'+esc(nm)+'">加入自选</button> <button class="btn-mini" data-pool-act="rmScreen" data-code="'+row.code+'" data-name="'+esc(nm)+'">删除</button>';
         }
       });
-      wrap.innerHTML=poolRulesCard()+h;
-      bindSrEvents(wrap);
+      wrap.innerHTML=h;
+      var g=wrap.querySelector('#gotoPoolRules');
+      if(g) g.addEventListener('click', function(){
+        var tb=document.querySelector('.dc-tab[data-dc="pool-rules"]');
+        if(tb){ tb.click(); } else if(typeof showView==='function'){ showView('data'); }
+      });
       wrap.querySelectorAll('[data-pool-act]').forEach(function(btn){
         btn.addEventListener('click', function(){
           var act=btn.dataset.poolAct, code=btn.dataset.code, name=btn.dataset.name;
@@ -12861,12 +12951,14 @@ setInterval(updateSessionBadge, 30000);
       $('dcOverviewWrap').style.display = t==='overview'?'':'none';
       var pw=$('dcPoolWatchWrap'); if(pw) pw.style.display = t==='pool-watch'?'':'none';   /* v353 fw2_v353_pool_tabs */
       var ps=$('dcPoolScreenWrap'); if(ps) ps.style.display = t==='pool-screen'?'':'none';   /* v353 */
+      var pr=$('dcPoolRulesWrap'); if(pr) pr.style.display = t==='pool-rules'?'':'none';   /* v363 fw2_v363_pool_rules_tab */
       var rw=$('dcResearchWrap'); if(rw) rw.style.display = rc?'':'none';   /* v97 */
-      var bar=$('dcBar'); if(bar) bar.style.display = (rc||t==='pool-watch'||t==='pool-screen')?'none':'';   /* v97 + v353：三池 Tab 自带操作，隐藏公共筛选栏 */
+      var bar=$('dcBar'); if(bar) bar.style.display = (rc||t==='pool-watch'||t==='pool-screen'||t==='pool-rules')?'none':'';   /* v97 + v353 + v363：三池/规则 Tab 自带操作，隐藏公共筛选栏 */
       if(t==='overview'){ if(FB_LOADED) renderDcOverview(); else loadDcBasic().then(function(){ if(FB_LOADED) renderDcOverview(); }); }
       else if(t==='chart' && DC_LOADED){ ensureDcDaily(); renderDcChart(); }
       else if(t==='pool-watch'){ renderPoolWatch(); }   /* v353 fw2_v353_pool_tabs */
       else if(t==='pool-screen'){ renderPoolScreen(); }   /* v353 */
+      else if(t==='pool-rules'){ renderPoolRules(); }   /* v363 fw2_v363_pool_rules_tab */
       else if(rc){ state.research.tab=rc; if(typeof fillRsPick==='function') fillRsPick(); if(typeof renderResearchChips==='function') renderResearchChips(); renderResearch(); }   /* v97 fw2_v97_research_merge */
     });
   });
@@ -12932,6 +13024,7 @@ setInterval(updateSessionBadge, 30000);
       if(t==='overview'){ renderDcOverview(); }
       else if(t==='pool-watch'){ renderPoolWatch(); }
       else if(t==='pool-screen'){ renderPoolScreen(); }
+      else if(t==='pool-rules'){ renderPoolRules(); }   /* v363 fw2_v363_pool_rules_tab */
     });
   }
 })();
