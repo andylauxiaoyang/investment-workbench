@@ -1,7 +1,7 @@
 {
   "meta": {
     "name": "基金筛选规则",
-    "version": "v1.3",
+    "version": "v1.4",
     "updatedAt": "2026-10-01",
     "source": "个人投资策略·最终版 + 新组合评估v5 + 基金作战笔记 + 从零开始学基金 + fund-analyst技能全解 + 经理生涯曲线/胜率能力 + 基金投资逻辑.md 十层手册（用户确认 2026-10-01）",
     "positioning": {
@@ -33,7 +33,12 @@
     "multiWindow": { "desc": "多窗口排名稳定性（手册4.2 多轮筛选：3年/2年/1年/6月/3月 五窗分位，全进前1/2 加分、防短期爆冲）：全窗前1/2 +1.5、4/5 +1.0、3/5 +0.5；任一窗口后1/4 且该窗亏损 标「爆冲警示」，亏损 ≤−15% 再 −0.5", "weight": 1.5, "neg": -0.5 },
     "ret3y": { "desc": "近 3 年年化 > 0（年化越高分越高）", "weight": 2.0 },
     "independence": { "desc": "与现有组合低相关（海外/红利/现金流/黄金等独立风险源加分）", "weight": 2.0 },
-    "riskAdj": { "desc": "风险收益比：夏普>0、卡玛>2（绝对收益产品卡玛优先）", "weight": 1.5, "note": "需净值序列，二期对 Top 候选计算" },
+    "riskAdj": { "desc": "风险收益比（fw2_v368_bc 落地）：夏普>0 且 卡玛>2 → +1.5（全达标）；卡玛>2 → +1.0；仅夏普>0 → +0.5；最大回撤>25% 标「回撤深」警示", "weight": 1.5, "note": "数据源：pingzhongdata Data_netWorthTrend 日频净值（近3年窗口，≥60点）现算夏普/卡玛/最大回撤；池内基金不在 fund-monthly.json，2026-10-01 起日频现算" },
+    "concentration": { "desc": "持仓集中度（fw2_v368_bc）：前十大重仓占净值比例 30~60% 分散适中 +0.5；>70% 标「持仓集中」警示；<20% 标「过度分散」；指数/联接/ETF 豁免（指数权重决定集中度）", "weight": 0.5, "enabled": true, "note": "数据源：FundArchivesDatas?type=jjcc&code=&topline=10 最新季前十大占净值比例合计；指数基金无个股重仓披露（conc 缺失，豁免展示 —）" },
+    "alpha": { "desc": "经理任期 Alpha（fw2_v368_bc）：任期收益跑赢同类平均 +0.5、跑赢沪深300 +0.5；跑输同类 −0.3 警示（指数基金同类口径自动适配）", "weight": 0.5, "weight2": 0.5, "neg": -0.3, "enabled": true, "note": "数据源：pingzhongdata Data_currentFundManager.profit（任期收益 vs 同类平均/沪深300，百分比）" },
+    "rating": { "desc": "基金评级（C 类，fw2_v368_bc）：天天基金业绩评价 avr ≥85 +0.5、75~85 +0.3；经理星级 ≥4★ +0.5、3★ +0.2", "weight": 0.5, "wAvrHi": 0.5, "wAvrMid": 0.3, "wStarHi": 0.5, "wStarMid": 0.2, "enabled": true, "note": "数据源：pingzhongdata Data_performanceEvaluation（综合+五维：选证/收益/抗风险/稳定/择时 0~100）与 Data_currentFundManager.star；评级是机构观点参考，权重低于经理实测能力" },
+    "turnover": { "desc": "换手率/申赎活跃度（展示项，不计分）：最新季 (期间申购+期间赎回)/平均总份额；换手过高（>200%）标「换手活跃·风格漂移风险」，过低（<10%）标「低换手·策略稳定」", "weight": 0.0, "kind": "watch", "note": "东财 hphhz 页 404、FundArchivesDatas?type=hsl 空（var apidata=）、datacenter 报表接口 9501——无免费标准换手率源；以 pingzhongdata Data_buySedemption 申赎活跃度近似（2026-10-01 定案），二期人工换源" },
+    "awards": { "desc": "获奖情况（C 类，展示项不计分）：晨星/金牛/金基金 等获奖记录由人工维护（screen-awards.json 或池内字段），无免费结构化源（评级页 pj_*.html 404、datacenter RPT_FUND_* 9501）", "weight": 0.0, "kind": "manual", "note": "2026-10-01 探测定案：奖项无免费接口，改为人工登记；评级已由 performanceEvaluation+星级替代自动项" },
     "valuation": { "desc": "估值分位 <30 加分、>80 标「暂停关注」（理杏仁）", "weight": 1.5, "enabled": false, "note": "理杏仁 token 未配置，配置后自动启用" },
     "holder": { "desc": "持有人加分（fw2_v367_holder）：机构占比 30~70% 适中 +1.0（散户+机构平衡、非定制非过度散户）；内部持有比例 ≥0.1% 自购信号 +0.3；机构占比 >70% 标注偏高", "weight": 1.0, "enabled": true, "note": "数据源：pingzhongdata Data_holderStructure（机构/内部持有比例，最新报告期）" },
     "managerTenure": { "desc": "生涯任职年限分档（稳定性门槛）：≥5年 +1.0、≥8年 +1.5（8年以上更好）；3~5年 +0.5", "weight": 1.0 },
