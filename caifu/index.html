@@ -12494,23 +12494,28 @@ setInterval(updateSessionBadge, 30000);
      任职年限 tenure=经理生涯年文本并入 mgrTenure、经理在管 aum 并入 mgrScale）。用户要求：同类型字段放一块、三池字段完全一致。 */
   /* fw2_v384_score100：评分百分制换算 —— 原分是「0 起累加」的加分制（正项理论满分 ≈24.3），
      直接显示看着像「不及格」。这里按正项满分归一到 100 分制（百分制显示，内部 score 字段与排序口径不变）。
-     ★FULL 按 screen-rules.json 的 bonus 权重动态求和（权重以后调了自动跟随）；规则文件未加载完时回落常量 24.3（与当前权重一致）。 */
-  var SCORE_FULL_FALLBACK = 24.3;
+     ★FULL 按 screen-rules.json 的 bonus 权重动态求和（权重以后调了自动跟随）；规则文件未加载完时回落常量 22.3（与当前权重一致）。 */
+  /* fw2_v385_full：满分基准只统计「已启用」的加分项 —— 否则分母里含永远拿不到的分，系统性压低所有基金。
+     当前 = 24.3 − 1.5（valuation enabled:false，理杏仁源未通）− 0.5（qdiiLimit 降为展示项）= 22.3。
+     ★w() 必须用 == null 判断而非 ||：权重改 0 时 `0 || d` 会错回落成默认值（假值陷阱）。 */
+  var SCORE_FULL_FALLBACK = 22.3;
   function scoreFullMarks(){
     var b = null;
     try { b = (typeof SCREEN_RULES !== 'undefined' && SCREEN_RULES && SCREEN_RULES.bonus) || null; } catch (e) { b = null; }
     if (!b) return SCORE_FULL_FALLBACK;
-    function w(k, d){ var v = b[k]; return (v && typeof v === 'object' ? v.weight : v) || d || 0; }
+    function num0(v, d){ return (v == null || v === '') ? (d || 0) : (Number(v) || 0); }
+    function w(k, d){ var e = b[k]; if (e && e.enabled === false) return 0; return num0((e && typeof e === 'object') ? e.weight : e, d); }
+    function sub(o, key, d){ return (o && o.enabled === false) ? 0 : num0(o ? o[key] : null, d); }
     var rt = b.rating || {}, al = b.alpha || {};
     return w('rankQuantile', 3) + w('multiWindow', 1.5) + w('ret3y', 2) + w('independence', 2)
       + 1.0                                  /* 档位已登记（硬编码 +1.0） */
       + w('managerTenure', 1) * 1.5          /* ≥8年 档位最高 ×1.5 */
       + w('fundTenure', 1) + w('mgrAnnRet', 1.5) + w('mgrScale', 0.5)
       + w('mgrWinQ', 1) + w('mgrWin6', 1) + w('riskAdj', 1.5) + w('concentration', 0.5)
-      + w('alpha', 0.5) + (al.weight2 || 0.5)
-      + (rt.wAvrHi || 0.5) + (rt.wStarHi || 0.5)
+      + w('alpha', 0.5) + sub(al, 'weight2', 0.5)
+      + sub(rt, 'wAvrHi', 0.5) + sub(rt, 'wStarHi', 0.5)
       + w('holder', 1) + 0.3                 /* 持有人结构 + 内部持有自购（硬编码 +0.3） */
-      + w('valuation', 1.5) + w('feeLow', 0.5) + w('scaleFit', 0.5) + w('qdiiLimit', 0.5);
+      + w('valuation', 1.5) + w('feeLow', 0.5) + w('scaleFit', 0.5) + w('qdiiLimit', 0);
   }
   function scoreTo100(s){
     if (s == null || s === '') return null;
