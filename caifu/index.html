@@ -428,6 +428,17 @@ button, input, select, textarea { font-family: inherit; font-size: var(--fs-md);
 .rs-head .chg { font-family: var(--mono); font-size: var(--fs-md); }
 .rs-head .nm { font-size: var(--fs-2xl); font-weight: 700; color: var(--text); }
 .rs-head .cd { font-size: var(--fs-sm); color: var(--muted); font-family: var(--mono); }
+/* v380 基金透视：吸顶锚点导航 + 区块（单页纵向拼接 6 块） */
+.rs-sec-nav { position: sticky; top: 0; z-index: 6; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  padding: 8px 12px; margin: 0 0 12px; background: var(--panel, #fff); border: 1px solid var(--line, #e3e8ee);
+  border-radius: var(--r-8, 8px); box-shadow: 0 1px 4px rgba(15,23,42,.08); }
+.rs-sec-anchor { font-size: var(--fs-sm); color: var(--muted, #64748b); cursor: pointer; padding: 3px 12px; border-radius: 999px;
+  border: 1px solid transparent; user-select: none; transition: all .15s; white-space: nowrap; }
+.rs-sec-anchor:hover { color: var(--brand, #2f6bff); background: rgba(47,107,255,.08); }
+.rs-sec-anchor.active { color: #fff; background: var(--brand, #2f6bff); border-color: var(--brand, #2f6bff); }
+.rs-sec-sep { color: var(--line, #e3e8ee); }
+.rs-sec { scroll-margin-top: 56px; }
+.rs-sec + .rs-sec { margin-top: 6px; }
 .metric-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: var(--sp-9); }
 .metric { border: 1px solid var(--line); border-radius: var(--r-8); padding: 8px 10px; background: var(--panel-2); }
 .metric .k { font-size: var(--fs-xs); color: var(--muted); }
@@ -7381,11 +7392,21 @@ function toResearchCode(code, assetType) {
 /* v97 fw2_v97_research_merge：原「标的分析」迁入数据中心 · 基金数据分块 */
 const RS_TAB_LABELS = {
   stock: { fundamental: '基本面', technical: '技术面', position: '持仓关联', news: '资讯与公告', report: '财报', score: '综合诊断' },
-  fund:  { fundamental: '基金画像', technical: '业绩与排名', position: '持仓关联', news: '资讯', report: '季报持仓', score: '综合诊断' },
+  fund:  { fundamental: '基金透视', technical: '业绩与排名', position: '持仓关联', news: '资讯', report: '季报持仓', score: '综合诊断' },
 };
 function setRsTabLabels(kind) {
   const L = RS_TAB_LABELS[kind] || RS_TAB_LABELS.stock;
-  $$('.dc-tab[data-dc^="r-"]').forEach((b) => { const k = b.dataset.dc.slice(2); if (L[k]) b.textContent = L[k]; });
+  $$('.dc-tab[data-dc^="r-"]').forEach((b) => {
+    const k = b.dataset.dc.slice(2);
+    if (kind === 'fund') {
+      /* v380 基金态：合并为单页「基金透视」，只保留 fundamental 一个 tab，其余隐藏（改股票态时再复原） */
+      if (k === 'fundamental') { b.style.display = ''; if (L[k]) b.textContent = L[k]; }
+      else { b.style.display = 'none'; }
+    } else {
+      b.style.display = '';
+      if (L[k]) b.textContent = L[k];
+    }
+  });
 }
 function openResearch(code) {
   try { showView('data'); } catch (e) { console.warn('[openResearch]', e); }
@@ -7412,6 +7433,7 @@ async function loadResearch(code) {
   rs.fund = null; rs.fundTrend = []; rs.fundAnnouncements = []; rs.fundTop10 = null;
   renderResearchHead();
   if (isOtcFund(code)) {
+    rs.tab = 'fundamental';   /* v380 基金态强制落到「基金透视」单页，旧 deep-link/股票残留 tab 不失效 */
     try {
       const [fp, ft, fpr, fh, bk, fba, fa, ft10] = await Promise.all([
         apiGet('/api/fund-profile', { code: shortCode(code) }).catch(() => null),
@@ -7643,16 +7665,15 @@ function fundRiskExt(trend, benchKline) {
   };
 }
 /* 季报持仓 Tab（v17）：Top10 重仓 + 持仓重叠 + 集中度 + 资产配置 */
-function renderFundReport(panel, rs) {
+function renderFundReport(rs) {
   let fh = rs.fundHoldings; const f = rs.fund;
   const isLink = /联接/.test((f && f.name) || '');
   let synthesized = false;
   if (!fh || !fh.quarters || !fh.quarters.length) {
     const t10 = (rs.fundTop10 && rs.fundTop10.rows) || [];
     if (!t10.length) {
-      panel.innerHTML = `<div class="card"><div class="card-h"><h3>季报持仓</h3></div>
-        <div class="alert">${isLink ? '该基金为联接基金：绝大部分资产持有目标 ETF，直接股票持仓极小，穿透请看目标 ETF 持仓。' : '季报重仓数据未取到（债券/货币/QDII 部分口径暂未覆盖）。'}</div></div>`;
-      return;
+      return { html: `<div class="card"><div class="card-h"><h3>季报持仓</h3></div>
+        <div class="alert">${isLink ? '该基金为联接基金：绝大部分资产持有目标 ETF，直接股票持仓极小，穿透请看目标 ETF 持仓。' : '季报重仓数据未取到（债券/货币/QDII 部分口径暂未覆盖）。'}</div></div>`, mount: null };
     }
     rs.fundHoldings = { quarters: [{ period: '最新一期', rows: t10 }] };
     fh = rs.fundHoldings;
@@ -7688,7 +7709,7 @@ function renderFundReport(panel, rs) {
       (hs2.top10 > 60 ? ' · 超 60% 高度集中（M4，结合回撤警惕）' : '') + ` · 快照更新于 ${esc(hs2.updatedAt)}${staleWarn(hs2.updatedAt, 30, '季报快照')}`
     : (hasWeight ? '前十大重仓占净值合计 ' + fmtNum(total, 1) + '%' + (total > 80 ? ' · 超 80% 极端集中（M4，结合回撤警惕）' : '') + ' · 来源天天基金季报'
       : '本基金暂无季报快照（可让小8补拉一期）· 下表仅列代码与名称');
-  panel.innerHTML = `<div class="card">
+  let html = `<div class="card">
     <div class="card-h"><h3>季报持仓 · ${esc(hs2 ? hs2.period : q0.period)}</h3><span class="hint">${hsHint}</span></div>
     ${hs2 && hs2.bench && hs2.bench.length ? (() => { const parts = hs2.bench.map((b) => { const d = hs2.benchData && hs2.benchData[b.idx]; if (!d) return esc(b.role) + ' 暂无数据'; const p = d.pos != null ? Math.round(d.pos * 100) : null; const tag = p == null ? '' : p >= 80 ? '历史偏贵' : p >= 60 ? '中性偏暖' : p >= 40 ? '中性' : p >= 20 ? '中性偏冷' : '历史偏便宜'; const c = p == null ? '' : p >= 80 ? 'up' : p < 20 ? 'down' : ''; return `${esc(b.role)} PE ${d.pe != null ? fmtNum(d.pe, 2) : '—'} · 10年分位 <b class="${c}">${p != null ? p + '%' : '—'}</b>（${tag}）`; }); const d0 = hs2.benchData && hs2.benchData[hs2.bench[0].idx]; return `<div style="margin:4px 0 8px;font-size:12px;line-height:1.8;color:#8a93a3"><b style="color:inherit">基准估值温度</b>（理杏仁 ${d0 ? esc(d0.date) : ''}）｜ ${parts.join(' ｜ ')}<span style="opacity:.75"> · 权重为基准构成参考</span></div>`; })() : ''}
     ${isLink ? '<div class="alert">联接基金：主要资产为目标 ETF，下表仅为基金直接持有部分。</div>' : ''}
@@ -7701,26 +7722,29 @@ function renderFundReport(panel, rs) {
     <div class="card-h"><h3>资产配置（季报）</h3><span class="hint">M4：权益仓位与风险偏好匹配</span></div>
     <div class="chart" id="rsAlloc" style="height:200px"></div>
   </div>` : ''}`;
-  const ac = chartOf('rsAlloc');
-  if (ac && f && f.alloc && f.alloc.series) {
-    const mk = (nm) => { const sr = f.alloc.series.find((x) => x.name === nm); return sr ? sr.data : []; };
-    ac.setOption({
-      tooltip: { trigger: 'axis', valueFormatter: (v) => fmtNum(v, 2) + '%' },
-      legend: { top: 0, textStyle: { fontSize: 10, color: '#475569' } },
-      grid: { left: 44, right: 16, top: 30, bottom: 24 },
-      xAxis: { type: 'category', data: f.alloc.categories || [], axisLabel: { fontSize: 10, color: '#475569' } },
-      yAxis: { type: 'value', axisLabel: { fontSize: 10, color: '#475569', formatter: (v) => v + '%' }, splitLine: { lineStyle: { color: '#e3e8ee' } } },
-      series: [
-        { name: '股票占净比', type: 'bar', stack: 'a', data: mk('股票占净比'), itemStyle: { color: '#e02e24' } },
-        { name: '债券占净比', type: 'bar', stack: 'a', data: mk('债券占净比'), itemStyle: { color: '#2f6bff' } },
-        { name: '现金占净比', type: 'bar', stack: 'a', data: mk('现金占净比'), itemStyle: { color: '#94a3b8' } },
-      ],
-    }, true);
-    ac.resize();
-  }
+  const mount = () => {
+    const ac = chartOf('rsAlloc');
+    if (ac && f && f.alloc && f.alloc.series) {
+      const mk = (nm) => { const sr = f.alloc.series.find((x) => x.name === nm); return sr ? sr.data : []; };
+      ac.setOption({
+        tooltip: { trigger: 'axis', valueFormatter: (v) => fmtNum(v, 2) + '%' },
+        legend: { top: 0, textStyle: { fontSize: 10, color: '#475569' } },
+        grid: { left: 44, right: 16, top: 30, bottom: 24 },
+        xAxis: { type: 'category', data: f.alloc.categories || [], axisLabel: { fontSize: 10, color: '#475569' } },
+        yAxis: { type: 'value', axisLabel: { fontSize: 10, color: '#475569', formatter: (v) => v + '%' }, splitLine: { lineStyle: { color: '#e3e8ee' } } },
+        series: [
+          { name: '股票占净比', type: 'bar', stack: 'a', data: mk('股票占净比'), itemStyle: { color: '#e02e24' } },
+          { name: '债券占净比', type: 'bar', stack: 'a', data: mk('债券占净比'), itemStyle: { color: '#2f6bff' } },
+          { name: '现金占净比', type: 'bar', stack: 'a', data: mk('现金占净比'), itemStyle: { color: '#94a3b8' } },
+        ],
+      }, true);
+      ac.resize();
+    }
+  };
+  return { html, mount };
 }
 /* 持仓关联（基金版 v19）：持仓指标 + 重仓与我的持仓重叠 */
-function renderFundPosition(panel, rs) {
+function renderFundPosition(rs) {
   const sc = shortCode(rs.code);
   const { rows } = buildRows();
   const r = rows.find((x) => x.code === rs.code || shortCode(x.code) === sc);
@@ -7735,7 +7759,7 @@ function renderFundPosition(panel, rs) {
       ${ov.length ? ov.map((x) => `<div class="rv-line"><span class="tag tag-rel">重叠</span><span><b>${esc(x.code)}</b> ${esc(x.name)} · 占净值 ${x.pct != null ? fmtNum(x.pct, 2) + '%' : '—'}</span></div>`).join('') : '<div class="empty st st-empty">该基金前十大重仓与你当前持仓无重叠</div>'}
     </div>`;
   }
-  panel.innerHTML = `<div class="card">
+  let html = `<div class="card">
     <div class="card-h"><h3>持仓关联</h3><span class="hint">取自当前快照 ${state.snapshot.id}</span></div>
     ${r ? `<div class="metric-grid">
         ${metric('持仓份额', r.qty != null ? fmtNum(r.qty, 2) + ' 份' : '—')}
@@ -7756,9 +7780,10 @@ function renderFundPosition(panel, rs) {
       </div>
       <p class="foot-note">未持仓速览。点击右上「＋ 持仓」录入后，此处显示份额/成本/盈亏明细。</p>`}
   </div>` + overlapHtml;
+  return { html, mount: null };
 }
 /* 资讯（基金版 v19）：基金公告（FundMNNoticeList）+ 全市场资讯名称匹配 */
-function renderFundNews(panel, rs) {
+function renderFundNews(rs) {
   const nm = (rs.fund && rs.fund.name) || '';
   const sc = shortCode(rs.code);
   const ann = (rs.fundAnnouncements || []).map((a) => ({
@@ -7781,7 +7806,7 @@ function renderFundNews(panel, rs) {
     if (seen.has(k)) continue; seen.add(k); merged.push(it);
   }
   merged.sort((a, b) => new Date(b.publishTime || 0) - new Date(a.publishTime || 0));
-  panel.innerHTML = `<div class="card">
+  let html = `<div class="card">
     <div class="card-h"><h3>相关资讯与公告</h3><span class="hint">公告源调整中，以下为全市场资讯匹配${state.news.fetchedAt ? '（抓取 ' + fmtDateTime(state.news.fetchedAt) + '）' : ''}</span></div>
     ${merged.length ? merged.slice(0, 25).map((it) => `<div class="rank-item" style="align-items:flex-start">
         <div class="l" style="flex-direction:column;align-items:flex-start;gap:2px">
@@ -7790,21 +7815,56 @@ function renderFundNews(panel, rs) {
         </div>
       </div>`).join('') : '<div class="empty st st-empty">暂无匹配的资讯与公告（可先到资讯页抓取全市场资讯）</div>'}
   </div>`;
+  return { html, mount: null };
 }
+/* fw2_v380_fund_lens：v380 基金透视 —— 场外基金合并为单页纵向拼接 6 块 + 吸顶锚点导航（画像·业绩·季报·诊断·持仓·资讯） */
 function renderFundTabs(panel, rs) {
-  const f = rs.fund, ft = rs.fundTrend || [];
-  if (rs.tab === 'fundamental') renderFundProfile(panel, rs);
-  else if (rs.tab === 'technical') renderFundPerf(panel, rs);
-  else if (rs.tab === 'report') renderFundReport(panel, rs);
-  else if (rs.tab === 'score') renderFundScore(panel, rs);
-  else if (rs.tab === 'position') renderFundPosition(panel, rs);
-  else if (rs.tab === 'news') renderFundNews(panel, rs);
-  else { panel.innerHTML = '<div class="card"><div class="empty st st-empty">请切换到左侧 Tab 查看基金研究内容</div></div>'; }
+  if (rs.tab !== 'fundamental') rs.tab = 'fundamental';   /* 旧 deep-link/股票残留 tab 落到基金时强制回基金透视单页 */
+  const secs = [
+    { id: 'rsSecProfile', label: '画像', render: () => renderFundProfile(rs) },
+    { id: 'rsSecPerf', label: '业绩', render: () => renderFundPerf(rs) },
+    { id: 'rsSecReport', label: '季报', render: () => renderFundReport(rs) },
+    { id: 'rsSecScore', label: '诊断', render: () => renderFundScore(rs) },
+    { id: 'rsSecPosition', label: '持仓', render: () => renderFundPosition(rs) },
+    { id: 'rsSecNews', label: '资讯', render: () => renderFundNews(rs) },
+  ];
+  const parts = secs.map((s) => s.render());
+  const nav = '<div class="rs-sec-nav" id="rsSecNav">' + secs.map((s) => `<a class="rs-sec-anchor" data-sec="${s.id}">${s.label}</a>`).join('<span class="rs-sec-sep">·</span>') + '</div>';
+  let body = nav;
+  secs.forEach((s, i) => { body += `<section class="rs-sec" id="${s.id}">${parts[i].html}</section>`; });
+  panel.innerHTML = body;
+  /* 锚点点击平滑滚动到对应区块 */
+  const navEls = panel.querySelectorAll('.rs-sec-anchor');
+  navEls.forEach((a) => {
+    a.onclick = () => {
+      const el = document.getElementById(a.dataset.sec);
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    };
+  });
+  /* 滚动高亮当前区块（IntersectionObserver，重渲染前先断开旧实例，避免监听器泄漏）*/
+  if (panel._rsIO) { try { panel._rsIO.disconnect(); } catch (e) {} panel._rsIO = null; }
+  const secEls = secs.map((s) => document.getElementById(s.id)).filter(Boolean);
+  let scroller = panel;
+  while (scroller && scroller !== document.body) {
+    const oy = getComputedStyle(scroller).overflowY;
+    if (oy === 'auto' || oy === 'scroll') break;
+    scroller = scroller.parentElement;
+  }
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach((e) => {
+      if (e.isIntersecting) navEls.forEach((a) => a.classList.toggle('active', a.dataset.sec === e.target.id));
+    });
+  }, { root: (scroller && scroller !== document.body) ? scroller : null, rootMargin: '-45% 0px -50% 0px', threshold: 0 });
+  secEls.forEach((el) => io.observe(el));
+  panel._rsIO = io;
+  if (secEls[0]) navEls[0].classList.add('active');
+  /* 初始化各块图表（chartOf 已处理实例复用与 re-init）*/
+  parts.forEach((p) => { if (p && p.mount) p.mount(); });
 }
-function renderFundProfile(panel, rs) {
+function renderFundProfile(rs) {
   const f = rs.fund;
   const basic = rs.fundBasic || {};
-  if (!f) { panel.innerHTML = '<div class="card"><div class="empty st st-err">基金画像数据加载失败（确认代码为场外基金，可输 f+6位代码）</div></div>'; return; }
+  if (!f) return { html: '<div class="card"><div class="empty st st-err">基金画像数据加载失败（确认代码为场外基金，可输 f+6位代码）</div></div>', mount: null };
   const wm = (state.watchMeta || {})[shortCode(rs.code)] || {};
   const mgr = (f.manager && f.manager[0]) || null;
   const mgrAll = (f.manager && f.manager.length) ? (f.manager || []).map((m) => m.name).join(' / ') : (basic.mgr || '');
@@ -7833,7 +7893,7 @@ function renderFundProfile(panel, rs) {
   const ft0 = (rs.fund && rs.fund.trend && rs.fund.trend.length) ? rs.fund.trend[0].d : '';
   const founded = wm.founded || basic.estab || rs.fundEstab || ft0 || '';
   const foundedYears = fundYearsSince(founded);
-  panel.innerHTML = `<div class="card">
+  let html = `<div class="card">
     <div class="card-h"><h3>基金画像</h3><span class="hint">阈值参照 fund-analyst：M2 公司 / M3 经理 / M4 产品</span></div>
     <div class="metric-grid">
       ${metric('基金名称', esc(f.name || shortCode(rs.code)))}
@@ -7852,21 +7912,24 @@ function renderFundProfile(panel, rs) {
     ${f.scale && f.scale.length ? '<div class="chart" id="rsScale" style="height:200px"></div>' : ''}
     <p class="foot-note">参照标准（M2/M3/M4）：规模<5000万清盘风险（回避）· 股票型 5～100亿 · 成立<1年次新回避 · 经理任职≥3年 · 费率股票型≤1.5% / 债券型≤0.8% · 机构占比 30%～70% 最佳、>90% 疑机构定制（回避）。规模走势单位：亿元。</p>
   </div>`;
-  const sc = chartOf('rsScale');
-  if (sc && f.scale && f.scale.length) {
-    sc.setOption({
-      tooltip: { trigger: 'axis', formatter: (ps) => ps[0].value[2] + '<br/>规模 ' + fmtNum(ps[0].value[1], 2) + ' 亿元' },
-      grid: { left: 56, right: 16, top: 16, bottom: 26 },
-      xAxis: { type: 'time', axisLabel: { fontSize: 10, color: '#475569' }, axisLine: { lineStyle: { color: '#d8dee6' } } },
-      yAxis: { type: 'value', scale: true, axisLabel: { fontSize: 10, color: '#475569' }, splitLine: { lineStyle: { color: '#e3e8ee' } } },
-      series: [{ type: 'line', data: f.scale.map((p) => [p.d, p.v, p.d]), showSymbol: false, lineStyle: { color: '#2f6bff', width: 1.6 }, itemStyle: { color: '#2f6bff' } }],
-    }, true);
-    sc.resize();
-  }
+  const mount = () => {
+    const sc = chartOf('rsScale');
+    if (sc && f.scale && f.scale.length) {
+      sc.setOption({
+        tooltip: { trigger: 'axis', formatter: (ps) => ps[0].value[2] + '<br/>规模 ' + fmtNum(ps[0].value[1], 2) + ' 亿元' },
+        grid: { left: 56, right: 16, top: 16, bottom: 26 },
+        xAxis: { type: 'time', axisLabel: { fontSize: 10, color: '#475569' }, axisLine: { lineStyle: { color: '#d8dee6' } } },
+        yAxis: { type: 'value', scale: true, axisLabel: { fontSize: 10, color: '#475569' }, splitLine: { lineStyle: { color: '#e3e8ee' } } },
+        series: [{ type: 'line', data: f.scale.map((p) => [p.d, p.v, p.d]), showSymbol: false, lineStyle: { color: '#2f6bff', width: 1.6 }, itemStyle: { color: '#2f6bff' } }],
+      }, true);
+      sc.resize();
+    }
+  };
+  return { html, mount };
 }
-function renderFundPerf(panel, rs) {
+function renderFundPerf(rs) {
   const f = rs.fund, ft = rs.fundTrend || [];
-  if (!ft.length) { panel.innerHTML = '<div class="card"><div class="empty st st-err">净值序列加载失败</div></div>'; return; }
+  if (!ft.length) return { html: '<div class="card"><div class="empty st st-err">净值序列加载失败</div></div>', mount: null };
   /* 收益/回撤/波动按累计净值（含分红），走势图仍展示单位净值（v22） */
   const rt = (rs.fund && rs.fund.ac && rs.fund.ac.length > 10) ? rs.fund.ac.slice(-500) : ft;
   const st = fundCalcStats(rt);
@@ -7888,7 +7951,7 @@ function renderFundPerf(panel, rs) {
     const sub = p.avg != null ? ` · 同类平均 ${fmtPct(p.avg)}` : '';
     return `<div class="metric"><div class="k">${labelOf(t)}</div><div class="v ${cls(p.syl)}">${fmtPct(p.syl)}</div><div class="sub-line" style="font-size:10px;color:#475569">${pctRank}${sub}</div></div>`;
   };
-  panel.innerHTML = `<div class="card">
+  let html = `<div class="card">
     <div class="card-h"><h3>净值走势</h3><span class="hint">${ft.length} 个净值日 · 天天基金</span></div>
     <div class="chart chart-lg" id="rsNavChart"></div>
   </div>
@@ -7922,34 +7985,37 @@ function renderFundPerf(panel, rs) {
     ${f && f.rank && f.rank.length ? '<div class="chart" id="rsRankChart" style="height:180px"></div>' : ''}
     <p class="foot-note">参照（M5/M6）：各期均进同类前 20% 说明业绩持续性强 · 股票型波动率≤20% · 回撤激进<20% · 排名百分位＝排名÷同类总数（越小越好）· Beta≈1 同步市场 · Alpha 主动≥2% / 指增≥1% · 夏普>1 优秀（0.5～1 良好）· 卡玛>1 优秀 · 无风险利率取 1.5%；Beta/Alpha/夏普/卡玛/索提诺＝近 1 年日收益对齐沪深300 自算，年化波动率＝近 250 净值日，最大回撤＝近 500 净值日（≈2 年）。收益/回撤/波动按累计净值（含分红再投）口径，走势图为单位净值。</p>
   </div>`;
-  const c = chartOf('rsNavChart');
-  if (c) {
-    c.setOption({
-      tooltip: { trigger: 'axis', formatter: (ps) => ps[0].axisValue + '<br/>单位净值 ' + fmtNum(ps[0].value, 4) },
-      grid: { left: 60, right: 16, top: 16, bottom: 26 },
-      xAxis: { type: 'category', data: ft.map((p) => p.d), axisLabel: { fontSize: 10, color: '#475569', hideOverlap: true }, axisLine: { lineStyle: { color: '#d8dee6' } } },
-      yAxis: { type: 'value', scale: true, axisLabel: { fontSize: 10, color: '#475569', formatter: (v) => fmtNum(v, 2) }, splitLine: { lineStyle: { color: '#e3e8ee' } } },
-      series: [{ type: 'line', data: ft.map((p) => p.y), showSymbol: false, smooth: true, lineStyle: { color: '#4D6BFE', width: 1.6 }, itemStyle: { color: '#4D6BFE' }, areaStyle: { color: { type: 'linear', x: 0, y: 0, x2: 0, y2: 1, colorStops: [{ offset: 0, color: 'rgba(77,107,254,.18)' }, { offset: 1, color: 'rgba(77,107,254,.02)' }] } } }],
-    }, true);
-    c.resize();
-  }
-  const rc = chartOf('rsRankChart');
-  if (rc && f && f.rank && f.rank.length) {
-    const pts = f.rank.filter((p) => p.sc).map((p) => [p.t, +(p.y / Number(p.sc) * 100).toFixed(1)]);
-    rc.setOption({
-      tooltip: { trigger: 'axis', formatter: (ps) => fmtDateTime(ps[0].value[0]) + '<br/>近3月排名百分位 ' + fmtNum(ps[0].value[1], 1) + '%（越小越好）' },
-      grid: { left: 56, right: 16, top: 16, bottom: 26 },
-      xAxis: { type: 'time', axisLabel: { fontSize: 10, color: '#475569' }, axisLine: { lineStyle: { color: '#d8dee6' } } },
-      yAxis: { type: 'value', max: 100, inverse: true, axisLabel: { fontSize: 10, color: '#475569', formatter: (v) => v + '%' }, splitLine: { lineStyle: { color: '#e3e8ee' } } },
-      series: [{ type: 'line', data: pts, showSymbol: false, lineStyle: { color: '#7a3fd4', width: 1.6 }, itemStyle: { color: '#7a3fd4' } }],
-    }, true);
-    rc.resize();
-  }
+  const mount = () => {
+    const c = chartOf('rsNavChart');
+    if (c) {
+      c.setOption({
+        tooltip: { trigger: 'axis', formatter: (ps) => ps[0].axisValue + '<br/>单位净值 ' + fmtNum(ps[0].value, 4) },
+        grid: { left: 60, right: 16, top: 16, bottom: 26 },
+        xAxis: { type: 'category', data: ft.map((p) => p.d), axisLabel: { fontSize: 10, color: '#475569', hideOverlap: true }, axisLine: { lineStyle: { color: '#d8dee6' } } },
+        yAxis: { type: 'value', scale: true, axisLabel: { fontSize: 10, color: '#475569', formatter: (v) => fmtNum(v, 2) }, splitLine: { lineStyle: { color: '#e3e8ee' } } },
+        series: [{ type: 'line', data: ft.map((p) => p.y), showSymbol: false, smooth: true, lineStyle: { color: '#4D6BFE', width: 1.6 }, itemStyle: { color: '#4D6BFE' }, areaStyle: { color: { type: 'linear', x: 0, y: 0, x2: 0, y2: 1, colorStops: [{ offset: 0, color: 'rgba(77,107,254,.18)' }, { offset: 1, color: 'rgba(77,107,254,.02)' }] } } }],
+      }, true);
+      c.resize();
+    }
+    const rc = chartOf('rsRankChart');
+    if (rc && f && f.rank && f.rank.length) {
+      const pts = f.rank.filter((p) => p.sc).map((p) => [p.t, +(p.y / Number(p.sc) * 100).toFixed(1)]);
+      rc.setOption({
+        tooltip: { trigger: 'axis', formatter: (ps) => fmtDateTime(ps[0].value[0]) + '<br/>近3月排名百分位 ' + fmtNum(ps[0].value[1], 1) + '%（越小越好）' },
+        grid: { left: 56, right: 16, top: 16, bottom: 26 },
+        xAxis: { type: 'time', axisLabel: { fontSize: 10, color: '#475569' }, axisLine: { lineStyle: { color: '#d8dee6' } } },
+        yAxis: { type: 'value', max: 100, inverse: true, axisLabel: { fontSize: 10, color: '#475569', formatter: (v) => v + '%' }, splitLine: { lineStyle: { color: '#e3e8ee' } } },
+        series: [{ type: 'line', data: pts, showSymbol: false, lineStyle: { color: '#7a3fd4', width: 1.6 }, itemStyle: { color: '#7a3fd4' } }],
+      }, true);
+      rc.resize();
+    }
+  };
+  return { html, mount };
 }
 /* 让收益页把排名走势图也渲染出来（净值大图下方） */
-function renderFundScore(panel, rs) {
+function renderFundScore(rs) {
   const f = rs.fund, ft = rs.fundTrend || [];
-  if (!ft.length) { panel.innerHTML = '<div class="card"><div class="empty st st-empty">缺少净值数据，无法打分</div></div>'; return; }
+  if (!ft.length) return { html: '<div class="card"><div class="empty st st-empty">缺少净值数据，无法打分</div></div>', mount: null };
   const rt = (rs.fund && rs.fund.ac && rs.fund.ac.length > 10) ? rs.fund.ac.slice(-500) : ft;
   const st = fundCalcStats(rt);
   const dims = [];
@@ -7998,7 +8064,7 @@ function renderFundScore(panel, rs) {
         <div style="font-weight:700;font-size:13px;margin-bottom:6px">风险清单（M7 雷区 / M4 / M3 / M6 自动检查）</div>
         ${risks.map(([lv, txt]) => `<div class="rv-line"><span class="tag" style="background:${lv === 'high' ? '#fde8e8' : lv === 'mid' ? '#fdf3e0' : '#eef1f6'};color:${lv === 'high' ? '#b91c1c' : lv === 'mid' ? '#92600a' : '#475569'}">${lv === 'high' ? '高危' : lv === 'mid' ? '中危' : '关注'}</span><span>${esc(txt)}</span></div>`).join('')}
       </div>` : '';
-  panel.innerHTML = `<div class="card">
+  let html = `<div class="card">
       <div class="card-h"><h3>综合诊断（基金口径）</h3><span class="tag tag-ai">推断 · 规则打分</span></div>
       <div class="score-wrap">
         <div class="score-ring" id="rsRing"></div>
@@ -8017,21 +8083,24 @@ function renderFundScore(panel, rs) {
       ${riskHtml}
       <div class="disclaimer" style="margin-top:10px">评分为固定规则的量化打分，不含基金经理与持仓穿透等深度研究（见 fund-analyst 15 模块完整诊断），不构成投资建议，不承诺收益。</div>
     </div>`;
-  const c = chartOf('rsRing');
-  if (c) {
-    c.setOption({
-      series: [{
-        type: 'gauge', startAngle: 210, endAngle: -30, min: 0, max: 100, radius: '100%',
-        progress: { show: true, width: 12, itemStyle: { color: score >= 60 ? '#d92f2f' : score >= 45 ? '#2f6bff' : '#14926a' } },
-        axisLine: { lineStyle: { width: 12, color: [[1, '#eef1f6']] } },
-        axisTick: { show: false }, splitLine: { show: false }, axisLabel: { show: false }, pointer: { show: false },
-        detail: { valueAnimation: true, fontSize: 24, offsetCenter: [0, '5%'], fontFamily: 'monospace', color: '#475569', formatter: '{value}' },
-        title: { show: false },
-        data: [{ value: score }],
-      }],
-    }, true);
-    c.resize();
-  }
+  const mount = () => {
+    const c = chartOf('rsRing');
+    if (c) {
+      c.setOption({
+        series: [{
+          type: 'gauge', startAngle: 210, endAngle: -30, min: 0, max: 100, radius: '100%',
+          progress: { show: true, width: 12, itemStyle: { color: score >= 60 ? '#d92f2f' : score >= 45 ? '#2f6bff' : '#14926a' } },
+          axisLine: { lineStyle: { width: 12, color: [[1, '#eef1f6']] } },
+          axisTick: { show: false }, splitLine: { show: false }, axisLabel: { show: false }, pointer: { show: false },
+          detail: { valueAnimation: true, fontSize: 24, offsetCenter: [0, '5%'], fontFamily: 'monospace', color: '#475569', formatter: '{value}' },
+          title: { show: false },
+          data: [{ value: score }],
+        }],
+      }, true);
+      c.resize();
+    }
+  };
+  return { html, mount };
 }
 function renderResearch() {
   renderResearchHead();
