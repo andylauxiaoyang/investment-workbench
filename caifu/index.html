@@ -1531,12 +1531,12 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
             <!-- v156 fw2_v156_fundlist_label：Tab「总览」更名「基金列表」（用户 2026-09-20 截图指定）。纯文案：data-dc="overview" 路由键 / #dcOverviewWrap / dcExportOverviewCsv 等 id 与 JS 函数名均不动（数据契约） -->
             <button class="dc-tab v-tab" data-dc="chart">收益曲线</button>
             <!-- v97 fw2_v97_research_merge：原「标的分析」6 个模块迁入本分块，作为与总览并列的 Tab -->
-            <button class="dc-tab v-tab" data-dc="r-fundamental">基本面</button>
-            <button class="dc-tab v-tab" data-dc="r-technical">技术面</button>
-            <button class="dc-tab v-tab" data-dc="r-position">持仓关联</button>
-            <button class="dc-tab v-tab" data-dc="r-news">资讯与公告</button>
-            <button class="dc-tab v-tab" data-dc="r-report">财报</button>
-            <button class="dc-tab v-tab" data-dc="r-score">综合诊断</button>
+            <button class="dc-tab v-tab" data-dc="r-fundamental" style="display:none">基本面</button>
+            <button class="dc-tab v-tab" data-dc="r-technical" style="display:none">技术面</button>
+            <button class="dc-tab v-tab" data-dc="r-position" style="display:none">持仓关联</button>
+            <button class="dc-tab v-tab" data-dc="r-news" style="display:none">资讯与公告</button>
+            <button class="dc-tab v-tab" data-dc="r-report" style="display:none">财报</button>
+            <button class="dc-tab v-tab" data-dc="r-score" style="display:none">综合诊断</button>
             <!-- v95 fw2_v95_drop_table_pivot：本分块只保留「总览」「配图」两个 Tab，原第二/第三个 Tab 及其视图已删除 -->
           </div>
         </div>
@@ -7505,7 +7505,7 @@ function techStats(k) {
 }
 function renderResearchHead() {
   const rs = state.research;
-  if (!rs.code) { $('#rsHead').innerHTML = '<div class="card"><div class="empty st st-empty">输入代码或点击右上快捷标的开始分析（支持 A股 / 港股 / 美股 / ETF / 场外基金，场外基金可输 f+代码 如 f012920）</div></div>'; return; }
+  if (!rs.code) { setRsTabLabels('fund');   /* fw2_v381_fund_default：未选标的时研究 Tab 默认基金态（仅「基金透视」可见）；研究股票时由 setRsTabLabels('stock') 恢复 6 tab */ $('#rsHead').innerHTML = '<div class="card"><div class="empty st st-empty">输入代码或点击右上快捷标的开始分析（支持 A股 / 港股 / 美股 / ETF / 场外基金，场外基金可输 f+代码 如 f012920）</div></div>'; return; }
   if (isOtcFund(rs.code)) { renderFundHead(rs); return; }
   setRsTabLabels('stock');   /* v97 fw2_v97_research_merge */
   const q = rs.quote, p = rs.profile;
@@ -13282,6 +13282,7 @@ setInterval(updateSessionBadge, 30000);
     });
   });
   /* fw2_v135_macro_view：dc-block 点击绑定已删除（dcBlocks 已移除，宏观/基金改由 nav 视图切换） */
+  setRsTabLabels('fund');   /* fw2_v381_fund_default：boot 即默认基金态 tab 栏（未选标的时仅「基金透视」可见，避免首帧闪现股票标签） */
   $('dcSearch').addEventListener('input', function(){
     dcUI.search=this.value;
     if(FB_LOADED) renderDcOverview();
