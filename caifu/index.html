@@ -1793,6 +1793,10 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
         #view-data .dc-search{min-width:140px;flex:1 1 100%}
         #view-data .dc-tbl{font-size:var(--fs-sm)}
         #view-data .dc-tbl th,#view-data .dc-tbl td{padding:4px 6px}
+        /* fw2_v383_pool_name_clip：三池冻结名称列手机限宽+省略号——长基金名 nowrap 会把 sticky 首列撑满全名宽、挤压右侧可滚列（用户 2026-10-02 反馈）。
+           ★Chrome auto 表格布局三件套（实测迭代 4 轮）：①列 min-content 下限＝nowrap 文本全宽，td 的 width/max-width 与 div overflow 都压不动 intrinsic sizing → .tdclip 必须 white-space:normal 让 CJK 逐字可断，min-content 才掉到单 token 宽；②td width:118px 钳住列宽；③-webkit-line-clamp:1 强制单行出省略号（nowrap+text-overflow 在 clamp 盒内不生效）。桌面无此规则不裁切；全名悬停 title / 点名称进基金透视可见 */
+        #view-data .dc-tbl td:first-child{width:118px;min-width:118px}
+        #view-data .dc-tbl td .tdclip{max-width:100%;overflow:hidden;white-space:normal;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:1}
       }
       /* v353 fw2_v353_pool_tabs：三池表格（持仓/自选/筛选）——仿 .st-tbl 简洁表格风格 */
       #view-data .pool-tbl th{text-align:left;padding:7px 10px;background:var(--panel-3,#f1f5f9);color:var(--text-2,#475569);border-bottom:2px solid var(--line,#e2e8f0);font-weight:700;font-size:11px;white-space:nowrap;letter-spacing:.3px}
@@ -12592,7 +12596,8 @@ setInterval(updateSessionBadge, 30000);
         else if(c.k==='scale'||c.k==='fee'||c.k==='aum'){ h += '<td class="'+cls+'">'+(v==null?'—':(+v).toFixed(2))+'</td>'; }
         else if(c.risk){ h += '<td class="'+(cls+(c.k==='mdd'&&v!=null&&v<0?' neg':'')).trim()+'" title="推断·自算，全历史·月频；分红型按累计净值">'+(v==null?'—':v.toFixed(2))+'</td>'; }
         else if(c.k==='liq'){ h += '<td class="'+(liqCls(v)+' '+cls).trim()+'" title="按规模派生评估，非官方判定">'+(v||'—')+'</td>'; }
-        else if(c.k==='name'||c.k==='mgr'||c.k==='estab'){ h += '<td class="'+cls+'">'+esc(v||'')+'</td>'; }
+        else if(c.k==='name'){ h += '<td class="'+cls+'" title="'+esc(v||'')+'"><div class="tdclip">'+esc(v||'')+'</div></td>'; }   /* fw2_v383_pool_name_clip：名称包 .tdclip，手机媒体查询限宽省略号 */
+        else if(c.k==='mgr'||c.k==='estab'){ h += '<td class="'+cls+'">'+esc(v||'')+'</td>'; }
         else { h += '<td class="'+cls+'">'+(v==null?'—':esc(v))+'</td>'; }
       });
       h += '</tr>';
@@ -12705,7 +12710,9 @@ setInterval(updateSessionBadge, 30000);
         else if(c.risk){ h+='<td class="'+(cls+(c.k==='mdd'&&v!=null&&v<0?' neg':'')).trim()+'" title="推断·自算，全历史·月频；分红型按累计净值">'+(v==null?'—':v.toFixed(2))+'</td>'; }
         else if(c.k==='liq'){ h+='<td class="'+(liqCls(v)+' '+cls).trim()+'" title="按规模派生评估，非官方判定">'+(v||'—')+'</td>'; }
         else if(c.k==='name'||c.k==='mgr'||c.k==='estab'){
-          var cell=esc(v||'');
+          var cell;
+          if(c.k==='name'){ cell='<div class="tdclip" title="'+esc(v||'')+'">'+esc(v||'')+'</div>'; }   /* fw2_v383_pool_name_clip：名称包 .tdclip，手机媒体查询限宽省略号 */
+          else { cell=esc(v||''); }
           if(c.k==='name' && o.nameSub){
             var sub=o.nameSub(r);
             if(sub) cell+='<div style="font-size:11px;color:var(--muted,#94a3b8);line-height:1.5;margin-top:2px">'+sub+'</div>';
