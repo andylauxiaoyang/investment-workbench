@@ -428,17 +428,7 @@ button, input, select, textarea { font-family: inherit; font-size: var(--fs-md);
 .rs-head .chg { font-family: var(--mono); font-size: var(--fs-md); }
 .rs-head .nm { font-size: var(--fs-2xl); font-weight: 700; color: var(--text); }
 .rs-head .cd { font-size: var(--fs-sm); color: var(--muted); font-family: var(--mono); }
-/* v380 基金透视：吸顶锚点导航 + 区块（单页纵向拼接 6 块） */
-.rs-sec-nav { position: sticky; top: 0; z-index: 6; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
-  padding: 8px 12px; margin: 0 0 12px; background: var(--panel, #fff); border: 1px solid var(--line, #e3e8ee);
-  border-radius: var(--r-8, 8px); box-shadow: 0 1px 4px rgba(15,23,42,.08); }
-.rs-sec-anchor { font-size: var(--fs-sm); color: var(--muted, #64748b); cursor: pointer; padding: 3px 12px; border-radius: 999px;
-  border: 1px solid transparent; user-select: none; transition: all .15s; white-space: nowrap; }
-.rs-sec-anchor:hover { color: var(--brand, #2f6bff); background: rgba(47,107,255,.08); }
-.rs-sec-anchor.active { color: #fff; background: var(--brand, #2f6bff); border-color: var(--brand, #2f6bff); }
-.rs-sec-sep { color: var(--line, #e3e8ee); }
-.rs-sec { scroll-margin-top: 56px; }
-.rs-sec + .rs-sec { margin-top: 6px; }
+/* fw2_v382_rsnav_remove：v380 的吸顶锚点导航（.rs-sec-nav/.rs-sec-anchor）已按用户要求整体移除，基金透视单页纵向滚动；.rs-sec 保留作区块钩子，间距由卡片自带 margin */
 .metric-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: var(--sp-9); }
 .metric { border: 1px solid var(--line); border-radius: var(--r-8); padding: 8px 10px; background: var(--panel-2); }
 .metric .k { font-size: var(--fs-xs); color: var(--muted); }
@@ -7817,7 +7807,7 @@ function renderFundNews(rs) {
   </div>`;
   return { html, mount: null };
 }
-/* fw2_v380_fund_lens：v380 基金透视 —— 场外基金合并为单页纵向拼接 6 块 + 吸顶锚点导航（画像·业绩·季报·诊断·持仓·资讯） */
+/* fw2_v380_fund_lens：v380 基金透视 —— 场外基金合并为单页纵向拼接 6 块（v382 起移除吸顶锚点导航栏，按用户要求纵向滚动即可） */
 function renderFundTabs(panel, rs) {
   if (rs.tab !== 'fundamental') rs.tab = 'fundamental';   /* 旧 deep-link/股票残留 tab 落到基金时强制回基金透视单页 */
   const secs = [
@@ -7829,35 +7819,9 @@ function renderFundTabs(panel, rs) {
     { id: 'rsSecNews', label: '资讯', render: () => renderFundNews(rs) },
   ];
   const parts = secs.map((s) => s.render());
-  const nav = '<div class="rs-sec-nav" id="rsSecNav">' + secs.map((s) => `<a class="rs-sec-anchor" data-sec="${s.id}">${s.label}</a>`).join('<span class="rs-sec-sep">·</span>') + '</div>';
-  let body = nav;
-  secs.forEach((s, i) => { body += `<section class="rs-sec" id="${s.id}">${parts[i].html}</section>`; });
-  panel.innerHTML = body;
-  /* 锚点点击平滑滚动到对应区块 */
-  const navEls = panel.querySelectorAll('.rs-sec-anchor');
-  navEls.forEach((a) => {
-    a.onclick = () => {
-      const el = document.getElementById(a.dataset.sec);
-      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    };
-  });
-  /* 滚动高亮当前区块（IntersectionObserver，重渲染前先断开旧实例，避免监听器泄漏）*/
-  if (panel._rsIO) { try { panel._rsIO.disconnect(); } catch (e) {} panel._rsIO = null; }
-  const secEls = secs.map((s) => document.getElementById(s.id)).filter(Boolean);
-  let scroller = panel;
-  while (scroller && scroller !== document.body) {
-    const oy = getComputedStyle(scroller).overflowY;
-    if (oy === 'auto' || oy === 'scroll') break;
-    scroller = scroller.parentElement;
-  }
-  const io = new IntersectionObserver((entries) => {
-    entries.forEach((e) => {
-      if (e.isIntersecting) navEls.forEach((a) => a.classList.toggle('active', a.dataset.sec === e.target.id));
-    });
-  }, { root: (scroller && scroller !== document.body) ? scroller : null, rootMargin: '-45% 0px -50% 0px', threshold: 0 });
-  secEls.forEach((el) => io.observe(el));
-  panel._rsIO = io;
-  if (secEls[0]) navEls[0].classList.add('active');
+  /* fw2_v382_rsnav_remove：按用户要求移除吸顶锚点导航栏，单页纵向滚动；6 区块直接拼接 */
+  panel.innerHTML = secs.map((s, i) => `<section class="rs-sec" id="${s.id}">${parts[i].html}</section>`).join('');
+  if (panel._rsIO) { try { panel._rsIO.disconnect(); } catch (e) {} panel._rsIO = null; }   /* 旧版本遗留 IO 实例保险清理 */
   /* 初始化各块图表（chartOf 已处理实例复用与 re-init）*/
   parts.forEach((p) => { if (p && p.mount) p.mount(); });
 }
@@ -10432,7 +10396,7 @@ function buildNameIndex() {
 function fillRsPick() {
   const sel = $('#rsPick'); if (!sel) return;
   const nm = (code) => (state.snapshot.quotes[code] && state.snapshot.quotes[code].name) || shortCode(code);
-  const held = state.portfolio.filter((h) => (h.assetType || '') !== 'cash').map((h) => ({ code: toResearchCode(h.code, h.assetType), name: nm(h.code) }));
+  const held = state.portfolio.filter((h) => (h.assetType || '') !== 'cash').map((h) => ({ code: toResearchCode(h.code, h.assetType), name: h.name || ((state.watchMeta || {})[shortCode(h.code)] || {}).name || nm(h.code) }));   /* fw2_v382_pick_name：持仓项优先取持仓记录自身名称（quotes 无基金代码 → 旧版显示「代码 代码」） */
   const watch = state.watchlist.filter((c) => !state.portfolio.find((h) => shortCode(h.code) === c)).map((c) => ({ code: toResearchCode(c, 'fund'), name: (state.watchMeta && state.watchMeta[c] && state.watchMeta[c].name) || nm(c) || c }));
   sel.innerHTML = '<option value="">持仓 / 自选…</option>'
     + (held.length ? `<optgroup label="持仓中">${held.map((o) => `<option value="${o.code}">${esc(o.name)} ${shortCode(o.code)}</option>`).join('')}</optgroup>` : '')
