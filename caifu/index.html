@@ -13136,40 +13136,8 @@ setInterval(updateSessionBadge, 30000);
       +'因此总分是个「稳健排序」工具，不宜把 1~2 分当作实质差异。'
       +'<br><b style="color:var(--fg,#0f172a)">60 分线的含义</b>：年化 60 分对应权益 8%，是<b>市场平均水位</b>（偏股混合近十年实际年化约 7.98%）'
       +'而非「绝对及格线」——按设计约半数权益基金在年化项拿不到 60 分，属预期行为。</div>';
-    /* ---- 加分项 ---- */
-    h+=srSect('旧加分制 · 仅存档（'+Object.keys(bonus).length+' 项，自 v386 起不计入当前总分；scoreRaw 仍按此计算，供加分明细回溯）');
-    h+='<table style="width:100%;border-collapse:collapse;font-size:12px;margin-top:4px">'
-      +'<tr><th style="text-align:left;padding:6px 8px;background:var(--panel-3,#f1f5f9);border-bottom:1px solid var(--line,#e2e8f0);font-size:11px;color:var(--muted,#94a3b8);white-space:nowrap">分类</th>'
-      +'<th style="text-align:left;padding:6px 8px;background:var(--panel-3,#f1f5f9);border-bottom:1px solid var(--line,#e2e8f0);font-size:11px;color:var(--muted,#94a3b8);white-space:nowrap">加分项</th>'
-      +'<th style="text-align:left;padding:6px 8px;background:var(--panel-3,#f1f5f9);border-bottom:1px solid var(--line,#e2e8f0);font-size:11px;color:var(--muted,#94a3b8)">说明</th>'
-      +'<th style="text-align:left;padding:6px 8px;background:var(--panel-3,#f1f5f9);border-bottom:1px solid var(--line,#e2e8f0);font-size:11px;color:var(--muted,#94a3b8);white-space:nowrap">权重</th>'
-      +'<th style="text-align:left;padding:6px 8px;background:var(--panel-3,#f1f5f9);border-bottom:1px solid var(--line,#e2e8f0);font-size:11px;color:var(--muted,#94a3b8);white-space:nowrap">状态</th></tr>';
-    var CAT_ORDER=['业绩排名','风险收益','基金经理','基金产品','组合与市场'];
-    var _groups={};
-    Object.keys(bonus).forEach(function(k){ var _c=BONUS_CATS[k]||'—'; (_groups[_c]=_groups[_c]||[]).push(k); });
-    var _catSeq=CAT_ORDER.filter(function(c){return _groups[c];}).concat(Object.keys(_groups).filter(function(c){return CAT_ORDER.indexOf(c)<0;}));
-    _catSeq.forEach(function(cat){
-      var _items=_groups[cat];
-      var catCol = cat==='基金经理' ? 'var(--brand,#4D6BFE)'
-                 : (cat==='业绩排名' ? 'var(--down,#16a34a)'
-                 : (cat==='风险收益' ? '#0891b2'
-                 : (cat==='基金产品' ? '#7c3aed'
-                 : (cat==='组合与市场' ? 'var(--warn,#d97706)' : 'var(--muted,#94a3b8)'))));
-      _items.forEach(function(k,i){
-        var it=bonus[k]||{};
-        var on=!(it.enabled===false);
-        var nm=esc(k)+(BONUS_ZH[k]?'（'+esc(BONUS_ZH[k])+'）':'');
-        h+='<tr>'
-          +(i===0
-            ? '<td rowspan="'+_items.length+'" style="padding:6px 8px;border-bottom:1px solid var(--line-2,#f1f5f9);text-align:center;vertical-align:middle;white-space:nowrap;font-size:11px;color:'+catCol+';font-weight:600">'+esc(cat)+'</td>'
-            : '')
-          +'<td style="padding:6px 8px;border-bottom:1px solid var(--line-2,#f1f5f9);white-space:nowrap;font-weight:600">'+nm+'</td>'
-          +'<td style="padding:6px 8px;border-bottom:1px solid var(--line-2,#f1f5f9);font-size:11px;color:var(--muted,#94a3b8);line-height:1.5">'+esc(it.desc||'')+(it.note?' <span style="color:var(--warn,#d97706)">（'+esc(it.note)+'）</span>':'')+'</td>'
-          +'<td style="padding:6px 8px;border-bottom:1px solid var(--line-2,#f1f5f9);white-space:nowrap;color:var(--muted,#94a3b8)">—</td>'
-          +'<td style="padding:6px 8px;border-bottom:1px solid var(--line-2,#f1f5f9);white-space:nowrap">'+stBadge(on, on?'':(it.note||''))+'</td></tr>';
-      });
-    });
-    h+='</table>';
+    /* ---- 旧加分制（v408：23 项大表已删——A档冗余/B档低价值，只留一行折叠说明；估值分位另行处理）---- */
+    h+='<details style="margin:8px 10px"><summary style="cursor:pointer;font-size:12px;color:var(--muted,#94a3b8)">▸ 旧加分制（'+Object.keys(bonus).length+' 项，v386 起已废弃、不计入当前总分）</summary><div style="font-size:11px;color:var(--muted,#94a3b8);line-height:1.7;padding:4px 8px">历史 scoreRaw 仍按旧加分制计算、仅供明细回溯，不参与任何展示评分。<b style="color:var(--fg,#1f2937)">当前生效口径唯一 = 上方「总分构成 · 维度加权制」</b>。</div></details>';
     /* ---- 批次规则 ---- */
     h+=srSect('批次与配额');
     var qs=b.roleQuota||{};
