@@ -12975,7 +12975,12 @@ setInterval(updateSessionBadge, 30000);
       +'<b style="color:var(--fg,#0f172a)">打分线 60=及格 / 80=优秀 / 100=满分</b>，'
       +'<b style="color:var(--fg,#0f172a)">段内线性插值</b>，不是跳档——'
       +'「低于 8% 年化」不是一律 0 分，而是从 0 分线往上按斜率爬升（详见下表打分规则列）。</div>';
-    h+='<table style="width:100%;border-collapse:collapse;font-size:12px;margin-top:4px;table-layout:fixed">'
+    /* fw2_v392_minwidth：窄视口「上下居中没生效」真因修复（用户 2026-10-03，Edge headless 实测 571px 复现）。
+       width:100% + table-layout:fixed 在窄容器被压到 551px（内容需 ~1396px）→ 首列塌到 44px、行高暴涨到 172px、
+       打分规则列文字竖堆、维度标签悬在组顶，视觉像没居中。修法=只加 min-width:1180px；外层 .dc-pane 已有
+       overflow-x:auto → 自动横向滚动，列宽/行高恢复（实测两视口 tableW=1180/首列94/行高≤84）。
+       ★单变量：不引入跨行合并属性、不加新 wrapper（v391 塌表教训）。 */
+    h+='<table style="width:100%;min-width:1180px;border-collapse:collapse;font-size:12px;margin-top:4px;table-layout:fixed">'
       +'<colgroup><col style="width:8%"><col style="width:13%"><col style="width:17%"><col style="width:11%"><col style="width:51%"></colgroup>'
       +'<tr><th style="text-align:center;padding:6px 6px;vertical-align:middle;background:var(--panel-3,#f1f5f9);border-bottom:1px solid var(--line,#e2e8f0);font-size:11px;color:var(--muted,#94a3b8)">维度</th>'
       +'<th style="text-align:center;padding:6px 6px;vertical-align:middle;background:var(--panel-3,#f1f5f9);border-bottom:1px solid var(--line,#e2e8f0);font-size:11px;color:var(--muted,#94a3b8)">占总分</th>'
