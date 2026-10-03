@@ -8022,6 +8022,8 @@ function renderFundScore(rs) {
     const sc = (v) => v == null ? '<span style="color:var(--muted,#94a3b8)">—</span>'
       : ('<b style="color:' + (v >= 80 ? 'var(--brand,#4D6BFE)' : v >= 60 ? 'var(--fg,#1f2937)' : 'var(--warn,#d97706)') + '">' + Math.round(v) + '</b>');
     const TH = '<tr style="color:var(--muted,#94a3b8);font-size:11px"><td style="width:150px">子项</td><td style="width:52px">权重</td><td style="width:92px;text-align:right">原始值</td><td style="width:38px;text-align:right">得分</td><td style="width:66px;text-align:right">加权贡献</td></tr>';
+    const present = ['ret', 'risk', 'mgr', 'prod'].filter(function (dk) { return dm[dk] != null; });
+    const dwsum = present.reduce(function (a, dk) { return a + DWTOT[dk]; }, 0);
     const dimBlocks = ['ret', 'risk', 'mgr', 'prod'].map(function (dk) {
       const items = ssub[dk] || [];
       const wsum = items.reduce(function (a, it) { return a + (it[3] == null ? 0 : it[1]); }, 0);
@@ -8031,19 +8033,14 @@ function renderFundScore(rs) {
         return '<tr><td style="color:var(--muted,#64748b)">' + esc(String(it[0])) + '</td><td style="color:var(--muted,#94a3b8)">' + it[1] + '%</td><td style="text-align:right;color:var(--fg,#1f2937)">' + esc(String(raw)) + '</td><td style="text-align:right">' + sc(it[3]) + '</td><td style="text-align:right;font-weight:600">' + (contrib == null ? '—' : contrib) + '</td></tr>';
       }).join('');
       const blow = (dk === 'mgr' && ssub._mgrBlow) ? ('<tr><td colspan="5" style="font-size:11px;color:var(--warn,#d97706)">↳ 踩雷乘性折扣 ' + (ssub._mgrBlow === 'severe' ? '严重 ×0.7' : '职业污点 ×0.85') + ' 后 → 经理维 ' + (dm[dk] == null ? '—' : dm[dk]) + '（Σ贡献为折扣前）</td></tr>') : '';
-      return '<div style="margin-top:8px"><div style="font-weight:700;font-size:12px">' + DIMLBL[dk] + ' ' + DWTOT[dk] + '% → 维度分 <b>' + (dm[dk] == null ? '—（缺数据不计权）' : dm[dk]) + '</b></div>'
-        + '<table style="border-collapse:collapse;font-size:12px;width:100%;max-width:560px">' + TH + body + blow + '</table></div>';
+      const ds = dm[dk];
+      const dcontrib = (ds == null || !dwsum) ? null : Math.round(ds * DWTOT[dk] / dwsum * 10) / 10;
+      const foot = ds == null ? '' : ('<div style="font-size:11px;color:var(--muted,#64748b);margin-top:2px">本维 ' + ds + ' × 占比 ' + DWTOT[dk] + '% ÷ Σ占比 ' + dwsum + '% → <b style="color:var(--fg,#1f2937)">贡献总分 ' + dcontrib + '</b></div>');
+      return '<div style="margin-top:8px"><div style="font-weight:700;font-size:12px">' + DIMLBL[dk] + ' ' + DWTOT[dk] + '% → 维度分 <b>' + (ds == null ? '—（缺数据不计权）' : ds) + '</b></div>'
+        + '<table style="border-collapse:collapse;font-size:12px;width:100%;max-width:560px">' + TH + body + blow + '</table>' + foot + '</div>';
     }).join('');
-    const present = ['ret', 'risk', 'mgr', 'prod'].filter(function (dk) { return dm[dk] != null; });
-    const dwsum = present.reduce(function (a, dk) { return a + DWTOT[dk]; }, 0);
-    const trows = present.map(function (dk) {
-      const c = Math.round(dm[dk] * DWTOT[dk] / dwsum * 10) / 10;
-      return '<tr><td style="color:var(--muted,#64748b)">' + DIMLBL[dk] + '</td><td style="text-align:right">' + dm[dk] + '</td><td style="text-align:right;color:var(--muted,#94a3b8)">' + DWTOT[dk] + '%</td><td style="text-align:right;font-weight:600">' + c + '</td></tr>';
-    }).join('');
-    const totalBlock = '<div style="margin-top:10px"><div style="font-weight:700;font-size:12px">总分构成 = Σ(维度分×占比) ÷ Σ占比</div>'
-      + '<table style="border-collapse:collapse;font-size:12px;width:100%;max-width:400px"><tr style="color:var(--muted,#94a3b8);font-size:11px"><td>维度</td><td style="text-align:right">维度分</td><td style="text-align:right">占比</td><td style="text-align:right">贡献</td></tr>' + trows
-      + '<tr style="border-top:1px solid var(--line,#e2e8f0)"><td colspan="3" style="font-weight:700">合计总分</td><td style="text-align:right;font-weight:700;color:var(--brand,#4D6BFE)">' + (headlineScore != null ? headlineScore : (pe.score != null ? pe.score : '—')) + '</td></tr></table></div>';
-    subHtml = '<details style="margin-top:10px"><summary style="cursor:pointer;font-size:12px;color:var(--brand,#4D6BFE);user-select:none">▸ 展开打分明细与算式（子项加权→维度分→总分）</summary><div style="margin-top:6px">' + dimBlocks + totalBlock + '</div></details>';
+    const totalLine = '<div style="margin-top:12px;padding-top:8px;border-top:1px solid var(--line,#e2e8f0);font-weight:700;font-size:13px">合计总分 = <span style="color:var(--brand,#4D6BFE);font-size:15px">' + (headlineScore != null ? headlineScore : (pe.score != null ? pe.score : '—')) + '</span> <span style="font-weight:400;font-size:11px;color:var(--muted,#94a3b8)">（各维贡献之和，60=及格 / 80=优秀）</span></div>';
+    subHtml = '<details style="margin-top:10px"><summary style="cursor:pointer;font-size:12px;color:var(--brand,#4D6BFE);user-select:none">▸ 展开打分明细与算式（子项加权→维度分→贡献总分）</summary><div style="margin-top:6px">' + dimBlocks + totalLine + '</div></details>';
   }
   /* ===== 技术面参考（趋势/动量/波动/回撤/同类排名，等权）——★不计入总分，仅作择时参考 ===== */
   const tDims = [];
