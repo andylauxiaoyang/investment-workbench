@@ -7985,8 +7985,10 @@ function renderFundScore(rs) {
   const f = rs.fund, ft = rs.fundTrend || [];
   const NL = String.fromCharCode(10);
   /* ===== 与列表同源：维度加权总分（后端 market_screen 算好，存 fund-profiles/screen-pool 的 scoreDim）===== */
+  /* ★rs.code 经 toResearchCode 给场外基金加了 'f' 前缀（如 f000746），而池子 key 是裸 6 位码 → 必须剥前缀再查，否则取不到 scoreDim、综合诊断回退技术分与列表对不上 */
   const _ppe = (typeof poolProfileE === 'function') ? poolProfileE : (typeof window !== 'undefined' ? window.__poolProfileE : null);
-  const pe = _ppe ? (_ppe(rs.code) || {}) : {};
+  const _pcode = String(rs.code || '').replace(/^f(?=\d{6}$)/, '');
+  const pe = _ppe ? (_ppe(_pcode) || _ppe(rs.code) || {}) : {};
   const dm = pe.scoreDim || null;
   const DW = [['收益', 'ret', 36], ['风险', 'risk', 27], ['经理', 'mgr', 27], ['产品', 'prod', 9]];
   let dimHtml = '', headlineScore = null, veto = pe.scoreVeto || [], cov = pe.scoreCov;
