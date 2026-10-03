@@ -7983,26 +7983,56 @@ function renderFundPerf(rs) {
 /* 让收益页把排名走势图也渲染出来（净值大图下方） */
 function renderFundScore(rs) {
   const f = rs.fund, ft = rs.fundTrend || [];
-  if (!ft.length) return { html: '<div class="card"><div class="empty st st-empty">缺少净值数据，无法打分</div></div>', mount: null };
-  const rt = (rs.fund && rs.fund.ac && rs.fund.ac.length > 10) ? rs.fund.ac.slice(-500) : ft;
-  const st = fundCalcStats(rt);
-  const dims = [];
-  let trend = 50;
-  if (st.ma20 && st.ma60) trend = 50 + (st.last > st.ma20 ? 15 : -15) + (st.last > st.ma60 ? 15 : -15) + (st.ma20 > st.ma60 ? 10 : -10);
-  dims.push({ k: '趋势', v: clamp(trend), note: `净值 ${fmtNum(st.last, 4)} 对 MA20 ${fmtNum(st.ma20, 4)}、MA60 ${fmtNum(st.ma60, 4)} 的相对位置` });
-  dims.push({ k: '动量', v: clamp(50 + (st.c20 || 0) * 1.6), note: `近20日 ${fmtPct(st.c20)}、近60日 ${fmtPct(st.c60)}` });
-  dims.push({ k: '波动控制', v: clamp(100 - (st.vol - 15) * 1.6), note: `年化波动率 ${fmtNum(st.vol, 1)}%（越低得分越高）` });
-  dims.push({ k: '回撤控制', v: clamp(100 + st.mdd * 1.4), note: `区间最大回撤 ${fmtPct(st.mdd)}` });
-  let rankPct = null, rankTxt = '';
-  const p1 = (rs.fundPeriod || []).find((x) => x.title === '1N');
-  if (p1 && p1.rank && p1.sc) rankPct = p1.rank / p1.sc * 100;
-  else if (f && f.rank && f.rank.length) { const r0 = f.rank[f.rank.length - 1]; if (r0.sc) rankPct = r0.y / Number(r0.sc) * 100; }
-  if (rankPct != null) rankTxt = `近1年同类排名百分位 ${fmtNum(rankPct, 1)}%（越小越好）`;
-  dims.push(rankPct != null
-    ? { k: '同类排名', v: clamp(100 - rankPct), note: rankTxt }
-    : { k: '同类排名', v: 50, note: '缺少同类排名数据' });
-  const score = Math.round(dims.reduce((a, d) => a + d.v, 0) / dims.length);
-  const level = score >= 75 ? '偏强' : score >= 60 ? '中性偏强' : score >= 45 ? '中性' : score >= 30 ? '中性偏弱' : '偏弱';
+  const NL = String.fromCharCode(10);
+  /* ===== 与列表同源：维度加权总分（后端 market_screen 算好，存 fund-profiles/screen-pool 的 scoreDim）===== */
+  const _ppe = (typeof poolProfileE === 'function') ? poolProfileE : (typeof window !== 'undefined' ? window.__poolProfileE : null);
+  const pe = _ppe ? (_ppe(rs.code) || {}) : {};
+  const dm = pe.scoreDim || null;
+  const DW = [['收益', 'ret', 36], ['风险', 'risk', 27], ['经理', 'mgr', 27], ['产品', 'prod', 9]];
+  let dimHtml = '', headlineScore = null, veto = pe.scoreVeto || [], cov = pe.scoreCov;
+  if (dm) {
+    const vals = DW.map(d => dm[d[1]]).filter(v => v != null && isFinite(v));
+    const mx = vals.length ? Math.max.apply(null, vals) : null;
+    const mn = vals.length ? Math.min.apply(null, vals) : null;
+    headlineScore = (veto.length || pe.score == null) ? null : Math.round(pe.score);
+    dimHtml = DW.map(d => {
+      const v = dm[d[1]]; if (v == null) return '';
+      const isMax = vals.length > 1 && Math.abs(v - mx) < 0.05, isMin = vals.length > 1 && Math.abs(v - mn) < 0.05;
+      const col = v >= 80 ? 'var(--brand,#4D6BFE)' : v >= 60 ? 'var(--fg,#1f2937)' : 'var(--warn,#d97706)';
+      return `<div class="score-row"><span>${d[0]}<span style="color:var(--muted,#94a3b8);font-size:11px"> ${d[2]}%</span></span>`
+        + `<span class="score-track"><span class="score-fill" style="width:${v}%;background:${col}"></span></span>`
+        + `<span class="num" style="color:${col};font-weight:${(isMax || isMin) ? 700 : 400}" title="${d[0]}维 ${Number(v).toFixed(1)}/100（占总分 ${d[2]}%）${isMax ? '·本基最高维' : isMin ? '·拖后腿' : ''}">${Math.round(v)}${isMax ? '▲' : isMin ? '▼' : ''}</span></div>`;
+    }).join('');
+  }
+  const hLevel = headlineScore == null ? '—' : (headlineScore >= 80 ? '优秀' : headlineScore >= 60 ? '及格' : '不及格');
+  const hNote = dm
+    ? (veto.length
+        ? '触发否决门（' + esc(veto.join('、')) + '）→ 真否决、不出分。'
+        : (pe.score == null ? ('数据不足（覆盖度 ' + (cov != null ? cov : '?') + '% <60）→ 不出分。')
+          : ('维度加权总分 = Σ(维度分×占比)÷Σ占比（收益36/风险27/经理27/产品9，缺维自动 renormalize）；60=及格 / 80=优秀；▲=本基最高维、▼=拖后腿维度。')))
+    : '该基金未入评分池（持仓/自选/筛选），后端无维度加权总分——下方技术面参考仅供择时，非列表口径总分。';
+  /* ===== 技术面参考（趋势/动量/波动/回撤/同类排名，等权）——★不计入总分，仅作择时参考 ===== */
+  const tDims = [];
+  let tScore = null;
+  if (ft.length) {
+    const rt = (rs.fund && rs.fund.ac && rs.fund.ac.length > 10) ? rs.fund.ac.slice(-500) : ft;
+    const st = fundCalcStats(rt);
+    let trend = 50;
+    if (st.ma20 && st.ma60) trend = 50 + (st.last > st.ma20 ? 15 : -15) + (st.last > st.ma60 ? 15 : -15) + (st.ma20 > st.ma60 ? 10 : -10);
+    tDims.push({ k: '趋势', v: clamp(trend), note: `净值 ${fmtNum(st.last, 4)} 对 MA20 ${fmtNum(st.ma20, 4)}、MA60 ${fmtNum(st.ma60, 4)} 的相对位置` });
+    tDims.push({ k: '动量', v: clamp(50 + (st.c20 || 0) * 1.6), note: `近20日 ${fmtPct(st.c20)}、近60日 ${fmtPct(st.c60)}` });
+    tDims.push({ k: '波动控制', v: clamp(100 - (st.vol - 15) * 1.6), note: `年化波动率 ${fmtNum(st.vol, 1)}%（越低得分越高）` });
+    tDims.push({ k: '回撤控制', v: clamp(100 + st.mdd * 1.4), note: `区间最大回撤 ${fmtPct(st.mdd)}` });
+    let rankPct = null, rankTxt = '';
+    const p1 = (rs.fundPeriod || []).find((x) => x.title === '1N');
+    if (p1 && p1.rank && p1.sc) rankPct = p1.rank / p1.sc * 100;
+    else if (f && f.rank && f.rank.length) { const r0 = f.rank[f.rank.length - 1]; if (r0.sc) rankPct = r0.y / Number(r0.sc) * 100; }
+    if (rankPct != null) rankTxt = `近1年同类排名百分位 ${fmtNum(rankPct, 1)}%（越小越好）`;
+    tDims.push(rankPct != null
+      ? { k: '同类排名', v: clamp(100 - rankPct), note: rankTxt }
+      : { k: '同类排名', v: 50, note: '缺少同类排名数据' });
+    tScore = Math.round(tDims.reduce((a, d) => a + d.v, 0) / tDims.length);
+  }
   /* M7 雷区 + M4/M3/M6 阈值自动检查 */
   const fpr = rs.fundPeriod || [];
   const gp2 = (t) => fpr.find((x) => x.title === t) || null;
@@ -8032,37 +8062,41 @@ function renderFundScore(rs) {
         <div style="font-weight:700;font-size:13px;margin-bottom:6px">风险清单（M7 雷区 / M4 / M3 / M6 自动检查）</div>
         ${risks.map(([lv, txt]) => `<div class="rv-line"><span class="tag" style="background:${lv === 'high' ? '#fde8e8' : lv === 'mid' ? '#fdf3e0' : '#eef1f6'};color:${lv === 'high' ? '#b91c1c' : lv === 'mid' ? '#92600a' : '#475569'}">${lv === 'high' ? '高危' : lv === 'mid' ? '中危' : '关注'}</span><span>${esc(txt)}</span></div>`).join('')}
       </div>` : '';
+  const ringVal = headlineScore != null ? headlineScore : (tScore != null ? tScore : 0);
   let html = `<div class="card">
-      <div class="card-h"><h3>综合诊断（基金口径）</h3><span class="tag tag-ai">推断 · 规则打分</span></div>
+      <div class="card-h"><h3>综合诊断（与列表同源 · 维度加权）</h3><span class="tag tag-ai">后端 market_screen 口径</span></div>
       <div class="score-wrap">
         <div class="score-ring" id="rsRing"></div>
-        <div class="score-list">
-          ${dims.map((d) => `<div class="score-row">
-            <span>${d.k}</span>
-            <span class="score-track"><span class="score-fill" style="width:${d.v}%;background:${d.v >= 60 ? 'var(--up)' : d.v >= 45 ? 'var(--brand)' : 'var(--down)'}"></span></span>
-            <span class="num">${Math.round(d.v)}</span>
-          </div>`).join('')}
-        </div>
+        <div class="score-list">${dimHtml || '<div class="rv-line"><span>—</span></div>'}</div>
       </div>
       <div style="margin-top:12px">
-        ${dims.map((d) => `<div class="rv-line"><span class="tag tag-data">数据</span><span><b>${d.k}</b>：${esc(d.note)}</span></div>`).join('')}
-        <div class="rv-line"><span class="tag tag-ai">推断</span><span>综合得分 <b>${score}</b>，档位「<b>${level}</b>」。维度：趋势（净值对 MA20/MA60）、动量（近20/60日）、波动控制、回撤控制、同类排名，等权平均。</span></div>
+        <div class="rv-line"><span class="tag tag-ai">总分</span><span>维度加权总分 <b>${headlineScore != null ? headlineScore : (veto.length ? '否决' : (pe.score == null && dm ? '数据不足' : '未入池'))}</b>${headlineScore != null ? ('，评价「<b>' + hLevel + '</b>」') : ''}。${esc(hNote)}</span></div>
+        ${cov != null && dm ? `<div class="rv-line"><span class="tag tag-data">覆盖度</span><span>可打分维度权重合计 ${cov}%（<60% 不出分，防"只剩一两维撑分"的假高分）</span></div>` : ''}
       </div>
+      ${tDims.length ? `<div style="margin-top:14px;padding-top:10px;border-top:1px dashed var(--line,#e2e8f0)">
+        <div style="font-weight:700;font-size:13px;margin-bottom:2px">技术面参考 <span style="font-weight:400;color:var(--warn,#d97706);font-size:12px">（趋势/动量等择时信号 · ★不计入上方总分）</span></div>
+        <div class="score-wrap"><div class="score-list">
+          ${tDims.map((d) => `<div class="score-row"><span>${d.k}</span><span class="score-track"><span class="score-fill" style="width:${d.v}%;background:${d.v >= 60 ? 'var(--up)' : d.v >= 45 ? 'var(--brand)' : 'var(--down)'}"></span></span><span class="num">${Math.round(d.v)}</span></div>`).join('')}
+        </div></div>
+        <div style="margin-top:6px">${tDims.map((d) => `<div class="rv-line"><span class="tag tag-data">数据</span><span><b>${d.k}</b>：${esc(d.note)}</span></div>`).join('')}
+        <div class="rv-line"><span class="tag tag-ai">参考</span><span>技术面等权分 <b>${tScore}</b>（趋势/动量/波动控制/回撤控制/同类排名 等权平均）——反映"现在处于什么位置"，与"基金好不好"的维度加权总分是两回事，故不并入总分。</span></div></div>
+      </div>` : ''}
       ${riskHtml}
-      <div class="disclaimer" style="margin-top:10px">评分为固定规则的量化打分，不含基金经理与持仓穿透等深度研究（见 fund-analyst 15 模块完整诊断），不构成投资建议，不承诺收益。</div>
+      <div class="disclaimer" style="margin-top:10px">上方总分与三池列表同源（market_screen 维度加权制：收益/风险/经理/产品 + 否决门 + 覆盖度）。技术面参考与风险清单为择时/避雷辅助，不并入总分。不构成投资建议，不承诺收益。</div>
     </div>`;
   const mount = () => {
     const c = chartOf('rsRing');
     if (c) {
+      const good = headlineScore != null ? headlineScore : tScore;
       c.setOption({
         series: [{
           type: 'gauge', startAngle: 210, endAngle: -30, min: 0, max: 100, radius: '100%',
-          progress: { show: true, width: 12, itemStyle: { color: score >= 60 ? '#d92f2f' : score >= 45 ? '#2f6bff' : '#14926a' } },
+          progress: { show: true, width: 12, itemStyle: { color: good >= 80 ? '#d92f2f' : good >= 60 ? '#2f6bff' : '#d97706' } },
           axisLine: { lineStyle: { width: 12, color: [[1, '#eef1f6']] } },
           axisTick: { show: false }, splitLine: { show: false }, axisLabel: { show: false }, pointer: { show: false },
-          detail: { valueAnimation: true, fontSize: 24, offsetCenter: [0, '5%'], fontFamily: 'monospace', color: '#475569', formatter: '{value}' },
+          detail: { valueAnimation: true, fontSize: 24, offsetCenter: [0, '5%'], fontFamily: 'monospace', color: '#475569', formatter: headlineScore != null ? '{value}' : (tScore != null ? '{value}' : '—') },
           title: { show: false },
-          data: [{ value: score }],
+          data: [{ value: ringVal }],
         }],
       }, true);
       c.resize();
@@ -13216,6 +13250,8 @@ setInterval(updateSessionBadge, 30000);
     var sp = window.SCREEN_POOL;
     return (sp && sp.funds && sp.funds[code]) || null;
   }
+  /* fw2_v398_dimscore_bridge：暴露给研究模块（renderFundScore 在本 IIFE 之外，够不到 poolProfileE），供综合诊断取列表同源 scoreDim */
+  try { window.__poolProfileE = poolProfileE; } catch (e) {}
   function renderPoolWatch(){
     var wrap=$('dcPoolWatchWrap'); if(!wrap) return;
     var fbObj = (FB&&FB.funds)?FB.funds:{};   /* fw2_v361_fix：FB 为 IIFE 闭包变量，window.FB 恒 undefined → 画像恒空（存量 bug） */
