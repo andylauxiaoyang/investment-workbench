@@ -12607,6 +12607,14 @@ setInterval(updateSessionBadge, 30000);
     }
     /* fw2_v394_capture：收益维悬浮补「上行捕获率」（≥100%=跟涨强） */
     if (key === 'ret' && e.upsideCapture != null) tip += NL + '上行捕获率 ' + e.upsideCapture + '%（vs ' + (e.benchName || '基准') + '，≥100%＝跟涨强）';
+    /* fw2_v399_subdetail：维度悬浮补「子项打分明细」，与综合诊断三处一致（后端 scoreDimSub：每项 [名称,权重,原始值,得分]）*/
+    var _sub = e.scoreDimSub && e.scoreDimSub[key];
+    if (_sub && _sub.length) {
+      tip += NL + '子项(得分)：' + _sub.map(function (it) {
+        return String(it[0]).replace(/[（(].*?[)）]/g, '').replace(/%$/, '').trim() + ' ' + (it[3] == null ? '—' : Math.round(it[3]));
+      }).join(' · ');
+    }
+    if (key === 'mgr' && e.scoreDimSub && e.scoreDimSub._mgrBlow) tip += NL + '踩雷折扣：' + (e.scoreDimSub._mgrBlow === 'severe' ? '严重×0.7' : '职业污点×0.85') + '（可击穿60及格线）';
     return '<span style="color:' + col + ';' + ((isMax || isMin) ? 'font-weight:700' : '')
       + '" title="' + esc(tip) + '">' + Number(v).toFixed(0)
       + (isMax ? '▲' : (isMin ? '▼' : '')) + '</span>';
