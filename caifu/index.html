@@ -8013,6 +8013,23 @@ function renderFundScore(rs) {
         : (pe.score == null ? ('数据不足（覆盖度 ' + (cov != null ? cov : '?') + '% <60）→ 不出分。')
           : ('维度加权总分 = Σ(维度分×占比)÷Σ占比（收益36/风险27/经理27/产品9，缺维自动 renormalize）；60=及格 / 80=优秀；▲=本基最高维、▼=拖后腿维度。')))
     : '该基金未入评分池（持仓/自选/筛选），后端无维度加权总分——下方技术面参考仅供择时，非列表口径总分。';
+  /* fw2_v399_subdetail：子项打分明细（后端 scoreDimSub，每项 [名称,维度内权重,原始值,得分]）*/
+  const ssub = pe.scoreDimSub || null;
+  const DIMLBL = { ret: '收益 36%', risk: '风险 27%', mgr: '经理 27%', prod: '产品 9%' };
+  let subHtml = '';
+  if (ssub) {
+    const sc = (v) => v == null ? '<span style="color:var(--muted,#94a3b8)">—</span>'
+      : ('<b style="color:' + (v >= 80 ? 'var(--brand,#4D6BFE)' : v >= 60 ? 'var(--fg,#1f2937)' : 'var(--warn,#d97706)') + '">' + Math.round(v) + '</b>');
+    const rows = ['ret', 'risk', 'mgr', 'prod'].map(function (dk) {
+      const items = (ssub[dk] || []).map(function (it) {
+        const raw = it[2] == null ? '—' : it[2];
+        return '<div style="display:flex;gap:8px;font-size:12px;padding:2px 0 2px 10px"><span style="flex:1;color:var(--muted,#64748b)">' + esc(String(it[0])) + '</span><span style="width:52px;color:var(--muted,#94a3b8)">权重' + it[1] + '%</span><span style="width:96px;color:var(--fg,#1f2937)">' + esc(String(raw)) + '</span><span style="width:34px;text-align:right">' + sc(it[3]) + '</span></div>';
+      }).join('');
+      const blow = (dk === 'mgr' && ssub._mgrBlow) ? ('<div style="font-size:11px;color:var(--warn,#d97706);padding-left:10px">踩雷乘性折扣：' + (ssub._mgrBlow === 'severe' ? '严重 ×0.7' : '职业污点 ×0.85') + '（经理维四子项加权后整体打折，可击穿 60 及格线）</div>') : '';
+      return '<div style="margin-top:6px"><div style="font-weight:700;font-size:12px">' + DIMLBL[dk] + '</div>' + items + blow + '</div>';
+    }).join('');
+    subHtml = '<details style="margin-top:10px"><summary style="cursor:pointer;font-size:12px;color:var(--brand,#4D6BFE);user-select:none">▸ 展开子项打分明细（各维度如何算出上面的分）</summary><div style="margin-top:6px">' + rows + '</div></details>';
+  }
   /* ===== 技术面参考（趋势/动量/波动/回撤/同类排名，等权）——★不计入总分，仅作择时参考 ===== */
   const tDims = [];
   let tScore = null;
@@ -8074,6 +8091,7 @@ function renderFundScore(rs) {
       <div style="margin-top:12px">
         <div class="rv-line"><span class="tag tag-ai">总分</span><span>维度加权总分 <b>${headlineScore != null ? headlineScore : (veto.length ? '否决' : (pe.score == null && dm ? '数据不足' : '未入池'))}</b>${headlineScore != null ? ('，评价「<b>' + hLevel + '</b>」') : ''}。${esc(hNote)}</span></div>
         ${cov != null && dm ? `<div class="rv-line"><span class="tag tag-data">覆盖度</span><span>可打分维度权重合计 ${cov}%（<60% 不出分，防"只剩一两维撑分"的假高分）</span></div>` : ''}
+        ${subHtml}
       </div>
       ${tDims.length ? `<div style="margin-top:14px;padding-top:10px;border-top:1px dashed var(--line,#e2e8f0)">
         <div style="font-weight:700;font-size:13px;margin-bottom:2px">技术面参考 <span style="font-weight:400;color:var(--warn,#d97706);font-size:12px">（趋势/动量等择时信号 · ★不计入上方总分）</span></div>
