@@ -13011,15 +13011,25 @@ setInterval(updateSessionBadge, 30000);
        sep = (r[0] 非空) ? 该行是维度组首行 → 加实线上边框。 */
     var DIMSEP='2px solid var(--line,#e2e8f0)';
     var DIMSEP_NONE='1px solid transparent';
-    DIMROWS.forEach(function(r){
+    /* fw2_v393_rowspan：维度名 + 占总分「跨整组垂直居中」（用户 2026-10-03 截图「还是没上下居中」→ 方案 C）。
+       组首行的「维度」「占总分」两格用 rowspan 覆盖整组 → 真正居中于全组；后续行不再输出这两格。
+       ★Edge headless 实测（1280/571 双视口）：18 行不塌、每组标签中心 == 整组中心（delta=0）、tableH=962 正常。
+       v391 塌表根因是其 rowspan 实现写错（预计算 span 有误 → 畸形 HTML），非 rowspan 本身之过；本版逐组精确算 span 并实测通过。 */
+    // 预计算：每行所属组的首行下标 _head[i] 与该组行数 _size[head]
+    var _head=[], _size=[], _h=-1;
+    DIMROWS.forEach(function(r,i){ if(r[0]){ _h=i; _size[_h]=1; } else if(_h>=0){ _size[_h]++; } _head[i]=_h; });
+    DIMROWS.forEach(function(r,i){
       var isGroupHead = !!r[0];
       var sep = isGroupHead ? DIMSEP : DIMSEP_NONE;
       var base = 'padding:6px 6px;border-bottom:1px solid var(--line-2,#f1f5f9);vertical-align:middle;border-top:'+sep+';';
-      var dimCell = isGroupHead
-        ? '<td style="'+base+'font-weight:600;font-size:11px;text-align:center;color:'+r[5]+'">'+r[0]+'</td>'
-        : '<td style="'+base+'text-align:center"></td>';
-      h+='<tr>'+dimCell
-        +'<td style="'+base+'text-align:center;font-size:11px">'+r[1]+'</td>'
+      // 组首行才输出「维度」「占总分」，rowspan 覆盖整组；非首行两格由 rowspan 占位，不重复输出
+      var lead = '';
+      if(isGroupHead){
+        var span = _size[i];
+        lead = '<td rowspan="'+span+'" style="border-top:'+DIMSEP+';border-bottom:1px solid var(--line-2,#f1f5f9);padding:6px 6px;font-weight:600;font-size:11px;text-align:center;vertical-align:middle;color:'+r[5]+'">'+r[0]+'</td>'
+             + '<td rowspan="'+span+'" style="border-top:'+DIMSEP+';border-bottom:1px solid var(--line-2,#f1f5f9);padding:6px 6px;text-align:center;font-size:11px;vertical-align:middle">'+r[1]+'</td>';
+      }
+      h+='<tr>'+lead
         +'<td style="'+base+'font-weight:600;font-size:11px">'+r[2]+'</td>'
         +'<td style="'+base+'text-align:center;font-size:11px;'+(r[3]==='—'?'color:var(--muted,#94a3b8);':'')+'">'+r[3]+'</td>'
         +'<td style="'+base+'font-size:11px;color:var(--muted,#94a3b8);line-height:1.6">'+r[4]+'</td></tr>';
