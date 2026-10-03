@@ -8023,7 +8023,7 @@ function renderFundScore(rs) {
     const rows = ['ret', 'risk', 'mgr', 'prod'].map(function (dk) {
       const items = (ssub[dk] || []).map(function (it) {
         const raw = it[2] == null ? '—' : it[2];
-        return '<div style="display:flex;gap:8px;font-size:12px;padding:2px 0 2px 10px"><span style="flex:1;color:var(--muted,#64748b)">' + esc(String(it[0])) + '</span><span style="width:52px;color:var(--muted,#94a3b8)">权重' + it[1] + '%</span><span style="width:96px;color:var(--fg,#1f2937)">' + esc(String(raw)) + '</span><span style="width:34px;text-align:right">' + sc(it[3]) + '</span></div>';
+        return '<div style="display:flex;gap:10px;font-size:12px;padding:2px 0;max-width:520px"><span style="width:150px;color:var(--muted,#64748b)">' + esc(String(it[0])) + '</span><span style="width:58px;color:var(--muted,#94a3b8)">权重' + it[1] + '%</span><span style="width:104px;text-align:right;color:var(--fg,#1f2937)">' + esc(String(raw)) + '</span><span style="width:34px;text-align:right">' + sc(it[3]) + '</span></div>';
       }).join('');
       const blow = (dk === 'mgr' && ssub._mgrBlow) ? ('<div style="font-size:11px;color:var(--warn,#d97706);padding-left:10px">踩雷乘性折扣：' + (ssub._mgrBlow === 'severe' ? '严重 ×0.7' : '职业污点 ×0.85') + '（经理维四子项加权后整体打折，可击穿 60 及格线）</div>') : '';
       return '<div style="margin-top:6px"><div style="font-weight:700;font-size:12px">' + DIMLBL[dk] + '</div>' + items + blow + '</div>';
