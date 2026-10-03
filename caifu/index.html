@@ -12607,7 +12607,9 @@ setInterval(updateSessionBadge, 30000);
       .concat([{k:'sgzt', t:'申赎', get:function(row){ var e=row._meta.e||{}; return e.sgzt?('<span style="color:'+(/限/.test(e.sgzt)?'var(--warn,#d97706)':'var(--muted,#94a3b8)')+';font-weight:'+(/限/.test(e.sgzt)?'600':'400')+'">'+esc(e.sgzt)+'</span>'):null; }, html:true}])
       /* —— 业绩排名 —— */
       .concat(IV.map(iv))
-      .concat([{k:'wStab', t:'五窗排名', get:function(row){ var e=row._meta.e||{}; return e.wStab?esc(e.wStab):null; }}])
+      /* fw2_v396_wstab_cols：五窗排名由单列管道串 → 拆成 5 个按窗口列（3年/2年/1年/6月/3月），
+         列头即年份/月份，单元格显示该窗排名分位的百分数（0.25→25%，0=同类最好）；缺该窗则显 —。 */
+      .concat(['3年','2年','1年','6月','3月'].map(function(L){ return {k:'wstab_'+L, t:L, num:true, get:function(row){ var e=row._meta.e||{}; var s=e.wStab||''; var m=('|'+s).indexOf('|'+L+':'); if(m<0) return null; var v=s.substring(m+1).split('|')[0].split(':')[1]; var q=parseFloat(v); return isNaN(q)?null:(Math.round(q*100)+'%'); }}; }))
       /* —— 风险收益 —— */
       .concat([rk('vol','年化波动率'), rk('mdd','最大回撤'), rk('sharpe','夏普比率'), rk('calmar','卡玛比率'), rk('sortino','索提诺比率')])
       .concat([{k:'concPct', t:'前十大%', num:true, get:function(row){ var e=row._meta.e||{}; return e.concPct!=null?'<span style="'+(e.concPct>70?'color:var(--warn,#d97706);font-weight:600':(e.concPct<20?'color:var(--muted,#94a3b8)':''))+'">'+Number(e.concPct).toFixed(0)+'%</span>':null; }, html:true}])
