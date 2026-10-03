@@ -10472,9 +10472,14 @@ function fillRsPick() {
   const nm = (code) => (state.snapshot.quotes[code] && state.snapshot.quotes[code].name) || shortCode(code);
   const held = state.portfolio.filter((h) => (h.assetType || '') !== 'cash').map((h) => ({ code: toResearchCode(h.code, h.assetType), name: h.name || ((state.watchMeta || {})[shortCode(h.code)] || {}).name || nm(h.code) }));   /* fw2_v382_pick_name：持仓项优先取持仓记录自身名称（quotes 无基金代码 → 旧版显示「代码 代码」） */
   const watch = state.watchlist.filter((c) => !state.portfolio.find((h) => shortCode(h.code) === c)).map((c) => ({ code: toResearchCode(c, 'fund'), name: (state.watchMeta && state.watchMeta[c] && state.watchMeta[c].name) || nm(c) || c }));
-  sel.innerHTML = '<option value="">持仓 / 自选…</option>'
+  /* fw2_v406_pick_screen：把筛选池基金也加进「选择」下拉（去重掉已在持仓/自选的），可直接在基金透视里分析候选基 */
+  const _inPool = {}; held.forEach((o) => { _inPool[shortCode(o.code)] = 1; }); watch.forEach((o) => { _inPool[shortCode(o.code)] = 1; });
+  const sp = (window.SCREEN_POOL && window.SCREEN_POOL.funds) || {};
+  const screen = Object.keys(sp).filter((c) => !_inPool[c]).map((c) => ({ code: toResearchCode(c, 'fund'), name: (sp[c] && sp[c].name) || nm(c) || c }));
+  sel.innerHTML = '<option value="">持仓 / 自选 / 筛选…</option>'
     + (held.length ? `<optgroup label="持仓中">${held.map((o) => `<option value="${o.code}">${esc(o.name)} ${shortCode(o.code)}</option>`).join('')}</optgroup>` : '')
-    + (watch.length ? `<optgroup label="自选">${watch.map((o) => `<option value="${o.code}">${esc(o.name)} ${shortCode(o.code)}</option>`).join('')}</optgroup>` : '');
+    + (watch.length ? `<optgroup label="自选">${watch.map((o) => `<option value="${o.code}">${esc(o.name)} ${shortCode(o.code)}</option>`).join('')}</optgroup>` : '')
+    + (screen.length ? `<optgroup label="筛选">${screen.map((o) => `<option value="${o.code}">${esc(o.name)} ${shortCode(o.code)}</option>`).join('')}</optgroup>` : '');
   /* v81 fw2_v81_src_gate：角标自报版本+自选条数+数据来源；v81 新增口径卡「数据来源渠道登记 + 校验戳记」
      v82 fw2_v82_navbreak：净值断裂检测（份额折算/转型不当作收益），断裂月 monthRet 置空 + navReset 标记
      v83 fw2_v83_vixcboe：VIX 源由理杏仁 vix_fic 改 CBOE 官方 CSV（月末收盘,T0），修正与官方系统性不符
@@ -12775,7 +12780,7 @@ setInterval(updateSessionBadge, 30000);
         else if(c.k==='scale'||c.k==='fee'||c.k==='aum'){ h += '<td class="'+cls+'">'+(v==null?'—':(+v).toFixed(2))+'</td>'; }
         else if(c.risk){ h += '<td class="'+(cls+(c.k==='mdd'&&v!=null&&v<0?' neg':'')).trim()+'" title="推断·自算，全历史·月频；分红型按累计净值">'+(v==null?'—':v.toFixed(2))+'</td>'; }
         else if(c.k==='liq'){ h += '<td class="'+(liqCls(v)+' '+cls).trim()+'" title="按规模派生评估，非官方判定">'+(v||'—')+'</td>'; }
-        else if(c.k==='name'){ h += '<td class="'+cls+'" title="'+esc(v||'')+'"><div class="tdclip">'+esc(v||'')+'</div></td>'; }   /* fw2_v383_pool_name_clip：名称包 .tdclip，手机媒体查询限宽省略号 */
+        else if(c.k==='name'){ h += '<td class="'+cls+'" title="点击进基金透视：'+esc(v||'')+'"><div class="tdclip"><b class="lk-rs" data-rscode="'+esc(r.code)+'" data-rast="fund">'+esc(v||'')+'</b></div></td>'; }   /* fw2_v383_pool_name_clip + fw2_v406_name_link：名称可点，跳基金透视 */
         else if(c.k==='mgr'||c.k==='estab'){ h += '<td class="'+cls+'">'+esc(v||'')+'</td>'; }
         else { h += '<td class="'+cls+'">'+(v==null?'—':esc(v))+'</td>'; }
       });
@@ -12890,7 +12895,7 @@ setInterval(updateSessionBadge, 30000);
         else if(c.k==='liq'){ h+='<td class="'+(liqCls(v)+' '+cls).trim()+'" title="按规模派生评估，非官方判定">'+(v||'—')+'</td>'; }
         else if(c.k==='name'||c.k==='mgr'||c.k==='estab'){
           var cell;
-          if(c.k==='name'){ cell='<div class="tdclip" title="'+esc(v||'')+'">'+esc(v||'')+'</div>'; }   /* fw2_v383_pool_name_clip：名称包 .tdclip，手机媒体查询限宽省略号 */
+          if(c.k==='name'){ cell='<div class="tdclip" title="点击进基金透视：'+esc(v||'')+'"><b class="lk-rs" data-rscode="'+esc(r.code)+'" data-rast="fund">'+esc(v||'')+'</b></div>'; }   /* fw2_v383_pool_name_clip + fw2_v406_name_link */
           else { cell=esc(v||''); }
           if(c.k==='name' && o.nameSub){
             var sub=o.nameSub(r);
