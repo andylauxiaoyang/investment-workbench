@@ -12975,13 +12975,15 @@ setInterval(updateSessionBadge, 30000);
       +'<b style="color:var(--fg,#0f172a)">打分线 60=及格 / 80=优秀 / 100=满分</b>，'
       +'<b style="color:var(--fg,#0f172a)">段内线性插值</b>，不是跳档——'
       +'「低于 8% 年化」不是一律 0 分，而是从 0 分线往上按斜率爬升（详见下表打分规则列）。</div>';
-    h+='<table style="width:100%;border-collapse:collapse;font-size:12px;margin-top:4px;table-layout:fixed">'
+    h+='<div class="dimrules-scroll">';
+    h+='<table style="width:100%;min-width:1180px;border-collapse:collapse;font-size:12px;margin-top:4px;table-layout:fixed">'
       +'<colgroup><col style="width:8%"><col style="width:13%"><col style="width:17%"><col style="width:11%"><col style="width:51%"></colgroup>'
       +'<tr><th style="text-align:center;padding:6px 6px;vertical-align:middle;background:var(--panel-3,#f1f5f9);border-bottom:1px solid var(--line,#e2e8f0);font-size:11px;color:var(--muted,#94a3b8)">维度</th>'
       +'<th style="text-align:center;padding:6px 6px;vertical-align:middle;background:var(--panel-3,#f1f5f9);border-bottom:1px solid var(--line,#e2e8f0);font-size:11px;color:var(--muted,#94a3b8)">占总分</th>'
       +'<th style="text-align:left;padding:6px 6px;vertical-align:middle;background:var(--panel-3,#f1f5f9);border-bottom:1px solid var(--line,#e2e8f0);font-size:11px;color:var(--muted,#94a3b8)">子指标</th>'
       +'<th style="text-align:center;padding:6px 6px;vertical-align:middle;background:var(--panel-3,#f1f5f9);border-bottom:1px solid var(--line,#e2e8f0);font-size:11px;color:var(--muted,#94a3b8)">维度内权重</th>'
       +'<th style="text-align:left;padding:6px 6px;vertical-align:middle;background:var(--panel-3,#f1f5f9);border-bottom:1px solid var(--line,#e2e8f0);font-size:11px;color:var(--muted,#94a3b8)">打分规则（锚点 → 分数，含低于及格线怎么算）</th></tr>';
+    var CSS_V391='.dimrules-scroll{overflow-x:auto;overflow-y:hidden;max-width:100%}.dimrules-scroll>table{margin-top:4px}';
     var DIMROWS=[
       ['收益','36%<br><span style="font-weight:400;color:var(--muted,#94a3b8)">原始 33</span>','近3年年化','30%','<b>越大越好</b>，按类型分档。锚点：<b>0% → 0 分</b>、8% → 60、13% → 80、20% → 100（权益档）。<br>段内线性：0~8% 段斜率 <b>7.5 分/百分点</b>（最陡）；8~13% 段 4 分/百分点；13~20% 段 2.9 分/百分点（边际递减）。<br><b>低于 8% 怎么算</b>：年化 3% → 22.5 分；年化 7% → 52.5 分（两者差 30 分，非归零）。<br>≤0% 记 0 分；≥20% 封 100 分。债基 3.5/5/7 %、货基 1.5/2.2/3 % 各用同结构。','var(--down,#16a34a)'],
       ['','','成立来长周期年化','30%','同上打分曲线，但值 = 成立来累计涨幅与成立年数折算的年化 ((1+rAll)^(1/years)−1)。<br>作用：压制「只看近 3 年牛市窗口」——010736 近3年年化 21.5%，但成立 5.8 年长周期仅 3.3%。<br><b>缺 rAll/years 则该项不计权</b>，收益维按剩下两项重新摊权（并计入覆盖度，见 B5）。',''],
@@ -13001,17 +13003,28 @@ setInterval(updateSessionBadge, 30000);
       ['覆盖度','—','数据覆盖度门槛','—','可打分<b>维度</b>的权重合计 &lt;60% → 不出分（防「只剩一两维撑分」的假高分）。<br><b>局限（B5）</b>：该门槛只统计「维度级缺失」，<b>不检测维度内部子项缺失</b>——如长周期年化缺数据时收益维仍算得出分、覆盖度仍显示 100%，此时收益维实际只由「近3年年化 + 多窗口」撑起。读分时须留意。','var(--warn,#d97706)'],
       ['公司规模','—','管理规模（东财口径含货基）','—','<b>不占权重、不否决</b>，仅在总分悬浮提示：&lt;300 亿 → 提示「资料标准：回避」；≥300 亿不提示。<br>口径提醒：东财给的是<b>管理规模（含货基）</b>，非基金公司总资产。','var(--warn,#d97706)']
     ];
-    /* fw2_v390_valign_groupsep：① 全表单元格上下居中 ② 维度组间实线分隔
-       组间线 = 2px solid var(--line)；组内线 = 1px solid var(--line-2)。
-       sep = (r[0] 非空) ? 该行是维度组首行 → 加实线上边框。 */
+    h+='<style>'+CSS_V391+'</style>';
+    /* fw2_v391_scroll_rowspan：维度名用 rowspan 跨整个维度组 → 真正「上下居中」
+       （v390 是每行各居中，组首行仍显=top；用户要的是维度名居中于整组）。
+       组间分隔：rowspan 单元格自带 border-top 2px 实线，组内行用 transparent。
+       外层 .dimrules-scroll（见上方 CSS）保证窄视口横向滚动而不压垮列宽。 */
     var DIMSEP='2px solid var(--line,#e2e8f0)';
     var DIMSEP_NONE='1px solid transparent';
-    DIMROWS.forEach(function(r){
-      var isGroupHead = !!r[0];
-      var sep = isGroupHead ? DIMSEP : DIMSEP_NONE;
-      var base = 'padding:6px 6px;border-bottom:1px solid var(--line-2,#f1f5f9);vertical-align:middle;border-top:'+sep+';';
-      var dimCell = isGroupHead
-        ? '<td style="'+base+'font-weight:600;font-size:11px;text-align:center;color:'+r[5]+'">'+r[0]+'</td>'
+    // 先算每个维度组占几行 → rowspan
+    var _grp=[];
+    for (var _i=0; _i<DIMROWS.length; _i++){
+      if (DIMROWS[_i][0]) _grp.push({start:_i, name:DIMROWS[_i][0], color:DIMROWS[_i][5]});
+    }
+    for (var _g=0; _g<_grp.length; _g++){
+      _grp[_g].span = (_g+1<_grp.length ? _grp[_g+1].start : DIMROWS.length) - _grp[_g].start;
+    }
+    var _cellAt={};
+    for (var _g2=0; _g2<_grp.length; _g2++) _cellAt[_grp[_g2].start]=_grp[_g2];
+    DIMROWS.forEach(function(r, ri){
+      var g = _cellAt[ri];
+      var base = 'padding:6px 6px;border-bottom:1px solid var(--line-2,#f1f5f9);vertical-align:middle;border-top:'+(g?DIMSEP:DIMSEP_NONE)+';';
+      var dimCell = g
+        ? '<td rowspan="'+g.span+'" style="'+base+'font-weight:600;font-size:11px;text-align:center;color:'+g.color+'">'+g.name+'</td>'
         : '<td style="'+base+'text-align:center"></td>';
       h+='<tr>'+dimCell
         +'<td style="'+base+'text-align:center;font-size:11px">'+r[1]+'</td>'
@@ -13019,7 +13032,7 @@ setInterval(updateSessionBadge, 30000);
         +'<td style="'+base+'text-align:center;font-size:11px;'+(r[3]==='—'?'color:var(--muted,#94a3b8);':'')+'">'+r[3]+'</td>'
         +'<td style="'+base+'font-size:11px;color:var(--muted,#94a3b8);line-height:1.6">'+r[4]+'</td></tr>';
     });
-    h+='</table>';
+    h+='</table></div>';
     h+='<div style="font-size:11px;color:var(--muted,#94a3b8);margin:6px 10px 10px;line-height:1.7">'
       +'<b style="color:var(--fg,#0f172a)">两级稀释（读总分时务必知道）</b>：子指标差 → 维度分差 → 总分差逐级缩小。'
       +'例：两只权益基金近3年年化 3% vs 7%（子项差 30 分），若长周期与多窗口表现相同，'
