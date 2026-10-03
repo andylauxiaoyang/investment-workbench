@@ -8107,6 +8107,7 @@ function renderFundScore(rs) {
       <div style="margin-top:12px">
         <div class="rv-line"><span class="tag tag-ai">总分</span><span>维度加权总分 <b>${headlineScore != null ? headlineScore : (veto.length ? '否决' : (pe.score == null && dm ? '数据不足' : '未入池'))}</b>${headlineScore != null ? ('，评价「<b>' + hLevel + '</b>」') : ''}。${esc(hNote)}</span></div>
         ${cov != null && dm ? `<div class="rv-line"><span class="tag tag-data">覆盖度</span><span>可打分维度权重合计 ${cov}%（<60% 不出分，防"只剩一两维撑分"的假高分）</span></div>` : ''}
+        ${pe.pePct != null ? `<div class="rv-line"><span class="tag tag-data">估值·择时</span><span>跟踪指数 <b>${esc(pe.peBench||'')}</b> PE 5年市值加权分位 <b style="color:${pe.pePct>0.7?'var(--warn,#d97706)':(pe.pePct<0.3?'var(--down,#16a34a)':'var(--fg,#1f2937)')}">${Math.round(pe.pePct*100)}%</b>（${esc(pe.peDate||'')}，理杏仁）· <b>仅作停买/加倍择时参考，不计入上方质量总分</b>${pe.pePct>0.7?'｜偏贵（>70 停买线）':(pe.pePct<0.3?'｜偏便宜（<30 加倍线）':'｜中性')}</span></div>` : (pe.benchName ? `<div class="rv-line"><span class="tag tag-data">估值·择时</span><span>${esc(pe.benchName)}（海外/黄金/债）无 A 股指数 PE 分位口径，估值分位不适用</span></div>` : '')}
         ${subHtml}
       </div>
       ${tDims.length ? `<div style="margin-top:14px;padding-top:10px;border-top:1px dashed var(--line,#e2e8f0)">
