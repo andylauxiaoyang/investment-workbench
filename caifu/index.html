@@ -1530,13 +1530,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
             <!-- v95 fw2_v95_drop_table_pivot：本分块只保留「总览」「配图」两个 Tab，原第二/第三个 Tab 及其视图已删除 -->
           </div>
         </div>
-        <div class="dc-bar" id="dcBar"><!-- fw2_v78_fund_filter -->
-          <div class="dc-fsel" id="dcFsel">
-            <button class="btn-mini dc-fsel-btn" id="dcFselBtn" type="button">筛选基金<span class="dc-fsel-badge" id="dcFselBadge">全部</span>▾</button>
-            <div class="dc-fsel-panel" id="dcFselPanel" style="display:none"></div>
-          </div>
-          <input class="dc-search" id="dcSearch" placeholder="搜索 代码 / 名称 / 类型 …" />
-          <span class="dc-sep"></span>
+        <div class="dc-bar" id="dcBar"><!-- fw2_v78_fund_filter --><!-- fw2_v415_dcbar_trim：删除筛选下拉(#dcFsel)与搜索框(#dcSearch)及分隔条(#dc-sep) -->
           <button class="btn-mini" id="dcExportOverviewCsv" title="导出全部基金基础信息列表">导出基金列表CSV</button>
           <button class="btn-mini" id="dcExportCsv" title="导出当前筛选结果">导出CSV</button>
           <button class="btn-mini" id="dcExportMd" title="导出当前筛选结果">导出MD</button>
@@ -13513,17 +13507,7 @@ setInterval(updateSessionBadge, 30000);
   });
   /* fw2_v135_macro_view：dc-block 点击绑定已删除（dcBlocks 已移除，宏观/基金改由 nav 视图切换） */
   setRsTabLabels('fund');   /* fw2_v381_fund_default：boot 即默认基金态 tab 栏（未选标的时仅「基金透视」可见，避免首帧闪现股票标签） */
-  $('dcSearch').addEventListener('input', function(){
-    dcUI.search=this.value;
-    if(FB_LOADED) renderDcOverview();
-  });
-  $('dcFselBtn').addEventListener('click', function(ev){
-    ev.stopPropagation();
-    var p=$('dcFselPanel'); if(!p) return;
-    var open = p.style.display==='block';
-    p.style.display = open ? 'none' : 'block';
-    if(!open) renderDcFsel();
-  });
+  /* fw2_v415_dcbar_trim：随控件一并删除的监听器 - dcSearch input / dcFselBtn click（renderDcFsel/updateDcFselUi/document-click 关闭器均保留，元素缺失时自动 no-op） */
   document.addEventListener('click', function(ev){
     var p=$('dcFselPanel'); if(!p || p.style.display!=='block') return;
     var box=$('dcFsel');
