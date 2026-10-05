@@ -11961,7 +11961,18 @@ setInterval(updateSessionBadge, 30000);
       }
       DC=d; DC_LOADED=true;
       renderDcCaliber(d);
-      loadDcBasic().then(function(){ if(FB_LOADED) renderDcOverview(); });
+      /* fw2_v420_dcrerender：DC 就绪后重渲染当前激活的分块。
+         根因：iv_* 区间收益列与 vol/mdd/sharpe/calmar/sortino 全部由 ivMap() 现算（依赖 DC.rows），
+         池表若在 DC 到达前先渲染 → 整片空列且**不会自动补**（实测 fund-monthly 变大到 1.1MB 后
+         首次进「筛选基金」Tab 的 10 个收益列 + 5 个风险列全空，切走再切回才 filled）。
+         原代码只重渲染 renderDcOverview()，自选/筛选池被漏掉。 */
+      loadDcBasic().then(function(){
+        if(FB_LOADED) renderDcOverview();
+        var at = document.querySelector('.dc-tab.active');
+        var k = at && at.dataset ? at.dataset.dc : '';
+        if(k === 'pool-screen' && typeof renderPoolScreen === 'function') renderPoolScreen();
+        else if(k === 'pool-watch' && typeof renderPoolWatch === 'function') renderPoolWatch();
+      });
       updateDcFselUi(); renderDcFsel();
       elText('dcMeta', d.meta.fundCount+' 只基金 · '+d.meta.monthCount+' 个月 · 截至 '+d.meta.asOf + staleTxt(d.meta.asOf, 5, '净值'));
     }
