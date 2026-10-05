@@ -1538,11 +1538,11 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
           <button class="btn-mini" id="dcReload">重新加载</button>
           <span class="dc-meta" id="dcMeta"></span>
         </div>
-        <div id="dcOverviewWrap" class="dc-pane"><!-- fw2_v85_overview --><!-- fw2_v88_overview_interval：区间收益并入总览、取消独立 Tab --><!-- fw2_v89_iv_merged_cols：区间收益由独立表改为并入基础信息表的列（总费率后 / 基金经理前） --><!-- fw2_v90_drop_cols：删除「类型」「基金公司」两列（总览表 21 列 → 19 列） -->
+        <div id="dcOverviewWrap" class="dc-pane dc-pool-mark"><!-- fw2_v85_overview --><!-- fw2_v88_overview_interval：区间收益并入总览、取消独立 Tab --><!-- fw2_v89_iv_merged_cols：区间收益由独立表改为并入基础信息表的列（总费率后 / 基金经理前） --><!-- fw2_v90_drop_cols：删除「类型」「基金公司」两列（总览表 21 列 → 19 列） -->
           <div class="pool-note" style="font-size:12px;color:var(--muted,#64748b);margin:6px 2px 10px;line-height:1.6">持仓基金池：仅展示<b>实际持仓</b>的基金（来源：交易台账 + 持仓种子 + 手动标记）。买卖/清仓请先在「交易台账」记录自动归池；从自选池点「已买入」也会标记持仓。清仓后请到筛选/自选池操作。</div>
         </div>
-        <div id="dcPoolWatchWrap" class="dc-pane" style="display:none"><!-- v353 fw2_v353_pool_tabs：自选基金池（watchlist-data.json + 筛选池加入，剔除已持仓/已移除） --></div>
-        <div id="dcPoolScreenWrap" class="dc-pane" style="display:none"><!-- v353 fw2_v353_pool_tabs：筛选基金池（screen-pool.json 40 只候选，可加入自选/永久删除） --></div>
+        <div id="dcPoolWatchWrap" class="dc-pane dc-pool-mark" style="display:none"><!-- v353 fw2_v353_pool_tabs：自选基金池（watchlist-data.json + 筛选池加入，剔除已持仓/已移除） --></div>
+        <div id="dcPoolScreenWrap" class="dc-pane dc-pool-mark" style="display:none"><!-- v353 fw2_v353_pool_tabs：筛选基金池（screen-pool.json 40 只候选，可加入自选/永久删除） --></div>
         <div id="dcPoolRulesWrap" class="dc-pane" style="display:none"><!-- v363 fw2_v363_pool_rules_tab：完整筛选规则文档（漏斗全流程/硬门槛/加分项/批次/族表，启用+未启用全展示，含调整规则编辑面板） --></div>
         <!-- v95 fw2_v95_drop_table_pivot：表格视图与透视视图（含其内部控件）已删除 -->
         <div id="dcChartWrap" class="dc-pane" style="display:none">
@@ -1794,6 +1794,16 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
       }
       /* v353 fw2_v353_pool_tabs：三池表格（持仓/自选/筛选）——仿 .st-tbl 简洁表格风格 */
       #view-data .pool-tbl th{text-align:left;padding:7px 10px;background:var(--panel-3,#f1f5f9);color:var(--text-2,#475569);border-bottom:2px solid var(--line,#e2e8f0);font-weight:700;font-size:11px;white-space:nowrap;letter-spacing:.3px}
+      /* fw2_v422_pool_sticky：三池表（持仓/自选/筛选）下拉时锁住表头（用户 2026-10-05 截图）。
+         根因：三池表由 renderDcOverview/poolTableHtml 输出的是**无 class 的裸 <table style="width:100%">**，
+         既无 thead sticky，又不在 .dc-tbl 规则内；而祖先 .dc-pane 只有 overflow-x:auto，
+         纵向滚动由 window 承担 → sticky 相对最近滚动祖先(view)定位，滚出即失效。
+         修法：① 给三池 wrap 挂 .dc-pool-tbl-mark（JS 侧统一，避免 :has 兼容性问题）；
+               ② 池表 thead th 吸顶、z-index 高于首列(1)；③ wrap 自身成为纵向滚动容器。 */
+      #view-data .dc-pool-mark thead th{position:sticky;top:0;z-index:3;background:var(--panel-3,#f1f5f9);font-weight:700;color:var(--text-2,#475569);text-align:left;white-space:nowrap}
+      #view-data .dc-pool-mark thead th:first-child{position:sticky;left:0;z-index:4}
+      #view-data .dc-pool-mark{overflow-y:auto;max-height:calc(100vh - 178px)}
+      #view-data .dc-pool-mark table{border-collapse:collapse}
       #view-data .pool-tbl td{padding:8px 10px;border-bottom:1px solid var(--line-2,#eef2f7);vertical-align:middle;overflow:hidden;font-variant-numeric:tabular-nums}
       #view-data .pool-tbl tr:last-child td{border-bottom:0}
       #view-data .pool-tbl tbody tr:hover td{background:var(--panel-3,#f8fafc)}
@@ -7583,7 +7593,9 @@ function fundCalcStats(trend) {
   let yi = -1;
   for (let i = 0; i < trend.length; i++) { if (trend[i].d >= year + '-01-01') { yi = i; break; } }
   const ytd = yi > 0 ? (last / trend[yi - 1].y - 1) * 100 : null;
-  return { last, ma20: navMa(20), ma60: navMa(60), c5: chg(5), c20: chg(20), c60: chg(60), c120: chg(120), c250: chg(250), ytd, mdd: mdd * 100, vol };
+  return { last, ma20: navMa(20), ma60: navMa(60), /* fw2_v422_ma250：补年线（MA250）——「风险速览」要展示净值在年线上/下；navMa 自身有 ys.length<n 守卫，不足 250 点自动返 null */
+    ma250: navMa(250), ma120: navMa(120),
+    c5: chg(5), c20: chg(20), c60: chg(60), c120: chg(120), c250: chg(250), ytd, mdd: mdd * 100, vol };
 }
 function renderFundHead(rs) {
   setRsTabLabels('fund');   /* v97 fw2_v97_research_merge */
@@ -7906,6 +7918,27 @@ function renderFundPerf(rs) {
   const rounds = roundRows;
   const okRounds = rounds.filter((r) => r.pct <= 20).length;
   const labelOf = (t) => ({ Z: '近1周', Y: '近1月', '3Y': '近3月', '6Y': '近6月', '1N': '近1年', JN: '今年以来' }[t] || t);
+  /* fw2_v422_longperf：加近3年/5年/10年（用户 2026-10-05 截图要求）。
+     ★作用域坑：ivSeries/basisOf/ivMap 都在数据中心 IIFE 闭包内，基金透视模块取不到（实测 ReferenceError），
+       故用本模块已有的**全量累计净值** rs.fund.ac 自算，不跨闭包调数据。
+     ★rt 被 slice(-500)（≈2 年，只服务波动/回撤口径），长周期必须另取全量 ac，否则近3/5/10年永远「成立不足」。
+     口径＝**年化收益** = (末值/起值)^(1/年数)−1，年数按 250 净值日/年折算（与风险速览同口径）；
+     与池表「近3年/5年/10年」列（月度序列→年化）同算法同量纲，可横向对比。
+     不足对应净值日数 → 显示「—」并注明实际可得年数。 */
+  const _acAll = (rs.fund && rs.fund.ac && rs.fund.ac.length > 10) ? rs.fund.ac : ft;
+  const longCell = (label, years) => {
+    const n = _acAll.length;
+    if (n < 2) return `<div class="metric"><div class="k">${label}</div><div class="v">—</div><div class="sub-line" style="font-size:10px;color:#475569">净值数据不足</div></div>`;
+    const yrs = n / 250;                       // 净值日 → 年（250 交易日/年，与风险速览同口径）
+    const f0 = _acAll[0].y, l0 = _acAll[n - 1].y;
+    if (!(f0 > 0) || yrs < years) return `<div class="metric"><div class="k">${label}</div><div class="v">—</div><div class="sub-line" style="font-size:10px;color:#475569">成立不足 ${years} 年（可得 ${yrs.toFixed(1)} 年）</div></div>`;
+    // ★只用最后 N*250 个点算该区间年化，避免「成立 12 年却按 12 年算近3年」
+    const win = _acAll.slice(-Math.round(years * 250));
+    const w0 = win[0].y, wy = win.length / 250;
+    if (!(w0 > 0) || wy <= 0) return `<div class="metric"><div class="k">${label}</div><div class="v">—</div><div class="sub-line" style="font-size:10px;color:#475569">区间数据不足</div></div>`;
+    const ann = (Math.pow(l0 / w0, 1 / wy) - 1) * 100;
+    return `<div class="metric"><div class="k">${label}</div><div class="v ${ann >= 0 ? 'v up' : 'v down'}">${fmtNum(ann, 1)}%</div><div class="sub-line" style="font-size:10px;color:#475569">年化 · 累计净值 ${wy.toFixed(1)} 年</div></div>`;
+  };
   const pctCell = (t) => {
     const p = get(t);
     if (!p) return `<div class="metric"><div class="k">${labelOf(t)}</div><div class="v">—</div></div>`;
@@ -7926,6 +7959,9 @@ function renderFundPerf(rs) {
       ${pctCell('6Y')}
       ${pctCell('1N')}
       ${pctCell('JN')}
+      ${longCell('近3年', 3)}
+      ${longCell('近5年', 5)}
+      ${longCell('近10年', 10)}
       ${metric('排名口径', '同类排名越小越好（官方口径）')}
       ${metric('多轮筛选（前20%）', rounds.length >= 2 ? okRounds + ' / ' + rounds.length + ' 期达标' : (rounds.length ? '排名源调整，仅近3月可用' : '—'), rounds.length >= 2 && okRounds === rounds.length ? 'v up' : '')}
       ${(() => { const p1 = get('1N'); const bk = rs.benchKline || []; const b1 = bk.length > 250 ? (bk[bk.length - 1].close / bk[bk.length - 250].close - 1) * 100 : null; return p1 && p1.syl != null && b1 != null ? metric('近1年超额 vs 沪深300', fmtPct(p1.syl - b1), cls(p1.syl - b1)) : ''; })()}
@@ -7938,6 +7974,14 @@ function renderFundPerf(rs) {
       ${metric('最大回撤（近500净值日）', fmtPct(st.mdd), st.mdd < -20 ? 'v up' : '')}
       ${metric('净值对MA20', st.ma20 != null ? (st.last > st.ma20 ? '上方' : '下方') : '—')}
       ${metric('净值对MA60', st.ma60 != null ? (st.last > st.ma60 ? '上方' : '下方') : '—')}
+      ${(() => { /* fw2_v422_ma250：年线（MA250）——用户 2026-10-05 要求加在 MA60 之后。
+           净值在年线上=右侧/持有区，跌破=左侧区间（与全局 M5「跌破年线=左侧区间（弹药纪律）」同源判据）。
+           副行给年线偏离度 %，直观表达离年线多远；不足 250 净值日（次新基金）显「成立不足年线」。 */
+        if (st.ma250 == null) return `<div class="metric"><div class="k">净值对MA250（年线）</div><div class="v">—</div><div class="sub-line" style="font-size:10px;color:#475569">成立不足 250 净值日</div></div>`;
+        const above = st.last > st.ma250;
+        const dev = (st.last / st.ma250 - 1) * 100;
+        return `<div class="metric"><div class="k">净值对MA250（年线）</div><div class="v">${above ? '上方' : '下方'}</div><div class="sub-line" style="font-size:10px;color:#475569">偏离 ${dev >= 0 ? '+' : ''}${fmtNum(dev, 1)}% · ${above ? '右侧持有区' : '左侧区间'}</div></div>`;
+      })()}
       ${rx ? metric('Beta（近1年·对沪深300）', fmtNum(rx.beta, 2)) : ''}
       ${rx ? metric('Alpha 年化', fmtNum(rx.alpha, 1) + '%', rx.alpha >= 2 ? 'v up' : rx.alpha < 0 ? 'v down' : '') : ''}
       ${rx ? metric('夏普比率', fmtNum(rx.sharpe, 2), rx.sharpe > 1 ? 'v up' : '') : ''}
