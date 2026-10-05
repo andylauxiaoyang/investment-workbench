@@ -1513,7 +1513,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
           <!-- v93 fw2_v93_drop_dc_head：删除本分块标题+副标题（#dcTitle/#dcSub，基金/宏观共用） -->
           <div class="vh-r dc-tabs v-tabs" id="dcTabs">
             <button class="dc-tab v-tab active" data-dc="overview">持仓基金</button>
-            <!-- v353 fw2_v353_pool_tabs：基金数据三池重构——「基金列表」更名「持仓基金」（data-dc="overview" 路由键/契约不动），新增「自选基金」(pool-watch)「筛选基金」(pool-screen) 两 Tab；自选池=watchlist-data.json+筛选池加入，筛选池=screen-pool.json（20 只候选） -->
+            <!-- v353 fw2_v353_pool_tabs：基金数据三池重构——「基金列表」更名「持仓基金」（data-dc="overview" 路由键/契约不动），新增「自选基金」(pool-watch)「筛选基金」(pool-screen) 两 Tab；自选池=watchlist-data.json+筛选池加入，筛选池=screen-pool.json（40 只候选） -->
             <button class="dc-tab v-tab" data-dc="pool-watch">自选基金</button>
             <button class="dc-tab v-tab" data-dc="pool-screen">筛选基金</button>
             <!-- v363 fw2_v363_pool_rules_tab：完整筛选规则文档独立 Tab（含启用+未启用），筛选基金 Tab 回归纯净表格 -->
@@ -1542,7 +1542,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
           <div class="pool-note" style="font-size:12px;color:var(--muted,#64748b);margin:6px 2px 10px;line-height:1.6">持仓基金池：仅展示<b>实际持仓</b>的基金（来源：交易台账 + 持仓种子 + 手动标记）。买卖/清仓请先在「交易台账」记录自动归池；从自选池点「已买入」也会标记持仓。清仓后请到筛选/自选池操作。</div>
         </div>
         <div id="dcPoolWatchWrap" class="dc-pane" style="display:none"><!-- v353 fw2_v353_pool_tabs：自选基金池（watchlist-data.json + 筛选池加入，剔除已持仓/已移除） --></div>
-        <div id="dcPoolScreenWrap" class="dc-pane" style="display:none"><!-- v353 fw2_v353_pool_tabs：筛选基金池（screen-pool.json 20 只候选，可加入自选/永久删除） --></div>
+        <div id="dcPoolScreenWrap" class="dc-pane" style="display:none"><!-- v353 fw2_v353_pool_tabs：筛选基金池（screen-pool.json 40 只候选，可加入自选/永久删除） --></div>
         <div id="dcPoolRulesWrap" class="dc-pane" style="display:none"><!-- v363 fw2_v363_pool_rules_tab：完整筛选规则文档（漏斗全流程/硬门槛/加分项/批次/族表，启用+未启用全展示，含调整规则编辑面板） --></div>
         <!-- v95 fw2_v95_drop_table_pivot：表格视图与透视视图（含其内部控件）已删除 -->
         <div id="dcChartWrap" class="dc-pane" style="display:none">
@@ -12843,7 +12843,7 @@ setInterval(updateSessionBadge, 30000);
   /* ================= v353 fw2_v353_pool_tabs：基金三池（持仓/自选/筛选） =================
      数据源：持仓池=fund-basic.json（21 只画像，台账/持仓种子/manual 标记定持仓集）；
              自选池=watchlist-data.json + localStorage fw2_watch_added_v1（从筛选池加入）；
-             筛选池=screen-pool.json（market_screen.py 产出 20 只候选）。
+             筛选池=screen-pool.json（market_screen.py 产出 40 只候选）。
      流转：筛选→自选（fw2_watch_added_v1）→持仓（fw2_manual_held_v1）；删除永久=fw2_screen_removed_v1 / fw2_watch_removed_v1。 */
   var POOL_LS = { watch_added:'fw2_watch_added_v1', watch_removed:'fw2_watch_removed_v1', screen_removed:'fw2_screen_removed_v1', manual_held:'fw2_manual_held_v1' };
   /* fw2_v357_pool_unify → fw2_v375_pool_cols_uni：三池统一完整表渲染（自选/筛选池与持仓池同结构：共享列集 poolColsAll + 操作列 + 口径说明）。
