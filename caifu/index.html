@@ -5616,9 +5616,12 @@ window.HS_name = function (code) {
         const lvl11 = bad11 >= 2 ? 'near' : bad11 === 1 ? 'watch' : 'act';
         rows.push(mkRow('M11', 'M11 外围红绿灯（美元/美债/人民币）', '近6个月变化 · 外资流向开关', 'USDCNH ' + (FL[1] != null ? fmtNum(FL[1], 3) : '—') + ' · 美元指数 ' + (FL[2] != null ? fmtNum(FL[2], 1) : '—') + ' · 美债 ' + (FL[3] != null ? fmtNum(FL[3], 2) + '%' : '—') + ' · 中美利差 ' + ((FL[3] != null && mc9.erp && mc9.erp.cur && mc9.erp.cur.y10 != null) ? fmtNum(FL[3] - mc9.erp.cur.y10, 2) + '%' : '—'), '美元↑+美债≥4.5%+人民币贬>2% 三占其二=逆风防御；≤1项=顺风/半档', lvl11, '理杏仁 ' + (mc9.updatedAt || '')));
       }
-      /* fw2_v428 M12 全球金融压力 FSI（CBOE VIX + 美债利差/美元/金油比/铜金比/美股估值分位 等权合成） */
-      if (mc9.fsi && mc9.fsi.score != null) {
-        const fs12 = mc9.fsi;
+      /* fw2_v429 M12 全球金融压力 FSI（CBOE VIX + 美债利差/美元/金油比/铜金比/美股估值分位 等权合成）
+         fw2_v429 修复：MACRO_SNAP 为 index.html 内嵌旧快照（无 fsi 键），M12 此前永不渲染；
+         改为优先读 state.macro.fsi（在线 macro-data.json，与宏观横幅同源），MACRO_SNAP 兜底。 */
+      const fsiLive = (state.macro && state.macro.fsi) || mc9.fsi || null;
+      if (fsiLive && fsiLive.score != null) {
+        const fs12 = fsiLive;
         const lvl12 = fs12.score >= 70 ? 'act' : fs12.score >= 50 ? 'act' : fs12.score >= 30 ? 'near' : 'watch';
         const tag12 = fs12.score >= 70 ? '危机级 · 全面防御（暂停进攻开仓/清杠杆仓）' : fs12.score >= 50 ? '警戒级 · 防御（暂停进攻开仓，控仓位）' : fs12.score >= 30 ? '关注级 · 半档（控新仓，盯持仓）' : '正常 · 无全球压力警示';
         rows.push(mkRow('M12', 'M12 全球金融压力 FSI', '0-100 · 近10年分位 · 四级预警', 'FSI ' + fmtNum(fs12.score, 1) + ' · ' + (fs12.levelName || '—') + '级 · 分位 ' + (fs12.percentile != null ? fmtNum(fs12.percentile, 1) + '%' : '—'), '<30 正常 / 30-50 关注 / 50-70 警戒 / ≥70 危机', lvl12, 'CBOE VIX + 美债利差/美元/金油比/铜金比/美股估值分位 · ' + (mc9.updatedAt || '')));
@@ -9788,7 +9791,7 @@ function renderMacro() {
   const body = $('#macroBody'); if (!body) return;
   const d = state.macro;
   if (!d) { body.innerHTML = '<div class="card"><div class="empty st st-empty">宏观数据加载中…</div></div>'; return; }
-  /* fw2_v428 全球金融压力指数(FSI)+区域切换（中国/美国）：美国 tab 独立渲染，中国路径零改动 */
+  /* fw2_v429 全球金融压力指数(FSI)+区域切换（中国/美国）：美国 tab 独立渲染，中国路径零改动 */
   const _region = state.macroRegion || 'cn';
   const _navEl = document.getElementById('dcMcNav');
   if (_navEl) _navEl.style.display = _region === 'us' ? 'none' : '';
@@ -10421,7 +10424,7 @@ function renderMacro() {
   };
 })();
 
-/* ===== fw2_v428 全球金融压力指数(FSI)横幅 + 区域切换（中国/美国） ===== */
+/* ===== fw2_v429 全球金融压力指数(FSI)横幅 + 区域切换（中国/美国） ===== */
 function renderMacroTop(d) {
   const fsi = (d && d.fsi) || {};
   const sc = fsi.score, pct = fsi.percentile;
@@ -10546,7 +10549,7 @@ function renderMacroUSCharts() {
   c.resize();
 }
 (function bindMacroRegion() {
-  /* fw2_v428 修复：原 IIFE 绑定 #macroRegion，但该 div 由 renderMacro 动态重建（页面加载时不存在→永不绑定）。
+  /* fw2_v429 修复：原 IIFE 绑定 #macroRegion，但该 div 由 renderMacro 动态重建（页面加载时不存在→永不绑定）。
      改为事件委托到持久容器 #macroBody。 */
   const body = $('#macroBody'); if (!body) return;
   body.addEventListener('click', (e) => {
@@ -11466,7 +11469,7 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
   */
   const vc = $('#verChip');
   /* v319 fw2_v319_sig_risk_fusion：动态 verChip 同步升版（v266 起文本停更，本次修正为当前版本） */
-  if (vc) vc.textContent = 'v428 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  if (vc) vc.textContent = 'v429 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
@@ -18880,7 +18883,7 @@ function renderDecision() {
   if (tw != null) gateRows.push('成交额 ' + amtYi.toFixed(0) + ' 亿（' + amtDay + '）→ ' + (tw >= 3 ? '过热区（≥3万亿 分批卖）' : tw >= 2 ? '关注区' : tw >= 1.5 ? '关注入场' : '网格定投区（<1.5万亿）'));
   if (pct8 != null) gateRows.push('资金系数 ' + pct8.toFixed(2) + '% → ' + (pct8 >= 1.5 ? '疯狂·清仓提示(D8)' : pct8 >= 1 ? '过热·分批卖' : pct8 <= 0.3 ? '低迷·机会区' : '中性'));
   if (erpPct != null) gateRows.push('ERP 分位 ' + erpPct + '% → ' + (erpPct >= 75 ? '增配股至 70-80%' : erpPct < 25 ? '减股至 20-30%' : '中性'));
-  /* fw2_v428 FSI 全球压力闸门（与 M12 同口径，警戒/危机级对持仓防御提示） */
+  /* fw2_v429 FSI 全球压力闸门（与 M12 同口径，警戒/危机级对持仓防御提示） */
   var fsiScore = (md.fsi && md.fsi.score != null) ? md.fsi.score : null;
   var fsiLv = (md.fsi && md.fsi.levelName) || null;
   var fsiHot = fsiScore != null && fsiScore >= 50;
