@@ -9800,12 +9800,12 @@ function renderMacro() {
   const body = $('#macroBody'); if (!body) return;
   const d = state.macro;
   if (!d) { body.innerHTML = '<div class="card"><div class="empty st st-empty">宏观数据加载中…</div></div>'; return; }
-  /* fw2_v430 宏观周期并列模块：中国周期 / 美国/全球周期 两个并列 tab 整屏切换（各 100% 宽度）。
-     中国周期=中国宏观全部数据（四周期主体+速览小卡+数据源）；美国/全球周期=FSI+美国资产温度+美国四周期。
-     FSI 横幅归入美国/全球周期模块，中国 tab 不再重复显示。 */
+  /* fw2_v430 宏观周期并列模块：中国周期 / 美国/全球周期 / 美元/黄金/大宗 三个并列 tab 整屏切换。
+     中国周期=中国宏观全部数据（四周期主体+速览小卡+数据源，一页完整展示）；
+     美国/全球周期=FSI+美国资产温度+美国四周期；美元/黄金/大宗=萧条期资产信号独立模块。 */
   const _region = state.macroRegion || 'cn';
   const _navEl = document.getElementById('dcMcNav');
-  if (_navEl) _navEl.style.display = _region === 'us' ? 'none' : '';
+  if (_navEl) _navEl.style.display = (_region === 'us' || _region === 'dm') ? 'none' : '';
   fillMacroTabs();
   if (_region === 'us') { body.innerHTML = renderMacroTop(d) + renderMacroUS(d); renderMacroUSCharts(); return; }
   const N = { '1': 12, '3': 36, '5': 60, '10': 120 }[state.macroWin] || 120;
@@ -9919,7 +9919,9 @@ function renderMacro() {
   const aCur = d.amt && d.amt.cur || null;
   const aPct = aCur ? aCur[2] : null;
   const moodLvl = ((zbPct != null && zbPct > 90) || (aPct != null && aPct > 90)) ? '过热·杠杆拥挤（防御，暂停加档）' : ((zbPct != null && zbPct < 10) || (aPct != null && aPct < 10)) ? '冰点·逆向关注（可小幅加档）' : '中性区·正常节奏';
-  body.innerHTML = renderMacroToolsHtml() + `
+  /* fw2_v430c：dm（美元/黄金/大宗）独立模块——渲染同一中国模板但不带窗口工具条，
+     模块显示控制由 __mcApply 按 region 统一执行（dm 只显美元卡、cn 一页全展示除美元卡）。 */
+  body.innerHTML = (_region === 'dm' ? '' : renderMacroToolsHtml()) + `
   <!-- ===== v201 涛动周期：四周期嵌套定位 + 共振合成（周金涛框架） ===== -->
   <div class="card dc-cyc">
     <div class="card-h"><h3>四周期嵌套 · 涛动周期定位</h3><span class="hint">康波60年 ⊃ 库兹涅茨20年 ⊃ 朱格拉10年 ⊃ 基钦3-4年 · 理论+数据驱动 · 不构成投资建议</span></div>
@@ -10466,26 +10468,20 @@ function renderMacroTop(d) {
     '<div style="font-size:10px;color:#64748b;margin-top:4px">' + esc(fsi.levelNote || '') + (fsi.meta && fsi.meta.limitNote ? ' · ' + esc(fsi.meta.limitNote) : '') + '</div></div>' +
     '</div></div>';
 }
-function renderMacroTabs() {
-  /* fw2_v430 中国周期 / 美国/全球周期：两个并列模块级入口 tab，整屏切换（各占 100% 宽度） */
-  const reg = state.macroRegion || 'cn';
-  const tBase = 'padding:8px 22px;border-radius:10px;border:1px solid #d8dee6;background:#f1f5f9;color:#475569;font-size:13px;font-weight:600;cursor:pointer';
-  const tAct = 'padding:8px 22px;border-radius:10px;border:1px solid #2f6bff;background:#2f6bff;color:#fff;font-size:13px;font-weight:600;cursor:pointer';
-  return '<div class="mc-region-tabs" id="macroRegion" style="display:flex;gap:8px;margin-bottom:12px">' +
-    '<button data-r="cn" type="button" style="' + (reg === 'cn' ? tAct : tBase) + '">中国周期</button>' +
-    '<button data-r="us" type="button" style="' + (reg === 'us' ? tAct : tBase) + '">美国/全球周期</button>' +
-    '</div>';
-}
 function fillMacroTabs() {
-  /* fw2_v430b：模块级 tab 置顶——填充到静态容器 #macroRegion（位于 dcMcNav 之前，页面最上方）。
-     只填按钮（静态容器本身已是 #macroRegion，不能嵌套 renderMacroTabs 的外层 div 造成重复 id） */
+  /* fw2_v430c：模块级 tab 置顶——中国周期 / 美国/全球周期 / 美元/黄金/大宗 三并列（独立模块）。
+     填充到静态容器 #macroRegion（位于 dcMcNav 之前，页面最上方）。
+     只填按钮（静态容器本身已是 #macroRegion，不能嵌套外层 div 造成重复 id） */
   const host = $('#macroRegion'); if (!host) return;
   const reg = state.macroRegion || 'cn';
   const tBase = 'padding:8px 22px;border-radius:10px;border:1px solid #d8dee6;background:#f1f5f9;color:#475569;font-size:13px;font-weight:600;cursor:pointer';
   const tAct = 'padding:8px 22px;border-radius:10px;border:1px solid #2f6bff;background:#2f6bff;color:#fff;font-size:13px;font-weight:600;cursor:pointer';
-  host.innerHTML =
-    '<button data-r="cn" type="button" style="' + (reg === 'cn' ? tAct : tBase) + '">中国周期</button>' +
-    '<button data-r="us" type="button" style="' + (reg === 'us' ? tAct : tBase) + '">美国/全球周期</button>';
+  const items = [
+    ['cn', '中国周期'],
+    ['us', '美国/全球周期'],
+    ['dm', '美元/黄金/大宗']
+  ];
+  host.innerHTML = items.map((it) => '<button data-r="' + it[0] + '" type="button" style="' + (reg === it[0] ? tAct : tBase) + '">' + it[1] + '</button>').join('');
 }
 function renderMacroToolsHtml() {
   /* fw2_v430 窗口选择（1/3/5/10年）+ 数据截至：归属中国周期内容，随 renderMacro 中国分支渲染；
@@ -12595,7 +12591,10 @@ setInterval(updateSessionBadge, 30000);
   var MC_CYCLE_KEYS = ['周期', '层', '美元 / 黄金', '行业周期', '信用脉冲（社融同比'];
   function renderDcMcNav(){
     var nav = $('dcMcNav'); if(!nav) return;
-    var mods = Array.prototype.slice.call(document.querySelectorAll('#macroBody > .mc-mod'));
+    /* fw2_v430c：美元/黄金/大宗已独立为模块 tab → 从中国周期导航中排除；
+       中国周期一页全展示 → 导航按钮改为锚点滚动（不再并列切换隐藏）。 */
+    var mods = Array.prototype.slice.call(document.querySelectorAll('#macroBody > .mc-mod'))
+      .filter(function (m) { return (m.getAttribute('data-title') || '').indexOf('美元 / 黄金 / 大宗') === -1; });
     function btns(arr){
       return arr.map(function(m){
         var _full = m.getAttribute('data-title') || '';
@@ -12609,22 +12608,41 @@ setInterval(updateSessionBadge, 30000);
     });
     nav.innerHTML = '<div class="mc-nav-row">' + btns(cyc) + '</div><div class="mc-nav-row">' + btns(ind) + '</div>';
     Array.prototype.forEach.call(nav.querySelectorAll('button'), function(b){
-      b.addEventListener('click', function(){ mcMod = b.getAttribute('data-mod'); window.__mcApply(); });
+      b.addEventListener('click', function(){
+        var target = document.querySelector('#macroBody > .mc-mod[data-mod="' + b.getAttribute('data-mod') + '"]');
+        if (target) { target.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+        else { mcMod = b.getAttribute('data-mod'); window.__mcApply(); }
+      });
     });
   }
   window.__mcApply = function(){
-    /* 并列切换：同一时刻只显示某一个指标模块；重绘可见模块内的图表（display:none 下 init 会得到 0 尺寸）。
-       v155 fw2_v155_macro_no_overview：「总览页」容器已删 → 去掉 ov / isOv 分支
-       （原 if(ov) 守卫在容器缺失时静默跳过，叠加 mcMod='0' 会让 13 个模块全部 display:none，
-        整页空白且不报错）。 */
+    /* fw2_v430c：显示规则按宏观 region 分流——
+       cn（中国周期）：一页完整展示全部模块（隐藏已独立成 tab 的美元/黄金/大宗卡）；
+       dm（美元/黄金/大宗）：只显示美元/黄金/大宗联动卡（独立模块页）；
+       其它/保底：沿用 mcMod 并列切换（同一时刻只显示一个）。 */
     var body = $('macroBody');
     var mods = body ? Array.prototype.slice.call(body.querySelectorAll('.mc-mod')) : [];
-    mods.forEach(function(m){
-      var on = (m.getAttribute('data-mod') === mcMod);
-      m.style.display = on ? 'block' : 'none';
+    var reg = state.macroRegion || 'cn';
+    var isDollar = function (m) { return (m.getAttribute('data-title') || '').indexOf('美元 / 黄金 / 大宗') > -1; };
+    var vis;
+    if (reg === 'cn') {
+      mods.forEach(function (m) { m.style.display = isDollar(m) ? 'none' : 'block'; });
+      vis = mods.filter(function (m) { return m.style.display === 'block'; });
+    } else if (reg === 'dm') {
+      mods.forEach(function (m) { m.style.display = isDollar(m) ? 'block' : 'none'; });
+      vis = mods.filter(function (m) { return m.style.display === 'block'; });
+    } else {
+      mods.forEach(function (m) {
+        var on = (m.getAttribute('data-mod') === mcMod);
+        m.style.display = on ? 'block' : 'none';
+      });
+      vis = mods.filter(function (m) { return m.style.display === 'block'; });
+    }
+    /* 页脚口径说明归属中国周期（模板末尾 3 条 p.foot-note），dm 独立模块页不显示 */
+    Array.prototype.forEach.call(body.querySelectorAll('p.foot-note'), function (p) {
+      p.style.display = reg === 'dm' ? 'none' : '';
     });
-    var vis = mods.filter(function(m){ return m.style.display === 'block'; });
-    if(window.echarts && window.echarts.getInstanceByDom){
+    if (window.echarts && window.echarts.getInstanceByDom){
       vis.forEach(function(m){
         Array.prototype.forEach.call(m.querySelectorAll('.chart'), function(el){
           var inst = window.echarts.getInstanceByDom(el); if(inst) inst.resize();
