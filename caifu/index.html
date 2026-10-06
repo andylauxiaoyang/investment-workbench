@@ -13302,7 +13302,13 @@ setInterval(updateSessionBadge, 30000);
       })();
     }
     loadScreenPool();
-    loadFundProfiles();
+    /* fw2_v424b_fpm_rerender：fund-profiles.json（409KB 异步 fetch）晚于表格首渲染时，补画像（含 wStab 排名稳定性）会整列为「—」。
+       加载完成回调里重渲染三池表格，消除该竞态（与 tab 切换/排序同款渲染入口）。 */
+    loadFundProfiles(function(){
+      try{ if(typeof renderDcOverview==='function') renderDcOverview(); }catch(e1){}
+      try{ if(typeof renderPoolWatch==='function') renderPoolWatch(); }catch(e2){}
+      try{ if(typeof renderPoolScreen==='function') renderPoolScreen(); }catch(e3){}
+    });
   }
   /* fw2_v376_pool_profiles：三池画像统一数据源。fund-profiles.json 为持仓/自选
      未命中 screen-pool 的基金补全画像（_gen_profiles.py 产出，字段与 screen-pool 一致）；
