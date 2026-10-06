@@ -8768,6 +8768,9 @@ function showView(name) {
 }
 function renderCurrentView() {
   try {
+    /* fw2_v429：宏观数据全局预加载——M12 FSI 行与决策总览环境闸门依赖 state.macro.fsi，
+       此前仅宏观视图触发 loadMacroData，其他视图首渲时 state.macro 未就绪导致 M12 永不渲染 */
+    if (state.view !== 'macro' && !state.macro && typeof loadMacroData === 'function') loadMacroData();
     if (state.view === 'holdings') renderHoldings();
     else if (state.view === 'signal') { renderSignalDash(); } /* v36 */
     else if (state.view === 'news') renderNews();
@@ -8784,8 +8787,11 @@ function renderCurrentView() {
  * 指向（fund-analyst M1/M9 口径）：ERP 分位 ≥75% 增配股 / <25% 减配股；
  * PE 分位 <20% 便宜 / >80% 偏贵；M1-M2 剪刀差 ≥0 盈利扩张顺风 / <-2 收缩逆风。 */
 state.macroWin = state.macroWin || '10';
+let __macroLoading = false; /* fw2_v429：宏观数据全局预加载并发守卫（loadMacroData 幂等，避免多视图并发重复 fetch） */
 async function loadMacroData() {
   if (state.macro) { if (window.__dcMacroInit) window.__dcMacroInit(); else renderMacro(); return; }
+  if (__macroLoading) return;
+  __macroLoading = true;
   let d = null, src = '';
   try {
     const r = await fetch('macro-data.json', { cache: 'no-store' });
