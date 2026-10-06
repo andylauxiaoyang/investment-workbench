@@ -9807,11 +9807,14 @@ function renderMacro() {
   const body = $('#macroBody'); if (!body) return;
   const d = state.macro;
   if (!d) { body.innerHTML = '<div class="card"><div class="empty st st-empty">宏观数据加载中…</div></div>'; return; }
-  /* fw2_v429 全球金融压力指数(FSI)+区域切换（中国/美国）：美国 tab 独立渲染，中国路径零改动 */
+  /* fw2_v430 宏观周期并列模块：中国周期 / 美国/全球周期 两个并列 tab 整屏切换（各 100% 宽度）。
+     中国周期=中国宏观全部数据（四周期主体+速览小卡+数据源）；美国/全球周期=FSI+美国资产温度+美国四周期。
+     FSI 横幅归入美国/全球周期模块，中国 tab 不再重复显示。 */
   const _region = state.macroRegion || 'cn';
   const _navEl = document.getElementById('dcMcNav');
   if (_navEl) _navEl.style.display = _region === 'us' ? 'none' : '';
-  if (_region === 'us') { body.innerHTML = renderMacroTop(d) + renderMacroUS(d); renderMacroUSCharts(); return; }
+  const _tabs = renderMacroTabs();
+  if (_region === 'us') { body.innerHTML = _tabs + renderMacroTop(d) + renderMacroUS(d); renderMacroUSCharts(); return; }
   const N = { '1': 12, '3': 36, '5': 60, '10': 120 }[state.macroWin] || 120;
   /* v196 宏观周期：四层周期定位引擎（纯规则实时计算，口径见 cycleEngine） */
   const cyc = cycleEngine(d);
@@ -9923,7 +9926,7 @@ function renderMacro() {
   const aCur = d.amt && d.amt.cur || null;
   const aPct = aCur ? aCur[2] : null;
   const moodLvl = ((zbPct != null && zbPct > 90) || (aPct != null && aPct > 90)) ? '过热·杠杆拥挤（防御，暂停加档）' : ((zbPct != null && zbPct < 10) || (aPct != null && aPct < 10)) ? '冰点·逆向关注（可小幅加档）' : '中性区·正常节奏';
-  body.innerHTML = renderMacroTop(d) + `
+  body.innerHTML = _tabs + `
   <!-- ===== v201 涛动周期：四周期嵌套定位 + 共振合成（周金涛框架） ===== -->
   <div class="card dc-cyc">
     <div class="card-h"><h3>四周期嵌套 · 涛动周期定位</h3><span class="hint">康波60年 ⊃ 库兹涅茨20年 ⊃ 朱格拉10年 ⊃ 基钦3-4年 · 理论+数据驱动 · 不构成投资建议</span></div>
@@ -10440,7 +10443,7 @@ function renderMacro() {
   };
 })();
 
-/* ===== fw2_v429 全球金融压力指数(FSI)横幅 + 区域切换（中国/美国） ===== */
+/* ===== fw2_v430 全球金融压力指数(FSI)横幅（美国/全球周期模块内）+ 模块级并列 tab（中国周期/美国/全球周期） ===== */
 function renderMacroTop(d) {
   const fsi = (d && d.fsi) || {};
   const sc = fsi.score, pct = fsi.percentile;
@@ -10458,9 +10461,6 @@ function renderMacroTop(d) {
     const pts = s.map((p, i) => (i / (s.length - 1) * 100).toFixed(1) + ',' + (34 - (p[1] - mn) / rng * 30).toFixed(1)).join(' ');
     spark = '<svg viewBox="0 0 100 36" preserveAspectRatio="none" style="width:100%;height:36px;display:block"><polyline points="' + pts + '" fill="none" stroke="' + lvC + '" stroke-width="1.5"/></svg>';
   }
-  const reg = state.macroRegion || 'cn';
-  const btnBase = 'padding:5px 16px;border-radius:8px;border:1px solid #d8dee6;background:#f1f5f9;color:#475569;font-size:12px;cursor:pointer';
-  const btnAct = 'padding:5px 16px;border-radius:8px;border:1px solid #2f6bff;background:#2f6bff;color:#fff;font-size:12px;cursor:pointer';
   return '<div class="mc-global-bar">' +
     '<div class="fsi-banner" style="display:flex;align-items:center;gap:14px;background:linear-gradient(135deg,#0f172a,#1e293b);border-radius:12px;padding:12px 16px;color:#e2e8f0;margin-bottom:10px">' +
     '<div style="flex:0 0 auto;text-align:center"><div style="font-size:11px;color:#94a3b8">全球金融压力指数</div>' +
@@ -10470,11 +10470,17 @@ function renderMacroTop(d) {
     '<div class="fsi-inds" style="display:flex;flex-wrap:wrap;gap:6px 12px;font-size:11px;color:#cbd5e1">' + (inds || '<span style="color:#94a3b8">指标组加载中…</span>') + '</div>' +
     '<div style="margin-top:6px;max-width:420px">' + spark + '</div>' +
     '<div style="font-size:10px;color:#64748b;margin-top:4px">' + esc(fsi.levelNote || '') + (fsi.meta && fsi.meta.limitNote ? ' · ' + esc(fsi.meta.limitNote) : '') + '</div></div>' +
-    '</div>' +
-    '<div class="mc-region-tabs" id="macroRegion" style="display:flex;gap:6px;margin-bottom:10px">' +
-    '<button data-r="cn" type="button" style="' + (reg === 'cn' ? btnAct : btnBase) + '">中国</button>' +
-    '<button data-r="us" type="button" style="' + (reg === 'us' ? btnAct : btnBase) + '">美国 / 全球</button>' +
     '</div></div>';
+}
+function renderMacroTabs() {
+  /* fw2_v430 中国周期 / 美国/全球周期：两个并列模块级入口 tab，整屏切换（各占 100% 宽度） */
+  const reg = state.macroRegion || 'cn';
+  const tBase = 'padding:8px 22px;border-radius:10px;border:1px solid #d8dee6;background:#f1f5f9;color:#475569;font-size:13px;font-weight:600;cursor:pointer';
+  const tAct = 'padding:8px 22px;border-radius:10px;border:1px solid #2f6bff;background:#2f6bff;color:#fff;font-size:13px;font-weight:600;cursor:pointer';
+  return '<div class="mc-region-tabs" id="macroRegion" style="display:flex;gap:8px;margin-bottom:12px">' +
+    '<button data-r="cn" type="button" style="' + (reg === 'cn' ? tAct : tBase) + '">中国周期</button>' +
+    '<button data-r="us" type="button" style="' + (reg === 'us' ? tAct : tBase) + '">美国/全球周期</button>' +
+    '</div>';
 }
 function renderMacroUS(d) {
   const fsi = (d && d.fsi) || {};
