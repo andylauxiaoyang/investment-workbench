@@ -8793,10 +8793,15 @@ async function loadMacroData() {
   if (__macroLoading) return;
   __macroLoading = true;
   let d = null, src = '';
-  try {
-    const r = await fetch('macro-data.json', { cache: 'no-store' });
-    if (r.ok) { d = await r.json(); src = '种子'; }
-  } catch (e) { /* 相对路径 404（资料库版）→ 内置 */ }
+  /* fw2_v429：fetch 失败重试 3 次（间隔 3s）——早期网络抖动曾导致静默降级到内置旧快照
+     （MACRO_SNAP 无 fsi 键 → M12 缺失、宏观横幅降级），现杜绝此路径 */
+  for (let t = 0; t < 3 && !d; t++) {
+    try {
+      const r = await fetch('macro-data.json', { cache: 'no-store' });
+      if (r.ok) { d = await r.json(); src = '种子'; }
+    } catch (e) { /* 重试 */ }
+    if (!d && t < 2) await new Promise((res) => setTimeout(res, 3000));
+  }
   if (!d && window.MACRO_SNAP) { d = window.MACRO_SNAP; src = '内置快照'; }
   const hint = $('#macroSrcHint');
   if (d) {
