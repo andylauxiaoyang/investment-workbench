@@ -9800,12 +9800,13 @@ function renderMacro() {
   const body = $('#macroBody'); if (!body) return;
   const d = state.macro;
   if (!d) { body.innerHTML = '<div class="card"><div class="empty st st-empty">宏观数据加载中…</div></div>'; return; }
-  /* fw2_v430 宏观周期并列模块：中国周期 / 美国/全球周期 / 美元/黄金/大宗 三个并列 tab 整屏切换。
-     中国周期=中国宏观全部数据（四周期主体+速览小卡+数据源，一页完整展示）；
-     美国/全球周期=FSI+美国资产温度+美国四周期；美元/黄金/大宗=萧条期资产信号独立模块。 */
+  /* fw2_v431 宏观周期并列模块：中国周期 / 美国/全球周期 / 美元/黄金/大宗 / 宏观指标 四个并列 tab 整屏切换。
+     中国周期=8 张周期卡平铺（四周期嵌套/周期定位/层1/层2/信用脉冲/层3/层4/行业周期）；
+     美国/全球周期=FSI+美国资产温度+美国四周期；美元/黄金/大宗=萧条期资产信号独立模块；
+     宏观指标=13 张指标卡平铺（股债性价比/PE/信用脉冲/CPI-PPI/美元利差/VIX/PMI/两融成交/成交额/宽基估值/全球利率/美股估值/日经225）。 */
   const _region = state.macroRegion || 'cn';
   const _navEl = document.getElementById('dcMcNav');
-  /* fw2_v430d：静态导航恒隐藏，名字区由 renderDcMcNav 注入到中国周期内容末尾（"其他指标领取名字放在后面"） */
+  /* fw2_v431：静态导航恒隐藏（显示规则由 __mcApply 按 region 统一执行） */
   if (_navEl) _navEl.style.display = 'none';
   fillMacroTabs();
   if (_region === 'us') { body.innerHTML = renderMacroTop(d) + renderMacroUS(d); renderMacroUSCharts(); return; }
@@ -9922,7 +9923,7 @@ function renderMacro() {
   const moodLvl = ((zbPct != null && zbPct > 90) || (aPct != null && aPct > 90)) ? '过热·杠杆拥挤（防御，暂停加档）' : ((zbPct != null && zbPct < 10) || (aPct != null && aPct < 10)) ? '冰点·逆向关注（可小幅加档）' : '中性区·正常节奏';
   /* fw2_v430c：dm（美元/黄金/大宗）独立模块——渲染同一中国模板但不带窗口工具条，
      模块显示控制由 __mcApply 按 region 统一执行（dm 只显美元卡、cn 一页全展示除美元卡）。 */
-  body.innerHTML = (_region === 'dm' ? '' : renderMacroToolsHtml()) + `
+  body.innerHTML = (_region === 'dm' || _region === 'mi' ? '' : renderMacroToolsHtml()) + `
   <!-- ===== v201 涛动周期：四周期嵌套定位 + 共振合成（周金涛框架） ===== -->
   <div class="card dc-cyc">
     <div class="card-h"><h3>四周期嵌套 · 涛动周期定位</h3><span class="hint">康波60年 ⊃ 库兹涅茨20年 ⊃ 朱格拉10年 ⊃ 基钦3-4年 · 理论+数据驱动 · 不构成投资建议</span></div>
@@ -10437,7 +10438,7 @@ function renderMacro() {
     const b = e.target.closest('#macroWin button[data-w]'); if (!b) return;
     state.macroWin = b.dataset.w;
     renderMacro();
-    /* fw2_v430d：窗口切换重建 body 后，重注入名字区（#mcNavNames）并按 macroCnView 重应用显示 */
+    /* fw2_v431：窗口切换重建 body 后，重应用 region 显示规则（__mcApply 由 __dcMacroInit 内部执行） */
     if (window.__dcMacroInit) window.__dcMacroInit();
   });
 })();
@@ -10482,7 +10483,8 @@ function fillMacroTabs() {
   const items = [
     ['cn', '中国周期'],
     ['us', '美国/全球周期'],
-    ['dm', '美元/黄金/大宗']
+    ['dm', '美元/黄金/大宗'],
+    ['mi', '宏观指标']
   ];
   host.innerHTML = items.map((it) => '<button data-r="' + it[0] + '" type="button" style="' + (reg === it[0] ? tAct : tBase) + '">' + it[1] + '</button>').join('');
 }
@@ -12593,66 +12595,33 @@ setInterval(updateSessionBadge, 30000);
   /* fw2_fix_mcnav2row：宏观导航两排——周期相关第一行，其他指标第二排 */
   var MC_CYCLE_KEYS = ['周期', '层', '美元 / 黄金', '行业周期', '信用脉冲（社融同比'];
   function renderDcMcNav(){
-    /* fw2_v430d：导航名字区移到中国周期内容后面——静态 #dcMcNav 恒隐藏；
-       中国周期(cn)下把两排名字注入 #macroBody 末尾；点击名字=整区切换
-       （核心两卡（四周期嵌套/周期定位）→ core 两卡同显；其余指标 → 单卡整区显示）。 */
+    /* fw2_v431：名字按钮区已废弃——中国周期改为 8 张周期卡直接平铺、指标卡收进「宏观指标」模块，
+       不再注入 #mcNavNames；静态 #dcMcNav 保持隐藏（显示规则由 __mcApply 统一执行）。 */
     var nav0 = $('dcMcNav'); if (nav0) nav0.style.display = 'none';
-    var _reg = state.macroRegion || 'cn';
-    if (_reg !== 'cn') return;
-    var body = $('macroBody'); if (!body) return;
-    var old = document.getElementById('mcNavNames'); if (old) old.remove();
-    var mods = Array.prototype.slice.call(body.querySelectorAll('.mc-mod'))
-      .filter(function (m) { return (m.getAttribute('data-title') || '').indexOf('美元 / 黄金 / 大宗') === -1; });
-    function btns(arr){
-      return arr.map(function(m){
-        var _full = m.getAttribute('data-title') || '';
-        return '<button class="v-tab" data-mod="' + m.getAttribute('data-mod') + '" type="button" title="' + esc(_full) + '">' + esc(MC_NAV_SHORT[_full] || _full) + '</button>';
-      }).join('');
-    }
-    var cyc = [], ind = [];
-    mods.forEach(function(m){
-      var _full = m.getAttribute('data-title') || '';
-      (MC_CYCLE_KEYS.some(function(k){ return _full.indexOf(k) >= 0; }) ? cyc : ind).push(m);
-    });
-    var wrap = document.createElement('div');
-    wrap.id = 'mcNavNames';
-    wrap.className = 'mc-nav-names dc-mc-nav v-tabs v-tabs--soft';
-    wrap.style.marginTop = '16px';
-    wrap.innerHTML = '<div class="mc-nav-row">' + btns(cyc) + '</div><div class="mc-nav-row">' + btns(ind) + '</div>';
-    body.appendChild(wrap);
-    Array.prototype.forEach.call(wrap.querySelectorAll('button'), function(b){
-      b.addEventListener('click', function(){
-        var _t = b.getAttribute('title') || '';
-        var isCoreBtn = _t.indexOf('四周期嵌套') > -1 || _t.indexOf('周期定位') > -1;
-        state.macroCnView = isCoreBtn ? 'core' : b.getAttribute('data-mod');
-        window.__mcApply();
-        var target = document.querySelector('#macroBody > .mc-mod[data-mod="' + b.getAttribute('data-mod') + '"]');
-        if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      });
-    });
+    return;
   }
   window.__mcApply = function(){
-    /* fw2_v430d：显示规则按宏观 region 分流——
-       cn（中国周期）：默认只显示红框核心两卡（四周期嵌套 + 周期定位·决策总览），
-         其余指标卡隐藏、名字区在内容末尾，点名字 → state.macroCnView='card:xxx' 单卡整区切换，
-         点核心两卡名字 → 回 'core' 两卡同显（从名字区返回核心）；
+    /* fw2_v431：显示规则按宏观 region 分流——
+       cn（中国周期）：8 张周期卡（四周期嵌套/周期定位/层1/层2/信用脉冲/层3/层4/行业周期）直接平铺，
+         其余指标卡 + 美元卡隐藏；
+       mi（宏观指标）：13 张宏观指标卡直接平铺（股债性价比/沪深300PE/信用脉冲/CPI-PPI/美元利差/VIX/
+         PMI/两融成交/成交额/宽基估值/全球利率/美股估值/日经225），周期卡 + 美元卡隐藏；
        dm（美元/黄金/大宗）：只显示美元/黄金/大宗联动卡（独立模块页）；
        其它/保底：沿用 mcMod 并列切换（同一时刻只显示一个）。 */
     var body = $('macroBody');
     var mods = body ? Array.prototype.slice.call(body.querySelectorAll('.mc-mod')) : [];
     var reg = state.macroRegion || 'cn';
     var isDollar = function (m) { return (m.getAttribute('data-title') || '').indexOf('美元 / 黄金 / 大宗') > -1; };
-    var isCore = function (m) {
+    var isCyc = function (m) {
       var t = m.getAttribute('data-title') || '';
-      return t.indexOf('四周期嵌套') > -1 || t.indexOf('周期定位') > -1;
+      return MC_CYCLE_KEYS.some(function (k) { return t.indexOf(k) >= 0; });
     };
     var vis;
-    if (reg === 'cn') {
-      var cv = state.macroCnView || 'core';
+    if (reg === 'cn' || reg === 'mi') {
+      var showCyc = (reg === 'cn');
       mods.forEach(function (m) {
         if (isDollar(m)) { m.style.display = 'none'; return; }
-        if (cv === 'core') { m.style.display = isCore(m) ? 'block' : 'none'; }
-        else { m.style.display = (m.getAttribute('data-mod') === cv) ? 'block' : 'none'; }
+        m.style.display = (isCyc(m) === showCyc) ? 'block' : 'none';
       });
       vis = mods.filter(function (m) { return m.style.display === 'block'; });
     } else if (reg === 'dm') {
@@ -12676,18 +12645,12 @@ setInterval(updateSessionBadge, 30000);
         });
       });
     }
-    /* 高亮：cn 用名字区（#mcNavNames，静态 #dcMcNav 已隐藏）；其他 region 用 mcMod */
+    /* 高亮：cn/mi 由顶部模块 tab（fillMacroTabs 重建时已高亮当前 region）；其他 region 沿用 mcMod */
     var _reg2 = state.macroRegion || 'cn';
     ['#dcMcNav', '#mcNavNames'].forEach(function (sel) {
       Array.prototype.forEach.call(document.querySelectorAll(sel + ' button'), function (b) {
-        if (_reg2 === 'cn') {
-          var _t = b.getAttribute('title') || '';
-          var _isCore = _t.indexOf('四周期嵌套') > -1 || _t.indexOf('周期定位') > -1;
-          var _cv = state.macroCnView || 'core';
-          b.classList.toggle('active', _cv === 'core' ? _isCore : (b.getAttribute('data-mod') === _cv));
-        } else {
-          b.classList.toggle('active', b.getAttribute('data-mod') === mcMod);
-        }
+        if (_reg2 === 'cn' || _reg2 === 'mi') return;
+        b.classList.toggle('active', b.getAttribute('data-mod') === mcMod);
       });
     });
   };
