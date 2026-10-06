@@ -5499,9 +5499,10 @@ window.HS_name = function (code) {
    * M7 全A成交额(上证+深证综指 f37 万元) / M8 资金系数=全A成交额/M2
    * ========================================================== */
   window.MKT_EVAL = { at: 0, data: null };
-  window.marketEvalAll = async function () {
+  window.marketEvalAll = async function (force) {
     const C = window.SIGNALS_CFG;
-    if (window.MKT_EVAL.data && Date.now() - window.MKT_EVAL.at < 600000) return window.MKT_EVAL.data;
+    /* fw2_v429：force=true 绕过 600s 缓存（宏观数据就绪后主动重算，让 M12 FSI 行即时出现） */
+    if (!force && window.MKT_EVAL.data && Date.now() - window.MKT_EVAL.at < 600000) return window.MKT_EVAL.data;
     const snap = window.MKT_SNAP || { idx: {} };
     const mkRow = (code, name, sig, cur, thr, lvl, src) => ({ pool: 'market', code: code, name: name, sig: sig, cur: cur, thr: thr, lvl: lvl, src: src, noLink: true });
     const rows = [];
@@ -8794,6 +8795,10 @@ async function loadMacroData() {
   const hint = $('#macroSrcHint');
   if (d) {
     state.macro = d; state.macroSrc = src || '';
+    /* fw2_v429：宏观数据就绪后失效市场信号缓存并重算——M12 读 state.macro.fsi，
+       此前 marketEvalAll 在 macro-data.json fetch 完成前先跑（600s 缓存）导致 M12 永不渲染 */
+    if (window.MKT_EVAL) window.MKT_EVAL = { at: 0, data: null };
+    if (window.marketEvalAll) { window.marketEvalAll(true).then(function () { try { if (window.renderSignalDash) window.renderSignalDash(); } catch (e) {} }).catch(function () {}); }
     if (hint) hint.textContent = '数据截至 ' + d.updatedAt + ' · 理杏仁（' + (src || '内置') + '）';
     if (window.__dcMacroInit) window.__dcMacroInit(); else renderMacro();
     if (state.view === 'decision' && typeof renderDecision === 'function') renderDecision(); /* fw2_v206_decision：宏观数据到位后重渲决策总览 */
