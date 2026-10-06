@@ -5616,6 +5616,13 @@ window.HS_name = function (code) {
         const lvl11 = bad11 >= 2 ? 'near' : bad11 === 1 ? 'watch' : 'act';
         rows.push(mkRow('M11', 'M11 外围红绿灯（美元/美债/人民币）', '近6个月变化 · 外资流向开关', 'USDCNH ' + (FL[1] != null ? fmtNum(FL[1], 3) : '—') + ' · 美元指数 ' + (FL[2] != null ? fmtNum(FL[2], 1) : '—') + ' · 美债 ' + (FL[3] != null ? fmtNum(FL[3], 2) + '%' : '—') + ' · 中美利差 ' + ((FL[3] != null && mc9.erp && mc9.erp.cur && mc9.erp.cur.y10 != null) ? fmtNum(FL[3] - mc9.erp.cur.y10, 2) + '%' : '—'), '美元↑+美债≥4.5%+人民币贬>2% 三占其二=逆风防御；≤1项=顺风/半档', lvl11, '理杏仁 ' + (mc9.updatedAt || '')));
       }
+      /* fw2_v426 M12 全球金融压力 FSI（CBOE VIX + 美债利差/美元/金油比/铜金比/美股估值分位 等权合成） */
+      if (mc9.fsi && mc9.fsi.score != null) {
+        const fs12 = mc9.fsi;
+        const lvl12 = fs12.score >= 70 ? 'act' : fs12.score >= 50 ? 'act' : fs12.score >= 30 ? 'near' : 'watch';
+        const tag12 = fs12.score >= 70 ? '危机级 · 全面防御（暂停进攻开仓/清杠杆仓）' : fs12.score >= 50 ? '警戒级 · 防御（暂停进攻开仓，控仓位）' : fs12.score >= 30 ? '关注级 · 半档（控新仓，盯持仓）' : '正常 · 无全球压力警示';
+        rows.push(mkRow('M12', 'M12 全球金融压力 FSI', '0-100 · 近10年分位 · 四级预警', 'FSI ' + fmtNum(fs12.score, 1) + ' · ' + (fs12.levelName || '—') + '级 · 分位 ' + (fs12.percentile != null ? fmtNum(fs12.percentile, 1) + '%' : '—'), '<30 正常 / 30-50 关注 / 50-70 警戒 / ≥70 危机', lvl12, 'CBOE VIX + 美债利差/美元/金油比/铜金比/美股估值分位 · ' + (mc9.updatedAt || '')));
+      }
     }
     /* --- 横幅两行 --- */
     const tempTag = (p) => p >= 80 ? '偏贵' : p >= 60 ? '中性偏暖' : p >= 40 ? '中性' : p >= 20 ? '中性偏冷' : '便宜';
@@ -9781,6 +9788,11 @@ function renderMacro() {
   const body = $('#macroBody'); if (!body) return;
   const d = state.macro;
   if (!d) { body.innerHTML = '<div class="card"><div class="empty st st-empty">宏观数据加载中…</div></div>'; return; }
+  /* fw2_v426 全球金融压力指数(FSI)+区域切换（中国/美国）：美国 tab 独立渲染，中国路径零改动 */
+  const _region = state.macroRegion || 'cn';
+  const _navEl = document.getElementById('dcMcNav');
+  if (_navEl) _navEl.style.display = _region === 'us' ? 'none' : '';
+  if (_region === 'us') { body.innerHTML = renderMacroTop(d) + renderMacroUS(d); renderMacroUSCharts(); return; }
   const N = { '1': 12, '3': 36, '5': 60, '10': 120 }[state.macroWin] || 120;
   /* v196 宏观周期：四层周期定位引擎（纯规则实时计算，口径见 cycleEngine） */
   const cyc = cycleEngine(d);
@@ -9892,7 +9904,7 @@ function renderMacro() {
   const aCur = d.amt && d.amt.cur || null;
   const aPct = aCur ? aCur[2] : null;
   const moodLvl = ((zbPct != null && zbPct > 90) || (aPct != null && aPct > 90)) ? '过热·杠杆拥挤（防御，暂停加档）' : ((zbPct != null && zbPct < 10) || (aPct != null && aPct < 10)) ? '冰点·逆向关注（可小幅加档）' : '中性区·正常节奏';
-  body.innerHTML = `
+  body.innerHTML = renderMacroTop(d) + `
   <!-- ===== v201 涛动周期：四周期嵌套定位 + 共振合成（周金涛框架） ===== -->
   <div class="card dc-cyc">
     <div class="card-h"><h3>四周期嵌套 · 涛动周期定位</h3><span class="hint">康波60年 ⊃ 库兹涅茨20年 ⊃ 朱格拉10年 ⊃ 基钦3-4年 · 理论+数据驱动 · 不构成投资建议</span></div>
@@ -10405,6 +10417,140 @@ function renderMacro() {
     const b = e.target.closest('button[data-w]'); if (!b) return;
     state.macroWin = b.dataset.w;
     $$('#macroWin button').forEach((x) => x.classList.toggle('active', x === b));
+    renderMacro();
+  };
+})();
+
+/* ===== fw2_v426 全球金融压力指数(FSI)横幅 + 区域切换（中国/美国） ===== */
+function renderMacroTop(d) {
+  const fsi = (d && d.fsi) || {};
+  const sc = fsi.score, pct = fsi.percentile;
+  const lvC = sc == null ? '#94a3b8' : sc >= 70 ? '#dc2626' : sc >= 50 ? '#f59e0b' : sc >= 30 ? '#c98a1b' : '#2f6bff';
+  const lvTxt = sc == null ? '—' : (sc >= 70 ? '危机' : sc >= 50 ? '警戒' : sc >= 30 ? '关注' : '正常');
+  const inds = (fsi.indis || []).map(function (it) {
+    const zc = it.z >= 1 ? '#dc2626' : it.z <= -1 ? '#2f6bff' : '#cbd5e1';
+    return '<span class="fsi-ind" title="' + esc(it.name + '（z ' + fmtNum(it.z, 2) + '）' + (it.note ? ' · ' + it.note : '') + '">' + esc(it.name) + ' <b style="color:' + zc + '">' + fmtNum(it.val, 2) + (it.unit || '') + '</b></span>';
+  }).join('');
+  const s = (fsi.series || []).slice(-36);
+  let spark = '';
+  if (s.length >= 2) {
+    const mn = Math.min.apply(null, s.map((p) => p[1])), mx = Math.max.apply(null, s.map((p) => p[1]));
+    const rng = (mx - mn) || 1;
+    const pts = s.map((p, i) => (i / (s.length - 1) * 100).toFixed(1) + ',' + (34 - (p[1] - mn) / rng * 30).toFixed(1)).join(' ');
+    spark = '<svg viewBox="0 0 100 36" preserveAspectRatio="none" style="width:100%;height:36px;display:block"><polyline points="' + pts + '" fill="none" stroke="' + lvC + '" stroke-width="1.5"/></svg>';
+  }
+  const reg = state.macroRegion || 'cn';
+  const btnBase = 'padding:5px 16px;border-radius:8px;border:1px solid #d8dee6;background:#f1f5f9;color:#475569;font-size:12px;cursor:pointer';
+  const btnAct = 'padding:5px 16px;border-radius:8px;border:1px solid #2f6bff;background:#2f6bff;color:#fff;font-size:12px;cursor:pointer';
+  return '<div class="mc-global-bar">' +
+    '<div class="fsi-banner" style="display:flex;align-items:center;gap:14px;background:linear-gradient(135deg,#0f172a,#1e293b);border-radius:12px;padding:12px 16px;color:#e2e8f0;margin-bottom:10px">' +
+    '<div style="flex:0 0 auto;text-align:center"><div style="font-size:11px;color:#94a3b8">全球金融压力指数</div>' +
+    '<div style="font-size:26px;font-weight:800;line-height:1.1;color:' + lvC + '">' + (sc == null ? '—' : sc.toFixed(1)) + '</div>' +
+    '<div style="font-size:11px;color:' + lvC + '">' + lvTxt + '级 · 历史分位 ' + (pct == null ? '—' : pct.toFixed(1) + '%') + '</div></div>' +
+    '<div style="flex:1 1 auto;min-width:0">' +
+    '<div class="fsi-inds" style="display:flex;flex-wrap:wrap;gap:6px 12px;font-size:11px;color:#cbd5e1">' + (inds || '<span style="color:#94a3b8">指标组加载中…</span>') + '</div>' +
+    '<div style="margin-top:6px;max-width:420px">' + spark + '</div>' +
+    '<div style="font-size:10px;color:#64748b;margin-top:4px">' + esc(fsi.levelNote || '') + (fsi.meta && fsi.meta.limitNote ? ' · ' + esc(fsi.meta.limitNote) : '') + '</div></div>' +
+    '</div>' +
+    '<div class="mc-region-tabs" id="macroRegion" style="display:flex;gap:6px;margin-bottom:10px">' +
+    '<button data-r="cn" type="button" style="' + (reg === 'cn' ? btnAct : btnBase) + '">中国</button>' +
+    '<button data-r="us" type="button" style="' + (reg === 'us' ? btnAct : btnBase) + '">美国 / 全球</button>' +
+    '</div></div>';
+}
+function renderMacroUS(d) {
+  const fsi = (d && d.fsi) || {};
+  const us = (d && d.us) || {};
+  const meta = us.meta || {};
+  const temp = us.temp || {};
+  const konbo = us.konbo || (d.wave && d.wave.konbo) || {};
+  const fOk = meta.fredStatus === 'OK';
+  /* 康波定位 */
+  const kp = konbo.phase || {};
+  const kPhase = (kp.s) || konbo.s || '—';
+  const kC = (kp.c) || '';
+  const kProxy = konbo.proxy || '—';
+  /* 美国资产温度 4 项 */
+  const tItems = [['美债10Y-2Y', temp.rate], ['VIX 恐慌', temp.vix], ['美元强度', temp.usdx], ['美股估值分位', temp.spxPct]];
+  const tHtml = tItems.map(function (it) {
+    const v = it[1] && it[1].val;
+    const note = (it[1] && it[1].note) || '';
+    return '<div class="dc-us-temp" style="flex:1 1 0;min-width:150px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:10px 12px"><div style="font-size:11px;color:#64748b">' + esc(it[0]) + '</div>' +
+      '<div style="font-size:19px;font-weight:700;color:#0f172a;margin:2px 0">' + (v == null ? '—' : fmtNum(v, 2)) + '</div>' +
+      '<div style="font-size:10px;color:#94a3b8">' + esc(note) + '</div></div>';
+  }).join('');
+  /* FSI 明细表 */
+  const indTr = (fsi.indis || []).map(function (it) {
+    const zc = it.z >= 1 ? '#dc2626' : it.z <= -1 ? '#2f6bff' : '#475569';
+    return '<tr><td>' + esc(it.name) + '</td><td style="font-weight:600">' + fmtNum(it.val, 2) + (it.unit || '') + '</td>' +
+      '<td style="color:' + zc + ';font-weight:600">' + fmtNum(it.z, 2) + '</td><td style="color:#64748b">' + esc(it.note || '') + '</td></tr>';
+  }).join('');
+  const indCard = '<div class="card"><div class="card-h"><h3>FSI 压力分项（近10年 z 分位 · 当前月）</h3>' +
+    '<span class="hint">z &gt;1 红（压力偏高）· z &lt;−1 蓝（压力偏低）· 等权合成</span></div>' +
+    '<table style="width:100%;border-collapse:collapse;font-size:12px"><thead><tr style="background:#f1f5f9;color:#475569">' +
+    '<th style="padding:7px 8px;text-align:left">指标</th><th style="padding:7px 8px;text-align:left">最新</th><th style="padding:7px 8px;text-align:left">z</th><th style="padding:7px 8px;text-align:left">解读</th></tr></thead>' +
+    '<tbody>' + (indTr || '<tr><td colspan="4" style="padding:8px;color:#94a3b8">当前月分项数据不足</td></tr>') + '</tbody></table>' +
+    '<div style="font-size:10px;color:#94a3b8;margin-top:6px">' + esc((fsi.meta && fsi.meta.rule) || '') + '</div></div>';
+  /* FSI 历史曲线 */
+  const chartCard = '<div class="card"><div class="card-h"><h3>全球金融压力指数 · 历史走势</h3><span class="hint"><30 正常 / 30-50 关注 / 50-70 警戒 / ≥70 危机</span></div>' +
+    '<div id="mcFsiChart" class="chart" style="width:100%;height:230px"></div></div>';
+  /* 美国宏观四周期（FRED 就位才显示数据） */
+  let cycHtml;
+  if (fOk) {
+    const row = function (nm, o) {
+      if (!o || !o.cur) return '<tr><td>' + nm + '</td><td colspan="3" style="color:#94a3b8">—</td></tr>';
+      const vals = (o.cur || []).map((v) => v == null ? '—' : fmtNum(v, 1)).join(' · ');
+      return '<tr><td style="font-weight:600">' + nm + '</td><td>' + vals + '</td><td>' + esc(o.note || '') + '</td><td></td></tr>';
+    };
+    cycHtml = '<div class="card"><div class="card-h"><h3>美国宏观四周期（FRED）</h3><span class="hint">库兹涅茨=新屋开工 · 朱格拉=新订单×工业 · 基钦=库存−CPI · 信用脉冲=信贷同比3月变化</span></div>' +
+      '<table style="width:100%;border-collapse:collapse;font-size:12px"><thead><tr style="background:#f1f5f9;color:#475569">' +
+      '<th style="padding:7px 8px;text-align:left">周期</th><th style="padding:7px 8px;text-align:left">最新读数</th><th style="padding:7px 8px;text-align:left">口径</th><th style="padding:7px 8px;text-align:left">判读</th></tr></thead><tbody>' +
+      row('库兹涅茨（地产）', us.kuznets) + row('朱格拉（设备）', us.juglar) + row('基钦（库存）', us.kitchin) + row('信用脉冲', us.pulse) + row('美债10Y-3M', us.t10y3m) +
+      '</tbody></table></div>';
+  } else {
+    cycHtml = '<div class="card"><div class="card-h"><h3>美国宏观四周期</h3><span class="hint">数据源 FRED（唯一免费权威源）</span></div>' +
+      '<div style="background:#fff7ed;border:1px solid #fed7aa;border-radius:10px;padding:10px 12px;font-size:12px;color:#9a3412">⚠ ' + esc(meta.fredNote || 'FRED 通道暂不可达，宏观四周期待恢复后自动补全。') + '</div>' +
+      '<div style="font-size:11px;color:#64748b;margin-top:8px">美国/全球压力已由上方 FSI 六项资产指标覆盖（美债利差 · VIX · 美元 · 金油比 · 铜金比 · 美股估值分位）；FRED 恢复后本卡自动填充新屋开工 / 制造业新订单 / 工业产出 / 商业库存 / 信贷同比序列，并计算库兹涅茨 · 朱格拉 · 基钦 · 信用脉冲四周期。</div></div>';
+  }
+  /* 脚注 */
+  const foot = '<div style="font-size:10px;color:#94a3b8;margin-top:8px">数据源：' + esc((fsi.meta && fsi.meta.src) || '') + (us.meta && us.meta.fredStatus === 'OK' ? '' : ' · ' + esc(meta.fredNote || '')) + ' · 结论为规则引擎输出，不构成投资建议</div>';
+  return '<div class="dc-us-wrap">' +
+    '<div class="card"><div class="card-h"><h3>康波长波定位（全球 · 理论时间表）</h3><span class="hint">周金涛 1982-2030 时间表（AI 2022.11 修正）</span></div>' +
+    '<div style="font-size:15px;font-weight:700;color:#0f172a">' + esc(kPhase) + '</div>' +
+    (kC ? '<div style="font-size:12px;color:#475569;margin-top:4px">' + esc(kC) + '</div>' : '') +
+    '<div style="font-size:11px;color:#64748b;margin-top:6px">' + esc(kProxy) + '</div></div>' +
+    '<div class="card"><div class="card-h"><h3>美国资产温度（FSI 同源）</h3><span class="hint">四维读数 · 与全球压力指数同口径</span></div>' +
+    '<div style="display:flex;flex-wrap:wrap;gap:8px">' + tHtml + '</div></div>' +
+    indCard + chartCard + cycHtml + foot + '</div>';
+}
+function renderMacroUSCharts() {
+  const el = document.getElementById('mcFsiChart');
+  if (!el || !window.echarts) return;
+  const fsi = (state.macro && state.macro.fsi) || {};
+  const s = fsi.series || [];
+  if (!s.length) { el.innerHTML = '<div style="font-size:12px;color:#94a3b8;padding:8px">历史序列不足</div>'; return; }
+  const c = echarts.getInstanceByDom(el) || echarts.init(el);
+  c.setOption({
+    tooltip: { trigger: 'axis', valueFormatter: (v) => fmtNum(v, 1) },
+    grid: { left: 34, right: 12, top: 22, bottom: 24 },
+    xAxis: { type: 'category', data: s.map((p) => p[0]), axisLabel: { fontSize: 9, color: '#475569', hideOverlap: true } },
+    yAxis: { type: 'value', min: 0, max: 100, axisLabel: { fontSize: 9, color: '#475569' }, splitLine: { lineStyle: { color: '#e3e8ee' } } },
+    series: [{
+      name: 'FSI', type: 'line', data: s.map((p) => p[1]), showSymbol: false, z: 3,
+      lineStyle: { color: '#2f6bff', width: 1.6 }, itemStyle: { color: '#2f6bff' }, areaStyle: { color: 'rgba(47,107,255,.12)' },
+      markLine: { silent: true, symbol: 'none', label: { fontSize: 9, color: '#475569', position: 'end' },
+        data: [{ yAxis: 30, lineStyle: { color: '#d9a441', type: 'dotted' }, label: { formatter: '30 正常上限' } },
+               { yAxis: 50, lineStyle: { color: '#f59e0b', type: 'dashed' }, label: { formatter: '50 警戒线' } },
+               { yAxis: 70, lineStyle: { color: '#dc2626', type: 'dashed' }, label: { formatter: '70 危机线' } }] }
+    }]
+  }, true);
+  c.resize();
+}
+(function bindMacroRegion() {
+  const mr = $('#macroRegion'); if (!mr) return;
+  mr.onclick = (e) => {
+    const b = e.target.closest('button[data-r]'); if (!b) return;
+    state.macroRegion = b.dataset.r;
+    $$('#macroRegion button').forEach((x) => x.classList.toggle('active', x === b));
     renderMacro();
   };
 })();
@@ -11319,7 +11465,7 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
   */
   const vc = $('#verChip');
   /* v319 fw2_v319_sig_risk_fusion：动态 verChip 同步升版（v266 起文本停更，本次修正为当前版本） */
-  if (vc) vc.textContent = 'v424 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  if (vc) vc.textContent = 'v426 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
@@ -18733,8 +18879,14 @@ function renderDecision() {
   if (tw != null) gateRows.push('成交额 ' + amtYi.toFixed(0) + ' 亿（' + amtDay + '）→ ' + (tw >= 3 ? '过热区（≥3万亿 分批卖）' : tw >= 2 ? '关注区' : tw >= 1.5 ? '关注入场' : '网格定投区（<1.5万亿）'));
   if (pct8 != null) gateRows.push('资金系数 ' + pct8.toFixed(2) + '% → ' + (pct8 >= 1.5 ? '疯狂·清仓提示(D8)' : pct8 >= 1 ? '过热·分批卖' : pct8 <= 0.3 ? '低迷·机会区' : '中性'));
   if (erpPct != null) gateRows.push('ERP 分位 ' + erpPct + '% → ' + (erpPct >= 75 ? '增配股至 70-80%' : erpPct < 25 ? '减股至 20-30%' : '中性'));
+  /* fw2_v426 FSI 全球压力闸门（与 M12 同口径，警戒/危机级对持仓防御提示） */
+  var fsiScore = (md.fsi && md.fsi.score != null) ? md.fsi.score : null;
+  var fsiLv = (md.fsi && md.fsi.levelName) || null;
+  var fsiHot = fsiScore != null && fsiScore >= 50;
+  var fsiCold = fsiScore != null && fsiScore < 30;
+  if (fsiScore != null) gateRows.push('FSI 全球压力 ' + fmtNum(fsiScore, 1) + '（' + (fsiLv || '—') + '级 · 分位 ' + (md.fsi.percentile != null ? fmtNum(md.fsi.percentile, 1) + '%' : '—') + '）→ ' + (fsiScore >= 70 ? '危机级 · 全面防御（暂停进攻开仓）' : fsiScore >= 50 ? '警戒级 · 防御 · 控仓位' : fsiScore >= 30 ? '关注级 · 半档 · 控新仓' : '正常 · 无警示'));
   gateRows.push('<a href="#" data-dcgo="signal" style="color:var(--brand,#4D6BFE)">环境明细（M7 成交额 / M8 两融 / M9 涨停 / 温度计）→ 交易信号·市场信号</a>');
-  var l2 = { dir: envHot ? 'hot' : envCold ? 'cold' : 'neu', status: envHot ? '市场过热 · 买入降档' : envCold ? '市场低迷 · 网格定投/机会区' : '中性 · 正常节奏', rows: gateRows.length ? gateRows : ['资金面数据缺失'], asOf: md.updatedAt || '—' };
+  var l2 = { dir: fsiHot ? 'hot' : envHot ? 'hot' : fsiCold ? 'cold' : envCold ? 'cold' : 'neu', status: fsiHot ? '全球压力警戒 · 防御降档' : envHot ? '市场过热 · 买入降档' : fsiCold ? '全球压力低位' : envCold ? '市场低迷 · 网格定投/机会区' : '中性 · 正常节奏', rows: gateRows.length ? gateRows : ['资金面数据缺失'], asOf: md.updatedAt || '—' };
 
   /* ---------- ③ 聪明钱方向 ---------- */
   var addN = 0, decN = 0, asOfSm = '—';
