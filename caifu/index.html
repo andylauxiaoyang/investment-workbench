@@ -1388,16 +1388,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
           <div class="dc-mc-layout">
             <div class="dc-mc-nav v-tabs v-tabs--soft" id="dcMcNav"></div>
             <div class="dc-mc-main">
-              <div class="dc-mc-tools">
-                <span class="flbl">窗口</span>
-                <div class="seg seg-tabs" id="macroWin">
-                  <button data-w="1">1年</button>
-                  <button data-w="3">3年</button>
-                  <button data-w="5">5年</button>
-                  <button class="active" data-w="10">10年</button>
-                </div>
-                <span class="hint" id="macroSrcHint"></span>
-              </div>
+              <!-- fw2_v430：窗口选择工具条移入 renderMacro 中国分支（模块 tab 置顶，窗口选择归属中国周期内容） -->
               <div id="macroBody"></div>
             </div>
           </div>
@@ -9926,7 +9917,7 @@ function renderMacro() {
   const aCur = d.amt && d.amt.cur || null;
   const aPct = aCur ? aCur[2] : null;
   const moodLvl = ((zbPct != null && zbPct > 90) || (aPct != null && aPct > 90)) ? '过热·杠杆拥挤（防御，暂停加档）' : ((zbPct != null && zbPct < 10) || (aPct != null && aPct < 10)) ? '冰点·逆向关注（可小幅加档）' : '中性区·正常节奏';
-  body.innerHTML = _tabs + `
+  body.innerHTML = _tabs + renderMacroToolsHtml() + `
   <!-- ===== v201 涛动周期：四周期嵌套定位 + 共振合成（周金涛框架） ===== -->
   <div class="card dc-cyc">
     <div class="card-h"><h3>四周期嵌套 · 涛动周期定位</h3><span class="hint">康波60年 ⊃ 库兹涅茨20年 ⊃ 朱格拉10年 ⊃ 基钦3-4年 · 理论+数据驱动 · 不构成投资建议</span></div>
@@ -10434,13 +10425,14 @@ function renderMacro() {
   if (window.__mcApply) window.__mcApply();
 }
 (function bindMacroWin() {
-  const mw = $('#macroWin'); if (!mw) return;
-  mw.onclick = (e) => {
-    const b = e.target.closest('button[data-w]'); if (!b) return;
+  /* fw2_v430：原 IIFE 直接绑定 #macroWin，但工具条已随 renderMacro 动态重建（页面加载时不存在→永不绑定）。
+     改为事件委托到持久容器 #macroBody，与 bindMacroRegion 同机制。 */
+  const body = $('#macroBody'); if (!body) return;
+  body.addEventListener('click', (e) => {
+    const b = e.target.closest('#macroWin button[data-w]'); if (!b) return;
     state.macroWin = b.dataset.w;
-    $$('#macroWin button').forEach((x) => x.classList.toggle('active', x === b));
     renderMacro();
-  };
+  });
 })();
 
 /* ===== fw2_v430 全球金融压力指数(FSI)横幅（美国/全球周期模块内）+ 模块级并列 tab（中国周期/美国/全球周期） ===== */
@@ -10481,6 +10473,21 @@ function renderMacroTabs() {
     '<button data-r="cn" type="button" style="' + (reg === 'cn' ? tAct : tBase) + '">中国周期</button>' +
     '<button data-r="us" type="button" style="' + (reg === 'us' ? tAct : tBase) + '">美国/全球周期</button>' +
     '</div>';
+}
+function renderMacroToolsHtml() {
+  /* fw2_v430 窗口选择（1/3/5/10年）+ 数据截至：归属中国周期内容，随 renderMacro 中国分支渲染；
+     hint 直接读 state.macro（loadMacroData 已先就位），不再依赖静态 #macroSrcHint 事后回填 */
+  const d = state.macro;
+  const src = state.macroSrc || '';
+  const wMap = { '1': '1年', '3': '3年', '5': '5年', '10': '10年' };
+  const cur = state.macroWin || '10';
+  const btns = Object.keys(wMap).map((w) => '<button data-w="' + w + '"' + (cur === w ? ' class="active"' : '') + '>' + wMap[w] + '</button>').join('');
+  let hintTxt = '宏观数据未取得';
+  if (d) hintTxt = '数据截至 ' + d.updatedAt + ' · 理杏仁（' + (src || '内置') + '）';
+  return '<div class="dc-mc-tools" style="display:flex;align-items:center;gap:8px;margin-bottom:10px">' +
+    '<span class="flbl">窗口</span>' +
+    '<div class="seg seg-tabs" id="macroWin">' + btns + '</div>' +
+    '<span class="hint" id="macroSrcHint">' + esc(hintTxt) + '</span></div>';
 }
 function renderMacroUS(d) {
   const fsi = (d && d.fsi) || {};
