@@ -10622,8 +10622,8 @@ function renderPriceMon(d) {
   var pre = {};
   PX_ASSETS.forEach(function (a) {
     var it = { a: a, cur: null, pct: null, time: '', st: null, pts: [] };
-    if (a.src) {
-      var v = pxPath(d, a.src);
+    if (a.src || a.seq) {
+      var v = a.src ? pxPath(d, a.src) : null;
       if (v != null) { it.cur = v; it.time = d.updatedAt || ''; }
       var seq = a.seq ? pxSeq(d, a) : null;
       if (seq && seq.length) { it.pts = seq; it.st = pxStats(seq, v, 13); it.pct = it.st ? it.st.d : null; }
@@ -10690,7 +10690,7 @@ function pxSeq(d, a) {
   var parts = a.seq.split(':');
   var scale = a.scale || 1;
   if (parts.length === 2) {
-    var arr = pxPath(d, parts[0]) || [];
+    var arr = pxPath(d, parts[0] + '.points') || [];
     var idx = parseInt(parts[1], 10);
     return arr.map(function (r) { return [r[0], r[idx] != null ? r[idx] : null]; })
       .filter(function (r) { return r[1] != null; })
