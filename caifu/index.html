@@ -10678,7 +10678,7 @@ function renderPriceMon(d) {
     '</div>' +
     '<div id="pxCorr">' + pxCorrHtml(pre, false) + '</div>' +
     '<div id="pxFund">' + pxFundBlockHtml(d, pre) + '</div>' +
-    '<div style="font-size:10px;color:#94a3b8;margin-top:6px">趋势=以所选窗口起点为 100 的归一化比值（无量纲）；相关性=Pearson 相关系数（日频资产=近 1 年日收益，月频资产=近 12 月月收益）；两融/成交额按资金面口径单列，不进入价格相关性矩阵。周期指向与信号徽标复用宏观指标页同口径阈值；日经 225 数据仅覆盖近 1 年，3/5 年窗口自动剔除。数据不构成投资建议。</div>' +
+    '<div style="font-size:10px;color:#94a3b8;margin-top:6px">趋势=以所选窗口起点为 100 的归一化比值（无量纲）；相关性=Pearson 相关系数（全局 17 项统一近 12 月月收益口径，日频资产由日K聚合为月末点）；两融/成交额按资金面口径单列，不进入价格相关性矩阵。周期指向与信号徽标复用宏观指标页同口径阈值；日经 225 数据仅覆盖近 1 年，3/5 年窗口自动剔除。数据不构成投资建议。</div>' +
     '</div></div>';
   pxDrawFundCharts(pre);
   /* 异步：腾讯快照（现价/今日）+ 日K（1300 点 ≈5 年），趋势图按窗口切片复用；表格日频行由日K 重算 52周统计 */
@@ -10888,6 +10888,17 @@ function pxMonthEnds(pts) {
   if (lastYm !== null) out.push(pts[pts.length - 1]);
   return out;
 }
+/* fw2_v442_px_corr_merge：全局 17×17 合并矩阵统一口径「近12月月收益」——
+   取月末序列（优先理杏仁 mfPts，日频资产由日K经 pxMonthEnds 聚合为月末点），截取最近 13 个月末点（=12 个收益样本）；
+   日频与月频资产同口径对齐后再算 Pearson ρ，跨类组合（A股×黄金、纳指×美元指数等）可直接读 */
+function pxCorrSeries(it, monthly) {
+  if (!it) return [];
+  if (monthly) {
+    var m = (it.mfPts && it.mfPts.length) ? it.mfPts : pxMonthEnds(it.pts || []);
+    return m.slice(-13);
+  }
+  return it.pts || [];
+}
 function pxCorrColor(r) {
   r = Math.max(-1, Math.min(1, r));
   var t = Math.min(1, Math.abs(r));
@@ -10911,8 +10922,8 @@ function pxCorrMatrixHtml(ids, items, opts) {
       else {
         var key = i < j ? i + '_' + j : j + '_' + i;
         if (cache[key] === undefined) {
-          var aPts = items[r] ? (opts.useMf ? items[r].mfPts : items[r].pts) : [];
-          var bPts = items[c] ? (opts.useMf ? items[c].mfPts : items[c].pts) : [];
+          var aPts = opts.monthly ? pxCorrSeries(items[r], true) : (items[r] ? (opts.useMf ? items[r].mfPts : items[r].pts) : []);
+          var bPts = opts.monthly ? pxCorrSeries(items[c], true) : (items[c] ? (opts.useMf ? items[c].mfPts : items[c].pts) : []);
           cache[key] = pxCorrOf(aPts, bPts, minS);
         }
         var cv = cache[key];
@@ -10928,7 +10939,7 @@ function pxCorrMatrixHtml(ids, items, opts) {
     });
     rows += '</tr>';
   });
-  /* fw2_v441_px_corr_fullwidth：相关性矩阵释放整屏——表格 width:100% 占满父容器（flex:1 各半屏），列宽按内容 auto 摊分，名称列保持 min-width，数值列自动放宽、色块居中 */
+  /* fw2_v441_px_corr_fullwidth / fw2_v442_px_corr_merge：相关性矩阵整屏——表格 width:100% 占满父容器，列宽按内容 auto 摊分，名称列保持 min-width，数值列自动放宽、色块居中 */
   return '<table style="border-collapse:collapse;width:100%">' + head + rows + '</table>';
 }
 function pxComplPairsHtml(ids, items, opts) {
@@ -10937,8 +10948,8 @@ function pxComplPairsHtml(ids, items, opts) {
   var pairs = [];
   for (var i = 0; i < ids.length; i++) {
     for (var j = i + 1; j < ids.length; j++) {
-      var aPts = items[ids[i]] ? (opts.useMf ? items[ids[i]].mfPts : items[ids[i]].pts) : [];
-      var bPts = items[ids[j]] ? (opts.useMf ? items[ids[j]].mfPts : items[ids[j]].pts) : [];
+      var aPts = opts.monthly ? pxCorrSeries(items[ids[i]], true) : (items[ids[i]] ? (opts.useMf ? items[ids[i]].mfPts : items[ids[i]].pts) : []);
+      var bPts = opts.monthly ? pxCorrSeries(items[ids[j]], true) : (items[ids[j]] ? (opts.useMf ? items[ids[j]].mfPts : items[ids[j]].pts) : []);
       var cv = pxCorrOf(aPts, bPts, minS);
       if (cv && cv.r <= 0.30) pairs.push({ a: ids[i], b: ids[j], r: cv.r });
     }
@@ -10952,26 +10963,22 @@ function pxComplPairsHtml(ids, items, opts) {
   return out || '<span style="font-size:10px;color:#94a3b8">当前窗口内无 ρ≤0.30 组合（资产高度共振）</span>';
 }
 function pxCorrHtml(pre, ready) {
-  var dailyHtml = ready
-    ? pxCorrMatrixHtml(PX_DAILY, pre, { freq: '日频 · 近1年日收益', minSamples: 30 })
-    : '<div style="font-size:11px;color:#94a3b8;padding:10px 0">日线加载中，稍候自动填充…（月频矩阵已就绪）</div>';
-  var mfHtml = pxCorrMatrixHtml(PX_MONTHLY, pre, { freq: '月频 · 近12月月收益', minSamples: 6, useMf: true });
-  var compDaily = ready ? pxComplPairsHtml(PX_DAILY, pre, { minSamples: 30 }) : '';
-  var compMf = pxComplPairsHtml(PX_MONTHLY, pre, { minSamples: 6, useMf: true });
+  /* fw2_v442_px_corr_merge：日频 + 月频合并为一张 17×17 全局矩阵（统一口径「近12月月收益」：
+     日频资产由日K聚合成月末点、月频资产用理杏仁月末序列，pxCorrSeries 同口径对齐），
+     跨类组合（A股×黄金、纳指×美元指数、A股×VIX 等）直接可读，服务资产搭配/对冲视角；
+     标题同步改「相关性与对冲 · 全局一览」（用户拍板方案 A） */
+  var allIds = PX_DAILY.concat(PX_MONTHLY);
+  var matHtml = ready
+    ? pxCorrMatrixHtml(allIds, pre, { freq: '全局 17 项 · 近12月月收益', minSamples: 6, monthly: true })
+    : '<div style="font-size:11px;color:#94a3b8;padding:10px 0">月收益序列聚合中，稍候自动填充…（日K 尚未完成月末聚合）</div>';
+  var comp = ready ? pxComplPairsHtml(allIds, pre, { minSamples: 6, monthly: true }) : '';
   return '<div style="margin-top:16px">' +
-    '<div style="font-size:13px;font-weight:700;color:#0f172a;margin-bottom:2px">相关性与互补性 · 全局一览</div>' +
-    '<div style="font-size:11px;color:#64748b;margin-bottom:10px">颜色=相关性强度：红=同涨同跌（共振），蓝=涨跌相反（互补/对冲），白≈0=互不相关。两融/成交额属资金面口径已在上一块单列，不进入本矩阵。</div>' +
-    /* fw2_v441_px_corr_fullwidth：矩阵容器释放整屏——日频/月频各 flex:1 均分整宽（min-width 420px 窄屏换行堆叠），表格随之拉伸铺满 */
-    '<div style="display:flex;gap:18px;flex-wrap:wrap;align-items:flex-start">' +
-    '<div style="flex:1 1 0;min-width:420px"><div style="font-size:11px;font-weight:700;color:#475569;margin-bottom:6px">日频资产 · ' + PX_DAILY.length + ' 项（A股5 + 海外4）</div>' + dailyHtml + '</div>' +
-    '<div style="flex:1 1 0;min-width:400px"><div style="font-size:11px;font-weight:700;color:#475569;margin-bottom:6px">月频资产 · ' + PX_MONTHLY.length + ' 项（债券 / 商品 / 汇率 / 波动）</div>' + mfHtml + '</div>' +
-    '</div>' +
+    '<div style="font-size:13px;font-weight:700;color:#0f172a;margin-bottom:2px">相关性与对冲 · 全局一览</div>' +
+    '<div style="font-size:11px;color:#64748b;margin-bottom:10px">颜色=相关性强度：红=同涨同跌（共振），蓝=涨跌相反（互补/对冲），白≈0=互不相关。统一口径：全部 17 项按近 12 月月收益计算 ρ（日频资产由日K聚合为月末点，与月频资产同口径对齐）。两融/成交额属资金面口径已在上一块单列，不进入本矩阵。</div>' +
+    '<div style="overflow-x:auto">' + matHtml + '</div>' +
     '<div style="margin-top:12px">' +
     '<div style="font-size:12px;font-weight:700;color:#475569;margin-bottom:6px">互补 / 对冲组合（ρ ≤ 0.30，越负对冲越强）</div>' +
-    '<div style="display:flex;gap:10px;flex-wrap:wrap">' +
-    (compDaily ? '<div style="min-width:280px">日频组：<br>' + compDaily + '</div>' : '') +
-    (compMf ? '<div style="min-width:280px">月频组：<br>' + compMf + '</div>' : '') +
-    '</div></div>' +
+    '<div style="display:flex;gap:10px;flex-wrap:wrap">' + (comp || '') + '</div></div>' +
     '</div>';
 }
 function pxFundBlockHtml(d, pre) {
@@ -12187,7 +12194,7 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
   */
   const vc = $('#verChip');
   /* v319 fw2_v319_sig_risk_fusion：动态 verChip 同步升版（v266 起文本停更，本次修正为当前版本） */
-  if (vc) vc.textContent = 'v441 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  if (vc) vc.textContent = 'v442 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
