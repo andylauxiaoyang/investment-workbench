@@ -9501,6 +9501,9 @@ function renderMacro() {
         ushfPce = ushf.incomePce || {}, ushfDur = ushf.durables || {}, ushfLei = ushf.lei || {},
         ushfFF = ushf.fedFunds || {}, ushfBE = ushf.breakeven || {}, ushfFis = ushf.fiscal || {},
         ushfCli = (ushf.globalCli && ushf.globalCli.countries) || {};
+  /* fw2_v454_cbRates：全球央行政策利率一览（各国央行官网/FRED 官方，cbRates 键） */
+  const cbRates = (d && d.cbRates) || { updatedAt: '', meta: {}, rates: [] };
+  const cbRatesArr = cbRates.rates || [];
   /* fw2_v431 宏观周期并列模块：中国周期 / 美国/全球周期 / 宏观指标 / 资产价格监控 四并列 tab 整屏切换。
      中国周期=9 张周期卡平铺（四周期嵌套/周期定位/历史相似阶段回放/层1/层2/信用脉冲/层3/层4/行业周期）；
      美国/全球周期=FSI+美国资产温度+美国四周期+美元/黄金/大宗全球资产信号（fw2_v436 并入）；
@@ -9880,9 +9883,13 @@ function renderMacro() {
     <div class="chart" id="mcUsRate" style="height:200px"></div>
   </div>
   <div class="card">
-    <div class="card-h"><h3>全球央行政策利率一览</h3><span class="hint">各国政策利率横向对比</span></div>
-    <div class="rv-line"><span class="tag tag-data">数据</span><span>美国有效联邦基金 <b>${ushfFF.cur != null ? fmtNum(ushfFF.cur, 2) + '%' : '—'}</b> · SOFR ${ushfFF.sofr != null ? fmtNum(ushfFF.sofr, 2) + '%' : '—'}（FRED 官方 ✓）</span></div>
-    <div class="rv-line"><span class="tag tag-ai">待通</span><span>欧元区/英国/日本/中国政策利率：FRED 序列已下架（404 验证），通道待通——接入后在此平铺横向对比</span></div>
+    <div class="card-h"><h3>全球央行政策利率一览</h3><span class="hint">五国政策利率横向对比 · 更新 ${cbRates.updatedAt || '—'}</span></div>
+    <div class="metric-grid">
+      ${cbRatesArr.map((r) => metric(r.name + ' · ' + r.type, fmtNum(r.rate, 2) + '%' + (r.rate2 != null ? ' / ' + fmtNum(r.rate2, 2) + '%' : ''), r.rate > 3.75 ? 'v up' : r.rate < 2 ? 'v down' : '')).join('')}
+    </div>
+    <div class="rv-line"><span class="tag tag-data">数据</span><span>${cbRatesArr.map((r) => r.name + ' ' + fmtNum(r.rate, 2) + '%' + (r.rate2 != null ? '/' + fmtNum(r.rate2, 2) + '%' : '')).join(' · ')}（${(cbRates.meta && cbRates.meta.src) || '官方源'} ✓）</span></div>
+    <div class="rv-line"><span class="tag tag-data">口径</span><span>美=有效联邦基金 · 欧=存款便利 · 英=Bank Rate · 日=无担保隔夜拆借目标 · 中=LPR 1Y/5Y；生效日期见各注</span></div>
+    <div class="chart" id="mcCbRates" style="height:200px"></div>
   </div>
   <!-- ===== fw2_v453 ⑤美国·高频景气（USH 手册）：非农引用 + 8 卡 ===== -->
   <div class="card">
@@ -10181,6 +10188,29 @@ function renderMacro() {
       ],
     }), true);
     curRate.resize();
+  }
+  /* fw2_v454_cbRates：全球央行政策利率一览 横向对比图（五国/六棒） */
+  const cbRateChart = chartOf('mcCbRates');
+  if (cbRateChart && cbRatesArr.length) {
+    const rows = [];
+    cbRatesArr.forEach((r) => {
+      rows.push({ n: r.name + ' · ' + r.type, v: r.rate, c: r.code, k: 'main' });
+      if (r.rate2 != null) rows.push({ n: r.name + ' · LPR 5Y', v: r.rate2, c: r.code, k: 'sub' });
+    });
+    const colors = { US: '#2f6bff', EA: '#2f6bff', UK: '#2f6bff', JP: '#2f6bff', CN: '#5b8def' };
+    cbRateChart.setOption(Object.assign({}, base, {
+      grid: { left: 110, right: 42, top: 12, bottom: 24 },
+      xAxis: { type: 'value', axisLabel: { fontSize: 10, color: '#475569', formatter: (v) => v + '%' }, splitLine: { lineStyle: { color: '#e3e8ee' } } },
+      yAxis: { type: 'category', data: rows.map((r) => r.n), axisLabel: { fontSize: 10, color: '#475569' }, axisLine: { lineStyle: { color: '#d8dee6' } } },
+      series: [{
+        name: '政策利率', type: 'bar', barWidth: 13,
+        data: rows.map((r) => ({ value: r.v, itemStyle: { color: r.k === 'sub' ? '#a3c0ff' : (colors[r.c] || '#2f6bff') } })),
+        label: { show: true, position: 'right', fontSize: 10, color: '#334155', formatter: (p) => p.value + '%' },
+        markLine: { silent: true, symbol: 'none', label: { fontSize: 9, color: '#d9a441', position: 'insideEndTop' }, data: [{ xAxis: 2, name: '2% 通胀锚' }], lineStyle: { color: '#d9a441', type: 'dotted' } },
+      }],
+      tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
+    }), true);
+    cbRateChart.resize();
   }
   const cIC = chartOf('mcUsIC');
   if (cIC && ushfIC.points && ushfIC.points.length) {
@@ -12321,7 +12351,7 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
   */
   const vc = $('#verChip');
   /* v319 fw2_v319_sig_risk_fusion：动态 verChip 同步升版（v266 起文本停更，本次修正为当前版本） */
-  if (vc) vc.textContent = 'v453 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  if (vc) vc.textContent = 'v454 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
