@@ -9810,6 +9810,8 @@ function renderMacro() {
   if (_navEl) _navEl.style.display = 'none';
   fillMacroTabs();
   if (_region === 'us') { body.innerHTML = renderMacroTop(d) + renderMacroUS(d); renderMacroUSCharts(); return; }
+  /* fw2_v432 资产价格监控：18 项全景 · 磁贴+分区表+弹层走势 · 周期/持仓/信号三联动 */
+  if (_region === 'px') { renderPriceMon(d); return; }
   const N = { '1': 12, '3': 36, '5': 60, '10': 120 }[state.macroWin] || 120;
   /* v196 宏观周期：四层周期定位引擎（纯规则实时计算，口径见 cycleEngine） */
   const cyc = cycleEngine(d);
@@ -10174,23 +10176,6 @@ function renderMacro() {
     <div class="rv-line"><span class="tag tag-data">阈值</span><span>分位 <b>&lt;20%</b> 便宜加档 · <b>20–80%</b> 中性 · <b>&gt;80%</b> 偏贵减速；标普500 与 A股/港股温度同口径，是跨资产温度的美股锚</span></div>
     <div class="chart" id="mcSpx" style="height:200px"></div>
   </div>
-  <div class="card">
-    <div class="card-h"><h3>日经225 实时</h3><span class="hint">日经225=东方财富全球(100.N225) · ${nkySrcTxt}${nkyPts.length ? ' · 曲线=' + nkyFreqTxt + '（CNBC）' : ''}</span></div>
-    ${_mcMeta(nkyTsTxt || '—', '实时', '日经225＝东方财富全球(100.N225)；曲线＝CNBC 日线', null)}
-    <div class="metric-grid">
-      ${metric('日经225 点位', nkyVal != null ? fmtNum(nkyVal, 0) : '—', '')}
-      ${metric('日经225 涨跌', nkyChg != null ? (nkyChg >= 0 ? '+' : '') + fmtNum(nkyChg, 2) + '%' : '—', nkyChg != null && nkyChg >= 0 ? 'v up' : nkyChg != null && nkyChg < 0 ? 'v down' : '')}
-      ${nky && nky.open != null ? metric('今开', fmtNum(nky.open, 0)) : ''}
-      ${nky && nky.high != null ? metric('最高', fmtNum(nky.high, 0)) : ''}
-      ${nky && nky.low != null ? metric('最低', fmtNum(nky.low, 0)) : ''}
-      ${nky && nky.prevClose != null ? metric('昨收', fmtNum(nky.prevClose, 0)) : ''}
-    </div>
-    ${nkyRangeBar()}
-    ${nkyP0 ? '<div class="rv-line"><span class="tag tag-ai">近一年</span><span>' + nkyFreqTxt + '收盘 <b>' + fmtNum(nkyP0[1], 0) + '</b>（' + nkyP0[0] + '）→ <b>' + fmtNum(nkyPL[1], 0) + '</b>（' + nkyPL[0] + '）· 区间 <b>' + (nkyPRet >= 0 ? '+' : '') + fmtNum(nkyPRet, 1) + '%</b>' + (nkyHi != null ? ' · 年内最高 ' + fmtNum(nkyHi, 0) + ' / 年内最低 ' + fmtNum(nkyLo, 0) : '') + (nkyDd != null ? ' · 距高点 <b>' + fmtNum(nkyDd, 1) + '%</b>' : '') + '</span></div>' : ''}
-    <div class="rv-line"><span class="tag tag-ai">指向</span><span>东京收盘实时快照；与美股估值、黄金、美债共构跨资产温度</span></div>
-    <div class="rv-line"><span class="tag tag-data">阈值</span><span>本卡无阈值判读（跨资产温度参考，不参与 M 系列加/减档）。日元贬值→日经利好【观点】</span></div>
-    <div class="chart" id="mcNky" style="height:200px"></div>
-  </div>
   <p class="foot-note">周期定位＝规则引擎实时计算（增长/通胀/信用/库存/温度五组代理，3月趋势判向）；产成品存货为统计局披露锚点（月度，非完整序列）；库存方向以 PPI 为代理。周期定位与 M 系列阈值同口径、互为校准；不构成投资建议。</p>
 <p class="foot-note">涛动周期（v201）：康波=理论定位（周金涛《涛动周期录》时间表 1982-2030，AI 2022.11 提前点燃第六次康波修正；1康波≈3库兹涅茨≈9朱格拉≈18基钦）；库兹涅茨=理杏仁 real-estate 单月值自算单月同比（端点仅开放 t 口径，2021 后含基数效应）；朱格拉=东财固投当月同比×工业增加值；金油比中枢 10-15 桶；信用脉冲=社融存量同比 3 月变化。全部数据可追溯，滞后约 1 个月；不构成投资建议。</p>
 <p class="foot-note">数据源：理杏仁 OpenAPI + 东方财富 datacenter（PMI/两融）+ 东方财富全球指数(100.N225，日经225；push2delay 备用主机) + 日经225 日线（CNBC ts-api charts/1Y.json，近一年） + 全A日成交额（沪深京·近30日，日线转录）+ 沪深交易所月度成交额合计（tdx 月K，当月未完不入序列）。行动阈值与 fund-analyst M1/M9 同口径。趋势窗口 1/3/5/10 年切换重绘；本页不构成投资建议。</p>`;
@@ -10364,56 +10349,6 @@ function renderMacro() {
     }), true);
     cspx.resize();
   }
-  /* v70 日经225 日线收盘曲线（CNBC ts-api）；叠加 MA20/MA60 + 年内最高最低标记 + 起点基准线 */
-  const cnk = chartOf('mcNky');
-  if (cnk && nkyPts.length) {
-    const nkX = nkyPts.map((p) => p[0]);
-    const nkY = nkyPts.map((p) => p[1]);
-    const nkLastD = nkyPts[nkyPts.length - 1][0];
-    if (nkyOk && nkyVal != null && nkyTs) {
-      const t = new Date(nkyTs * 1000);
-      const ds = t.getFullYear() + '-' + ('0' + (t.getMonth() + 1)).slice(-2) + '-' + ('0' + t.getDate()).slice(-2);
-      if (ds > nkLastD) { nkX.push(ds); nkY.push(nkyVal); }
-    }
-    const maOf = function (arr, n) {
-      const out = [];
-      for (let i = 0; i < arr.length; i++) {
-        if (i < n - 1) { out.push(null); continue; }
-        let s = 0;
-        for (let j = i - n + 1; j <= i; j++) { s += arr[j]; }
-        out.push(Math.round((s / n) * 100) / 100);
-      }
-      return out;
-    };
-    const nkUp = nkY[nkY.length - 1] >= nkY[0];
-    const nkCol = nkUp ? '#e02e24' : '#14926a';
-    cnk.setOption(Object.assign({}, base, {
-      tooltip: { trigger: 'axis', valueFormatter: (v) => (v == null ? '—' : fmtNum(v, 0) + ' 点') },
-      xAxis: { type: 'category', data: nkX, axisLabel: { fontSize: 10, color: '#475569', hideOverlap: true, formatter: (v) => String(v).slice(2) }, axisLine: { lineStyle: { color: '#d8dee6' } } },
-      yAxis: { type: 'value', scale: true, axisLabel: { fontSize: 10, color: '#475569' }, splitLine: { lineStyle: { color: '#e3e8ee' } }, name: '点位', nameTextStyle: { fontSize: 9, color: '#94a3b8' } },
-      series: [
-        {
-          name: '日经225', type: 'line', data: nkY, showSymbol: false, z: 3,
-          lineStyle: { color: nkCol, width: 1.8 }, itemStyle: { color: nkCol },
-          areaStyle: { color: nkUp ? 'rgba(224,46,36,.10)' : 'rgba(20,146,106,.10)' },
-          markPoint: {
-            symbol: 'pin', symbolSize: 30, label: { fontSize: 9, color: '#fff', formatter: (p) => fmtNum(p.value, 0) },
-            data: [{ type: 'max', name: '年内最高', itemStyle: { color: '#d92f2f' } },
-                   { type: 'min', name: '年内最低', itemStyle: { color: '#14926a' } }],
-          },
-          markLine: {
-            silent: true, symbol: 'none',
-            label: { fontSize: 9, color: '#475569', position: 'insideStartTop', formatter: (p) => '起点 ' + fmtNum(p.value, 0) },
-            data: [{ yAxis: nkY[0] }],
-            lineStyle: { color: '#94a3b8', type: 'dashed', width: 1 },
-          },
-        },
-        { name: 'MA20', type: 'line', data: maOf(nkY, 20), showSymbol: false, z: 4, lineStyle: { color: '#d9a441', width: 1.2 }, itemStyle: { color: '#d9a441' } },
-        { name: 'MA60', type: 'line', data: maOf(nkY, 60), showSymbol: false, z: 4, lineStyle: { color: '#7a3fd4', width: 1.2 }, itemStyle: { color: '#7a3fd4' } },
-      ],
-    }), true);
-    cnk.resize();
-  }
   const camd = chartOf('mcAmtD');
   if (camd && amtDall.length) {
     camd.setOption(Object.assign({}, base, {
@@ -10484,7 +10419,8 @@ function fillMacroTabs() {
     ['cn', '中国周期'],
     ['us', '美国/全球周期'],
     ['dm', '美元/黄金/大宗'],
-    ['mi', '宏观指标']
+    ['mi', '宏观指标'],
+    ['px', '资产价格监控']
   ];
   host.innerHTML = items.map((it) => '<button data-r="' + it[0] + '" type="button" style="' + (reg === it[0] ? tAct : tBase) + '">' + it[1] + '</button>').join('');
 }
@@ -10567,6 +10503,408 @@ function renderMacroUS(d) {
     '<div class="card"><div class="card-h"><h3>美国资产温度（FSI 同源）</h3><span class="hint">四维读数 · 与全球压力指数同口径</span></div>' +
     '<div style="display:flex;flex-wrap:wrap;gap:8px">' + tHtml + '</div></div>' +
     indCard + chartCard + cycHtml + foot + '</div>';
+}
+/* ==========================================================
+ * fw2_v432_ 资产价格监控（px tab）· 18 项全景
+ * 数据分层（与宏观页同口径）：
+ *   - 日K/快照（腾讯 qt.gtimg.cn + fqkline/usfqkline）：A股5 + 美股2 + 恒指
+ *   - 日经225：东财全球快照 + CNBC 1Y 日线（macro-data.json nky）
+ *   - 月频（理杏仁 macro-data.json）：美债/中债/美元/USDCNH/VIX/两融/成交额/商品
+ * 联动：周期指向（复用宏观页阈值）· 持仓高亮（SIGNALS_CFG.barbell.track）· 信号徽标
+ * ========================================================== */
+var PX_ASSETS = [
+  { id:'hs300', g:'a', label:'沪深300', qt:'sh000300', dec:2, held:'沪深300增强' },
+  { id:'zz500', g:'a', label:'中证500', qt:'sh000905', dec:2 },
+  { id:'cyb',   g:'a', label:'创业板指', qt:'sz399006', dec:2, held:'创业板50' },
+  { id:'kc50',  g:'a', label:'科创50', qt:'sh000688', dec:2 },
+  { id:'zz1000',g:'a', label:'中证1000', qt:'sh000852', dec:2 },
+  { id:'nq',    g:'o', label:'纳斯达克', qt:'usIXIC', dec:2, held:'纳指100' },
+  { id:'spx',   g:'o', label:'标普500', qt:'usINX', dec:2 },
+  { id:'hsi',   g:'o', label:'恒生指数', qt:'hkHSI', dec:2 },
+  { id:'nky',   g:'o', label:'日经225', dec:0, held:'日经225', nky:1 },
+  { id:'ust10', g:'b', label:'10年美债', dec:2, unit:'%', src:'fx.cur.ust10', seq:'fx:3', mf:1 },
+  { id:'cn10',  g:'b', label:'中债10Y', dec:2, unit:'%', src:'erp.cur.y10', seq:'erp:2', mf:1, held:'10年国债' },
+  { id:'gold',  g:'c', label:'伦敦金', qt:'hf_XAU', dec:2, held:'黄金ETF', seq:'wave.dollar.gold.points', mf:1 },
+  { id:'wti',   g:'c', label:'WTI原油', qt:'hf_CL', dec:2, seq:'wave.dollar.oil.points', mf:1 },
+  { id:'cu',    g:'c', label:'COMEX铜', qt:'hf_HG', dec:2, scale:0.01, seq:'wave.dollar.copper.points', mf:1 },
+  { id:'usdx',  g:'c', label:'美元指数', dec:2, src:'fx.cur.usdx', seq:'fx:2', mf:1 },
+  { id:'usdcnh',g:'c', label:'USDCNH', dec:4, src:'fx.cur.usdcnh', seq:'fx:1', mf:1 },
+  { id:'vix',   g:'e', label:'VIX 恐慌', dec:2, src:'vix.cur', seq:'vix:1', mf:1 },
+  { id:'rzye',  g:'e', label:'两融余额', dec:2, unit:'万亿', src:'margin.cur.rzye', scale:1e-4, seq:'margin:1', mf:1 },
+  { id:'amt',   g:'e', label:'全A成交额', dec:2, unit:'万亿', src:'amtD.cur:1', scale:1e-4, seq:'amtD:1', mf:1 }
+];
+var PX_GRP = { a:'A股', o:'海外', b:'债券', c:'商品与汇率', e:'情绪与资金' };
+function pxPath(d, path) {
+  var cur = d, i = 0, parts = path.split(':');
+  var seg = parts[0].split('.');
+  for (i = 0; i < seg.length; i++) { cur = cur ? cur[seg[i]] : null; }
+  if (parts[1] != null && cur != null) cur = cur[parseInt(parts[1], 10)];
+  return cur;
+}
+function pxShortTime(t) {
+  if (!t) return '';
+  var s = String(t);
+  var m = s.match(/(\d{4})[-/]?(\d{2})[-/]?(\d{2})/);
+  if (m) return m[2] + '-' + m[3];
+  return s.slice(4, 6) + '-' + s.slice(6, 8);
+}
+function pxFetchQuotes(codes) {
+  return fetch('https://qt.gtimg.cn/q=' + codes.join(','))
+    .then(function (r) { return r.arrayBuffer(); })
+    .then(function (ab) {
+      var txt = new TextDecoder('gbk').decode(ab);
+      var out = {};
+      txt.split(';').forEach(function (line) {
+        line = line.trim();
+        if (!line) return;
+        var m = line.split('="');
+        if (m.length < 2) return;
+        var code = m[0].replace('v_', '').trim();
+        var p = m[1].replace(/"$/, '');
+        var q = { price: null, pct: null, time: '' };
+        if (code.indexOf('hf_') === 0) {
+          var f = p.split(',');
+          q.price = parseFloat(f[0]); q.pct = parseFloat(f[1]);
+          q.time = (f[12] || '') + ' ' + (f[6] || '');
+        } else {
+          var fl = p.split('~');
+          q.price = parseFloat(fl[3]); q.prev = parseFloat(fl[4]); q.time = fl[30] || '';
+          if (isFinite(q.price) && isFinite(q.prev) && q.prev) q.pct = (q.price / q.prev - 1) * 100;
+        }
+        if (!isFinite(q.price)) q.price = null;
+        if (!isFinite(q.pct)) q.pct = null;
+        out[code] = q;
+      });
+      return out;
+    })
+    .catch(function () { return {}; });
+}
+function pxFetchKline(code) {
+  var isUS = code.indexOf('us') === 0;
+  var url = isUS
+    ? 'https://web.ifzq.gtimg.cn/appstock/app/usfqkline/get?param=' + code + ',day,,,260,qfq'
+    : 'https://web.ifzq.gtimg.cn/appstock/app/fqkline/get?param=' + code + ',day,,,260,qfq';
+  return fetch(url).then(function (r) { return r.json(); }).then(function (j) {
+    var node = j && j.data && j.data[code];
+    var pts = node && (node.qfqday || node.day || []);
+    if (!pts || !pts.length) return [];
+    return pts.map(function (row) { return [row[0], parseFloat(row[2])]; });
+  }).catch(function () { return []; });
+}
+function pxStats(pts, latest, lastN) {
+  /* pts: [date, val] 升序；返回统计或 null */
+  if (!pts || !pts.length) return null;
+  var n = pts.length;
+  var cur = (latest != null && isFinite(latest)) ? latest : pts[n - 1][1];
+  var win = lastN && lastN < n ? pts.slice(n - lastN) : pts.slice();
+  var hi = -Infinity, lo = Infinity;
+  win.forEach(function (p) { if (p[1] > hi) hi = p[1]; if (p[1] < lo) lo = p[1]; });
+  var p20 = pts[Math.max(0, n - 21)][1];
+  var p3m = pts[Math.max(0, n - 4)][1];
+  var p12m = pts[Math.max(0, n - 13)][1];
+  var p1d = pts[Math.max(0, n - 2)][1];
+  var r = {
+    cur: cur, hi: hi, lo: lo,
+    d: p1d ? (cur / p1d - 1) * 100 : null,
+    m1: p20 ? (cur / p20 - 1) * 100 : null,
+    m3: p3m ? (cur / p3m - 1) * 100 : null,
+    ytd: p12m ? (cur / p12m - 1) * 100 : null,
+    distHi: hi ? (cur / hi - 1) * 100 : null,
+    distLo: lo ? (cur / lo - 1) * 100 : null,
+    pos: (hi > lo) ? ((cur - lo) / (hi - lo)) * 100 : null
+  };
+  return r;
+}
+function renderPriceMon(d) {
+  var body = $('#macroBody'); if (!body) return;
+  fillMacroTabs();
+  /* 同步可得：macro 快照项（月频） */
+  var pre = {};
+  PX_ASSETS.forEach(function (a) {
+    var it = { a: a, cur: null, pct: null, time: '', st: null, pts: [] };
+    if (a.src) {
+      var v = pxPath(d, a.src);
+      if (v != null) { it.cur = v; it.time = d.updatedAt || ''; }
+      var seq = a.seq ? pxSeq(d, a) : null;
+      if (seq && seq.length) { it.pts = seq; it.st = pxStats(seq, v, 13); it.pct = it.st ? it.st.d : null; }
+    } else if (a.nky) {
+      var nk = d.nky || {};
+      if (nk.val != null) { it.cur = nk.val; it.pct = nk.chgPct; }
+      it.pts = (nk.points || []).slice();
+      if (it.pts.length) it.st = pxStats(it.pts, nk.val, 250);
+    }
+    pre[a.id] = it;
+  });
+  var qtIds = PX_ASSETS.filter(function (a) { return a.qt; }).map(function (a) { return a.qt; });
+  var preTable = PX_ASSETS.map(function (a) { return pxRowHtml(d, a, pre[a.id], null); }).join('');
+  var preTiles = pxTilesHtml(d, PX_ASSETS.map(function (a) { return pre[a.id]; }), null);
+  var grpHtml = Object.keys(PX_GRP).map(function (g) {
+    var ids = PX_ASSETS.filter(function (a) { return a.g === g; });
+    return '<div style="margin-bottom:14px"><div style="font-size:12px;font-weight:700;color:#475569;margin-bottom:6px">' + PX_GRP[g] + '</div>' +
+      '<div style="display:flex;flex-wrap:wrap;gap:8px">' +
+      ids.map(function (a) { return pxTileHtml(a, pre[a.id], null); }).join('') + '</div></div>';
+  }).join('');
+  body.innerHTML =
+    '<div class="dc-us-wrap">' +
+    '<div class="card"><div class="card-h"><h3>资产价格监控 · 18 项全景</h3><span class="hint">日频（腾讯快照+K线）· 债券/汇率/情绪/商品曲线=月频（理杏仁）· 日经=东财快照+CNBC 日线</span></div>' +
+    '<div style="font-size:11px;color:#64748b;margin-bottom:10px">取数时点：A股 09-30 收盘（国庆休市）· 美股/港股 10-06 · 商品 10-07 实时 · 债券/汇率/情绪为 9 月末月频值 · 点击行/磁贴查看近 1 年走势 · 持仓列=你的半杠铃持仓映射（A500/红利/现金流/短融/货基未列入 18 项全景）</div>' +
+    '<div id="pxTiles">' + grpHtml + '</div>' +
+    '<div id="pxTable">' + preTable + '</div>' +
+    '<div style="font-size:10px;color:#94a3b8;margin-top:6px">周期指向与信号徽标复用宏观指标页同口径阈值（股债比/PE 分位/金油比/2s10s/VIX/成交额温度等）；本模块为价格快照层，带判断/阈值类请跳「宏观指标」深度分析；数据不构成投资建议。</div>' +
+    '</div></div>';
+  /* 异步：腾讯快照 + 日K */
+  var klineDone = {};
+  var p1 = pxFetchQuotes(qtIds).then(function (quotes) {
+    PX_ASSETS.forEach(function (a) {
+      if (!a.qt || !quotes[a.qt]) return;
+      var it = pre[a.id];
+      it.cur = quotes[a.qt].price != null ? quotes[a.qt].price : it.cur;
+      it.pct = quotes[a.qt].pct != null ? quotes[a.qt].pct : it.pct;
+      it.time = quotes[a.qt].time || it.time;
+    });
+  });
+  var p2 = Promise.all(PX_ASSETS.filter(function (a) { return a.qt; }).map(function (a) {
+    return pxFetchKline(a.qt).then(function (pts) { klineDone[a.qt] = pts; });
+  })).then(function () {
+    PX_ASSETS.forEach(function (a) {
+      if (!a.qt) return;
+      var pts = klineDone[a.qt] || [];
+      var it = pre[a.id];
+      if (pts.length) {
+        var sc = a.scale || 1;
+        it.pts = pts.map(function (r) { return [r[0], r[1] * sc]; });
+        it.st = pxStats(it.pts, it.cur != null ? it.cur * sc : null, 250);
+      }
+    });
+  });
+  Promise.all([p1, p2]).then(function () {
+    var rows = PX_ASSETS.map(function (a) { return pxRowHtml(d, a, pre[a.id], klineDone[a.qt] || null); }).join('');
+    var tiles = pxTilesHtml(d, PX_ASSETS.map(function (a) { return pre[a.id]; }), klineDone);
+    window.__pxData = { assets: PX_ASSETS, items: pre };
+    var tEl = document.getElementById('pxTiles'); if (tEl) tEl.innerHTML = tiles;
+    var tbEl = document.getElementById('pxTable'); if (tbEl) tbEl.innerHTML = rows;
+  }).catch(function () {});
+}
+function pxSeq(d, a) {
+  /* 月频序列：'fx:3' 或 'wave.dollar.gold.points'；输出统一到显示单位（×scale） */
+  var parts = a.seq.split(':');
+  var scale = a.scale || 1;
+  if (parts.length === 2) {
+    var arr = pxPath(d, parts[0]) || [];
+    var idx = parseInt(parts[1], 10);
+    return arr.map(function (r) { return [r[0], r[idx] != null ? r[idx] : null]; })
+      .filter(function (r) { return r[1] != null; })
+      .map(function (r) { return [r[0], r[1] * scale]; });
+  }
+  var pts = pxPath(d, parts[0]) || [];
+  return pts.map(function (r) { return [r[0], r[1] * scale]; });
+}
+function pxTileHtml(a, it, kl) {
+  var st = it.st;
+  var curTxt = it.cur != null ? fmtNum(it.cur * (a.scale || 1), a.dec) + (a.unit ? ' ' + a.unit : '') : '—';
+  var pct = it.pct;
+  var pctTxt = pct != null ? (pct >= 0 ? '+' : '') + fmtNum(pct, 2) + '%' : '—';
+  var pctCls = pct != null ? (pct >= 0 ? 'var(--up)' : 'var(--down)') : '#94a3b8';
+  var pos = st ? st.pos : null;
+  var bar = pos != null
+    ? '<div style="position:relative;height:5px;border-radius:3px;background:#e9eef5;margin-top:6px">' +
+      '<div style="position:absolute;left:0;width:' + Math.max(2, Math.min(100, pos)) + '%;height:5px;border-radius:3px;background:' + (pos >= 80 ? '#e02e24' : pos <= 20 ? '#0d9f4d' : '#f0a020') + ';opacity:.85"></div></div>' +
+      '<div style="display:flex;justify-content:space-between;font-size:9px;color:#94a3b8;margin-top:3px"><span>低 ' + (st.lo != null ? fmtNum(st.lo, a.dec) : '—') + '</span><span>' + (pos != null ? pos.toFixed(0) + '%' : '') + '</span><span>高 ' + (st.hi != null ? fmtNum(st.hi, a.dec) : '—') + '</span></div>'
+    : '<div style="font-size:9px;color:#cbd5e1;margin-top:6px">无区间序列</div>';
+  return '<div class="px-tile" data-px="' + a.id + '" style="flex:0 1 158px;min-width:148px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:9px 11px;cursor:pointer;transition:box-shadow .15s">' +
+    '<div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:11px;color:#475569;font-weight:600">' + esc(a.label) + '</span>' +
+    (a.held ? '<span style="font-size:9px;color:#2f6bff;background:#e8eefc;border-radius:4px;padding:1px 5px">持</span>' : '') + '</div>' +
+    '<div style="font-size:17px;font-weight:700;color:#0f172a;margin:3px 0 0;line-height:1.2">' + curTxt + '</div>' +
+    '<div style="font-size:11px;font-weight:600;color:' + pctCls + '">' + pctTxt + '</div>' + bar + '</div>';
+}
+function pxTilesHtml(d, its, kl) {
+  /* its: 与 PX_ASSETS 同序的 item 数组 */
+  return Object.keys(PX_GRP).map(function (g) {
+    var ids = PX_ASSETS.filter(function (a) { return a.g === g; });
+    return '<div style="margin-bottom:12px"><div style="font-size:11px;font-weight:700;color:#64748b;margin-bottom:5px">' + PX_GRP[g] + '</div>' +
+      '<div style="display:flex;flex-wrap:wrap;gap:8px">' +
+      ids.map(function (a) {
+        var it = its[PX_ASSETS.indexOf(a)];
+        if (!it) it = { cur: null, pct: null, st: null, pts: [] };
+        return pxTileHtml(a, it, kl);
+      }).join('') +
+      '</div></div>';
+  }).join('');
+}
+function pxSigHtml(t, txt) {
+  var col = t === 'r' ? '#e02e24' : t === 'y' ? '#d98c00' : '#0d9f4d';
+  var bg = t === 'r' ? '#fdeceb' : t === 'y' ? '#fdf3e0' : '#e7f6ee';
+  return '<span style="font-size:10px;color:' + col + ';background:' + bg + ';border-radius:5px;padding:1px 6px;white-space:nowrap">' + esc(txt) + '</span>';
+}
+function pxCycleAndSigs(d, a) {
+  /* 复用宏观页同口径：股债比 / PE分位 / 金油比金铜比 / 2s10s / 中美利差 / VIX-FSI / 美元12m / 外资红绿灯 / 成交额温度 */
+  var fxP = (d.fx && d.fx.points) || [];
+  var fxL = fxP.length ? fxP[fxP.length - 1] : null;
+  var fx6 = fxP.length > 6 ? fxP[fxP.length - 6] : null;
+  var fx12 = fxP.length > 12 ? fxP[fxP.length - 12] : null;
+  var wD = (d.wave && d.wave.dollar) || {};
+  var erpPct = d.erp && d.erp.erpPct;
+  var spxPct = d.spx && d.spx.cur && d.spx.cur[1];
+  var gap = d.credit && d.credit.cur && d.credit.cur.gap;
+  var ust10 = fxL ? fxL[3] : null;
+  var usdjpy = fxL ? fxL[4] : null;
+  var usdjpy6 = (fx6 && fxL && fx6[4]) ? (fxL[4] / fx6[4] - 1) * 100 : null;
+  var usdcnh6 = (fx6 && fxL && fx6[1]) ? (fxL[1] / fx6[1] - 1) * 100 : null;
+  var usdx12 = (fx12 && fxL && fx12[2]) ? (fxL[2] / fx12[2] - 1) * 100 : null;
+  var y10 = d.erp && d.erp.cur && d.erp.cur.y10;
+  var goldOil = wD.goldOil && wD.goldOil.cur;
+  var goldCopper = wD.goldCopper && wD.goldCopper.cur;
+  var goldPts = (wD.gold && wD.gold.points) || [];
+  var gold12m = goldPts.length > 12 ? (goldPts[goldPts.length - 1][1] / goldPts[goldPts.length - 13][1] - 1) * 100 : null;
+  var gcPts = (wD.goldCopper && wD.goldCopper.points) || [];
+  var gc12m = gcPts.length > 12 ? (gcPts[gcPts.length - 1][1] / gcPts[gcPts.length - 13][1] - 1) * 100 : null;
+  var spread = d.rates && d.rates.cur && d.rates.cur.spread;
+  var fsi = d.fsi && d.fsi.score;
+  var vix = d.vix && d.vix.cur;
+  var amtTw = (d.amtD && d.amtD.cur && d.amtD.cur[1] != null) ? d.amtD.cur[1] / 1e4 : null;
+  var rzyeTw = d.margin && d.margin.cur && d.margin.cur.rzye != null ? d.margin.cur.rzye / 1e4 : null;
+  var badFx = ((usdcnh6 != null && usdcnh6 > 2 ? 1 : 0) + (ust10 != null && ust10 >= 4.5 ? 1 : 0) + (usdx12 != null && usdx12 > 3 ? 1 : 0));
+  var fxGate = badFx >= 2 ? '逆风·防御' : badFx === 1 ? '半档' : '顺风';
+  var erpTag = erpPct == null ? '—' : erpPct >= 75 ? '增配股票' : erpPct >= 50 ? '均衡偏股' : erpPct >= 25 ? '均衡偏债' : '减配股票';
+  var spxTag = spxPct == null ? '—' : spxPct >= 80 ? '偏贵减速' : spxPct >= 60 ? '中性偏暖' : spxPct >= 40 ? '中性' : spxPct >= 20 ? '中性偏冷' : '便宜加档';
+  var amtTag = amtTw == null ? '—' : amtTw >= 3 ? '过热区' : amtTw >= 2 ? '正常区' : amtTw >= 1.5 ? '关注入场点' : '网格定投区';
+  var fsiLv = fsi == null ? '—' : fsi >= 70 ? '危机级' : fsi >= 50 ? '警戒级' : fsi >= 30 ? '关注级' : '正常';
+  var cycle = '', sigs = [];
+  switch (a.id) {
+    case 'hs300': case 'zz500': case 'cyb': case 'kc50': case 'zz1000':
+      cycle = '股债比 ' + (erpPct != null ? fmtNum(erpPct, 1) + '%' : '—') + ' · ' + erpTag;
+      if (erpPct != null && erpPct >= 75) sigs.push(['g', '股债比≥75% 增配股票']);
+      if (erpPct != null && erpPct < 25) sigs.push(['r', '股债比<25% 减配股票']);
+      break;
+    case 'nq': case 'spx':
+      cycle = 'PE 分位 ' + (spxPct != null ? fmtNum(spxPct, 0) + '%' : '—') + ' · ' + spxTag;
+      if (spxPct != null && spxPct >= 80) sigs.push(['r', 'PE>80% 偏贵减速']);
+      if (spxPct != null && spxPct < 20) sigs.push(['g', 'PE<20% 便宜加档']);
+      break;
+    case 'hsi':
+      cycle = '跟随 A股+美股（估值温度同口径）';
+      break;
+    case 'nky':
+      cycle = '日元 ' + (usdjpy != null ? fmtNum(usdjpy, 1) : '—') + (usdjpy6 != null && usdjpy6 > 3 ? ' · 日元贬→利好出口' : '');
+      if (usdjpy6 != null && usdjpy6 > 3) sigs.push(['y', '日元 6m 贬' + fmtNum(usdjpy6, 0) + '%·出口利好']);
+      break;
+    case 'gold':
+      cycle = '金油比 ' + (goldOil != null ? fmtNum(goldOil, 1) + ' 桶' : '—') + (goldOil != null && goldOil > 30 ? ' · 极端避险' : '');
+      if (goldOil != null && goldOil > 30) sigs.push(['y', '金油比>30 极端避险']);
+      if (gold12m != null && gold12m > 15) sigs.push(['y', '金价年涨' + fmtNum(gold12m, 0) + '%·牛市延续']);
+      break;
+    case 'wti': case 'cu':
+      cycle = '金铜比 ' + (goldCopper != null ? fmtNum(goldCopper, 2) : '—') + (gc12m != null && gc12m > 0.1 ? ' · 避险>工业' : '');
+      if (goldOil != null && goldOil > 30) sigs.push(['y', '金强油弱·避险升水']);
+      if (gc12m != null && gc12m > 0.1) sigs.push(['y', '金铜比上行·避险强于工业']);
+      break;
+    case 'usdx':
+      cycle = '美元 12m ' + (usdx12 != null ? fmtNum(usdx12, 1) + '%' : '—') + (usdx12 != null && usdx12 > 3 ? ' · 强美元' : usdx12 != null && usdx12 < -3 ? ' · 弱美元' : '');
+      if (usdx12 != null && usdx12 > 3) sigs.push(['r', '强美元·压制风险资产']);
+      if (usdx12 != null && usdx12 < -3) sigs.push(['g', '弱美元·支撑风险资产']);
+      break;
+    case 'usdcnh':
+      cycle = '外资红绿灯 ' + fxGate;
+      if (usdcnh6 != null && usdcnh6 > 2) sigs.push(['r', '人民币 6m 贬' + fmtNum(usdcnh6, 1) + '%·外资逆风']);
+      break;
+    case 'ust10':
+      cycle = '2s10s ' + (spread != null ? fmtNum(spread, 2) + '%' : '—') + (spread != null && spread < 0 ? ' · 倒挂避险' : ' · 未倒挂');
+      if (ust10 != null && ust10 >= 4.5) sigs.push(['r', '美债10Y≥4.5%·黄金承压']);
+      if (spread != null && spread < 0) sigs.push(['y', '2s10s 倒挂·衰退预警']);
+      break;
+    case 'cn10':
+      cycle = '中美利差 ' + (y10 != null && ust10 != null ? fmtNum(y10 - ust10, 2) + '%' : '—') + (y10 != null && ust10 != null && y10 - ust10 < 0 ? ' · 倒挂逆风' : '');
+      if (y10 != null && ust10 != null && y10 - ust10 < 0) sigs.push(['y', '中美利差倒挂·资本外流逆风']);
+      break;
+    case 'vix':
+      cycle = 'FSI ' + (fsi != null ? fmtNum(fsi, 0) : '—') + ' · ' + fsiLv;
+      if (vix != null && vix > 40) sigs.push(['r', 'VIX>40 恐慌级']);
+      if (vix != null && vix > 30) sigs.push(['y', 'VIX>30 警戒级']);
+      if (vix != null && vix < 15) sigs.push(['g', 'VIX<15 低波动']);
+      break;
+    case 'rzye':
+      cycle = '市场温度 ' + (amtTw != null ? amtTw.toFixed(2) + ' 万亿' : '—') + ' · ' + amtTag;
+      if (rzyeTw != null && rzyeTw >= 3) sigs.push(['y', '两融' + fmtNum(rzyeTw, 2) + '万亿·过热观察']);
+      break;
+    case 'amt':
+      cycle = '市场温度 ' + (amtTw != null ? amtTw.toFixed(2) + ' 万亿' : '—') + ' · ' + amtTag;
+      if (amtTw != null && amtTw >= 3) sigs.push(['y', '成交≥3万亿 过热区']);
+      if (amtTw != null && amtTw < 1.5) sigs.push(['g', '成交<1.5万亿 网格定投区']);
+      break;
+  }
+  if (a.held) { cycle += ' <span style="color:#2f6bff;font-weight:600">● 持仓</span>'; }
+  return { cycle: cycle, sigs: sigs.slice(0, 2) };
+}
+function pxRowHtml(d, a, it, kl) {
+  var st = it.st;
+  var isMf = !!a.mf;
+  var curTxt = it.cur != null ? fmtNum(it.cur * (a.scale || 1), a.dec) + (a.unit ? ' ' + a.unit : '') : '—';
+  var dTxt, m1Txt, ytdTxt, hiTxt, loTxt, posTxt;
+  if (st) {
+    dTxt = st.d != null ? (st.d >= 0 ? '+' : '') + fmtNum(st.d, 1) + '%' : '—';
+    m1Txt = (isMf ? st.m3 : st.m1) != null ? ((isMf ? st.m3 : st.m1) >= 0 ? '+' : '') + fmtNum(isMf ? st.m3 : st.m1, 1) + '%' : '—';
+    ytdTxt = (isMf ? st.ytd : st.ytd) != null ? (st.ytd >= 0 ? '+' : '') + fmtNum(st.ytd, 1) + '%' : '—';
+    hiTxt = st.distHi != null ? fmtNum(st.distHi, 1) + '%' : '—';
+    loTxt = st.distLo != null ? fmtNum(st.distLo, 1) + '%' : '—';
+    posTxt = st.pos != null ? st.pos.toFixed(0) + '%' : '—';
+  } else {
+    dTxt = m1Txt = ytdTxt = hiTxt = loTxt = posTxt = '—';
+  }
+  var cs = pxCycleAndSigs(d, a);
+  var dCls = (st && st.d != null) ? (st.d >= 0 ? 'style="color:var(--up);font-weight:600"' : 'style="color:var(--down);font-weight:600"') : '';
+  var posBar = st && st.pos != null
+    ? '<div style="position:relative;width:74px;height:6px;border-radius:3px;background:#e9eef5"><div style="position:absolute;left:0;width:' + Math.max(2, Math.min(100, st.pos)) + '%;height:6px;border-radius:3px;background:' + (st.pos >= 80 ? '#e02e24' : st.pos <= 20 ? '#0d9f4d' : '#f0a020') + '"></div></div>'
+    : '—';
+  var sigHtml = cs.sigs.length ? cs.sigs.map(function (s) { return pxSigHtml(s[0], s[1]); }).join(' ') : '<span style="color:#cbd5e1">—</span>';
+  var heldHtml = a.held ? '<span style="font-size:10px;color:#2f6bff;background:#e8eefc;border-radius:5px;padding:1px 6px">持 · ' + esc(a.held) + '</span>' : '—';
+  return '<tr data-px="' + a.id + '" style="cursor:pointer;border-top:1px solid #eef2f7">' +
+    '<td style="padding:7px 8px;font-weight:600;color:#0f172a;white-space:nowrap">' + esc(a.label) + (isMf ? ' <span style="font-size:9px;color:#94a3b8;font-weight:400">月频</span>' : '') + '</td>' +
+    '<td style="padding:7px 8px;text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums">' + curTxt + '</td>' +
+    '<td ' + dCls + ' style="padding:7px 8px;text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums">' + dTxt + '</td>' +
+    '<td style="padding:7px 8px;text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums">' + m1Txt + '</td>' +
+    '<td style="padding:7px 8px;text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums">' + ytdTxt + '</td>' +
+    '<td style="padding:7px 8px;text-align:right;white-space:nowrap;color:#e02e24;font-variant-numeric:tabular-nums">' + hiTxt + '</td>' +
+    '<td style="padding:7px 8px;text-align:right;white-space:nowrap;color:#0d9f4d;font-variant-numeric:tabular-nums">' + loTxt + '</td>' +
+    '<td style="padding:7px 8px;text-align:center;white-space:nowrap">' + posBar + '<span style="font-size:10px;color:#64748b;margin-left:5px">' + posTxt + '</span></td>' +
+    '<td style="padding:7px 8px;font-size:11px;color:#475569;min-width:130px">' + cs.cycle + '</td>' +
+    '<td style="padding:7px 8px;white-space:nowrap">' + heldHtml + '</td>' +
+    '<td style="padding:7px 8px;white-space:nowrap;max-width:220px">' + sigHtml + '</td>' +
+    '</tr>';
+}
+function pxOpenChart(a, it) {
+  var pts = it.pts || [];
+  var mf = !!a.mf;
+  if (!pts.length) { openModal(a.label, '<div style="font-size:12px;color:#64748b">无历史序列（仅当前值）</div>'); return; }
+  var curTxt = it.cur != null ? fmtNum(it.cur * (a.scale || 1), a.dec) : '—';
+  var win = mf ? pts.slice(-13) : pts.slice(-244);
+  var title = a.label + ' · ' + curTxt + (a.unit ? ' ' + a.unit : '') + ' · 近1年走势' + (mf ? '（月频）' : '');
+  openModal(title, '<div style="font-size:11px;color:#64748b;margin-bottom:8px">' + (mf ? '月频序列（理杏仁）· 最近 12 个月' : '日线（腾讯）· 最近约 1 年（244 个交易日）') + '</div><div id="pxChartBox" style="width:100%;height:330px"></div>');
+  setTimeout(function () {
+    var el = document.getElementById('pxChartBox');
+    if (!el || !window.echarts) return;
+    var c = echarts.getInstanceByDom(el) || echarts.init(el);
+    c.setOption({
+      tooltip: { trigger: 'axis', valueFormatter: function (v) { return fmtNum(v, a.dec); } },
+      grid: { left: 46, right: 14, top: 18, bottom: 26 },
+      xAxis: { type: 'category', data: win.map(function (p) { return p[0]; }), axisLabel: { fontSize: 9, color: '#475569', hideOverlap: true } },
+      yAxis: { type: 'value', scale: true, axisLabel: { fontSize: 9, color: '#475569' }, splitLine: { lineStyle: { color: '#e3e8ee' } } },
+      series: [{ name: a.label, type: 'line', data: win.map(function (p) { return p[1]; }), showSymbol: false, lineStyle: { width: 1.6, color: '#2f6bff' }, areaStyle: { opacity: 0.08, color: '#2f6bff' }, markLine: { silent: true, symbol: 'none', data: [{ yAxis: it.st ? it.st.hi : null, lineStyle: { color: '#e02e24', type: 'dashed', width: 1 }, label: { formatter: '52周高 ' + fmtNum(it.st.hi, a.dec), fontSize: 9, color: '#e02e24' } }, { yAxis: it.st ? it.st.lo : null, lineStyle: { color: '#0d9f4d', type: 'dashed', width: 1 }, label: { formatter: '52周低 ' + fmtNum(it.st.lo, a.dec), fontSize: 9, color: '#0d9f4d' } }] } }]
+    });
+  }, 40);
+}
+/* 资产监控点击委托：磁贴 / 表格行（data-px）→ 弹层走势 */
+if (!window.__pxBound) {
+  window.__pxBound = true;
+  document.addEventListener('click', function (e) {
+    var el = e.target && e.target.closest ? e.target.closest('[data-px]') : null;
+    if (!el) return;
+    var pd = window.__pxData;
+    if (!pd) return;
+    var id = el.getAttribute('data-px'), idx = -1;
+    for (var i = 0; i < pd.assets.length; i++) { if (pd.assets[i].id === id) { idx = i; break; } }
+    if (idx < 0) return;
+    pxOpenChart(pd.assets[idx], pd.items[idx] || { pts: [] });
+  });
 }
 function renderMacroUSCharts() {
   const el = document.getElementById('mcFsiChart');
@@ -11511,7 +11849,7 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
   */
   const vc = $('#verChip');
   /* v319 fw2_v319_sig_risk_fusion：动态 verChip 同步升版（v266 起文本停更，本次修正为当前版本） */
-  if (vc) vc.textContent = 'v429 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  if (vc) vc.textContent = 'v432 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
