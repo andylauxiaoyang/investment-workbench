@@ -10142,11 +10142,12 @@ function renderMacroUS(d) {
      （价格读数已由「资产价格监控 · 商品与汇率」区覆盖：伦敦金/WTI/COMEX铜/美元指数） */
   const _dc = cycleEngine(d);
   const dl = (_dc && _dc.layers && _dc.layers.dollar) || {};
-  /* 康波定位 */
-  const kp = konbo.phase || {};
-  const kPhase = (kp.s) || konbo.s || '—';
-  const kC = (kp.c) || '';
-  const kProxy = konbo.proxy || '—';
+  /* 康波定位（fw2_v451_konbo_fix：数据层 phase 为字符串，适配旧对象读取；说明/口径行补全） */
+  const kpRaw = konbo.phase || '';
+  const kTbl = konbo.table || [];
+  const kPhase = (typeof kpRaw === 'string' ? kpRaw : (kpRaw.s || konbo.s)) || '—';
+  const kC = (typeof kpRaw === 'string' ? (kTbl.length ? (kTbl[kTbl.length - 1].note || '') : '') : (kpRaw.c || ''));
+  const kProxy = konbo.proxy || konbo.note || '—';
   /* 美国资产温度 4 项 */
   const tItems = [['美债10Y-2Y', temp.rate], ['VIX 恐慌', temp.vix], ['美元强度', temp.usdx], ['美股估值分位', temp.spxPct]];
   const tHtml = tItems.map(function (it) {
@@ -12119,7 +12120,7 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
   */
   const vc = $('#verChip');
   /* v319 fw2_v319_sig_risk_fusion：动态 verChip 同步升版（v266 起文本停更，本次修正为当前版本） */
-  if (vc) vc.textContent = 'v450 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  if (vc) vc.textContent = 'v451 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
