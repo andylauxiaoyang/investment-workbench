@@ -9456,7 +9456,9 @@ function cycleEngine(d) {
   };
 }
 function renderReplayCard(rp) {
-  /* v198 fw2_v198_cycle_replay：历史相似阶段回放卡（数据来自 replay，纯渲染） */
+  /* v198 fw2_v198_cycle_replay：历史相似阶段回放卡（数据来自 replay，纯渲染）
+     v452 fw2_v452_replay_cn：卡从「宏观指标」迁入「中国周期」页、紧跟「周期定位」卡后——MC_CYCLE_KEYS 增 '历史相似阶段回放'
+     （isCyc=true → cn 显、mi 隐）；MI_GROUPS 删「历史定位」组；hint 增「含海外对冲资产（恒生/黄金/美债10Y）」标注 */
   if (!rp || !rp.matched || !rp.matched.length || !rp.stats) return '';
   var AS = ['沪深300', '中证500', '创业板指', '恒生指数', '黄金', '美债10Y'];
   var body = AS.map(function (a) {
@@ -9481,7 +9483,7 @@ function renderReplayCard(rp) {
   var bondTxt = (bond && bond.med < 0) ? ' · 美债价格承压（10Y 收益率上行，滞胀期利率压力）' : (bond && bond.med > 0 ? ' · 美债顺风（利率下行）' : '');
   var insight = goldTxt + ' · 中期弹性最强：' + bestName + '（12个月中位 ' + (best12 >= 0 ? '+' : '') + best12.toFixed(1) + '%）' + bondTxt;
   return '<div class="card dc-replay">'
-    + '<div class="card-h"><h3>历史相似阶段回放</h3><span class="hint">当前相位（' + rp.cur.l1 + '/' + rp.cur.l2 + '/' + rp.cur.l3 + '）· 历史同相位 ' + rp.matched.length + ' 期 · 之后 3/6/12 个月资产表现（中位数）</span></div>'
+    + '<div class="card-h"><h3>历史相似阶段回放</h3><span class="hint">当前相位（' + rp.cur.l1 + '/' + rp.cur.l2 + '/' + rp.cur.l3 + '）· 历史同相位 ' + rp.matched.length + ' 期 · 之后 3/6/12 个月资产表现（中位数）· 含海外对冲资产（恒生/黄金/美债10Y）</span></div>'
     + '<div class="rv-line"><span class="tag tag-ai">匹配期</span><span>' + rp.matched.map(function (x) { return x.m + '（' + x.l1 + '/' + x.l2 + '/' + x.l3 + '）'; }).join(' · ') + '</span></div>'
     + '<table class="cyc-tbl rp-tbl"><thead><tr><th style="width:22%">资产</th><th style="width:26%">3个月后</th><th style="width:26%">6个月后</th><th style="width:26%">12个月后</th></tr></thead><tbody>'
     + body + '</tbody></table>'
@@ -9494,7 +9496,7 @@ function renderMacro() {
   const d = state.macro;
   if (!d) { body.innerHTML = '<div class="card"><div class="empty st st-empty">宏观数据加载中…</div></div>'; return; }
   /* fw2_v431 宏观周期并列模块：中国周期 / 美国/全球周期 / 宏观指标 / 资产价格监控 四并列 tab 整屏切换。
-     中国周期=8 张周期卡平铺（四周期嵌套/周期定位/层1/层2/信用脉冲/层3/层4/行业周期）；
+     中国周期=9 张周期卡平铺（四周期嵌套/周期定位/历史相似阶段回放/层1/层2/信用脉冲/层3/层4/行业周期）；
      美国/全球周期=FSI+美国资产温度+美国四周期+美元/黄金/大宗全球资产信号（fw2_v436 并入）；
      宏观指标=13 张指标卡平铺（股债性价比/PE/信用脉冲/CPI-PPI/美元利差/VIX/PMI/两融成交/成交额/宽基估值/全球利率/美股估值/日经225）。 */
   const _region = state.macroRegion || 'cn';
@@ -9650,6 +9652,7 @@ function renderMacro() {
       <div class="cyc-col"><h4>纪律联动</h4>${cyc.disc.map((x) => '<div class="cyc-li">· ' + x + '</div>').join('') || '<div class="cyc-li muted">—</div>'}</div>
     </div>
   </div>
+    ${renderReplayCard(d.replay)}
   <div class="card dc-cyc">
     <div class="card-h"><h3>层1 · 大经济周期（美林 · 短中期层）</h3><span class="hint">≈3.5年短周期（美林滞涨≈长波衰退 / 美林衰退≈长波萧条）· 增长（PMI+工业增加值）× 通胀（CPI+PPI）3月趋势</span></div>
     <div class="cyc-quad">
@@ -9722,7 +9725,6 @@ function renderMacro() {
     </div>
     <div class="rv-line"><span class="tag tag-data">口径</span><span>PE-TTM 市值加权，10年分位为理杏仁官方口径（<b>分位 &lt;25</b> 低估 · <b>&gt;80</b> 拥挤）；负 PE 行业分位失真已标「亏损」；${cyc.indTilt.missing && cyc.indTilt.missing.length ? '理杏仁未覆盖申万2021新增：' + cyc.indTilt.missing.join(' / ') : '申万2021一级 31 行业全覆盖（v199 起 sw_2021 端点）'}；分组按周期属性划分，供库存周期→行业倾向使用</span></div>
   </div>
-    ${renderReplayCard(d.replay)}
   <div class="card">
     <div class="card-h"><h3>ERP 股债性价比（沪深300）</h3><span class="hint">E/P − 10Y国债 · 月末点 ${erp.length} 个</span></div>
     ${_mcMeta(_mcLastOf(erp), '月末', 'E/P − 10Y国债（沪深300）', 75)}
@@ -12120,7 +12122,7 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
   */
   const vc = $('#verChip');
   /* v319 fw2_v319_sig_risk_fusion：动态 verChip 同步升版（v266 起文本停更，本次修正为当前版本） */
-  if (vc) vc.textContent = 'v451 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  if (vc) vc.textContent = 'v452 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
@@ -13202,14 +13204,13 @@ setInterval(updateSessionBadge, 30000);
     '行业周期 · 申万一级估值温度': '行业周期'
   };
   /* fw2_fix_mcnav2row：宏观导航两排——周期相关第一行，其他指标第二排 */
-  var MC_CYCLE_KEYS = ['周期', '层', '美元 / 黄金', '行业周期', '信用脉冲（社融同比'];
+  var MC_CYCLE_KEYS = ['周期', '层', '美元 / 黄金', '行业周期', '信用脉冲（社融同比', '历史相似阶段回放'];
   /* fw2_v434_mc_mi_groups：宏观指标页 12 卡按主题分组（横幅按本数组顺序插入，与 DOM 顺序解耦；keys 按 data-title 前缀匹配） */
   window.MI_GROUPS = [
     { name:'估值与性价比 · A股', keys:['ERP 股债性价比', '沪深300 PE-TTM', '宽基估值温度'] },
     { name:'信用与通胀', keys:['信用脉冲：社融', '物价剪刀差', '制造业 PMI'] },
     { name:'情绪与流动性', keys:['情绪温度计', '全A成交额', 'VIX 恐慌'] },
-    { name:'海外与利率', keys:['全球利率与汇率', '美股估值温度'] },
-    { name:'历史定位', keys:['历史相似阶段回放'] }
+    { name:'海外与利率', keys:['全球利率与汇率', '美股估值温度'] }
   ];
   function renderDcMcNav(){
     /* fw2_v431：名字按钮区已废弃——中国周期改为 8 张周期卡直接平铺、指标卡收进「宏观指标」模块，
@@ -13219,7 +13220,7 @@ setInterval(updateSessionBadge, 30000);
   }
   window.__mcApply = function(){
     /* fw2_v431：显示规则按宏观 region 分流——
-       cn（中国周期）：8 张周期卡（四周期嵌套/周期定位/层1/层2/信用脉冲/层3/层4/行业周期）直接平铺，
+       cn（中国周期）：9 张周期卡（四周期嵌套/周期定位/历史相似阶段回放/层1/层2/信用脉冲/层3/层4/行业周期）直接平铺，
          其余指标卡 + 美元卡隐藏；
        mi（宏观指标）：13 张宏观指标卡直接平铺（股债性价比/沪深300PE/信用脉冲/CPI-PPI/美元利差/VIX/
          PMI/两融成交/成交额/宽基估值/全球利率/美股估值/日经225），周期卡 + 美元卡隐藏；
