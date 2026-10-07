@@ -10900,6 +10900,31 @@ function pxMonthEnds(pts) {
 /* fw2_v442_px_corr_merge：全局 17×17 合并矩阵统一口径「近12月月收益」——
    取月末序列（优先理杏仁 mfPts，日频资产由日K经 pxMonthEnds 聚合为月末点），截取最近 13 个月末点（=12 个收益样本）；
    日频与月频资产同口径对齐后再算 Pearson ρ，跨类组合（A股×黄金、纳指×美元指数等）可直接读 */
+/* fw2_v446_px_corr_14：矩阵收敛为 14 项纯资产——排除 USD/CNH（与美元指数信息重叠、月频对齐后样本空白）、
+   VIX（非资产，属期权隐含波动率情绪指标，单列「风险情绪锚」块保留其对冲信息）、美元指数（当前月频对齐样本空白，
+   暂不入矩阵）；新增 pxVixHedgeHtml：VIX × 标普/纳斯达克/伦敦金/WTI 原油 的对冲关系小卡（同口径近12月月收益） */
+var PX_CORR_ASSET_IDS = PX_DAILY.concat(PX_MONTHLY).filter(function (id) {
+  return id !== 'usdx' && id !== 'usdcnh' && id !== 'vix';
+});
+function pxVixHedgeHtml(pre, ready) {
+  var pairs = [['spx', '标普500'], ['nq', '纳斯达克'], ['gold', '伦敦金'], ['wti', 'WTI原油']];
+  var chips = pairs.map(function (p) {
+    var vPts = pre && pre['vix'] ? pxCorrSeries(pre['vix'], true) : [];
+    var aPts = pre && pre[p[0]] ? pxCorrSeries(pre[p[0]], true) : [];
+    var cv = (vPts.length >= 2 && aPts.length >= 2) ? pxCorrOf(vPts, aPts, 6) : null;
+    var col = cv ? (cv.r < 0 ? '#2f6bff' : '#e02e24') : '#94a3b8';
+    return '<span style="font-size:10px;color:#334155;background:#f1f5f9;border:1px solid #e2e8f0;border-radius:8px;padding:4px 8px;display:inline-block;margin:3px 6px 0 0">' +
+      '<b style="color:#0f172a">' + esc(p[1]) + '</b> · ' +
+      (cv ? '<b style="color:' + col + '">ρ ' + cv.r.toFixed(2) + '</b>' : '<span style="color:#94a3b8">·</span>') +
+      (cv ? ' <span style="color:' + (cv.r < 0 ? '#2f6bff' : '#64748b') + '">' + (cv.r < 0 ? '反向对冲' : '同向共振') + '</span>' : '') +
+      '</span>';
+  }).join('');
+  return '<div style="margin-top:14px">' +
+    '<div style="font-size:12px;font-weight:700;color:#475569;margin-bottom:6px">风险情绪锚 · VIX 对冲关系</div>' +
+    '<div style="font-size:11px;color:#64748b;margin-bottom:6px">VIX 非可投资资产、不进资产矩阵；作为风险情绪开关，单独展示其与主要资产的月收益相关性（越负 = 恐慌时该资产反向走强，对冲价值越高）。</div>' +
+    '<div style="display:flex;gap:10px;flex-wrap:wrap">' + (chips || '<span style="font-size:10px;color:#94a3b8">月收益序列聚合中，稍候自动填充…</span>') + '</div>' +
+    '</div>';
+}
 function pxCorrSeries(it, monthly) {
   if (!it) return [];
   if (monthly) {
@@ -10972,19 +10997,22 @@ function pxComplPairsHtml(ids, items, opts) {
   return out || '<span style="font-size:10px;color:#94a3b8">当前窗口内无 ρ≤0.30 组合（资产高度共振）</span>';
 }
 function pxCorrHtml(pre, ready) {
-  /* fw2_v442_px_corr_merge：日频 + 月频合并为一张 17×17 全局矩阵（统一口径「近12月月收益」：
+  /* fw2_v442_px_corr_merge：日频 + 月频合并为一张全局矩阵（统一口径「近12月月收益」：
      日频资产由日K聚合成月末点、月频资产用理杏仁月末序列，pxCorrSeries 同口径对齐），
-     跨类组合（A股×黄金、纳指×美元指数、A股×VIX 等）直接可读，服务资产搭配/对冲视角；
+     跨类组合（A股×黄金、纳指×美股等）直接可读，服务资产搭配/对冲视角；
      标题同步改「相关性与对冲 · 全局一览」（用户拍板方案 A） */
-  var allIds = PX_DAILY.concat(PX_MONTHLY);
+  /* fw2_v446_px_corr_14：矩阵收敛 17→14 项纯资产（排除 USD/CNH、VIX、美元指数——汇率与美元指数信息重叠、
+     样本空白；VIX 为情绪指标单列「风险情绪锚」块），互补组合推荐同口径只取资产对 */
+  var allIds = PX_CORR_ASSET_IDS;
   var matHtml = ready
-    ? pxCorrMatrixHtml(allIds, pre, { freq: '全局 17 项 · 近12月月收益', minSamples: 6, monthly: true })
+    ? pxCorrMatrixHtml(allIds, pre, { freq: '全局 14 项 · 近12月月收益', minSamples: 6, monthly: true })
     : '<div style="font-size:11px;color:#94a3b8;padding:10px 0">月收益序列聚合中，稍候自动填充…（日K 尚未完成月末聚合）</div>';
   var comp = ready ? pxComplPairsHtml(allIds, pre, { minSamples: 6, monthly: true }) : '';
   return '<div style="margin-top:16px">' +
     '<div style="font-size:13px;font-weight:700;color:#0f172a;margin-bottom:2px">相关性与对冲 · 全局一览</div>' +
-    '<div style="font-size:11px;color:#64748b;margin-bottom:10px">颜色=相关性强度：红=同涨同跌（共振），蓝=涨跌相反（互补/对冲），白≈0=互不相关。统一口径：全部 17 项按近 12 月月收益计算 ρ（日频资产由日K聚合为月末点，与月频资产同口径对齐）。两融/成交额属资金面口径已在上一块单列，不进入本矩阵。</div>' +
+    '<div style="font-size:11px;color:#64748b;margin-bottom:10px">颜色=相关性强度：红=同涨同跌（共振），蓝=涨跌相反（互补/对冲），白≈0=互不相关。统一口径：全部 14 项按近 12 月月收益计算 ρ（日频资产由日K聚合为月末点，与月频资产同口径对齐）。USD/CNH、VIX 与美元指数按性质移出本矩阵：汇率与美元指数信息高度重叠且月频对齐样本空白；VIX 为情绪指标，其对冲关系在下方「风险情绪锚」单列。两融/成交额属资金面口径已在上一块单列，不进入本矩阵。</div>' +
     '<div style="overflow-x:auto">' + matHtml + '</div>' +
+    pxVixHedgeHtml(pre, ready) +
     '<div style="margin-top:12px">' +
     '<div style="font-size:12px;font-weight:700;color:#475569;margin-bottom:6px">互补 / 对冲组合（ρ ≤ 0.30，越负对冲越强）</div>' +
     '<div style="display:flex;gap:10px;flex-wrap:wrap">' + (comp || '') + '</div></div>' +
@@ -12207,7 +12235,7 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
   */
   const vc = $('#verChip');
   /* v319 fw2_v319_sig_risk_fusion：动态 verChip 同步升版（v266 起文本停更，本次修正为当前版本） */
-  if (vc) vc.textContent = 'v445 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  if (vc) vc.textContent = 'v446 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
