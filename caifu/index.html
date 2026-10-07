@@ -10661,36 +10661,57 @@ function renderPriceMon(d) {
     pre[a.id] = it;
   });
   window.__pxState = { years: 1, grp: 'all' };
-  /* v438：时点价格已在顶部实时行情展示，本页只保留 判断层（周期指向/持仓/信号）+ 长期序列；不请求腾讯快照 */
+  /* fw2_v440_px_table_restore：恢复 v437 时点全景表并与资产一览整合——表格含 现价/今日/1月/年初至今/52周区间/周期指向/持仓·信号 全列 + 行点击弹长期走势，
+     替代 v438 起独立的「资产一览」判断层（不再单独展示）；布局：长期趋势 → 全景表 → 相关性矩阵 → 资金面。
+     口径（v437 原样）：日频资产 现价/今日=腾讯快照+日K(250点≈52周)，月频资产=macro 快照+月频序列(13点≈12月)；周期指向/信号=pxCycleAndSigs 复用宏观页同口径 */
+  var qtIds = PX_ASSETS.filter(function (a) { return a.qt; }).map(function (a) { return a.qt; });
+  var preTable = PX_ASSETS.map(function (a) { return pxRowHtml(d, a, pre[a.id], null); }).join('');
   body.innerHTML =
     '<div class="dc-us-wrap">' +
-    '<div class="card"><div class="card-h"><h3>资产价格监控 · 长期趋势与相关性</h3><span class="hint">时点价格见工作台顶部实时行情；本页只回答两个问题：① 各资产长期怎么走 ② 资产之间是共振还是互补</span></div>' +
+    '<div class="card"><div class="card-h"><h3>资产价格监控 · 长期趋势 · 全景表 · 相关性</h3><span class="hint">两个问题一起看：① 各资产长期怎么走 ② 资产之间是共振还是互补；全景表=全量 19 项时点与判断一览，点击行查看长期走势</span></div>' +
     '<div id="pxTrendA"></div>' +
     '<div id="pxTrendB"></div>' +
-    '<div id="pxFund">' + pxFundBlockHtml(d, pre) + '</div>' +
+    '<div style="margin-top:16px">' +
+    '<div style="font-size:13px;font-weight:700;color:#0f172a;margin-bottom:2px">资产一览 · 时点与判断</div>' +
+    '<div style="font-size:11px;color:#64748b;margin-bottom:6px">全量 19 项：现价/今日/1月/年初至今/52周位置 + 周期指向与持仓·信号判断；点击行查看长期走势。现价=腾讯实时快照（月频资产=最新月频值）。</div>' +
+    '<div id="pxTable" style="overflow-x:auto">' + pxTableHeadHtml() + preTable + '</tbody></table></div>' +
+    '</div>' +
     '<div id="pxCorr">' + pxCorrHtml(pre, false) + '</div>' +
-    '<div id="pxAssets">' + pxAssetsListHtml(d, pre) + '</div>' +
+    '<div id="pxFund">' + pxFundBlockHtml(d, pre) + '</div>' +
     '<div style="font-size:10px;color:#94a3b8;margin-top:6px">趋势=以所选窗口起点为 100 的归一化比值（无量纲）；相关性=Pearson 相关系数（日频资产=近 1 年日收益，月频资产=近 12 月月收益）；两融/成交额按资金面口径单列，不进入价格相关性矩阵。周期指向与信号徽标复用宏观指标页同口径阈值；日经 225 数据仅覆盖近 1 年，3/5 年窗口自动剔除。数据不构成投资建议。</div>' +
     '</div></div>';
   pxDrawFundCharts(pre);
-  /* 异步：日K（1300 点 ≈5 年），趋势图按窗口切片复用 */
+  /* 异步：腾讯快照（现价/今日）+ 日K（1300 点 ≈5 年），趋势图按窗口切片复用；表格日频行由日K 重算 52周统计 */
   var klineDone = {};
+  var p1 = pxFetchQuotes(qtIds).then(function (quotes) {
+    PX_ASSETS.forEach(function (a) {
+      if (!a.qt || !quotes[a.qt]) return;
+      var it = pre[a.id];
+      it.cur = quotes[a.qt].price != null ? quotes[a.qt].price : it.cur;
+      it.pct = quotes[a.qt].pct != null ? quotes[a.qt].pct : it.pct;
+      it.time = quotes[a.qt].time || it.time;
+    });
+  });
   var p2 = Promise.all(PX_ASSETS.filter(function (a) { return a.qt; }).map(function (a) {
     return pxFetchKline(a.qt, 1300).then(function (pts) { klineDone[a.qt] = pts; });
   })).then(function () {
     PX_ASSETS.forEach(function (a) {
       if (!a.qt) return;
       var pts = klineDone[a.qt] || [];
+      var it = pre[a.id];
       if (!pts.length) return;
       var sc = a.scale || 1;
-      if (!a.seq) { pre[a.id].pts = pts.map(function (r) { return [r[0], r[1] * sc]; }); }
+      it.pts = pts.map(function (r) { return [r[0], r[1] * sc]; });
+      it.st = pxStats(it.pts, it.cur != null ? it.cur * sc : null, 250);
     });
   });
-  Promise.all([p2]).then(function () {
+  Promise.all([p1, p2]).then(function () {
     window.__pxData = { assets: PX_ASSETS, items: pre };
     window.__pxKline = klineDone;
     pxDrawTrendA();
     pxDrawTrendB();
+    var tEl = document.getElementById('pxTable');
+    if (tEl) tEl.innerHTML = pxTableHeadHtml() + PX_ASSETS.map(function (a) { return pxRowHtml(d, a, pre[a.id], klineDone[a.qt] || null); }).join('') + '</tbody></table>';
     var cEl = document.getElementById('pxCorr'); if (cEl) cEl.innerHTML = pxCorrHtml(pre, true);
     var fEl = document.getElementById('pxFund'); if (fEl) fEl.innerHTML = pxFundBlockHtml(d, pre);
     pxDrawFundCharts(pre);
@@ -11008,23 +11029,7 @@ function pxDrawFundCharts(pre) {
     });
   });
 }
-function pxAssetsListHtml(d, pre) {
-  var rows = PX_ASSETS.map(function (a) {
-    var cs = pxCycleAndSigs(d, a);
-    var hn = pxHeld(a);
-    var sigHtml = cs.sigs.length ? cs.sigs.map(function (s) { return pxSigHtml(s[0], s[1]); }).join(' ') : '<span style="color:#cbd5e1">—</span>';
-    return '<div data-px="' + a.id + '" style="display:flex;align-items:center;gap:10px;padding:6px 8px;border-bottom:1px solid #eef2f7;cursor:pointer;border-radius:6px" onmouseover="this.style.background=\'#f1f5f9\'" onmouseout="this.style.background=\'\'">' +
-      '<span style="width:118px;font-size:12px;font-weight:600;color:#0f172a;white-space:nowrap">' + esc(a.label) +
-      (hn ? ' <span style="font-size:9px;color:#2f6bff;background:#e8eefc;border-radius:4px;padding:1px 5px">● 持仓</span>' : '') + '</span>' +
-      '<span style="flex:1;font-size:11px;color:#475569">' + cs.cycle + '</span>' +
-      '<span style="white-space:nowrap">' + sigHtml + '</span>' +
-      '<span style="font-size:9px;color:#94a3b8;white-space:nowrap">点我看走势 →</span></div>';
-  }).join('');
-  return '<div style="margin-top:16px">' +
-    '<div style="font-size:13px;font-weight:700;color:#0f172a;margin-bottom:2px">资产一览 · 周期指向与持仓/信号</div>' +
-    '<div style="font-size:11px;color:#64748b;margin-bottom:6px">这是判断层（不是时点价格）：每项资产的周期指向（股债比/PE 分位/金油比/2s10s/VIX/成交额温度，复用宏观指标页同口径）与阈值信号；点击行查看长期走势。</div>' +
-    rows + '</div>';
-}
+/* fw2_v440_px_table_restore：pxAssetsListHtml 已移除——其功能（周期指向/持仓·信号/点击看走势）由恢复的时点全景表 pxRowHtml 全列整合，不再单独展示 */
 function pxSigHtml(t, txt) {
   var col = t === 'r' ? '#e02e24' : t === 'y' ? '#d98c00' : '#0d9f4d';
   var bg = t === 'r' ? '#fdeceb' : t === 'y' ? '#fdf3e0' : '#e7f6ee';
@@ -11129,7 +11134,62 @@ function pxCycleAndSigs(d, a) {
   if (pxHeld(a)) { cycle += ' <span style="color:#2f6bff;font-weight:600">● 持仓</span>'; }
   return { cycle: cycle, sigs: sigs.slice(0, 2) };
 }
-/* fw2_v438：pxTableHeadHtml / pxRowHtml 已移除（时点全景表不再展示，见上方 pxCorrHtml/pxAssetsListHtml/pxTrendControls 等替代） */
+/* fw2_v440_px_table_restore：时点全景表恢复（v437 版原样，19 项全列 + 52周位置条 + 周期指向/持仓·信号判断 + 行点击弹走势） */
+function pxTableHeadHtml() {
+  /* fw2_v437_px_table：资产价格监控全景表加表头与悬浮详解；52周区间三列（距高/距低/位置）合一为「低—高+位置条」；容器 overflow-x 横滚防窄屏折行 */
+  var th = 'padding:6px 8px;border:1px solid #e2e8f0;font-size:11px;color:#475569;white-space:nowrap';
+  return '<table style="width:100%;border-collapse:collapse;min-width:820px">' +
+    '<thead><tr style="background:#f1f5f9">' +
+    '<th style="' + th + ';text-align:left">资产</th>' +
+    '<th style="' + th + ';text-align:right" title="最新点位 / 价格（月频资产=最新月频值）">现价</th>' +
+    '<th style="' + th + ';text-align:right" title="当日涨跌幅">今日</th>' +
+    '<th style="' + th + ';text-align:right" title="日频资产=近1月涨跌幅；月频资产=近3月涨跌幅">1月</th>' +
+    '<th style="' + th + ';text-align:right" title="年初至今涨跌幅">年初至今</th>' +
+    '<th style="' + th + ';text-align:left" title="左=52周最低价，右=52周最高价；色条=当前价格在区间中的位置，右侧百分比=位置读数（2%=贴近低点，100%=贴近高点）">52周区间 <span style="color:#94a3b8;font-weight:400">低—高</span></th>' +
+    '<th style="' + th + ';text-align:left" title="复用宏观指标页同口径判读：A股=股债比(ERP)分位、美股=PE分位、黄金/原油=金油比、美债=2s10s、汇率=12m 波动等">周期指向</th>' +
+    '<th style="' + th + ';text-align:left" title="持仓=杠铃配置动态映射（随策略执行自动更新）；信号=阈值触发提示">持仓 / 信号</th>' +
+    '</tr></thead><tbody>';
+}
+function pxRowHtml(d, a, it, kl) {
+  var st = it.st;
+  var isMf = !!a.mf;
+  var curTxt = it.cur != null ? fmtNum(it.cur * (a.scale || 1), a.dec) + (a.unit ? ' ' + a.unit : '') : '—';
+  var dTxt, m1Txt, ytdTxt, posTxt;
+  if (st) {
+    dTxt = st.d != null ? (st.d >= 0 ? '+' : '') + fmtNum(st.d, 1) + '%' : '—';
+    m1Txt = (isMf ? st.m3 : st.m1) != null ? ((isMf ? st.m3 : st.m1) >= 0 ? '+' : '') + fmtNum(isMf ? st.m3 : st.m1, 1) + '%' : '—';
+    ytdTxt = st.ytd != null ? (st.ytd >= 0 ? '+' : '') + fmtNum(st.ytd, 1) + '%' : '—';
+    posTxt = st.pos != null ? st.pos.toFixed(0) + '%' : '—';
+  } else {
+    dTxt = m1Txt = ytdTxt = posTxt = '—';
+  }
+  var cs = pxCycleAndSigs(d, a);
+  var dCls = (st && st.d != null) ? (st.d >= 0 ? 'color:var(--up);font-weight:600' : 'color:var(--down);font-weight:600') : '';
+  var rngHtml = '—';
+  if (st && st.pos != null) {
+    var loT = st.lo != null ? fmtNum(st.lo, a.dec) : '—';
+    var hiT = st.hi != null ? fmtNum(st.hi, a.dec) : '—';
+    rngHtml = '<div style="display:flex;align-items:center;gap:6px;white-space:nowrap">' +
+      '<span style="font-size:10px;color:#0d9f4d">' + loT + '</span>' +
+      '<div style="position:relative;width:80px;height:6px;border-radius:3px;background:#e9eef5"><div style="position:absolute;left:0;width:' + Math.max(2, Math.min(100, st.pos)) + '%;height:6px;border-radius:3px;background:' + (st.pos >= 80 ? '#e02e24' : st.pos <= 20 ? '#0d9f4d' : '#f0a020') + '"></div></div>' +
+      '<span style="font-size:10px;color:#e02e24">' + hiT + '</span>' +
+      '<span style="font-size:10px;color:#64748b">' + posTxt + '</span></div>';
+  }
+  var sigHtml = cs.sigs.length ? cs.sigs.map(function (s) { return pxSigHtml(s[0], s[1]); }).join(' ') : '<span style="color:#cbd5e1">—</span>';
+  var hn = pxHeld(a);
+  var heldHtml = hn ? '<span style="font-size:10px;color:#2f6bff;background:#e8eefc;border-radius:5px;padding:1px 6px">持 · ' + esc(hn) + '</span>' : '—';
+  var td = 'padding:7px 8px;border-bottom:1px solid #eef2f7';
+  return '<tr data-px="' + a.id + '" style="cursor:pointer">' +
+    '<td style="' + td + ';font-weight:600;color:#0f172a;white-space:nowrap">' + esc(a.label) + (isMf ? ' <span style="font-size:9px;color:#94a3b8;font-weight:400">月频</span>' : '') + '</td>' +
+    '<td style="' + td + ';text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums">' + curTxt + '</td>' +
+    '<td style="' + td + ';text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums;' + dCls + '">' + dTxt + '</td>' +
+    '<td style="' + td + ';text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums">' + m1Txt + '</td>' +
+    '<td style="' + td + ';text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums">' + ytdTxt + '</td>' +
+    '<td style="' + td + ';white-space:nowrap">' + rngHtml + '</td>' +
+    '<td style="' + td + ';font-size:11px;color:#475569;min-width:130px">' + cs.cycle + '</td>' +
+    '<td style="' + td + ';white-space:nowrap;max-width:240px">' + heldHtml + ' ' + sigHtml + '</td>' +
+    '</tr>';
+}
 
 function pxOpenChart(a, it) {
   var pts = it.pts || [];
@@ -12125,7 +12185,7 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
   */
   const vc = $('#verChip');
   /* v319 fw2_v319_sig_risk_fusion：动态 verChip 同步升版（v266 起文本停更，本次修正为当前版本） */
-  if (vc) vc.textContent = 'v439 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  if (vc) vc.textContent = 'v440 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
