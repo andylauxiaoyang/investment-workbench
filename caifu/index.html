@@ -10513,18 +10513,18 @@ function renderMacroUS(d) {
  * 联动：周期指向（复用宏观页阈值）· 持仓高亮（SIGNALS_CFG.barbell.track）· 信号徽标
  * ========================================================== */
 var PX_ASSETS = [
-  { id:'hs300', g:'a', label:'沪深300', qt:'sh000300', dec:2, held:'沪深300增强' },
+  { id:'hs300', g:'a', label:'沪深300', qt:'sh000300', dec:2, heldBy:'001015' },
   { id:'zz500', g:'a', label:'中证500', qt:'sh000905', dec:2 },
-  { id:'cyb',   g:'a', label:'创业板指', qt:'sz399006', dec:2, held:'创业板50' },
+  { id:'cyb',   g:'a', label:'创业板指', qt:'sz399006', dec:2, heldBy:'159949' },
   { id:'kc50',  g:'a', label:'科创50', qt:'sh000688', dec:2 },
   { id:'zz1000',g:'a', label:'中证1000', qt:'sh000852', dec:2 },
-  { id:'nq',    g:'o', label:'纳斯达克', qt:'usIXIC', dec:2, held:'纳指100' },
+  { id:'nq',    g:'o', label:'纳斯达克', qt:'usIXIC', dec:2, heldBy:'016452' },
   { id:'spx',   g:'o', label:'标普500', qt:'usINX', dec:2 },
   { id:'hsi',   g:'o', label:'恒生指数', qt:'hkHSI', dec:2 },
-  { id:'nky',   g:'o', label:'日经225', dec:0, held:'日经225', nky:1 },
+  { id:'nky',   g:'o', label:'日经225', dec:0, heldBy:'020712', nky:1 },
   { id:'ust10', g:'b', label:'10年美债', dec:2, unit:'%', src:'fx.cur.ust10', seq:'fx:3', mf:1 },
-  { id:'cn10',  g:'b', label:'中债10Y', dec:2, unit:'%', src:'erp.cur.y10', seq:'erp:2', mf:1, held:'10年国债' },
-  { id:'gold',  g:'c', label:'伦敦金', qt:'hf_XAU', dec:2, held:'黄金ETF', seq:'wave.dollar.gold.points', mf:1 },
+  { id:'cn10',  g:'b', label:'中债10Y', dec:2, unit:'%', src:'erp.cur.y10', seq:'erp:2', mf:1, heldBy:'511260' },
+  { id:'gold',  g:'c', label:'伦敦金', qt:'hf_XAU', dec:2, heldBy:'159934', seq:'wave.dollar.gold.points', mf:1 },
   { id:'wti',   g:'c', label:'WTI原油', qt:'hf_CL', dec:2, seq:'wave.dollar.oil.points', mf:1 },
   { id:'cu',    g:'c', label:'COMEX铜', qt:'hf_HG', dec:2, scale:0.01, seq:'wave.dollar.copper.points', mf:1 },
   { id:'usdx',  g:'c', label:'美元指数', dec:2, src:'fx.cur.usdx', seq:'fx:2', mf:1 },
@@ -10534,6 +10534,16 @@ var PX_ASSETS = [
   { id:'amt',   g:'e', label:'全A成交额', dec:2, unit:'万亿', src:'amtD.cur:1', scale:1e-4, seq:'amtD:1', mf:1 }
 ];
 var PX_GRP = { a:'A股', o:'海外', b:'债券', c:'商品与汇率', e:'情绪与资金' };
+/* v433 fw2_v433_px_held_dynamic：持仓高亮动态读 SIGNALS_CFG.barbell.funds（策略执行杠铃配置）——
+   配置改、持仓高亮自动跟随，不再写死在 PX_ASSETS；命中返回该基金配置名，未命中返回 null */
+function pxHeld(a) {
+  if (!a || !a.heldBy) return null;
+  var C = window.SIGNALS_CFG;
+  if (!C || !C.barbell || !C.barbell.funds) return null;
+  var hit = null;
+  C.barbell.funds.forEach(function (f) { if (f && f.code === a.heldBy) hit = f; });
+  return hit ? hit.name : null;
+}
 function pxPath(d, path) {
   var cur = d, i = 0, parts = path.split(':');
   var seg = parts[0].split('.');
@@ -10648,7 +10658,7 @@ function renderPriceMon(d) {
   body.innerHTML =
     '<div class="dc-us-wrap">' +
     '<div class="card"><div class="card-h"><h3>资产价格监控 · ' + PX_ASSETS.length + ' 项全景</h3><span class="hint">日频（腾讯快照+K线）· 债券/汇率/情绪/商品曲线=月频（理杏仁）· 日经=东财快照+CNBC 日线</span></div>' +
-    '<div style="font-size:11px;color:#64748b;margin-bottom:10px">取数时点：A股 09-30 收盘（国庆休市）· 美股/港股 10-06 · 商品 10-07 实时 · 债券/汇率/情绪为 9 月末月频值 · 点击行/磁贴查看近 1 年走势 · 持仓列=你的半杠铃持仓映射（A500/红利/现金流/短融/货基未列入全景）</div>' +
+    '<div style="font-size:11px;color:#64748b;margin-bottom:10px">取数时点：A股 09-30 收盘（国庆休市）· 美股/港股 10-06 · 商品 10-07 实时 · 债券/汇率/情绪为 9 月末月频值 · 点击行/磁贴查看近 1 年走势 · 持仓列=杠铃配置动态映射（随策略执行 SIGNALS_CFG.barbell 自动更新；A500/红利/现金流/短融/货基未列入全景）</div>' +
     '<div id="pxTiles">' + grpHtml + '</div>' +
     '<div id="pxTable">' + preTable + '</div>' +
     '<div style="font-size:10px;color:#94a3b8;margin-top:6px">周期指向与信号徽标复用宏观指标页同口径阈值（股债比/PE 分位/金油比/2s10s/VIX/成交额温度等）；本模块为价格快照层，带判断/阈值类请跳「宏观指标」深度分析；数据不构成投资建议。</div>' +
@@ -10714,7 +10724,7 @@ function pxTileHtml(a, it, kl) {
     : '<div style="font-size:9px;color:#cbd5e1;margin-top:6px">无区间序列</div>';
   return '<div class="px-tile" data-px="' + a.id + '" style="flex:0 1 158px;min-width:148px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:9px 11px;cursor:pointer;transition:box-shadow .15s">' +
     '<div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:11px;color:#475569;font-weight:600">' + esc(a.label) + '</span>' +
-    (a.held ? '<span style="font-size:9px;color:#2f6bff;background:#e8eefc;border-radius:4px;padding:1px 5px">持</span>' : '') + '</div>' +
+    (pxHeld(a) ? '<span style="font-size:9px;color:#2f6bff;background:#e8eefc;border-radius:4px;padding:1px 5px">持</span>' : '') + '</div>' +
     '<div style="font-size:17px;font-weight:700;color:#0f172a;margin:3px 0 0;line-height:1.2">' + curTxt + '</div>' +
     '<div style="font-size:11px;font-weight:600;color:' + pctCls + '">' + pctTxt + '</div>' + bar + '</div>';
 }
@@ -10833,7 +10843,7 @@ function pxCycleAndSigs(d, a) {
       if (amtTw != null && amtTw < 1.5) sigs.push(['g', '成交<1.5万亿 网格定投区']);
       break;
   }
-  if (a.held) { cycle += ' <span style="color:#2f6bff;font-weight:600">● 持仓</span>'; }
+  if (pxHeld(a)) { cycle += ' <span style="color:#2f6bff;font-weight:600">● 持仓</span>'; }
   return { cycle: cycle, sigs: sigs.slice(0, 2) };
 }
 function pxRowHtml(d, a, it, kl) {
@@ -10857,7 +10867,8 @@ function pxRowHtml(d, a, it, kl) {
     ? '<div style="position:relative;width:74px;height:6px;border-radius:3px;background:#e9eef5"><div style="position:absolute;left:0;width:' + Math.max(2, Math.min(100, st.pos)) + '%;height:6px;border-radius:3px;background:' + (st.pos >= 80 ? '#e02e24' : st.pos <= 20 ? '#0d9f4d' : '#f0a020') + '"></div></div>'
     : '—';
   var sigHtml = cs.sigs.length ? cs.sigs.map(function (s) { return pxSigHtml(s[0], s[1]); }).join(' ') : '<span style="color:#cbd5e1">—</span>';
-  var heldHtml = a.held ? '<span style="font-size:10px;color:#2f6bff;background:#e8eefc;border-radius:5px;padding:1px 6px">持 · ' + esc(a.held) + '</span>' : '—';
+  var hn = pxHeld(a);
+  var heldHtml = hn ? '<span style="font-size:10px;color:#2f6bff;background:#e8eefc;border-radius:5px;padding:1px 6px">持 · ' + esc(hn) + '</span>' : '—';
   return '<tr data-px="' + a.id + '" style="cursor:pointer;border-top:1px solid #eef2f7">' +
     '<td style="padding:7px 8px;font-weight:600;color:#0f172a;white-space:nowrap">' + esc(a.label) + (isMf ? ' <span style="font-size:9px;color:#94a3b8;font-weight:400">月频</span>' : '') + '</td>' +
     '<td style="padding:7px 8px;text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums">' + curTxt + '</td>' +
@@ -11850,7 +11861,7 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
   */
   const vc = $('#verChip');
   /* v319 fw2_v319_sig_risk_fusion：动态 verChip 同步升版（v266 起文本停更，本次修正为当前版本） */
-  if (vc) vc.textContent = 'v432 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  if (vc) vc.textContent = 'v434 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
@@ -12933,6 +12944,14 @@ setInterval(updateSessionBadge, 30000);
   };
   /* fw2_fix_mcnav2row：宏观导航两排——周期相关第一行，其他指标第二排 */
   var MC_CYCLE_KEYS = ['周期', '层', '美元 / 黄金', '行业周期', '信用脉冲（社融同比'];
+  /* fw2_v434_mc_mi_groups：宏观指标页 12 卡按主题分组（横幅按本数组顺序插入，与 DOM 顺序解耦；keys 按 data-title 前缀匹配） */
+  window.MI_GROUPS = [
+    { name:'估值与性价比 · A股', keys:['ERP 股债性价比', '沪深300 PE-TTM', '宽基估值温度'] },
+    { name:'信用与通胀', keys:['信用脉冲：社融', '物价剪刀差', '制造业 PMI'] },
+    { name:'情绪与流动性', keys:['情绪温度计', '全A成交额', 'VIX 恐慌'] },
+    { name:'海外与利率', keys:['全球利率与汇率', '美股估值温度'] },
+    { name:'历史定位', keys:['历史相似阶段回放'] }
+  ];
   function renderDcMcNav(){
     /* fw2_v431：名字按钮区已废弃——中国周期改为 8 张周期卡直接平铺、指标卡收进「宏观指标」模块，
        不再注入 #mcNavNames；静态 #dcMcNav 保持隐藏（显示规则由 __mcApply 统一执行）。 */
@@ -12963,6 +12982,26 @@ setInterval(updateSessionBadge, 30000);
         m.style.display = (isCyc(m) === showCyc) ? 'block' : 'none';
       });
       vis = mods.filter(function (m) { return m.style.display === 'block'; });
+      /* fw2_v434_mc_mi_groups：宏观指标页按主题插分组横幅（仅 mi；横幅顺序=MI_GROUPS 顺序） */
+      if (reg === 'mi' && window.MI_GROUPS) {
+        var firstEl = {};
+        mods.forEach(function (m) {
+          if (m.style.display !== 'block') return;
+          var t = m.getAttribute('data-title') || '';
+          for (var k = 0; k < window.MI_GROUPS.length; k++) {
+            var g = window.MI_GROUPS[k], hit = false;
+            for (var q = 0; q < g.keys.length; q++) { if (t.indexOf(g.keys[q]) >= 0) { hit = true; break; } }
+            if (hit) { if (!firstEl[k]) firstEl[k] = m; break; }
+          }
+        });
+        for (var gi2 = 0; gi2 < window.MI_GROUPS.length; gi2++) {
+          var fm = firstEl[gi2]; if (!fm) continue;
+          var bn = document.createElement('div');
+          bn.style.cssText = 'margin:18px 0 8px;padding:0 0 6px;border-bottom:1.5px solid #e2e8f0;font-size:13px;font-weight:700;color:#334155;letter-spacing:.5px';
+          bn.textContent = window.MI_GROUPS[gi2].name;
+          fm.parentNode.insertBefore(bn, fm);
+        }
+      }
     } else if (reg === 'dm') {
       mods.forEach(function (m) { m.style.display = isDollar(m) ? 'block' : 'none'; });
       vis = mods.filter(function (m) { return m.style.display === 'block'; });
