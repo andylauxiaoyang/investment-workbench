@@ -9810,7 +9810,7 @@ function renderMacro() {
   if (_navEl) _navEl.style.display = 'none';
   fillMacroTabs();
   if (_region === 'us') { body.innerHTML = renderMacroTop(d) + renderMacroUS(d); renderMacroUSCharts(); return; }
-  /* fw2_v432 资产价格监控：18 项全景 · 磁贴+分区表+弹层走势 · 周期/持仓/信号三联动 */
+  /* fw2_v432 资产价格监控：19 项全景 · 磁贴+分区表+弹层走势 · 周期/持仓/信号三联动 */
   if (_region === 'px') { renderPriceMon(d); return; }
   const N = { '1': 12, '3': 36, '5': 60, '10': 120 }[state.macroWin] || 120;
   /* v196 宏观周期：四层周期定位引擎（纯规则实时计算，口径见 cycleEngine） */
@@ -10505,7 +10505,7 @@ function renderMacroUS(d) {
     indCard + chartCard + cycHtml + foot + '</div>';
 }
 /* ==========================================================
- * fw2_v432_ 资产价格监控（px tab）· 18 项全景
+ * fw2_v432_ 资产价格监控（px tab）· 19 项全景
  * 数据分层（与宏观页同口径）：
  *   - 日K/快照（腾讯 qt.gtimg.cn + fqkline/usfqkline）：A股5 + 美股2 + 恒指
  *   - 日经225：东财全球快照 + CNBC 1Y 日线（macro-data.json nky）
@@ -10624,9 +10624,10 @@ function renderPriceMon(d) {
     var it = { a: a, cur: null, pct: null, time: '', st: null, pts: [] };
     if (a.src || a.seq) {
       var v = a.src ? pxPath(d, a.src) : null;
+      var sc = a.scale || 1;
       if (v != null) { it.cur = v; it.time = d.updatedAt || ''; }
       var seq = a.seq ? pxSeq(d, a) : null;
-      if (seq && seq.length) { it.pts = seq; it.st = pxStats(seq, v, 13); it.pct = it.st ? it.st.d : null; }
+      if (seq && seq.length) { it.pts = seq; it.st = pxStats(seq, v != null ? v * sc : null, 13); it.pct = it.st ? it.st.d : null; }
     } else if (a.nky) {
       var nk = d.nky || {};
       if (nk.val != null) { it.cur = nk.val; it.pct = nk.chgPct; }
@@ -10646,8 +10647,8 @@ function renderPriceMon(d) {
   }).join('');
   body.innerHTML =
     '<div class="dc-us-wrap">' +
-    '<div class="card"><div class="card-h"><h3>资产价格监控 · 18 项全景</h3><span class="hint">日频（腾讯快照+K线）· 债券/汇率/情绪/商品曲线=月频（理杏仁）· 日经=东财快照+CNBC 日线</span></div>' +
-    '<div style="font-size:11px;color:#64748b;margin-bottom:10px">取数时点：A股 09-30 收盘（国庆休市）· 美股/港股 10-06 · 商品 10-07 实时 · 债券/汇率/情绪为 9 月末月频值 · 点击行/磁贴查看近 1 年走势 · 持仓列=你的半杠铃持仓映射（A500/红利/现金流/短融/货基未列入 18 项全景）</div>' +
+    '<div class="card"><div class="card-h"><h3>资产价格监控 · ' + PX_ASSETS.length + ' 项全景</h3><span class="hint">日频（腾讯快照+K线）· 债券/汇率/情绪/商品曲线=月频（理杏仁）· 日经=东财快照+CNBC 日线</span></div>' +
+    '<div style="font-size:11px;color:#64748b;margin-bottom:10px">取数时点：A股 09-30 收盘（国庆休市）· 美股/港股 10-06 · 商品 10-07 实时 · 债券/汇率/情绪为 9 月末月频值 · 点击行/磁贴查看近 1 年走势 · 持仓列=你的半杠铃持仓映射（A500/红利/现金流/短融/货基未列入全景）</div>' +
     '<div id="pxTiles">' + grpHtml + '</div>' +
     '<div id="pxTable">' + preTable + '</div>' +
     '<div style="font-size:10px;color:#94a3b8;margin-top:6px">周期指向与信号徽标复用宏观指标页同口径阈值（股债比/PE 分位/金油比/2s10s/VIX/成交额温度等）；本模块为价格快照层，带判断/阈值类请跳「宏观指标」深度分析；数据不构成投资建议。</div>' +
