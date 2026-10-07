@@ -10669,7 +10669,7 @@ function renderPriceMon(d) {
     '<div class="card"><div class="card-h"><h3>资产价格监控 · ' + PX_ASSETS.length + ' 项全景</h3><span class="hint">日频（腾讯快照+K线）· 债券/汇率/情绪/商品曲线=月频（理杏仁）· 日经=东财快照+CNBC 日线</span></div>' +
     '<div style="font-size:11px;color:#64748b;margin-bottom:10px">取数时点：A股 09-30 收盘（国庆休市）· 美股/港股 10-06 · 商品 10-07 实时 · 债券/汇率/情绪为 9 月末月频值 · 点击行/磁贴查看近 1 年走势 · 持仓列=杠铃配置动态映射（随策略执行 SIGNALS_CFG.barbell 自动更新；A500/红利/现金流/短融/货基未列入全景）</div>' +
     '<div id="pxTiles">' + grpHtml + '</div>' +
-    '<div id="pxTable">' + preTable + '</div>' +
+    '<div id="pxTable" style="overflow-x:auto">' + pxTableHeadHtml() + preTable + '</tbody></table></div>' +
     '<div style="font-size:10px;color:#94a3b8;margin-top:6px">周期指向与信号徽标复用宏观指标页同口径阈值（股债比/PE 分位/金油比/2s10s/VIX/成交额温度等）；本模块为价格快照层，带判断/阈值类请跳「宏观指标」深度分析；数据不构成投资建议。</div>' +
     '</div></div>';
   /* 异步：腾讯快照 + 日K */
@@ -10702,7 +10702,7 @@ function renderPriceMon(d) {
     var tiles = pxTilesHtml(d, PX_ASSETS.map(function (a) { return pre[a.id]; }), klineDone);
     window.__pxData = { assets: PX_ASSETS, items: pre };
     var tEl = document.getElementById('pxTiles'); if (tEl) tEl.innerHTML = tiles;
-    var tbEl = document.getElementById('pxTable'); if (tbEl) tbEl.innerHTML = rows;
+    var tbEl = document.getElementById('pxTable'); if (tbEl) tbEl.innerHTML = pxTableHeadHtml() + rows + '</tbody></table>';
   }).catch(function () {});
 }
 function pxSeq(d, a) {
@@ -10855,41 +10855,59 @@ function pxCycleAndSigs(d, a) {
   if (pxHeld(a)) { cycle += ' <span style="color:#2f6bff;font-weight:600">● 持仓</span>'; }
   return { cycle: cycle, sigs: sigs.slice(0, 2) };
 }
+function pxTableHeadHtml() {
+  /* fw2_v437_px_table：资产价格监控全景表加表头与悬浮详解；52周区间三列（距高/距低/位置）合一为「低—高+位置条」；容器 overflow-x 横滚防窄屏折行 */
+  var th = 'padding:6px 8px;border:1px solid #e2e8f0;font-size:11px;color:#475569;white-space:nowrap';
+  return '<table style="width:100%;border-collapse:collapse;min-width:820px">' +
+    '<thead><tr style="background:#f1f5f9">' +
+    '<th style="' + th + ';text-align:left">资产</th>' +
+    '<th style="' + th + ';text-align:right" title="最新点位 / 价格（月频资产=最新月频值）">现价</th>' +
+    '<th style="' + th + ';text-align:right" title="当日涨跌幅">今日</th>' +
+    '<th style="' + th + ';text-align:right" title="日频资产=近1月涨跌幅；月频资产=近3月涨跌幅">1月</th>' +
+    '<th style="' + th + ';text-align:right" title="年初至今涨跌幅">年初至今</th>' +
+    '<th style="' + th + ';text-align:left" title="左=52周最低价，右=52周最高价；色条=当前价格在区间中的位置，右侧百分比=位置读数（2%=贴近低点，100%=贴近高点）">52周区间 <span style="color:#94a3b8;font-weight:400">低—高</span></th>' +
+    '<th style="' + th + ';text-align:left" title="复用宏观指标页同口径判读：A股=股债比(ERP)分位、美股=PE分位、黄金/原油=金油比、美债=2s10s、汇率=12m 波动等">周期指向</th>' +
+    '<th style="' + th + ';text-align:left" title="持仓=杠铃配置动态映射（随策略执行自动更新）；信号=阈值触发提示">持仓 / 信号</th>' +
+    '</tr></thead><tbody>';
+}
 function pxRowHtml(d, a, it, kl) {
   var st = it.st;
   var isMf = !!a.mf;
   var curTxt = it.cur != null ? fmtNum(it.cur * (a.scale || 1), a.dec) + (a.unit ? ' ' + a.unit : '') : '—';
-  var dTxt, m1Txt, ytdTxt, hiTxt, loTxt, posTxt;
+  var dTxt, m1Txt, ytdTxt, posTxt;
   if (st) {
     dTxt = st.d != null ? (st.d >= 0 ? '+' : '') + fmtNum(st.d, 1) + '%' : '—';
     m1Txt = (isMf ? st.m3 : st.m1) != null ? ((isMf ? st.m3 : st.m1) >= 0 ? '+' : '') + fmtNum(isMf ? st.m3 : st.m1, 1) + '%' : '—';
-    ytdTxt = (isMf ? st.ytd : st.ytd) != null ? (st.ytd >= 0 ? '+' : '') + fmtNum(st.ytd, 1) + '%' : '—';
-    hiTxt = st.distHi != null ? fmtNum(st.distHi, 1) + '%' : '—';
-    loTxt = st.distLo != null ? fmtNum(st.distLo, 1) + '%' : '—';
+    ytdTxt = st.ytd != null ? (st.ytd >= 0 ? '+' : '') + fmtNum(st.ytd, 1) + '%' : '—';
     posTxt = st.pos != null ? st.pos.toFixed(0) + '%' : '—';
   } else {
-    dTxt = m1Txt = ytdTxt = hiTxt = loTxt = posTxt = '—';
+    dTxt = m1Txt = ytdTxt = posTxt = '—';
   }
   var cs = pxCycleAndSigs(d, a);
-  var dCls = (st && st.d != null) ? (st.d >= 0 ? 'style="color:var(--up);font-weight:600"' : 'style="color:var(--down);font-weight:600"') : '';
-  var posBar = st && st.pos != null
-    ? '<div style="position:relative;width:74px;height:6px;border-radius:3px;background:#e9eef5"><div style="position:absolute;left:0;width:' + Math.max(2, Math.min(100, st.pos)) + '%;height:6px;border-radius:3px;background:' + (st.pos >= 80 ? '#e02e24' : st.pos <= 20 ? '#0d9f4d' : '#f0a020') + '"></div></div>'
-    : '—';
+  var dCls = (st && st.d != null) ? (st.d >= 0 ? 'color:var(--up);font-weight:600' : 'color:var(--down);font-weight:600') : '';
+  var rngHtml = '—';
+  if (st && st.pos != null) {
+    var loT = st.lo != null ? fmtNum(st.lo, a.dec) : '—';
+    var hiT = st.hi != null ? fmtNum(st.hi, a.dec) : '—';
+    rngHtml = '<div style="display:flex;align-items:center;gap:6px;white-space:nowrap">' +
+      '<span style="font-size:10px;color:#0d9f4d">' + loT + '</span>' +
+      '<div style="position:relative;width:80px;height:6px;border-radius:3px;background:#e9eef5"><div style="position:absolute;left:0;width:' + Math.max(2, Math.min(100, st.pos)) + '%;height:6px;border-radius:3px;background:' + (st.pos >= 80 ? '#e02e24' : st.pos <= 20 ? '#0d9f4d' : '#f0a020') + '"></div></div>' +
+      '<span style="font-size:10px;color:#e02e24">' + hiT + '</span>' +
+      '<span style="font-size:10px;color:#64748b">' + posTxt + '</span></div>';
+  }
   var sigHtml = cs.sigs.length ? cs.sigs.map(function (s) { return pxSigHtml(s[0], s[1]); }).join(' ') : '<span style="color:#cbd5e1">—</span>';
   var hn = pxHeld(a);
   var heldHtml = hn ? '<span style="font-size:10px;color:#2f6bff;background:#e8eefc;border-radius:5px;padding:1px 6px">持 · ' + esc(hn) + '</span>' : '—';
-  return '<tr data-px="' + a.id + '" style="cursor:pointer;border-top:1px solid #eef2f7">' +
-    '<td style="padding:7px 8px;font-weight:600;color:#0f172a;white-space:nowrap">' + esc(a.label) + (isMf ? ' <span style="font-size:9px;color:#94a3b8;font-weight:400">月频</span>' : '') + '</td>' +
-    '<td style="padding:7px 8px;text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums">' + curTxt + '</td>' +
-    '<td ' + dCls + ' style="padding:7px 8px;text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums">' + dTxt + '</td>' +
-    '<td style="padding:7px 8px;text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums">' + m1Txt + '</td>' +
-    '<td style="padding:7px 8px;text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums">' + ytdTxt + '</td>' +
-    '<td style="padding:7px 8px;text-align:right;white-space:nowrap;color:#e02e24;font-variant-numeric:tabular-nums">' + hiTxt + '</td>' +
-    '<td style="padding:7px 8px;text-align:right;white-space:nowrap;color:#0d9f4d;font-variant-numeric:tabular-nums">' + loTxt + '</td>' +
-    '<td style="padding:7px 8px;text-align:center;white-space:nowrap">' + posBar + '<span style="font-size:10px;color:#64748b;margin-left:5px">' + posTxt + '</span></td>' +
-    '<td style="padding:7px 8px;font-size:11px;color:#475569;min-width:130px">' + cs.cycle + '</td>' +
-    '<td style="padding:7px 8px;white-space:nowrap">' + heldHtml + '</td>' +
-    '<td style="padding:7px 8px;white-space:nowrap;max-width:220px">' + sigHtml + '</td>' +
+  var td = 'padding:7px 8px;border-bottom:1px solid #eef2f7';
+  return '<tr data-px="' + a.id + '" style="cursor:pointer">' +
+    '<td style="' + td + ';font-weight:600;color:#0f172a;white-space:nowrap">' + esc(a.label) + (isMf ? ' <span style="font-size:9px;color:#94a3b8;font-weight:400">月频</span>' : '') + '</td>' +
+    '<td style="' + td + ';text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums">' + curTxt + '</td>' +
+    '<td style="' + td + ';text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums;' + dCls + '">' + dTxt + '</td>' +
+    '<td style="' + td + ';text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums">' + m1Txt + '</td>' +
+    '<td style="' + td + ';text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums">' + ytdTxt + '</td>' +
+    '<td style="' + td + ';white-space:nowrap">' + rngHtml + '</td>' +
+    '<td style="' + td + ';font-size:11px;color:#475569;min-width:130px">' + cs.cycle + '</td>' +
+    '<td style="' + td + ';white-space:nowrap;max-width:240px">' + heldHtml + ' ' + sigHtml + '</td>' +
     '</tr>';
 }
 function pxOpenChart(a, it) {
@@ -11870,7 +11888,7 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
   */
   const vc = $('#verChip');
   /* v319 fw2_v319_sig_risk_fusion：动态 verChip 同步升版（v266 起文本停更，本次修正为当前版本） */
-  if (vc) vc.textContent = 'v436 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  if (vc) vc.textContent = 'v437 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
