@@ -9495,6 +9495,12 @@ function renderMacro() {
   const body = $('#macroBody'); if (!body) return;
   const d = state.macro;
   if (!d) { body.innerHTML = '<div class="card"><div class="empty st st-empty">宏观数据加载中…</div></div>'; return; }
+  /* fw2_v453_macro_hb：美国高频景气（USH 手册整合）数据入口——ushf 键（FRED 官方 CSV 通道） */
+  const ushf = (d && d.ushf) || {};
+  const ushfIC = ushf.initialClaims || {}, ushfUR = ushf.unrate || {}, ushfRet = ushf.retail || {},
+        ushfPce = ushf.incomePce || {}, ushfDur = ushf.durables || {}, ushfLei = ushf.lei || {},
+        ushfFF = ushf.fedFunds || {}, ushfBE = ushf.breakeven || {}, ushfFis = ushf.fiscal || {},
+        ushfCli = (ushf.globalCli && ushf.globalCli.countries) || {};
   /* fw2_v431 宏观周期并列模块：中国周期 / 美国/全球周期 / 宏观指标 / 资产价格监控 四并列 tab 整屏切换。
      中国周期=9 张周期卡平铺（四周期嵌套/周期定位/历史相似阶段回放/层1/层2/信用脉冲/层3/层4/行业周期）；
      美国/全球周期=FSI+美国资产温度+美国四周期+美元/黄金/大宗全球资产信号（fw2_v436 并入）；
@@ -9620,7 +9626,7 @@ function renderMacro() {
   const moodLvl = ((zbPct != null && zbPct > 90) || (aPct != null && aPct > 90)) ? '过热·杠杆拥挤（防御，暂停加档）' : ((zbPct != null && zbPct < 10) || (aPct != null && aPct < 10)) ? '冰点·逆向关注（可小幅加档）' : '中性区·正常节奏';
   /* fw2_v430c：中国周期 / 宏观指标 渲染同一中国模板但不带窗口工具条（mi 也不带）；
      模块显示控制由 __mcApply 按 region 统一执行（cn 显示周期卡不含美元卡、mi 显示指标卡不含美元卡）。 */
-  body.innerHTML = (_region === 'mi' ? '' : renderMacroToolsHtml()) + `
+  body.innerHTML = (_region === 'mi' ? renderMacroGroupCaps() : renderMacroToolsHtml()) + `
   <!-- ===== v201 涛动周期：四周期嵌套定位 + 共振合成（周金涛框架） ===== -->
   <div class="card dc-cyc">
     <div class="card-h"><h3>四周期嵌套 · 涛动周期定位</h3><span class="hint">康波60年 ⊃ 库兹涅茨20年 ⊃ 朱格拉10年 ⊃ 基钦3-4年 · 理论+数据驱动 · 不构成投资建议</span></div>
@@ -9672,7 +9678,7 @@ function renderMacro() {
     <div class="rv-line"><span class="tag tag-data">阈值</span><span>剪刀差 <b>≥0</b> 盈利扩张顺风 · <b>0~−2</b> 收敛观察 · <b>&lt;−2</b> 盈利收缩逆风（与 M 系列同口径）</span></div>
   </div>
   <div class="card dc-cyc">
-    <div class="card-h"><h3>信用脉冲（社融同比 3 月变化）</h3><span class="hint">社融存量同比的边际动能 · 领先 A 股约 6 个月 · 与 L2 剪刀差互补</span></div>
+    <div class="card-h"><h3>信用脉冲（社融同比 3 月变化）</h3><span class="hint">社融存量同比的边际动能 · 领先 A 股约 6 个月 · 与 L2 剪刀差互补 · 曲线见「宏观指标」页同源卡</span></div>
     <div class="cyc-badge-lg"><b>${cyc.layers.pulse.phase.s}</b><span>${cyc.layers.pulse.phase.c}</span></div>
     <div class="rv-line"><span class="tag tag-data">代理读数</span><span>${cyc.layers.pulse.proxy}</span></div>
     <div class="rv-line"><span class="tag tag-ai">指向</span><span>${cyc.layers.pulse.phase.s === '扩张' ? '信用动能增强 → 顺周期/成长可分批' : cyc.layers.pulse.phase.s === '收缩' ? '信用动能衰减 → 控制仓位中枢，等脉冲拐点（约领先 6 个月）' : '信用动能中性 → 维持现有节奏'}</span></div>
@@ -9775,18 +9781,20 @@ function renderMacro() {
     <div class="chart" id="mcPrice" style="height:200px"></div>
   </div>
   <div class="card">
-    <div class="card-h"><h3>外围：USDCNH / 美元指数 / 美债10Y / 中美利差</h3><span class="hint">月末点 · ${fx.length} 个</span></div>
-    ${_mcMeta(_mcLastOf(fx), '月末', 'USDCNH / 美元指数 / 美债10Y / 中美利差 / USDJPY', 75)}
+    <div class="card-h"><h3>全球利率与汇率 · 美债/美元/日元</h3><span class="hint">月末点 · ${rates.length} 个月 · 外围红绿灯 + 收益率曲线合并卡</span></div>
+    ${_mcMeta(_mcLastOf(fx), '月末', 'USDCNH / 美元指数 / 美债10Y/2Y / 2s10s 利差 / 中美利差 / USDJPY', 75)}
     <div class="metric-grid">
       ${metric('USDCNH', fL != null ? fmtNum(fL, 4) : '—', fChg != null && fChg > 2 ? 'v down' : '')}
       ${metric('美元指数', uL != null ? fmtNum(uL, 2) : '—', uChg != null && uChg > 3 ? 'v up' : '')}
       ${metric('美债10Y', tL != null ? fmtNum(tL, 2) + '%' : '—', tL != null && tL >= 4.5 ? 'v up' : '')}
+      ${metric('美债2Y', rtLast ? fmtNum(rtLast[1], 2) + '%' : '—')}
+      ${metric('2s10s 利差', rtLast ? fmtNum(rtLast[3], 2) + '%' : '—', rtLast && rtLast[3] < 0 ? 'v down' : '')}
       ${metric('中美利差', (eCur.y10 != null && tL != null) ? fmtNum(eCur.y10 - tL, 2) + '%' : '—', (eCur.y10 != null && tL != null && (eCur.y10 - tL) < 0) ? 'v down' : ((eCur.y10 != null && tL != null && (eCur.y10 - tL) >= 1.5) ? 'v up' : ''))}
       ${metric('日元USDJPY', jpyL != null ? fmtNum(jpyL, 2) : '—', '')}
       ${metric('外围红绿灯', fxGate, fxGate === '逆风·防御' ? 'v down' : fxGate === '顺风' ? 'v up' : '')}
     </div>
-    <div class="rv-line"><span class="tag tag-ai">指向</span><span><b>${fxGate}</b> · 达标 <b>${badCnt}/3</b>（人民币近6月 ${fChg != null ? (fChg >= 0 ? '+' : '') + fmtNum(fChg, 1) + '%' : '—'} · 美债10Y ${tL != null ? fmtNum(tL, 2) + '%' : '—'} · 美元指数 ${uChg != null ? (uChg >= 0 ? '+' : '') + fmtNum(uChg, 1) + '%' : '—'}）</span></div>
-    <div class="rv-line"><span class="tag tag-data">阈值</span><span>美元升 + 美债10Y≥4.5% + 人民币贬&gt;2% <b>三占其二</b> → 外资流出压力，防御降仓；中美利差＝中债−美债，倒挂(&lt;0) → 资本外流逆风。日元贬→日经利好【观点】；美元强+美债高→黄金承压（实际利率代理）</span></div>
+    <div class="rv-line"><span class="tag tag-ai">指向</span><span><b>${fxGate}</b> · 达标 <b>${badCnt}/3</b>（人民币近6月 ${fChg != null ? (fChg >= 0 ? '+' : '') + fmtNum(fChg, 1) + '%' : '—'} · 美债10Y ${tL != null ? fmtNum(tL, 2) + '%' : '—'} · 美元指数 ${uChg != null ? (uChg >= 0 ? '+' : '') + fmtNum(uChg, 1) + '%' : '—'}） ｜ 2s10s ${rtLast && rtLast[3] < 0 ? '倒挂·衰退/避险信号' : '未倒挂'}</span></div>
+    <div class="rv-line"><span class="tag tag-data">阈值</span><span>美元升 + 美债10Y≥4.5% + 人民币贬&gt;2% <b>三占其二</b> → 外资流出压力，防御降仓；中美利差＝中债−美债，倒挂(&lt;0) → 资本外流逆风；2s10s 倒挂 → 衰退/避险。日元贬→日经利好【观点】；美元强+美债高→黄金承压（实际利率代理）</span></div>
     <div class="chart" id="mcFx" style="height:220px"></div>
   </div>
   <div class="card">
@@ -9849,18 +9857,6 @@ function renderMacro() {
     <div class="chart" id="mcBroad" style="height:200px"></div>
   </div>
   <div class="card">
-    <div class="card-h"><h3>全球利率与汇率（美债·日元）</h3><span class="hint">月末点 · ${rates.length} 个月</span></div>
-    ${_mcMeta(_mcLastOf(rates), '月末', '美债 2Y/10Y + 2s10s 利差 + USDJPY', 75)}
-    <div class="metric-grid">
-      ${metric('美债2Y', rtLast ? fmtNum(rtLast[1], 2) + '%' : '—')}
-      ${metric('2s10s 利差', rtLast ? fmtNum(rtLast[3], 2) + '%' : '—', rtLast && rtLast[3] < 0 ? 'v down' : '')}
-      ${metric('日元USDJPY', jpyL != null ? fmtNum(jpyL, 2) : '—', '')}
-    </div>
-    <div class="rv-line"><span class="tag tag-ai">指向</span><span><b>2s10s 利差 ${rtLast ? fmtNum(rtLast[3], 2) + '%' : '—'}</b> → ${rtLast && rtLast[3] < 0 ? '倒挂 · 衰退/避险信号' : '未倒挂'}</span></div>
-    <div class="rv-line"><span class="tag tag-data">阈值</span><span>2s10s <b>倒挂(&lt;0)</b>→衰退/避险信号；<b>美债10Y↑</b>→黄金承压（实际利率代理，理杏仁无盈亏平衡字段）。美债/美元为跨资产核心锚</span></div>
-    <div class="chart" id="mcRates" style="height:200px"></div>
-  </div>
-  <div class="card">
     <div class="card-h"><h3>美股估值温度（标普500）</h3><span class="hint">标普500=理杏仁(.INX) · PE-TTM 10年分位</span></div>
     ${_mcMeta(_mcLastOf(spxPts), '月末', '标普500(.INX) PE-TTM 10年分位（理杏仁）', 75)}
     <div class="metric-grid">
@@ -9870,6 +9866,122 @@ function renderMacro() {
     <div class="rv-line"><span class="tag tag-ai">指向</span><span><b>${spxLvl}</b> · 10年分位 ${_mcBar(spxPct)}</span></div>
     <div class="rv-line"><span class="tag tag-data">阈值</span><span>分位 <b>&lt;20%</b> 便宜加档 · <b>20–80%</b> 中性 · <b>&gt;80%</b> 偏贵减速；标普500 与 A股/港股温度同口径，是跨资产温度的美股锚</span></div>
     <div class="chart" id="mcSpx" style="height:200px"></div>
+  </div>
+  <!-- ===== fw2_v453 宏观指标手册整合：④海外与利率 新增 2 卡 ===== -->
+  <div class="card">
+    <div class="card-h"><h3>政策利率与收益率曲线</h3><span class="hint">FRED 官方 · 有效联邦基金 ${ushfFF.curDate || '—'} · SOFR · 10Y 盈亏平衡通胀</span></div>
+    ${_mcMeta(ushfFF.curDate, '月度', '有效联邦基金利率 · SOFR 担保隔夜融资利率 · 10Y 盈亏平衡通胀率（T10YIE）', 75)}
+    <div class="metric-grid">
+      ${metric('有效联邦基金', ushfFF.cur != null ? fmtNum(ushfFF.cur, 2) + '%' : '—')}
+      ${metric('SOFR', ushfFF.sofr != null ? fmtNum(ushfFF.sofr, 2) + '%' : '—')}
+      ${metric('10Y 盈亏平衡通胀', ushfBE.cur != null ? fmtNum(ushfBE.cur, 2) + '%' : '—', ushfBE.cur != null && ushfBE.cur > 2.5 ? 'v up' : ushfBE.cur != null && ushfBE.cur < 2 ? 'v down' : '')}
+    </div>
+    <div class="rv-line"><span class="tag tag-data">阈值</span><span>盈亏平衡通胀 &gt;2.5% 通胀预期升温（压制久期）· &lt;2% 通缩担忧（利好久期）；SOFR≈联邦基金，剪刀差反映短端流动性</span></div>
+    <div class="chart" id="mcUsRate" style="height:200px"></div>
+  </div>
+  <div class="card">
+    <div class="card-h"><h3>全球央行政策利率一览</h3><span class="hint">各国政策利率横向对比</span></div>
+    <div class="rv-line"><span class="tag tag-data">数据</span><span>美国有效联邦基金 <b>${ushfFF.cur != null ? fmtNum(ushfFF.cur, 2) + '%' : '—'}</b> · SOFR ${ushfFF.sofr != null ? fmtNum(ushfFF.sofr, 2) + '%' : '—'}（FRED 官方 ✓）</span></div>
+    <div class="rv-line"><span class="tag tag-ai">待通</span><span>欧元区/英国/日本/中国政策利率：FRED 序列已下架（404 验证），通道待通——接入后在此平铺横向对比</span></div>
+  </div>
+  <!-- ===== fw2_v453 ⑤美国·高频景气（USH 手册）：非农引用 + 8 卡 ===== -->
+  <div class="card">
+    <div class="card-h"><h3>非农 · 引用</h3><span class="hint">主展示在美国/全球周期页</span></div>
+    <div class="rv-line"><span class="tag tag-data">指向</span><span>非农就业完整卡（新增就业/失业率/时薪）见「美国/全球周期」页，此处不重复建卡</span></div>
+  </div>
+  <div class="card">
+    <div class="card-h"><h3>初请失业金</h3><span class="hint">周频 · 月末周值 + 4周均值 · FRED</span></div>
+    ${_mcMeta(ushfIC.curDate, '周频月末', '周度初请失业金（ICSA）· 4周均值平滑', 75)}
+    <div class="metric-grid">
+      ${metric('月末周初请', ushfIC.cur != null ? fmtNum(ushfIC.cur / 1000, 1) + ' 万' : '—', ushfIC.cur != null && ushfIC.cur > 250000 ? 'v down' : '')}
+      ${metric('4周均值', ushfIC.avg4w != null ? fmtNum(ushfIC.avg4w / 1000, 1) + ' 万' : '—')}
+    </div>
+    <div class="rv-line"><span class="tag tag-data">阈值</span><span>4周均值 &gt;25 万 → 就业转弱（衰退前兆）；&lt;20 万 → 就业强劲</span></div>
+    <div class="chart" id="mcUsIC" style="height:200px"></div>
+  </div>
+  <div class="card">
+    <div class="card-h"><h3>失业率 U3 / U6</h3><span class="hint">U-6 含临时工/边缘劳动力 · FRED</span></div>
+    ${_mcMeta(ushfUR.curDate, '月度', 'U-3 官方失业率 · U-6 广义失业率（UNRATE + U6RATE）', 75)}
+    <div class="metric-grid">
+      ${metric('U-3 失业率', ushfUR.cur != null ? fmtNum(ushfUR.cur, 1) + '%' : '—', ushfUR.cur != null && ushfUR.cur > 5 ? 'v down' : '')}
+      ${metric('U-6 广义失业率', ushfUR.u6 != null ? fmtNum(ushfUR.u6, 1) + '%' : '—')}
+      ${metric('U6−U3 差距', (ushfUR.cur != null && ushfUR.u6 != null) ? fmtNum(ushfUR.u6 - ushfUR.cur, 1) + 'pct' : '—', (ushfUR.cur != null && ushfUR.u6 != null && (ushfUR.u6 - ushfUR.cur) > 4) ? 'v down' : '')}
+    </div>
+    <div class="rv-line"><span class="tag tag-data">阈值</span><span>U-3 &gt;5% 警戒（萨姆规则辅助：3月均值较低点 +0.5pct → 衰退预警）；U6−U3 差距扩大 = 就业质量恶化</span></div>
+    <div class="chart" id="mcUsU6" style="height:200px"></div>
+  </div>
+  <div class="card">
+    <div class="card-h"><h3>零售销售</h3><span class="hint">实际零售 · 同比% · FRED</span></div>
+    ${_mcMeta(ushfRet.curDate, '月度', '实际零售销售（RRSFS）· 同比%', 75)}
+    <div class="metric-grid">
+      ${metric('零售同比', ushfRet.cur != null ? fmtNum(ushfRet.cur, 1) + '%' : '—', ushfRet.cur != null && ushfRet.cur < 0 ? 'v down' : ushfRet.cur != null && ushfRet.cur > 5 ? 'v up' : '')}
+    </div>
+    <div class="rv-line"><span class="tag tag-data">阈值</span><span>零售同比转负 → 消费走弱（衰退信号）；&gt;5% 消费强劲（通胀压力关注）</span></div>
+    <div class="chart" id="mcUsRet" style="height:200px"></div>
+  </div>
+  <div class="card">
+    <div class="card-h"><h3>个人收入与 PCE</h3><span class="hint">PCE 同比 + 核心 PCE（美联储 2% 锚）· FRED</span></div>
+    ${_mcMeta(ushfPce.pceDate, '月度', 'PCE 价格指数同比（PCE/PCEPI）· 核心 PCE 同比（PCEPILFE）', 75)}
+    <div class="metric-grid">
+      ${metric('PCE 同比', ushfPce.pceYoy != null ? fmtNum(ushfPce.pceYoy, 1) + '%' : '—')}
+      ${metric('核心 PCE 同比', ushfPce.corePceYoy != null ? fmtNum(ushfPce.corePceYoy, 1) + '%' : '—', ushfPce.corePceYoy != null && ushfPce.corePceYoy > 2.5 ? 'v down' : ushfPce.corePceYoy != null && ushfPce.corePceYoy < 2 ? 'v up' : '')}
+      ${metric('个人收入(百万$)', ushfPce.piCur != null ? fmtNum(ushfPce.piCur, 0) : '—')}
+    </div>
+    <div class="rv-line"><span class="tag tag-data">阈值</span><span>核心 PCE 目标 2%；&gt;2.5% 通胀顽固（加息/压制久期风险）· &lt;2% 支持宽松</span></div>
+    <div class="chart" id="mcUsPce" style="height:200px"></div>
+  </div>
+  <div class="card">
+    <div class="card-h"><h3>消费者信心</h3><span class="hint">密歇根 + 谘商会</span></div>
+    <div class="rv-line"><span class="tag tag-ai">待通</span><span>密歇根消费者信心（UMCSENT）/ 谘商会消费者信心（CCSENT）：FRED 序列已下架（404 验证），通道待通——恢复后平铺两指数走势</span></div>
+  </div>
+  <div class="card">
+    <div class="card-h"><h3>耐用品新订单</h3><span class="hint">耐用品新订单 · 同比% · FRED</span></div>
+    ${_mcMeta(ushfDur.curDate, '月度', '耐用品新订单（DGORDER）· 同比%', 75)}
+    <div class="metric-grid">
+      ${metric('耐用品同比', ushfDur.cur != null ? fmtNum(ushfDur.cur, 1) + '%' : '—', ushfDur.cur != null && ushfDur.cur < 0 ? 'v down' : '')}
+    </div>
+    <div class="rv-line"><span class="tag tag-data">阈值</span><span>耐用品订单是资本开支先行指标；同比转负 → 企业投资收缩（周期下行确认）</span></div>
+    <div class="chart" id="mcUsDur" style="height:200px"></div>
+  </div>
+  <div class="card">
+    <div class="card-h"><h3>LEI 领先指标</h3><span class="hint">谘商会 LEI</span></div>
+    <div class="rv-line"><span class="tag tag-data">数据</span><span>最新 ${ushfLei.cur != null ? ushfLei.cur : '—'}（${ushfLei.curDate || '—'}）· FRED 序列 2020-02 停更</span></div>
+    <div class="rv-line"><span class="tag tag-ai">待通</span><span>数据通道待通（备选谘商会官网），恢复后画 LEI 月度走势</span></div>
+  </div>
+  <div class="card">
+    <div class="card-h"><h3>ISM 制造业 PMI</h3><span class="hint">美国 ISM 制造业</span></div>
+    <div class="rv-line"><span class="tag tag-ai">待通</span><span>FRED NAPM 已下架（404）、东财数据中心报表不存在——通道待通；中国 PMI 见「信用与通胀」组</span></div>
+  </div>
+  <!-- ===== fw2_v453 ⑥全球·景气先行（USH 手册）：OECD CLI 真实数据 + 3 待通 ===== -->
+  <div class="card">
+    <div class="card-h"><h3>OECD 领先指标 · 主要经济体</h3><span class="hint">OECD CLI（趋势周期调整，基准100）· 官方 SDMX 通道 · 指数口径</span></div>
+    ${_mcMeta(ushf.globalCli && ushf.globalCli.updatedAt, '月度', 'OECD 领先指标 CLI：美国/中国/日本/德国/英国/欧元区（EA19）· 100=长期趋势', 75)}
+    <div class="rv-line"><span class="tag tag-data">读数</span><span>${Object.keys(ushfCli).map(function (k) { var r = ushfCli[k] || {}, p = (r.points && r.points.length) ? r.points[r.points.length - 1] : null; return k + ' ' + (p ? fmtNum(p[1], 1) + '（' + p[0] + '）' : '—'); }).join(' · ')}</span></div>
+    <div class="rv-line"><span class="tag tag-data">阈值</span><span>CLI &gt;100 景气扩张 · &lt;100 收缩；连续下行=周期见顶回落信号（领先市场约 3-6 个月）</span></div>
+    <div class="chart" id="mcOecdCli" style="height:220px"></div>
+  </div>
+  <div class="card">
+    <div class="card-h"><h3>BDI 波罗的海干散货</h3><span class="hint">航运景气 · 全球贸易代理</span></div>
+    <div class="rv-line"><span class="tag tag-ai">待通</span><span>stooq ^bdi 接口返回反爬页面、东财数据中心报表不存在——通道待通；恢复后画 BDI 日线 + 与铜价联动</span></div>
+  </div>
+  <div class="card">
+    <div class="card-h"><h3>日银短观</h3><span class="hint">日本央行企业景气调查</span></div>
+    <div class="rv-line"><span class="tag tag-ai">待通</span><span>BOJ 短观（Tankan）需解析 BOJ 官网发布表——通道待通；恢复后平铺日本制造业/非制造业景气 DI</span></div>
+  </div>
+  <div class="card">
+    <div class="card-h"><h3>全球 PMI 合成口径</h3><span class="hint">JPMorgan 全球 PMI（受限）</span></div>
+    <div class="rv-line"><span class="tag tag-data">说明</span><span>JPMorgan 全球制造业 PMI 数据源受限，暂用合成口径观察：中国官方 PMI（信用与通胀组）+ 美国 ISM（待通）→ 美中两大引擎齐下 = 全球周期下行确认</span></div>
+  </div>
+  <!-- ===== fw2_v453 ⑦框架与传导 · 知识卡（静态 · 零取数） ===== -->
+  <div class="card">
+    <div class="card-h"><h3>框架与传导 · 知识卡</h3><span class="hint">静态框架 · 零取数 · 供分析定位</span></div>
+    <details><summary>半导体链条与全球周期</summary><div class="rv-line"><span class="tag tag-data">传导</span><span>半导体库存周期 ≈ 全球资本开支先行指标：费半/台积电营收 → 韩国出口 → A股电子/科创</span></div></details>
+    <details><summary>利率 × 股市四阶段</summary><div class="rv-line"><span class="tag tag-data">传导</span><span>①加息+盈利↓=熊市 → ②加息+盈利稳=估值消化 → ③降息+盈利↓=政策底 → ④降息+盈利↑=主升浪</span></div></details>
+    <details><summary>B2B 循环（设备投资）</summary><div class="rv-line"><span class="tag tag-data">传导</span><span>需求↑ → 产能利用率↑ → 设备投资↑ → 就业/工资↑ → 消费↑ → 需求↑（朱格拉内核）</span></div></details>
+    <details><summary>全球价值链</summary><div class="rv-line"><span class="tag tag-data">传导</span><span>中国出口 → 韩国设备/材料 → 东南亚组装 → 欧美终端消费 → 订单回流中国（库存周期跨国产联动）</span></div></details>
+    <details><summary>金融业货币流向</summary><div class="rv-line"><span class="tag tag-data">传导</span><span>M2/社融 → 银行信贷 → 地产/基建/制造业 → 资产价格 → 财富效应 → 消费（信用周期传导链）</span></div></details>
+    <details><summary>美元与通胀</summary><div class="rv-line"><span class="tag tag-data">传导</span><span>美元指数 ↔ 大宗商品（负相关）→ 输入性通胀 → 央行利率 → 股债估值锚（美元强=全球流动性收紧）</span></div></details>
+    <details><summary>热钱</summary><div class="rv-line"><span class="tag tag-data">传导</span><span>中美利差 → 套利资金流入流出 → 汇率与股债波动；利差倒挂期资本外流逆风（见全球利率卡红绿灯）</span></div></details>
   </div>
   <p class="foot-note">周期定位＝规则引擎实时计算（增长/通胀/信用/库存/温度五组代理，3月趋势判向）；产成品存货为统计局披露锚点（月度，非完整序列）；库存方向以 PPI 为代理。周期定位与 M 系列阈值同口径、互为校准；不构成投资建议。</p>
 <p class="foot-note">涛动周期（v201）：康波=理论定位（周金涛《涛动周期录》时间表 1982-2030，AI 2022.11 提前点燃第六次康波修正；1康波≈3库兹涅茨≈9朱格拉≈18基钦）；库兹涅茨=理杏仁 real-estate 单月值自算单月同比（端点仅开放 t 口径，2021 后含基数效应）；朱格拉=东财固投当月同比×工业增加值；金油比中枢 10-15 桶；信用脉冲=社融存量同比 3 月变化。全部数据可追溯，滞后约 1 个月；不构成投资建议。</p>
@@ -9885,6 +9997,17 @@ function renderMacro() {
       w.appendChild(c);
       var h3 = c.querySelector('h3');
       w.setAttribute('data-title', h3 ? h3.textContent.trim() : ('指标 ' + (i + 1)));
+      /* fw2_v453：按 MI_GROUPS keys 前缀匹配 data-title → 写入组归属 data-g（胶囊过滤用） */
+      var t = h3 ? h3.textContent.trim() : '';
+      var gi = -1;
+      if (window.MI_GROUPS) {
+        for (var k2 = 0; k2 < window.MI_GROUPS.length; k2++) {
+          var ks = window.MI_GROUPS[k2].keys;
+          for (var q2 = 0; q2 < ks.length; q2++) { if (ks[q2] && t.indexOf(ks[q2]) >= 0) { gi = k2; break; } }
+          if (gi >= 0) break;
+        }
+      }
+      if (gi >= 0) w.setAttribute('data-g', String(gi));
     });
   })();
   const axis = (v) => fmtNum(v, 1);
@@ -10014,21 +10137,6 @@ function renderMacro() {
       cbr.resize();
     }
   }
-  const crt = chartOf('mcRates');
-  if (crt && rates.length) {
-    crt.setOption(Object.assign({}, base, {
-      xAxis: { type: 'category', data: rates.map((p) => p[0]), axisLabel: { fontSize: 10, color: '#475569', hideOverlap: true }, axisLine: { lineStyle: { color: '#d8dee6' } } },
-      yAxis: [
-        { type: 'value', scale: true, axisLabel: { fontSize: 10, color: '#475569', formatter: (v) => v + '%' }, splitLine: { lineStyle: { color: '#e3e8ee' } }, name: '利率%', nameTextStyle: { fontSize: 9, color: '#94a3b8' } },
-        { type: 'value', scale: true, axisLabel: { fontSize: 10, color: '#475569', formatter: (v) => v + '%' }, splitLine: { show: false }, name: '利差%', nameTextStyle: { fontSize: 9, color: '#94a3b8' } },
-      ],
-      series: [
-        { name: '美债2Y', type: 'line', data: rates.map((p) => p[1]), showSymbol: false, lineStyle: { color: '#2f6bff', width: 1.5 }, itemStyle: { color: '#2f6bff' } },
-        { name: '2s10s利差', type: 'line', yAxisIndex: 1, data: rates.map((p) => p[3]), showSymbol: false, lineStyle: { color: '#e02e24', width: 1.5 }, itemStyle: { color: '#e02e24' }, markLine: { silent: true, symbol: 'none', label: { fontSize: 9, color: '#475569' }, data: [{ yAxis: 0, name: '0 倒挂线' }], lineStyle: { color: '#94a3b8', type: 'dotted' } } },
-      ],
-    }), true);
-    crt.resize();
-  }
   const cspx = chartOf('mcSpx');
   if (cspx && spxPts.length) {
     cspx.setOption(Object.assign({}, base, {
@@ -10057,6 +10165,80 @@ function renderMacro() {
       }],
     }), true);
     camd.resize();
+  }
+  /* ===== fw2_v453 宏观指标手册整合：新卡图表 mount（政策利率/初请/失业率/零售/PCE/耐用品/OECD CLI） ===== */
+  const curRate = chartOf('mcUsRate');
+  if (curRate && ushfFF.points && ushfFF.points.length) {
+    curRate.setOption(Object.assign({}, base, {
+      xAxis: { type: 'category', data: ushfFF.points.map((p) => p[0]), axisLabel: { fontSize: 10, color: '#475569', hideOverlap: true }, axisLine: { lineStyle: { color: '#d8dee6' } } },
+      yAxis: [
+        { type: 'value', scale: true, axisLabel: { fontSize: 10, color: '#475569', formatter: (v) => v + '%' }, splitLine: { lineStyle: { color: '#e3e8ee' } }, name: '利率%', nameTextStyle: { fontSize: 9, color: '#94a3b8' } },
+        { type: 'value', scale: true, axisLabel: { fontSize: 10, color: '#475569', formatter: (v) => v + '%' }, splitLine: { show: false }, name: '通胀预期%', nameTextStyle: { fontSize: 9, color: '#94a3b8' } },
+      ],
+      series: [
+        { name: '联邦基金', type: 'line', data: ushfFF.points.map((p) => p[1]), showSymbol: false, lineStyle: { color: '#2f6bff', width: 1.5 }, itemStyle: { color: '#2f6bff' } },
+        { name: '10Y盈亏平衡通胀', type: 'line', yAxisIndex: 1, data: (ushfBE.points || []).map((p) => p[1]), showSymbol: false, lineStyle: { color: '#e02e24', width: 1.4, type: 'dashed' }, itemStyle: { color: '#e02e24' }, markLine: { silent: true, symbol: 'none', label: { fontSize: 9, color: '#475569' }, data: [{ yAxis: 2, name: '2% 锚' }], lineStyle: { color: '#d9a441', type: 'dotted' } } },
+      ],
+    }), true);
+    curRate.resize();
+  }
+  const cIC = chartOf('mcUsIC');
+  if (cIC && ushfIC.points && ushfIC.points.length) {
+    cIC.setOption(Object.assign({}, base, {
+      xAxis: { type: 'category', data: ushfIC.points.map((p) => p[0]), axisLabel: { fontSize: 10, color: '#475569', hideOverlap: true }, axisLine: { lineStyle: { color: '#d8dee6' } } },
+      yAxis: { type: 'value', scale: true, axisLabel: { fontSize: 10, color: '#475569', formatter: (v) => (v / 1000).toFixed(0) + '万' }, splitLine: { lineStyle: { color: '#e3e8ee' } } },
+      series: [{ name: '初请(月末周)', type: 'line', data: ushfIC.points.map((p) => p[1]), showSymbol: false, lineStyle: { color: '#2f6bff', width: 1.5 }, itemStyle: { color: '#2f6bff' }, markLine: { silent: true, symbol: 'none', label: { fontSize: 9, color: '#475569' }, data: [{ yAxis: 250000, name: '25万警戒' }], lineStyle: { color: '#e02e24', type: 'dotted' } } }],
+    }), true);
+    cIC.resize();
+  }
+  const cU6 = chartOf('mcUsU6');
+  if (cU6 && ushfUR.points && ushfUR.points.length) {
+    cU6.setOption(Object.assign({}, base, {
+      xAxis: { type: 'category', data: ushfUR.points.map((p) => p[0]), axisLabel: { fontSize: 10, color: '#475569', hideOverlap: true }, axisLine: { lineStyle: { color: '#d8dee6' } } },
+      yAxis: { type: 'value', scale: true, axisLabel: { fontSize: 10, color: '#475569', formatter: (v) => v + '%' }, splitLine: { lineStyle: { color: '#e3e8ee' } } },
+      series: [{ name: 'U-3 失业率', type: 'line', data: ushfUR.points.map((p) => p[1]), showSymbol: false, lineStyle: { color: '#2f6bff', width: 1.5 }, itemStyle: { color: '#2f6bff' }, markLine: { silent: true, symbol: 'none', label: { fontSize: 9, color: '#475569' }, data: [{ yAxis: 5, name: '5% 警戒' }], lineStyle: { color: '#e02e24', type: 'dotted' } } }],
+    }), true);
+    cU6.resize();
+  }
+  const cRet = chartOf('mcUsRet');
+  if (cRet && ushfRet.yoyPts && ushfRet.yoyPts.length) {
+    cRet.setOption(Object.assign({}, base, {
+      xAxis: { type: 'category', data: ushfRet.yoyPts.map((p) => p[0]), axisLabel: { fontSize: 10, color: '#475569', hideOverlap: true }, axisLine: { lineStyle: { color: '#d8dee6' } } },
+      yAxis: { type: 'value', scale: true, axisLabel: { fontSize: 10, color: '#475569', formatter: (v) => v + '%' }, splitLine: { lineStyle: { color: '#e3e8ee' } } },
+      series: [{ name: '零售同比', type: 'line', data: ushfRet.yoyPts.map((p) => p[1]), showSymbol: false, lineStyle: { color: '#2f6bff', width: 1.5 }, itemStyle: { color: '#2f6bff' }, markLine: { silent: true, symbol: 'none', label: { fontSize: 9, color: '#475569' }, data: [{ yAxis: 0, name: '0 荣枯' }], lineStyle: { color: '#d9a441', type: 'dotted' } } }],
+    }), true);
+    cRet.resize();
+  }
+  const cPce = chartOf('mcUsPce');
+  if (cPce && ushfPce.points && ushfPce.points.length) {
+    cPce.setOption(Object.assign({}, base, {
+      xAxis: { type: 'category', data: ushfPce.points.map((p) => p[0]), axisLabel: { fontSize: 10, color: '#475569', hideOverlap: true }, axisLine: { lineStyle: { color: '#d8dee6' } } },
+      yAxis: { type: 'value', scale: true, axisLabel: { fontSize: 10, color: '#475569', formatter: (v) => v + '%' }, splitLine: { lineStyle: { color: '#e3e8ee' } } },
+      series: [{ name: 'PCE 同比', type: 'line', data: ushfPce.points.map((p) => p[1]), showSymbol: false, lineStyle: { color: '#2f6bff', width: 1.5 }, itemStyle: { color: '#2f6bff' }, markLine: { silent: true, symbol: 'none', label: { fontSize: 9, color: '#475569' }, data: [{ yAxis: 2, name: '2% 锚' }], lineStyle: { color: '#d9a441', type: 'dotted' } } }],
+    }), true);
+    cPce.resize();
+  }
+  const cDur = chartOf('mcUsDur');
+  if (cDur && ushfDur.points && ushfDur.points.length) {
+    cDur.setOption(Object.assign({}, base, {
+      xAxis: { type: 'category', data: ushfDur.points.map((p) => p[0]), axisLabel: { fontSize: 10, color: '#475569', hideOverlap: true }, axisLine: { lineStyle: { color: '#d8dee6' } } },
+      yAxis: { type: 'value', scale: true, axisLabel: { fontSize: 10, color: '#475569', formatter: (v) => v + '%' }, splitLine: { lineStyle: { color: '#e3e8ee' } } },
+      series: [{ name: '耐用品同比', type: 'line', data: ushfDur.points.map((p) => p[1]), showSymbol: false, lineStyle: { color: '#2f6bff', width: 1.5 }, itemStyle: { color: '#2f6bff' }, markLine: { silent: true, symbol: 'none', label: { fontSize: 9, color: '#475569' }, data: [{ yAxis: 0, name: '0 荣枯' }], lineStyle: { color: '#d9a441', type: 'dotted' } } }],
+    }), true);
+    cDur.resize();
+  }
+  const cCli = chartOf('mcOecdCli');
+  if (cCli) {
+    const cliKeys = Object.keys(ushfCli).filter((k) => ushfCli[k] && (ushfCli[k].points || []).length);
+    if (cliKeys.length) {
+      cCli.setOption(Object.assign({}, base, {
+        xAxis: { type: 'category', data: ushfCli[cliKeys[0]].points.map((p) => p[0]), axisLabel: { fontSize: 10, color: '#475569', hideOverlap: true }, axisLine: { lineStyle: { color: '#d8dee6' } } },
+        yAxis: { type: 'value', scale: true, axisLabel: { fontSize: 10, color: '#475569', formatter: (v) => v.toFixed(0) }, splitLine: { lineStyle: { color: '#e3e8ee' } }, name: 'CLI', nameTextStyle: { fontSize: 9, color: '#94a3b8' } },
+        legend: { top: 0, textStyle: { fontSize: 9, color: '#475569' } },
+        series: cliKeys.map((k, i) => ({ name: k, type: 'line', data: ushfCli[k].points.map((p) => p[1]), showSymbol: false, lineStyle: { width: 1.4, color: ['#2f6bff', '#e02e24', '#7a3fd4', '#d9a441', '#14926a', '#94a3b8'][i % 6] }, itemStyle: { color: ['#2f6bff', '#e02e24', '#7a3fd4', '#d9a441', '#14926a', '#94a3b8'][i % 6] }, markLine: { silent: true, symbol: 'none', label: { fontSize: 9, color: '#475569' }, data: [{ yAxis: 100, name: '100 趋势' }], lineStyle: { color: '#94a3b8', type: 'dotted' } } })),
+      }), true);
+      cCli.resize();
+    }
   }
   if (window.__mcApply) window.__mcApply();
 }
@@ -10133,6 +10315,23 @@ function renderMacroToolsHtml() {
     '<div class="seg seg-tabs" id="macroWin">' + btns + '</div>' +
     '<span class="hint" id="macroSrcHint">' + esc(hintTxt) + '</span></div>';
 }
+/* fw2_v453 宏观指标页 7 组胶囊切换（默认「全部」平铺；组归属由 wrapMcMods 按 MI_GROUPS keys 匹配 data-title 写入 data-g） */
+function renderMacroGroupCaps() {
+  const g = window.MI_GROUPS || [];
+  const cur = (typeof state.miGroup === 'number') ? String(state.miGroup) : 'all';
+  const base = 'padding:4px 11px;border-radius:14px;border:1px solid #d8dee6;background:#fff;color:#475569;font-size:12px;font-weight:600;cursor:pointer;line-height:1.5';
+  const act = 'padding:4px 11px;border-radius:14px;border:1px solid #2f6bff;background:#eaf1ff;color:#2f6bff;font-size:12px;font-weight:700;cursor:pointer;line-height:1.5';
+  const items = ['全部'].concat(g.map((x) => x.name));
+  const html = items.map((t, i) => {
+    const key = i === 0 ? 'all' : String(i - 1);
+    return '<button type="button" data-mg="' + key + '" onclick="window.__mcSetGroup(\'' + key + '\')" style="' + (cur === key ? act : base) + '">' + t + '</button>';
+  }).join('');
+  return '<div style="display:flex;flex-wrap:wrap;gap:6px;margin:0 0 10px;align-items:center"><span class="flbl">子模块</span>' + html + '</div>';
+}
+window.__mcSetGroup = function (k) {
+  state.miGroup = (k === 'all') ? 'all' : parseInt(k, 10);
+  if (window.__mcApply) window.__mcApply();
+};
 function renderMacroUS(d) {
   const fsi = (d && d.fsi) || {};
   const us = (d && d.us) || {};
@@ -12122,7 +12321,7 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
   */
   const vc = $('#verChip');
   /* v319 fw2_v319_sig_risk_fusion：动态 verChip 同步升版（v266 起文本停更，本次修正为当前版本） */
-  if (vc) vc.textContent = 'v452 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  if (vc) vc.textContent = 'v453 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
@@ -13205,12 +13404,16 @@ setInterval(updateSessionBadge, 30000);
   };
   /* fw2_fix_mcnav2row：宏观导航两排——周期相关第一行，其他指标第二排 */
   var MC_CYCLE_KEYS = ['周期', '层', '美元 / 黄金', '行业周期', '信用脉冲（社融同比', '历史相似阶段回放'];
-  /* fw2_v434_mc_mi_groups：宏观指标页 12 卡按主题分组（横幅按本数组顺序插入，与 DOM 顺序解耦；keys 按 data-title 前缀匹配） */
+  /* fw2_v453_macro_hb：宏观指标页 7 组（原 4 组 + 美国高频景气 + 全球景气先行 + 框架传导）；
+     组顶胶囊切换默认「全部」平铺；keys 按 data-title 前缀匹配，同时用于 wrapMcMods 写 data-g */
   window.MI_GROUPS = [
     { name:'估值与性价比 · A股', keys:['ERP 股债性价比', '沪深300 PE-TTM', '宽基估值温度'] },
     { name:'信用与通胀', keys:['信用脉冲：社融', '物价剪刀差', '制造业 PMI'] },
     { name:'情绪与流动性', keys:['情绪温度计', '全A成交额', 'VIX 恐慌'] },
-    { name:'海外与利率', keys:['全球利率与汇率', '美股估值温度'] }
+    { name:'海外与利率', keys:['全球利率与汇率', '美股估值温度', '政策利率与收益率曲线', '全球央行政策利率一览'] },
+    { name:'美国 · 高频景气', keys:['非农 · 引用', '初请失业金', '失业率 U3 / U6', '零售销售', '个人收入与 PCE', '消费者信心', '耐用品新订单', 'LEI 领先指标', 'ISM 制造业 PMI'] },
+    { name:'全球 · 景气先行', keys:['OECD 领先指标', 'BDI 波罗的海', '日银短观', '全球 PMI 合成'] },
+    { name:'框架与传导', keys:['框架与传导'] }
   ];
   function renderDcMcNav(){
     /* fw2_v431：名字按钮区已废弃——中国周期改为 8 张周期卡直接平铺、指标卡收进「宏观指标」模块，
@@ -13237,9 +13440,13 @@ setInterval(updateSessionBadge, 30000);
     var vis;
     if (reg === 'cn' || reg === 'mi') {
       var showCyc = (reg === 'cn');
+      /* fw2_v453：mi 页组胶囊过滤（state.miGroup=组索引时仅显示该组卡；all 平铺） */
+      var grp = (reg === 'mi' && typeof state.miGroup === 'number') ? String(state.miGroup) : 'all';
       mods.forEach(function (m) {
         if (isDollar(m)) { m.style.display = 'none'; return; }
-        m.style.display = (isCyc(m) === showCyc) ? 'block' : 'none';
+        var on = (isCyc(m) === showCyc);
+        if (on && reg === 'mi' && grp !== 'all') on = (m.getAttribute('data-g') === grp);
+        m.style.display = on ? 'block' : 'none';
       });
       vis = mods.filter(function (m) { return m.style.display === 'block'; });
       /* fw2_v434_mc_mi_groups：宏观指标页按主题插分组横幅（仅 mi；横幅顺序=MI_GROUPS 顺序） */
