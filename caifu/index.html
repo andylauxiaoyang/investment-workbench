@@ -10959,7 +10959,7 @@ function pxFundBlockHtml(d, pre) {
   var corrLine = function (id) {
     var isAmt = id === 'amt';
     var m = ['hs300', 'zz500', 'cyb'].map(function (ix) {
-      var aPts = pre[ix] && pre[ix].pts ? pre[ix].pts : [];
+      var aPts = pre[ix] && pre[ix].pts ? (isAmt ? pre[ix].pts : pxMonthEnds(pre[ix].pts)) : [];
       var bPts = pre[id] && pre[id].mfPts ? pre[id].mfPts : [];
       var cv = pxCorrOf(aPts, bPts, isAmt ? 12 : 6);
       return esc(pxLabelShort(ix)) + ' ' + (cv ? '<b>' + cv.r.toFixed(2) + '</b>' : '·');
