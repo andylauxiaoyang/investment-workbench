@@ -6137,7 +6137,7 @@ function snapshotCodes() {
   if (state.research.code) s.add(state.research.code);
   return Array.from(s);
 }
-async function refreshSnapshot() {
+async function refreshSnapshot(noRerender) {
   const codes = snapshotCodes();
   let quotes = {}, ok = false, market = state.snapshot.market, marketError = '';
   try {
@@ -6205,7 +6205,10 @@ async function refreshSnapshot() {
   ensureSectors();
   renderStrip();
   renderTicker();
-  renderCurrentView();
+  /* fw2_v439_no_auto_reload：定时快照刷新不再整视图重渲染（用户 2026-10-07「页面老自动刷新」——
+     默认 30 秒一次 renderCurrentView 全量重绘，导致页面反复跳动、子模块 tab 状态丢失、滚动位置重置）。
+     定时刷新只更新行情 DOM；视图内容由 showView / 手动「刷新」按钮触发全量渲染。 */
+  if (!noRerender) renderCurrentView();
   fillRsPick();
   fillRsNameList();
   $('#snapId').textContent = state.snapshot.id;
@@ -11217,7 +11220,8 @@ function startLoop() {
   if (state.fxTimer) clearInterval(state.fxTimer);
   state.fxTimer = setInterval(fetchFxLive, 1800000);
   const interval = anyMarketOpen() ? state.settings.refreshMs : 300000;
-  state.timer = setInterval(() => refreshSnapshot(), interval);
+  /* fw2_v439_no_auto_reload：定时器传 noRerender=true——只刷新行情，不整视图重渲染 */
+  state.timer = setInterval(() => refreshSnapshot(true), interval);
   if (state.newsTimer) clearInterval(state.newsTimer);
   state.newsTimer = setInterval(() => { if (state.view === 'news') loadNews(); }, 180000);
 }
@@ -12121,7 +12125,7 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
   */
   const vc = $('#verChip');
   /* v319 fw2_v319_sig_risk_fusion：动态 verChip 同步升版（v266 起文本停更，本次修正为当前版本） */
-  if (vc) vc.textContent = 'v438 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  if (vc) vc.textContent = 'v439 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
