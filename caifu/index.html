@@ -10928,7 +10928,8 @@ function pxCorrMatrixHtml(ids, items, opts) {
     });
     rows += '</tr>';
   });
-  return '<table style="border-collapse:collapse">' + head + rows + '</table>';
+  /* fw2_v441_px_corr_fullwidth：相关性矩阵释放整屏——表格 width:100% 占满父容器（flex:1 各半屏），列宽按内容 auto 摊分，名称列保持 min-width，数值列自动放宽、色块居中 */
+  return '<table style="border-collapse:collapse;width:100%">' + head + rows + '</table>';
 }
 function pxComplPairsHtml(ids, items, opts) {
   opts = opts || {};
@@ -10960,9 +10961,10 @@ function pxCorrHtml(pre, ready) {
   return '<div style="margin-top:16px">' +
     '<div style="font-size:13px;font-weight:700;color:#0f172a;margin-bottom:2px">相关性与互补性 · 全局一览</div>' +
     '<div style="font-size:11px;color:#64748b;margin-bottom:10px">颜色=相关性强度：红=同涨同跌（共振），蓝=涨跌相反（互补/对冲），白≈0=互不相关。两融/成交额属资金面口径已在上一块单列，不进入本矩阵。</div>' +
+    /* fw2_v441_px_corr_fullwidth：矩阵容器释放整屏——日频/月频各 flex:1 均分整宽（min-width 420px 窄屏换行堆叠），表格随之拉伸铺满 */
     '<div style="display:flex;gap:18px;flex-wrap:wrap;align-items:flex-start">' +
-    '<div><div style="font-size:11px;font-weight:700;color:#475569;margin-bottom:6px">日频资产 · ' + PX_DAILY.length + ' 项（A股5 + 海外4）</div>' + dailyHtml + '</div>' +
-    '<div><div style="font-size:11px;font-weight:700;color:#475569;margin-bottom:6px">月频资产 · ' + PX_MONTHLY.length + ' 项（债券 / 商品 / 汇率 / 波动）</div>' + mfHtml + '</div>' +
+    '<div style="flex:1 1 0;min-width:420px"><div style="font-size:11px;font-weight:700;color:#475569;margin-bottom:6px">日频资产 · ' + PX_DAILY.length + ' 项（A股5 + 海外4）</div>' + dailyHtml + '</div>' +
+    '<div style="flex:1 1 0;min-width:400px"><div style="font-size:11px;font-weight:700;color:#475569;margin-bottom:6px">月频资产 · ' + PX_MONTHLY.length + ' 项（债券 / 商品 / 汇率 / 波动）</div>' + mfHtml + '</div>' +
     '</div>' +
     '<div style="margin-top:12px">' +
     '<div style="font-size:12px;font-weight:700;color:#475569;margin-bottom:6px">互补 / 对冲组合（ρ ≤ 0.30，越负对冲越强）</div>' +
@@ -12185,7 +12187,7 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
   */
   const vc = $('#verChip');
   /* v319 fw2_v319_sig_risk_fusion：动态 verChip 同步升版（v266 起文本停更，本次修正为当前版本） */
-  if (vc) vc.textContent = 'v440 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  if (vc) vc.textContent = 'v441 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
