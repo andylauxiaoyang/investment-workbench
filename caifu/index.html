@@ -10957,10 +10957,11 @@ function pxFundBlockHtml(d, pre) {
   var rzyeCol = rzyeTw == null ? '#64748b' : rzyeTw >= 3 ? '#e02e24' : rzyeTw >= 2 ? '#0d9f4d' : '#d98c00';
   var ready = !!(pre.hs300 && pre.hs300.pts && pre.hs300.pts.length > 60);
   var corrLine = function (id) {
+    var isAmt = id === 'amt';
     var m = ['hs300', 'zz500', 'cyb'].map(function (ix) {
-      var ip = pre[ix] && pre[ix].pts ? pxMonthEnds(pre[ix].pts) : [];
-      var mp = pre[id] && pre[id].mfPts ? pre[id].mfPts : [];
-      var cv = pxCorrOf(ip, mp, 6);
+      var aPts = pre[ix] && pre[ix].pts ? pre[ix].pts : [];
+      var bPts = pre[id] && pre[id].mfPts ? pre[id].mfPts : [];
+      var cv = pxCorrOf(aPts, bPts, isAmt ? 12 : 6);
       return esc(pxLabelShort(ix)) + ' ' + (cv ? '<b>' + cv.r.toFixed(2) + '</b>' : '·');
     });
     return m.join(' · ');
@@ -10969,7 +10970,7 @@ function pxFundBlockHtml(d, pre) {
   var amtCorr = ready ? corrLine('amt') : '<span style="color:#94a3b8">日线加载中…</span>';
   return '<div style="margin-top:16px">' +
     '<div style="font-size:13px;font-weight:700;color:#0f172a;margin-bottom:2px">资金面 · 单列口径</div>' +
-    '<div style="font-size:11px;color:#64748b;margin-bottom:10px">两融余额 / 全A成交额是资金数据（月频，万亿），与价格口径不同，单独观察、不进价格相关性矩阵；下方为与三大宽基月收益的相关性（越正=资金与行情同步越强）。</div>' +
+    '<div style="font-size:11px;color:#64748b;margin-bottom:10px">两融余额为月频序列（万亿，自 2010 年）；全A成交额为最近 30 个交易日快照（日频，万亿）。两者都是资金数据、不进价格相关性矩阵；下方分别与三大宽基比「月收益相关性」（两融）与「近 1 月日收益相关性」（成交额），越正=资金与行情同步越强。</div>' +
     '<div style="display:flex;gap:12px;flex-wrap:wrap">' +
     '<div style="flex:1 1 300px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:10px 12px">' +
     '<div style="display:flex;justify-content:space-between;align-items:center"><b style="font-size:12px;color:#0f172a">两融余额</b>' +
@@ -10981,7 +10982,7 @@ function pxFundBlockHtml(d, pre) {
     '<div style="display:flex;justify-content:space-between;align-items:center"><b style="font-size:12px;color:#0f172a">全A成交额</b>' +
     '<span style="font-size:10px;color:#64748b">' + (amtTw != null ? amtTw.toFixed(2) + ' 万亿' : '—') + ' · <span style="color:' + amtCol + ';font-weight:600">' + amtTag + '</span></span></div>' +
     '<div id="pxFundAmt" style="height:92px;margin-top:6px"></div>' +
-    '<div style="font-size:10px;color:#64748b;margin-top:4px">与宽基月收益相关性：' + amtCorr + '</div>' +
+    '<div style="font-size:10px;color:#64748b;margin-top:4px">与宽基日收益相关性（近1月）：' + amtCorr + '</div>' +
     '</div>' +
     '</div></div>';
 }
