@@ -1057,8 +1057,6 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
         <span data-page-node-id="kQSNjMTlENeJHiUv77QZ0m" class="sub" id="viewSub"><!--pnid:t4TM4hkGyv1skzQ3lVNMa9-->在线持仓数据表 · 支持新增 / 修改 / 删除 · 未登录时改动存本机草稿</span>
       </div>
       <div data-page-node-id="h9l3ThyKY61ZHbgFixPybo" class="tb-r">
-        <span data-page-node-id="k6xk51S2XYhH7Yym55bsoY" class="badge" id="sessionBadge"><!--pnid:ERCOkCkuYt25aYqiwHux30-->—</span>
-        <span data-page-node-id="fKVlpuaT8HwhgXFknc1gyb" class="badge" id="connBadge"><!--pnid:t0cSqfQ0pAn7s8OGvZQkM0-->连接中</span>
         <span data-page-node-id="GGckQBXGtWLzpFgjpCXVfh" class="muted" id="lastUpdate"><!--pnid:4KP7VrkcUl81sP6lzQ3cwF-->未更新</span>
         <button data-page-node-id="YonfLGTY63isuUmIzuz4Rr" class="btn btn-primary btn-sm" id="refreshBtn"><!--pnid:JGJTTnU72eA7Bu91inuiwx-->↻ 刷新</button>
       </div>
@@ -5893,7 +5891,6 @@ async function refreshSnapshot(noRerender) {
     state.snapshot.market = market;
     state.snapshot.marketError = marketError || '行情获取失败';
   }
-  setConn(ok, marketError);
   ensureSectors();
   renderStrip();
   renderTicker();
@@ -5905,23 +5902,6 @@ async function refreshSnapshot(noRerender) {
   fillRsNameList();
   $('#snapId').textContent = state.snapshot.id;
   $('#lastUpdate').textContent = state.snapshot.at ? '快照 ' + fmtClock(state.snapshot.at) : '未更新';
-  updateSessionBadge();
-}
-function setConn(ok, msg) {
-  const b = $('#connBadge');
-  if (ok) { b.className = 'badge badge-ok'; b.textContent = '数据正常'; }
-  else { b.className = 'badge badge-warn'; b.textContent = '数据异常'; if (msg) console.warn('[quote]', msg); }
-}
-function updateSessionBadge() {
-  const narrow = !!(window.matchMedia && window.matchMedia('(max-width: 767px)').matches);
-  const parts = ['CN', 'HK', 'US'].map((m) => {
-    let lbl = sessionOf(m).label;
-    if (narrow) lbl = lbl.replace('午间休市', '午休');
-    return `${MARKET_LABEL[m]}${lbl}`;
-  });
-  const b = $('#sessionBadge');
-  b.textContent = parts.join(narrow ? ' ' : ' · ');
-  b.className = 'badge ' + (anyMarketOpen() ? 'badge-live' : '');
 }
 /* 板块归属：按需拉取并缓存 */
 let sectorLoading = false;
@@ -10345,21 +10325,21 @@ function renderMacroToolsHtml() {
     '<div class="seg seg-tabs" id="macroWin">' + btns + '</div>' +
     '<span class="hint" id="macroSrcHint">' + esc(hintTxt) + '</span></div>';
 }
-/* fw2_v453 宏观指标页 7 组胶囊切换（默认「全部」平铺；组归属由 wrapMcMods 按 MI_GROUPS keys 匹配 data-title 写入 data-g） */
+/* fw2_v455 宏观指标页组胶囊（去除「全部」聚合与「子模块」标签，默认直接显示第一个子模块；组归属由 wrapMcMods 按 MI_GROUPS keys 匹配 data-title 写入 data-g） */
 function renderMacroGroupCaps() {
   const g = window.MI_GROUPS || [];
-  const cur = (typeof state.miGroup === 'number') ? String(state.miGroup) : 'all';
+  const cur = (typeof state.miGroup === 'number') ? String(state.miGroup) : '0';
   const base = 'padding:4px 11px;border-radius:14px;border:1px solid #d8dee6;background:#fff;color:#475569;font-size:12px;font-weight:600;cursor:pointer;line-height:1.5';
   const act = 'padding:4px 11px;border-radius:14px;border:1px solid #2f6bff;background:#eaf1ff;color:#2f6bff;font-size:12px;font-weight:700;cursor:pointer;line-height:1.5';
-  const items = ['全部'].concat(g.map((x) => x.name));
+  const items = g.map((x) => x.name);
   const html = items.map((t, i) => {
-    const key = i === 0 ? 'all' : String(i - 1);
+    const key = String(i);
     return '<button type="button" data-mg="' + key + '" onclick="window.__mcSetGroup(\'' + key + '\')" style="' + (cur === key ? act : base) + '">' + t + '</button>';
   }).join('');
-  return '<div style="display:flex;flex-wrap:wrap;gap:6px;margin:0 0 10px;align-items:center"><span class="flbl">子模块</span>' + html + '</div>';
+  return '<div style="display:flex;flex-wrap:wrap;gap:6px;margin:0 0 10px;align-items:center">' + html + '</div>';
 }
 window.__mcSetGroup = function (k) {
-  state.miGroup = (k === 'all') ? 'all' : parseInt(k, 10);
+  state.miGroup = parseInt(k, 10);
   if (window.__mcApply) window.__mcApply();
 };
 function renderMacroUS(d) {
@@ -12351,7 +12331,7 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
   */
   const vc = $('#verChip');
   /* v319 fw2_v319_sig_risk_fusion：动态 verChip 同步升版（v266 起文本停更，本次修正为当前版本） */
-  if (vc) vc.textContent = 'v454 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  if (vc) vc.textContent = 'v455 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
@@ -12927,11 +12907,9 @@ loadPortfolioFromDB();
 loadWatchlistFromDB();
 $('#hdCny').checked = state.settings.cnyView !== false;
 renderNewsSourceChips();
-updateSessionBadge();
 showView(new URLSearchParams(location.search).get('view') || 'decision'); /* fw2_capbal_merge：支持 ?view= 直达 */ /* v209：默认首页改为决策总览 */
 startLoop();
 setTimeout(() => { renderResearchChips(); if (!state.news.items.length) loadNews(); }, 800);
-setInterval(updateSessionBadge, 30000);
 
 /* ===================== 数据中心模块 (v71) ===================== */
 (function(){
@@ -13434,8 +13412,8 @@ setInterval(updateSessionBadge, 30000);
   };
   /* fw2_fix_mcnav2row：宏观导航两排——周期相关第一行，其他指标第二排 */
   var MC_CYCLE_KEYS = ['周期', '层', '美元 / 黄金', '行业周期', '信用脉冲（社融同比', '历史相似阶段回放'];
-  /* fw2_v453_macro_hb：宏观指标页 7 组（原 4 组 + 美国高频景气 + 全球景气先行 + 框架传导）；
-     组顶胶囊切换默认「全部」平铺；keys 按 data-title 前缀匹配，同时用于 wrapMcMods 写 data-g */
+  /* fw2_v455_macro_hb：宏观指标页 7 组（原 4 组 + 美国高频景气 + 全球景气先行 + 框架传导）；
+     组顶胶囊直接按子模块切换（无「全部」聚合，默认组 0）；keys 按 data-title 前缀匹配，同时用于 wrapMcMods 写 data-g */
   window.MI_GROUPS = [
     { name:'估值与性价比 · A股', keys:['ERP 股债性价比', '沪深300 PE-TTM', '宽基估值温度'] },
     { name:'信用与通胀', keys:['信用脉冲：社融', '物价剪刀差', '制造业 PMI'] },
@@ -13470,12 +13448,12 @@ setInterval(updateSessionBadge, 30000);
     var vis;
     if (reg === 'cn' || reg === 'mi') {
       var showCyc = (reg === 'cn');
-      /* fw2_v453：mi 页组胶囊过滤（state.miGroup=组索引时仅显示该组卡；all 平铺） */
-      var grp = (reg === 'mi' && typeof state.miGroup === 'number') ? String(state.miGroup) : 'all';
+      /* fw2_v455：mi 页组胶囊过滤（state.miGroup=组索引时仅显示该组卡；未设置默认组 0） */
+      var grp = (reg === 'mi') ? String(typeof state.miGroup === 'number' ? state.miGroup : 0) : 'all';
       mods.forEach(function (m) {
         if (isDollar(m)) { m.style.display = 'none'; return; }
         var on = (isCyc(m) === showCyc);
-        if (on && reg === 'mi' && grp !== 'all') on = (m.getAttribute('data-g') === grp);
+        if (on && reg === 'mi') on = (m.getAttribute('data-g') === grp);
         m.style.display = on ? 'block' : 'none';
       });
       vis = mods.filter(function (m) { return m.style.display === 'block'; });
