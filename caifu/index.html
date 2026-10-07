@@ -11174,7 +11174,10 @@ function pxRowHtml(d, a, it, kl) {
     dTxt = m1Txt = ytdTxt = posTxt = '—';
   }
   var cs = pxCycleAndSigs(d, a);
+  /* fw2_v444_px_my_redgreen：全景表「1月」「年初至今」两列按正红负绿着色（用户「正数红色字体，负数绿色字体」，与今日列同口径 var(--up)/var(--down)） */
   var dCls = (st && st.d != null) ? (st.d >= 0 ? 'color:var(--up);font-weight:600' : 'color:var(--down);font-weight:600') : '';
+  var m1Cls = (st && (isMf ? st.m3 : st.m1) != null) ? ((isMf ? st.m3 : st.m1) >= 0 ? 'color:var(--up);font-weight:600' : 'color:var(--down);font-weight:600') : '';
+  var ytdCls = (st && st.ytd != null) ? (st.ytd >= 0 ? 'color:var(--up);font-weight:600' : 'color:var(--down);font-weight:600') : '';
   var rngHtml = '—';
   if (st && st.pos != null) {
     var loT = st.lo != null ? fmtNum(st.lo, a.dec) : '—';
@@ -11193,8 +11196,8 @@ function pxRowHtml(d, a, it, kl) {
     '<td style="' + td + ';font-weight:600;color:#0f172a;white-space:nowrap">' + esc(a.label) + (isMf ? ' <span style="font-size:9px;color:#94a3b8;font-weight:400">月频</span>' : '') + '</td>' +
     '<td style="' + td + ';text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums">' + curTxt + '</td>' +
     '<td style="' + td + ';text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums;' + dCls + '">' + dTxt + '</td>' +
-    '<td style="' + td + ';text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums">' + m1Txt + '</td>' +
-    '<td style="' + td + ';text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums">' + ytdTxt + '</td>' +
+    '<td style="' + td + ';text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums;' + m1Cls + '">' + m1Txt + '</td>' +
+    '<td style="' + td + ';text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums;' + ytdCls + '">' + ytdTxt + '</td>' +
     '<td style="' + td + ';text-align:center;white-space:nowrap">' + rngHtml + '</td>' +
     '<td style="' + td + ';font-size:11px;color:#475569;min-width:130px">' + cs.cycle + '</td>' +
     '<td style="' + td + ';white-space:nowrap;max-width:240px">' + heldHtml + ' ' + sigHtml + '</td>' +
@@ -12195,7 +12198,7 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
   */
   const vc = $('#verChip');
   /* v319 fw2_v319_sig_risk_fusion：动态 verChip 同步升版（v266 起文本停更，本次修正为当前版本） */
-  if (vc) vc.textContent = 'v443 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  if (vc) vc.textContent = 'v444 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
