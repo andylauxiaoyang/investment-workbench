@@ -10548,13 +10548,22 @@ var PX_ASSETS = [
 var PX_GRP = { a:'A股', o:'海外', b:'债券', c:'商品与汇率', e:'情绪与资金' };
 /* v433 fw2_v433_px_held_dynamic：持仓高亮动态读 SIGNALS_CFG.barbell.funds（策略执行杠铃配置）——
    配置改、持仓高亮自动跟随，不再写死在 PX_ASSETS；命中返回该基金配置名，未命中返回 null */
+/* v445 fw2_v445_px_held_real：持仓徽标改以「我的持仓」真实数据为准——state.portfolio 三层兜底
+   （资料库持仓表/旁挂快照 holdings-data.json/内嵌种子 HOLDINGS_SEED，applySeed 均已过滤 qty>0）。
+   背景：v433 起用杠铃目标配置判持仓，把配置中未实际持有的场内 ETF 占位（159949 创业板50/
+   511260 10年国债/159934 黄金 等）误标为「持仓」，与用户实际场外持仓不符；现改为真实持仓命中
+   才显示（代码末尾 6 位数字归一化匹配），配置名仅作展示名，配置无此代码但有真实持仓时用资产名兜底 */
 function pxHeld(a) {
   if (!a || !a.heldBy) return null;
+  var pf = (typeof state !== 'undefined' && state && Array.isArray(state.portfolio)) ? state.portfolio : null;
+  if (!pf || !pf.length) return null;
+  var norm = function (c) { return String(c == null ? '' : c).replace(/\D/g, '').slice(-6); };
+  var held = pf.some(function (h) { return h && norm(h.code) === norm(a.heldBy); });
+  if (!held) return null;
   var C = window.SIGNALS_CFG;
-  if (!C || !C.barbell || !C.barbell.funds) return null;
   var hit = null;
-  C.barbell.funds.forEach(function (f) { if (f && f.code === a.heldBy) hit = f; });
-  return hit ? hit.name : null;
+  if (C && C.barbell && C.barbell.funds) C.barbell.funds.forEach(function (f) { if (f && f.code === a.heldBy) hit = f; });
+  return hit ? hit.name : a.label;
 }
 function pxPath(d, path) {
   var cur = d, i = 0, parts = path.split(':');
@@ -12198,7 +12207,7 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
   */
   const vc = $('#verChip');
   /* v319 fw2_v319_sig_risk_fusion：动态 verChip 同步升版（v266 起文本停更，本次修正为当前版本） */
-  if (vc) vc.textContent = 'v444 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  if (vc) vc.textContent = 'v445 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
