@@ -10390,7 +10390,8 @@ function renderMacroSentiment(d) {
 }
 
 function renderMacroHard(d) {
-  /* fw2_v461_nbs：宏观硬指标 v461——「其他源补充」区扩到双源：腾讯自选股(westock) 工业增加值/核心PCE/ISM制造业+非制造业PMI(macroAlt) + 东方财富(东财T2转发统计局) 70城房价(macroEm)。
+  /* fw2_v462_pmi：宏观硬指标接统计局官方制造业/非制造业PMI（东财 RPT_ECONOMY_PMI，gen_macro_em.py get_pmi → macroEm.pmiMfg/pmiSvc），替代商业授权的财新PMI；失业率维持留白（统计局WAF+东财无镜像）。
+     fw2_v461_nbs：宏观硬指标 v461——「其他源补充」区扩到双源：腾讯自选股(westock) 工业增加值/核心PCE/ISM制造业+非制造业PMI(macroAlt) + 东方财富(东财T2转发统计局) 70城房价(macroEm)。
      原理杏仁未授权 ip 灰显卡不再渲染。财新PMI/失业率/北向/BDI/日银短观/FRED 仍无合规机读源→待接入清单保留(不编造)。
      每卡标注 asOf(数据截至) + 来源；自算/自乘口径在 src 已注。 */
   const cn = (d && d.cnMacro) || {};
@@ -10415,15 +10416,15 @@ function renderMacroHard(d) {
   const cnOrder = ['gdp', 'retail', 'fai', 'export', 'cpi', 'coreCpi', 'ppi', 'pmi', 'm2', 'sf', 'rrr', 'fxRes'];
   const usOrder = ['cpi', 'ppi', 'gdp', 'unemp'];
   const altOrder = ['ip', 'corePce', 'ismMfg', 'ismSvc'];
-  const emOrder = ['house70'];
+  const emOrder = ['pmiMfg', 'pmiSvc', 'house70'];
   let cnCards = '', usCards = '', altCards = '', emCards = '';
   cnOrder.forEach(function (k) { cnCards += card(k, cn[k]); });
   usOrder.forEach(function (k) { usCards += card(k, us[k]); });
   altOrder.forEach(function (k) { altCards += card(k, alt[k]); });
   emOrder.forEach(function (k) { emCards += card(k, em[k]); });
   const todo = [
-    '中国城镇调查失业率 / 16-24岁青年失业率（统计局站 WAF 拦截本环境无法直取；东财无对应 reportName）',
-    '财新PMI（财新·Markit 商业授权，非统计局序列）',
+    '中国城镇调查失业率 / 16-24岁青年失业率（统计局站 WAF 拦截本环境无法直取；东财无对应 reportName）→ 留白',
+    '财新PMI（财新·Markit 商业授权，非统计局序列）→ 已用统计局官方制造业/非制造业PMI替代（东财 RPT_ECONOMY_PMI，见下）',
     '北向资金净流入（交易所2024起停更日度净买入；westock 仅持股持仓）',
     'BDI干散货运价（无合规机读源）',
     '日银短观(Tankan)（外部通道冻结）',
@@ -10431,7 +10432,7 @@ function renderMacroHard(d) {
   ];
   let h = '<div style="max-width:980px">';
   h += '<div style="margin:4px 0 14px"><h3 style="margin:0 0 4px;font-size:16px;color:#1e293b">宏观硬指标 · 理杏仁 + 腾讯自选股 + 东方财富</h3>'
-     + '<span class="hint" style="font-size:11px;color:#94a3b8">来源：理杏仁开放平台 macro 接口（中国13项/美国4项）+ 腾讯自选股 westock CLI（工业增加值/核心PCE/ISM制造业·非制造业PMI）+ 东方财富数据中心（70城房价，转发国家统计局）· 自算/自乘口径见各卡片来源标注 · 每卡独立标注数据截至与来源 · 离线刷新随「更新数据」全量重算</span></div>';
+     + '<span class="hint" style="font-size:11px;color:#94a3b8">来源：理杏仁开放平台 macro 接口（中国13项/美国4项）+ 腾讯自选股 westock CLI（工业增加值/核心PCE/ISM制造业·非制造业PMI）+ 东方财富数据中心（统计局官方制造业/非制造业PMI、70城房价，转发国家统计局）· 自算/自乘口径见各卡片来源标注 · 每卡独立标注数据截至与来源 · 离线刷新随「更新数据」全量重算</span></div>';
   h += '<div style="font-size:13px;font-weight:700;color:#334155;margin:14px 0 8px">中国宏观</div><div style="display:flex;flex-wrap:wrap">' + cnCards + '</div>';
   h += '<div style="font-size:13px;font-weight:700;color:#334155;margin:18px 0 8px">美国宏观（通胀 / 增长）</div><div style="display:flex;flex-wrap:wrap">' + usCards + '</div>';
   h += '<div style="font-size:13px;font-weight:700;color:#334155;margin:18px 0 8px">其他源补充 · 腾讯自选股(westock) / 东方财富(东财)</div><div style="display:flex;flex-wrap:wrap">' + altCards + emCards + '</div>';
@@ -12490,7 +12491,7 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
   */
   const vc = $('#verChip');
   /* v319 fw2_v319_sig_risk_fusion：动态 verChip 同步升版（v266 起文本停更，本次修正为当前版本） */
-  if (vc) vc.textContent = 'v461 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  if (vc) vc.textContent = 'v462 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
