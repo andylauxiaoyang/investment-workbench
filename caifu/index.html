@@ -10336,10 +10336,19 @@ function renderMacroGroupCaps() {
     const key = String(i);
     return '<button type="button" data-mg="' + key + '" onclick="window.__mcSetGroup(\'' + key + '\')" style="' + (cur === key ? act : base) + '">' + t + '</button>';
   }).join('');
-  return '<div style="display:flex;flex-wrap:wrap;gap:6px;margin:0 0 10px;align-items:center">' + html + '</div>';
+  return '<div id="mcGroupCaps" style="display:flex;flex-wrap:wrap;gap:6px;margin:0 0 10px;align-items:center">' + html + '</div>';
 }
 window.__mcSetGroup = function (k) {
   state.miGroup = parseInt(k, 10);
+  /* fw2_v457_mc_cap_follow：点击子模块后重建顶部胶囊行（#mcGroupCaps），选中高亮跟随 state.miGroup
+     ——旧版只调 __mcApply 刷内容区、胶囊行 HTML 不重建，高亮停在渲染 body 时的初始组 0（点「美国·高频景气」仍高亮「估值与性价比·A股」） */
+  var cap = document.getElementById('mcGroupCaps');
+  if (cap && typeof renderMacroGroupCaps === 'function') {
+    var wrap = document.createElement('div');
+    wrap.innerHTML = renderMacroGroupCaps();
+    var fresh = wrap.firstChild;
+    if (fresh && fresh.id === 'mcGroupCaps') cap.parentNode.replaceChild(fresh, cap);
+  }
   if (window.__mcApply) window.__mcApply();
 };
 function renderMacroUS(d) {
@@ -12331,7 +12340,7 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
   */
   const vc = $('#verChip');
   /* v319 fw2_v319_sig_risk_fusion：动态 verChip 同步升版（v266 起文本停更，本次修正为当前版本） */
-  if (vc) vc.textContent = 'v456 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  if (vc) vc.textContent = 'v457 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
@@ -13457,31 +13466,9 @@ setTimeout(() => { renderResearchChips(); if (!state.news.items.length) loadNews
         m.style.display = on ? 'block' : 'none';
       });
       vis = mods.filter(function (m) { return m.style.display === 'block'; });
-      /* fw2_v456_mc_banner_idem：宏观指标页组横幅幂等——每次先移除旧横幅再按当前可见组重建。
-         旧版（fw2_v434）每次 __mcApply 都直接 insertBefore 且不清理，点击子模块/重复渲染多次后
-         同组横幅累积成内容区左侧一列叠加文字；现横幅带 class mc-gbanner + data-gi，先清后建，仅当前可见组一条。 */
-      if (reg === 'mi' && window.MI_GROUPS) {
-        Array.prototype.forEach.call(body.querySelectorAll('.mc-gbanner'), function (b) { if (b.parentNode) b.parentNode.removeChild(b); });
-        var firstEl = {};
-        mods.forEach(function (m) {
-          if (m.style.display !== 'block') return;
-          var t = m.getAttribute('data-title') || '';
-          for (var k = 0; k < window.MI_GROUPS.length; k++) {
-            var g = window.MI_GROUPS[k], hit = false;
-            for (var q = 0; q < g.keys.length; q++) { if (t.indexOf(g.keys[q]) === 0) { hit = true; break; } } /* 前缀匹配：含匹配会让「ISM 制造业 PMI」误入「制造业 PMI」组致横幅串组 */
-            if (hit) { if (!firstEl[k]) firstEl[k] = m; break; }
-          }
-        });
-        for (var gi2 = 0; gi2 < window.MI_GROUPS.length; gi2++) {
-          var fm = firstEl[gi2]; if (!fm) continue;
-          var bn = document.createElement('div');
-          bn.className = 'mc-gbanner';
-          bn.setAttribute('data-gi', String(gi2));
-          bn.style.cssText = 'margin:18px 0 8px;padding:0 0 6px;border-bottom:1.5px solid #e2e8f0;font-size:13px;font-weight:700;color:#334155;letter-spacing:.5px';
-          bn.textContent = window.MI_GROUPS[gi2].name;
-          fm.parentNode.insertBefore(bn, fm);
-        }
-      }
+      /* fw2_v457_mc_banner_removed：宏观指标页组名横幅（mc-gbanner）已移除——顶部子模块胶囊行
+         （#mcGroupCaps）已显示组名且点击高亮跟随（fw2_v457_mc_cap_follow），内容区再插组名横幅即重复冗余；
+         组过滤仍按 wrapMcMods 写入的 data-g 生效，可见组卡片直接平铺。 */
     } else {
       mods.forEach(function (m) {
         var on = (m.getAttribute('data-mod') === mcMod);
