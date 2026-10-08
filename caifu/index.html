@@ -9494,8 +9494,10 @@ function renderMacro() {
   if (_navEl) _navEl.style.display = 'none';
   fillMacroTabs();
   if (_region === 'us') { body.innerHTML = renderMacroTop(d) + renderMacroUS(d); renderMacroUSCharts(); return; }
+  if (_region === 'sm') { body.innerHTML = renderMacroSentiment(d); return; }
   /* fw2_v432 资产价格监控：19 项全景 · 磁贴+分区表+弹层走势 · 周期/持仓/信号三联动 */
   if (_region === 'px') { renderPriceMon(d); return; }
+  if (_region === 'mh') { body.innerHTML = renderMacroHard(d); return; }
   const N = { '1': 12, '3': 36, '5': 60, '10': 120 }[state.macroWin] || 120;
   /* v196 宏观周期：四层周期定位引擎（纯规则实时计算，口径见 cycleEngine） */
   const cyc = cycleEngine(d);
@@ -10294,6 +10296,152 @@ function renderMacroTop(d) {
     '<div style="font-size:10px;color:#64748b;margin-top:4px">' + esc(fsi.levelNote || '') + (fsi.meta && fsi.meta.limitNote ? ' · ' + esc(fsi.meta.limitNote) : '') + '</div></div>' +
     '</div></div>';
 }
+
+/* fw2_v458_sm：市场情绪独立模块（聚合现有信号，不引入新数据源）
+   复用 d.erp / d.pe / d.margin / d.vix / d.fsi / d.amtD + window.MKT_SNAP + state.snapshot.market
+   仅做聚合展示层；证券化率/恐惧贪婪/破净率/北向/iVIX 等需新数据源，列在「待接入」卡 */
+function renderMacroSentiment(d) {
+  d = d || {};
+  var erp = d.erp || {}, erpCur = erp.cur || {}, erpPct = erp.erpPct;
+  var ep = erpCur.ep, y10 = erpCur.y10;
+  var pePts = (d.pe && d.pe.points) || [];
+  var peLast = pePts.length ? pePts[pePts.length - 1] : null;
+  var peCur = peLast ? peLast[1] : null, pePos = peLast ? peLast[2] : null;
+  var mkt = window.MKT_SNAP || {};
+  var idx300 = (mkt.idx && mkt.idx['000300']) || {};
+  var hsPe = idx300.pe != null ? idx300.pe : peCur;
+  var hsPos = idx300.pos != null ? idx300.pos : pePos;
+  var mrg = (d.margin && d.margin.points) || [];
+  var mrgLast = mrg.length ? mrg[mrg.length - 1] : null;
+  var rzyeYi = mrgLast ? mrgLast[1] : null;
+  var rzyeTw = rzyeYi != null ? rzyeYi / 1e4 : null;
+  var rzbl = mrgLast ? mrgLast[2] : null;
+  var vixPts = (d.vix && d.vix.points) || [];
+  var vixCur = (d.vix && d.vix.cur) || {};
+  var vixVal = vixCur.val != null ? vixCur.val : (vixPts.length ? vixPts[vixPts.length - 1][1] : null);
+  var amtAll = (d.amtD && d.amtD.points) || [];
+  var amtLast = amtAll.length ? amtAll[amtAll.length - 1] : null;
+  var amtYi = amtLast ? amtLast[1] : (mkt.amt ? mkt.amt.yi : null);
+  var m2 = (mkt.m2Ref && mkt.m2Ref.value) || null;
+  var fundCoef = (amtYi != null && m2 != null) ? (amtYi / 10000) / m2 * 100 : null;
+  var br = (state.snapshot && state.snapshot.market) || {};
+  var up = br.up || 0, down = br.down || 0;
+  var upPct = (up + down) ? up / (up + down) * 100 : null;
+  var fsi = d.fsi || {};
+  function spark(arr, color) {
+    arr = (arr || []).slice(-36);
+    if (arr.length < 2) return '';
+    var mn = Math.min.apply(null, arr), mx = Math.max.apply(null, arr);
+    var rng = (mx - mn) || 1;
+    var pts = arr.map(function (v, i) { return (i / (arr.length - 1) * 100).toFixed(1) + ',' + (34 - (v - mn) / rng * 30).toFixed(1); }).join(' ');
+    return '<svg viewBox="0 0 100 36" preserveAspectRatio="none" style="width:100%;height:36px;display:block"><polyline points="' + pts + '" fill="none" stroke="' + color + '" stroke-width="1.5"/></svg>';
+  }
+  function erpSpark() { return spark((d.erp && d.erp.points || []).map(function (p) { return p[3]; }), '#2f6bff'); }
+  function peSpark() { return spark((d.pe && d.pe.points || []).map(function (p) { return p[2]; }), '#2f6bff'); }
+  function vixSpark() { return spark((d.vix && d.vix.points || []).map(function (p) { return p[1]; }), '#dc2626'); }
+  function amtSpark() { return spark(amtAll.map(function (p) { return p[1]; }), '#7c3aed'); }
+  function mrgSpark() { return spark(mrg.map(function (p) { return p[1]; }), '#2f6bff'); }
+  function pct(v) { return v == null ? '—' : fmtNum(v, 1) + '%'; }
+  function tag(txt, col) { return '<span style="color:' + col + ';font-weight:600">' + txt + '</span>'; }
+  function erpLv(p) { return p == null ? '—' : p >= 75 ? tag('增配股票', '#0d9f4d') : p >= 50 ? tag('均衡偏股', '#2f6bff') : p >= 25 ? tag('均衡偏债', '#d98c00') : tag('减配股票', '#dc2626'); }
+  function peLv(p) { return p == null ? '—' : p >= 80 ? tag('偏贵', '#dc2626') : p >= 60 ? tag('中性偏暖', '#d98c00') : p >= 40 ? tag('中性', '#475569') : p >= 20 ? tag('中性偏冷', '#2f6bff') : tag('便宜', '#0d9f4d'); }
+  function vixLv(v) { return v == null ? '—' : v >= 35 ? tag('极度恐慌', '#dc2626') : v >= 25 ? tag('恐慌', '#e06a1b') : v >= 15 ? tag('正常', '#475569') : tag('低恐慌·贪婪', '#0d9f4d'); }
+  function rzyeLv(t) { return t == null ? '—' : t >= 3 ? tag('过热观察', '#dc2626') : t >= 2 ? tag('正常', '#0d9f4d') : tag('偏低', '#d98c00'); }
+  function fcLv(c) { return c == null ? '—' : c < 0.2 ? tag('低迷·机会', '#0d9f4d') : c < 0.8 ? tag('平稳', '#475569') : c < 1.5 ? tag('活跃', '#d98c00') : tag('过热·清仓', '#dc2626'); }
+  function card(h, hint, inner) {
+    return '<div class="card"><div class="card-h"><h3>' + h + '</h3><span class="hint">' + hint + '</span></div>' + inner + '</div>';
+  }
+  function metric(label, val, sub) {
+    return '<div style="display:flex;justify-content:space-between;align-items:baseline;padding:4px 0;border-bottom:1px dashed #eef2f7"><span style="font-size:12px;color:#64748b">' + label + '</span><span style="font-size:13px;font-weight:600;color:#0f172a">' + val + (sub ? ' <span style="font-size:11px;font-weight:400;color:#94a3b8">' + sub + '</span>' : '') + '</span></div>';
+  }
+  var erpCard = card('股债性价比 ERP（格雷厄姆指数）', 'E/P − 10Y国债 · 分位 ' + pct(erpPct),
+    metric('盈利收益率 E/P', ep != null ? fmtNum(ep, 2) + '%' : '—') +
+    metric('10Y 国债', y10 != null ? fmtNum(y10, 2) + '%' : '—') +
+    metric('历史分位', pct(erpPct), ' · ' + erpLv(erpPct)) +
+    '<div style="margin-top:8px">' + erpSpark() + '</div>');
+  var peCard = card('估值温度 沪深300', 'PE-TTM · 理杏仁 10年分位',
+    metric('PE-TTM', hsPe != null ? fmtNum(hsPe, 1) : '—') +
+    metric('10年分位', pct(hsPos), ' · ' + peLv(hsPos)) +
+    '<div style="margin-top:8px">' + peSpark() + '</div>');
+  var mrgCard = card('杠杆温度计 两融', '融资余额 / 占流通市值比',
+    metric('融资余额', rzyeTw != null ? fmtNum(rzyeTw, 2) + ' 万亿' : '—', ' · ' + rzyeLv(rzyeTw)) +
+    metric('占流通市值比', rzbl != null ? fmtNum(rzbl, 2) + '%' : '—') +
+    '<div style="margin-top:8px">' + mrgSpark() + '</div>');
+  var amtCard = card('资金温度计 全A成交额', '沪深京 · 资金系数=成交/M2',
+    metric('最近成交', amtYi != null ? fmtNum(amtYi, 0) + ' 亿' : '—') +
+    metric('资金系数', fundCoef != null ? fmtNum(fundCoef, 2) + '%' : '—', ' · ' + fcLv(fundCoef)) +
+    '<div style="margin-top:8px">' + amtSpark() + '</div>');
+  var vixCard = card('VIX 恐慌指数', '标普500 期权隐含波动率',
+    metric('VIX', vixVal != null ? fmtNum(vixVal, 1) : '—', ' · ' + vixLv(vixVal)) +
+    '<div style="margin-top:8px">' + vixSpark() + '</div>');
+  var brCard = card('市场宽度 上涨占比', '全市场涨跌家数',
+    metric('上涨家数', up ? fmtNum(up, 0) : '—') +
+    metric('上涨占比', upPct != null ? fmtNum(upPct, 1) + '%' : '数据未加载', upPct != null ? (upPct >= 50 ? tag('多头', '#0d9f4d') : tag('空头', '#dc2626')) : '') +
+    (upPct == null ? '<div style="font-size:11px;color:#94a3b8;margin-top:6px">行情快照未加载（先打开概览/持仓模块拉取一次）</div>' : ''));
+  var todoCard = card('待接入数据源（手册有·工作台暂缺）', '需新增取数通道，非展示层缺失',
+    '<div style="font-size:12px;color:#475569;line-height:1.9">· 证券化率（巴菲特指数 = 总市值/GDP）<br>· 恐惧/恐怖贪婪指数（CNN 美股版 / 中国综合版）<br>· 破净率、市净率中位数<br>· 换手率、融资买入额占成交额<br>· 中国波指 iVIX、期权 PCR、期指升贴水<br>· 成交集中度、板块拥挤度、行业情绪<br>· 北向资金净流入、新发公募量、产业资本增减持/回购、限售解禁<br>· 股息率 vs 10Y 国债、大小盘相对强弱、超额流动性</div>');
+  var smHtml =
+    '<div style="font-size:12px;color:#64748b;margin-bottom:8px">数据截至 ' + esc(d.updatedAt || '') + ' · 聚合视图（信号源同 ERP/估值/两融/成交额/VIX/FSI 各原模块，未新增数据源）</div>' +
+    (fsi && fsi.score != null ? renderMacroTop(d) : '') +
+    '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px;margin-top:10px">' +
+    erpCard + peCard + mrgCard + amtCard + vixCard + brCard + todoCard +
+    '</div>';
+  return smHtml;
+}
+
+function renderMacroHard(d) {
+  /* fw2_v461_nbs：宏观硬指标 v461——「其他源补充」区扩到双源：腾讯自选股(westock) 工业增加值/核心PCE/ISM制造业+非制造业PMI(macroAlt) + 东方财富(东财T2转发统计局) 70城房价(macroEm)。
+     原理杏仁未授权 ip 灰显卡不再渲染。财新PMI/失业率/北向/BDI/日银短观/FRED 仍无合规机读源→待接入清单保留(不编造)。
+     每卡标注 asOf(数据截至) + 来源；自算/自乘口径在 src 已注。 */
+  const cn = (d && d.cnMacro) || {};
+  const us = (d && d.usMacro) || {};
+  const alt = (d && d.macroAlt) || {};
+  const em = (d && d.macroEm) || {};
+  const fmt = function (v) {
+    if (!v || v.value == null) return '—';
+    if (v.pct) return (v.value * v.scale).toFixed(2) + '%';
+    if (v.unit) return (v.value * v.scale).toFixed(2) + ' ' + v.unit;
+    return (v.value * v.scale).toFixed(2);
+  };
+  const card = function (k, v) {
+    if (!v) return '';
+    const dis = v.available ? '' : 'opacity:.5;border-style:dashed;';
+    return '<div style="display:inline-block;vertical-align:top;width:180px;margin:5px;padding:14px 14px 12px;border:1px solid #e3e8ef;border-radius:12px;background:#fff;box-shadow:0 1px 3px rgba(20,40,80,.05);' + dis + '">'
+      + '<div style="font-size:12px;color:#64748b;min-height:32px;line-height:1.35">' + esc(v.label) + '</div>'
+      + '<div style="font-size:23px;font-weight:700;color:#1e293b;margin-top:6px;font-variant-numeric:tabular-nums">' + fmt(v) + '</div>'
+      + '<div style="font-size:10px;color:#94a3b8;margin-top:9px;line-height:1.45">数据截至 ' + (v.asOf || '—') + '<br>' + esc(v.src) + '</div>'
+      + '</div>';
+  };
+  const cnOrder = ['gdp', 'retail', 'fai', 'export', 'cpi', 'coreCpi', 'ppi', 'pmi', 'm2', 'sf', 'rrr', 'fxRes'];
+  const usOrder = ['cpi', 'ppi', 'gdp', 'unemp'];
+  const altOrder = ['ip', 'corePce', 'ismMfg', 'ismSvc'];
+  const emOrder = ['house70'];
+  let cnCards = '', usCards = '', altCards = '', emCards = '';
+  cnOrder.forEach(function (k) { cnCards += card(k, cn[k]); });
+  usOrder.forEach(function (k) { usCards += card(k, us[k]); });
+  altOrder.forEach(function (k) { altCards += card(k, alt[k]); });
+  emOrder.forEach(function (k) { emCards += card(k, em[k]); });
+  const todo = [
+    '中国城镇调查失业率 / 16-24岁青年失业率（统计局站 WAF 拦截本环境无法直取；东财无对应 reportName）',
+    '财新PMI（财新·Markit 商业授权，非统计局序列）',
+    '北向资金净流入（交易所2024起停更日度净买入；westock 仅持股持仓）',
+    'BDI干散货运价（无合规机读源）',
+    '日银短观(Tankan)（外部通道冻结）',
+    'FRED 宏微观数据通道（冻结）'
+  ];
+  let h = '<div style="max-width:980px">';
+  h += '<div style="margin:4px 0 14px"><h3 style="margin:0 0 4px;font-size:16px;color:#1e293b">宏观硬指标 · 理杏仁 + 腾讯自选股 + 东方财富</h3>'
+     + '<span class="hint" style="font-size:11px;color:#94a3b8">来源：理杏仁开放平台 macro 接口（中国13项/美国4项）+ 腾讯自选股 westock CLI（工业增加值/核心PCE/ISM制造业·非制造业PMI）+ 东方财富数据中心（70城房价，转发国家统计局）· 自算/自乘口径见各卡片来源标注 · 每卡独立标注数据截至与来源 · 离线刷新随「更新数据」全量重算</span></div>';
+  h += '<div style="font-size:13px;font-weight:700;color:#334155;margin:14px 0 8px">中国宏观</div><div style="display:flex;flex-wrap:wrap">' + cnCards + '</div>';
+  h += '<div style="font-size:13px;font-weight:700;color:#334155;margin:18px 0 8px">美国宏观（通胀 / 增长）</div><div style="display:flex;flex-wrap:wrap">' + usCards + '</div>';
+  h += '<div style="font-size:13px;font-weight:700;color:#334155;margin:18px 0 8px">其他源补充 · 腾讯自选股(westock) / 东方财富(东财)</div><div style="display:flex;flex-wrap:wrap">' + altCards + emCards + '</div>';
+  h += '<div style="margin-top:20px;padding:12px 14px;border:1px dashed #d8dee6;border-radius:12px;background:#f8fafc">'
+     + '<div style="font-size:13px;font-weight:700;color:#64748b;margin-bottom:6px">待接入 / 数据源缺口</div>'
+     + '<ul style="margin:0;padding-left:18px;font-size:12px;color:#64748b;line-height:1.7">' + todo.map(function (t) { return '<li>' + esc(t) + '</li>'; }).join('') + '</ul>'
+     + '<span class="hint" style="font-size:11px;color:#94a3b8">以上暂未接入：国家统计局官网对本环境 WAF 拦截(403 UrlACL)无法直取；理杏仁/西财/腾讯自选股均无合规机读序列；财新PMI 属财新·Markit 商业授权非统计局序列；FRED 通道冻结。已从「待接入」移出并接入：工业增加值、美国核心PCE、ISM制造业PMI、ISM非制造业PMI(腾讯自选股) + 70城房价(东方财富)。</span></div>';
+  h += '</div>';
+  return h;
+}
 function fillMacroTabs() {
   /* fw2_v430c：模块级 tab 置顶——中国周期 / 美国/全球周期 / 宏观指标 / 资产价格监控 并列（fw2_v436 移除美元/黄金/大宗独立 tab，并入美国/全球周期）。
      填充到静态容器 #macroRegion（位于 dcMcNav 之前，页面最上方）。
@@ -10306,7 +10454,9 @@ function fillMacroTabs() {
     ['cn', '中国周期'],
     ['us', '美国/全球周期'],
     ['mi', '宏观指标'],
-    ['px', '资产价格监控']
+    ['px', '资产价格监控'],
+    ['sm', '市场情绪'],
+    ['mh', '宏观硬指标']
   ];
   host.innerHTML = items.map((it) => '<button data-r="' + it[0] + '" type="button" style="' + (reg === it[0] ? tAct : tBase) + '">' + it[1] + '</button>').join('');
 }
@@ -12340,7 +12490,7 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
   */
   const vc = $('#verChip');
   /* v319 fw2_v319_sig_risk_fusion：动态 verChip 同步升版（v266 起文本停更，本次修正为当前版本） */
-  if (vc) vc.textContent = 'v457 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  if (vc) vc.textContent = 'v461 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
