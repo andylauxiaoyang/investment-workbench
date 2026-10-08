@@ -9497,7 +9497,7 @@ function renderMacro() {
   if (_region === 'sm') { body.innerHTML = renderMacroSentiment(d); return; }
   /* fw2_v432 资产价格监控：19 项全景 · 磁贴+分区表+弹层走势 · 周期/持仓/信号三联动 */
   if (_region === 'px') { renderPriceMon(d); return; }
-  if (_region === 'mh') { body.innerHTML = renderMacroHard(d); return; }
+  /* fw2_v463_growth：mh「宏观硬指标」独立 tab 已删（并入 mi 的「实体景气」区，见 renderMacroGrowth） */
   const N = { '1': 12, '3': 36, '5': 60, '10': 120 }[state.macroWin] || 120;
   /* v196 宏观周期：四层周期定位引擎（纯规则实时计算，口径见 cycleEngine） */
   const cyc = cycleEngine(d);
@@ -9975,6 +9975,7 @@ function renderMacro() {
   <p class="foot-note">周期定位＝规则引擎实时计算（增长/通胀/信用/库存/温度五组代理，3月趋势判向）；产成品存货为统计局披露锚点（月度，非完整序列）；库存方向以 PPI 为代理。周期定位与 M 系列阈值同口径、互为校准；不构成投资建议。</p>
 <p class="foot-note">涛动周期（v201）：康波=理论定位（周金涛《涛动周期录》时间表 1982-2030，AI 2022.11 提前点燃第六次康波修正；1康波≈3库兹涅茨≈9朱格拉≈18基钦）；库兹涅茨=理杏仁 real-estate 单月值自算单月同比（端点仅开放 t 口径，2021 后含基数效应）；朱格拉=东财固投当月同比×工业增加值；金油比中枢 10-15 桶；信用脉冲=社融存量同比 3 月变化。全部数据可追溯，滞后约 1 个月；不构成投资建议。</p>
 <p class="foot-note">数据源：理杏仁 OpenAPI + 东方财富 datacenter（PMI/两融）+ 东方财富全球指数(100.N225，日经225；push2delay 备用主机) + 日经225 日线（CNBC ts-api charts/1Y.json，近一年） + 全A日成交额（沪深京·近30日，日线转录）+ 沪深交易所月度成交额合计（tdx 月K，当月未完不入序列）。行动阈值与 fund-analyst M1/M9 同口径。趋势窗口 1/3/5/10 年切换重绘；本页不构成投资建议。</p>`;
+ if (_region === 'mi') body.innerHTML += renderMacroGrowth(d);
  (function wrapMcMods(){
     /* v91 fw2_v91_macro_merge：把全部卡片（周期 5 卡 + 指标 13 卡）各自包成独立模块，供宏观分块顶部导航并列切换 */
     var cards = Array.prototype.filter.call(body.children, function(n){ return n.classList && n.classList.contains('card'); });
@@ -10389,6 +10390,21 @@ function renderMacroSentiment(d) {
   return smHtml;
 }
 
+function renderMacroGrowth(d) {
+  /* fw2_v463_growth：mh「宏观硬指标」并入 mi——只渲染 mi 没有的独有硬数据（GDP/社零/固投/出口/工业增加值/70城房价）；
+     PMI/CPI/PPI/社融/M2/ISM/美国 等 mi 已有，不重复（用户拍板：PMI 用理杏仁、mh tab 直接删）。 */
+  const cn = (d && d.cnMacro) || {}, alt = (d && d.macroAlt) || {}, em = (d && d.macroEm) || {};
+  const fmt = function (v) { if (!v || v.value == null) return '—'; if (v.pct) return (v.value * v.scale).toFixed(2) + '%'; if (v.unit) return (v.value * v.scale).toFixed(2) + ' ' + v.unit; return (v.value * v.scale).toFixed(2); };
+  const card = function (v) { if (!v) return ''; const dis = v.available ? '' : 'opacity:.5;border-style:dashed;';
+    return '<div style="display:inline-block;vertical-align:top;width:180px;margin:5px;padding:14px 14px 12px;border:1px solid #e3e8ef;border-radius:12px;background:#fff;box-shadow:0 1px 3px rgba(20,40,80,.05);' + dis + '">'
+      + '<div style="font-size:12px;color:#64748b;min-height:32px;line-height:1.35">' + esc(v.label) + '</div>'
+      + '<div style="font-size:23px;font-weight:700;color:#1e293b;margin-top:6px;font-variant-numeric:tabular-nums">' + fmt(v) + '</div>'
+      + '<div style="font-size:10px;color:#94a3b8;margin-top:9px;line-height:1.45">数据截至 ' + (v.asOf || '—') + '<br>' + esc(v.src) + '</div></div>'; };
+  const cards = [cn.gdp, cn.retail, cn.fai, cn.export, alt.ip, em.house70].map(card).join('');
+  return '<div class="card" id="miGrowth" style="margin-top:10px"><div class="card-h"><h3>实体景气 · 中国增长与活动</h3>'
+    + '<span class="hint">GDP / 社零 / 固投 / 出口 / 工业增加值 / 70城房价 · 理杏仁 + 腾讯westock + 东财(转发统计局) · 每卡独立标注数据截至与来源</span></div>'
+    + '<div style="display:flex;flex-wrap:wrap">' + cards + '</div></div>';
+}
 function renderMacroHard(d) {
   /* fw2_v462_pmi：宏观硬指标接统计局官方制造业/非制造业PMI（东财 RPT_ECONOMY_PMI，gen_macro_em.py get_pmi → macroEm.pmiMfg/pmiSvc），替代商业授权的财新PMI；失业率维持留白（统计局WAF+东财无镜像）。
      fw2_v461_nbs：宏观硬指标 v461——「其他源补充」区扩到双源：腾讯自选股(westock) 工业增加值/核心PCE/ISM制造业+非制造业PMI(macroAlt) + 东方财富(东财T2转发统计局) 70城房价(macroEm)。
@@ -10456,8 +10472,7 @@ function fillMacroTabs() {
     ['us', '美国/全球周期'],
     ['mi', '宏观指标'],
     ['px', '资产价格监控'],
-    ['sm', '市场情绪'],
-    ['mh', '宏观硬指标']
+    ['sm', '市场情绪']
   ];
   host.innerHTML = items.map((it) => '<button data-r="' + it[0] + '" type="button" style="' + (reg === it[0] ? tAct : tBase) + '">' + it[1] + '</button>').join('');
 }
@@ -12491,7 +12506,7 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
   */
   const vc = $('#verChip');
   /* v319 fw2_v319_sig_risk_fusion：动态 verChip 同步升版（v266 起文本停更，本次修正为当前版本） */
-  if (vc) vc.textContent = 'v462 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  if (vc) vc.textContent = 'v463 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
