@@ -12584,7 +12584,7 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
   */
   const vc = $('#verChip');
   /* v319 fw2_v319_sig_risk_fusion：动态 verChip 同步升版（v266 起文本停更，本次修正为当前版本） */
-  if (vc) vc.textContent = 'v485 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  if (vc) vc.textContent = 'v486 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
@@ -15586,31 +15586,27 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
     var m = (h && h.qty > 0) ? mvOf(h) : 0;
     return { target: a.target, held: m, gap: Math.max(0, a.target - (m || 0)) };
   }
-  function liveMonthly(code) {
-    var g = gapOf(code); if (!g || g.gap <= 0) return 0;
-    return Math.round(g.gap / monthsLeft());
-  }
-  /* fw2_v482_strat_p2：单一计算引擎——所有子页(建仓进度hero/资产配置/执行卡/执行日历/月度定投)的「本月应投」都读这里，
-     消除「日历 500 vs 定投表 563」两套口径。当月总预算 = (总目标−总市值)÷剩余月，按各标的缺口占比用最大余数法分摊到整数元。 */
+  /* fw2_v486_fixed_drip：定投额改为「固定分期」——每月应投 = 标的目标 ÷ 总定投月数(从 start 到 buildEnd，如 2026-09→2027-08 = 12)，
+     从第一个月起金额固定、不随已持/剩余月/现金变化（用户 2026-10-09 拍板：9月起12个月完成、不考虑剩余资金）。
+     已达标(缺口≤0)与日限额型(020712 日定投10/日)不计月投。全模块(执行卡/日历/定投表/首次执行单)统一读此口径。 */
   var _DAILY_LIMIT = { '020712': '日定投 10/日（限额）' };
+  function totalMonths() {
+    var s = new Date(S.start + 'T00:00:00'), e = new Date(S.buildEnd + 'T00:00:00');
+    return Math.max(1, (e.getFullYear() - s.getFullYear()) * 12 + (e.getMonth() - s.getMonth()) + 1);
+  }
+  function liveMonthly(code) {
+    var a = assetOf(code); if (!a) return 0;
+    if (_DAILY_LIMIT[code]) return 0;
+    var g = gapOf(code); if (!g || g.gap <= 0) return 0;
+    return Math.round((a.target || 0) / totalMonths());
+  }
   function stratCompute() {
-    var ml = monthsLeft(), totalMv = 0;
-    (state.portfolio || []).forEach(function (h) { var m = mvOf(h); if (m != null) totalMv += m; });
-    var budget = ml > 0 ? Math.max(0, Math.round((S.totalTarget - totalMv) / ml)) : 0;
-    // 参与分摊：有缺口且非日限额型；按「目标额」占比分摊（与月度定投表 v317 同口径），最大余数法补到整数、合计=budget
-    var parts = S.assets.filter(function (a) { return !_DAILY_LIMIT[a.code] && gapOf(a.code).gap > 0; });
-    var tsum = parts.reduce(function (a, x) { return a + (x.target || 0); }, 0);
-    var base = [];
-    parts.forEach(function (a) {
-      var ex = tsum > 0 && budget > 0 ? budget * (a.target || 0) / tsum : 0;
-      base.push({ code: a.code, v: Math.floor(ex), r: ex - Math.floor(ex) });
-    });
-    var assigned = base.reduce(function (s, b) { return s + b.v; }, 0);
-    var left = Math.max(0, budget - assigned);
-    base.slice().sort(function (x, y) { return y.r - x.r; }).slice(0, left).forEach(function (b) { b.v += 1; });
-    var alloc = {}; base.forEach(function (b) { alloc[b.code] = b.v; });
-    return { ml: ml, budget: budget, totalMv: totalMv, totalTarget: S.totalTarget, assigned: assigned + left, alloc: alloc,
-      monthlyOf: function (code) { return _DAILY_LIMIT[code] ? 0 : (alloc[code] || 0); } };
+    var tm = totalMonths(), alloc = {};
+    S.assets.forEach(function (a) { alloc[a.code] = liveMonthly(a.code); });
+    var budget = Object.keys(alloc).reduce(function (s, c) { return s + (alloc[c] || 0); }, 0);
+    var totalMv = 0; (state.portfolio || []).forEach(function (h) { var m = mvOf(h); if (m != null) totalMv += m; });
+    return { tm: tm, ml: monthsLeft(), budget: budget, assigned: budget, totalMv: totalMv, totalTarget: S.totalTarget, alloc: alloc,
+      monthlyOf: function (code) { return alloc[code] || 0; } };
   }
   /* ---- 主渲染 ---- */
   function renderStratCycle() {
@@ -16597,7 +16593,7 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
     var el = document.getElementById('stp-cal');
     if (!el) return;
     var today = todayStr(), ex = execGet();
-    var html = '<div class="strat-note">定投日 = 每月最后一个交易日。<b>点任意月份可展开当月执行单</b>，逐只确认「未投/部分/已投 + 实际金额」并保存；计划额 = 执行时重算的「差额 ÷ 剩余月」。确认用于纪律跟踪与欠投/超额提示，实际持仓以「我的持仓/台账」为准。</div><div class="sc-grid">';
+    var html = '<div class="strat-note">定投日 = 每月最后一个交易日。<b>点任意月份可展开当月执行单</b>，逐只确认「未投/部分/已投 + 实际金额」并保存；计划额 = 目标 ÷ 总定投月数（固定分期，不随已持/现金变）。确认用于纪律跟踪与欠投/超额提示，实际持仓以「我的持仓/台账」为准。</div><div class="sc-grid">';
     calCells().forEach(function (c) {
       var rec = ex[c.ym] || {}, hasRec = Object.keys(rec).length > 0, isCur = today.slice(0, 7) === c.ym, isSel = _stratCalSel === c.ym;
       html += '<div class="sc-cell' + (c.past ? ' past' : '') + (isCur ? ' cur' : '') + (isSel ? ' sel' : '') + '" data-ym="' + c.ym + '" style="cursor:pointer">' +
@@ -16652,7 +16648,7 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
           var _g = gapOf(code);
           if (_g) {
             p[0] = _g.gap > 0 ? '未达 ' + fmt(Math.round(_g.gap)) : '已达标 ' + fmt(Math.round(_g.held));
-            p[1] = _g.gap > 0 ? '差额÷剩余月（约 ' + fmt(liveMonthly(code)) + '/月）' : '已建满';
+            p[1] = _g.gap > 0 ? '目标÷总月数·固定分期（约 ' + fmt(liveMonthly(code)) + '/月）' : '已建满';
           }
         }
         var qcls = (si === 0 || si === 2) ? ' q-buy' : (si === 3 ? ' q-tp' : (si === 4 ? ' q-sell' : ''));
@@ -17047,8 +17043,8 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
       return _cur ? _cur.drip : '';
     })();
     var _note = String(S.firstNote || '').split('；').filter(function (x) { return x.indexOf('001015 本次建仓') < 0; }).join('；').replace(/；+$/, '')
-      + ' 金额=实时差额÷剩余月（≈' + fmt(_budget) + '/月）按目标比例动态分摊；已达标标的首月不做；020712 每日限购 10 元转日定投（不占月预算）。';
-    html += '<div class="st-card"><h4>首次定投执行单（' + _drip + ' · 本月最后一个交易日 · 当月建议 ≈' + fmt(_budget) + '）</h4><div class="strat-note">' + esc(_note) + '</div><div class="tbl-scroll"><table class="st-tbl">' +
+      + ' 每月应投 = 目标 ÷ 总定投月数（固定分期，合计 ≈' + fmt(_budget) + '/月）；已达标标的(012920)不投；020712 每日限购 10 元转日定投。';
+    html += '<div class="st-card"><h4>首次定投执行单（' + _drip + ' · 本月最后一个交易日 · 当月合计 ≈' + fmt(_budget) + '）</h4><div class="strat-note">' + esc(_note) + '</div><div class="tbl-scroll"><table class="st-tbl">' +
       '<colgroup><col style="width:8%"><col style="width:14%"><col style="width:22%"><col style="width:14%"><col style="width:14%"><col style="width:28%"></colgroup>' +
       '<thead><tr><th>顺序</th><th>标的</th><th>代码</th><th>金额</th><th>渠道</th><th>备注</th></tr></thead><tbody>';
     S.first.forEach(function (f, i) {
