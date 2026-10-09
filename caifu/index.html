@@ -1181,7 +1181,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 
 
       
-      <section class="view" id="view-strategy"><!-- fw2_v120_strategy --><div class="card" id="stratCycleCard"></div><div class="card strat-hero" id="stratHero"></div><div class="strat-tabs v-tabs" id="stratTabs"><button class="st-tab v-tab active" data-st="alloc">资产配置</button><button class="st-tab v-tab" data-st="rules">策略规则</button><button class="st-tab v-tab" data-st="bt">组合回测</button><button class="st-tab v-tab" data-st="cal">执行日历</button><button class="st-tab v-tab" data-st="cards">逐标的执行卡</button><button class="st-tab v-tab" data-st="ledger">交易台账</button><button class="st-tab v-tab" data-st="plan">月度定投</button><button class="st-tab v-tab" data-st="review">季度复盘</button></div><div class="st-pane" id="stp-alloc"></div><div class="st-pane" id="stp-rules" style="display:none"></div><div class="st-pane" id="stp-bt" style="display:none"></div><div class="st-pane" id="stp-cal" style="display:none"></div><div class="st-pane" id="stp-cards" style="display:none"></div><!-- v167 fw2_v167_xmap_scope：场内外对照自共享层下移至「逐标的执行卡」tab 底部，默认折叠 --><div class="card" id="xmapCard" style="display:none"></div><div class="st-pane" id="stp-ledger" style="display:none"></div><div class="st-pane" id="stp-plan" style="display:none"></div><div class="st-pane" id="stp-review" style="display:none"></div><!-- v167：场内外对照已下移至 #stp-cards 之后（原共享层位置摘除）--></section>
+      <section class="view" id="view-strategy"><!-- fw2_v120_strategy --><div class="card" id="stratCycleCard"></div><div class="card strat-hero" id="stratHero"></div><div class="strat-tabs v-tabs" id="stratTabs"><button class="st-tab v-tab active" data-st="alloc">资产配置</button><button class="st-tab v-tab" data-st="rules">策略规则</button><button class="st-tab v-tab" data-st="bt">组合回测</button><button class="st-tab v-tab" data-st="cards">逐标的执行卡</button><button class="st-tab v-tab" data-st="ledger">交易台账</button><button class="st-tab v-tab" data-st="plan">定投执行</button><button class="st-tab v-tab" data-st="review">季度复盘</button></div><div class="st-pane" id="stp-alloc"></div><div class="st-pane" id="stp-rules" style="display:none"></div><div class="st-pane" id="stp-bt" style="display:none"></div><div class="st-pane" id="stp-cal" style="display:none"></div><div class="st-pane" id="stp-cards" style="display:none"></div><!-- v167 fw2_v167_xmap_scope：场内外对照自共享层下移至「逐标的执行卡」tab 底部，默认折叠 --><div class="card" id="xmapCard" style="display:none"></div><div class="st-pane" id="stp-ledger" style="display:none"></div><div class="st-pane" id="stp-plan" style="display:none"></div><div class="st-pane" id="stp-review" style="display:none"></div><!-- v167：场内外对照已下移至 #stp-cards 之后（原共享层位置摘除）--></section>
       <!-- v91 fw2_v91_macro_merge：宏观·情绪 独立页曾并入 数据中心 → 宏观数据 分块（v135 已反向拆分，见下） -->
       <!-- fw2_v135_macro_view：宏观数据由「数据中心」分块迁出为独立模块（用户 2026-09-18「宏观数据单独作为一个模块放在数据中心上面」）；#view-data 改名「基金数据」并删除 dcBlocks 切换行（基金数据直接进入内容区，默认总览 Tab） -->
       <section class="view" id="view-macro">
@@ -12584,7 +12584,7 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
   */
   const vc = $('#verChip');
   /* v319 fw2_v319_sig_risk_fusion：动态 verChip 同步升版（v266 起文本停更，本次修正为当前版本） */
-  if (vc) vc.textContent = 'v486 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  if (vc) vc.textContent = 'v487 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
@@ -17038,20 +17038,8 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
        (a) 020712 日经每日限额 10 元 → 转「日定投 10/日」：金额列显示文案、不占月预算、不参与分摊；
        (b) 分摊改最大余数法（floor+余数降序补 1 元），合计恒等于当月建议额，避免行多时末行兜底失真。 */
     /* v317：分摊定义已上移至月度定投表之前（保证两表同值），此处直接复用 _daily/_budget/_rows/_tsum/_base/_rem/_left/_order/_alloc/_assigned/_allocMap */
-    var _drip = (function () {
-      var _cur = calCells().filter(function (c) { return c.ym === todayStr().slice(0, 7); })[0];
-      return _cur ? _cur.drip : '';
-    })();
-    var _note = String(S.firstNote || '').split('；').filter(function (x) { return x.indexOf('001015 本次建仓') < 0; }).join('；').replace(/；+$/, '')
-      + ' 每月应投 = 目标 ÷ 总定投月数（固定分期，合计 ≈' + fmt(_budget) + '/月）；已达标标的(012920)不投；020712 每日限购 10 元转日定投。';
-    html += '<div class="st-card"><h4>首次定投执行单（' + _drip + ' · 本月最后一个交易日 · 当月合计 ≈' + fmt(_budget) + '）</h4><div class="strat-note">' + esc(_note) + '</div><div class="tbl-scroll"><table class="st-tbl">' +
-      '<colgroup><col style="width:8%"><col style="width:14%"><col style="width:22%"><col style="width:14%"><col style="width:14%"><col style="width:28%"></colgroup>' +
-      '<thead><tr><th>顺序</th><th>标的</th><th>代码</th><th>金额</th><th>渠道</th><th>备注</th></tr></thead><tbody>';
-    S.first.forEach(function (f, i) {
-      html += '<tr><td>' + f.i + '</td><td class="nm"><b class="lk-rs" data-rscode="' + f.code + '">' + esc(f.name) + '</b></td><td class="cd">' + f.code + '</td><td class="qty">' + (_daily[f.code] || fmt(_allocMap[f.code] || 0)) + '</td><td>' + f.chan + '</td><td>' + esc(f.note || '') + '</td></tr>';
-    });
-    html += '<tr class="st-total" style="font-weight:700;border-top:2px solid var(--line-mid)"><td colspan="3">合计（明细行和）</td><td class="qty">' + fmt(_assigned) + '</td><td colspan="2">另计：020712 日定投 10/日（每日限购 10 元）</td></tr>';
-    html += '</tbody></table></div></div>';
+    /* fw2_v487_drip_merge：原「首次定投执行单」删除——它与「定投执行」tab 顶部执行日历展开的当月执行单重复
+       （都是每只本月投多少）。合并后：执行日历(stp-cal)在上=选月+当月执行单+逐只确认；本 pane(stp-plan)在下=定投规则参考表+待办+执行记录。 */
     html += '<div class="st-card"><h4>执行记录（触发 → 复核 → 确认 → 执行 → 记录 · 8.5）</h4>' + recForm() + '<div class="rec-list" id="stratRecList"></div></div>';
     el.innerHTML = html;
     renderRecList();
@@ -17308,7 +17296,7 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
   /* ---- tab 切换 ---- */
   function switchStratTab(name) {
     Array.prototype.forEach.call(document.querySelectorAll('#view-strategy .st-tab'), function (b) { b.classList.toggle('active', b.dataset.st === name); });
-    Array.prototype.forEach.call(document.querySelectorAll('#view-strategy .st-pane'), function (p) { p.style.display = p.id === 'stp-' + name ? '' : 'none'; });
+    Array.prototype.forEach.call(document.querySelectorAll('#view-strategy .st-pane'), function (p) { p.style.display = (p.id === 'stp-' + name || (name === 'plan' && p.id === 'stp-cal')) ? '' : 'none'; });
     /* v167 fw2_v167_xmap_scope：场内外对照只随「逐标的执行卡」tab 显隐 */
     var xm = document.getElementById('xmapCard');
     if (xm) xm.style.display = name === 'cards' ? '' : 'none';
