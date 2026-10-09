@@ -10595,6 +10595,10 @@ function renderMacroUS(d) {
   const temp = us.temp || {};
   const konbo = us.konbo || (d.wave && d.wave.konbo) || {};
   const fOk = meta.fredStatus === 'OK';
+  /* fw2_v474_us_date：全球周期页各卡补「数据截至」（死规则②）。fsi/四周期/资产温度=us·fsi.updatedAt；美元黄金大宗/非农=页级 d.updatedAt；康波=理论时间表(非实时数据) */
+  const _usAsOf = us.updatedAt || d.updatedAt || '';
+  const _fsiAsOf = fsi.updatedAt || d.updatedAt || '';
+  const _dAsOf = d.updatedAt || '';
   /* fw2_v436_dm_us：美元/黄金/大宗 · 萧条期资产信号卡并入美国/全球周期页
      （价格读数已由「资产价格监控 · 商品与汇率」区覆盖：伦敦金/WTI/COMEX铜/美元指数） */
   const _dc = cycleEngine(d);
@@ -10621,13 +10625,13 @@ function renderMacroUS(d) {
       '<td style="color:' + zc + ';font-weight:600">' + fmtNum(it.z, 2) + '</td><td style="color:#64748b">' + esc(it.note || '') + '</td></tr>';
   }).join('');
   const indCard = '<div class="card"><div class="card-h"><h3>FSI 压力分项（近10年 z 分位 · 当前月）</h3>' +
-    '<span class="hint">z &gt;1 红（压力偏高）· z &lt;−1 蓝（压力偏低）· 等权合成</span></div>' +
+    '<span class="hint">z &gt;1 红（压力偏高）· z &lt;−1 蓝（压力偏低）· 等权合成 · 截至 ' + esc(_fsiAsOf) + '</span></div>' +
     '<table style="width:100%;border-collapse:collapse;font-size:12px"><thead><tr style="background:#f1f5f9;color:#475569">' +
     '<th style="padding:7px 8px;text-align:left">指标</th><th style="padding:7px 8px;text-align:left">最新</th><th style="padding:7px 8px;text-align:left">z</th><th style="padding:7px 8px;text-align:left">解读</th></tr></thead>' +
     '<tbody>' + (indTr || '<tr><td colspan="4" style="padding:8px;color:#94a3b8">当前月分项数据不足</td></tr>') + '</tbody></table>' +
     '<div style="font-size:10px;color:#94a3b8;margin-top:6px">' + esc((fsi.meta && fsi.meta.rule) || '') + '</div></div>';
   /* FSI 历史曲线 */
-  const chartCard = '<div class="card"><div class="card-h"><h3>全球金融压力指数 · 历史走势</h3><span class="hint"><30 正常 / 30-50 关注 / 50-70 警戒 / ≥70 危机</span></div>' +
+  const chartCard = '<div class="card"><div class="card-h"><h3>全球金融压力指数 · 历史走势</h3><span class="hint"><30 正常 / 30-50 关注 / 50-70 警戒 / ≥70 危机 · 截至 ' + esc(_fsiAsOf) + '</span></div>' +
     '<div id="mcFsiChart" class="chart" style="width:100%;height:230px"></div></div>';
   /* 美国宏观四周期（FRED 就位才显示数据） */
   let cycHtml;
@@ -10637,7 +10641,7 @@ function renderMacroUS(d) {
       const vals = (o.cur || []).map((v) => v == null ? '—' : fmtNum(v, 1)).join(' · ');
       return '<tr><td style="font-weight:600">' + nm + '</td><td>' + vals + '</td><td>' + esc(o.note || '') + '</td><td></td></tr>';
     };
-    cycHtml = '<div class="card"><div class="card-h"><h3>美国宏观四周期（FRED）</h3><span class="hint">库兹涅茨=新屋开工 · 朱格拉=新订单×工业 · 基钦=库存−CPI · 信用脉冲=信贷同比3月变化</span></div>' +
+    cycHtml = '<div class="card"><div class="card-h"><h3>美国宏观四周期（FRED）</h3><span class="hint">库兹涅茨=新屋开工 · 朱格拉=新订单×工业 · 基钦=库存−CPI · 信用脉冲=信贷同比3月变化 · 截至 ' + esc(_usAsOf) + '</span></div>' +
       '<table style="width:100%;border-collapse:collapse;font-size:12px"><thead><tr style="background:#f1f5f9;color:#475569">' +
       '<th style="padding:7px 8px;text-align:left">周期</th><th style="padding:7px 8px;text-align:left">最新读数</th><th style="padding:7px 8px;text-align:left">口径</th><th style="padding:7px 8px;text-align:left">判读</th></tr></thead><tbody>' +
       row('库兹涅茨（地产）', us.kuznets) + row('朱格拉（设备）', us.juglar) + row('基钦（库存）', us.kitchin) + row('信用脉冲', us.pulse) + row('美债10Y-3M', us.t10y3m) +
@@ -10650,14 +10654,14 @@ function renderMacroUS(d) {
   /* 脚注 */
   const foot = '<div style="font-size:10px;color:#94a3b8;margin-top:8px">数据源：' + esc((fsi.meta && fsi.meta.src) || '') + (us.meta && us.meta.fredStatus === 'OK' ? '' : ' · ' + esc(meta.fredNote || '')) + ' · 结论为规则引擎输出，不构成投资建议</div>';
   /* fw2_v436_dm_us：美元/黄金/大宗 · 萧条期资产信号（周期信号判读；价格读数在资产价格监控） */
-  const dlHtml = '<div class="card dc-cyc"><div class="card-h"><h3>美元 / 黄金 / 大宗 · 全球资产信号</h3><span class="hint">金油比·金铜比·金价·美元 · 月末 · 信用对冲逻辑（黄金与实际利率负相关）· 价格读数见「资产价格监控 → 商品与汇率」</span></div>' +
+  const dlHtml = '<div class="card dc-cyc"><div class="card-h"><h3>美元 / 黄金 / 大宗 · 全球资产信号</h3><span class="hint">金油比·金铜比·金价·美元 · 月末 · 信用对冲逻辑（黄金与实际利率负相关）· 价格读数见「资产价格监控 → 商品与汇率」 · 数据截至 ' + esc(_dAsOf) + '</span></div>' +
     '<div class="cyc-badge-lg"><b>' + esc((dl.phase && dl.phase.s) || '—') + '</b><span>' + esc((dl.phase && dl.phase.c) || '') + '</span></div>' +
     '<div class="rv-line"><span class="tag tag-data">代理读数</span><span>' + esc(dl.proxy || '—') + '</span></div>' +
     '<div class="rv-line"><span class="tag tag-ai">指向</span><span><b>' + esc(dl.asset || '—') + '</b> · 金油比中枢 10-15 桶；美元走弱+金强 = 萧条信用对冲增强；金铜比上行 = 避险强于工业需求</span></div>' +
     '<div class="rv-line"><span class="tag tag-data">口径</span><span>伦敦金/WTI/伦敦铜＝理杏仁现货月末价；美元指数＝理杏仁 usdx 月末；均为真实数据可追溯</span></div></div>';
   /* fw2_v448_dm_us：美国非农就业净变动（原黄金研究分区③迁入；数据读 gold-data.json nonfarm，
      FRED PAYEMS 差分 · 季调 · 千人；异步 mount 见 renderMacroUsNf） */
-  const nfCard = '<div class="card"><div class="card-h"><h3>美国非农就业净变动</h3><span class="hint">BLS / FRED（PAYEMS 差分）· 季调 · 千人 · 正=绿（就业增加）负=红（就业减少）</span></div>' +
+  const nfCard = '<div class="card"><div class="card-h"><h3>美国非农就业净变动</h3><span class="hint">BLS / FRED（PAYEMS 差分）· 季调 · 千人 · 正=绿（就业增加）负=红（就业减少） · 数据截至 ' + esc(_dAsOf) + '</span></div>' +
     '<div id="mcNfChart" class="chart" style="width:100%;height:210px"></div>' +
     '<div id="mcNfNote" style="font-size:10px;color:#94a3b8;margin-top:6px"></div></div>';
   return '<div class="dc-us-wrap">' +
@@ -10665,7 +10669,7 @@ function renderMacroUS(d) {
     '<div style="font-size:15px;font-weight:700;color:#0f172a">' + esc(kPhase) + '</div>' +
     (kC ? '<div style="font-size:12px;color:#475569;margin-top:4px">' + esc(kC) + '</div>' : '') +
     '<div style="font-size:11px;color:#64748b;margin-top:6px">' + esc(kProxy) + '</div></div>' +
-    '<div class="card"><div class="card-h"><h3>美国资产温度（FSI 同源）</h3><span class="hint">四维读数 · 与全球压力指数同口径</span></div>' +
+    '<div class="card"><div class="card-h"><h3>美国资产温度（FSI 同源）</h3><span class="hint">四维读数 · 与全球压力指数同口径 · 截至 ' + esc(_usAsOf) + '</span></div>' +
     '<div style="display:flex;flex-wrap:wrap;gap:8px">' + tHtml + '</div></div>' +
     indCard + chartCard + cycHtml + dlHtml + nfCard + foot + '</div>';
 }
@@ -12577,7 +12581,7 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
   */
   const vc = $('#verChip');
   /* v319 fw2_v319_sig_risk_fusion：动态 verChip 同步升版（v266 起文本停更，本次修正为当前版本） */
-  if (vc) vc.textContent = 'v473 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  if (vc) vc.textContent = 'v474 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
