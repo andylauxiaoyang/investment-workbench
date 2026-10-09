@@ -10365,30 +10365,38 @@ function renderMacroSentiment(d) {
   function metric(label, val, sub) {
     return '<div style="display:flex;justify-content:space-between;align-items:baseline;padding:4px 0;border-bottom:1px dashed #eef2f7"><span style="font-size:12px;color:#64748b">' + label + '</span><span style="font-size:13px;font-weight:600;color:#0f172a">' + val + (sub ? ' <span style="font-size:11px;font-weight:400;color:#94a3b8">' + sub + '</span>' : '') + '</span></div>';
   }
+  /* fw2_v473_sm_src：上排 6 卡补「数据源 + 数据截至日」页脚（对齐下排卡 sSrc，死规则②）。源据 gen_macro_snap 实测：ERP/PE=理杏仁、两融=东财 RPTA_RZRQ_LSHJ、VIX=CBOE、成交额=新浪+westock、宽度=实时行情快照。日期取各自序列末点。 */
+  function srcLine(src, date) { return '<div style="font-size:10px;color:#94a3b8;margin-top:6px">' + esc(src) + (date ? ' · 截至 ' + esc(date) : '') + '</div>'; }
+  var erpDate = (d.erp && d.erp.points && d.erp.points.length) ? d.erp.points[d.erp.points.length - 1][0] : '';
+  var peDate = peLast ? peLast[0] : '';
+  var mrgDate = mrgLast ? mrgLast[0] : '';
+  var vixDate = (vixPts && vixPts.length) ? vixPts[vixPts.length - 1][0] : '';
+  var amtDate = amtLast ? amtLast[0] : '';
+  var brDate = (state.snapshot && state.snapshot.id) ? state.snapshot.id : '';
   var erpCard = card('股债性价比 ERP（格雷厄姆指数）', 'E/P − 10Y国债 · 分位 ' + pct(erpPct),
     metric('盈利收益率 E/P', ep != null ? fmtNum(ep, 2) + '%' : '—') +
     metric('10Y 国债', y10 != null ? fmtNum(y10, 2) + '%' : '—') +
     metric('历史分位', pct(erpPct), ' · ' + erpLv(erpPct)) +
-    '<div style="margin-top:8px">' + erpSpark() + '</div>');
+    '<div style="margin-top:8px">' + erpSpark() + '</div>' + srcLine('理杏仁', erpDate));
   var peCard = card('估值温度 沪深300', 'PE-TTM · 理杏仁 10年分位',
     metric('PE-TTM', hsPe != null ? fmtNum(hsPe, 1) : '—') +
     metric('10年分位', pct(hsPos), ' · ' + peLv(hsPos)) +
-    '<div style="margin-top:8px">' + peSpark() + '</div>');
+    '<div style="margin-top:8px">' + peSpark() + '</div>' + srcLine('理杏仁', peDate));
   var mrgCard = card('杠杆温度计 两融', '融资余额 / 占流通市值比',
     metric('融资余额', rzyeTw != null ? fmtNum(rzyeTw, 2) + ' 万亿' : '—', ' · ' + rzyeLv(rzyeTw)) +
     metric('占流通市值比', rzbl != null ? fmtNum(rzbl, 2) + '%' : '—') +
-    '<div style="margin-top:8px">' + mrgSpark() + '</div>');
+    '<div style="margin-top:8px">' + mrgSpark() + '</div>' + srcLine('东财·两融(RPTA_RZRQ_LSHJ)', mrgDate));
   var amtCard = card('资金温度计 全A成交额', '沪深京 · 资金系数=成交/M2',
     metric('最近成交', amtYi != null ? fmtNum(amtYi, 0) + ' 亿' : '—') +
     metric('资金系数', fundCoef != null ? fmtNum(fundCoef, 2) + '%' : '—', ' · ' + fcLv(fundCoef)) +
-    '<div style="margin-top:8px">' + amtSpark() + '</div>');
+    '<div style="margin-top:8px">' + amtSpark() + '</div>' + srcLine('新浪+westock(沪深京)', amtDate));
   var vixCard = card('VIX 恐慌指数', '标普500 期权隐含波动率',
     metric('VIX', vixVal != null ? fmtNum(vixVal, 1) : '—', ' · ' + vixLv(vixVal)) +
-    '<div style="margin-top:8px">' + vixSpark() + '</div>');
+    '<div style="margin-top:8px">' + vixSpark() + '</div>' + srcLine('CBOE 官方', vixDate));
   var brCard = card('市场宽度 上涨占比', '全市场涨跌家数',
     metric('上涨家数', up ? fmtNum(up, 0) : '—') +
     metric('上涨占比', upPct != null ? fmtNum(upPct, 1) + '%' : '数据未加载', upPct != null ? (upPct >= 50 ? tag('多头', '#0d9f4d') : tag('空头', '#dc2626')) : '') +
-    (upPct == null ? '<div style="font-size:11px;color:#94a3b8;margin-top:6px">行情快照未加载（先打开概览/持仓模块拉取一次）</div>' : ''));
+    (upPct == null ? '<div style="font-size:11px;color:#94a3b8;margin-top:6px">行情快照未加载（先打开概览/持仓模块拉取一次）</div>' : '') + srcLine('实时行情快照(腾讯/东财)', brDate));
   var todoCard = card('待接入数据源（手册有·工作台暂缺）', '需新增取数通道，非展示层缺失',
     '<div style="font-size:12px;color:#475569;line-height:1.9">· 破净率（需全市场个股 PB 截面统计）<br>· 中国波指 iVIX、期权 PCR、期指升贴水<br>· 成交集中度、行业情绪（需个股/行业成交明细聚合）<br>· 新发公募量、产业资本回购（东财 reportName 未探到，需专门接口/中基协）<br>· 北向资金净流入（结构性缺口·港交所2024起停更日度净买入）</div>' +
     '<div style="font-size:11px;color:#0d9f4d;line-height:1.7;margin-top:8px">✓ 已接入：换手率、股息率 vs 10Y、市净率中位数、融资买入额、A股总市值、大小盘相对强弱、超额流动性、CNN 恐贪(美股)、证券化率/巴菲特指数、限售解禁(未来30日)、产业资本净增减持(近30日)、板块拥挤度(当日)</div>');
@@ -12569,7 +12577,7 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
   */
   const vc = $('#verChip');
   /* v319 fw2_v319_sig_risk_fusion：动态 verChip 同步升版（v266 起文本停更，本次修正为当前版本） */
-  if (vc) vc.textContent = 'v472 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  if (vc) vc.textContent = 'v473 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
