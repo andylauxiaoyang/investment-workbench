@@ -5015,6 +5015,25 @@ window.HS_name = function (code) {
       { pool: 'hold', sig: 'T11 扣款计数器', why: '待启用：20 次前只加不止（D6）' },
       { pool: 'watch', sig: 'W4 买入闸门', why: 'v29：W1/W2 触发时自动升级为 W6 行动行（D1 五格 + D2/D3）' },
     ] };
+    /* fw2_v490_vol_signal：250日滚动年化波动率（日对数收益 std×√252）→ 当前/历史均值/80分位；+ 距峰值回撤、是否近10年高点。全标的通用（净值现算，QDII/黄金/债皆可）。 */
+    function volStats(ys) {
+      if (!ys || ys.length < 260) return null;
+      var lr = [];
+      for (var i = 1; i < ys.length; i++) { if (ys[i] > 0 && ys[i - 1] > 0) lr.push(Math.log(ys[i] / ys[i - 1])); }
+      if (lr.length < 250) return null;
+      var vols = [];
+      for (var w = 250; w <= lr.length; w++) {
+        var m = 0; for (var j = w - 250; j < w; j++) m += lr[j]; m /= 250;
+        var vv = 0; for (var k = w - 250; k < w; k++) { var dv = lr[k] - m; vv += dv * dv; } vv /= 249;
+        vols.push(Math.sqrt(vv * 252));
+      }
+      var cur = vols[vols.length - 1];
+      var avg = vols.reduce(function (a, b) { return a + b; }, 0) / vols.length;
+      var srt = vols.slice().sort(function (a, b) { return a - b; });
+      var p80 = srt[Math.min(srt.length - 1, Math.floor(srt.length * 0.8))];
+      var peak = Math.max.apply(null, ys), last = ys[ys.length - 1];
+      return { cur: cur * 100, avg: avg * 100, p80: p80 * 100, dd: (last / peak - 1) * 100, nearHigh: last >= peak * 0.97 };
+    }
     async function one(code6, pool, h) {
       if (!/^\d{6}$/.test(code6)) return;
       let r = await pzdAll(code6);
@@ -5124,6 +5143,16 @@ window.HS_name = function (code) {
           rows.watch.push(Object.assign({}, base, { sig: 'W6 买入闸门', cur: 'W1/W2 已触发·待过闸门', thr: 'D1 五格（≤20%资产·盈利≥3月·止损8%·闲钱·成本≤3%）+D2/D3', lvl: 'act', src: 'D1/D2/D3' }));
         }
       }
+      /* fw2_v490_vol_signal：波动率极端(≥10年80分位)时按方向分档——跌够+恐慌→关注买入；亢奋赶顶→关注止盈。级别 near（可见，非自动下单）。 */
+      try {
+        var _vs = volStats(ys);
+        if (_vs && _vs.cur >= _vs.p80) {
+          var _vrow = null;
+          if (_vs.dd <= -_vs.avg) _vrow = { sig: 'V1 波动赶底·关注买入', cur: '波动率 ' + _vs.cur.toFixed(0) + '%（≥80分位' + _vs.p80.toFixed(0) + '%）· 回撤 ' + _vs.dd.toFixed(1) + '%', thr: '跌够(≥1×均波动' + _vs.avg.toFixed(0) + '%)+恐慌→关注分批买入', lvl: 'near' };
+          else if (_vs.nearHigh) _vrow = { sig: 'V2 波动赶顶·关注止盈', cur: '波动率 ' + _vs.cur.toFixed(0) + '%（≥80分位' + _vs.p80.toFixed(0) + '%）· 近10年高点', thr: '亢奋赶顶→关注止盈/控风险', lvl: 'near' };
+          if (_vrow) rows[pool].push(Object.assign({}, base, _vrow, { src: '波动率250日·10年' }));
+        }
+      } catch (e) { /* 波动率信号失败不影响其他 */ }
     }
     for (const h of (holdList || [])) await one(String(h.code || '').replace(/\D/g, '').slice(-6), 'hold', h);
     for (const c of (watchCodes || [])) await one(String(c).replace(/\D/g, '').slice(-6), 'watch', null);
@@ -12584,7 +12613,7 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
   */
   const vc = $('#verChip');
   /* v319 fw2_v319_sig_risk_fusion：动态 verChip 同步升版（v266 起文本停更，本次修正为当前版本） */
-  if (vc) vc.textContent = 'v489 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  if (vc) vc.textContent = 'v490 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
