@@ -12584,7 +12584,7 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
   */
   const vc = $('#verChip');
   /* v319 fw2_v319_sig_risk_fusion：动态 verChip 同步升版（v266 起文本停更，本次修正为当前版本） */
-  if (vc) vc.textContent = 'v483 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  if (vc) vc.textContent = 'v484 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
@@ -16032,8 +16032,11 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
     Object.keys(codes).forEach(function (c) {
       var o = agBy[c], h = pfBy[c];
       var name = (o && o.name) || (h && h.name) || c;
-      var put = o ? (+o.netPut || 0) : (h ? Math.round((+h.qty || 0) * (+h.cost || 0) * 100) / 100 : 0);
-      items.push({ code: c, name: name, pile: rulesPileOf(c, name), tribe: rulesTribe(c, name), put: put, legacy: !o });
+      /* fw2_v484_put_holdings_first：已投入改为「持仓成本优先」(份额×成本，与「我的持仓」同源)——
+         原「台账净投入优先」在台账缺记/不全时会少报(如 000746 台账¥0 vs 持仓¥100)，与持仓对不上。
+         档位上限判据应看当前持仓成本，故 h 存在即用 qty×cost，无持仓记录才回退台账 netPut。 */
+      var put = h ? Math.round((+h.qty || 0) * (+h.cost || 0) * 100) / 100 : (o ? (+o.netPut || 0) : 0);
+      items.push({ code: c, name: name, pile: rulesPileOf(c, name), tribe: rulesTribe(c, name), put: put, src: h ? '持仓' : (o ? '台帐' : '—') });
     });
     var PILES = [['base', '底仓/缓冲'], ['off', '进攻/主题'], ['bond', '安全垫'], ['hedge', '对冲'], ['other', '其他']];
     var PILE_ORDER = { base: 0, off: 1, bond: 2, hedge: 3, other: 4 };
@@ -16101,7 +16104,7 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
     rows.forEach(function (it) {
       var pile = PILES.filter(function (P) { return P[0] === it.pile; })[0];
       var pileLabel = pile ? pile[1] : '其他';
-      itHtml += '<tr><td>' + esc(it.name) + '</td><td>' + esc(it.code) + '</td><td>' + pileLabel + '</td><td>' + (it.tribe === 'n100' ? '<span style="font-size:11px;padding:1px 6px;border-radius:5px;background:#EEF3FF;color:#4D6BFE">纳指100</span>' : '—') + '</td><td class="num" style="text-align:right">¥' + fmt(it.put) + '</td><td class="num" style="text-align:right">' + (budget ? (it.put / budget * 100).toFixed(1) + '%' : '—') + '</td><td>' + (it.legacy ? '<span style="font-size:10.5px;color:var(--muted)">存量</span>' : '<span style="font-size:10.5px;color:#059669">台账</span>') + '</td></tr>';
+      itHtml += '<tr><td>' + esc(it.name) + '</td><td>' + esc(it.code) + '</td><td>' + pileLabel + '</td><td>' + (it.tribe === 'n100' ? '<span style="font-size:11px;padding:1px 6px;border-radius:5px;background:#EEF3FF;color:#4D6BFE">纳指100</span>' : '—') + '</td><td class="num" style="text-align:right">¥' + fmt(it.put) + '</td><td class="num" style="text-align:right">' + (budget ? (it.put / budget * 100).toFixed(1) + '%' : '—') + '</td><td>' + (it.src === '持仓' ? '<span style="font-size:10.5px;color:#059669">持仓</span>' : it.src === '台帐' ? '<span style="font-size:10.5px;color:#0d94d9">台帐</span>' : '<span style="font-size:10.5px;color:var(--muted)">—</span>') + '</td></tr>';
     });
     var n = E.n100;
     var nStTxt = n.st === 'act' ? '超限 · 停买' : n.st === 'near' ? '接近上限' : '正常';
@@ -16118,7 +16121,7 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
       + '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><b style="font-size:13px">可投资金</b>'
       + '<input id="rulesBudget" type="number" min="0" step="1000" value="' + budget + '" style="width:120px;padding:4px 8px;border:1px solid var(--line,#e3e7ee);border-radius:6px;font-family:var(--mono);font-size:13px">'
       + '<span class="hint">杠铃档位目标金额 = 可投资金 × 档位占比（底仓/缓冲 ' + (TGT.base != null ? TGT.base : 40) + '% · 进攻/主题 ' + (TGT.off != null ? TGT.off : 35) + '% · 安全垫 ' + (TGT.bond != null ? TGT.bond : 10) + '% · 对冲 ' + (TGT.hedge != null ? TGT.hedge : 15) + '%）</span></div>'
-      + '<div class="rv-line" style="margin-top:6px"><span class="tag tag-data">口径</span><span>已投入 = 台账净投入（buy−sell）优先，无台账记录的存量持仓用成本（份额×成本）兜底并标「存量」；档位归类与信号模块同口径；台账每笔成交后本表自动重算</span></div>'
+      + '<div class="rv-line" style="margin-top:6px"><span class="tag tag-data">口径</span><span>已投入 = 持仓成本（份额×单位成本，与「我的持仓」同源）优先；无持仓记录才回退台账净投入（buy−sell）并标「台帐」；档位归类与信号模块同口径；台账每笔成交后本表自动重算</span></div>'
       + '</div>'
       + '<div class="card" style="margin:0 0 10px;padding:0;overflow:hidden"><div class="card-h" style="padding:9px 13px;border-bottom:1px solid var(--line-2,#eef1f6)"><h3 style="font-size:12.5px">杠铃档位规则表</h3><span class="hint">超限停买 · 接近 = 剩余 ≤ 上限 20%</span></div>'
       + '<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;min-width:560px"><thead><tr style="font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;background:var(--panel-2,#f6f7fb)"><th style="padding:7px 9px;text-align:left">档位</th><th style="padding:7px 9px;text-align:right">目标占比</th><th style="padding:7px 9px;text-align:right">目标金额</th><th style="padding:7px 9px;text-align:right">已投入</th><th style="padding:7px 9px;text-align:right">剩余可用</th><th style="padding:7px 9px;text-align:left">状态</th></tr></thead><tbody>' + pileHtml + '</tbody></table></div></div>'
