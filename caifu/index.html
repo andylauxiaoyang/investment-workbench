@@ -12584,7 +12584,8 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
   */
   const vc = $('#verChip');
   /* v319 fw2_v319_sig_risk_fusion：动态 verChip 同步升版（v266 起文本停更，本次修正为当前版本） */
-  if (vc) vc.textContent = 'v492 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  /* fw2_v493_amt_backfill：refresh_amt30 断档自动回补——新浪日更发现上一记录→今日日历间隔>4天时，自动用东财push2his日K(fqt=0,f57)逐所补中间缺失交易日、三所同日齐备才写、只补缺失不对账覆盖；urllib透明代理间歇性RemoteDisconnected→curl --noproxy兜底。数据脚本改动，页面逻辑不变。2026-10-09 */
+  if (vc) vc.textContent = 'v493 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
