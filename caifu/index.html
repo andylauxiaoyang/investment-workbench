@@ -12584,7 +12584,7 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
   */
   const vc = $('#verChip');
   /* v319 fw2_v319_sig_risk_fusion：动态 verChip 同步升版（v266 起文本停更，本次修正为当前版本） */
-  if (vc) vc.textContent = 'v482 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  if (vc) vc.textContent = 'v483 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
@@ -17145,9 +17145,37 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
     var all = lsGet(STRAT_LS_REV, {});
     return all[q] || { items: {} };
   }
+  /* fw2_v483_strat_p3：季度复盘自动汇总「执行日历」的逐月确认（STRAT_LS_EXEC）——本季各月 计划vs实际、欠投/超额，回链 reviewItem#7。 */
+  function quarterMonths(q) {
+    var y = +q.slice(0, 4), mo = +q.slice(5, 7);
+    var out = [];
+    for (var k = 2; k >= 0; k--) { var m = mo - k, yy = y; if (m <= 0) { m += 12; yy -= 1; } out.push(yy + '-' + String(m).padStart(2, '0')); }
+    return out;
+  }
+  function reviewExecSummary(q) {
+    var ex = execGet(), eng = stratCompute();
+    var rows = '', planT = 0, actT = 0, anyRec = false;
+    quarterMonths(q).forEach(function (ym) {
+      var rec = ex[ym] || {}; var has = Object.keys(rec).length > 0; if (has) anyRec = true;
+      var mp = monthPlan(ym);
+      var plan = mp.list.reduce(function (a, r) { return a + (r.plan || 0); }, 0);
+      var act = mp.list.reduce(function (a, r) { var e = rec[r.code]; return a + ((e && e.amt) ? +e.amt : 0); }, 0);
+      planT += plan; actT += act;
+      var d = act - plan;
+      var tag = !has ? '<span class="muted">未确认</span>' : (d < -1 ? '<b style="color:#dc2626">欠投 ' + fmt(-d) + '</b>' : d > 1 ? '<b style="color:#16a34a">超额 ' + fmt(d) + '</b>' : '<b style="color:#16a34a">达成</b>');
+      rows += '<tr><td>' + ym + '</td><td class="qty">' + fmt(plan) + '</td><td class="qty">' + (has ? fmt(act) : '—') + '</td><td>' + tag + '</td></tr>';
+    });
+    var qd = actT - planT;
+    var qtag = !anyRec ? '<span class="muted">本季尚未录入执行确认</span>' : qd < -1 ? '<b style="color:#dc2626">本季累计欠投 ¥' + fmt(-qd) + '</b>，按当前剩余月（' + eng.ml + '）后续每月约需 +¥' + fmt(Math.round(-qd / Math.max(1, eng.ml))) + ' 追回' : qd > 1 ? '<b style="color:#16a34a">本季累计超额 ¥' + fmt(qd) + '</b>，后续月自动下调' : '<b style="color:#16a34a">本季按计划完成</b>';
+    return '<div class="st-card" style="margin-bottom:10px"><h4>本季执行汇总（自动带出·日历确认）</h4>'
+      + '<div class="strat-note">' + qtag + '</div>'
+      + '<div class="tbl-scroll"><table class="st-tbl"><colgroup><col style="width:22%"><col style="width:26%"><col style="width:26%"><col style="width:26%"></colgroup><thead><tr><th>月份</th><th>计划合计</th><th>实际投入</th><th>结果</th></tr></thead><tbody>' + rows
+      + '<tr class="st-total" style="font-weight:700;border-top:2px solid var(--line-mid)"><td>季度合计</td><td class="qty">' + fmt(planT) + '</td><td class="qty">' + fmt(actT) + '</td><td></td></tr>'
+      + '</tbody></table></div></div>';
+  }
   function renderRevItems(q) {
     var data = loadRev(q);
-    var html = '', okCount = 0;
+    var html = reviewExecSummary(q), okCount = 0;
     S.reviewItems.forEach(function (it) {
       var st = data.items[String(it.id)] || { ok: false, note: '' };
       if (st.ok) okCount++;
