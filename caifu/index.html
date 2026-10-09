@@ -10387,8 +10387,8 @@ function renderMacroSentiment(d) {
     metric('上涨占比', upPct != null ? fmtNum(upPct, 1) + '%' : '数据未加载', upPct != null ? (upPct >= 50 ? tag('多头', '#0d9f4d') : tag('空头', '#dc2626')) : '') +
     (upPct == null ? '<div style="font-size:11px;color:#94a3b8;margin-top:6px">行情快照未加载（先打开概览/持仓模块拉取一次）</div>' : ''));
   var todoCard = card('待接入数据源（手册有·工作台暂缺）', '需新增取数通道，非展示层缺失',
-    '<div style="font-size:12px;color:#475569;line-height:1.9">· 破净率（需全市场个股 PB 截面统计）<br>· 中国波指 iVIX、期权 PCR、期指升贴水<br>· 成交集中度、板块拥挤度、行业情绪（需个股/行业成交明细聚合）<br>· 新发公募量、产业资本回购（东财 reportName 未探到，需专门接口/中基协）<br>· 北向资金净流入（结构性缺口·港交所2024起停更日度净买入）</div>' +
-    '<div style="font-size:11px;color:#0d9f4d;line-height:1.7;margin-top:8px">✓ 已接入：换手率、股息率 vs 10Y、市净率中位数、融资买入额、A股总市值、大小盘相对强弱、超额流动性、CNN 恐贪(美股)、证券化率/巴菲特指数、限售解禁(未来30日)、产业资本净增减持(近30日)</div>');
+    '<div style="font-size:12px;color:#475569;line-height:1.9">· 破净率（需全市场个股 PB 截面统计）<br>· 中国波指 iVIX、期权 PCR、期指升贴水<br>· 成交集中度、行业情绪（需个股/行业成交明细聚合）<br>· 新发公募量、产业资本回购（东财 reportName 未探到，需专门接口/中基协）<br>· 北向资金净流入（结构性缺口·港交所2024起停更日度净买入）</div>' +
+    '<div style="font-size:11px;color:#0d9f4d;line-height:1.7;margin-top:8px">✓ 已接入：换手率、股息率 vs 10Y、市净率中位数、融资买入额、A股总市值、大小盘相对强弱、超额流动性、CNN 恐贪(美股)、证券化率/巴菲特指数、限售解禁(未来30日)、产业资本净增减持(近30日)、板块拥挤度(当日)</div>');
   /* fw2_v465_fsi_card：FSI 全球金融压力指数由整幅横幅改为与其它卡同款的卡片，置于网格首位（用户要求）。
      复用本模块 card()/metric()/spark() 助手，数据源同 d.fsi，不新增取数；renderMacroTop 横幅不再在此调用。 */
   var fsiSc = fsi.score, fsiPct = fsi.percentile;
@@ -10437,10 +10437,16 @@ function renderMacroSentiment(d) {
   var sHolder = (hR && hR.available) ? card(hR.label, '重要股东增减持净额 · 东财',
     metric('近30日净增减持', '<span style="color:' + (hR.value >= 0 ? '#0d9f4d' : '#dc2626') + '">' + (hR.value >= 0 ? '+' : '') + fmtNum(hR.value, 2) + ' 亿元</span>', ' · ' + (hR.value >= 0 ? tag('净增持', '#0d9f4d') : tag('净减持', '#dc2626'))) +
     '<div style="margin-top:8px">' + sSpark(hR, hR.value >= 0 ? '#0d9f4d' : '#dc2626') + '</div>' + sSrc(hR)) : '';
+  /* fw2_v470_crowd：板块拥挤度（当日快照，最热单板块成交额/全A；东财板块含行业+概念重叠故只取最热单块、不做topN求和） */
+  var sc = S.sectorCrowd;
+  var sCrowd = (sc && sc.available) ? card('板块拥挤度(当日)', '最热单板块成交额/全A · 东财快照',
+    metric('最热板块', '<b style="color:#d98c00">' + esc((sc.top && sc.top[0]) ? sc.top[0].name : '—') + '</b> ' + fmtNum(sc.value, 0) + ' 亿', amtYi ? ' · 占全A ' + fmtNum(sc.value / amtYi * 100, 1) + '%' : '') +
+    '<div style="margin-top:8px;font-size:11px;color:#64748b;line-height:1.9">' + (sc.top || []).map(function (t, i) { return (i + 1) + '. ' + esc(t.name) + ' ' + fmtNum(t.amt, 0) + '亿'; }).join('　') + '</div>' +
+    '<div style="font-size:10px;color:#94a3b8;margin-top:6px">' + esc(sc.src) + ' · 截至 ' + esc(sc.asOf) + '</div>') : '';
   var smHtml =
     '<div style="font-size:12px;color:#64748b;margin-bottom:8px">数据截至 ' + esc(d.updatedAt || '') + ' · 聚合视图（ERP/估值/两融/成交额/VIX/FSI 复用各原模块；换手率/股息率/市净率中位数/融资买入额/总市值/大小盘/超额流动性＝理杏仁，恐贪＝CNN）</div>' +
     '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px;margin-top:10px">' +
-    (fsi && fsi.score != null ? fsiCard : '') + erpCard + peCard + mrgCard + amtCard + vixCard + brCard + sSec + sTurn + sDiv + sPb + sMbuy + sCap + sSize + sLiq + sCnn + sLift + sHolder + todoCard +
+    (fsi && fsi.score != null ? fsiCard : '') + erpCard + peCard + mrgCard + amtCard + vixCard + brCard + sSec + sTurn + sDiv + sPb + sMbuy + sCap + sSize + sLiq + sCnn + sLift + sHolder + sCrowd + todoCard +
     '</div>';
   return smHtml;
 }
@@ -12560,7 +12566,7 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
   */
   const vc = $('#verChip');
   /* v319 fw2_v319_sig_risk_fusion：动态 verChip 同步升版（v266 起文本停更，本次修正为当前版本） */
-  if (vc) vc.textContent = 'v469 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  if (vc) vc.textContent = 'v470 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
