@@ -9471,7 +9471,7 @@ function renderReplayCard(rp) {
   var bondTxt = (bond && bond.med < 0) ? ' · 美债价格承压（10Y 收益率上行，滞胀期利率压力）' : (bond && bond.med > 0 ? ' · 美债顺风（利率下行）' : '');
   var insight = goldTxt + ' · 中期弹性最强：' + bestName + '（12个月中位 ' + (best12 >= 0 ? '+' : '') + best12.toFixed(1) + '%）' + bondTxt;
   return '<div class="card dc-replay">'
-    + '<div class="card-h"><h3>历史相似阶段回放</h3><span class="hint">当前相位（' + rp.cur.l1 + '/' + rp.cur.l2 + '/' + rp.cur.l3 + '）· 历史同相位 ' + rp.matched.length + ' 期 · 之后 3/6/12 个月资产表现（中位数）· 含海外对冲资产（恒生/黄金/美债10Y）</span></div>'
+    + '<div class="card-h"><h3>历史相似阶段回放</h3><span class="hint">当前相位（' + rp.cur.l1 + '/' + rp.cur.l2 + '/' + rp.cur.l3 + '）· 历史同相位 ' + rp.matched.length + ' 期 · 之后 3/6/12 个月资产表现（中位数）· 含海外对冲资产（恒生/黄金/美债10Y）· 数据截至 ' + esc(rp.asOf || '') + '</span></div>'
     + '<div class="rv-line"><span class="tag tag-ai">匹配期</span><span>' + rp.matched.map(function (x) { return x.m + '（' + x.l1 + '/' + x.l2 + '/' + x.l3 + '）'; }).join(' · ') + '</span></div>'
     + '<table class="cyc-tbl rp-tbl"><thead><tr><th style="width:22%">资产</th><th style="width:26%">3个月后</th><th style="width:26%">6个月后</th><th style="width:26%">12个月后</th></tr></thead><tbody>'
     + body + '</tbody></table>'
@@ -12583,7 +12583,7 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
   */
   const vc = $('#verChip');
   /* v319 fw2_v319_sig_risk_fusion：动态 verChip 同步升版（v266 起文本停更，本次修正为当前版本） */
-  if (vc) vc.textContent = 'v475 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  if (vc) vc.textContent = 'v476 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
@@ -13073,7 +13073,7 @@ function renderBarbell() {
   }).join('');
   const wo = (act && act.cfg.watchOnly) || [];
   el.innerHTML = '<div class="card-h"><h3>半杠铃配置（实盘再平衡 · 四档）</h3>'
-    + '<span class="hint">' + (tot > 0 ? '持仓已建仓 · 实际权重已换算' : '尚未建仓 · 显示目标权重') + ' · 目标年化 8~10% · 已同步「策略执行」v1.9（含债券档）</span></div>'
+    + '<span class="hint">' + (tot > 0 ? '持仓已建仓 · 实际权重已换算' : '尚未建仓 · 显示目标权重') + ' · 目标年化 8~10% · 已同步「策略执行」v1.9（含债券档） · 策略配置截至 ' + esc((window.STRATEGY_SNAP && window.STRATEGY_SNAP.updatedAt) || '') + ' · 实际权重截至 ' + ((state.snapshot && state.snapshot.at) ? fmtClock(state.snapshot.at) : '未更新') + '</span></div>'
     + '<div class="bb-tiles">' + tiles + '</div>'
     + (wo.length ? '<div class="hint" style="margin-top:6px;opacity:.7">自选池（不建仓）：' + wo.map((w) => esc(w.name) + '（' + w.code + '）').join(' · ') + '</div>' : '');
 }
@@ -17560,6 +17560,7 @@ function kpiCard(k, v, d, dCls) {
 
 /* ---------- 总览 ---------- */
 function renderOverview() {
+  /* fw2_v476_date_audit：死规则②全工作台审计——capbal总览(renderOverview)KPI加数据截至(快照+净值+台账)、半杠铃(renderBarbell)加策略配置截至+实际权重截至、历史回放(renderReplayCard)加数据截至。假阳性未动：交易台账表每行有日期、贡献排行父卡带日期、行情条/市场宽度由全局快照时间覆盖、研究模块头部已带净值日期+天天基金。 */
   const net = calcNet(), inv = calcInvested(), cash = calcCash(), sec = calcSecurities();
   const pnl = net - inv;
   const rt = inv > 0 ? pnl / inv : 0;
@@ -17572,7 +17573,8 @@ function renderOverview() {
     kpiCard("累计盈亏 TOTAL P&L", (pnl >= 0 ? "+" : "") + fmt(pnl), "收益率 " + (rt >= 0 ? "+" : "") + fmtPct(rt), pnlCls(pnl)) +
     kpiCard("已实现盈亏", (realizedNet >= 0 ? "+" : "") + fmt(realizedNet), "卖出 + 分红 − 费用", pnlCls(realizedNet)) +
     kpiCard("未实现盈亏", (unreal >= 0 ? "+" : "") + fmt(unreal), "市值 − 成本", pnlCls(unreal)) +
-    kpiCard("现金余额 CASH", fmt(cash), "可用现金池", cash < 0 ? "down" : "");
+    kpiCard("现金余额 CASH", fmt(cash), "可用现金池", cash < 0 ? "down" : "")
+    + '<div style="font-size:10.5px;color:#94a3b8;margin-top:2px">数据截至 ' + ((state.snapshot && state.snapshot.at) ? fmtClock(state.snapshot.at) : '未更新') + '（行情快照）· 净值随 fund-daily 日更 · 交易/成本/份额为用户录入台账</div>';
 
   /* 资产分布：类别 ≤6 用饼图，否则横向条形 */
   const alloc = calcAlloc();
