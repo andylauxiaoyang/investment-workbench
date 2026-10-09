@@ -6687,6 +6687,7 @@ function discTarget(rule) {
   return '≤' + rule.max + '%';
 }
 function renderDiscipline(all) {
+  /* fw2_v478_disc_date：死规则②审计——纪律打卡权重来自持仓快照，sumEl 补「数据截至(行情快照)」 */
   var box = document.getElementById('discBody');
   var sumEl = document.getElementById('discSum');
   var hintEl = document.getElementById('discHint');
@@ -6765,7 +6766,7 @@ function renderDiscipline(all) {
       + '<div class="disc-s" style="color:' + c + '">' + t.gap + '</div></div>';
   }).join('');
   if (sumEl) sumEl.textContent = (cnt.skip ? '⚠ 数据不全，仅供参考 · ' : '') + '达标 ' + cnt.ok + ' · 关注 ' + cnt.warn + ' · 超线 ' + cnt.bad
-    + '（权重口径＝持仓市值·折人民币' + (noPx ? '，其中 ' + noPx + '/' + rows.length + ' 只无行情按成本' : '') + '）';
+    + '（权重口径＝持仓市值·折人民币' + (noPx ? '，其中 ' + noPx + '/' + rows.length + ' 只无行情按成本' : '') + '） · 数据截至 ' + ((state.snapshot && state.snapshot.at) ? fmtClock(state.snapshot.at) : '未更新') + '（行情快照）';
   if (hintEl) {
     var miss = [];
     if (!rows.some(function (r) { return r.assetType === 'bond'; })) miss.push('债券');
@@ -12583,7 +12584,7 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
   */
   const vc = $('#verChip');
   /* v319 fw2_v319_sig_risk_fusion：动态 verChip 同步升版（v266 起文本停更，本次修正为当前版本） */
-  if (vc) vc.textContent = 'v477 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  if (vc) vc.textContent = 'v478 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
