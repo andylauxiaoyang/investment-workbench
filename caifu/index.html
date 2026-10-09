@@ -453,6 +453,12 @@ button, input, select, textarea { font-family: inherit; font-size: var(--fs-md);
 .tab-bar { display: flex; gap: 6px; border-bottom: 0; margin-bottom: 14px; }
 .tab { padding: 5px 14px; cursor: pointer; font-size: 12.5px; color: var(--text-2); background: transparent; border: 1px solid transparent; border-radius: 8px; transition: background .15s; white-space: nowrap; }
 .tab.active { color: var(--brand); background: var(--brand-tint); border-color: var(--brand-line); font-weight: 600; }
+/* fw2_v466_vtab：全站「模块级顶部主导航」统一标杆胶囊（对齐宏观周期 fillMacroTabs：r10 / pad 8·22 / 13px·600 / 选中实心 #2f6bff 白字）。
+   数据/策略页 .v-tab 此前无规则（历史注释谎称已上提共享层实未落地）→ 现补齐即修复裸样式；资金平衡/mi 子模块/13F 顶导航改挂本类。 */
+.v-tabs { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.v-tab { appearance: none; -webkit-appearance: none; box-sizing: border-box; padding: 8px 22px; border-radius: 10px; border: 1px solid #d8dee6; background: #f1f5f9; color: #475569; font-size: 13px; font-weight: 600; line-height: 1.2; cursor: pointer; white-space: nowrap; transition: background .15s, color .15s, border-color .15s; }
+.v-tab:hover { border-color: #c3ccd8; }
+.v-tab.active { background: #2f6bff; border-color: #2f6bff; color: #fff; }
 .toast { position: fixed; left: 50%; bottom: 34px; transform: translateX(-50%); background: var(--panel-3); color: var(--text); border: 1px solid var(--amber); padding: 9px 16px; border-radius: var(--r-6); font-size: var(--fs-md); z-index: 120; box-shadow: var(--shadow); }
 ::-webkit-scrollbar { width: 9px; height: 9px; }
 ::-webkit-scrollbar-thumb { background: #c3ccd6; border-radius: var(--r-6); }
@@ -1496,13 +1502,13 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
         <section class="view" id="view-capbal">
       <div class="toolbar" style="flex-wrap:wrap;gap:8px;align-items:center">
         <div class="tools-l" style="max-width:100%">
-          <div class="tab-bar" style="margin-bottom:0;flex-wrap:wrap">
-            <span class="tab active" data-cbtab="overview">总览</span>
-            <span class="tab" data-cbtab="holdings">标的明细</span>
-            <span class="tab" data-cbtab="income">利润表</span>
-            <span class="tab" data-cbtab="balance">资产负债表</span>
-            <span class="tab" data-cbtab="cashflow">现金流量表</span>
-            <span class="tab" data-cbtab="data">数据管理</span>
+          <div class="tab-bar" style="margin-bottom:0;flex-wrap:wrap;gap:8px"><!-- fw2_v466_vtab：资金平衡顶导航改挂 .v-tab 标杆胶囊 -->
+            <span class="v-tab active" data-cbtab="overview">总览</span>
+            <span class="v-tab" data-cbtab="holdings">标的明细</span>
+            <span class="v-tab" data-cbtab="income">利润表</span>
+            <span class="v-tab" data-cbtab="balance">资产负债表</span>
+            <span class="v-tab" data-cbtab="cashflow">现金流量表</span>
+            <span class="v-tab" data-cbtab="data">数据管理</span>
           </div>
         </div>
         <div class="tools-r" style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
@@ -10510,14 +10516,13 @@ function renderMacroToolsHtml() {
 function renderMacroGroupCaps() {
   const g = window.MI_GROUPS || [];
   const cur = (typeof state.miGroup === 'number') ? String(state.miGroup) : '0';
-  const base = 'padding:4px 11px;border-radius:14px;border:1px solid #d8dee6;background:#fff;color:#475569;font-size:12px;font-weight:600;cursor:pointer;line-height:1.5';
-  const act = 'padding:4px 11px;border-radius:14px;border:1px solid #2f6bff;background:#eaf1ff;color:#2f6bff;font-size:12px;font-weight:700;cursor:pointer;line-height:1.5';
   const items = g.map((x) => x.name);
+  /* fw2_v466_vtab：mi 子模块胶囊改挂全站标杆 .v-tab（原内联小胶囊 r14/pad4·11/浅蓝tint选中 → 统一为实心蓝白字胶囊） */
   const html = items.map((t, i) => {
     const key = String(i);
-    return '<button type="button" data-mg="' + key + '" onclick="window.__mcSetGroup(\'' + key + '\')" style="' + (cur === key ? act : base) + '">' + t + '</button>';
+    return '<button type="button" data-mg="' + key + '" onclick="window.__mcSetGroup(\'' + key + '\')" class="v-tab' + (cur === key ? ' active' : '') + '">' + t + '</button>';
   }).join('');
-  return '<div id="mcGroupCaps" style="display:flex;flex-wrap:wrap;gap:6px;margin:0 0 10px;align-items:center">' + html + '</div>';
+  return '<div id="mcGroupCaps" class="v-tabs" style="margin:0 0 10px">' + html + '</div>';
 }
 window.__mcSetGroup = function (k) {
   state.miGroup = parseInt(k, 10);
@@ -12521,7 +12526,7 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
   */
   const vc = $('#verChip');
   /* v319 fw2_v319_sig_risk_fusion：动态 verChip 同步升版（v266 起文本停更，本次修正为当前版本） */
-  if (vc) vc.textContent = 'v465 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  if (vc) vc.textContent = 'v466 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
@@ -18182,7 +18187,7 @@ function showTab(name) {
   $qa("#view-capbal .cb-pane").forEach(function (p) { p.classList.add("hidden"); });
   const el = gid("cbPane-" + name);
   if (el) el.classList.remove("hidden");
-  $qa("#view-capbal .tab[data-cbtab]").forEach(function (t) {
+  $qa("#view-capbal .v-tab[data-cbtab]").forEach(function (t) {
     t.classList.toggle("active", t.dataset.cbtab === name);
   });
   render();
@@ -18398,7 +18403,7 @@ window.addEventListener("resize", chartResizeAll);
    事件绑定（工作台环境：一次绑定，视图常驻）
    ================================================================ */
 function bindEvents() {
-  $qa("#view-capbal .tab[data-cbtab]").forEach(function (t) {
+  $qa("#view-capbal .v-tab[data-cbtab]").forEach(function (t) {
     t.onclick = function () { showTab(t.dataset.cbtab); };
   });
   const b = (id, fn) => { const el = gid(id); if (el) el.onclick = fn; };
