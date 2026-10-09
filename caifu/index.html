@@ -12584,7 +12584,7 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
   */
   const vc = $('#verChip');
   /* v319 fw2_v319_sig_risk_fusion：动态 verChip 同步升版（v266 起文本停更，本次修正为当前版本） */
-  if (vc) vc.textContent = 'v478 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  if (vc) vc.textContent = 'v479 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
@@ -13419,6 +13419,7 @@ setTimeout(() => { renderResearchChips(); if (!state.news.items.length) loadNews
   }
 
   function renderDcChart(){
+    /* fw2_v479_dcchart_date：死规则②审计——DC收益曲线图(月频renderDcChartMonthly+日频renderDcChartDaily)hint补「数据截至{窗口末点}（月/日频净值）」 */
     if(!DC || !window.echarts) return;
     /* v158：日频数据就绪走日频；否则静默回退月频（v157 原逻辑） */
     if(DCD_LOADED && DCD && DCD.rows && DCD.rows.length){ renderDcChartDaily(); return; }
@@ -13467,7 +13468,7 @@ setTimeout(() => { renderResearchChips(); if (!state.news.items.length) loadNews
       series:series };
     elText('dcChartHint', (type==='dd'
       ? '各基金从窗口内峰值回撤%（基于分红再投指数）；短历史基金按实际覆盖区间绘制。'
-      : '各基金分红再投累计收益率：单位净值+当月分红按月链乘，起点=0%（窗口首月）。') + coverNote);
+      : '各基金分红再投累计收益率：单位净值+当月分红按月链乘，起点=0%（窗口首月）。') + coverNote + ' 数据截至 ' + (winMonths.length?winMonths[winMonths.length-1]:'—') + '（月度净值）');
     if(window.__dcChart) window.__dcChart.dispose();
     el.innerHTML='';
     window.__dcChart = window.echarts.init(el);
@@ -13546,7 +13547,7 @@ setTimeout(() => { renderResearchChips(); if (!state.news.items.length) loadNews
       series:series };
     elText('dcChartHint', (type==='dd'
       ? '各基金从窗口内峰值回撤%（基于分红再投指数，日频）；短历史基金按实际覆盖区间绘制。'
-      : '各基金分红再投累计收益率（日频）：分红型按除息日分红再投、无分红/折算型按单位净值环比、货币型按万份收益累乘，起点=0%（窗口首日）。') + coverNote);
+      : '各基金分红再投累计收益率（日频）：分红型按除息日分红再投、无分红/折算型按单位净值环比、货币型按万份收益累乘，起点=0%（窗口首日）。') + coverNote + ' 数据截至 ' + (winDates.length?winDates[winDates.length-1]:'—') + '（日频净值）');
     if(window.__dcChart) window.__dcChart.dispose();
     el.innerHTML='';
     window.__dcChart = window.echarts.init(el);
