@@ -12584,7 +12584,7 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
   */
   const vc = $('#verChip');
   /* v319 fw2_v319_sig_risk_fusion：动态 verChip 同步升版（v266 起文本停更，本次修正为当前版本） */
-  if (vc) vc.textContent = 'v479 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  if (vc) vc.textContent = 'v480 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
@@ -16560,6 +16560,15 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
       var nx = nextAction(code);
       var steps = [a.act.b, a.act.h, a.act.a, a.act.t, a.act.s].map(function (txt, si) {
         var p = String(txt).split(' / ');
+        /* fw2_v480_strat_p0：①建仓步的「未达 X / 约 Y/月」改为实时算（gapOf/liveMonthly），
+           消除与 target/当前动作自相矛盾的写死旧值（如 A500 目标5000 却写"未达7500"）；保留 act.b 末段资金源文案。 */
+        if (si === 0 && /^未达/.test(p[0] || '')) {
+          var _g = gapOf(code);
+          if (_g) {
+            p[0] = _g.gap > 0 ? '未达 ' + fmt(Math.round(_g.gap)) : '已达标 ' + fmt(Math.round(_g.held));
+            p[1] = _g.gap > 0 ? '差额÷剩余月（约 ' + fmt(liveMonthly(code)) + '/月）' : '已建满';
+          }
+        }
         var qcls = (si === 0 || si === 2) ? ' q-buy' : (si === 3 ? ' q-tp' : (si === 4 ? ' q-sell' : ''));
         var na = (rk === '安全垫' && si === 3) ? ' na' : '';
         var act = (nx.step === si) ? ' active' : '';
@@ -16602,7 +16611,7 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
     var gap = Math.max(0, a.target - m);
     return { dot: '#4D6BFE', cls: ' mid', txt: '建仓中 · 差额 ' + fmt(Math.round(gap)), sub: '约 ' + fmt(Math.round(gap / monthsLeft())) + '/月', step: 0 };
   }
-  return { dot: '#d98c00', cls: '', txt: '待建仓 · ' + (plan && plan.build ? plan.build : '') + '/月', sub: '差额 ' + fmt(Math.round(a.target)) + '（S.plan 计划口径）', step: 0 };
+  return { dot: '#d98c00', cls: '', txt: '待建仓 · ' + fmt(liveMonthly(code)) + '/月', sub: '差额 ' + fmt(Math.round(a.target)) + '（实时＝目标−已持）', step: 0 };
 }
 
   var roleColor = { '底仓/缓冲': '#4D6BFE', '进攻/主题': '#d98c00', '安全垫': '#059669', '对冲': '#b45309' };
