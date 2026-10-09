@@ -12613,7 +12613,7 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
   */
   const vc = $('#verChip');
   /* v319 fw2_v319_sig_risk_fusion：动态 verChip 同步升版（v266 起文本停更，本次修正为当前版本） */
-  if (vc) vc.textContent = 'v490 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  if (vc) vc.textContent = 'v491 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
@@ -12900,9 +12900,9 @@ function renderSignalDash() {
             + '<span style="display:inline-block;background:' + T[2] + ';color:' + T[1] + ';font-size:11px;padding:1px 7px;border-radius:6px;font-weight:600">最高·' + T[0] + '</span>'
             + bdC(t.nAct, '行动', '#FCEBEB', '#A32D2D') + bdC(t.nNear, '接近', '#FAEEDA', '#854F0B') + bdC(t.rows.length - t.nAct - t.nNear, '观察', '#F1EFE8', '#5F5E5A')
             + '</div>'
-            + '<div class="sig-tiles">' + (t.rows.length ? tAct.map((r) => rowHtml(r, false)).join('') : '<div class="st-foot" style="opacity:.55">暂无信号 · 持仓兜底</div>')
-            + (ddByCode[t.code] ? ddTileHtml(ddByCode[t.code]) : '')
-            + (riskByCode[t.code] && riskByCode[t.code].length ? riskTileHtml(riskByCode[t.code]) : '') + '</div>'
+            + '<div class="sig-tiles">' + (t.rows.length ? tAct.map((r) => rowHtml(r, false)).join('') : '<div class="st-foot" style="opacity:.55">暂无信号 · 持仓兜底</div>') + '</div>'
+            /* fw2_v491_drop_ctx_tiles：移除标的卡内「回撤与超额(M6)」「风险/机会」磁贴——它们是统计/风险上下文、不预示动作，
+               且与「基金数据→基金透视」重复（透视已有回撤/超额/夏普/风险）；交易信号磁贴只保留能指向动作的信号，详情点标的名跳基金透视。 */
             + (tWatch.length ? '<details class="sig-watch"><summary>观察 ' + tWatch.length + ' 条</summary><div class="sig-tiles">' + tWatch.map((r) => rowHtml(r, false)).join('') + '</div></details>' : '')
             + '</div>';
         }).join('');
