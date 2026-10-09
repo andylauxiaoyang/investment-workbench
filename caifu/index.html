@@ -12584,7 +12584,7 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
   */
   const vc = $('#verChip');
   /* v319 fw2_v319_sig_risk_fusion：动态 verChip 同步升版（v266 起文本停更，本次修正为当前版本） */
-  if (vc) vc.textContent = 'v484 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  if (vc) vc.textContent = 'v485 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
@@ -16524,26 +16524,31 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
   }
 
   function calCells() {
-    if (S.calendar && S.calendar.length) {
-      /* v316 fw2_v316_cal_static_rem：静态 S.calendar 的 rem 曾写死 12-k（旧快照，随月份推移失真），
-         改为与 hero 同口径 monthsLeft() 实算、逐格递减，消除「执行日历剩12月 vs hero剩10月」矛盾 */
-      return S.calendar.map(function (c, _i) {
-        return { ym: c.ym, drip: c.drip, rem: Math.max(1, ((typeof monthsLeft === 'function') ? monthsLeft() - _i : (c.rem != null ? c.rem : 12))), note: c.note || [] };
-      });
-    }
-    var cells = [], t = new Date(S.start + 'T00:00:00');
-    var notes = { '2026-09': ['首投预检 5 项', '保存分位快照'], '2026-12': ['季度复盘 Q4', 'C-07 半年重跑'], '2027-03': ['季度复盘 Q1'], '2027-06': ['季度复盘 Q2', 'C-07 半年重跑'], '2027-08': ['建仓期结束核对'] };
-    for (var k = 0; k < 12; k++) {
-      var d = new Date(t.getFullYear(), t.getMonth() + k, 28);
-      var last = new Date(d.getFullYear(), d.getMonth() + 1, 0);
-      var ym = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
-      var ds = last.getFullYear() + '-' + String(last.getMonth() + 1).padStart(2, '0') + '-' + String(last.getDate()).padStart(2, '0');
-      /* v314 fw2_v314_rem_fix：剩余月数与建仓进度 hero 同口径（monthsLeft 实算，逐格递减），
-         不再用硬编码 12-k 格子序号（曾致「hero 剩10月 vs 待办剩12月」不一致） */
-      var rem = Math.max(1, ((typeof monthsLeft === 'function') ? monthsLeft() : 12) - k);
-      cells.push({ ym: ym, drip: ds, rem: rem, note: notes[ym] || [] });
-    }
-    return cells;
+    /* fw2_v485_cal_rem：剩余月改「以本月为锚、与 hero monthsLeft() 同口径」——
+       本月 = monthsLeft()，往后逐月 −1，buildEnd 月 = 结束（非定投月），本月之前 = 已过。
+       修原 `monthsLeft() − 格子序号`（把已过月也算进去 → 本月显示 9 而 hero 显示 10，末两格挤成 1）。 */
+    var src = (S.calendar && S.calendar.length)
+      ? S.calendar.map(function (c) { return { ym: c.ym, drip: c.drip, note: c.note || [] }; })
+      : (function () {
+          var notes = { '2026-09': ['首投预检 5 项', '保存分位快照'], '2026-12': ['季度复盘 Q4', 'C-07 半年重跑'], '2027-03': ['季度复盘 Q1'], '2027-06': ['季度复盘 Q2', 'C-07 半年重跑'], '2027-08': ['建仓期结束核对'] };
+          var out = [], t = new Date(S.start + 'T00:00:00');
+          for (var k = 0; k < 12; k++) {
+            var d = new Date(t.getFullYear(), t.getMonth() + k, 28), last = new Date(d.getFullYear(), d.getMonth() + 1, 0);
+            var ym = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+            var ds = last.getFullYear() + '-' + String(last.getMonth() + 1).padStart(2, '0') + '-' + String(last.getDate()).padStart(2, '0');
+            out.push({ ym: ym, drip: ds, note: notes[ym] || [] });
+          }
+          return out;
+        })();
+    var curYm = todayStr().slice(0, 7), ml = monthsLeft(), curIdx = -1;
+    src.forEach(function (c, i) { if (c.ym === curYm) curIdx = i; });
+    return src.map(function (c, i) {
+      var past = c.ym < curYm, rem, end = false;
+      if (curIdx >= 0) { rem = ml - (i - curIdx); }
+      else { rem = past ? ml + 1 : ml; }
+      if (!past && rem <= 0) { end = true; }
+      return { ym: c.ym, drip: c.drip, note: c.note, rem: rem, past: past, end: end, cur: c.ym === curYm };
+    });
   }
   /* fw2_v481_strat_p1：执行日历改造——点月份展开当月执行单，逐只确认「未投/部分/已投 + 实际金额」，
      存 STRAT_LS_EXEC；计划额=实时差额÷该月剩余月；汇总欠投/超额并提示对后续月的影响。确认仅作纪律跟踪，
@@ -16595,8 +16600,8 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
     var html = '<div class="strat-note">定投日 = 每月最后一个交易日。<b>点任意月份可展开当月执行单</b>，逐只确认「未投/部分/已投 + 实际金额」并保存；计划额 = 执行时重算的「差额 ÷ 剩余月」。确认用于纪律跟踪与欠投/超额提示，实际持仓以「我的持仓/台账」为准。</div><div class="sc-grid">';
     calCells().forEach(function (c) {
       var rec = ex[c.ym] || {}, hasRec = Object.keys(rec).length > 0, isCur = today.slice(0, 7) === c.ym, isSel = _stratCalSel === c.ym;
-      html += '<div class="sc-cell' + (hasRec ? ' past' : '') + (isCur ? ' cur' : '') + (isSel ? ' sel' : '') + '" data-ym="' + c.ym + '" style="cursor:pointer">' +
-        '<div class="m">' + c.ym + ' <span style="color:var(--muted);font-weight:400;font-size:10px">剩 ' + c.rem + ' 月</span></div>' +
+      html += '<div class="sc-cell' + (c.past ? ' past' : '') + (isCur ? ' cur' : '') + (isSel ? ' sel' : '') + '" data-ym="' + c.ym + '" style="cursor:pointer">' +
+        '<div class="m">' + c.ym + ' <span style="color:var(--muted);font-weight:400;font-size:10px">' + (c.past ? '已过' : c.end ? '结束核对' : '剩 ' + c.rem + ' 月') + '</span></div>' +
         '<div class="d">定投 ' + c.drip + '</div>' +
         (isCur ? '<div class="x" style="color:var(--brand);font-weight:600">本月</div>' : '') +
         c.note.map(function (n) { return '<span class="bdg' + (n.indexOf('复盘') >= 0 || n.indexOf('C-07') >= 0 ? (n.indexOf('C-07') >= 0 ? ' c07' : '') : '') + '">' + n + '</span>'; }).join('') +
