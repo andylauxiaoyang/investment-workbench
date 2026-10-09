@@ -6822,6 +6822,8 @@ function renderHoldings() {
     ${kpi('总盈亏', fmtMoney(totals.total, true), fmtPct(totals.totalPct), cls(totals.total))}
     ${kpi('当日盈亏', fmtMoney(totals.day, true), fmtPct(totals.dayPct), cls(totals.day))}
     <!-- fw2_v114_kpi_order: 持仓市值 > 持仓成本 > 总盈亏 > 当日盈亏 -->
+    <!-- fw2_v475_hold_date：持仓 KPI 区补数据截至（行情快照时间+净值日更+成本用户录入，死规则②审计） -->
+    <div style="font-size:10.5px;color:#94a3b8;margin-top:2px">数据截至 ${((state.snapshot && state.snapshot.at) ? fmtClock(state.snapshot.at) : '未更新')}（行情快照）· 净值随 fund-daily 日更 · 成本/份额为用户录入</div>
     `;
 
 
@@ -12581,7 +12583,7 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
   */
   const vc = $('#verChip');
   /* v319 fw2_v319_sig_risk_fusion：动态 verChip 同步升版（v266 起文本停更，本次修正为当前版本） */
-  if (vc) vc.textContent = 'v474 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  if (vc) vc.textContent = 'v475 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
