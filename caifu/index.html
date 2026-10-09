@@ -12566,7 +12566,7 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
   */
   const vc = $('#verChip');
   /* v319 fw2_v319_sig_risk_fusion：动态 verChip 同步升版（v266 起文本停更，本次修正为当前版本） */
-  if (vc) vc.textContent = 'v470 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  if (vc) vc.textContent = 'v471 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
@@ -12842,6 +12842,9 @@ function renderSignalDash() {
         const bdC = (n, label, bg, fg) => (n ? '<span style="display:inline-block;background:' + bg + ';color:' + fg + ';font-size:11px;padding:1px 6px;border-radius:6px;margin-left:3px">' + label + ' ' + n + '</span>' : '');
         html += targets.map((t) => {
           const T = TAR[t.top];
+          /* fw2_v471_watch_fold：标卡内也只展示行动+接近（+风险/回撤上下文），观察档折叠进 <details>（点击展开），与市场信号组一致 */
+          const tAct = t.rows.filter((r) => r.lvl !== 'watch');
+          const tWatch = t.rows.filter((r) => r.lvl === 'watch');
           return '<div class="sig-target" style="border:1px solid ' + T[2] + 'aa;border-left:3px solid ' + T[2] + ';border-radius:10px;background:#fff;padding:8px 10px;margin-bottom:8px">'
             + '<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding-bottom:6px;margin-bottom:6px;border-bottom:1px dashed var(--line,#e3e7ee)">'
             + '<b class="lk-rs" data-rscode="' + esc(t.code) + '" style="cursor:pointer;font-size:13px">' + esc(t.name) + '</b>'
@@ -12850,9 +12853,10 @@ function renderSignalDash() {
             + '<span style="display:inline-block;background:' + T[2] + ';color:' + T[1] + ';font-size:11px;padding:1px 7px;border-radius:6px;font-weight:600">最高·' + T[0] + '</span>'
             + bdC(t.nAct, '行动', '#FCEBEB', '#A32D2D') + bdC(t.nNear, '接近', '#FAEEDA', '#854F0B') + bdC(t.rows.length - t.nAct - t.nNear, '观察', '#F1EFE8', '#5F5E5A')
             + '</div>'
-            + '<div class="sig-tiles">' + (t.rows.length ? t.rows.map((r) => rowHtml(r, false)).join('') : '<div class="st-foot" style="opacity:.55">暂无信号 · 持仓兜底</div>')
+            + '<div class="sig-tiles">' + (t.rows.length ? tAct.map((r) => rowHtml(r, false)).join('') : '<div class="st-foot" style="opacity:.55">暂无信号 · 持仓兜底</div>')
             + (ddByCode[t.code] ? ddTileHtml(ddByCode[t.code]) : '')
             + (riskByCode[t.code] && riskByCode[t.code].length ? riskTileHtml(riskByCode[t.code]) : '') + '</div>'
+            + (tWatch.length ? '<details class="sig-watch"><summary>观察 ' + tWatch.length + ' 条</summary><div class="sig-tiles">' + tWatch.map((r) => rowHtml(r, false)).join('') + '</div></details>' : '')
             + '</div>';
         }).join('');
       } else {
