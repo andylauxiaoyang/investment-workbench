@@ -12584,7 +12584,7 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
   */
   const vc = $('#verChip');
   /* v319 fw2_v319_sig_risk_fusion：动态 verChip 同步升版（v266 起文本停更，本次修正为当前版本） */
-  if (vc) vc.textContent = 'v481 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  if (vc) vc.textContent = 'v482 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
@@ -15590,6 +15590,28 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
     var g = gapOf(code); if (!g || g.gap <= 0) return 0;
     return Math.round(g.gap / monthsLeft());
   }
+  /* fw2_v482_strat_p2：单一计算引擎——所有子页(建仓进度hero/资产配置/执行卡/执行日历/月度定投)的「本月应投」都读这里，
+     消除「日历 500 vs 定投表 563」两套口径。当月总预算 = (总目标−总市值)÷剩余月，按各标的缺口占比用最大余数法分摊到整数元。 */
+  var _DAILY_LIMIT = { '020712': '日定投 10/日（限额）' };
+  function stratCompute() {
+    var ml = monthsLeft(), totalMv = 0;
+    (state.portfolio || []).forEach(function (h) { var m = mvOf(h); if (m != null) totalMv += m; });
+    var budget = ml > 0 ? Math.max(0, Math.round((S.totalTarget - totalMv) / ml)) : 0;
+    // 参与分摊：有缺口且非日限额型；按「目标额」占比分摊（与月度定投表 v317 同口径），最大余数法补到整数、合计=budget
+    var parts = S.assets.filter(function (a) { return !_DAILY_LIMIT[a.code] && gapOf(a.code).gap > 0; });
+    var tsum = parts.reduce(function (a, x) { return a + (x.target || 0); }, 0);
+    var base = [];
+    parts.forEach(function (a) {
+      var ex = tsum > 0 && budget > 0 ? budget * (a.target || 0) / tsum : 0;
+      base.push({ code: a.code, v: Math.floor(ex), r: ex - Math.floor(ex) });
+    });
+    var assigned = base.reduce(function (s, b) { return s + b.v; }, 0);
+    var left = Math.max(0, budget - assigned);
+    base.slice().sort(function (x, y) { return y.r - x.r; }).slice(0, left).forEach(function (b) { b.v += 1; });
+    var alloc = {}; base.forEach(function (b) { alloc[b.code] = b.v; });
+    return { ml: ml, budget: budget, totalMv: totalMv, totalTarget: S.totalTarget, assigned: assigned + left, alloc: alloc,
+      monthlyOf: function (code) { return _DAILY_LIMIT[code] ? 0 : (alloc[code] || 0); } };
+  }
   /* ---- 主渲染 ---- */
   function renderStratCycle() {
     /* v198 fw2_v198_cycle_replay：宏观周期→策略执行自动联动（数据驱动，无宏观数据时占位） */
@@ -16531,10 +16553,11 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
     var cells = calCells(), idx = -1;
     cells.forEach(function (c, i) { if (c.ym === ym) idx = i; });
     var rem = idx >= 0 ? cells[idx].rem : monthsLeft();
+    var eng = stratCompute();   // fw2_v482：本月应投统一取 stratCompute（与月度定投表同口径）
     var list = S.assets.map(function (a) {
-      if (a.code === '020712') return { code: a.code, name: a.name, plan: 0, note: '日定投 10/日' };
+      if (_DAILY_LIMIT[a.code]) return { code: a.code, name: a.name, plan: 0, note: _DAILY_LIMIT[a.code] };
       var g = gapOf(a.code);
-      return { code: a.code, name: a.name, plan: (g && g.gap > 0 && rem > 0) ? Math.round(g.gap / rem) : 0, gap: g ? g.gap : 0 };
+      return { code: a.code, name: a.name, plan: eng.monthlyOf(a.code), gap: g ? g.gap : 0 };
     });
     return { rem: rem, list: list };
   }
@@ -16994,26 +17017,10 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
        与执行单/hero 一致；此前用静态 p.build（各标的独立补缺月均）造成「表 750 vs 单 530」不一致 
     *//* v318 fw2_v318_base410：底仓/缓冲四标的均衡各 10%（A500 / 沪深300增强 / 红利 / 现金流 target 各 5,000，合计 20,000·40%）；STRATEGY_SNAP 内嵌数据与 sync_strategy_snap.py 常量已同步。 */
     /* v319 fw2_v319_sig_risk_fusion：风险与机会扫描迁入「交易信号·持仓信号」组合风险确认（diagnoseSignals 同引擎）；回撤警示与「持仓·回撤与超额监控 M6」同口径（fetchDdRows 共用）；持仓视图删除风险卡、保留 M6。verChip v122->v319 */
-    var _daily = { '020712': '日定投 10/日（限额）' };
-    var _budget = (function () {
-      var _df = Math.max(0, S.totalTarget - totalMv()), _m = monthsLeft();
-      return _m ? Math.round(_df / _m) : 0;
-    })();
-    var _rows = S.first.map(function (f) { return { f: f, t: (_daily[f.code] ? 0 : (assetOf(f.code) || {}).target || 0) }; });
-    var _tsum = _rows.reduce(function (a, r) { return a + r.t; }, 0);
-    var _base = [], _rem = [];
-    _rows.forEach(function (r) {
-      if (_daily[r.f.code]) { _base.push(0); _rem.push(-1); return; }
-      var _ex = (_tsum > 0 && _budget > 0) ? _budget * r.t / _tsum : 0;
-      _base.push(Math.floor(_ex)); _rem.push(_ex - Math.floor(_ex));
-    });
-    var _left = Math.max(0, _budget - _base.reduce(function (a, b) { return a + b; }, 0));
-    var _order = _rem.map(function (v, i) { return { v: v, i: i }; })
-      .filter(function (o) { return o.v >= 0; }).sort(function (x, y) { return y.v - x.v; });
-    for (var _k = 0; _k < _left && _k < _order.length; _k++) _base[_order[_k].i] += 1;
-    var _alloc = _base, _assigned = _base.reduce(function (a, b) { return a + b; }, 0);
-    var _allocMap = {};
-    _rows.forEach(function (r, _i) { _allocMap[r.f.code] = _alloc[_i]; });
+    /* fw2_v482_strat_p2：月度定投表 + 首次执行单的「本月应投/分摊」统一走 stratCompute（与执行日历同口径），退役此处内联分摊 */
+    var _eng = stratCompute();
+    var _budget = _eng.budget, _allocMap = _eng.alloc, _assigned = _eng.assigned;
+    var _daily = _DAILY_LIMIT;
     S.plan.forEach(function (p) {
       var g = gapOf(p.code), lm = liveMonthly(p.code);
       var _am = _allocMap[p.code];
@@ -17037,7 +17044,7 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
       '<colgroup><col style="width:8%"><col style="width:14%"><col style="width:22%"><col style="width:14%"><col style="width:14%"><col style="width:28%"></colgroup>' +
       '<thead><tr><th>顺序</th><th>标的</th><th>代码</th><th>金额</th><th>渠道</th><th>备注</th></tr></thead><tbody>';
     S.first.forEach(function (f, i) {
-      html += '<tr><td>' + f.i + '</td><td class="nm"><b class="lk-rs" data-rscode="' + f.code + '">' + esc(f.name) + '</b></td><td class="cd">' + f.code + '</td><td class="qty">' + (_daily[f.code] || fmt(_alloc[i])) + '</td><td>' + f.chan + '</td><td>' + esc(f.note || '') + '</td></tr>';
+      html += '<tr><td>' + f.i + '</td><td class="nm"><b class="lk-rs" data-rscode="' + f.code + '">' + esc(f.name) + '</b></td><td class="cd">' + f.code + '</td><td class="qty">' + (_daily[f.code] || fmt(_allocMap[f.code] || 0)) + '</td><td>' + f.chan + '</td><td>' + esc(f.note || '') + '</td></tr>';
     });
     html += '<tr class="st-total" style="font-weight:700;border-top:2px solid var(--line-mid)"><td colspan="3">合计（明细行和）</td><td class="qty">' + fmt(_assigned) + '</td><td colspan="2">另计：020712 日定投 10/日（每日限购 10 元）</td></tr>';
     html += '</tbody></table></div></div>';
