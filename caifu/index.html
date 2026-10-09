@@ -12584,7 +12584,7 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
   */
   const vc = $('#verChip');
   /* v319 fw2_v319_sig_risk_fusion：动态 verChip 同步升版（v266 起文本停更，本次修正为当前版本） */
-  if (vc) vc.textContent = 'v487 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  if (vc) vc.textContent = 'v488 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
@@ -16494,18 +16494,17 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
     var el = document.getElementById('stratHero');
     if (!el) return;
     var mv = totalMv(), pct = Math.min(100, mv / S.totalTarget * 100);
-    var diff = Math.max(0, S.totalTarget - mv), ml = monthsLeft();
-    var per = ml ? Math.round(diff / ml) : 0;
+    var ml = monthsLeft(), tm = totalMonths(), per = stratCompute().budget;   /* fw2_v488_hero_fixed：每月定投=固定分期合计(目标÷总月数)，与执行卡/日历/定投表同口径，不再用动态「差额÷剩余月」 */
     var next = nextDrip();
     el.innerHTML =
       '<div class="sh-main"><div class="sh-k">建仓进度 · 半杠铃 2.0（v1.9）</div>' +
       '<div class="sh-v">¥' + fmt(mv) + ' / ' + fmt(S.totalTarget) + '</div>' +
       '<div class="sh-bar"><i style="width:' + pct.toFixed(1) + '%"></i></div>' +
-      '<div class="sh-sub">差额 <b>¥' + fmt(diff) + '</b> ÷ 剩余 ' + ml + ' 个月 ≈ <b>¥' + fmt(per) + '/月</b>（口径：工作台持仓快照）</div></div>' +
+      '<div class="sh-sub">每月定投 <b>¥' + fmt(per) + '</b>（目标 ÷ ' + tm + ' 月 · 固定分期）· 已投 ¥' + fmt(mv) + '（' + pct.toFixed(1) + '%）· 剩余 ' + ml + ' 月</div></div>' +
       '<div class="sh-grid">' +
       '<div class="sh-cell"><div class="k">当前市值</div><div class="v">¥' + fmt(mv) + '</div></div>' +
       '<div class="sh-cell"><div class="k">完成度</div><div class="v">' + pct.toFixed(1) + '%</div></div>' +
-      '<div class="sh-cell"><div class="k">剩余定投月</div><div class="v">' + ml + ' 个月</div></div>' +
+      '<div class="sh-cell"><div class="k">定投月数</div><div class="v">剩 ' + ml + ' / 共 ' + tm + '</div></div>' +
       '<div class="sh-cell"><div class="k">下次定投</div><div class="v">' + (next || '—') + '</div></div>' +
       '</div>';
   }
