@@ -10387,7 +10387,8 @@ function renderMacroSentiment(d) {
     metric('上涨占比', upPct != null ? fmtNum(upPct, 1) + '%' : '数据未加载', upPct != null ? (upPct >= 50 ? tag('多头', '#0d9f4d') : tag('空头', '#dc2626')) : '') +
     (upPct == null ? '<div style="font-size:11px;color:#94a3b8;margin-top:6px">行情快照未加载（先打开概览/持仓模块拉取一次）</div>' : ''));
   var todoCard = card('待接入数据源（手册有·工作台暂缺）', '需新增取数通道，非展示层缺失',
-    '<div style="font-size:12px;color:#475569;line-height:1.9">· 证券化率（巴菲特指数 = 总市值/GDP）<br>· 恐惧/恐怖贪婪指数（CNN 美股版 / 中国综合版）<br>· 破净率、市净率中位数<br>· 换手率、融资买入额占成交额<br>· 中国波指 iVIX、期权 PCR、期指升贴水<br>· 成交集中度、板块拥挤度、行业情绪<br>· 北向资金净流入、新发公募量、产业资本增减持/回购、限售解禁<br>· 股息率 vs 10Y 国债、大小盘相对强弱、超额流动性</div>');
+    '<div style="font-size:12px;color:#475569;line-height:1.9">· 证券化率/巴菲特指数（总市值已接入，缺名义GDP年度水平机读源）<br>· 破净率（需全市场个股 PB 截面统计）<br>· 中国波指 iVIX、期权 PCR、期指升贴水<br>· 成交集中度、板块拥挤度、行业情绪（需个股/行业成交明细聚合）<br>· 新发公募量、产业资本增减持/回购、限售解禁（需东财专题接口逐个探）<br>· 北向资金净流入（结构性缺口·港交所2024起停更日度净买入）</div>' +
+    '<div style="font-size:11px;color:#0d9f4d;line-height:1.7;margin-top:8px">✓ 本轮已接入：换手率、股息率 vs 10Y、市净率中位数、融资买入额、A股总市值、大小盘相对强弱、超额流动性、CNN 恐惧贪婪指数(美股)</div>');
   /* fw2_v465_fsi_card：FSI 全球金融压力指数由整幅横幅改为与其它卡同款的卡片，置于网格首位（用户要求）。
      复用本模块 card()/metric()/spark() 助手，数据源同 d.fsi，不新增取数；renderMacroTop 横幅不再在此调用。 */
   var fsiSc = fsi.score, fsiPct = fsi.percentile;
@@ -10403,10 +10404,34 @@ function renderMacroSentiment(d) {
     '<div style="margin-top:8px">' + spark((fsi.series || []).map(function (p) { return p[1]; }), fsiLvC) + '</div>' +
     '<div style="margin-top:8px;font-size:11px;color:#64748b;line-height:1.8">' + (fsiIndis || '<span style="color:#94a3b8">指标组加载中…</span>') + '</div>' +
     '<div style="font-size:10px;color:#94a3b8;margin-top:6px">' + esc(fsi.levelNote || '') + (fsi.meta && fsi.meta.limitNote ? ' · ' + esc(fsi.meta.limitNote) : '') + '</div>');
+  /* fw2_v468_sentiment：市场情绪「可接入项」落地——换手率/股息率vs10Y/市净率中位数/融资买入额/A股总市值/大小盘相对强弱/超额流动性/CNN恐贪(美股)。
+     数据源 d.sentiment（gen_macro_sent.py：理杏仁中证全指000985 + 指数收盘000300/000852 + CNN + cnMacro社融/M2）。每卡标数据截至+来源，缺源不渲染、不编造。 */
+  var S = d.sentiment || {};
+  var y10v = (d.erp && d.erp.cur && d.erp.cur.y10 != null) ? d.erp.cur.y10 : null;
+  function sSpark(rec, col) { return spark((rec.points || []).map(function (p) { return p[1]; }), col || '#2f6bff'); }
+  function sSrc(rec) { return '<div style="font-size:10px;color:#94a3b8;margin-top:6px">' + esc(rec.src || '') + ' · 截至 ' + esc(rec.asOf || '—') + '</div>'; }
+  function sCard(rec, hint, rows, col) { if (!rec || !rec.available) return ''; return card(rec.label, hint, rows + '<div style="margin-top:8px">' + sSpark(rec, col) + '</div>' + sSrc(rec)); }
+  var sTurn = sCard(S.turnover, '日成交额/流通市值 · 理杏仁', metric('换手率', S.turnover && S.turnover.value != null ? fmtNum(S.turnover.value, 2) + '%' : '—'));
+  var dyRec = S.dividend, dySpread = (dyRec && dyRec.available && y10v != null) ? (dyRec.value - y10v) : null;
+  var sDiv = (dyRec && dyRec.available) ? card('股息率 vs 10Y 国债', '股票性价比 · 理杏仁+ERP',
+    metric('股息率(全A)', fmtNum(dyRec.value, 2) + '%') +
+    metric('10Y 国债', y10v != null ? fmtNum(y10v, 2) + '%' : '—') +
+    metric('股息率−10Y', dySpread != null ? (dySpread >= 0 ? '+' : '') + fmtNum(dySpread, 2) + '%' : '—', dySpread != null ? (dySpread >= 0 ? tag('股票占优', '#0d9f4d') : tag('债券占优', '#d98c00')) : '') +
+    '<div style="margin-top:8px">' + sSpark(dyRec) + '</div>' + sSrc(dyRec)) : '';
+  var sPb = sCard(S.pbMedian, '全A市净率中位数 · 理杏仁', metric('PB 中位数', S.pbMedian && S.pbMedian.value != null ? fmtNum(S.pbMedian.value, 2) : '—'));
+  var sMbuy = sCard(S.marginBuy, '全市场融资买入额 · 理杏仁', metric('融资买入额', S.marginBuy && S.marginBuy.value != null ? fmtNum(S.marginBuy.value, 0) + ' 亿元' : '—'));
+  var sCap = sCard(S.mktcap, 'A股总市值 · 理杏仁', metric('总市值', S.mktcap && S.mktcap.value != null ? fmtNum(S.mktcap.value, 2) + ' 万亿元' : '—'));
+  var sSize = sCard(S.sizeRatio, '沪深300/中证1000 · 走低=小盘走强', metric('大小盘比值', S.sizeRatio && S.sizeRatio.value != null ? fmtNum(S.sizeRatio.value, 3) : '—'), '#7c3aed');
+  var sLiq = sCard(S.liqSpread, '社融增速−M2增速 · 理杏仁(自算)', metric('剪刀差', S.liqSpread && S.liqSpread.value != null ? (S.liqSpread.value >= 0 ? '+' : '') + fmtNum(S.liqSpread.value, 2) + ' pp' : '—'), '#0d9f4d');
+  var cnnR = S.cnnFG;
+  var cnnCol = (!cnnR || !cnnR.available) ? '#94a3b8' : (cnnR.value >= 75 ? '#0d9f4d' : cnnR.value >= 55 ? '#4aa3df' : cnnR.value >= 45 ? '#d98c00' : cnnR.value >= 25 ? '#e06a1b' : '#dc2626');
+  var sCnn = (cnnR && cnnR.available) ? card('恐惧贪婪指数(美股)', 'CNN Fear & Greed 0-100',
+    metric('指数', '<span style="color:' + cnnCol + '">' + fmtNum(cnnR.value, 1) + '</span>', ' · ' + tag(esc(cnnR.rating || ''), cnnCol)) +
+    '<div style="margin-top:8px">' + sSpark(cnnR, cnnCol) + '</div>' + sSrc(cnnR)) : '';
   var smHtml =
-    '<div style="font-size:12px;color:#64748b;margin-bottom:8px">数据截至 ' + esc(d.updatedAt || '') + ' · 聚合视图（信号源同 ERP/估值/两融/成交额/VIX/FSI 各原模块，未新增数据源）</div>' +
+    '<div style="font-size:12px;color:#64748b;margin-bottom:8px">数据截至 ' + esc(d.updatedAt || '') + ' · 聚合视图（ERP/估值/两融/成交额/VIX/FSI 复用各原模块；换手率/股息率/市净率中位数/融资买入额/总市值/大小盘/超额流动性＝理杏仁，恐贪＝CNN）</div>' +
     '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px;margin-top:10px">' +
-    (fsi && fsi.score != null ? fsiCard : '') + erpCard + peCard + mrgCard + amtCard + vixCard + brCard + todoCard +
+    (fsi && fsi.score != null ? fsiCard : '') + erpCard + peCard + mrgCard + amtCard + vixCard + brCard + sTurn + sDiv + sPb + sMbuy + sCap + sSize + sLiq + sCnn + todoCard +
     '</div>';
   return smHtml;
 }
@@ -12526,7 +12551,7 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
   */
   const vc = $('#verChip');
   /* v319 fw2_v319_sig_risk_fusion：动态 verChip 同步升版（v266 起文本停更，本次修正为当前版本） */
-  if (vc) vc.textContent = 'v467 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  if (vc) vc.textContent = 'v468 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
