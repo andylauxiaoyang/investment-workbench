@@ -10382,11 +10382,25 @@ function renderMacroSentiment(d) {
     (upPct == null ? '<div style="font-size:11px;color:#94a3b8;margin-top:6px">行情快照未加载（先打开概览/持仓模块拉取一次）</div>' : ''));
   var todoCard = card('待接入数据源（手册有·工作台暂缺）', '需新增取数通道，非展示层缺失',
     '<div style="font-size:12px;color:#475569;line-height:1.9">· 证券化率（巴菲特指数 = 总市值/GDP）<br>· 恐惧/恐怖贪婪指数（CNN 美股版 / 中国综合版）<br>· 破净率、市净率中位数<br>· 换手率、融资买入额占成交额<br>· 中国波指 iVIX、期权 PCR、期指升贴水<br>· 成交集中度、板块拥挤度、行业情绪<br>· 北向资金净流入、新发公募量、产业资本增减持/回购、限售解禁<br>· 股息率 vs 10Y 国债、大小盘相对强弱、超额流动性</div>');
+  /* fw2_v465_fsi_card：FSI 全球金融压力指数由整幅横幅改为与其它卡同款的卡片，置于网格首位（用户要求）。
+     复用本模块 card()/metric()/spark() 助手，数据源同 d.fsi，不新增取数；renderMacroTop 横幅不再在此调用。 */
+  var fsiSc = fsi.score, fsiPct = fsi.percentile;
+  var fsiLvC = fsiSc == null ? '#94a3b8' : fsiSc >= 70 ? '#dc2626' : fsiSc >= 50 ? '#f59e0b' : fsiSc >= 30 ? '#c98a1b' : '#2f6bff';
+  var fsiLvTxt = fsiSc == null ? '—' : (fsiSc >= 70 ? '危机' : fsiSc >= 50 ? '警戒' : fsiSc >= 30 ? '关注' : '正常');
+  var fsiIndis = (fsi.indis || []).map(function (it) {
+    var zc = it.z >= 1 ? '#dc2626' : it.z <= -1 ? '#2f6bff' : '#94a3b8';
+    return '<span style="margin-right:10px" title="' + esc(it.name + '（z ' + fmtNum(it.z, 2) + '）' + (it.note ? ' · ' + it.note : '')) + '">' + esc(it.name) + ' <b style="color:' + zc + '">' + fmtNum(it.val, 2) + (it.unit || '') + '</b></span>';
+  }).join('');
+  var fsiCard = card('全球金融压力指数 FSI', '6项资产/市场维度综合 · FRED口径',
+    metric('压力指数', '<span style="color:' + fsiLvC + '">' + (fsiSc == null ? '—' : fsiSc.toFixed(1)) + '</span>', ' · ' + fsiLvTxt + '级') +
+    metric('历史分位', fsiPct == null ? '—' : fsiPct.toFixed(1) + '%') +
+    '<div style="margin-top:8px">' + spark((fsi.series || []).map(function (p) { return p[1]; }), fsiLvC) + '</div>' +
+    '<div style="margin-top:8px;font-size:11px;color:#64748b;line-height:1.8">' + (fsiIndis || '<span style="color:#94a3b8">指标组加载中…</span>') + '</div>' +
+    '<div style="font-size:10px;color:#94a3b8;margin-top:6px">' + esc(fsi.levelNote || '') + (fsi.meta && fsi.meta.limitNote ? ' · ' + esc(fsi.meta.limitNote) : '') + '</div>');
   var smHtml =
     '<div style="font-size:12px;color:#64748b;margin-bottom:8px">数据截至 ' + esc(d.updatedAt || '') + ' · 聚合视图（信号源同 ERP/估值/两融/成交额/VIX/FSI 各原模块，未新增数据源）</div>' +
-    (fsi && fsi.score != null ? renderMacroTop(d) : '') +
     '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px;margin-top:10px">' +
-    erpCard + peCard + mrgCard + amtCard + vixCard + brCard + todoCard +
+    (fsi && fsi.score != null ? fsiCard : '') + erpCard + peCard + mrgCard + amtCard + vixCard + brCard + todoCard +
     '</div>';
   return smHtml;
 }
@@ -12507,7 +12521,7 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
   */
   const vc = $('#verChip');
   /* v319 fw2_v319_sig_risk_fusion：动态 verChip 同步升版（v266 起文本停更，本次修正为当前版本） */
-  if (vc) vc.textContent = 'v464 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  if (vc) vc.textContent = 'v465 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
