@@ -2652,10 +2652,14 @@ window.HS_name = function (code) {
       let settled = false;
       const done = (r) => { if (!settled) { settled = true; if (r) f10Cache[c] = r; resolve(r); } };
       (async () => {
+        /* fw2_v507c_f10clean：东财 f10 接口固定回调名 cb（服务端识别 callback=cb 参数），
+           jsonp() 追加的随机 &cb= 参数不被识别 → JSONP 通道必然 ReferenceError: cb is not defined
+           （每次加载 N 只持仓报 N 次 pageerror 噪音）。移除 jsonp 尝试，只走 mfetch+正则剥壳：
+           接口实测无 CORS、可直连；防盗链拒绝时返回错误文本 → JSON.parse 抛错 → j=null，
+           由调用方 verifyNav 走腾讯 s_jj/jj 副源兜底，行为不变、噪音清零。 */
         const u = 'https://api.fund.eastmoney.com/f10/lsjz?callback=cb&fundCode=' + c + '&pageIndex=1&pageSize=2&startDate=&endDate=';
         let j = null;
-        try { j = await jsonp(u); } catch (e) {}
-        if (!j) { try { const r = await mfetch(u); const t = await r.text(); const m = t.match(/^cb\(([\s\S]*)\)\s*;?\s*$/); j = JSON.parse(m ? m[1] : t); } catch (e) {} }
+        try { const r = await mfetch(u); const t = await r.text(); const m = t.match(/^cb\(([\s\S]*)\)\s*;?\s*$/); j = JSON.parse(m ? m[1] : t); } catch (e) {}
         if (!j || !j.Data || !Array.isArray(j.Data.LSJZList) || !j.Data.LSJZList.length) return done(null);
         const first = j.Data.LSJZList[0];
         const dw = parseFloat(first.DWJZ), lj = parseFloat(first.LJJZ);
@@ -4269,22 +4273,29 @@ async function refreshSnapshot(noRerender) {
   } catch (e) { marketError = e.message; }
   /* 场外基金：天天基金估值——基金类持仓优先，腾讯未覆盖的 6 位代码兜底 */
   if (ok) {
+    /* fw2_v507c_fetchpool：fundgz 兜底「同 code 去重 + 并发限流 ≤6」——
+       原实现持仓基金循环与 codes 兜底循环会对同一 code 重发 2 次（两轮循环各自 push，
+       Promise.all 执行前 quotes 未被填充、无法判重），且全部 Promise.all 并发无上限；
+       现改为 want 集合合并 + requested 判重 + 6 并发 worker 池，语义等价（持仓基金无条件拉估值、
+       腾讯未覆盖 CN 6 位补拉），请求量减半、瞬时并发受控（降低东财 fundgz 限流概率）。 */
     const jobs = [];
-    state.portfolio.forEach((h) => {
-      if (h.assetType === 'fund') {
-        jobs.push(apiGet('/api/fundgz', { code: h.code }).then((fr) => {
-          if (fr && fr.ok && fr.data) quotes[h.code] = fr.data;
-        }).catch(() => {}));
-      }
+    const requested = new Set();
+    const want = new Set();
+    state.portfolio.forEach((h) => { if (h.assetType === 'fund') want.add(h.code); });
+    codes.forEach((c) => { if (marketOf(c) === 'CN' && /^\d{6}$/.test(shortCode(c))) want.add(c); });
+    want.forEach((c) => {
+      if (requested.has(c)) return;
+      requested.add(c);
+      jobs.push(() => apiGet('/api/fundgz', { code: c }).then((fr) => {
+        if (fr && fr.ok && fr.data) quotes[c] = fr.data;
+      }).catch(() => {}));
     });
-    codes.forEach((c) => {
-      if (!quotes[c] && marketOf(c) === 'CN' && /^\d{6}$/.test(shortCode(c))) {
-        jobs.push(apiGet('/api/fundgz', { code: c }).then((fr) => {
-          if (fr && fr.ok && fr.data) quotes[c] = fr.data;
-        }).catch(() => {}));
-      }
-    });
-    if (jobs.length) await Promise.all(jobs);
+    if (jobs.length) {
+      const POOL = 6;
+      let i = 0;
+      const worker = async () => { while (i < jobs.length) { const job = jobs[i++]; await job(); } };
+      await Promise.all(Array.from({ length: Math.min(POOL, jobs.length) }, worker));
+    }
   }
   /* v104 日经225：腾讯不收录，走东财 push2delay（实测 CORS: 返回 access-control-allow-origin）。
       ★此处必须用原生 fetch：quotesGet 用的 mfetch 定义在上方 IIFE 内部，本函数（外层作用域）看不见它，
