@@ -973,19 +973,21 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 #view-capbal .cb-rpt-line.head .val { font-weight: 600; }
 /* fw2_v505k_rpttable：三张月度财报改标准 <table> 报表格式——完整网格边框（行线+列线=正常表格）、表头 thead 2px 底线、合计行 2px 顶线、跨列组标题行、金额右对齐千分位、正红负绿、备注归项目列下、无底色；表格宽=内容宽（width:max-content），横竖线只画在字段与数据显示区域内、右侧空白无线（fw2_v505h_rptreport → fw2_v505i_noline → fw2_v505j_linescope 的每行 div grid 方案废弃——悬浮行无框感即「乱七八糟」根因，历史 marker 文本保留供版本门禁） */
 #view-capbal .cb-rpt-table { border-collapse: collapse; width: max-content; min-width: 480px; font-size: 12.5px; }
-#view-capbal .cb-rpt-table th, #view-capbal .cb-rpt-table td { border: 1px solid var(--line-2); padding: 8px 13px; vertical-align: middle; }
+#view-capbal .cb-rpt-table th, #view-capbal .cb-rpt-table td { border: 1px solid var(--line-2); padding: 10px 14px; vertical-align: middle; }
 #view-capbal .cb-rpt-table th { background: transparent; font-weight: 700; color: var(--text-2); }
 #view-capbal .cb-rpt-table thead th { border-bottom: 2px solid var(--line); font-size: 10px; letter-spacing: .4px; color: var(--muted); text-transform: uppercase; }
 #view-capbal .cb-rpt-table th.lab, #view-capbal .cb-rpt-table td.lab { text-align: left; min-width: 150px; font-weight: 400; color: var(--text-2); }
-#view-capbal .cb-rpt-table td.lab .sub { display: block; font-size: 10px; color: var(--muted); margin-top: 2px; font-weight: 400; }
-#view-capbal .cb-rpt-table th.val, #view-capbal .cb-rpt-table td.val { text-align: right; font-family: var(--mono); font-size: 12.5px; white-space: nowrap; min-width: 110px; color: var(--text); }
+#view-capbal .cb-rpt-table td.lab .sub { display: block; font-size: 10px; color: var(--muted); margin-top: 3px; font-weight: 400; }
+#view-capbal .cb-rpt-table th.val, #view-capbal .cb-rpt-table td.val { text-align: right; font-family: var(--mono); font-size: 12.5px; white-space: nowrap; min-width: 120px; color: var(--text); }
+#view-capbal .cb-rpt-table th.val.prev, #view-capbal .cb-rpt-table td.val.prev { min-width: 96px; }
 #view-capbal .cb-rpt-table td.val.prev { color: var(--muted); font-size: 11.5px; }
+#view-capbal .cb-rpt-table td.val.prev.na { text-align: center; }
 #view-capbal .cb-rpt-table td.val.na { color: var(--line); }
 #view-capbal .cb-rpt-table td.val.tgt { min-width: 84px; font-size: 11.5px; color: var(--text-2); }
 #view-capbal .cb-rpt-table th.val.tgt { font-size: 10px; }
 #view-capbal .cb-rpt-table tr.head td.lab { font-weight: 700; color: var(--text); }
 #view-capbal .cb-rpt-table tr.head td.val { font-weight: 600; }
-#view-capbal .cb-rpt-table tr.g-title td.lab { font-weight: 700; color: var(--text); font-size: 12.5px; }
+#view-capbal .cb-rpt-table tr.g-title td.lab { font-weight: 700; color: var(--text); font-size: 14px; padding-top: 12px; padding-bottom: 12px; }
 #view-capbal .cb-rpt-table tr.g-first td { border-top: 2px solid var(--line); }
 #view-capbal .cb-rpt-table tr.total td { font-weight: 700; border-top: 2px solid var(--line); }
 #view-capbal .cb-rpt-table tr.total td.val { font-size: 13.5px; }
@@ -16380,10 +16382,10 @@ function rptLine2(lab, cur, prev, opt) {
   return '<tr class="cb-rpt-row' + total + head + grp + gFirst + gLast + '"><td class="lab">' + lab + sub + "</td>" +
     colsHtml + '<td class="val ' + cls + '">' + curTxt + "</td>" + prevTxt + "</tr>";
 }
-const RPT2_HEAD = '<thead><tr><th class="lab">项目</th><th class="val">本期金额</th><th class="val">上期金额</th></tr></thead>';
+const RPT2_HEAD = '<thead><tr><th class="lab">项目</th><th class="val">本期金额</th><th class="val prev">上期金额</th></tr></thead>';
 /* fw2_v505k_rpttable：动态表头（项目 | 标的列×N | 本期金额 | 上期金额）为 thead th */
 function rptHead2(colsTpl, tgtHeads) {
-  return '<thead><tr><th class="lab">项目</th>' + (tgtHeads || "") + '<th class="val">本期金额</th><th class="val">上期金额</th></tr></thead>';
+  return '<thead><tr><th class="lab">项目</th>' + (tgtHeads || "") + '<th class="val">本期金额</th><th class="val prev">上期金额</th></tr></thead>';
 }
 /* fw2_v503_rpt3pane：三财报独立子模块（资产负债表|利润表|现金流量表 与总览/标的明细并列），v502 的 pane 内 tab 切换（cbRptTab/cbApplyRptTab/cbShowRptTab）已移除，由导航级 v-tab 承担 */
 function renderMonthly() {
