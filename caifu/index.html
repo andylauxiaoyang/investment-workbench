@@ -955,11 +955,12 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 #view-capbal .cb-sub-table td, #view-capbal .cb-sub-table th { padding: 5px 9px; font-size: 11.5px; }
 
 /* fw2_v503_rpt3pane：三财报独立子模块（资产负债表|利润表|现金流量表 与总览/标的明细并列），v502 的 pane 内 tab 样式已移除 */
-#view-capbal .cb-rpt { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); }
-#view-capbal .cb-rpt-head { padding: 9px 13px; border-bottom: 1px solid var(--line-2); display: flex; align-items: center; justify-content: space-between; }
-#view-capbal .cb-rpt-head h3 { font-size: 12.5px; }
+/* fw2_v505m_rptcard：三财报容器卡片化（v505n 重设计：去圆角/阴影/渐变头，回简洁面板，历史 marker 文本保留供版本门禁） */
+#view-capbal .cb-rpt { background: var(--panel); border: 1px solid var(--line); overflow: hidden; }
+#view-capbal .cb-rpt-head { padding: 11px 14px; border-bottom: 1px solid var(--line-2); display: flex; align-items: center; justify-content: space-between; }
+#view-capbal .cb-rpt-head h3 { font-size: 13px; font-weight: 700; color: var(--text); }
 #view-capbal .cb-rpt-head .cb-rpt-period { font-family: var(--mono); font-size: 10.5px; color: var(--muted); }
-#view-capbal .cb-rpt-body { padding: 6px 13px 10px; }
+#view-capbal .cb-rpt-body { padding: 8px 14px 12px; }
 #view-capbal .cb-rpt-line { display: flex; justify-content: space-between; align-items: baseline; padding: 6px 0; border-bottom: 1px dashed var(--line-2); gap: 10px; }
 #view-capbal .cb-rpt-line .lab { color: var(--text-2); font-size: 12px; }
 #view-capbal .cb-rpt-line .lab .sub { color: var(--muted); font-size: 10.5px; margin-left: 6px; }
@@ -972,26 +973,30 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 #view-capbal .cb-rpt-line.head .lab { font-weight: 600; color: var(--text); text-transform: uppercase; font-size: 10.5px; letter-spacing: .5px; }
 #view-capbal .cb-rpt-line.head .val { font-weight: 600; }
 /* fw2_v505k_rpttable：三张月度财报改标准 <table> 报表格式——完整网格边框（行线+列线=正常表格）、表头 thead 2px 底线、合计行 2px 顶线、跨列组标题行、金额右对齐千分位、正红负绿、备注归项目列下、无底色；表格宽=内容宽（width:max-content），横竖线只画在字段与数据显示区域内、右侧空白无线（fw2_v505h_rptreport → fw2_v505i_noline → fw2_v505j_linescope 的每行 div grid 方案废弃——悬浮行无框感即「乱七八糟」根因，历史 marker 文本保留供版本门禁） */
-#view-capbal .cb-rpt-table { border-collapse: collapse; width: max-content; min-width: 480px; font-size: 12.5px; }
-#view-capbal .cb-rpt-table th, #view-capbal .cb-rpt-table td { border: 1px solid var(--line-2); padding: 10px 14px; vertical-align: middle; }
-#view-capbal .cb-rpt-table th { background: transparent; font-weight: 700; color: var(--text-2); }
-#view-capbal .cb-rpt-table thead th { border-bottom: 2px solid var(--line); font-size: 10px; letter-spacing: .4px; color: var(--muted); text-transform: uppercase; }
-#view-capbal .cb-rpt-table th.lab, #view-capbal .cb-rpt-table td.lab { text-align: left; min-width: 150px; font-weight: 400; color: var(--text-2); }
-#view-capbal .cb-rpt-table td.lab .sub { display: block; font-size: 10px; color: var(--muted); margin-top: 3px; font-weight: 400; }
-#view-capbal .cb-rpt-table th.val, #view-capbal .cb-rpt-table td.val { text-align: right; font-family: var(--mono); font-size: 12.5px; white-space: nowrap; min-width: 120px; color: var(--text); }
-#view-capbal .cb-rpt-table th.val.prev, #view-capbal .cb-rpt-table td.val.prev { min-width: 96px; }
-#view-capbal .cb-rpt-table td.val.prev { color: var(--muted); font-size: 11.5px; }
-#view-capbal .cb-rpt-table td.val.prev.na { text-align: center; }
+/* fw2_v505n_rptclean：三张月度财报「极简报表风」重设计（用户参考图 c56409dc：三列项目|本期金额|上期金额、上期全 —、行高舒展、组标题加粗分节、合计加粗、无任何底色/装饰色——v505m thead 浅底/g-title 分区色条/emph 品牌蓝/badge/hover 全撤，遵循 v505b 教训「把颜色取消，太丑了」；保留完整字段区网格线 1px #e7e9ee、表头 2px 底线 #cbd2db、合计/关键行 2px 顶线 #cbd2db、正红负绿仅盈亏 sign 行、零值灰、上期 — 居中、备注归项目列下 .sub、明细行不缩进（参考图组标题与明细同列）；历史 marker 文本保留供版本门禁：fw2_v505h_rptreport → fw2_v505i_noline → fw2_v505j_linescope → fw2_v505k_rpttable → fw2_v505m_rptcard → fw2_v505m_rpttable） */
+#view-capbal .cb-rpt-table { border-collapse: collapse; width: max-content; min-width: 520px; font-size: 13px; }
+#view-capbal .cb-rpt-table th, #view-capbal .cb-rpt-table td { border: 1px solid #e7e9ee; padding: 12px 16px; vertical-align: middle; }
+#view-capbal .cb-rpt-table thead th { border-bottom: 2px solid #cbd2db; font-size: 10.5px; letter-spacing: .5px; color: #98a2b3; font-weight: 700; text-transform: uppercase; padding-top: 10px; padding-bottom: 10px; }
+#view-capbal .cb-rpt-table th.lab, #view-capbal .cb-rpt-table td.lab { text-align: left; min-width: 170px; font-weight: 400; color: var(--text-2); }
+#view-capbal .cb-rpt-table td.lab .sub { display: block; font-size: 10.5px; color: var(--muted); margin-top: 4px; font-weight: 400; }
+#view-capbal .cb-rpt-table th.val, #view-capbal .cb-rpt-table td.val { text-align: right; font-family: var(--mono); font-size: 13px; white-space: nowrap; min-width: 130px; color: var(--text); }
+#view-capbal .cb-rpt-table th.val.prev, #view-capbal .cb-rpt-table td.val.prev { min-width: 100px; }
+#view-capbal .cb-rpt-table td.val.prev { color: var(--muted); font-size: 12px; }
+#view-capbal .cb-rpt-table td.val.prev.na { text-align: center; color: #c6ccd4; }
 #view-capbal .cb-rpt-table td.val.na { color: var(--line); }
-#view-capbal .cb-rpt-table td.val.tgt { min-width: 84px; font-size: 11.5px; color: var(--text-2); }
-#view-capbal .cb-rpt-table th.val.tgt { font-size: 10px; }
-#view-capbal .cb-rpt-table tr.head td.lab { font-weight: 700; color: var(--text); }
-#view-capbal .cb-rpt-table tr.head td.val { font-weight: 600; }
-#view-capbal .cb-rpt-table tr.g-title td.lab { font-weight: 700; color: var(--text); font-size: 14px; padding-top: 12px; padding-bottom: 12px; }
-#view-capbal .cb-rpt-table tr.g-first td { border-top: 2px solid var(--line); }
-#view-capbal .cb-rpt-table tr.total td { font-weight: 700; border-top: 2px solid var(--line); }
+#view-capbal .cb-rpt-table td.val.tgt { min-width: 88px; font-size: 12px; color: var(--text-2); }
+#view-capbal .cb-rpt-table th.val.tgt { font-size: 10.5px; }
+#view-capbal .cb-rpt-table td.val.zero { color: #c6ccd4; }
+/* 汇总行（head/total）：2px 顶线 + 加粗（无底色），与明细行形成层级 */
+#view-capbal .cb-rpt-table tr.total td { font-weight: 700; border-top: 2px solid #cbd2db; }
 #view-capbal .cb-rpt-table tr.total td.val { font-size: 13.5px; }
 #view-capbal .cb-rpt-table tr.total td.lab { color: var(--text); }
+#view-capbal .cb-rpt-table tr.head td.lab { font-weight: 700; color: var(--text); }
+#view-capbal .cb-rpt-table tr.head td.val { font-weight: 600; }
+/* 组标题行：跨列纯标题，仅字号/字重分层（无底色、无色条），行高舒展 */
+#view-capbal .cb-rpt-table tr.g-title td.lab { font-weight: 700; color: var(--text); font-size: 15px; padding-top: 14px; padding-bottom: 14px; }
+/* emph 关键行（净资产/期末现金/本期净利润）：与合计同权仅加粗，无品牌蓝/色条 */
+#view-capbal .cb-rpt-table tr.emph td.lab { font-weight: 700; color: var(--text); }
 #view-capbal .cb-rpt-body { overflow-x: auto; }
 /* fw2_v505b_nogb：v505b 取消报表模块分组底色（用户反馈颜色太丑）；grp class（g-income/g-cost/g-profit/g-asset/g-liab/g-equity/g-open/g-invest/g-fin/g-extra）仍由 rptLine2 注入但不再带任何背景样式，留作后续可选 */
 #view-capbal .cb-select { border: 1px solid var(--line); border-radius: 6px; background: var(--panel); color: var(--text); padding: 4px 9px; font-size: 12.5px; outline: none; }
@@ -16355,11 +16360,13 @@ function autoGenReports() {
   return added;
 }
 /* fw2_v505k_rpttable：三表改标准 <table> 报表行（thead 表头 + tbody：跨列组标题行 / 明细行 / 合计行），金额右对齐千分位、正红负绿、备注归项目列下 .lab .sub、无底色；opt.title=true 为纯组标题（跨列 colspan 无金额，如「资产」「一、已实现收益」——原组标题行金额与对应合计行重复，改纯标题更符合标准报表分节） */
+/* fw2_v505m_rpttable：rptLine2 增 opt.emph（关键汇总行→tr.emph 品牌蓝 lab+左色条）与零值灰（cur===0 时本期金额 td 加 .zero，¥0.00 不再喧宾夺主） */
 function rptLine2(lab, cur, prev, opt) {
   opt = opt || {};
   const cls = opt.cls || (opt.sign ? pnlCls(cur) : "");
   const total = opt.total ? " total" : "";
   const head = opt.head ? " head" : "";
+  const emph = opt.emph ? " emph" : "";
   const grp = opt.grp ? " g-" + opt.grp : "";
   const gFirst = opt.gFirst ? " g-first" : "";
   const gLast = opt.gLast ? " g-last" : "";
@@ -16368,6 +16375,7 @@ function rptLine2(lab, cur, prev, opt) {
     const span = 3 + (opt.cols ? opt.cols.length : (opt.placeholders || 0));
     return '<tr class="cb-rpt-row g-title' + grp + gFirst + gLast + '"><td class="lab" colspan="' + span + '">' + lab + "</td></tr>";
   }
+  const zero = cur === 0 ? " zero" : "";
   const curTxt = (opt.sign && cur > 0 ? "+" : "") + fmt(cur);
   const prevTxt = (prev == null || isNaN(prev)) ? '<td class="val prev na">—</td>' : '<td class="val prev">' + (opt.sign && prev > 0 ? "+" : "") + fmt(prev) + "</td>";
   let colsHtml = "";
@@ -16379,8 +16387,8 @@ function rptLine2(lab, cur, prev, opt) {
   } else if (opt.placeholders > 0) {
     colsHtml = new Array(opt.placeholders).fill('<td class="val tgt"></td>').join("");
   }
-  return '<tr class="cb-rpt-row' + total + head + grp + gFirst + gLast + '"><td class="lab">' + lab + sub + "</td>" +
-    colsHtml + '<td class="val ' + cls + '">' + curTxt + "</td>" + prevTxt + "</tr>";
+  return '<tr class="cb-rpt-row' + total + head + emph + grp + gFirst + gLast + '"><td class="lab">' + lab + sub + "</td>" +
+    colsHtml + '<td class="val ' + cls + zero + '">' + curTxt + "</td>" + prevTxt + "</tr>";
 }
 const RPT2_HEAD = '<thead><tr><th class="lab">项目</th><th class="val">本期金额</th><th class="val prev">上期金额</th></tr></thead>';
 /* fw2_v505k_rpttable：动态表头（项目 | 标的列×N | 本期金额 | 上期金额）为 thead th */
@@ -16441,7 +16449,7 @@ function renderMonthly() {
     R("二、未实现变动", null, null, { title: true, grp: "profit" }) +
     R("期末未实现盈亏", inc.unrealEnd, P("unrealEnd"), { sign: true, noCls: true, cols: T("unrealEnd"), grp: "profit", sub: "期末市值−成本" }) +
     R("未实现盈亏变动（期末−期初）", inc.unrealChg, P("unrealChg"), { sign: true, noCls: true, cols: T("chg"), grp: "profit", sub: "期末−期初" }) +
-    R("三、本期净利润", inc.netProfit, P("netProfit"), { head: true, total: true, sign: true, cls: pnlCls(inc.netProfit), cols: T("netProfit"), grp: "profit", gFirst: true, gLast: true }) +
+    R("三、本期净利润", inc.netProfit, P("netProfit"), { head: true, total: true, sign: true, cls: pnlCls(inc.netProfit), cols: T("netProfit"), grp: "profit", gFirst: true, gLast: true, emph: true }) +
     R("本月资金净投入", inc.investedIn, P("investedIn"), { sign: true, noCls: true, grp: "extra", sub: "转入−转出" }) +
     R("期末累计总收益", inc.totalPnlEnd, P("totalPnlEnd"), { sign: true, noCls: true, cols: T("totalPnlEnd"), grp: "extra", gLast: true, sub: "已实现+未实现" }) +
     "</tbody></table>";
@@ -16453,7 +16461,7 @@ function renderMonthly() {
     rptLine2("负债", null, null, { title: true, grp: "liab", gFirst: true }) +
     rptLine2("外部借款", bal.liability, B("liability"), { noCls: true, grp: "liab" }) +
     rptLine2("负债合计", bal.liability, B("liability"), { total: true, noCls: true, grp: "liab", gLast: true }) +
-    rptLine2("净资产（资产 − 负债）", bal.net, B("net"), { head: true, total: true, noCls: true, grp: "equity", gFirst: true }) +
+    rptLine2("净资产（资产 − 负债）", bal.net, B("net"), { head: true, total: true, noCls: true, grp: "equity", gFirst: true, emph: true }) +
     rptLine2("累计投入", bal.invested, B("invested"), { noCls: true, grp: "equity" }) +
     rptLine2("净资产相对累计投入变动", bal.totalPnl, B("totalPnl"), { sign: true, cls: pnlCls(bal.totalPnl), grp: "equity", gLast: true, sub: bal.invested > 0 ? "累计收益率 " + (bal.totalPnl * 100 / bal.invested).toFixed(1) + "%" : "" }) +
     "</tbody></table>";
@@ -16469,7 +16477,7 @@ function renderMonthly() {
     rptLine2("资金转入流入", cf.finIn, C("finIn"), { sign: true, noCls: true, grp: "fin" }) +
     rptLine2("资金转出流出", -cf.finOut, C("finOut") == null ? null : -C("finOut"), { sign: true, noCls: true, grp: "fin" }) +
     rptLine2("筹资活动净现金流", cf.finNet, C("finNet"), { total: true, sign: true, cls: pnlCls(cf.finNet), grp: "fin", gLast: true, sub: "转入−转出" }) +
-    rptLine2("期末现金", cf.end, C("end"), { head: true, total: true, noCls: true, grp: "profit", gFirst: true, gLast: true, sub: "期初+投资+筹资" }) +
+    rptLine2("期末现金", cf.end, C("end"), { head: true, total: true, noCls: true, grp: "profit", gFirst: true, gLast: true, emph: true, sub: "期初+投资+筹资" }) +
     "</tbody></table>";
 }
 function genRptClick() {
