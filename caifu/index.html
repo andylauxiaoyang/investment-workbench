@@ -971,18 +971,22 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 #view-capbal .cb-rpt-line.head { border-bottom: 2px solid var(--line); }
 #view-capbal .cb-rpt-line.head .lab { font-weight: 600; color: var(--text); text-transform: uppercase; font-size: 10.5px; letter-spacing: .5px; }
 #view-capbal .cb-rpt-line.head .val { font-weight: 600; }
-/* fw2_v505g_rptnote（fw2_v505f_rptadj 接续，fw2_v505e_rptstyle/fw2_v505d_colfix/fw2_v505c_rptcols 保留）：金额列下方小字备注（卖出+分红−费用 / 期末市值−成本 / 转入−转出 / 期初+投资+筹资 / 累计收益率 等口径说明）从金额列 .s2 移到项目列下 .lab .sub 显示——三张月度财报金额列只放金额、备注归位到对应项目名下；无标的列的表（资产负债表/现金流量表）本期/上期保持 auto 内容宽聚拢（上期紧贴本期、右侧留白） */
-#view-capbal .cb-rpt-line2 { display: grid; grid-template-columns: 150px auto auto; justify-content: start; gap: 14px; padding: 8px 2px; align-items: center; }
+/* fw2_v505h_rptreport（fw2_v505g_rptnote 接续，fw2_v505f_rptadj/fw2_v505e_rptstyle/fw2_v505d_colfix/fw2_v505c_rptcols 保留）：三张月度财报报表式重设计——①金额列 min-width 76→110px（无标的列的表资产负债表/现金流量表整体宽度自然到 ~420px，不再缩成左侧窄条，右留白为报表常态）；②组标题行（资产/负债/净资产、一/二/三、投资/筹资活动现金流等）新增 .g-title：项目列加粗 700 + 上下 1px 浅线（顶部被 g-first 的 2px 组分隔线覆盖），与表头 2px 底线区分层级；③表头 .head 与合计 .total 的项目列同步加粗；④行距 padding 8→9px 透气。硬约束保持：无底色只靠线条、数值右对齐、上期贴本期（150px auto auto + gap 14 + justify-content:start）、备注归项目列下 .lab .sub */
+#view-capbal .cb-rpt-line2 { display: grid; grid-template-columns: 150px auto auto; justify-content: start; gap: 14px; padding: 9px 2px; align-items: center; }
 #view-capbal .cb-rpt-line2 .lab { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 #view-capbal .cb-rpt-line2 .lab .sub { display: block; margin-left: 0; margin-top: 2px; }
-#view-capbal .cb-rpt-line2 .val2 { font-family: var(--mono); font-size: 12.5px; text-align: right; white-space: nowrap; min-width: 76px; }
+#view-capbal .cb-rpt-line2 .val2 { font-family: var(--mono); font-size: 12.5px; text-align: right; white-space: nowrap; min-width: 110px; }
 #view-capbal .cb-rpt-line2 .val2 .s2 { display: block; font-family: var(--sans); font-size: 10px; color: var(--muted); margin-top: 1px; }
 #view-capbal .cb-rpt-line2 .val2.prev { color: var(--muted); font-size: 11.5px; }
 #view-capbal .cb-rpt-line2 .val2.na { color: var(--line); }
 #view-capbal .cb-rpt-line2.total { border-top: 2px solid var(--line); margin-top: 4px; border-bottom: 0; }
 #view-capbal .cb-rpt-line2.total .val2 { font-size: 13.5px; font-weight: 700; }
+#view-capbal .cb-rpt-line2.total .lab { font-weight: 700; }
 #view-capbal .cb-rpt-line2.head { border-bottom: 2px solid var(--line); padding-bottom: 8px; }
+#view-capbal .cb-rpt-line2.head .lab { font-weight: 700; }
 #view-capbal .cb-rpt-line2.head .val2 { font-weight: 600; font-size: 10px; color: var(--muted); letter-spacing: .4px; text-transform: uppercase; }
+#view-capbal .cb-rpt-line2.g-title { border-top: 1px solid var(--line-2); border-bottom: 1px solid var(--line-2); }
+#view-capbal .cb-rpt-line2.g-title .lab { font-weight: 700; }
 #view-capbal .cb-rpt-line2 .val2.tgt { min-width: 84px; font-size: 11.5px; color: var(--text-2); }
 #view-capbal .cb-rpt-line2 .val2.tgt.hd { font-weight: 600; font-size: 10px; color: var(--muted); letter-spacing: .4px; text-transform: uppercase; max-width: 110px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 #view-capbal .cb-rpt-line2 .val2.tgt.na { color: var(--line); }
@@ -16358,6 +16362,7 @@ function rptLine2(lab, cur, prev, opt) {
   const indent = opt.indent ? " indent" : "";
   const total = opt.total ? " total" : "";
   const head = opt.head ? " head" : "";
+  const gTitle = opt.head && opt.grp ? " g-title" : "";
   const wide = opt.wide ? " wide" : "";
   const grp = opt.grp ? " g-" + opt.grp : "";
   const gFirst = opt.gFirst ? " g-first" : "";
@@ -16377,7 +16382,7 @@ function rptLine2(lab, cur, prev, opt) {
     colsHtml = new Array(opt.placeholders).fill('<span class="val2 tgt"></span>').join("");
   }
   const gridStyle = opt.grid ? ' style="grid-template-columns:' + opt.grid + '"' : "";
-  return '<div class="cb-rpt-line cb-rpt-line2' + indent + total + head + wide + grp + gFirst + gLast + '"' + gridStyle + '"><span class="lab">' + lab + sub + "</span>" +
+  return '<div class="cb-rpt-line cb-rpt-line2' + indent + total + head + gTitle + wide + grp + gFirst + gLast + '"' + gridStyle + '"><span class="lab">' + lab + sub + "</span>" +
     colsHtml + '<span class="val2 ' + cls + '">' + curTxt + "</span>" + prevTxt + "</div>";
 }
 const RPT2_HEAD = '<div class="cb-rpt-line cb-rpt-line2 head"><span class="lab">项目</span><span class="val2">本期金额</span><span class="val2">上期金额</span></div>';
@@ -16456,7 +16461,7 @@ function renderMonthly() {
     rptLine2("累计投入", bal.invested, B("invested"), { noCls: true, grp: "equity" }) +
     rptLine2("净资产相对累计投入变动", bal.totalPnl, B("totalPnl"), { sign: true, cls: pnlCls(bal.totalPnl), grp: "equity", gLast: true, sub: bal.invested > 0 ? "累计收益率 " + (bal.totalPnl * 100 / bal.invested).toFixed(1) + "%" : "" });
   gid("cbMCashSheet").innerHTML = RPT2_HEAD +
-    rptLine2("期初现金", cf.begin, C("begin"), { noCls: true, grp: "open", gFirst: true, gLast: true }) +
+    rptLine2("期初现金", cf.begin, C("begin"), { head: true, noCls: true, grp: "open", gFirst: true, gLast: true }) +
     rptLine2("投资活动现金流", cf.investNet, C("investNet"), { head: true, sign: true, noCls: true, grp: "invest", gFirst: true }) +
     rptLine2("卖出证券流入", cf.investIn, C("investIn"), { sign: true, noCls: true, grp: "invest" }) +
     rptLine2("分红收入流入", cf.divIn, C("divIn"), { sign: true, noCls: true, grp: "invest" }) +
