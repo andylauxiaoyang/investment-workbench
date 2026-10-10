@@ -971,7 +971,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 #view-capbal .cb-rpt-line.head { border-bottom: 2px solid var(--line); }
 #view-capbal .cb-rpt-line.head .lab { font-weight: 600; color: var(--text); text-transform: uppercase; font-size: 10.5px; letter-spacing: .5px; }
 #view-capbal .cb-rpt-line.head .val { font-weight: 600; }
-/* fw2_v505f_rptadj：上期金额靠近本期金额（fw2_v505e_rptstyle 接续，fw2_v505d_colfix/fw2_v505c_rptcols 保留）：无标的列的表（资产负债表/现金流量表）本期/上期由 1fr 铺满改 auto 内容宽 + justify-content:start → 上期紧贴本期聚拢在项目列右侧、右侧留白；行高/列距/金额副信息/合计行粗线/无底色全部保持 */
+/* fw2_v505g_rptnote（fw2_v505f_rptadj 接续，fw2_v505e_rptstyle/fw2_v505d_colfix/fw2_v505c_rptcols 保留）：金额列下方小字备注（卖出+分红−费用 / 期末市值−成本 / 转入−转出 / 期初+投资+筹资 / 累计收益率 等口径说明）从金额列 .s2 移到项目列下 .lab .sub 显示——三张月度财报金额列只放金额、备注归位到对应项目名下；无标的列的表（资产负债表/现金流量表）本期/上期保持 auto 内容宽聚拢（上期紧贴本期、右侧留白） */
 #view-capbal .cb-rpt-line2 { display: grid; grid-template-columns: 150px auto auto; justify-content: start; gap: 14px; padding: 8px 2px; align-items: center; }
 #view-capbal .cb-rpt-line2 .lab { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 #view-capbal .cb-rpt-line2 .lab .sub { display: block; margin-left: 0; margin-top: 2px; }
@@ -16437,13 +16437,13 @@ function renderMonthly() {
     R("卖出已实现盈亏", inc.realized, P("realized"), { sign: true, noCls: true, cols: T("realized"), grp: "income" }) +
     R("分红收入", inc.div, P("div"), { sign: true, noCls: true, cols: T("div"), grp: "income" }) +
     R("交易费用", -inc.fee, P("fee") == null ? null : -P("fee"), { sign: true, noCls: true, cols: T("fee").map(function (v) { return -v; }), grp: "cost", gFirst: true }) +
-    R("已实现净利润", inc.realizedNet, P("realizedNet"), { total: true, sign: true, cls: pnlCls(inc.realizedNet), cols: T("realizedNet"), grp: "profit", gFirst: true, subCur: "卖出+分红−费用" }) +
+    R("已实现净利润", inc.realizedNet, P("realizedNet"), { total: true, sign: true, cls: pnlCls(inc.realizedNet), cols: T("realizedNet"), grp: "profit", gFirst: true, sub: "卖出+分红−费用" }) +
     R("二、未实现变动", inc.unrealChg, P("unrealChg"), { head: true, sign: true, noCls: true, grp: "profit" }) +
-    R("期末未实现盈亏", inc.unrealEnd, P("unrealEnd"), { sign: true, noCls: true, cols: T("unrealEnd"), grp: "profit", subCur: "期末市值−成本" }) +
-    R("未实现盈亏变动（期末−期初）", inc.unrealChg, P("unrealChg"), { sign: true, noCls: true, cols: T("chg"), grp: "profit", subCur: "期末−期初" }) +
+    R("期末未实现盈亏", inc.unrealEnd, P("unrealEnd"), { sign: true, noCls: true, cols: T("unrealEnd"), grp: "profit", sub: "期末市值−成本" }) +
+    R("未实现盈亏变动（期末−期初）", inc.unrealChg, P("unrealChg"), { sign: true, noCls: true, cols: T("chg"), grp: "profit", sub: "期末−期初" }) +
     R("三、本期净利润", inc.netProfit, P("netProfit"), { head: true, total: true, sign: true, cls: pnlCls(inc.netProfit), cols: T("netProfit"), grp: "profit", gLast: true }) +
-    R("本月资金净投入", inc.investedIn, P("investedIn"), { sign: true, noCls: true, grp: "extra", gFirst: true, subCur: "转入−转出" }) +
-    R("期末累计总收益", inc.totalPnlEnd, P("totalPnlEnd"), { sign: true, noCls: true, cols: T("totalPnlEnd"), grp: "extra", gLast: true, subCur: "已实现+未实现" });
+    R("本月资金净投入", inc.investedIn, P("investedIn"), { sign: true, noCls: true, grp: "extra", gFirst: true, sub: "转入−转出" }) +
+    R("期末累计总收益", inc.totalPnlEnd, P("totalPnlEnd"), { sign: true, noCls: true, cols: T("totalPnlEnd"), grp: "extra", gLast: true, sub: "已实现+未实现" });
   gid("cbMBalanceSheet").innerHTML = RPT2_HEAD +
     rptLine2("资产", bal.securities + bal.cash, B("securities") == null ? null : B("securities") + B("cash"), { head: true, noCls: true, grp: "asset", gFirst: true }) +
     rptLine2("证券市值（月末份额×最新净值）", bal.securities, B("securities"), { noCls: true, grp: "asset" }) +
@@ -16454,7 +16454,7 @@ function renderMonthly() {
     rptLine2("负债合计", bal.liability, B("liability"), { total: true, noCls: true, grp: "liab", gLast: true }) +
     rptLine2("净资产（资产 − 负债）", bal.net, B("net"), { head: true, total: true, sign: true, cls: pnlCls(bal.net), grp: "equity", gFirst: true }) +
     rptLine2("累计投入", bal.invested, B("invested"), { noCls: true, grp: "equity" }) +
-    rptLine2("净资产相对累计投入变动", bal.totalPnl, B("totalPnl"), { sign: true, cls: pnlCls(bal.totalPnl), grp: "equity", gLast: true, subCur: bal.invested > 0 ? "累计收益率 " + (bal.totalPnl * 100 / bal.invested).toFixed(1) + "%" : "" });
+    rptLine2("净资产相对累计投入变动", bal.totalPnl, B("totalPnl"), { sign: true, cls: pnlCls(bal.totalPnl), grp: "equity", gLast: true, sub: bal.invested > 0 ? "累计收益率 " + (bal.totalPnl * 100 / bal.invested).toFixed(1) + "%" : "" });
   gid("cbMCashSheet").innerHTML = RPT2_HEAD +
     rptLine2("期初现金", cf.begin, C("begin"), { noCls: true, grp: "open", gFirst: true, gLast: true }) +
     rptLine2("投资活动现金流", cf.investNet, C("investNet"), { head: true, sign: true, noCls: true, grp: "invest", gFirst: true }) +
@@ -16462,12 +16462,12 @@ function renderMonthly() {
     rptLine2("分红收入流入", cf.divIn, C("divIn"), { sign: true, noCls: true, grp: "invest" }) +
     rptLine2("买入证券流出", -cf.investOut, C("investOut") == null ? null : -C("investOut"), { sign: true, noCls: true, grp: "invest" }) +
     rptLine2("交易费用流出", -cf.feeOut, C("feeOut") == null ? null : -C("feeOut"), { sign: true, noCls: true, grp: "invest" }) +
-    rptLine2("投资活动净现金流", cf.investNet, C("investNet"), { total: true, sign: true, cls: pnlCls(cf.investNet), grp: "invest", gLast: true, subCur: "卖出+分红−买入−费用" }) +
+    rptLine2("投资活动净现金流", cf.investNet, C("investNet"), { total: true, sign: true, cls: pnlCls(cf.investNet), grp: "invest", gLast: true, sub: "卖出+分红−买入−费用" }) +
     rptLine2("筹资活动现金流", cf.finNet, C("finNet"), { head: true, sign: true, noCls: true, grp: "fin", gFirst: true }) +
     rptLine2("资金转入流入", cf.finIn, C("finIn"), { sign: true, noCls: true, grp: "fin" }) +
     rptLine2("资金转出流出", -cf.finOut, C("finOut") == null ? null : -C("finOut"), { sign: true, noCls: true, grp: "fin" }) +
-    rptLine2("筹资活动净现金流", cf.finNet, C("finNet"), { total: true, sign: true, cls: pnlCls(cf.finNet), grp: "fin", gLast: true, subCur: "转入−转出" }) +
-    rptLine2("期末现金", cf.end, C("end"), { head: true, total: true, sign: true, cls: pnlCls(cf.end), grp: "profit", gFirst: true, gLast: true, subCur: "期初+投资+筹资" });
+    rptLine2("筹资活动净现金流", cf.finNet, C("finNet"), { total: true, sign: true, cls: pnlCls(cf.finNet), grp: "fin", gLast: true, sub: "转入−转出" }) +
+    rptLine2("期末现金", cf.end, C("end"), { head: true, total: true, sign: true, cls: pnlCls(cf.end), grp: "profit", gFirst: true, gLast: true, sub: "期初+投资+筹资" });
 }
 function genRptClick() {
   rptLoad();
