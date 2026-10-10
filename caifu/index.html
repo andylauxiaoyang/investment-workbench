@@ -1771,7 +1771,12 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
           }
           if (smFallback) smFallback.hidden = false;
         }
-        __smB64Ensure(function () { smNext(); });
+        if (document.getElementById('view-smartmoney') && document.getElementById('view-smartmoney').classList.contains('active')) {
+          __smB64Ensure(function () { smNext(); });
+        } else if (!window.__smLazyArmed) { /* fw2_v506b_lazy：13F 内联解码（706KB base64）延迟到首次进入聪明的钱视图，首屏不再预热 */
+          window.__smLazyArmed = 1;
+          window.__smArm = function () { if (window.__smArmed) return; window.__smArmed = 1; __smB64Ensure(function () { smNext(); }); };
+        }
         var tries = 0;
         (function fit() { fitSmartMoney(fr); if (tries++ < 6) setTimeout(fit, 400); })();
         fr.addEventListener('load', function () { setTimeout(smSettle, 150); });
@@ -6846,6 +6851,7 @@ function showView(name) {
     const _ct = new URLSearchParams(location.search).get('tab');
     if (_ct && window.CAPBAL && window.CAPBAL.showTab) window.CAPBAL.showTab(_ct);
   } /* fw2_capbal_merge */
+  else if (name === 'data') { if (window.__dcPoolArm) window.__dcPoolArm(); } /* fw2_v506b_lazy：基金数据三池/画像懒加载（首次进入基金数据视图才拉取） */
   renderCurrentView();
   setTimeout(() => Object.values(charts).forEach((c) => c && !c.isDisposed() && c.resize()), 30);
 }
@@ -6890,7 +6896,7 @@ async function loadMacroData() {
     /* fw2_v429：宏观数据就绪后失效市场信号缓存并重算——M12 读 state.macro.fsi，
        此前 marketEvalAll 在 macro-data.json fetch 完成前先跑（600s 缓存）导致 M12 永不渲染 */
     if (window.MKT_EVAL) window.MKT_EVAL = { at: 0, data: null };
-    if (window.marketEvalAll) { window.marketEvalAll(true).then(function () { try { if (window.renderSignalDash) window.renderSignalDash(); } catch (e) {} }).catch(function () {}); }
+    if (window.marketEvalAll) { window.marketEvalAll(true).then(function () { try { if (state.view === 'signal' && window.renderSignalDash) window.renderSignalDash(); } catch (e) {} }).catch(function () {}); } /* fw2_v506b_lazy：信号面板仅 signal 视图渲染（决策页只重算 marketEvalAll 缓存，不再触发 signalEvalAll 拉取 6.5MB fund-daily） */
     if (hint) hint.textContent = '数据截至 ' + d.updatedAt + ' · 理杏仁（' + (src || '内置') + '）';
     if (window.__dcMacroInit) window.__dcMacroInit(); else renderMacro();
     if (state.view === 'decision' && typeof renderDecision === 'function') renderDecision(); /* fw2_v206_decision：宏观数据到位后重渲决策总览 */
@@ -12699,14 +12705,17 @@ setTimeout(() => { renderResearchChips(); if (!state.news.items.length) loadNews
   var SR_LS = 'fw2_screen_rules_v1';
   function loadScreenRules(force, cb){
     if(SCREEN_RULES_LOADED && !force){ return cb && cb(SCREEN_RULES); }
+    if(window.__SR_LOADING){ if(cb){ (window.__SR_WAIT=window.__SR_WAIT||[]).push(cb); } return; } /* fw2_v506b_lazy：in-flight 去重 + 等待队列 */
+    window.__SR_LOADING=true;
     var urls=['./screen-rules.json','https://raw.githubusercontent.com/andylauxiaoyang/investment-workbench/master/caifu/screen-rules.json'];
     var i=0;
+    var done=function(d){ window.__SR_LOADING=false; (window.__SR_WAIT||[]).forEach(function(f){f(d);}); window.__SR_WAIT=null; cb && cb(d); };
     (function next(){
-      if(i>=urls.length){ cb && cb(null); return; }
+      if(i>=urls.length){ done(null); return; }
       var u=urls[i++];
       var c=new AbortController(); setTimeout(function(){ c.abort(); }, 30000);
       fetch(u,{signal:c.signal, cache:'no-store'}).then(function(r){ if(!r.ok) throw 0; return r.json(); }).then(function(d){
-        if(d && d.hardGates){ SCREEN_RULES=d; SCREEN_RULES_LOADED=true; cb && cb(d); } else next();
+        if(d && d.hardGates){ SCREEN_RULES=d; SCREEN_RULES_LOADED=true; done(d); } else next();
       }).catch(next);
     })();
   }
@@ -13005,13 +13014,15 @@ setTimeout(() => { renderResearchChips(); if (!state.news.items.length) loadNews
     if(rs) rs.addEventListener('click', function(){ srClearCustom(); toast('已恢复默认规则（screen-rules.json）'); renderPoolScreen(); });
   }
   function loadPoolData(){
+    if(window.POOL_WATCHLIST || window.__WL_LOADING) return; /* fw2_v506b_lazy：in-flight 去重（并发入口只发一次请求） */
+    window.__WL_LOADING=true;
     if(!window.POOL_WATCHLIST){
       var urls=['./watchlist-data.json','https://raw.githubusercontent.com/andylauxiaoyang/investment-workbench/master/caifu/watchlist-data.json'];
       var i=0;
       (function next(){
-        if(i>=urls.length) return;
+        if(i>=urls.length){ window.__WL_LOADING=false; return; }
         fetch(urls[i],{cache:'no-store'}).then(function(r){ if(!r.ok) throw 0; return r.json(); }).then(function(j){
-          window.POOL_WATCHLIST=(j&&j.watchlist)?j.watchlist:[];
+          window.POOL_WATCHLIST=(j&&j.watchlist)?j.watchlist:[]; window.__WL_LOADING=false;
         }).catch(function(){ i++; next(); });
       })();
     }
@@ -13033,18 +13044,21 @@ setTimeout(() => { renderResearchChips(); if (!state.news.items.length) loadNews
 /* __FPM_END__ */
   function loadFundProfiles(cb){
     if(FUND_PROFILES_LOADED){ if(cb)cb(); return; }
+    if(window.__FP_LOADING){ if(cb){ (window.__FP_WAIT=window.__FP_WAIT||[]).push(cb); } return; } /* fw2_v506b_lazy：in-flight 去重 + 等待队列 */
+    window.__FP_LOADING=true;
     var urls=['./fund-profiles.json','https://raw.githubusercontent.com/andylauxiaoyang/investment-workbench/master/caifu/fund-profiles.json'];
     var i=0;
+    var done=function(){ window.__FP_LOADING=false; (window.__FP_WAIT||[]).forEach(function(f){f();}); window.__FP_WAIT=null; if(cb)cb(); };
     (function next(){
       if(i>=urls.length){
         if(window.FUND_PROFILES_MIRROR && window.FUND_PROFILES_MIRROR.funds){
           FUND_PROFILES=window.FUND_PROFILES_MIRROR; FUND_PROFILES_LOADED=true;
         }
-        if(cb)cb(); return;
+        done(); return;
       }
       fetch(urls[i],{cache:'no-store'}).then(function(r){ if(!r.ok) throw 0; return r.json(); }).then(function(j){
         if(!j || !j.funds){ next(); return; }
-        FUND_PROFILES=j; FUND_PROFILES_LOADED=true; if(cb)cb();
+        FUND_PROFILES=j; FUND_PROFILES_LOADED=true; done();
       }).catch(function(){ i++; next(); });
     })();
   }
@@ -13102,11 +13116,14 @@ setTimeout(() => { renderResearchChips(); if (!state.news.items.length) loadNews
   }
   function loadScreenPool(cb){
     if(window.SCREEN_POOL){ if(cb)cb(); return; }
+    if(window.__SP_LOADING){ if(cb){ (window.__SP_WAIT=window.__SP_WAIT||[]).push(cb); } return; } /* fw2_v506b_lazy：in-flight 去重 + 等待队列 */
+    window.__SP_LOADING=true;
     var urls=['./screen-pool.json','https://raw.githubusercontent.com/andylauxiaoyang/investment-workbench/master/caifu/screen-pool.json'];
     var i=0;
+    var done=function(){ window.__SP_LOADING=false; (window.__SP_WAIT||[]).forEach(function(f){f();}); window.__SP_WAIT=null; if(cb)cb(); };
     (function next(){
-      if(i>=urls.length){ if(cb)cb(); return; }
-      fetch(urls[i],{cache:'no-store'}).then(function(r){ if(!r.ok) throw 0; return r.json(); }).then(function(j){ window.SCREEN_POOL=j; if(cb)cb(); }).catch(function(){ i++; next(); });
+      if(i>=urls.length){ done(); return; }
+      fetch(urls[i],{cache:'no-store'}).then(function(r){ if(!r.ok) throw 0; return r.json(); }).then(function(j){ window.SCREEN_POOL=j; done(); }).catch(function(){ i++; next(); });
     })();
   }
   /* fw2_v365_mgr_career：经理能力小字增强（季度/6月胜率 + 生涯踩雷红黄警示 + 生涯曲线弹层入口），数据字段缺失时自然省略 */
@@ -13324,22 +13341,26 @@ setTimeout(() => { renderResearchChips(); if (!state.news.items.length) loadNews
   })();
   window.addEventListener('resize', function(){ if(window.__dcChart && DC_LOADED){ var at=document.querySelector('.dc-tab.active'); if(at && at.dataset.dc==='chart') window.__dcChart.resize(); } });
   /* fw2_v357_fix：三池数据独立预加载——原 loadPoolData 挂在 ensureDc（无调用点）的成功分支，自选/筛选池数据从未加载（存量 bug v353 起）；
-     此处页面加载即拉取，不依赖 DC/FB 成败；loadPoolData 内部有重入保护，重复调用幂等 */
-  if(typeof loadPoolData==='function') loadPoolData();
-  /* fw2_v360_fix：FB（fund-basic 画像）同样独立预加载——原只在点「持仓基金」Tab 时触发；
-     不预加载则直接点自选/筛选 Tab 时画像列（成立日/规模/费率/区间收益）全为占位「—」，且基金数据视图初始主体空白 */
-  if(typeof loadDcBasic==='function'){
-    loadDcBasic(true).then(function(){
-      if(!FB_LOADED) return;
-      var at=document.querySelector('.dc-tab.active');
-      if(!at) return;
-      var t=at.dataset.dc;
-      if(t==='overview'){ renderDcOverview(); }
-      else if(t==='pool-watch'){ renderPoolWatch(); }
-      else if(t==='pool-screen'){ renderPoolScreen(); }
-      else if(t==='pool-rules'){ renderPoolRules(); }   /* v363 fw2_v363_pool_rules_tab */
-    });
-  }
+     fw2_v506b_lazy：原「页面加载即拉取」改为首次进入基金数据视图（showView('data')）时触发，避免首屏与行情/宏观/新闻并发抢带宽；
+     loadPoolData 内部有重入保护，重复调用幂等 */
+  window.__dcPoolArm = function(){
+    if(window.__dcPoolArmed) return; window.__dcPoolArmed = 1;
+    if(typeof loadPoolData==='function') loadPoolData();
+    /* fw2_v360_fix：FB（fund-basic 画像）同样独立预加载——原只在点「持仓基金」Tab 时触发；
+       不预加载则直接点自选/筛选 Tab 时画像列（成立日/规模/费率/区间收益）全为占位「—」，且基金数据视图初始主体空白 */
+    if(typeof loadDcBasic==='function'){
+      loadDcBasic(true).then(function(){
+        if(!FB_LOADED) return;
+        var at=document.querySelector('.dc-tab.active');
+        if(!at) return;
+        var t=at.dataset.dc;
+        if(t==='overview'){ renderDcOverview(); }
+        else if(t==='pool-watch'){ renderPoolWatch(); }
+        else if(t==='pool-screen'){ renderPoolScreen(); }
+        else if(t==='pool-rules'){ renderPoolRules(); }   /* v363 fw2_v363_pool_rules_tab */
+      });
+    }
+  };
 })();
 
 </script>
@@ -18096,6 +18117,7 @@ function initSmFast() { /* 更快信号 */
 
 /* ---------- 子模块切换（v203.3） ---------- */
 function renderSmartMoney() {
+  if (window.__smArm) window.__smArm(); /* fw2_v506b_lazy：13F 内联解码延迟到首次进入聪明的钱视图 */
   /* v302：点击「聪明的钱」一律进入看板（不再读取 localStorage 记忆，避免停留在上次的机构反查等） */
   var m = 'dash';
   try {
@@ -18318,7 +18340,8 @@ function renderDecision() {
   if (!window.__ALLOC_NAV__ && !window.__ALLOC_NAV_TRY__) {
     window.__ALLOC_NAV_TRY__ = 1;
     var urls = ['data/fund-daily.json', 'https://raw.githubusercontent.com/andylauxiaoyang/investment-workbench/master/caifu/data/fund-daily.json'];
-    (function tryLoad(i) {
+    /* fw2_v506b_lazy：净值兜底（6.5MB 日频序列）延迟 600ms 再拉，让首屏关键资源（行情/宏观 bundle）先行；拉完重渲让缺口/市值变准 */
+    setTimeout(function () { (function tryLoad(i) {
       if (i >= urls.length) return;
       fetch(urls[i], { cache: 'no-cache' }).then(function (r) { return r.ok ? r.json() : null; }).then(function (d) {
         if (d && d.rows) {
@@ -18332,7 +18355,7 @@ function renderDecision() {
           if (typeof renderDecision === 'function') renderDecision();
         } else if (i + 1 < urls.length) { tryLoad(i + 1); }
       }).catch(function () { if (i + 1 < urls.length) tryLoad(i + 1); });
-    })(0);
+    })(0); }, 600);
   }
 
   /* ---------- ⑦ 综合 verdict（保守合成，逐条可追溯） ---------- */
