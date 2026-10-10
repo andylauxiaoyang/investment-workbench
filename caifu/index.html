@@ -971,8 +971,9 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 #view-capbal .cb-rpt-line.head { border-bottom: 2px solid var(--line); }
 #view-capbal .cb-rpt-line.head .lab { font-weight: 600; color: var(--text); text-transform: uppercase; font-size: 10.5px; letter-spacing: .5px; }
 #view-capbal .cb-rpt-line.head .val { font-weight: 600; }
-/* fw2_v497_monthly：月度财报两列报表行（本期 | 上期）。justify-content:start 覆盖 .cb-rpt-line 继承的 space-between，保证 auto 列靠左、数据列紧贴项目列（fw2_v505c_rptcols） */
-#view-capbal .cb-rpt-line2 { display: grid; grid-template-columns: auto auto auto; justify-content: start; gap: 10px; }
+/* fw2_v497_monthly：月度财报两列报表行（本期 | 上期）。项目列固定 150px（fw2_v505d_colfix）：auto 会让每行项目列独立按内容宽计算导致全表列错位；justify-content:start 覆盖 .cb-rpt-line 继承的 space-between，保证数据列紧贴项目列 */
+#view-capbal .cb-rpt-line2 { display: grid; grid-template-columns: 150px auto auto; justify-content: start; gap: 10px; }
+#view-capbal .cb-rpt-line2 .lab { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 #view-capbal .cb-rpt-line2 .val2 { font-family: var(--mono); font-size: 12.5px; text-align: right; white-space: nowrap; min-width: 76px; }
 #view-capbal .cb-rpt-line2 .val2.prev { color: var(--muted); font-size: 11.5px; }
 #view-capbal .cb-rpt-line2 .val2.na { color: var(--line); }
@@ -16421,12 +16422,12 @@ function renderMonthly() {
   /* fw2_v500_tgtcols：利润表横向标的列（项目 | 标的列×N | 本期金额 | 上期金额），Σ标的列=合计列 */
   const perT = inc.perTarget || [];
   const N = perT.length;
-  const colsTpl = "auto" + (N ? " repeat(" + N + ", auto)" : "") + " auto auto";
+  const colsTpl = "150px" + (N ? " repeat(" + N + ", auto)" : "") + " auto auto";
   const tgtHeads = perT.map(function (x) {
     const short = x.name.length > 7 ? x.name.slice(0, 7) + "…" : x.name;
     return '<span class="val2 tgt hd" title="' + esc(x.name) + '">' + esc(short) + "</span>";
   }).join("");
-  const R = function (lab, cur, prev, opt) { opt = opt || {}; opt.grid = colsTpl; if (N > 0 && !opt.cols) opt.placeholders = N; return rptLine2(lab, cur, prev, opt); };
+  const R = function (lab, cur, prev, opt) { opt = opt || {}; opt.grid = colsTpl; if (N > 0 && (!opt.cols || !opt.cols.length)) opt.placeholders = N; return rptLine2(lab, cur, prev, opt); };
   const T = function (k) { return perT.map(function (x) { return x[k]; }); };
   gid("cbMIncomeSheet").innerHTML = rptHead2(colsTpl, tgtHeads) +
     R("一、已实现收益", inc.realized, P("realized"), { head: true, sign: true, noCls: true, grp: "income", gFirst: true }) +
