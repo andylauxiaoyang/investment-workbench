@@ -202,8 +202,10 @@ button, input, select, textarea { font-family: inherit; font-size: var(--fs-md);
    吃掉一整条空高，把兄弟视图内容整块下顶（实测约 265px 死区）。用 :has() 令其内部无活动视图时收缩为零，
    消除顶部大空白、内容整体上移。切回 holdings 等容器内视图时自动恢复滚动。 */
 .scroll-area:not(:has(.view.active)) { flex: 0 0 0; height: 0; padding: 0; overflow: visible; }
-/* fw2_v187_sm_iframe_style_fix：聪明的钱 iframe 尺寸兜底（不依赖内联 style，防属性解析意外） */
-#smartmoneyFrame { width: 100%; display: block; border: 0; border-radius: 12px; background: #fff; }
+/* fw2_v507d_smnav：13F 独立版外链（替代原 iframe 兜底条） */
+.sm-extlink { margin: 10px 0 2px; font-size: 12px; color: var(--muted, #98a2b3); line-height: 1.7; }
+.sm-extlink .sm-ext-k { color: var(--faint, #98a2b3); margin-right: 6px; }
+.sm-extlink a { color: #4D6BFE; text-decoration: underline; }
 /* fw2_v189_sm_scroll：聪明的钱视图是 .scroll-area 的兄弟节点（不在滚动容器内），内容高于视口时被
    .app{overflow:hidden} 裁掉，且从 iframe 到 .app 全链无滚动容器（实测 docScrollH==innerH==758、
    祖先链 ovY 全 visible）⇒ 用户报「底部没法显示完整，且不能下拉」。激活时令其自身成为滚动容器，
@@ -211,9 +213,6 @@ button, input, select, textarea { font-family: inherit; font-size: var(--fs-md);
 #view-smartmoney.active { flex: 1 1 auto; min-height: 0; overflow-y: auto; padding-bottom: 38px; }
 /* fw2_v216_scroll_fix：决策总览/资金平衡位于 .main 直下（不在 .scroll-area 内），补视图内滚动，根治大视口下底部内容被裁且无滚动条 */
 #view-decision.active, #view-capbal.active { flex: 1 1 auto; min-height: 0; overflow-y: auto; padding-bottom: 38px; }
-.sm-fallback { margin: 0 0 10px; padding: 10px 12px; border: 1px solid #f0d9a8; border-radius: 10px; background: #fffaef; color: #7a5320; font-size: 12px; line-height: 1.7; }
-.sm-fallback[hidden] { display: none; }
-.sm-fallback a { color: #4D6BFE; text-decoration: underline; }
 .view { display: none; }
 .view.active { display: block; }
 
@@ -1649,13 +1648,15 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
       <div id="cbModalRoot"></div>
     </section>
     <section class="view" id="view-smartmoney">
-      <!-- fw2_v194_sm_merge：聪明的钱 = A股/美股 分区（市场条 + 跨市场速览卡常驻） -->
-      <div class="sm-market-bar" id="smMarketBar">
-        <button class="sm-m-btn on" data-sm-m="dash">看板</button>
-        <button class="sm-m-btn" data-sm-m="radar">雷达</button>
-        <button class="sm-m-btn" data-sm-m="nhb">国家队</button>
-        <button class="sm-m-btn" data-sm-m="look">机构反查</button>
-        <button class="sm-m-btn" data-sm-m="fast">更快信号</button>
+      <!-- fw2_v194_sm_merge：聪明的钱 = A股/美股 分区（市场条 + 跨市场速览卡常驻）
+           fw2_v507d_smnav：主壳改挂全站模块级顶导航标杆 .v-tab（对齐资金平衡/宏观 mi 页），
+           删除 13F 子应用 iframe 嵌入链路（sm-panel-a/解码链），独立版保留页脚链接。 -->
+      <div class="v-tabs" id="smMarketBar" style="margin:2px 0 12px">
+        <button type="button" class="v-tab active" data-sm-m="dash">看板</button>
+        <button type="button" class="v-tab" data-sm-m="radar">雷达</button>
+        <button type="button" class="v-tab" data-sm-m="nhb">国家队</button>
+        <button type="button" class="v-tab" data-sm-m="look">机构反查</button>
+        <button type="button" class="v-tab" data-sm-m="fast">更快信号</button>
       </div>
       <div class="card sm-xov" id="smXOverview" hidden></div>
       <div class="card sm-xov" id="smRadarview" hidden></div>
@@ -1676,16 +1677,11 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
         <div class="sm-sec-hd">美股 · 股票 / CUSIP 反查</div>
         <div class="sm13f-scope" id="sm13f-look-lookup"></div>
       </div>
-      <!-- fw2_v179_smartmoney：独立的「聪明的钱」模块。子应用是自包含单文件
-           （smartmoney/13f_workbench_ashare.html），运行时以内联文本喂给下方 iframe，
-           加载策略见 fw2_v186_sm_inline 与 fw2_v188_sm_srcdoc_csp 两段说明。
-           本文件所有说明注释里都不得出现注释结束符、也不得出现尖括号标签原文：
-           一旦出现，注释会被解析器提前截断，余下注释文字会当成页面正文显示出来。 -->
-      <div id="sm-panel-a" class="sm-panel" data-sm-panel="a" hidden>
-      <div class="sm-fallback" id="smFallback" hidden>子应用未能内联渲染。
-        <a id="smOpenTab" href="#" target="_blank" rel="noopener">在新标签打开「聪明的钱」</a></div>
-      <iframe id="smartmoneyFrame" title="聪明的钱" style="width:100%;height:1400px;border:0;border-radius:12px;background:#ffffff;display:block;box-shadow:0 1px 2px rgba(16,24,40,.04)"></iframe>
-      </div>
+      <!-- fw2_v179_smartmoney：独立的「聪明的钱」模块（数据由父页直接渲染）。
+           fw2_v507d_smnav：13F 独立版子应用不再内嵌（删除 706KB base64 解码链），
+           仅保留新标签直链作为备用/扩展入口。 -->
+      <div class="sm-extlink" id="smExtLink"><span class="sm-ext-k">扩展</span>
+        <a id="smOpenTab" href="https://andylauxiaoyang.github.io/investment-workbench/caifu/smartmoney/13f_workbench_ashare.html?wb=embed" target="_blank" rel="noopener">在新标签打开 13F 工作台（独立版）</a></div>
       <script>
       /* fw2_v496_speed：静态数据 bundle —— holdings/watchlist/macro/gold 四合一，首屏少 3 个请求（data/meta-bundle.json，_make_bundle.py 生成） */
       window.__mbp = null;
@@ -1697,119 +1693,6 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
         }
         return window.__mbp.then(function (j) { if (!j || j[key] == null) throw 0; return j[key]; });
       };
-      /* fw2_v179_smartmoney：iframe 高度自适应（同源可读 contentDocument；跨域/file 受阻时退回固定高） */
-      function fitSmartMoney(fr) {
-        if (!fr) return;
-        try {
-          var d = fr.contentDocument;
-          if (!d || !d.documentElement) return;
-          var h = Math.max(d.documentElement.scrollHeight || 0, (d.body && d.body.scrollHeight) || 0);
-          var cap = Math.max(320, window.innerHeight - 150);
-          if (h > 200) fr.style.height = Math.min(h, cap) + 'px';
-        } catch (e) {}
-      }
-                                                                  /* __SM_B64_BEGIN__ */
-      window.SM_APP_B64 = null; /* 13F 子应用 base64 已外置 smartmoney/sm_app_b64.json（fw2_v496_speed：瘦身首屏 HTML） */
-      var __smB64Ready = !!(window.SM_APP_B64 && window.SM_APP_B64.length > 1000);
-      function __smB64Ensure(cb) {
-        if (__smB64Ready) { cb(); return; }
-        fetch('smartmoney/sm_app_b64.json', { cache: 'no-cache' })
-          .then(function (r) { return r.ok ? r.json() : null; })
-          .then(function (j) {
-            if (j && j.b64 && j.b64.length > 1000) { window.SM_APP_B64 = j.b64; __smB64Ready = true; }
-            cb();
-          }).catch(function () { cb(); });
-      }
-      /* __SM_B64_END__ */  /* src-sha256=b7f50422f07a5e28 len=529745 */
-  /* src-sha256=b7f50422f07a5e28 len=529745 */
-      (function () {
-        var fr = document.getElementById('smartmoneyFrame');
-        if (!fr) return;
-        /* fw2_v186_sm_inline：跨域 iframe 在资料库轨被 CSP 拦死 —— 实测 workbuddy.cn 响应头
-           frame-src 只有 self/data:/blob: 加若干腾讯域，不含 github.io ⇒ v183(相对路径) 与
-           v184(GH 绝对地址) 两版都加载不出（模块空白）。v186 改内联自包含：子应用 HTML 以
-           base64 内置（window.SM_APP_B64，多行分块），运行时解码后喂给 iframe，无跨域、无同级文件依赖。 */
-        /* fw2_v188_sm_srcdoc_csp：加载策略由 blob 单路改为 srcdoc 优先 —— srcdoc 继承父文档源、
-           不发网络请求，本地 file:// 直接打开也能渲染；随后依次兜底 blob URL、GitHub Pages 绝对地址。
-           2.4 秒看门狗：iframe 内判不出内容就自动降级；三条策略全失败才显示提示条与新标签入口。
-           判据 smOk()：contentDocument 读得到且正文有字 ⇒ 成功；读不到(跨域) ⇒ 视为成功不降级；
-           读得到但空 ⇒ 失败降级（CSP 拦 srcdoc 时正是「可读但空」这一形态）。 */
-        var smartmoneyGhUrl = 'https://andylauxiaoyang.github.io/investment-workbench/caifu/smartmoney/13f_workbench_ashare.html?wb=embed';
-        var smFallback = document.getElementById('smFallback');
-        var smOpenTab = document.getElementById('smOpenTab');
-        if (smOpenTab) smOpenTab.href = smartmoneyGhUrl;
-        var SM_MODES = ['srcdoc', 'blob', 'gh'];
-        var smIdx = -1, smWatchdog = null;
-        function smDecode() {
-          try {
-            var B = window.SM_APP_B64;
-            if (!B || typeof B !== 'string' || B.length < 1000) return null;
-            var bin = atob(B);
-            var u8 = new Uint8Array(bin.length);
-            for (var i = 0; i < bin.length; i++) u8[i] = bin.charCodeAt(i);
-            var txt = (typeof TextDecoder !== "undefined")
-              ? new TextDecoder('utf-8').decode(u8)
-              : decodeURIComponent(escape(bin));
-            if (!txt || txt.indexOf('<html') < 0) return null;
-            return txt;
-          } catch (e) { return null; }
-        }
-        function smOk() {
-          var d = null;
-          try { d = fr.contentDocument; } catch (e) { return true; }
-          if (d === null) return true;
-          if (!d.body) return false;
-          return (d.body.textContent || '').replace(/\s+/g, '').length > 40;
-        }
-        function smApply(mode, txt) {
-          try {
-            if (mode === 'srcdoc') { fr.removeAttribute('src'); fr.srcdoc = txt; }
-            else if (mode === 'blob') { fr.removeAttribute('srcdoc'); fr.src = URL.createObjectURL(new Blob([txt], { type: 'text/html' })); }
-            else { fr.removeAttribute('srcdoc'); fr.src = smartmoneyGhUrl; }
-            fr.setAttribute('data-sm-mode', mode);
-            return true;
-          } catch (e) { return false; }
-        }
-        function smSettle() {
-          clearTimeout(smWatchdog);
-          if (smOk()) { if (smFallback) smFallback.hidden = true; fitSmartMoney(fr); return; }
-          smNext();
-        }
-        function smArm() { clearTimeout(smWatchdog); smWatchdog = setTimeout(smSettle, 2400); }
-        function smNext() {
-          var txt = smDecode();
-          while (smIdx + 1 < SM_MODES.length) {
-            smIdx++;
-            var m = SM_MODES[smIdx];
-            if (m !== 'gh' && !txt) continue;
-            if (smApply(m, txt)) { smArm(); return; }
-          }
-          if (smFallback) smFallback.hidden = false;
-        }
-        if (document.getElementById('view-smartmoney') && document.getElementById('view-smartmoney').classList.contains('active')) {
-          __smB64Ensure(function () { smNext(); });
-        } else if (!window.__smLazyArmed) { /* fw2_v506b_lazy：13F 内联解码（706KB base64）延迟到首次进入聪明的钱视图，首屏不再预热 */
-          window.__smLazyArmed = 1;
-          window.__smArm = function () { if (window.__smArmed) return; window.__smArmed = 1; __smB64Ensure(function () { smNext(); }); };
-        }
-        var tries = 0;
-        (function fit() { fitSmartMoney(fr); if (tries++ < 6) setTimeout(fit, 400); })();
-        fr.addEventListener('load', function () { setTimeout(smSettle, 150); });
-      })();
-      window.addEventListener('resize', function () { var f = document.getElementById('smartmoneyFrame'); if (f) fitSmartMoney(f); });
-      /* fw2_v185_sm_resize：子应用 postMessage 页高（跨域资料库轨也能拿到），动态撑高 iframe，根治底部被裁。
-         仅处理带 __smH 数字的消息，并按来源域白名单过滤（github.io / 同源 / 本地）。 */
-      window.addEventListener('message', function (e) {
-        var f = document.getElementById('smartmoneyFrame');
-        if (!f || !e.data || typeof e.data.__smH !== 'number') return;
-        var o = e.origin || '';
-        var okOrg = o === '' || o === 'null' || /(^|\.)github\.io$/i.test(o) ||
-                    /^(https?:)?(\/\/)?(localhost|127\.0\.0\.1)/i.test(o) ||
-                    o === (location.origin || '');
-        if (!okOrg) return;
-        var h = e.data.__smH;
-        if (h > 200 && h < 20000) f.style.height = Math.min(h, Math.max(320, window.innerHeight - 150)) + 'px';
-      });
       </script>
           <div id="sm-panel-us" class="sm-panel" data-sm-panel="us" hidden>
       <!-- fw2_v194_sm_merge：美股聪明钱（13F）并入「聪明的钱」A股/美股分区，作用域隔离保持 -->
@@ -6892,8 +6775,16 @@ function renderCurrentView() {
     else if (state.view === 'macro') { loadMacroData(); }
     else if (state.view === 'strategy') { renderStrategyView(); renderXMap(); } /* fw2_v120_strategy · v132 杠铃/场内外对照迁入 */
     else if (state.view === 'capbal') { if (window.CAPBAL) window.CAPBAL.render(); } /* fw2_capbal_merge */
-    else if (state.view === 'smartmoney') { renderSmartMoney(); } /* fw2_v194_sm_merge：A股/美股分区切换 + 跨市场速览卡 */
-    else if (state.view === 'decision') { if (typeof renderDecision === 'function') renderDecision(); } /* fw2_v206_decision · v343：与 8621 同款 typeof 守卫（renderDecision 定义于页尾脚本块，初始化首渲时尚未就绪） */
+    else if (state.view === 'smartmoney') {
+      /* fw2_v507d_smnav：内部重渲保持当前子视图（不重置回看板）。
+         根因：页面初始化 refreshSnapshot() 完成后调 renderCurrentView()，
+         若此刻用户在聪明的钱且处于 雷达/国家队/机构反查/更快信号，旧逻辑无条件
+         renderSmartMoney() → 恒 setSMMarket('dash')，把子视图弹回看板。
+         进入视图进看板（v302 行为）仍由 showView 内 renderSmartMoney() 保证。 */
+      var _ct = document.querySelector('#smMarketBar .v-tab.active');
+      var _m = (_ct && _ct.getAttribute) ? (_ct.getAttribute('data-sm-m') || 'dash') : 'dash';
+      setSMMarket(_m, true);
+    } /* fw2_v194_sm_merge：A股/美股分区切换 + 跨市场速览卡 */    else if (state.view === 'decision') { if (typeof renderDecision === 'function') renderDecision(); } /* fw2_v206_decision · v343：与 8621 同款 typeof 守卫（renderDecision 定义于页尾脚本块，初始化首渲时尚未就绪） */
   } catch (e) { console.error('[render]', e); }
 }
 /* ================= 宏观·情绪（v53 fw2_v53_macro） =================
@@ -13608,8 +13499,8 @@ section.sm13f-view{display:none;padding-top:22px}
 /* fw2_v194_sm_merge：13F 面板内的 section.view 会命中全局 .view{display:none}（v190 时靠 showView 加.active 显示；并入面板后显隐由 #sm-panel-us 控制），强制显示，否则美股分区空白 */
 #view-smartmoney .sm-panel .sm13f-scope { display: block !important; }
 
-/* fw2_v194_sm_merge：聪明的钱 = A股/美股 分区（市场条 + 面板 + 跨市场速览卡） */
-#view-smartmoney .sm-market-bar { display: flex; align-items: center; gap: 6px; margin: 2px 0 12px; }
+/* fw2_v194_sm_merge：聪明的钱 = A股/美股 分区（市场条 + 面板 + 跨市场速览卡）
+   fw2_v507d_smnav：主壳改挂全站 .v-tabs/.v-tab 标杆（见 fw2_v466_vtab），旧 .sm-market-bar/.sm-m-btn 样式已删 */
 #view-smartmoney .sm-dtab { border: 1px solid #e0e4ec; background: #fff; color: #4b5563; border-radius: 8px; padding: 6px 14px; font-size: 13px; cursor: pointer; }
 #view-smartmoney .sm-dtab.on { background: var(--brand, #4D6BFE); border-color: var(--brand, #4D6BFE); color: #fff; font-weight: 600; }
 #view-smartmoney .sm-summary { border: 1px solid #e0e4ec; border-radius: 12px; padding: 12px 14px; background: #f7f9fc; }
@@ -13662,9 +13553,6 @@ section.sm13f-view{display:none;padding-top:22px}
 
 #view-smartmoney .sm-mlab { font-size: 12px; color: #6b7280; margin-right: 2px; cursor: pointer; padding: 2px 6px; border-radius: 6px; user-select: none; }
 #view-smartmoney .sm-mlab:hover { color: #4D6BFE; background: #eef4ff; }
-#view-smartmoney .sm-m-btn { appearance: none; border: 1px solid var(--line); background: #fff; color: var(--text-2); border-radius: 8px; padding: 5px 14px; font: inherit; font-size: 12.5px; cursor: pointer; transition: background .15s; }
-#view-smartmoney .sm-m-btn:hover { background: var(--brand-tint); border-color: var(--brand-line); }
-#view-smartmoney .sm-m-btn.on { background: var(--brand-tint); color: var(--brand); border-color: var(--brand-line); font-weight: 600; }
 #view-smartmoney .sm-panel[hidden] { display: none !important; }
 #view-smartmoney .sm-xov[hidden] { display: none !important; }
 #view-smartmoney .sm-mlab.on { color: #4D6BFE; font-weight: 700; background: #eef4ff; }
@@ -18160,7 +18048,6 @@ function initSmFast() { /* 更快信号 */
 
 /* ---------- 子模块切换（v203.3） ---------- */
 function renderSmartMoney() {
-  if (window.__smArm) window.__smArm(); /* fw2_v506b_lazy：13F 内联解码延迟到首次进入聪明的钱视图 */
   /* v302：点击「聪明的钱」一律进入看板（不再读取 localStorage 记忆，避免停留在上次的机构反查等） */
   var m = 'dash';
   try {
@@ -18177,8 +18064,8 @@ function setSMMarket(m, silent) {
   if (m === 'con' || m === 'drawer') m = 'look'; /* 旧 localStorage 兼容 */
   dash.hidden = (m !== 'dash'); radar.hidden = (m !== 'radar'); nhb.hidden = (m !== 'nhb');
   look.hidden = (m !== 'look'); fast.hidden = (m !== 'fast');
-  document.querySelectorAll('#smMarketBar .sm-m-btn').forEach(function (b) {
-    b.classList.toggle('on', b.getAttribute('data-sm-m') === m);
+  document.querySelectorAll('#smMarketBar .v-tab').forEach(function (b) {
+    b.classList.toggle('active', b.getAttribute('data-sm-m') === m);
   });
   try { if (localStorage) localStorage.setItem('smMarket', m); } catch (e) {}
   if (m === 'dash') { if (window.renderXOverview) renderXOverview(); }
@@ -18191,7 +18078,7 @@ function setSMMarket(m, silent) {
   var bar = document.getElementById('smMarketBar'); if (!bar) return;
   bar.addEventListener('click', function (e) {
     var sc = document.getElementById('view-smartmoney');
-    var b = e.target && e.target.closest ? e.target.closest('.sm-m-btn') : null;
+    var b = e.target && e.target.closest ? e.target.closest('.v-tab') : null;
     if (b) { setSMMarket(b.getAttribute('data-sm-m')); if (sc) sc.scrollTop = 0; }
   });
 })();
