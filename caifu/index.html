@@ -1514,9 +1514,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
           <div class="tab-bar" style="margin-bottom:0;flex-wrap:wrap;gap:8px"><!-- fw2_v466_vtab：资金平衡顶导航改挂 .v-tab 标杆胶囊 -->
             <span class="v-tab active" data-cbtab="overview">总览</span>
             <span class="v-tab" data-cbtab="holdings">标的明细</span>
-            <span class="v-tab" data-cbtab="income">利润表</span>
-            <span class="v-tab" data-cbtab="balance">资产负债表</span>
-            <span class="v-tab" data-cbtab="cashflow">现金流量表</span>
+            <!-- fw2_v498_cbtab：删除实时三表 tab（利润表/资产负债表/现金流量表），三表体系由月度财报统一承载 -->
             <span class="v-tab" data-cbtab="monthly">月度财报</span>
             <span class="v-tab" data-cbtab="data">数据管理</span>
           </div>
@@ -1526,6 +1524,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
           <button class="btn btn-sm" id="cbSync">同步持仓</button>
           <button class="btn btn-sm" id="cbNavUpd">更新净值</button>
           <button class="btn btn-primary btn-sm" id="cbAddTx">＋ 新增交易</button>
+          <button class="btn btn-sm" id="cbSetLiab">设置负债</button><!-- fw2_v498_cbtab：负债设置入口由资产负债表 tab 迁至工具栏 -->
         </div>
       </div>
 
@@ -1550,31 +1549,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
         <div class="cb-panel"><div class="cb-panel-body cb-flush" id="cbHoldingsTable"></div></div>
       </div>
 
-      <div class="cb-pane hidden" id="cbPane-income">
-        <div class="cb-kpis" id="cbIncomeKpi"></div>
-        <div class="cb-report-grid">
-          <div class="cb-rpt"><div class="cb-rpt-head"><h3>利润表 · 汇总</h3><span class="cb-rpt-period" id="cbIncPeriod"></span></div><div class="cb-rpt-body" id="cbIncomeSheet"></div></div>
-          <div class="cb-rpt"><div class="cb-rpt-head"><h3>盈亏构成</h3></div><div class="cb-rpt-body"><div class="cb-chart cb-ch-sm" id="cbChartPnl"></div></div></div>
-        </div>
-        <div class="cb-panel" style="margin-top:14px"><div class="cb-panel-head"><h3>标的盈亏明细</h3></div><div class="cb-panel-body cb-flush" id="cbIncomeDetail"></div></div>
-      </div>
-
-      <div class="cb-pane hidden" id="cbPane-balance">
-        <div class="cb-kpis" id="cbBalanceKpi"></div>
-        <div class="cb-report-grid">
-          <div class="cb-rpt"><div class="cb-rpt-head"><h3>资产负债表 · 快照</h3><span class="cb-rpt-period" id="cbBalDate"></span><button class="btn btn-sm" id="cbSetLiab">设置负债</button></div><div class="cb-rpt-body" id="cbBalanceSheet"></div></div>
-          <div class="cb-rpt"><div class="cb-rpt-head"><h3>净资产归因</h3><span class="cb-rpt-period">期初至今日</span></div><div class="cb-rpt-body" id="cbEquityBridge"></div></div>
-        </div>
-      </div>
-
-      <div class="cb-pane hidden" id="cbPane-cashflow">
-        <div class="cb-kpis" id="cbCashKpi"></div>
-        <div class="cb-report-grid">
-          <div class="cb-rpt"><div class="cb-rpt-head"><h3>现金流量表 · 期间汇总</h3><span class="cb-rpt-period" id="cbCfPeriod"></span></div><div class="cb-rpt-body" id="cbCashSheet"></div></div>
-          <div class="cb-rpt"><div class="cb-rpt-head"><h3>现金流构成</h3></div><div class="cb-rpt-body"><div class="cb-chart cb-ch-sm" id="cbChartCash"></div></div></div>
-        </div>
-        <div class="cb-panel" style="margin-top:14px"><div class="cb-panel-head"><h3>现金余额变动明细</h3></div><div class="cb-panel-body cb-flush" id="cbCashDetail"></div></div>
-      </div>
+      <!-- fw2_v498_cbtab：实时三表 pane（income/balance/cashflow）已删除，月度财报为唯一三表入口 -->
 
       <div class="cb-pane hidden" id="cbPane-monthly"><!-- fw2_v497_monthly：月度财报（自动补出具+本期/上期两列+导出备份） -->
         <div class="cb-filter-bar" style="margin-bottom:10px">
@@ -10936,7 +10911,7 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
   /* v319 fw2_v319_sig_risk_fusion：动态 verChip 同步升版（v266 起文本停更，本次修正为当前版本） */
   /* fw2_v493_amt_backfill：refresh_amt30 断档自动回补——新浪日更发现上一记录→今日日历间隔>4天时，自动用东财push2his日K(fqt=0,f57)逐所补中间缺失交易日、三所同日齐备才写、只补缺失不对账覆盖；urllib透明代理间歇性RemoteDisconnected→curl --noproxy兜底。数据脚本改动，页面逻辑不变。2026-10-09 */
   /* fw2_v494_sig_screen：交易信号新增第四大类「筛选信号」（S 系列）——候选池基金只算买入候选信号（S1 估值分位=筛池画像PE分位 / S2 回撤买入=250日峰值 / S3 距5Y10Y低点 / S4 趋势MA20-60 / S5 规模经理风险 + V1V2 波动率），排除持仓专属信号（止盈/止损/网格/时间止损依赖成本与买入日）；只展示 act/near 触发标的（无信号不占版面）；数据=SCREEN_POOL 画像 + fund-daily.json 本地净值全序列（零新增网络注入）；渲染排自选信号后、档位标签对筛选组隐藏、仪表盘总数纳入。2026-10-09 */
-  if (vc) vc.textContent = 'v497 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  if (vc) vc.textContent = 'v498 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
@@ -15961,41 +15936,7 @@ function netSeries() {
   pts.push({ date: "今日", net: Math.round((cur + mv) * 100) / 100 });
   return pts;
 }
-/* 现金流量表汇总 */
-function calcCashFlow() {
-  const cf = { begin: 0, investIn: 0, investOut: 0, divIn: 0, feeOut: 0, finIn: 0, finOut: 0 };
-  DB.tx.forEach(function (t) {
-    const a = Number(t.amt) || 0;
-    if (t.type === "in") cf.finIn += a;
-    else if (t.type === "out") cf.finOut += a;
-    else if (t.type === "buy") cf.investOut += a;
-    else if (t.type === "sell") cf.investIn += a;
-    else if (t.type === "div") cf.divIn += a;
-    else if (t.type === "fee") cf.feeOut += a;
-  });
-  cf.investNet = cf.investIn + cf.divIn - cf.investOut - cf.feeOut;
-  cf.finNet = cf.finIn - cf.finOut;
-  cf.end = cf.begin + cf.investNet + cf.finNet;
-  return cf;
-}
-/* 现金流水明细（仅现金影响类交易） */
-function cashDetailRows() {
-  const rows = [];
-  DB.tx.forEach(function (t) {
-    const a = Number(t.amt) || 0;
-    let flow = 0, lab = "";
-    if (t.type === "in") { flow = a; lab = "资金转入"; }
-    else if (t.type === "out") { flow = -a; lab = "资金转出"; }
-    else if (t.type === "buy") { flow = -a; lab = "买入"; }
-    else if (t.type === "sell") { flow = a; lab = "卖出"; }
-    else if (t.type === "div") { flow = a; lab = "分红"; }
-    else if (t.type === "fee") { flow = -a; lab = "费用"; }
-    if (flow === 0) return;
-    rows.push({ date: t.date, label: lab, target: t.tname || "", flow: flow });
-  });
-  rows.sort(function (a, b) { return a.date.localeCompare(b.date); });
-  return rows;
-}
+/* fw2_v498_cbtab：现金流量表实时视图删除，calcCashFlow/cashDetailRows 同步移除（月度财报用 calcStateAt 重放，不依赖） */
 /* ================================================================
    渲染层
    ================================================================ */
@@ -16211,171 +16152,7 @@ function toggleSub(tid) {
     "<tr><th>日期</th><th>类型</th><th>金额</th><th>份额</th><th>单价</th><th>备注</th></tr>" + html + "</table></div></div></td>";
   if (rows.length) rows[0].after(sub);}
 /* ---------- 利润表 ---------- */
-function rptLine(lab, val, opt) {
-  opt = opt || {};
-  const cls = opt.cls || pnlCls(val);
-  const indent = opt.indent ? " indent" : "";
-  const total = opt.total ? " total" : "";
-  const head = opt.head ? " head" : "";
-  const sub = opt.sub ? '<span class="sub">' + opt.sub + "</span>" : "";
-  const valTxt = (opt.sign && val > 0 ? "+" : "") + fmt(val);
-  return '<div class="cb-rpt-line' + indent + total + head + '"><span class="lab">' + lab + sub + "</span>" +
-    '<span class="val ' + (opt.noCls ? "" : cls) + '">' + valTxt + "</span></div>";
-}
-function renderIncome() {
-  const real = calcRealized(), unreal = calcUnrealized(), div = calcTotalDiv(), fee = calcTotalFee();
-  const investIn = calcInvested();
-  const realizedNet = real + div - fee;
-  const total = realizedNet + unreal;
-  const rt = investIn > 0 ? total / investIn : 0;
-  document.getElementById("cbIncomeKpi").innerHTML =
-    kpiCard("已实现净利润", (realizedNet >= 0 ? "+" : "") + fmt(realizedNet), "卖出盈亏 + 分红 − 费用", pnlCls(realizedNet)) +
-    kpiCard("未实现盈亏", (unreal >= 0 ? "+" : "") + fmt(unreal), "在盘市值 − 成本", pnlCls(unreal)) +
-    kpiCard("总收益", (total >= 0 ? "+" : "") + fmt(total), "收益率 " + (rt >= 0 ? "+" : "") + fmtPct(rt), pnlCls(total)) +
-    kpiCard("分红收入", "+" + fmt(div), "期间现金分红", "up") +
-    kpiCard("交易费用", "−" + fmt(fee), "申赎 / 交易成本", "down");
-  document.getElementById("cbIncPeriod").textContent = "截至 " + (DB.updatedAt ? DB.updatedAt.slice(0, 10) : "—");
-  const sheet = document.getElementById("cbIncomeSheet");
-  sheet.innerHTML =
-    rptLine("已实现收益", realizedNet, { head: true, sign: true, noCls: true }) +
-    rptLine("卖出已实现盈亏", real, { sign: true, noCls: true }) +
-    rptLine("分红收入", div, { sign: true, noCls: true }) +
-    rptLine("交易费用", -fee, { sign: true, noCls: true }) +
-    rptLine("已实现净利润", realizedNet, { total: true, sign: true, cls: pnlCls(realizedNet) }) +
-    rptLine("未实现盈亏（在盘）", unreal, { head: true, sign: true, noCls: true }) +
-    rptLine("市值变动", unreal, { sign: true, noCls: true }) +
-    rptLine("未实现盈亏合计", unreal, { total: true, sign: true, cls: pnlCls(unreal) }) +
-    rptLine("总收益", total, { head: true, sign: true, cls: pnlCls(total) }) +
-    rptLine("已实现 + 未实现", total, { total: true, sign: true, cls: pnlCls(total) });
-
-  chart("cbChartPnl", {
-    tooltip: { trigger: "axis", triggerOn: "click", renderMode: "richText", confine: true,
-      formatter: function (ps) { if (!ps || !ps.length) return ""; const p = ps[0]; return p.name + "\n" + fmt(p.value); } },
-    grid: { left: 8, right: 16, top: 10, bottom: 8, containLabel: true },
-    xAxis: { type: "category", data: ["已实现净利润", "未实现盈亏", "分红收入", "交易费用"] },
-    yAxis: { type: "value", axisLabel: { formatter: function (v) { return (v / 10000).toFixed(1) + "万"; } } },
-    series: [{ type: "bar", barWidth: 26, data: [
-      { value: Math.round(realizedNet * 100) / 100 },
-      { value: Math.round(unreal * 100) / 100 },
-      { value: Math.round(div * 100) / 100 },
-      { value: Math.round(-fee * 100) / 100 }
-    ] }]
-  });
-
-  /* 标的盈亏明细 */
-  const rows = DB.targets.map(function (t) {
-    const st = calcTargetStats(t.id);
-    const nav = Number(t.nav) || 0;
-    const mv = t.status === "on" ? st.shares * nav : 0;
-    const pnl = t.status === "on" ? mv - st.costBasis : st.realized;
-    const rt2 = (t.status === "on" ? st.costBasis : Math.abs(st.sellTotal)) > 0
-      ? pnl / (t.status === "on" ? st.costBasis : (st.sellTotal || 1)) : 0;
-    return { id: t.id, name: t.name, code: t.code, status: t.status, realized: st.realized, unreal: t.status === "on" ? mv - st.costBasis : 0, pnl: pnl, rt: rt2 };
-  }).sort(function (a, b) { return b.pnl - a.pnl; });
-  const el = document.getElementById("cbIncomeDetail");
-  if (!rows.length) { el.innerHTML = '<div class="cb-empty"><div class="big">· · ·</div><div class="txt">暂无标的</div></div>'; return; }
-  el.innerHTML = '<div class="cb-tbl-wrap"><table class="cb-tbl"><colgroup>' +
-    "<col style='width:16%'><col style='width:30%'><col style='width:10%'><col style='width:14%'><col style='width:14%'><col style='width:16%'></colgroup>" +
-    "<tr><th>代码</th><th>名称</th><th>状态</th><th>已实现</th><th>未实现</th><th>合计盈亏</th></tr>" +
-    rows.map(function (r) {
-      return "<tr><td class='num'>" + esc(r.code || "—") + "</td><td>" + esc(r.name) + "</td>" +
-        '<td><span class="cb-badge ' + (r.status === "on" ? "on" : "off") + '">' + (r.status === "on" ? "在盘" : "清盘") + "</span></td>" +
-        '<td class="num ' + pnlCls(r.realized) + '">' + (r.realized >= 0 ? "+" : "") + fmt(r.realized) + "</td>" +
-        '<td class="num ' + pnlCls(r.unreal) + '">' + (r.unreal >= 0 ? "+" : "") + fmt(r.unreal) + "</td>" +
-        '<td class="num ' + pnlCls(r.pnl) + '">' + (r.pnl >= 0 ? "+" : "") + fmt(r.pnl) + " (" + (r.rt >= 0 ? "+" : "") + fmtPct(r.rt) + ")</td></tr>";
-    }).join("") + "</table></div>";
-}
-
-/* ---------- 资产负债表 ---------- */
-function renderBalance() {
-  const sec = calcSecurities(), cash = calcCash(), liab = Number(DB.liability) || 0;
-  const assets = sec + cash, net = assets - liab;
-  const inv = calcInvested(), totalPnl = net - inv;
-  document.getElementById("cbBalanceKpi").innerHTML =
-    kpiCard("总资产 ASSETS", fmt(assets), "证券 " + fmt(sec) + " + 现金 " + fmt(cash), "") +
-    kpiCard("总负债 LIABILITIES", fmt(liab), "外部借款（可编辑）", liab > 0 ? "down" : "") +
-    kpiCard("净资产 EQUITY", fmt(net), "资产 − 负债", "") +
-    kpiCard("净资产变动", (totalPnl >= 0 ? "+" : "") + fmt(totalPnl), "相对累计投入", pnlCls(totalPnl));
-  document.getElementById("cbBalDate").textContent = "截至 " + (DB.updatedAt ? DB.updatedAt.slice(0, 10) : "—");
-  const sheet = document.getElementById("cbBalanceSheet");
-  sheet.innerHTML =
-    rptLine("资产", assets, { head: true, noCls: true }) +
-    rptLine("证券市值（在盘）", sec, { noCls: true }) +
-    rptLine("现金余额", cash, { noCls: true }) +
-    rptLine("资产合计", assets, { total: true, noCls: true }) +
-    rptLine("负债", liab, { head: true, noCls: true }) +
-    rptLine("外部借款", liab, { noCls: true }) +
-    rptLine("负债合计", liab, { total: true, noCls: true }) +
-    rptLine("净资产（资产 − 负债）", net, { head: true, sign: true, cls: pnlCls(net) });
-
-  /* 净资产归因桥 */
-  const real = calcRealized(), unreal = calcUnrealized();
-  const bridge = document.getElementById("cbEquityBridge");
-  bridge.innerHTML =
-    rptLine("期初净资产", 0, { noCls: true }) +
-    rptLine("+ 累计资金投入", inv, { sign: true, noCls: true }) +
-    rptLine("+ 已实现收益", real, { sign: true, noCls: true }) +
-    rptLine("+ 未实现盈亏", unreal, { sign: true, noCls: true }) +
-    rptLine("− 负债", -liab, { sign: true, noCls: true }) +
-    rptLine("期末净资产", net, { total: true, sign: true, cls: pnlCls(net) });
-}
-
-/* ---------- 现金流量表 ---------- */
-function renderCashflow() {
-  const cf = calcCashFlow();
-  const cash = calcCash();
-  document.getElementById("cbCashKpi").innerHTML =
-    kpiCard("期初现金", fmt(cf.begin), "首笔流水前余额", "") +
-    kpiCard("投资活动净流", (cf.investNet >= 0 ? "+" : "") + fmt(cf.investNet), "买卖 / 分红 / 费用", pnlCls(cf.investNet)) +
-    kpiCard("筹资活动净流", (cf.finNet >= 0 ? "+" : "") + fmt(cf.finNet), "资金转入 − 转出", pnlCls(cf.finNet)) +
-    kpiCard("期末现金", fmt(cf.end), "与现金余额校验", cash === cf.end ? "" : "warn");
-  document.getElementById("cbCfPeriod").textContent = "截至 " + (DB.updatedAt ? DB.updatedAt.slice(0, 10) : "—");
-  const sheet = document.getElementById("cbCashSheet");
-  sheet.innerHTML =
-    rptLine("期初现金", cf.begin, { noCls: true }) +
-    rptLine("投资活动现金流", cf.investNet, { head: true, sign: true, noCls: true }) +
-    rptLine("卖出证券流入", cf.investIn, { sign: true, noCls: true }) +
-    rptLine("分红收入流入", cf.divIn, { sign: true, noCls: true }) +
-    rptLine("买入证券流出", -cf.investOut, { sign: true, noCls: true }) +
-    rptLine("交易费用流出", -cf.feeOut, { sign: true, noCls: true }) +
-    rptLine("投资活动净现金流", cf.investNet, { total: true, sign: true, cls: pnlCls(cf.investNet) }) +
-    rptLine("筹资活动现金流", cf.finNet, { head: true, sign: true, noCls: true }) +
-    rptLine("资金转入流入", cf.finIn, { sign: true, noCls: true }) +
-    rptLine("资金转出流出", -cf.finOut, { sign: true, noCls: true }) +
-    rptLine("筹资活动净现金流", cf.finNet, { total: true, sign: true, cls: pnlCls(cf.finNet) }) +
-    rptLine("期末现金", cf.end, { head: true, sign: true, cls: pnlCls(cf.end) });
-
-  chart("cbChartCash", {
-    tooltip: { trigger: "axis", triggerOn: "click", renderMode: "richText", confine: true,
-      formatter: function (ps) { if (!ps || !ps.length) return ""; const p = ps[0]; return p.name + "\n" + fmt(p.value); } },
-    grid: { left: 8, right: 16, top: 10, bottom: 8, containLabel: true },
-    xAxis: { type: "category", data: ["买入流出", "卖出流入", "分红流入", "费用流出", "资金转入", "资金转出"] },
-    yAxis: { type: "value", axisLabel: { formatter: function (v) { return (v / 10000).toFixed(1) + "万"; } } },
-    series: [{ type: "bar", barWidth: 22, data: [
-      { value: Math.round(-cf.investOut * 100) / 100 },
-      { value: Math.round(cf.investIn * 100) / 100 },
-      { value: Math.round(cf.divIn * 100) / 100 },
-      { value: Math.round(-cf.feeOut * 100) / 100 },
-      { value: Math.round(cf.finIn * 100) / 100 },
-      { value: Math.round(-cf.finOut * 100) / 100 }
-    ] }]
-  });
-
-  const rows = cashDetailRows();
-  const el = document.getElementById("cbCashDetail");
-  if (!rows.length) { el.innerHTML = '<div class="cb-empty"><div class="big">· · ·</div><div class="txt">暂无现金类流水</div></div>'; return; }
-  let run = 0;
-  el.innerHTML = '<div class="cb-tbl-wrap"><table class="cb-tbl"><colgroup>' +
-    "<col style='width:14%'><col style='width:16%'><col style='width:26%'><col style='width:20%'><col style='width:24%'></colgroup>" +
-    "<tr><th>日期</th><th>类型</th><th>标的</th><th>现金流</th><th>现金余额</th></tr>" +
-    rows.map(function (r) {
-      run += r.flow;
-      return "<tr><td class='num'>" + esc(r.date) + "</td><td>" + esc(r.label) + "</td><td>" + esc(r.target) + "</td>" +
-        '<td class="num ' + (r.flow >= 0 ? "up" : "down") + '">' + (r.flow >= 0 ? "+" : "") + fmt(r.flow) + "</td>" +
-        "<td class='num'>" + fmt(run) + "</td></tr>";
-    }).join("") + "</table></div>";
-}
-
+/* fw2_v498_cbtab：实时三表渲染函数（renderIncome/renderBalance/renderCashflow）及专属辅助 rptLine 已删除，月度财报为唯一三表入口 */
 /* ---------- 月度财报（fw2_v497_monthly：自动补出具 + 本期/上期两列 + 导出备份） ---------- */
 const RP_LS = "fw2_cb_reports_v1";
 let rptStore = { reports: {}, order: [] };
@@ -16948,6 +16725,7 @@ function sampleData() {
    ================================================================ */
 let curView = "overview";
 function showTab(name) {
+  if (name === "income" || name === "balance" || name === "cashflow") name = "overview"; /* fw2_v498_cbtab：旧 tab 链接回退总览 */
   curView = name;
   $qa("#view-capbal .cb-pane").forEach(function (p) { p.classList.add("hidden"); });
   const el = gid("cbPane-" + name);
@@ -16962,9 +16740,7 @@ function render() {
   disposeCharts();
   if (curView === "overview") renderOverview();
   else if (curView === "holdings") renderHoldings();
-  else if (curView === "income") renderIncome();
-  else if (curView === "balance") renderBalance();
-  else if (curView === "cashflow") renderCashflow();
+  /* fw2_v498_cbtab：income/balance/cashflow 视图已移除 */
   else if (curView === "monthly") renderMonthly();
   else if (curView === "data") renderData();
 }
@@ -17175,8 +16951,7 @@ function bindEvents() {
   const b = (id, fn) => { const el = gid(id); if (el) el.onclick = fn; };
   b("cbAddTx", function () { openTxForm(null); });
   b("cbNavUpd", openBatchNavForm);
-  b("cbSetLiab", openLiabilityForm);
-  b("cbSetLiab", openLiabilityForm);
+  b("cbSetLiab", openLiabilityForm); /* fw2_v498_cbtab：去重，入口已迁工具栏 */
   b("cbSync", function () { syncFromWorkbench(true); render(); });
   b("cbAddTarget", function () { openTargetForm(null); });
   b("cbAllTrades", function () { showTab("holdings"); });
