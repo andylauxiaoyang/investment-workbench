@@ -969,6 +969,16 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 #view-capbal .cb-rpt-line.head { border-bottom: 2px solid var(--line); }
 #view-capbal .cb-rpt-line.head .lab { font-weight: 600; color: var(--text); text-transform: uppercase; font-size: 10.5px; letter-spacing: .5px; }
 #view-capbal .cb-rpt-line.head .val { font-weight: 600; }
+/* fw2_v497_monthly：月度财报两列报表行（本期 | 上期） */
+#view-capbal .cb-rpt-line2 { display: grid; grid-template-columns: 1fr auto auto; gap: 10px; }
+#view-capbal .cb-rpt-line2 .val2 { font-family: var(--mono); font-size: 12.5px; text-align: right; white-space: nowrap; min-width: 76px; }
+#view-capbal .cb-rpt-line2 .val2.prev { color: var(--muted); font-size: 11.5px; }
+#view-capbal .cb-rpt-line2 .val2.na { color: var(--line); }
+#view-capbal .cb-rpt-line2.total .val2 { font-size: 13.5px; font-weight: 700; }
+#view-capbal .cb-rpt-line2.head { border-bottom: 2px solid var(--line); }
+#view-capbal .cb-rpt-line2.head .val2 { font-weight: 600; font-size: 10px; color: var(--muted); letter-spacing: .4px; text-transform: uppercase; }
+#view-capbal .cb-select { border: 1px solid var(--line); border-radius: 6px; background: var(--panel); color: var(--text); padding: 4px 9px; font-size: 12.5px; outline: none; }
+#view-capbal .cb-select:focus { border-color: var(--brand-line); }
 
 #view-capbal .cb-chart { width: 100%; }
 #view-capbal .cb-chart.cb-ch-md { height: 240px; }
@@ -1507,6 +1517,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
             <span class="v-tab" data-cbtab="income">利润表</span>
             <span class="v-tab" data-cbtab="balance">资产负债表</span>
             <span class="v-tab" data-cbtab="cashflow">现金流量表</span>
+            <span class="v-tab" data-cbtab="monthly">月度财报</span>
             <span class="v-tab" data-cbtab="data">数据管理</span>
           </div>
         </div>
@@ -1563,6 +1574,23 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
           <div class="cb-rpt"><div class="cb-rpt-head"><h3>现金流构成</h3></div><div class="cb-rpt-body"><div class="cb-chart cb-ch-sm" id="cbChartCash"></div></div></div>
         </div>
         <div class="cb-panel" style="margin-top:14px"><div class="cb-panel-head"><h3>现金余额变动明细</h3></div><div class="cb-panel-body cb-flush" id="cbCashDetail"></div></div>
+      </div>
+
+      <div class="cb-pane hidden" id="cbPane-monthly"><!-- fw2_v497_monthly：月度财报（自动补出具+本期/上期两列+导出备份） -->
+        <div class="cb-filter-bar" style="margin-bottom:10px">
+          <select id="cbRptMonth" class="cb-select"></select>
+          <button class="btn btn-sm" id="cbGenRpt">出具上月月报</button>
+          <button class="btn btn-sm" id="cbRptExport">导出月报</button>
+          <button class="btn btn-sm" id="cbRptImport">导入月报</button>
+          <input type="file" id="cbRptImportFile" class="hidden" accept=".json,application/json">
+          <span class="muted" id="cbRptNote" style="font-size:11px"></span>
+        </div>
+        <div class="cb-report-grid">
+          <div class="cb-rpt"><div class="cb-rpt-head"><h3>利润表 · 月度</h3><span class="cb-rpt-period" id="cbMIncPeriod"></span></div><div class="cb-rpt-body" id="cbMIncomeSheet"></div></div>
+          <div class="cb-rpt"><div class="cb-rpt-head"><h3>资产负债表 · 月末</h3><span class="cb-rpt-period" id="cbMBalPeriod"></span></div><div class="cb-rpt-body" id="cbMBalanceSheet"></div></div>
+          <div class="cb-rpt"><div class="cb-rpt-head"><h3>现金流量表 · 月度</h3><span class="cb-rpt-period" id="cbMCfPeriod"></span></div><div class="cb-rpt-body" id="cbMCashSheet"></div></div>
+        </div>
+        <p class="muted" style="font-size:11px;margin:8px 2px">口径：证券市值按出具时最新净值 × 月末份额近似；上期金额取自已出具的上月报表快照；补记流水后需重新出具对应月份才会更新。</p>
       </div>
 
       <div class="cb-pane hidden" id="cbPane-data">
@@ -10908,7 +10936,7 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
   /* v319 fw2_v319_sig_risk_fusion：动态 verChip 同步升版（v266 起文本停更，本次修正为当前版本） */
   /* fw2_v493_amt_backfill：refresh_amt30 断档自动回补——新浪日更发现上一记录→今日日历间隔>4天时，自动用东财push2his日K(fqt=0,f57)逐所补中间缺失交易日、三所同日齐备才写、只补缺失不对账覆盖；urllib透明代理间歇性RemoteDisconnected→curl --noproxy兜底。数据脚本改动，页面逻辑不变。2026-10-09 */
   /* fw2_v494_sig_screen：交易信号新增第四大类「筛选信号」（S 系列）——候选池基金只算买入候选信号（S1 估值分位=筛池画像PE分位 / S2 回撤买入=250日峰值 / S3 距5Y10Y低点 / S4 趋势MA20-60 / S5 规模经理风险 + V1V2 波动率），排除持仓专属信号（止盈/止损/网格/时间止损依赖成本与买入日）；只展示 act/near 触发标的（无信号不占版面）；数据=SCREEN_POOL 画像 + fund-daily.json 本地净值全序列（零新增网络注入）；渲染排自选信号后、档位标签对筛选组隐藏、仪表盘总数纳入。2026-10-09 */
-  if (vc) vc.textContent = 'v496 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  if (vc) vc.textContent = 'v497 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
@@ -16348,6 +16376,249 @@ function renderCashflow() {
     }).join("") + "</table></div>";
 }
 
+/* ---------- 月度财报（fw2_v497_monthly：自动补出具 + 本期/上期两列 + 导出备份） ---------- */
+const RP_LS = "fw2_cb_reports_v1";
+let rptStore = { reports: {}, order: [] };
+function rptLoad() {
+  try { const d = JSON.parse(localStorage.getItem(RP_LS) || "null"); rptStore = (d && d.reports && typeof d.reports === "object") ? d : { reports: {}, order: [] }; }
+  catch (e) { rptStore = { reports: {}, order: [] }; }
+}
+function rptSave() { try { localStorage.setItem(RP_LS, JSON.stringify(rptStore)); } catch (e) {} }
+function rptPeriods() {
+  return Object.keys(rptStore.reports).filter(function (p) { return /^\d{4}-\d{2}$/.test(p); }).sort();
+}
+function monthEndDate(period) {
+  const y = +period.slice(0, 4), m = +period.slice(5, 7);
+  const d = new Date(y, m, 0);
+  return y + "-" + String(m).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+}
+function prevPeriod(period) {
+  const y = +period.slice(0, 4), m = +period.slice(5, 7);
+  if (m === 1) return (y - 1) + "-12";
+  return y + "-" + String(m - 1).padStart(2, "0");
+}
+/* 重放引擎：把流水重放到指定日期（含）的账户状态（成本按移动平均法） */
+function calcStateAt(dateStr) {
+  const s = { tids: {}, cash: 0, invested: 0, inTotal: 0, outTotal: 0, realized: 0, div: 0, fee: 0, buyTotal: 0, sellTotal: 0 };
+  const txs = DB.tx.filter(function (t) { return t.date && (!dateStr || t.date.slice(0, 10) <= dateStr); })
+    .sort(function (a, b) { return (a.date + a.id).localeCompare(b.date + b.id); });
+  txs.forEach(function (t) {
+    const amt = Number(t.amt) || 0, sh = Number(t.shares) || 0;
+    if (t.type === "buy") {
+      if (!s.tids[t.tid]) s.tids[t.tid] = { shares: 0, costBasis: 0, avgCost: 0 };
+      const st = s.tids[t.tid];
+      if (sh > 0) {
+        const ns = st.shares + sh;
+        st.costBasis = st.shares * st.avgCost + amt;
+        st.avgCost = ns > 0 ? st.costBasis / ns : 0;
+        st.shares = ns;
+      } else { st.costBasis += amt; }
+      s.buyTotal += amt; s.cash -= amt;
+    } else if (t.type === "sell") {
+      if (!s.tids[t.tid]) s.tids[t.tid] = { shares: 0, costBasis: 0, avgCost: 0 };
+      const st = s.tids[t.tid];
+      const real = sh > 0 && st.avgCost > 0 ? sh * st.avgCost : 0;
+      st.realized = (st.realized || 0) + (amt - real);
+      s.realized += amt - real;
+      st.shares = Math.max(0, st.shares - sh);
+      st.costBasis = st.shares * st.avgCost;
+      s.sellTotal += amt; s.cash += amt;
+    } else if (t.type === "div") { s.div += amt; s.cash += amt; }
+    else if (t.type === "fee") { s.fee += amt; s.cash -= amt; }
+    else if (t.type === "in") { s.invested += amt; s.inTotal += amt; s.cash += amt; }
+    else if (t.type === "out") { s.invested -= amt; s.outTotal += amt; s.cash -= amt; }
+  });
+  return s;
+}
+/* 期末证券市值 / 未实现（期末份额 × 出具时最新净值，口径在页面注明） */
+function secValuation(stateAt) {
+  let mv = 0, unreal = 0;
+  DB.targets.forEach(function (t) {
+    const st = stateAt.tids[t.id];
+    if (!st) return;
+    const nav = Number(t.nav) || 0;
+    mv += st.shares * nav;
+    unreal += st.shares * nav - st.costBasis;
+  });
+  return { mv: mv, unreal: unreal };
+}
+function genMonthlyReport(period) {
+  const end = calcStateAt(monthEndDate(period));
+  const pp = prevPeriod(period);
+  const begin = calcStateAt(monthEndDate(pp));
+  const vEnd = secValuation(end), vBegin = secValuation(begin);
+  const realized = end.realized - begin.realized;
+  const div = end.div - begin.div;
+  const fee = end.fee - begin.fee;
+  const income = {
+    realized: realized, div: div, fee: fee,
+    realizedNet: realized + div - fee,
+    unrealChg: vEnd.unreal - vBegin.unreal,
+    netProfit: (realized + div - fee) + (vEnd.unreal - vBegin.unreal),
+    unrealEnd: vEnd.unreal,
+    totalPnlEnd: end.realized + end.div - end.fee + vEnd.unreal,
+    investedIn: end.invested - begin.invested
+  };
+  const liab = Number(DB.liability) || 0;
+  const balance = {
+    securities: vEnd.mv, cash: end.cash, liability: liab,
+    net: vEnd.mv + end.cash - liab,
+    invested: end.invested,
+    totalPnl: vEnd.mv + end.cash - liab - end.invested
+  };
+  const cashflow = {
+    begin: begin.cash,
+    investIn: end.sellTotal - begin.sellTotal,
+    divIn: div,
+    investOut: end.buyTotal - begin.buyTotal,
+    feeOut: fee,
+    finIn: end.inTotal - begin.inTotal,
+    finOut: end.outTotal - begin.outTotal,
+    investNet: (end.sellTotal - begin.sellTotal) + div - (end.buyTotal - begin.buyTotal) - fee,
+    finNet: (end.inTotal - begin.inTotal) - (end.outTotal - begin.outTotal),
+    end: begin.cash + (end.sellTotal - begin.sellTotal) + div - (end.buyTotal - begin.buyTotal) - fee + (end.inTotal - begin.inTotal) - (end.outTotal - begin.outTotal)
+  };
+  return { period: period, generatedAt: new Date().toISOString(), prevPeriod: pp, income: income, balance: balance, cashflow: cashflow };
+}
+/* 自动补出具：所有有流水且已结束的缺失月份，按时间升序生成（打开页面时调用） */
+function autoGenReports() {
+  rptLoad();
+  const now = new Date();
+  const curPeriod = now.getFullYear() + "-" + String(now.getMonth() + 1).padStart(2, "0");
+  const months = {};
+  DB.tx.forEach(function (t) {
+    if (t.date && t.date.length >= 7) {
+      const p = t.date.slice(0, 7);
+      if (p < curPeriod && !months[p]) months[p] = true;
+    }
+  });
+  const added = [];
+  Object.keys(months).sort().forEach(function (p) {
+    if (!rptStore.reports[p]) { rptStore.reports[p] = genMonthlyReport(p); added.push(p); }
+  });
+  if (added.length) rptSave();
+  return added;
+}
+/* 两列报表行：本期金额 | 上期金额 */
+function rptLine2(lab, cur, prev, opt) {
+  opt = opt || {};
+  const cls = opt.cls || pnlCls(cur);
+  const indent = opt.indent ? " indent" : "";
+  const total = opt.total ? " total" : "";
+  const head = opt.head ? " head" : "";
+  const sub = opt.sub ? '<span class="sub">' + opt.sub + "</span>" : "";
+  const curTxt = (opt.sign && cur > 0 ? "+" : "") + fmt(cur);
+  const prevTxt = (prev == null || isNaN(prev)) ? '<span class="val2 na">—</span>' : '<span class="val2 prev">' + (opt.sign && prev > 0 ? "+" : "") + fmt(prev) + "</span>";
+  return '<div class="cb-rpt-line cb-rpt-line2' + indent + total + head + '"><span class="lab">' + lab + sub + "</span>" +
+    '<span class="val2 ' + cls + '">' + curTxt + "</span>" + prevTxt + "</div>";
+}
+const RPT2_HEAD = '<div class="cb-rpt-line cb-rpt-line2 head"><span class="lab">项目</span><span class="val2">本期金额</span><span class="val2">上期金额</span></div>';
+function renderMonthly() {
+  rptLoad();
+  const periods = rptPeriods();
+  const sel = gid("cbRptMonth");
+  if (sel) {
+    const cur = sel.value;
+    sel.innerHTML = periods.map(function (p) {
+      return '<option value="' + p + '">' + p.slice(0, 4) + "年 " + p.slice(5, 7) + "月</option>";
+    }).join("");
+    if (periods.length) {
+      sel.style.display = "";
+      if (periods.indexOf(cur) >= 0) sel.value = cur;
+      else sel.value = periods[periods.length - 1];
+    } else sel.style.display = "none";
+  }
+  const note = gid("cbRptNote");
+  if (note) note.textContent = periods.length ? "已出具 " + periods.length + " 期月报" : "";
+  const p = (sel && sel.value && rptStore.reports[sel.value]) ? sel.value : (periods.length ? periods[periods.length - 1] : null);
+  gid("cbMIncPeriod").textContent = p ? "报告期 " + p.slice(0, 4) + "年 " + p.slice(5, 7) + "月" : "";
+  gid("cbMBalPeriod").textContent = p ? "期末 " + p.slice(0, 4) + "年 " + p.slice(5, 7) + "月" : "";
+  gid("cbMCfPeriod").textContent = p ? "期间 " + p.slice(0, 4) + "年 " + p.slice(5, 7) + "月" : "";
+  if (!p || !rptStore.reports[p]) {
+    gid("cbMIncomeSheet").innerHTML = '<div class="cb-empty"><div class="big">· · ·</div><div class="txt">暂无月报。检测到完整月份的流水后会自动出具，也可点击「出具上月月报」手动生成。</div></div>';
+    gid("cbMBalanceSheet").innerHTML = ""; gid("cbMCashSheet").innerHTML = "";
+    return;
+  }
+  const rep = rptStore.reports[p];
+  const prevRep = rptStore.reports[rep.prevPeriod || prevPeriod(p)] || null;
+  const P = function (k) { return prevRep && prevRep.income ? prevRep.income[k] : null; };
+  const B = function (k) { return prevRep && prevRep.balance ? prevRep.balance[k] : null; };
+  const C = function (k) { return prevRep && prevRep.cashflow ? prevRep.cashflow[k] : null; };
+  const inc = rep.income, bal = rep.balance, cf = rep.cashflow;
+  gid("cbMIncomeSheet").innerHTML = RPT2_HEAD +
+    rptLine2("一、已实现收益", inc.realized, P("realized"), { head: true, sign: true, noCls: true }) +
+    rptLine2("卖出已实现盈亏", inc.realized, P("realized"), { sign: true, noCls: true }) +
+    rptLine2("分红收入", inc.div, P("div"), { sign: true, noCls: true }) +
+    rptLine2("交易费用", -inc.fee, P("fee") == null ? null : -P("fee"), { sign: true, noCls: true }) +
+    rptLine2("已实现净利润", inc.realizedNet, P("realizedNet"), { total: true, sign: true, cls: pnlCls(inc.realizedNet) }) +
+    rptLine2("二、未实现变动", inc.unrealChg, P("unrealChg"), { head: true, sign: true, noCls: true }) +
+    rptLine2("期末未实现盈亏", inc.unrealEnd, P("unrealEnd"), { sign: true, noCls: true }) +
+    rptLine2("未实现盈亏变动（期末−期初）", inc.unrealChg, P("unrealChg"), { sign: true, noCls: true }) +
+    rptLine2("三、本期净利润", inc.netProfit, P("netProfit"), { head: true, total: true, sign: true, cls: pnlCls(inc.netProfit) }) +
+    rptLine2("本月资金净投入", inc.investedIn, P("investedIn"), { sign: true, noCls: true }) +
+    rptLine2("期末累计总收益", inc.totalPnlEnd, P("totalPnlEnd"), { sign: true, noCls: true });
+  gid("cbMBalanceSheet").innerHTML = RPT2_HEAD +
+    rptLine2("资产", bal.securities + bal.cash, B("securities") == null ? null : B("securities") + B("cash"), { head: true, noCls: true }) +
+    rptLine2("证券市值（月末份额×最新净值）", bal.securities, B("securities"), { noCls: true }) +
+    rptLine2("现金余额", bal.cash, B("cash"), { noCls: true }) +
+    rptLine2("资产合计", bal.securities + bal.cash, B("securities") == null ? null : B("securities") + B("cash"), { total: true, noCls: true }) +
+    rptLine2("负债", bal.liability, B("liability"), { head: true, noCls: true }) +
+    rptLine2("外部借款", bal.liability, B("liability"), { noCls: true }) +
+    rptLine2("负债合计", bal.liability, B("liability"), { total: true, noCls: true }) +
+    rptLine2("净资产（资产 − 负债）", bal.net, B("net"), { head: true, total: true, sign: true, cls: pnlCls(bal.net) }) +
+    rptLine2("累计投入", bal.invested, B("invested"), { noCls: true }) +
+    rptLine2("净资产相对累计投入变动", bal.totalPnl, B("totalPnl"), { sign: true, cls: pnlCls(bal.totalPnl) });
+  gid("cbMCashSheet").innerHTML = RPT2_HEAD +
+    rptLine2("期初现金", cf.begin, C("begin"), { noCls: true }) +
+    rptLine2("投资活动现金流", cf.investNet, C("investNet"), { head: true, sign: true, noCls: true }) +
+    rptLine2("卖出证券流入", cf.investIn, C("investIn"), { sign: true, noCls: true }) +
+    rptLine2("分红收入流入", cf.divIn, C("divIn"), { sign: true, noCls: true }) +
+    rptLine2("买入证券流出", -cf.investOut, C("investOut") == null ? null : -C("investOut"), { sign: true, noCls: true }) +
+    rptLine2("交易费用流出", -cf.feeOut, C("feeOut") == null ? null : -C("feeOut"), { sign: true, noCls: true }) +
+    rptLine2("投资活动净现金流", cf.investNet, C("investNet"), { total: true, sign: true, cls: pnlCls(cf.investNet) }) +
+    rptLine2("筹资活动现金流", cf.finNet, C("finNet"), { head: true, sign: true, noCls: true }) +
+    rptLine2("资金转入流入", cf.finIn, C("finIn"), { sign: true, noCls: true }) +
+    rptLine2("资金转出流出", -cf.finOut, C("finOut") == null ? null : -C("finOut"), { sign: true, noCls: true }) +
+    rptLine2("筹资活动净现金流", cf.finNet, C("finNet"), { total: true, sign: true, cls: pnlCls(cf.finNet) }) +
+    rptLine2("期末现金", cf.end, C("end"), { head: true, total: true, sign: true, cls: pnlCls(cf.end) });
+}
+function genRptClick() {
+  rptLoad();
+  const now = new Date();
+  const curPeriod = now.getFullYear() + "-" + String(now.getMonth() + 1).padStart(2, "0");
+  const target = prevPeriod(curPeriod);
+  const exists = !!rptStore.reports[target];
+  const msg = exists
+    ? "「" + target + "」月报已存在，重新出具将覆盖本期金额（上期对比列仍取已出具的上月快照）。确认覆盖？"
+    : "出具「" + target + "」月报（利润表/资产负债表/现金流量表，证券市值按最新净值近似月末）？";
+  if (!confirm(msg)) return;
+  rptStore.reports[target] = genMonthlyReport(target);
+  rptSave();
+  renderMonthly();
+  toast("已出具 " + target + " 月报");
+}
+function exportReports() {
+  rptLoad();
+  const blob = new Blob([JSON.stringify(rptStore, null, 2)], { type: "application/json" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "cb-monthly-reports.json";
+  document.body.appendChild(a); a.click();
+  setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 300);
+  toast("月度财报已导出");
+}
+function importReports(file) {
+  const rd = new FileReader();
+  rd.onload = function () {
+    try {
+      const d = JSON.parse(rd.result);
+      if (d && d.reports && typeof d.reports === "object") { rptStore = d; rptSave(); toast("月度财报导入成功"); renderMonthly(); }
+      else throw new Error("bad");
+    } catch (e) { toast("导入失败：文件格式不正确"); }
+  };
+  rd.readAsText(file);
+}
+
 /* ---------- 数据管理 ---------- */
 function renderData() {
   const stats = [
@@ -16694,6 +16965,7 @@ function render() {
   else if (curView === "income") renderIncome();
   else if (curView === "balance") renderBalance();
   else if (curView === "cashflow") renderCashflow();
+  else if (curView === "monthly") renderMonthly();
   else if (curView === "data") renderData();
 }
 
@@ -16927,6 +17199,17 @@ function bindEvents() {
   });
   b("cbImport", function () { const f = gid("cbImportFile"); if (f) f.click(); });
   b("cbCloudRestore", function () { restoreFromMirror(); });
+  /* fw2_v497_monthly：月度财报按钮 */
+  b("cbGenRpt", genRptClick);
+  b("cbRptExport", exportReports);
+  b("cbRptImport", function () { const f = gid("cbRptImportFile"); if (f) f.click(); });
+  const rptSel = gid("cbRptMonth");
+  if (rptSel) rptSel.onchange = function () { renderMonthly(); };
+  const rptImp = gid("cbRptImportFile");
+  if (rptImp) rptImp.onchange = function (e) {
+    if (e.target.files && e.target.files[0]) importReports(e.target.files[0]);
+    e.target.value = "";
+  };
   const imp = gid("cbImportFile");
   if (imp) imp.onchange = function (e) {
     const file = e.target.files[0];
@@ -17049,6 +17332,13 @@ function restoreFromMirror() {
 }
 
 loadDB();
+/* fw2_v497_monthly：打开页面自动检测跨月并补出具缺失月报（有流水且已结束的月份） */
+var _autoRpt = autoGenReports();
+if (_autoRpt.length) {
+  setTimeout(function () {
+    toast("已自动出具月报：" + _autoRpt.join("、") + "（资金平衡 → 月度财报）");
+  }, 900);
+}
 bindEvents();
 /* v182：本地台账全空时（换设备 / 清缓存）自动从云端只读镜像恢复 */
 autoRestoreFromMirror();
