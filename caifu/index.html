@@ -971,30 +971,27 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 #view-capbal .cb-rpt-line.head { border-bottom: 2px solid var(--line); }
 #view-capbal .cb-rpt-line.head .lab { font-weight: 600; color: var(--text); text-transform: uppercase; font-size: 10.5px; letter-spacing: .5px; }
 #view-capbal .cb-rpt-line.head .val { font-weight: 600; }
-/* fw2_v505h_rptreport（fw2_v505g_rptnote 接续，fw2_v505f_rptadj/fw2_v505e_rptstyle/fw2_v505d_colfix/fw2_v505c_rptcols 保留）：三张月度财报报表式重设计——①金额列 min-width 76→110px（无标的列的表资产负债表/现金流量表整体宽度自然到 ~420px，不再缩成左侧窄条，右留白为报表常态）；②组标题行（资产/负债/净资产、一/二/三、投资/筹资活动现金流等）新增 .g-title：项目列加粗 700 + 上下 1px 浅线（顶部被 g-first 的 2px 组分隔线覆盖），与表头 2px 底线区分层级；③表头 .head 与合计 .total 的项目列同步加粗；④行距 padding 8→9px 透气。硬约束保持：无底色只靠线条、数值右对齐、上期贴本期（150px auto auto + gap 14 + justify-content:start）、备注归项目列下 .lab .sub */
-#view-capbal .cb-rpt-line2 { display: grid; grid-template-columns: 150px auto auto; justify-content: start; gap: 14px; padding: 9px 2px; align-items: center; }
+/* fw2_v505i_noline（fw2_v505h_rptreport 接续，fw2_v505g_rptnote/fw2_v505f_rptadj/fw2_v505e_rptstyle/fw2_v505d_colfix/fw2_v505c_rptcols 保留）：v505h 上线后用户反馈「三表后面没数据就空白，别划线了」——表格内所有横线全部移除（组标题 .g-title 上下 1px 线、表头 .head 2px 底线、合计 .total 2px 顶线、组首 g-first 2px / 组尾 g-last 1px 线，以及旧 .cb-rpt-line（line1 同 DOM）每行 1px dashed 虚线底边与 .cb-rpt-line.head 2px 实线——line2 用 border-bottom:0 覆盖），层级只靠加粗（组标题/表头/合计项目列 700）与留白（padding/margin）区分；聚拢（150px auto auto + gap 14 + justify-content:start）、金额列 min-width 110、右对齐、备注归项目列下 .lab .sub 均保持 */
+#view-capbal .cb-rpt-line2 { display: grid; grid-template-columns: 150px auto auto; justify-content: start; gap: 14px; padding: 9px 2px; align-items: center; border-bottom: 0; }
 #view-capbal .cb-rpt-line2 .lab { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 #view-capbal .cb-rpt-line2 .lab .sub { display: block; margin-left: 0; margin-top: 2px; }
 #view-capbal .cb-rpt-line2 .val2 { font-family: var(--mono); font-size: 12.5px; text-align: right; white-space: nowrap; min-width: 110px; }
 #view-capbal .cb-rpt-line2 .val2 .s2 { display: block; font-family: var(--sans); font-size: 10px; color: var(--muted); margin-top: 1px; }
 #view-capbal .cb-rpt-line2 .val2.prev { color: var(--muted); font-size: 11.5px; }
 #view-capbal .cb-rpt-line2 .val2.na { color: var(--line); }
-#view-capbal .cb-rpt-line2.total { border-top: 2px solid var(--line); margin-top: 4px; border-bottom: 0; }
+#view-capbal .cb-rpt-line2.total { margin-top: 6px; }
 #view-capbal .cb-rpt-line2.total .val2 { font-size: 13.5px; font-weight: 700; }
 #view-capbal .cb-rpt-line2.total .lab { font-weight: 700; }
-#view-capbal .cb-rpt-line2.head { border-bottom: 2px solid var(--line); padding-bottom: 8px; }
+#view-capbal .cb-rpt-line2.head { padding-bottom: 8px; border-bottom: 0; }
 #view-capbal .cb-rpt-line2.head .lab { font-weight: 700; }
 #view-capbal .cb-rpt-line2.head .val2 { font-weight: 600; font-size: 10px; color: var(--muted); letter-spacing: .4px; text-transform: uppercase; }
-#view-capbal .cb-rpt-line2.g-title { border-top: 1px solid var(--line-2); border-bottom: 1px solid var(--line-2); }
 #view-capbal .cb-rpt-line2.g-title .lab { font-weight: 700; }
 #view-capbal .cb-rpt-line2 .val2.tgt { min-width: 84px; font-size: 11.5px; color: var(--text-2); }
 #view-capbal .cb-rpt-line2 .val2.tgt.hd { font-weight: 600; font-size: 10px; color: var(--muted); letter-spacing: .4px; text-transform: uppercase; max-width: 110px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 #view-capbal .cb-rpt-line2 .val2.tgt.na { color: var(--line); }
 #view-capbal .cb-rpt-body { overflow-x: auto; }
 #view-capbal .cb-rpt-line2.wide { min-width: 520px; }
-/* fw2_v505b_nogb：v505b 取消报表模块分组底色（用户反馈颜色太丑），仅保留线条分组——组首 2px 粗分隔线 + 组尾 1px 细线；grp class（g-income/g-cost/g-profit/g-asset/g-liab/g-equity/g-open/g-invest/g-fin/g-extra）仍由 rptLine2 注入但不再带背景样式，留作后续可选 */
-#view-capbal .cb-rpt-line2.g-first { border-top: 2px solid var(--line); }
-#view-capbal .cb-rpt-line2.g-last { border-bottom: 1px solid var(--line-2); }
+/* fw2_v505b_nogb：v505b 取消报表模块分组底色（用户反馈颜色太丑），分组线样式已随 fw2_v505i_noline 移除；grp class（g-income/g-cost/g-profit/g-asset/g-liab/g-equity/g-open/g-invest/g-fin/g-extra）仍由 rptLine2 注入但不再带任何背景/边框样式，留作后续可选 */
 #view-capbal .cb-select { border: 1px solid var(--line); border-radius: 6px; background: var(--panel); color: var(--text); padding: 4px 9px; font-size: 12.5px; outline: none; }
 #view-capbal .cb-select:focus { border-color: var(--brand-line); }
 
