@@ -971,14 +971,17 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 #view-capbal .cb-rpt-line.head { border-bottom: 2px solid var(--line); }
 #view-capbal .cb-rpt-line.head .lab { font-weight: 600; color: var(--text); text-transform: uppercase; font-size: 10.5px; letter-spacing: .5px; }
 #view-capbal .cb-rpt-line.head .val { font-weight: 600; }
-/* fw2_v497_monthly：月度财报两列报表行（本期 | 上期）。项目列固定 150px（fw2_v505d_colfix，接续 fw2_v505c_rptcols）：auto 会让每行项目列独立按内容宽计算导致全表列错位；justify-content:start 覆盖 .cb-rpt-line 继承的 space-between，保证数据列紧贴项目列 */
-#view-capbal .cb-rpt-line2 { display: grid; grid-template-columns: 150px auto auto; justify-content: start; gap: 10px; }
+/* fw2_v505e_rptstyle：参照「标的明细」格局重构三财报视觉（fw2_v505d_colfix 接续，fw2_v505c_rptcols 保留）：行高加大、列距加宽；无标的列的表（资产负债表/现金流量表）本期/上期用 1fr 弹性铺满全宽；关键行金额下方加小字口径副信息（.s2）；合计行加粗+上边框 */
+#view-capbal .cb-rpt-line2 { display: grid; grid-template-columns: 150px 1fr 1fr; justify-content: start; gap: 14px; padding: 8px 2px; align-items: center; }
 #view-capbal .cb-rpt-line2 .lab { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#view-capbal .cb-rpt-line2 .lab .sub { display: block; margin-left: 0; margin-top: 2px; }
 #view-capbal .cb-rpt-line2 .val2 { font-family: var(--mono); font-size: 12.5px; text-align: right; white-space: nowrap; min-width: 76px; }
+#view-capbal .cb-rpt-line2 .val2 .s2 { display: block; font-family: var(--sans); font-size: 10px; color: var(--muted); margin-top: 1px; }
 #view-capbal .cb-rpt-line2 .val2.prev { color: var(--muted); font-size: 11.5px; }
 #view-capbal .cb-rpt-line2 .val2.na { color: var(--line); }
+#view-capbal .cb-rpt-line2.total { border-top: 2px solid var(--line); margin-top: 4px; border-bottom: 0; }
 #view-capbal .cb-rpt-line2.total .val2 { font-size: 13.5px; font-weight: 700; }
-#view-capbal .cb-rpt-line2.head { border-bottom: 2px solid var(--line); }
+#view-capbal .cb-rpt-line2.head { border-bottom: 2px solid var(--line); padding-bottom: 8px; }
 #view-capbal .cb-rpt-line2.head .val2 { font-weight: 600; font-size: 10px; color: var(--muted); letter-spacing: .4px; text-transform: uppercase; }
 #view-capbal .cb-rpt-line2 .val2.tgt { min-width: 84px; font-size: 11.5px; color: var(--text-2); }
 #view-capbal .cb-rpt-line2 .val2.tgt.hd { font-weight: 600; font-size: 10px; color: var(--muted); letter-spacing: .4px; text-transform: uppercase; max-width: 110px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -16360,8 +16363,8 @@ function rptLine2(lab, cur, prev, opt) {
   const gFirst = opt.gFirst ? " g-first" : "";
   const gLast = opt.gLast ? " g-last" : "";
   const sub = opt.sub ? '<span class="sub">' + opt.sub + "</span>" : "";
-  const curTxt = (opt.sign && cur > 0 ? "+" : "") + fmt(cur);
-  const prevTxt = (prev == null || isNaN(prev)) ? '<span class="val2 na">—</span>' : '<span class="val2 prev">' + (opt.sign && prev > 0 ? "+" : "") + fmt(prev) + "</span>";
+  const curTxt = (opt.sign && cur > 0 ? "+" : "") + fmt(cur) + (opt.subCur ? '<span class="s2">' + opt.subCur + "</span>" : "");
+  const prevTxt = (prev == null || isNaN(prev)) ? '<span class="val2 na">—</span>' : '<span class="val2 prev">' + (opt.sign && prev > 0 ? "+" : "") + fmt(prev) + (opt.subPrev ? '<span class="s2">' + opt.subPrev + "</span>" : "") + "</span>";
   let colsHtml = "";
   if (opt.cols) {
     colsHtml = opt.cols.map(function (v) {
@@ -16434,13 +16437,13 @@ function renderMonthly() {
     R("卖出已实现盈亏", inc.realized, P("realized"), { sign: true, noCls: true, cols: T("realized"), grp: "income" }) +
     R("分红收入", inc.div, P("div"), { sign: true, noCls: true, cols: T("div"), grp: "income" }) +
     R("交易费用", -inc.fee, P("fee") == null ? null : -P("fee"), { sign: true, noCls: true, cols: T("fee").map(function (v) { return -v; }), grp: "cost", gFirst: true }) +
-    R("已实现净利润", inc.realizedNet, P("realizedNet"), { total: true, sign: true, cls: pnlCls(inc.realizedNet), cols: T("realizedNet"), grp: "profit", gFirst: true }) +
+    R("已实现净利润", inc.realizedNet, P("realizedNet"), { total: true, sign: true, cls: pnlCls(inc.realizedNet), cols: T("realizedNet"), grp: "profit", gFirst: true, subCur: "卖出+分红−费用" }) +
     R("二、未实现变动", inc.unrealChg, P("unrealChg"), { head: true, sign: true, noCls: true, grp: "profit" }) +
-    R("期末未实现盈亏", inc.unrealEnd, P("unrealEnd"), { sign: true, noCls: true, cols: T("unrealEnd"), grp: "profit" }) +
-    R("未实现盈亏变动（期末−期初）", inc.unrealChg, P("unrealChg"), { sign: true, noCls: true, cols: T("chg"), grp: "profit" }) +
+    R("期末未实现盈亏", inc.unrealEnd, P("unrealEnd"), { sign: true, noCls: true, cols: T("unrealEnd"), grp: "profit", subCur: "期末市值−成本" }) +
+    R("未实现盈亏变动（期末−期初）", inc.unrealChg, P("unrealChg"), { sign: true, noCls: true, cols: T("chg"), grp: "profit", subCur: "期末−期初" }) +
     R("三、本期净利润", inc.netProfit, P("netProfit"), { head: true, total: true, sign: true, cls: pnlCls(inc.netProfit), cols: T("netProfit"), grp: "profit", gLast: true }) +
-    R("本月资金净投入", inc.investedIn, P("investedIn"), { sign: true, noCls: true, grp: "extra", gFirst: true }) +
-    R("期末累计总收益", inc.totalPnlEnd, P("totalPnlEnd"), { sign: true, noCls: true, cols: T("totalPnlEnd"), grp: "extra", gLast: true });
+    R("本月资金净投入", inc.investedIn, P("investedIn"), { sign: true, noCls: true, grp: "extra", gFirst: true, subCur: "转入−转出" }) +
+    R("期末累计总收益", inc.totalPnlEnd, P("totalPnlEnd"), { sign: true, noCls: true, cols: T("totalPnlEnd"), grp: "extra", gLast: true, subCur: "已实现+未实现" });
   gid("cbMBalanceSheet").innerHTML = RPT2_HEAD +
     rptLine2("资产", bal.securities + bal.cash, B("securities") == null ? null : B("securities") + B("cash"), { head: true, noCls: true, grp: "asset", gFirst: true }) +
     rptLine2("证券市值（月末份额×最新净值）", bal.securities, B("securities"), { noCls: true, grp: "asset" }) +
@@ -16451,7 +16454,7 @@ function renderMonthly() {
     rptLine2("负债合计", bal.liability, B("liability"), { total: true, noCls: true, grp: "liab", gLast: true }) +
     rptLine2("净资产（资产 − 负债）", bal.net, B("net"), { head: true, total: true, sign: true, cls: pnlCls(bal.net), grp: "equity", gFirst: true }) +
     rptLine2("累计投入", bal.invested, B("invested"), { noCls: true, grp: "equity" }) +
-    rptLine2("净资产相对累计投入变动", bal.totalPnl, B("totalPnl"), { sign: true, cls: pnlCls(bal.totalPnl), grp: "equity", gLast: true });
+    rptLine2("净资产相对累计投入变动", bal.totalPnl, B("totalPnl"), { sign: true, cls: pnlCls(bal.totalPnl), grp: "equity", gLast: true, subCur: bal.invested > 0 ? "累计收益率 " + (bal.totalPnl * 100 / bal.invested).toFixed(1) + "%" : "" });
   gid("cbMCashSheet").innerHTML = RPT2_HEAD +
     rptLine2("期初现金", cf.begin, C("begin"), { noCls: true, grp: "open", gFirst: true, gLast: true }) +
     rptLine2("投资活动现金流", cf.investNet, C("investNet"), { head: true, sign: true, noCls: true, grp: "invest", gFirst: true }) +
@@ -16459,12 +16462,12 @@ function renderMonthly() {
     rptLine2("分红收入流入", cf.divIn, C("divIn"), { sign: true, noCls: true, grp: "invest" }) +
     rptLine2("买入证券流出", -cf.investOut, C("investOut") == null ? null : -C("investOut"), { sign: true, noCls: true, grp: "invest" }) +
     rptLine2("交易费用流出", -cf.feeOut, C("feeOut") == null ? null : -C("feeOut"), { sign: true, noCls: true, grp: "invest" }) +
-    rptLine2("投资活动净现金流", cf.investNet, C("investNet"), { total: true, sign: true, cls: pnlCls(cf.investNet), grp: "invest", gLast: true }) +
+    rptLine2("投资活动净现金流", cf.investNet, C("investNet"), { total: true, sign: true, cls: pnlCls(cf.investNet), grp: "invest", gLast: true, subCur: "卖出+分红−买入−费用" }) +
     rptLine2("筹资活动现金流", cf.finNet, C("finNet"), { head: true, sign: true, noCls: true, grp: "fin", gFirst: true }) +
     rptLine2("资金转入流入", cf.finIn, C("finIn"), { sign: true, noCls: true, grp: "fin" }) +
     rptLine2("资金转出流出", -cf.finOut, C("finOut") == null ? null : -C("finOut"), { sign: true, noCls: true, grp: "fin" }) +
-    rptLine2("筹资活动净现金流", cf.finNet, C("finNet"), { total: true, sign: true, cls: pnlCls(cf.finNet), grp: "fin", gLast: true }) +
-    rptLine2("期末现金", cf.end, C("end"), { head: true, total: true, sign: true, cls: pnlCls(cf.end), grp: "profit", gFirst: true, gLast: true });
+    rptLine2("筹资活动净现金流", cf.finNet, C("finNet"), { total: true, sign: true, cls: pnlCls(cf.finNet), grp: "fin", gLast: true, subCur: "转入−转出" }) +
+    rptLine2("期末现金", cf.end, C("end"), { head: true, total: true, sign: true, cls: pnlCls(cf.end), grp: "profit", gFirst: true, gLast: true, subCur: "期初+投资+筹资" });
 }
 function genRptClick() {
   rptLoad();
