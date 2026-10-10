@@ -952,12 +952,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 #view-capbal .cb-sub-table .cb-tbl th { background: var(--panel-3); }
 #view-capbal .cb-sub-table td, #view-capbal .cb-sub-table th { padding: 5px 9px; font-size: 11.5px; }
 
-/* fw2_v502_rpt3tabs：月度财报切成三个子模块（资产负债表/利润表/现金流量表 tab 切换） */
-#view-capbal .cb-rpt-tabs { display: flex; gap: 6px; margin-bottom: 10px; flex-wrap: wrap; }
-#view-capbal .cb-rpt-tab { appearance: none; border: 1px solid var(--line); background: var(--panel); color: var(--text-2); border-radius: 8px; padding: 5px 14px; font: inherit; font-size: 12.5px; cursor: pointer; transition: background .15s; }
-#view-capbal .cb-rpt-tab:hover { background: var(--brand-tint); border-color: var(--brand-line); }
-#view-capbal .cb-rpt-tab.on { background: var(--brand-tint); color: var(--brand); border-color: var(--brand-line); font-weight: 600; }
-#view-capbal .cb-rpt-wrap { width: 100%; }
+/* fw2_v503_rpt3pane：三财报独立子模块（资产负债表|利润表|现金流量表 与总览/标的明细并列），v502 的 pane 内 tab 样式已移除 */
 #view-capbal .cb-rpt { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); }
 #view-capbal .cb-rpt-head { padding: 9px 13px; border-bottom: 1px solid var(--line-2); display: flex; align-items: center; justify-content: space-between; }
 #view-capbal .cb-rpt-head h3 { font-size: 12.5px; }
@@ -1524,8 +1519,10 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
           <div class="tab-bar" style="margin-bottom:0;flex-wrap:wrap;gap:8px"><!-- fw2_v466_vtab：资金平衡顶导航改挂 .v-tab 标杆胶囊 -->
             <span class="v-tab active" data-cbtab="overview">总览</span>
             <span class="v-tab" data-cbtab="holdings">标的明细</span>
-            <!-- fw2_v498_cbtab：删除实时三表 tab（利润表/资产负债表/现金流量表），三表体系由月度财报统一承载 -->
-            <span class="v-tab" data-cbtab="monthly">月度财报</span>
+            <!-- fw2_v503_rpt3pane：月度财报拆为三个独立子模块（资产负债表|利润表|现金流量表），与总览/标的明细并列，删除「月度财报」导航项 -->
+            <span class="v-tab" data-cbtab="rptBal">资产负债表</span>
+            <span class="v-tab" data-cbtab="rptInc">利润表</span>
+            <span class="v-tab" data-cbtab="rptCf">现金流量表</span>
             <span class="v-tab" data-cbtab="data">数据管理</span>
           </div>
         </div>
@@ -1559,27 +1556,42 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
         <div class="cb-panel"><div class="cb-panel-body cb-flush" id="cbHoldingsTable"></div></div>
       </div>
 
-      <!-- fw2_v498_cbtab：实时三表 pane（income/balance/cashflow）已删除，月度财报为唯一三表入口 -->
-
-      <div class="cb-pane hidden" id="cbPane-monthly"><!-- fw2_v497_monthly：月度财报（自动补出具+本期/上期两列+导出备份） -->
+      <!-- fw2_v503_rpt3pane：三财报独立子模块（资产负债表/利润表/现金流量表），月度财报 pane 已删除；月份下拉三处联动共享，出具/导出/导入三处各一套（操作同一份报告库） -->
+      <div class="cb-pane hidden" id="cbPane-rptBal"><!-- 资产负债表 · 月末 -->
         <div class="cb-filter-bar" style="margin-bottom:10px">
-          <select id="cbRptMonth" class="cb-select"></select>
-          <button class="btn btn-sm" id="cbGenRpt">出具上月月报</button>
-          <button class="btn btn-sm" id="cbRptExport">导出月报</button>
-          <button class="btn btn-sm" id="cbRptImport">导入月报</button>
-          <input type="file" id="cbRptImportFile" class="hidden" accept=".json,application/json">
-          <span class="muted" id="cbRptNote" style="font-size:11px"></span>
+          <select class="cb-rpt-month" data-rpt="bal"></select>
+          <button class="btn btn-sm cb-rpt-gen" data-rpt="bal">出具上月月报</button>
+          <button class="btn btn-sm cb-rpt-export" data-rpt="bal">导出月报</button>
+          <button class="btn btn-sm cb-rpt-import" data-rpt="bal">导入月报</button>
+          <input type="file" class="cb-rpt-import-file hidden" accept=".json,application/json">
+          <span class="muted cb-rpt-note" style="font-size:11px"></span>
         </div>
-        <!-- fw2_v502_rpt3tabs：月度财报切成三个子模块（资产负债表/利润表/现金流量表 tab 切换） -->
-        <div class="cb-rpt-tabs" id="cbRptTabs">
-          <button class="cb-rpt-tab" data-rpt="bal">资产负债表</button>
-          <button class="cb-rpt-tab on" data-rpt="inc">利润表</button>
-          <button class="cb-rpt-tab" data-rpt="cf">现金流量表</button>
+        <div class="cb-rpt"><div class="cb-rpt-head"><h3>资产负债表 · 月末</h3><span class="cb-rpt-period" id="cbMBalPeriod"></span></div><div class="cb-rpt-body" id="cbMBalanceSheet"></div></div>
+        <p class="muted" style="font-size:11px;margin:8px 2px">口径：证券市值按出具时最新净值 × 月末份额近似；补记流水后需重新出具对应月份才会更新。</p>
+      </div>
+      <div class="cb-pane hidden" id="cbPane-rptInc"><!-- 利润表 · 月度 -->
+        <div class="cb-filter-bar" style="margin-bottom:10px">
+          <select class="cb-rpt-month" data-rpt="inc"></select>
+          <button class="btn btn-sm cb-rpt-gen" data-rpt="inc">出具上月月报</button>
+          <button class="btn btn-sm cb-rpt-export" data-rpt="inc">导出月报</button>
+          <button class="btn btn-sm cb-rpt-import" data-rpt="inc">导入月报</button>
+          <input type="file" class="cb-rpt-import-file hidden" accept=".json,application/json">
+          <span class="muted cb-rpt-note" style="font-size:11px"></span>
         </div>
-        <div class="cb-rpt-wrap" data-rpt="inc"><div class="cb-rpt"><div class="cb-rpt-head"><h3>利润表 · 月度</h3><span class="cb-rpt-period" id="cbMIncPeriod"></span></div><div class="cb-rpt-body" id="cbMIncomeSheet"></div></div></div>
-        <div class="cb-rpt-wrap hidden" data-rpt="bal"><div class="cb-rpt"><div class="cb-rpt-head"><h3>资产负债表 · 月末</h3><span class="cb-rpt-period" id="cbMBalPeriod"></span></div><div class="cb-rpt-body" id="cbMBalanceSheet"></div></div></div>
-        <div class="cb-rpt-wrap hidden" data-rpt="cf"><div class="cb-rpt"><div class="cb-rpt-head"><h3>现金流量表 · 月度</h3><span class="cb-rpt-period" id="cbMCfPeriod"></span></div><div class="cb-rpt-body" id="cbMCashSheet"></div></div></div>
-        <p class="muted" style="font-size:11px;margin:8px 2px">口径：证券市值按出具时最新净值 × 月末份额近似；上期金额取自已出具的上月报表快照；利润表标的列=各标的本月明细（已实现/分红/费用按本月流水归集，未实现变动=期末份额×最新净值 − 期初份额×最新净值，合计列=全部标的之和）；补记流水后需重新出具对应月份才会更新。</p>
+        <div class="cb-rpt"><div class="cb-rpt-head"><h3>利润表 · 月度</h3><span class="cb-rpt-period" id="cbMIncPeriod"></span></div><div class="cb-rpt-body" id="cbMIncomeSheet"></div></div>
+        <p class="muted" style="font-size:11px;margin:8px 2px">口径：上期金额取自已出具的上月报表快照；利润表标的列=各标的本月明细（已实现/分红/费用按本月流水归集，未实现变动=期末份额×最新净值 − 期初份额×最新净值，合计列=全部标的之和）；补记流水后需重新出具对应月份才会更新。</p>
+      </div>
+      <div class="cb-pane hidden" id="cbPane-rptCf"><!-- 现金流量表 · 月度 -->
+        <div class="cb-filter-bar" style="margin-bottom:10px">
+          <select class="cb-rpt-month" data-rpt="cf"></select>
+          <button class="btn btn-sm cb-rpt-gen" data-rpt="cf">出具上月月报</button>
+          <button class="btn btn-sm cb-rpt-export" data-rpt="cf">导出月报</button>
+          <button class="btn btn-sm cb-rpt-import" data-rpt="cf">导入月报</button>
+          <input type="file" class="cb-rpt-import-file hidden" accept=".json,application/json">
+          <span class="muted cb-rpt-note" style="font-size:11px"></span>
+        </div>
+        <div class="cb-rpt"><div class="cb-rpt-head"><h3>现金流量表 · 月度</h3><span class="cb-rpt-period" id="cbMCfPeriod"></span></div><div class="cb-rpt-body" id="cbMCashSheet"></div></div>
+        <p class="muted" style="font-size:11px;margin:8px 2px">口径：期初现金取自上月末重放快照；补记流水后需重新出具对应月份才会更新。</p>
       </div>
 
       <div class="cb-pane hidden" id="cbPane-data">
@@ -10925,7 +10937,7 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
   /* v319 fw2_v319_sig_risk_fusion：动态 verChip 同步升版（v266 起文本停更，本次修正为当前版本） */
   /* fw2_v493_amt_backfill：refresh_amt30 断档自动回补——新浪日更发现上一记录→今日日历间隔>4天时，自动用东财push2his日K(fqt=0,f57)逐所补中间缺失交易日、三所同日齐备才写、只补缺失不对账覆盖；urllib透明代理间歇性RemoteDisconnected→curl --noproxy兜底。数据脚本改动，页面逻辑不变。2026-10-09 */
   /* fw2_v494_sig_screen：交易信号新增第四大类「筛选信号」（S 系列）——候选池基金只算买入候选信号（S1 估值分位=筛池画像PE分位 / S2 回撤买入=250日峰值 / S3 距5Y10Y低点 / S4 趋势MA20-60 / S5 规模经理风险 + V1V2 波动率），排除持仓专属信号（止盈/止损/网格/时间止损依赖成本与买入日）；只展示 act/near 触发标的（无信号不占版面）；数据=SCREEN_POOL 画像 + fund-daily.json 本地净值全序列（零新增网络注入）；渲染排自选信号后、档位标签对筛选组隐藏、仪表盘总数纳入。2026-10-09 */
-  if (vc) vc.textContent = 'v502 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  if (vc) vc.textContent = 'v503 · 自选' + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
@@ -16359,45 +16371,34 @@ function rptHead2(colsTpl, tgtHeads) {
   return '<div class="cb-rpt-line cb-rpt-line2 head wide" style="grid-template-columns:' + colsTpl + '"><span class="lab">项目</span>' +
     (tgtHeads || "") + '<span class="val2">本期金额</span><span class="val2">上期金额</span></div>';
 }
-/* fw2_v502_rpt3tabs：月度财报切成三个子模块（资产负债表/利润表/现金流量表 tab 切换） */
-let cbRptTab = "inc";
-function cbApplyRptTab(t) {
-  ["inc", "bal", "cf"].forEach(function (k) {
-    const w = document.querySelector('.cb-rpt-wrap[data-rpt="' + k + '"]');
-    if (w) w.classList.toggle("hidden", k !== t);
-  });
-}
-function cbShowRptTab(t) {
-  cbRptTab = t;
-  const tabs = document.querySelectorAll("#cbRptTabs .cb-rpt-tab");
-  tabs.forEach(function (b) { b.classList.toggle("on", b.getAttribute("data-rpt") === t); });
-  cbApplyRptTab(t);
-}
+/* fw2_v503_rpt3pane：三财报独立子模块（资产负债表|利润表|现金流量表 与总览/标的明细并列），v502 的 pane 内 tab 切换（cbRptTab/cbApplyRptTab/cbShowRptTab）已移除，由导航级 v-tab 承担 */
 function renderMonthly() {
   rptLoad();
   const periods = rptPeriods();
-  const sel = gid("cbRptMonth");
-  if (sel) {
-    const cur = sel.value;
-    sel.innerHTML = periods.map(function (p) {
+  const sels = $qa("#view-capbal .cb-rpt-month");
+  let cur = "";
+  sels.forEach(function (s) { if (s.value) cur = s.value; });
+  sels.forEach(function (s) {
+    s.innerHTML = periods.map(function (p) {
       return '<option value="' + p + '">' + p.slice(0, 4) + "年 " + p.slice(5, 7) + "月</option>";
     }).join("");
     if (periods.length) {
-      sel.style.display = "";
-      if (periods.indexOf(cur) >= 0) sel.value = cur;
-      else sel.value = periods[periods.length - 1];
-    } else sel.style.display = "none";
-  }
-  const note = gid("cbRptNote");
-  if (note) note.textContent = periods.length ? "已出具 " + periods.length + " 期月报" : "";
-  const p = (sel && sel.value && rptStore.reports[sel.value]) ? sel.value : (periods.length ? periods[periods.length - 1] : null);
+      s.style.display = "";
+      if (periods.indexOf(cur) >= 0) s.value = cur;
+      else s.value = periods[periods.length - 1];
+    } else s.style.display = "none";
+  });
+  $qa("#view-capbal .cb-rpt-note").forEach(function (n) {
+    n.textContent = periods.length ? "已出具 " + periods.length + " 期月报" : "";
+  });
+  const p = (sels.length && sels[0].value && rptStore.reports[sels[0].value]) ? sels[0].value : (periods.length ? periods[periods.length - 1] : null);
+  sels.forEach(function (s) { if (s.value !== p) s.value = p; });
   gid("cbMIncPeriod").textContent = p ? "报告期 " + p.slice(0, 4) + "年 " + p.slice(5, 7) + "月" : "";
   gid("cbMBalPeriod").textContent = p ? "期末 " + p.slice(0, 4) + "年 " + p.slice(5, 7) + "月" : "";
   gid("cbMCfPeriod").textContent = p ? "期间 " + p.slice(0, 4) + "年 " + p.slice(5, 7) + "月" : "";
   if (!p || !rptStore.reports[p]) {
     gid("cbMIncomeSheet").innerHTML = '<div class="cb-empty"><div class="big">· · ·</div><div class="txt">暂无月报。检测到完整月份的流水后会自动出具，也可点击「出具上月月报」手动生成。</div></div>';
     gid("cbMBalanceSheet").innerHTML = ""; gid("cbMCashSheet").innerHTML = "";
-    cbApplyRptTab(cbRptTab);
     return;
   }
   const rep = rptStore.reports[p];
@@ -16452,7 +16453,6 @@ function renderMonthly() {
     rptLine2("资金转出流出", -cf.finOut, C("finOut") == null ? null : -C("finOut"), { sign: true, noCls: true }) +
     rptLine2("筹资活动净现金流", cf.finNet, C("finNet"), { total: true, sign: true, cls: pnlCls(cf.finNet) }) +
     rptLine2("期末现金", cf.end, C("end"), { head: true, total: true, sign: true, cls: pnlCls(cf.end) });
-  cbApplyRptTab(cbRptTab);
 }
 function genRptClick() {
   rptLoad();
@@ -16821,6 +16821,7 @@ function sampleData() {
 let curView = "overview";
 function showTab(name) {
   if (name === "income" || name === "balance" || name === "cashflow") name = "overview"; /* fw2_v498_cbtab：旧 tab 链接回退总览 */
+  if (name === "monthly") name = "rptInc"; /* fw2_v503_rpt3pane：旧「月度财报」链接回退利润表子模块 */
   curView = name;
   $qa("#view-capbal .cb-pane").forEach(function (p) { p.classList.add("hidden"); });
   const el = gid("cbPane-" + name);
@@ -16835,8 +16836,8 @@ function render() {
   disposeCharts();
   if (curView === "overview") renderOverview();
   else if (curView === "holdings") renderHoldings();
-  /* fw2_v498_cbtab：income/balance/cashflow 视图已移除 */
-  else if (curView === "monthly") renderMonthly();
+  /* fw2_v503_rpt3pane：三财报独立子模块（资产负债表|利润表|现金流量表）统一渲染月度报表 */
+  else if (curView === "rptBal" || curView === "rptInc" || curView === "rptCf") renderMonthly();
   else if (curView === "data") renderData();
 }
 
@@ -17069,22 +17070,25 @@ function bindEvents() {
   });
   b("cbImport", function () { const f = gid("cbImportFile"); if (f) f.click(); });
   b("cbCloudRestore", function () { restoreFromMirror(); });
-  /* fw2_v497_monthly：月度财报按钮 */
-  b("cbGenRpt", genRptClick);
-  b("cbRptExport", exportReports);
-  b("cbRptImport", function () { const f = gid("cbRptImportFile"); if (f) f.click(); });
-  const rptSel = gid("cbRptMonth");
-  if (rptSel) rptSel.onchange = function () { renderMonthly(); };
-  const rptTabsEl = gid("cbRptTabs"); /* fw2_v502_rpt3tabs：月度财报三子模块切换 */
-  if (rptTabsEl) rptTabsEl.addEventListener("click", function (e) {
-    const tb = e.target && e.target.closest ? e.target.closest(".cb-rpt-tab") : null;
-    if (tb) cbShowRptTab(tb.getAttribute("data-rpt"));
+  /* fw2_v503_rpt3pane：三财报子模块共用工具（月份联动/出具/导出/导入，三处各一套、操作同一份报告库） */
+  const rptSels = $qa("#view-capbal .cb-rpt-month");
+  rptSels.forEach(function (sel) {
+    sel.onchange = function () {
+      rptSels.forEach(function (o) { if (o !== sel && o.value !== sel.value) o.value = sel.value; });
+      renderMonthly();
+    };
   });
-  const rptImp = gid("cbRptImportFile");
-  if (rptImp) rptImp.onchange = function (e) {
-    if (e.target.files && e.target.files[0]) importReports(e.target.files[0]);
-    e.target.value = "";
-  };
+  $qa("#view-capbal .cb-rpt-gen").forEach(function (b2) { b2.onclick = genRptClick; });
+  $qa("#view-capbal .cb-rpt-export").forEach(function (b2) { b2.onclick = exportReports; });
+  $qa("#view-capbal .cb-rpt-import").forEach(function (b2) {
+    b2.onclick = function () { const f = b2.parentNode.querySelector(".cb-rpt-import-file"); if (f) f.click(); };
+  });
+  $qa("#view-capbal .cb-rpt-import-file").forEach(function (f) {
+    f.onchange = function (e) {
+      if (e.target.files && e.target.files[0]) importReports(e.target.files[0]);
+      e.target.value = "";
+    };
+  });
   const imp = gid("cbImportFile");
   if (imp) imp.onchange = function (e) {
     const file = e.target.files[0];
@@ -17211,7 +17215,7 @@ loadDB();
 var _autoRpt = autoGenReports();
 if (_autoRpt.length) {
   setTimeout(function () {
-    toast("已自动出具月报：" + _autoRpt.join("、") + "（资金平衡 → 月度财报）");
+    toast("已自动出具月报：" + _autoRpt.join("、") + "（资金平衡 · 资产负债表/利润表/现金流量表）");
   }, 900);
 }
 bindEvents();
