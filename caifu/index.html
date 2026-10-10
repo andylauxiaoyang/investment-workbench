@@ -11397,6 +11397,9 @@ function renderSignalDash() {
     var watchTot = (rows.hold.filter((r) => r.lvl === 'watch').length + watchRows.filter((r) => r.lvl === 'watch').length + (rows.screen || []).filter((r) => r.lvl === 'watch').length + ((mk && mk.rows) || []).filter((r) => r.lvl === 'watch').length);
     var vTone = actTot ? 't-hot' : (envTxt || '').indexOf('过热') >= 0 ? 't-hot' : (envTxt || '').indexOf('低迷') >= 0 ? 't-cold' : 't-neu';
     var vMain = '信号仪表盘 · 行动 ' + actTot + ' · 接近 ' + nearTot + ' · 观察 ' + watchTot;
+    /* fw2_v507b_dash：今日行动清单同口径计数缓存——决策总览指挥台聚合条直接复用本处口径（市场/持仓/自选/筛选四池合计），
+       避免二次计算与口径漂移；仅缓存计数不缓存行明细（明细由决策总览按自身六层数据生成） */
+    window.__SIGCNT__ = { act: actTot, near: nearTot, watch: watchTot, ts: Date.now() };
     var vVid = bnAll.map(bnFmt).join('｜');
     body.innerHTML = '<div class="dc-verdict ' + vTone + '"><div class="dc-vmain">' + vMain + '</div><div class="dc-vevid">' + vVid + '</div></div>'
       + '<div class="dc-grid">'
@@ -13692,6 +13695,20 @@ section.sm13f-view{display:none;padding-top:22px}
 .dc-fund.t-neg{color:var(--down,#047857);background:#ecfdf5}
 .dc-src{font-size:11px;color:var(--muted)}
 .dc-note{font-size:12px;color:var(--muted);line-height:1.6;padding:2px 4px}
+/* fw2_v507b_dash：今日行动清单聚合条（决策总览指挥台顶层）——沿用 dc-card 家族 + 语义色，无重彩装饰 */
+.dc-dash{border:1px solid var(--line);border-left:4px solid var(--brand,#4D6BFE);border-radius:var(--radius);padding:14px 16px;display:flex;flex-direction:column;gap:10px;background:var(--panel-2)}
+.dc-dash-kpis{display:flex;flex-wrap:wrap;gap:8px}
+.dc-dash-k{font-size:13px;font-weight:700;border-radius:999px;padding:2px 12px}
+.dc-dash-k.t-hot{color:var(--up,#dc2626);background:#fdf2f2}
+.dc-dash-k.t-pos{color:var(--warn,#b45309);background:var(--warn-soft,rgba(180,83,9,.12))}
+.dc-dash-k.t-mid{color:var(--brand,#4D6BFE);background:var(--brand-tint,#eaf2ff)}
+.dc-dash-list{display:flex;flex-direction:column;gap:6px}
+.dc-dash-item{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--text-2,#6b7280);text-decoration:none;border:1px solid var(--line);border-radius:8px;padding:6px 10px;background:#fff}
+.dc-dash-item:hover{border-color:var(--brand,#4D6BFE);background:var(--brand-tint,#eaf2ff)}
+.dc-dash-dot{width:7px;height:7px;border-radius:50%;background:var(--brand,#4D6BFE);flex:none}
+.dc-dash-dot.hot{background:var(--up,#dc2626)}
+.dc-dash-txt{flex:1;line-height:1.5}
+.dc-dash-go{font-size:11px;color:var(--brand,#4D6BFE);white-space:nowrap}
 @media (max-width:720px){.dc-grid{grid-template-columns:1fr}}
 
 #view-smartmoney .sm-xov .xov-title { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
@@ -18429,6 +18446,7 @@ function renderDecision() {
   }
   var verdictTone = main.indexOf('行动') === 0 ? 't-hot' : main.indexOf('防御') === 0 ? 't-def' : main.indexOf('买入') === 0 ? 't-pos' : main.indexOf('排队') === 0 ? 't-mid' : 't-neu';
   var h = '';
+  h += '<div id="dcDashHost"></div>'; /* fw2_v507b_dash：今日行动清单聚合条（指挥台顶层，异步信号计数独立刷新此区域） */
   h += '<div class="dc-verdict ' + verdictTone + '">'
     + '<div class="dc-vmain">' + esc(main) + '</div>'
     + '<div class="dc-vevid">依据链：' + evid.map(esc).join(' → ') + '</div>'
@@ -18446,9 +18464,136 @@ function renderDecision() {
   h += '</div>';
   h += '<div class="dc-note">决策总览 = 各模块结论的串联收口，不引入新数据口径；每条结论可点击进入对应模块复核。辅助决策，非投资建议。</div>';
   host.innerHTML = h;
+  if (typeof renderDecisionDash === 'function') renderDecisionDash(); /* fw2_v507b_dash：指挥台聚合条（信号计数未就绪时内部触发 computeSigDash） */
   host.querySelectorAll('[data-dcgo]').forEach(function (a) {
     a.addEventListener('click', function (e) { e.preventDefault(); showView(a.getAttribute('data-dcgo')); });
   });
+}
+
+/* fw2_v507b_dash：今日行动清单信号计数——决策总览指挥台独立取数（与 renderSignalDash 同引擎同口径）。
+   优先读 renderSignalDash 已挂的 __SIGCNT__（10 分钟有效）；未就绪时主动计算一次（防重入），
+   完成后仅刷新 #dcDashHost 区域，不重渲整页（避免闪烁）。 */
+function computeSigDash() {
+  var sc = window.__SIGCNT__;
+  if (sc && (Date.now() - sc.ts) < 600000) return Promise.resolve(sc);
+  if (window.__SIGCNT_LOADING__) return window.__SIGCNT_LOADING__;
+  var hold = state.portfolio.filter(function (h) { return (h.assetType || '') !== 'cash'; });
+  var wl = (state.watchlist || []).map(function (c) { return typeof c === 'string' ? c : ((c && c.code) || ''); });
+  var f = function (arr, lv) { return (arr || []).filter(function (r) { return r.lvl === lv; }).length; };
+  window.__SIGCNT_LOADING__ = Promise.all([
+    Promise.resolve().then(function () { return window.signalEvalAll ? window.signalEvalAll(hold, wl) : null; }).catch(function () { return null; }),
+    Promise.resolve().then(function () { return window.marketEvalAll ? window.marketEvalAll() : null; }).catch(function () { return null; })
+  ]).then(function (rs) {
+    var rows = rs[0] || { hold: [], watch: [], screen: [] }, mk = rs[1] || { rows: [] };
+    var heldCodes = new Set((state.portfolio || []).map(function (h) { return String(h.code); }));
+    var watchRows = (rows.watch || []).filter(function (r) { return !heldCodes.has(String(r.code)); });
+    var act = f(rows.hold, 'act') + f(watchRows, 'act') + f(rows.screen, 'act') + f(mk.rows, 'act');
+    var near = f(rows.hold, 'near') + f(watchRows, 'near') + f(rows.screen, 'near') + f(mk.rows, 'near');
+    var watch = f(rows.hold, 'watch') + f(watchRows, 'watch') + f(rows.screen, 'watch') + f(mk.rows, 'watch');
+    var sc2 = { act: act, near: near, watch: watch, ts: Date.now() };
+    window.__SIGCNT__ = sc2;
+    window.__SIGCNT_LOADING__ = null;
+    var host = document.getElementById('dcDashHost');
+    if (host && state.view === 'decision' && typeof renderDecisionDash === 'function') renderDecisionDash();
+    return sc2;
+  }).catch(function () { window.__SIGCNT_LOADING__ = null; return null; });
+  return window.__SIGCNT_LOADING__;
+}
+
+/* fw2_v507b_dash：今日行动清单聚合条渲染（决策总览指挥台顶层）——条目全部复用 renderDecision 已算好的
+   l1 周期 / l2 闸门 / l3 聪明钱 / l5 策略动作 / verdict，不新增口径；每条可钻取对应模块。 */
+function renderDecisionDash() {
+  var host = document.getElementById('dcDashHost'); if (!host) return;
+  var esc = function (x) { return String(x == null ? '' : x).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); };
+  var money = function (n) { if (n == null) return '—'; var a = Math.abs(n), sg = n < 0 ? '-' : ''; if (a >= 1e4) return sg + (a / 1e4).toFixed(1) + '万'; if (a >= 1e3) return sg + (a / 1e3).toFixed(0) + '千'; return sg + Math.round(n); };
+  var sc = window.__SIGCNT__ || null;
+  var S = window.STRATEGY_SNAP || null;
+  var md = state.macro || null;
+  var cyc = (typeof cycleEngine === 'function') ? cycleEngine(md) : null;
+  var cb = null; try { cb = JSON.parse(localStorage.getItem('capital_balance_v1') || 'null'); } catch (e) {}
+  var cbCash = null; if (cb && Array.isArray(cb.tx)) { cbCash = 0; cb.tx.forEach(function (t) { var a = Number(t.amt) || 0; if (t.type === 'in') cbCash += a; else if (t.type === 'out' || t.type === 'buy') cbCash -= a; else if (t.type === 'sell' || t.type === 'div') cbCash += a; else if (t.type === 'fee') cbCash -= a; }); }
+  var pf = state.portfolio || [];
+  var quotes = (state.snapshot && state.snapshot.quotes) || {};
+  var ix = (window.MKT_SNAP && MKT_SNAP.idx) || {};
+  /* 待执行计划 K 笔：缺口补仓标的 + 止盈/止损触发 + 月定投基线（有缺口或触发时才算计划） */
+  var gaps = [];
+  if (S && S.assets) {
+    S.assets.forEach(function (a) {
+      var code = a.code, tgt = a.target || 0; if (tgt <= 0) return;
+      var held = 0; pf.forEach(function (h) { if (String(h.code) === String(code)) { var q = quotes[h.code]; var p = q && q.price != null ? q.price : (h.cost || 1); if (p != null) held += p * (h.qty || 0); } });
+      if (held < tgt) gaps.push({ code: code, name: a.name || code, target: tgt, held: held, gap: tgt - held });
+    });
+    gaps.sort(function (a, b) { return b.gap - a.gap; });
+  }
+  var stopTrig = '';
+  function pnlP(code) {
+    var h = null; pf.forEach(function (x) { if (String(x.code) === String(code)) h = x; });
+    if (!h) return null;
+    var q = quotes[h.code]; var p = q && q.price != null ? q.price : (h.cost || 1);
+    if (p == null || !h.cost) return null;
+    return (p - h.cost) / h.cost * 100;
+  }
+  var p920 = pnlP('012920'), p452 = pnlP('016452');
+  if (p452 != null && p452 >= 15) stopTrig = '016452 盈利 +' + p452.toFixed(1) + '%（≥15% 减半 → 短融）';
+  else if (p920 != null && p920 >= 10) stopTrig = '012920 盈利 +' + p920.toFixed(1) + '%（+10% 减 1/4）';
+  else if (p452 != null && p452 <= -10) stopTrig = '016452 回撤 ' + p452.toFixed(1) + '%（≤-10% 全清 → 现金）';
+  else if (p920 != null && p920 <= -8) stopTrig = '012920 回撤 ' + p920.toFixed(1) + '%（≤-8% D8 硬止损全清）';
+  var plans = [];
+  if (stopTrig) plans.push({ t: stopTrig, to: 'strategy', hot: true });
+  gaps.slice(0, 4).forEach(function (g) { plans.push({ t: '补 ' + esc(g.name) + ' 缺口 ' + money(g.gap) + '（已持 ' + money(g.held) + ' / 目标 ' + money(g.target) + '）', to: 'strategy', hot: false }); });
+  var actItems = [];
+  if (cyc && cyc.verdict) {
+    var v = cyc.verdict;
+    if (/防御|共振向下|过热/.test(v)) actItems.push({ t: '周期' + v + ' → 按防御配置基调执行（现金 + 黄金 + 高评级债券优先）', to: 'macro' });
+    else if (/复苏|结构性偏多/.test(v)) actItems.push({ t: '周期' + v + ' → 中性仓位，不追高，逐回调试分批', to: 'macro' });
+  }
+  if (md) {
+    var fsiScore = (md.fsi && md.fsi.score != null) ? md.fsi.score : null;
+    if (fsiScore != null) {
+      if (fsiScore >= 70) actItems.push({ t: 'FSI 全球压力 ' + fsiScore.toFixed(1) + ' 危机级 → 全面防御（暂停进攻开仓）', to: 'signal' });
+      else if (fsiScore >= 50) actItems.push({ t: 'FSI 全球压力 ' + fsiScore.toFixed(1) + ' 警戒级 → 防御 · 控仓位', to: 'signal' });
+    }
+  }
+  var erpPct = (md && md.erp && md.erp.erpPct != null) ? md.erp.erpPct : null;
+  if (erpPct != null) {
+    if (erpPct >= 75) actItems.push({ t: 'ERP 分位 ' + erpPct + '% → 增配股至 70-80%', to: 'signal' });
+    else if (erpPct < 25) actItems.push({ t: 'ERP 分位 ' + erpPct + '% → 减股至 20-30%', to: 'signal' });
+  }
+  if (md && md.amtD && Array.isArray(md.amtD.points) && md.amtD.points.length) {
+    var aPts = (md.amtD.settled === false) ? md.amtD.points.slice(0, -1) : md.amtD.points;
+    var aLast = aPts[aPts.length - 1];
+    if (aLast && aLast[1] > 0) {
+      var tw = aLast[1] / 1e4;
+      if (tw >= 3) actItems.push({ t: '全A成交 ' + (aLast[1] / 1e8).toFixed(0) + ' 亿 → 过热区（≥3万亿 分批卖）', to: 'signal' });
+      else if (tw < 1.5) actItems.push({ t: '全A成交 ' + (aLast[1] / 1e8).toFixed(0) + ' 亿 → 网格定投 / 机会区', to: 'signal' });
+    }
+  }
+  var pos300 = (ix['000300'] && ix['000300'].pos != null) ? Math.round(ix['000300'].pos * 100) : null;
+  if (pos300 != null) {
+    if (pos300 > 70) actItems.push({ t: '沪深300 分位 ' + pos300 + '% → 停买（分位 >70）', to: 'signal' });
+    else if (pos300 < 30) actItems.push({ t: '沪深300 分位 ' + pos300 + '% → 加倍定投区', to: 'signal' });
+  }
+  var actN = sc ? sc.act : null, nearN = sc ? sc.near : null;
+  var planK = plans.length;
+  var kpi = '';
+  kpi += '<span class="dc-dash-k t-hot">行动 ' + (actN == null ? '…' : actN) + ' 条</span>';
+  kpi += '<span class="dc-dash-k t-pos">接近 ' + (nearN == null ? '…' : nearN) + ' 条</span>';
+  kpi += '<span class="dc-dash-k t-mid">待执行计划 ' + planK + ' 笔</span>';
+  var items = plans.concat(actItems).slice(0, 6);
+  var lis = items.length
+    ? items.map(function (it) {
+        var dot = it.hot ? 'dc-dash-dot hot' : 'dc-dash-dot';
+        return '<a class="dc-dash-item" href="#" data-dcgo="' + it.to + '"><span class="' + dot + '"></span><span class="dc-dash-txt">' + it.t + '</span><span class="dc-dash-go">进入模块 →</span></a>';
+      }).join('')
+    : '<div class="dc-src" style="opacity:.7">无待办 · 按既定定投节奏执行（无止盈/止损触发、无缺口、无过热/低迷环境提示）</div>';
+  host.innerHTML = '<div class="card dc-card dc-dash">'
+    + '<div class="dc-hd"><b style="font-size:15px">今日行动清单</b><span style="font-size:11.5px;opacity:.6">由交易信号 / 策略执行自动汇总 · 每条可钻取</span></div>'
+    + '<div class="dc-dash-kpis">' + kpi + '</div>'
+    + '<div class="dc-dash-list">' + lis + '</div></div>';
+  host.querySelectorAll('[data-dcgo]').forEach(function (a) {
+    a.addEventListener('click', function (e) { e.preventDefault(); showView(a.getAttribute('data-dcgo')); });
+  });
+  if (actN == null) computeSigDash();
 }
 
 /* fw2_v194_sm_xov：跨市场速览卡「你的持仓 × 聪明钱」渲染 */
