@@ -1403,6 +1403,20 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   #view-macro .mc-matrix.neg .mc-mx-v{color:var(--down,#16a34a)}
   #view-macro .mc-matrix.div{border-left:3px solid var(--warn,#d97706)}
   #view-macro .mc-matrix.div .mc-mx-v{color:var(--warn,#d97706)}
+  /* fw2_v527_verdict：周期总览「综合读数」卡——把联动矩阵4卡聚合为单值周期位置判断（置于磁铁之上，先结论后证据） */
+  #view-macro .mc-verdict{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;border:1px solid var(--line-mid,#d8dee6);border-radius:10px;padding:12px 14px;margin:0 0 10px;background:#fff}
+  #view-macro .mc-verdict.pos{border-left:4px solid var(--up,#dc2626)}
+  #view-macro .mc-verdict.neg{border-left:4px solid var(--down,#16a34a)}
+  #view-macro .mc-verdict.div{border-left:4px solid var(--warn,#d97706)}
+  #view-macro .mc-vd-t{font-size:12px;font-weight:600;color:var(--slate-500,#64748b)}
+  #view-macro .mc-vd-v{font-size:18px;font-weight:700}
+  #view-macro .mc-verdict.pos .mc-vd-v{color:var(--up,#dc2626)}
+  #view-macro .mc-verdict.neg .mc-vd-v{color:var(--down,#16a34a)}
+  #view-macro .mc-verdict.div .mc-vd-v{color:var(--warn,#d97706)}
+  #view-macro .mc-vd-n{font-size:13px;font-weight:600;color:var(--slate-700,#334155)}
+  #view-macro .mc-vd-s{font-size:11px;color:var(--slate-500,#64748b)}
+  #view-macro .mc-vd-w{flex-basis:100%;font-size:11px;color:var(--warn,#d97706);margin-top:4px}
+  #view-macro .mc-vd-c{flex-basis:100%;font-size:10px;color:var(--slate-400,#94a3b8);margin-top:2px}
   @media (max-width:900px){#view-macro .mc-ov-grid{grid-template-columns:repeat(2,1fr)}}
   @media (max-width:600px){#view-macro .mc-ov-grid{grid-template-columns:1fr}}
   #view-macro .mc-magnet{border:1px solid var(--line);border-left:4px solid var(--muted);border-radius:var(--r-8);padding:10px 14px;margin:0 0 10px;background:var(--panel-2)}
@@ -2123,7 +2137,8 @@ zrender/lib/zrender.js:
   /* 自选：理财·自选表（资料库手工维护），只读 */
   async function watchlistList() {
     var recs = await listAll(DB_WATCHLIST);
-    var out = [];
+  var out = [];
+  /* fw2_v527_asof：各卡数据截至＝该卡所依据序列的末点日期（不用页面级 updatedAt 顶替）。 */
     recs.forEach(function (r) {
       var code = (r['代码'] || '').trim();
       if (!code) return;
@@ -8087,13 +8102,16 @@ function mcRegisterEvidence(C) {
   })();
 }
 function mcMatrix(C) {
-  function mcard(key, title, verdict, cls, detail, go) {
+  function mcard(key, title, verdict, cls, detail, go, asOf) {
     return '<div class="mc-matrix ' + cls + '" data-mx="' + key + '"><b>' + esc(title) + '</b>'
       + '<span class="mc-mx-v">' + esc(verdict) + '</span>'
       + '<span class="mc-mx-d">' + esc(detail) + '</span>'
+      + (asOf ? '<span class="asof">数据截至 <b>' + esc(asOf) + '</b></span>' : '')
       + (go ? '<span class="mc-mx-go" onclick="window.__mcGo(\'' + go[0] + '\'' + (go[1] != null ? ',' + go[1] : '') + ')">→ ' + esc(go[2]) + '</span>' : '') + '</div>';
   }
   var out = [];
+  /* fw2_v527_asof：各卡数据截至＝该卡所依据序列的末点日期（不用页面级 updatedAt 顶替）。 */
+  var _A = mcOvAsOf(C.d);
   var e = C.ePct, p = (C.peLast && C.peLast[2] != null) ? C.peLast[2] : null;
   var b = C.broad || {}, bs = 0, bt = [];
   [['中证500', b.zz500], ['中证1000', b.zz1000], ['创业板', b.cyb]].forEach(function (sb) {
@@ -8106,14 +8124,14 @@ function mcMatrix(C) {
   if (p != null) v1 += (p >= 80 ? -1 : p < 20 ? 1 : 0);
   if (bs > 0) v1 += 1; else if (bs < 0) v1 -= 1;
   out.push(mcard('odds', 'A股综合赔率', v1 >= 2 ? '便宜 · 可积极' : v1 <= -2 ? '偏贵 · 防御' : '中性 · 维持', v1 >= 2 ? 'pos' : v1 <= -2 ? 'neg' : 'div',
-    'ERP ' + (e != null ? fmtNum(e, 1) + '%' : '—') + ' · PE ' + (p != null ? fmtNum(p, 0) + '%' : '—') + ' · 宽基 ' + bt.join(' / '), ['mi', 0, '估值明细']));
+    'ERP ' + (e != null ? fmtNum(e, 1) + '%' : '—') + ' · PE ' + (p != null ? fmtNum(p, 0) + '%' : '—') + ' · 宽基 ' + bt.join(' / '), ['mi', 0, '估值明细'], (_A.val || _A.pe || _A.page)));
   var mk = C.mk, gap = C.cCur.gap, pulse = (C.cyc && C.cyc.layers && C.cyc.layers.pulse) ? C.cyc.layers.pulse.phase.s : '';
   var v2 = 0;
   if (mk != null && C.pmPrev) v2 += (mk >= 50 && C.pmPrev[1] >= 50) ? 1 : ((mk < 49 && C.pmPrev[1] < 49) ? -1 : 0);
   if (gap != null) v2 += gap >= 0 ? 1 : gap < -2 ? -1 : 0;
   v2 += pulse === '扩张' ? 1 : pulse === '收缩' ? -1 : 0;
   out.push(mcard('earn', '盈利周期位置', v2 >= 2 ? '扩张 · 顺风' : v2 <= -2 ? '收缩 · 逆风' : '僵持 · 观察', v2 >= 2 ? 'pos' : v2 <= -2 ? 'neg' : 'div',
-    'PMI ' + (mk != null ? fmtNum(mk, 1) : '—') + ' · 剪刀差 ' + (gap != null ? fmtNum(gap, 1) : '—') + ' · 信用脉冲 ' + (pulse || '—'), ['mi', 1, '信用明细']));
+    'PMI ' + (mk != null ? fmtNum(mk, 1) : '—') + ' · 剪刀差 ' + (gap != null ? fmtNum(gap, 1) : '—') + ' · 信用脉冲 ' + (pulse || '—'), ['mi', 1, '信用明细'], (_A.pmi || _A.page)));
   var vL = C.vL, bad = C.badCnt || 0, fsiS = (C.d && C.d.fsi && C.d.fsi.score != null) ? C.d.fsi.score : null;
   /* fw2_v524_geo_fsi：FSI 计入风险开关——与 VIX 同构（≥70→+2 / ≥50→+1 / <50→0）；
      但 VIX 是 FSI 6 分项之一（同源压力），故取较强者 max 封顶 +2，避免双计放大；
@@ -8124,16 +8142,69 @@ function mcMatrix(C) {
   var risk = stress + bad;
   out.push(mcard('risk', '风险开关', risk >= 3 ? '开启 · 防御' : risk >= 1 ? '半开 · 警惕' : '关闭 · 平稳', risk >= 3 ? 'neg' : risk >= 1 ? 'div' : 'pos',
     'VIX ' + (vL != null ? fmtNum(vL, 1) : '—') + ' · 汇率红绿灯 ' + C.fxGate + '（' + bad + '/3）'
-      + (fsiS != null ? ' · FSI ' + fmtNum(fsiS, 1) + '（相对分级·未校准·计+' + fsiPt + '）' : ''), ['mi', 2, '情绪明细']));
+      + (fsiS != null ? ' · FSI ' + fmtNum(fsiS, 1) + '（相对分级·未校准·计+' + fsiPt + '）' : ''), ['mi', 2, '情绪明细'], (_A.vix || _A.page)));
   var sp = C.spxPct, u = C.uChg;
   var v4 = 0;
   if (sp != null) v4 += sp >= 80 ? -1 : sp < 20 ? 1 : 0;
   if (u != null && u > 3) v4 -= 1;
   v4 -= bad;
   out.push(mcard('ovs', '海外顺逆风', v4 >= 1 ? '顺风' : v4 <= -1 ? '逆风' : '中性', v4 >= 1 ? 'pos' : v4 <= -1 ? 'neg' : 'div',
-    '标普PE分位 ' + (sp != null ? fmtNum(sp, 0) + '%' : '—') + ' · 美元指数近6月 ' + (u != null ? (u > 0 ? '+' : '') + fmtNum(u, 1) + '%' : '—') + ' · 红绿灯 ' + C.fxGate, ['mi', 3, '海外明细']));
-  return out.join('');
+    '标普PE分位 ' + (sp != null ? fmtNum(sp, 0) + '%' : '—') + ' · 美元指数近6月 ' + (u != null ? (u > 0 ? '+' : '') + fmtNum(u, 1) + '%' : '—') + ' · 红绿灯 ' + C.fxGate, ['mi', 3, '海外明细'], (_A.spx || _A.page)));
+  /* fw2_v527_verdict：除 HTML 外回传各卡原始分数，供综合读数聚合（只读此处，不改任何判据）。 */
+  return { html: out.join(''), scores: { odds: v1, earn: v2, risk: risk, ovs: v4 } };
 }
+/* fw2_v527_verdict：周期总览「综合读数」——把联动矩阵 4 卡的分数聚合成单值周期位置判断。
+   ★设计边界（诚实标注，不得含糊）：
+     1) 回答「当前处在什么周期位置」，**不回答「该买/该卖/仓位多少」**——后者是投资建议，超出工具边界；
+     2) 聚合权重 0.35/0.30/0.20/0.15 是本工具主观设定（判断依据：A股赔率与盈利是主变量，
+        海外为外部约束、风险开关为放大器），**未经历史回测校准**，与 FSI 的「相对分级·未校准」同处理；
+     3) 各分项判据（阈值与方向）**完全沿用 mcMatrix**，不新造、不改写 ⇒ 与四张卡 100% 同源，可对拍；
+     4) 当两类信号同时为正负（如「中国便宜」vs「海外逆风」）时显式给出张力提示，
+        因为这种矛盾本身就是最重要的信息，不该被加权平均抹平。 */
+function mcVerdict(C, SC) {
+  var v1 = SC.odds, v2 = SC.earn, risk = SC.risk, v4 = SC.ovs;
+  var fw2_v527_note = '加权 赔率0.35·盈利0.30·海外0.20·风险0.15（主观设定·未经回测校准）';
+  function norm(v, span) { return Math.max(-1, Math.min(1, (v || 0) / span)); }
+  /* 风险开关口径与其他三项相反（值越大越危险）⇒ 取负贡献 */
+  var rT = risk >= 3 ? -1 : risk >= 1 ? -0.4 : 0.2;
+  var net = norm(v1, 3) * 0.35 + norm(v2, 3) * 0.30 + norm(v4, 3) * 0.20 + rT * 0.15;
+  var verdict, cls;
+  if (net >= 0.30) { verdict = '顺风 · 可积极'; cls = 'pos'; }
+  else if (net >= 0.05) { verdict = '中性偏积极'; cls = 'pos'; }
+  else if (net > -0.05) { verdict = '中性 · 观察'; cls = 'div'; }
+  else if (net > -0.30) { verdict = '中性偏防御'; cls = 'div'; }
+  else { verdict = '逆风 · 防御'; cls = 'neg'; }
+  /* 张力提示：正反两侧各有一项以上显著时指出矛盾，避免被加权平均掩盖 */
+  var posN = [v1 > 0, v2 > 0, v4 > 0].filter(Boolean).length;
+  var negN = [v1 < 0, v2 < 0, v4 < 0].filter(Boolean).length;
+  var tension = '';
+  if (posN > 0 && negN > 0) {
+    tension = '⚠ 信号存在张力：' + posN + ' 项偏多 / ' + negN + ' 项偏空（已按权重合成上式，但分项方向不一致时信号可靠性下降）';
+  }
+  var parts = [];
+  parts.push('赔率 ' + (v1 > 0 ? '+' : '') + v1);
+  parts.push('盈利 ' + (v2 > 0 ? '+' : '') + v2);
+  parts.push('海外 ' + (v4 > 0 ? '+' : '') + v4);
+  parts.push('风险 ' + risk);
+  return '<div class="mc-verdict ' + cls + '" id="mcVerdict"><span class="mc-vd-t">综合读数</span>'
+    + '<span class="mc-vd-v">' + esc(verdict) + '</span>'
+    + '<span class="mc-vd-n">net ' + (net >= 0 ? '+' : '') + net.toFixed(2) + '</span>'
+    + '<span class="mc-vd-s">' + esc(parts.join(' · ')) + '</span>'
+    + (tension ? '<span class="mc-vd-w">' + esc(tension) + '</span>' : '')
+    + '<span class="mc-vd-c">' + esc(fw2_v527_note) + ' · 回答「周期位置」不含投资建议</span></div>';
+}
+/* fw2_v527_asof：周期总览「数据截至」——矩阵卡与综合读数按各自时间序列真实末点标注（死规则②）。
+   ★日期一律取该序列 points 末点[0]，不用页面级 updatedAt 顶替（各序列更新频率不同：
+   ERP/PE/标普/VIX 为日频 2026-10-08，PMI 为月频 2026-09，成交额滞后至 2026-08）。 */
+function mcOvAsOf(d) {
+  function last0(arr) { return (arr && arr.length) ? String(arr[arr.length - 1][0]) : ''; }
+  var g = function (k, sub) { var o = (d && d[k]) || {}; return last0(o[sub || 'points']); };
+  return {
+    val: g('erp'), pe: g('pe'), pmi: g('pmi'), spx: g('spx'), vix: g('vix'),
+    amt: g('amt'), page: (d && d.updatedAt) || ''
+  };
+}
+
 function renderMacroOverview(d) {
   var C = mcCalcCommon(d);
   mcRegisterEvidence(C);
@@ -8143,7 +8214,11 @@ function renderMacroOverview(d) {
   window.mcEv('cred', _g.dir, '实体 5 项同比为正 ' + _g.ok + '/5（' + _g.txt + '）');
   var gi = window.MI_GROUPS || [];
   var magnets = gi.slice(0, 6).map(function (g, i) { return window.mcMagnet(g, i); }).join('');
-  var mx = mcMatrix(C);
+  var _mx = mcMatrix(C);
+  var mx = _mx.html, _SC = _mx.scores;
+  /* fw2_v527_verdict：综合读数卡置于磁铁之上（先给结论，再看证据；与 mi 页磁铁/明细同逻辑）。 */
+  var vd = mcVerdict(C, _SC);
+  var _as = mcOvAsOf(d);
   var sopSteps = [
     ['① 总览定位', 'ov', null, '六磁铁 + 联动矩阵 ⇒ 周期位置'],
     ['② 中国 · 赔率与盈利', 'mi', 0, '估值 / 信用 / 流动性'],
@@ -8157,6 +8232,7 @@ function renderMacroOverview(d) {
   return '<div class="card"><div class="card-h"><h3>周期总览 · 六磁铁与联动矩阵</h3>'
     + '<span class="hint">fw2_v522_overview：L1 总览层——磁铁与各明细页 100% 同源（mcRegisterEvidence 同一函数注册）；矩阵卡＝跨组组合指标。数据截至 ' + esc((d && d.updatedAt) || '—') + ' · 点步骤条可跳转明细</span></div>'
     + sop
+    + vd
     + '<div class="mc-ov-grid">' + magnets + '</div>'
     + '<div class="mc-ov-grid mc-ov-mx">' + mx + '</div>'
     + '</div>';
@@ -11336,7 +11412,7 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
        留待与用户确认重设计方案后再动（本轮不做）。
      ★诚实限定：erpCard/peCard/mrgCard/vixCard 定义及其 erpSpark/peSpark/mrgSpark/vixSpark 函数本轮暂留为死代码（不入 DOM、无害），
        待下一轮随 sm 模块重构一并清理。数据/口径零改动，纯前端结构层；描述串「sm 去重 · 删重复估值流动性卡」入 verify_sync 标记组 */
-  if (vc) vc.textContent = 'v526 · 自选' /* fw2_v516_a500lk fw2_v517_4otc fw2_v518_hspos fw2_v519_sm_merge fw2_v520_chgflat fw2_v521_magnet fw2_v522_overview fw2_v523_sm_dedup fw2_v524_geo_fsi fw2_v525_geo_filter fw2_v526_geo_filter_removed */ + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  if (vc) vc.textContent = 'v527 · 自选' /* fw2_v516_a500lk fw2_v517_4otc fw2_v518_hspos fw2_v519_sm_merge fw2_v520_chgflat fw2_v521_magnet fw2_v522_overview fw2_v523_sm_dedup fw2_v524_geo_fsi fw2_v525_geo_filter fw2_v526_geo_filter_removed fw2_v527_verdict */ + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
