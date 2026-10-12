@@ -1384,7 +1384,28 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
       #view-macro .mc-meta .mc-lag{color:var(--warn)}
       /* fw2_v521_magnet：组内大磁铁（方向结论 + 证据链）——插在各组第一张卡上方，
          __mcApply 按 data-mg 过滤显隐；红=支持(涨红) / 绿=反对(跌绿) / 琥珀=证据分歧 / 灰=无方向证据 */
-      #view-macro .mc-magnet{border:1px solid var(--line);border-left:4px solid var(--muted);border-radius:var(--r-8);padding:10px 14px;margin:0 0 10px;background:var(--panel-2)}
+      /* fw2_v522_overview：L1 周期总览层样式（六磁铁网格/五步SOP/联动矩阵卡；红=有利·涨红惯例） */
+  #view-macro .mc-ov-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:0 0 12px}
+  #view-macro .mc-ov-sop{display:flex;flex-wrap:wrap;gap:8px;align-items:stretch;margin:0 0 12px}
+  #view-macro .mc-ov-sop>b{font-size:13px;font-weight:500;color:var(--slate-600,#475569);align-self:center;margin-right:2px}
+  #view-macro .mc-ov-step{flex:1 1 120px;min-width:120px;border:1px solid var(--line-mid,#d8dee6);border-radius:10px;padding:8px 10px;cursor:pointer;background:var(--panel-3,#f1f5f9)}
+  #view-macro .mc-ov-step.on{border-color:var(--nav-blue,#2f6bff);background:#eef4ff}
+  #view-macro .mc-ov-step i{display:block;font-style:normal;font-size:12px;font-weight:500;color:var(--slate-700,#334155)}
+  #view-macro .mc-ov-step em{display:block;font-style:normal;font-size:11px;color:var(--slate-500,#64748b);margin-top:2px}
+  #view-macro .mc-matrix{border:1px solid var(--line-mid,#d8dee6);border-radius:10px;padding:10px 12px;background:#fff}
+  #view-macro .mc-matrix b{display:block;font-size:12px;font-weight:500;color:var(--slate-600,#475569)}
+  #view-macro .mc-mx-v{display:block;font-size:15px;font-weight:500;margin:4px 0 2px}
+  #view-macro .mc-mx-d{display:block;font-size:11px;color:var(--slate-500,#64748b);line-height:1.5}
+  #view-macro .mc-mx-go{display:inline-block;margin-top:6px;font-size:11px;color:var(--nav-blue,#2f6bff);cursor:pointer}
+  #view-macro .mc-matrix.pos{border-left:3px solid var(--up,#dc2626)}
+  #view-macro .mc-matrix.pos .mc-mx-v{color:var(--up,#dc2626)}
+  #view-macro .mc-matrix.neg{border-left:3px solid var(--down,#16a34a)}
+  #view-macro .mc-matrix.neg .mc-mx-v{color:var(--down,#16a34a)}
+  #view-macro .mc-matrix.div{border-left:3px solid var(--warn,#d97706)}
+  #view-macro .mc-matrix.div .mc-mx-v{color:var(--warn,#d97706)}
+  @media (max-width:900px){#view-macro .mc-ov-grid{grid-template-columns:repeat(2,1fr)}}
+  @media (max-width:600px){#view-macro .mc-ov-grid{grid-template-columns:1fr}}
+  #view-macro .mc-magnet{border:1px solid var(--line);border-left:4px solid var(--muted);border-radius:var(--r-8);padding:10px 14px;margin:0 0 10px;background:var(--panel-2)}
       #view-macro .mc-magnet-h{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
       #view-macro .mc-magnet-q{font-size:11px;color:var(--muted);font-weight:600}
       #view-macro .mc-magnet-v{font-size:17px;font-weight:800;color:var(--text);line-height:1.2}
@@ -7920,41 +7941,27 @@ function renderReplayCard(rp) {
     + '<div class="rv-line"><span class="tag tag-data">口径</span><span>' + rp.note + '</span></div>'
     + '</div>';
 }
-function renderMacro() {
-  const body = $('#macroBody'); if (!body) return;
-  const d = state.macro;
-  if (!d) { body.innerHTML = '<div class="card"><div class="empty st st-empty">宏观数据加载中…</div></div>'; return; }
-  /* fw2_v453_macro_hb：美国高频景气（USH 手册整合）数据入口——ushf 键（FRED 官方 CSV 通道） */
+/* ===== fw2_v522_overview：B1 周期总览层（方案B架构重组第一阶段） =====
+   背景：宏观周期模块（view-macro）原 5 tab 混维（地域/功能/资产类别同级）、15 类指标 13 类跨模块重复、
+   跨模块无阅读 SOP。B1 新增 L1「周期总览」（macroRegion='ov'，默认落点）：五步阅读法 + 六磁铁 + 跨组联动矩阵。
+   ★同源设计：mcCalcCommon/mcActOk/mcRegisterEvidence 均从 renderMacro/renderMacroGrowth 原样抽出，
+   renderMacro（明细页）与 renderMacroOverview（总览）调用同一函数 ⇒ 磁铁读数 100% 同源，杜绝两套结论。
+   联动矩阵口径：A股综合赔率=ERP+PE+宽基三票；盈利周期位置=PMI两期+剪刀差+信用脉冲；风险开关=VIX+汇率红绿灯
+   （FSI score 口径未确认只展示不计分，不臆造）；海外顺逆风=标普PE分位+美元近6月+红绿灯达标数。 */
+function mcCalcCommon(d) {
+  /* fw2_v453_macro_hb：美国高频景气取数块（fw2_v522_overview：自 renderMacro 原样抽出为同源计算函数，
+     总览页 renderMacroOverview 与明细页 renderMacro 调用同一函数 ⇒ 磁铁读数 100% 同源） */
   const ushf = (d && d.ushf) || {};
   const ushfIC = ushf.initialClaims || {}, ushfUR = ushf.unrate || {}, ushfRet = ushf.retail || {},
         ushfPce = ushf.incomePce || {}, ushfDur = ushf.durables || {}, ushfLei = ushf.lei || {},
         ushfFF = ushf.fedFunds || {}, ushfBE = ushf.breakeven || {}, ushfFis = ushf.fiscal || {},
         ushfCc = ushf.consumerConfidence || {},
         ushfCli = (ushf.globalCli && ushf.globalCli.countries) || {};
-  /* fw2_v512_uscard：ISM 制造业/非制造业 PMI 取 macroAlt（腾讯自选股 westock 源，v460 / v462 已接通）。
-     此前全球周期页 ISM 卡仍标「待通」属陈旧标注——数据早在、只是没渲染，本次补渲染。
-     ★注意：另一个函数（宏观硬指标页）里已有同名 alt 变量，此处必须另取 altUs 避免冲突。 */
   const altUs = (d && d.macroAlt) || {};
   const ismMfg = altUs.ismMfg || {}, ismSvc = altUs.ismSvc || {};
-  /* fw2_v454_cbRates：全球央行政策利率一览（各国央行官网/FRED 官方，cbRates 键） */
   const cbRates = (d && d.cbRates) || { updatedAt: '', meta: {}, rates: [] };
   const cbRatesArr = cbRates.rates || [];
-  /* fw2_v431 宏观周期并列模块：中国周期 / 美国/全球周期 / 宏观指标 / 资产价格监控 四并列 tab 整屏切换。
-     中国周期=9 张周期卡平铺（四周期嵌套/周期定位/历史相似阶段回放/层1/层2/信用脉冲/层3/层4/行业周期）；
-     美国/全球周期=FSI+美国资产温度+美国四周期+美元/黄金/大宗全球资产信号（fw2_v436 并入）；
-     宏观指标=13 张指标卡平铺（股债性价比/PE/信用脉冲/CPI-PPI/美元利差/VIX/PMI/两融成交/成交额/宽基估值/全球利率/美股估值/日经225）。 */
-  const _region = state.macroRegion || 'cn';
-  const _navEl = document.getElementById('dcMcNav');
-  /* fw2_v431：静态导航恒隐藏（显示规则由 __mcApply 按 region 统一执行） */
-  if (_navEl) _navEl.style.display = 'none';
-  fillMacroTabs();
-  if (_region === 'us') { body.innerHTML = renderMacroUS(d); renderMacroUSCharts(); return; }   /* fw2_v464_fsi_dedup：FSI 横幅从美国/全球周期移除（与「市场情绪」重复），全球金融压力指数只留在市场情绪页 */
-  if (_region === 'sm') { body.innerHTML = renderMacroSentiment(d); return; }
-  /* fw2_v432 资产价格监控：19 项全景 · 磁贴+分区表+弹层走势 · 周期/持仓/信号三联动 */
-  if (_region === 'px') { renderPriceMon(d); return; }
-  /* fw2_v463_growth：mh「宏观硬指标」独立 tab 已删（并入 mi 的「实体景气」区，见 renderMacroGrowth） */
   const N = { '1': 12, '3': 36, '5': 60, '10': 120 }[state.macroWin] || 120;
-  /* v196 宏观周期：四层周期定位引擎（纯规则实时计算，口径见 cycleEngine） */
   const cyc = cycleEngine(d);
   const indList = (d.industry && d.industry.list) || [];
   const erp = _mcSlice(d.erp && d.erp.points, N);
@@ -7963,23 +7970,221 @@ function renderMacro() {
   const eCur = d.erp && d.erp.cur || {}, ePct = d.erp && d.erp.erpPct;
   const cCur = d.credit && d.credit.cur || {};
   const peLast = (d.pe && d.pe.points && d.pe.points.length) ? d.pe.points[d.pe.points.length - 1] : null;
-  const erpLvl = ePct == null ? '—' : ePct >= 75 ? '增配股票（M9：股债利差高位，≥75% 增股至 70-80%）' : ePct >= 50 ? '均衡偏股（股债性价比中高位）' : ePct >= 25 ? '均衡偏债（性价比中性偏低）' : '减配股票（M9：<25% 减股至 20-30%）';
-  const peLvl = peLast ? (peLast[2] == null ? '—' : peLast[2] >= 80 ? '偏贵（>80% 减速止盈）' : peLast[2] >= 60 ? '中性偏暖' : peLast[2] >= 40 ? '中性' : peLast[2] >= 20 ? '中性偏冷' : '便宜（<20% 加档定投）') : '—';
-  const gapLvl = cCur.gap == null ? '—' : cCur.gap >= 0 ? '盈利扩张·顺风（M1>M2，中枢可维持）' : cCur.gap >= -2 ? '收敛观察·等拐点（剪刀差负值收窄=回暖前兆）' : '盈利收缩·逆风（M1&lt;M2 深负，降仓位中枢）';
-  /* v54 fw2_v54_macroext：物价/外围/VIX */
   const price = _mcSlice(d.price && d.price.points, N);
   const fx = _mcSlice(d.fx && d.fx.points, N);
   const vix = _mcSlice(d.vix && d.vix.points, N);
   const broad = d.broad || {};
   const rates = _mcSlice(d.rates && d.rates.points, N);
   const rtLast = rates.length ? rates[rates.length - 1] : null;
-  /* v64.5 标普500(.INX) + 日经225(东财全球) 跨资产 */
   const spx = d.spx || {};
-  const nky = d.nky || null;
   const spxPts = spx.points && spx.points.length ? spx.points : [];
   const spxLast = spxPts.length ? spxPts[spxPts.length - 1] : null;
   const spxPct = spxLast && spxLast[2] != null ? spxLast[2] : null;
+  const amtDall = (d.amtD && d.amtD.points) || [];
+  const amtDunset = !!(d.amtD && d.amtD.settled === false && amtDall.length > 1);
+  const amtDallLast = amtDall.length ? amtDall[amtDall.length - 1] : null;
+  const amtDpts = amtDunset ? amtDall.slice(0, -1) : amtDall;
+  const amtDlast = amtDpts.length ? amtDpts[amtDpts.length - 1] : null;
+  const amtDv = amtDunset ? amtDallLast[1] : (amtDlast ? amtDlast[1] : null);
+  const amtDAsOf = amtDallLast ? amtDallLast[0] : null;
+  const amtDcap = amtDunset ? String((d.amtD && d.amtD.capturedAt) || '').slice(11, 16) : '';
+  const amtDavg = amtDpts.length ? amtDpts.reduce((a, p) => a + p[1], 0) / amtDpts.length : null;
+  const amtDmin = amtDpts.length ? Math.min.apply(null, amtDpts.map((p) => p[1])) : null;
+  const amtDmax = amtDpts.length ? Math.max.apply(null, amtDpts.map((p) => p[1])) : null;
+  const amtDrl = (!amtDunset && amtDv != null && amtDavg) ? (amtDv / amtDavg - 1) * 100 : null;
+  const amtDtxt = amtDv == null ? '—' : (amtDv < 20000 ? fmtNum(amtDv, 0) + ' 亿' : fmtNum(amtDv / 10000, 2) + ' 万亿');
+  const amtDlvl = amtDv == null ? '—' : amtDunset ? '盘中数据·待收盘确认'
+    : amtDv < 15000 ? '冰点·网格定投区' : amtDv < 20000 ? '关注入场点' : amtDv < 30000 ? '正常区' : '过热·分批卖';
+  const pLast = price.length ? price[price.length - 1] : null;
+  const cpiL = pLast ? pLast[1] : null, ppiL = pLast ? pLast[2] : null, pgL = pLast ? pLast[3] : null;
+  const priceLvl = pgL == null ? '—' : pgL <= -2 ? 'PPI 强势·上游资源/顺周期占优（再平衡参考）' : pgL >= 2 ? 'CPI 强势·中下游消费占优' : '剪刀差温和·风格均衡';
+  const fL = fx.length ? fx[fx.length - 1][1] : null, uL = fx.length ? fx[fx.length - 1][2] : null, tL = fx.length ? fx[fx.length - 1][3] : null, jpyL = fx.length ? fx[fx.length - 1][4] : null;
+  const fRef = fx.length > 6 ? fx[fx.length - 7] : null;
+  const fChg = fRef && fL ? (fL / fRef[1] - 1) * 100 : null;
+  const uChg = fRef && uL != null && fRef[2] != null ? (uL / fRef[2] - 1) * 100 : null;
+  const badCnt = (fChg != null && fChg > 2 ? 1 : 0) + (tL != null && tL >= 4.5 ? 1 : 0) + (uChg != null && uChg > 3 ? 1 : 0);
+  const fxGate = badCnt >= 2 ? '逆风·防御' : badCnt === 1 ? '警惕·半档' : '顺风';
+  const vL = vix.length ? vix[vix.length - 1][1] : null;
+  const vixLvl = vL == null ? '—' : vL >= 30 ? '恐慌区·外围风险开关开启（降杠杆、避开开仓）' : vL >= 20 ? '警惕区·控制新仓' : '平稳区·外围无警示';
+  const pmi = _mcSlice(d.pmi && d.pmi.points, N);
+  const mrg = _mcSlice(d.margin && d.margin.points, N);
+  const amt = _mcSlice(d.amt && d.amt.points, N);
+  const pmLast = pmi.length ? pmi[pmi.length - 1] : null;
+  const mk = pmLast ? pmLast[1] : null, nm2 = pmLast ? pmLast[2] : null;
+  const pmPrev = pmi.length > 1 ? pmi[pmi.length - 2] : null;
+  const pmiLvl = mk == null ? '—' : (mk >= 50 && pmPrev && pmPrev[1] >= 50) ? '盈利扩张·顺风（连续站上荣枯线，定投可加档）' : (mk < 49 && pmPrev && pmPrev[1] < 49) ? '盈利收缩·逆风（连续低于 49，降仓位中枢）' : '荣枯线附近·观察（等待方向确认）';
+  const mLast = mrg.length ? mrg[mrg.length - 1] : null;
+  const myYe = mLast ? mLast[1] : null, myZb = mLast ? mLast[2] : null;
+  const zbSeries = d.margin && d.margin.points ? d.margin.points.map((p) => p[2]).filter((v) => v != null) : [];
+  const zbPct = myZb != null && zbSeries.length ? Math.round(zbSeries.filter((v) => v <= myZb).length / zbSeries.length * 1000) / 10 : null;
+  const aCur = d.amt && d.amt.cur || null;
+  const aPct = aCur ? aCur[2] : null;
+  const moodLvl = ((zbPct != null && zbPct > 90) || (aPct != null && aPct > 90)) ? '过热·杠杆拥挤（防御，暂停加档）' : ((zbPct != null && zbPct < 10) || (aPct != null && aPct < 10)) ? '冰点·逆向关注（可小幅加档）' : '中性区·正常节奏';
+  const erpLvl = ePct == null ? '—' : ePct >= 75 ? '增配股票（M9：股债利差高位，≥75% 增股至 70-80%）' : ePct >= 50 ? '均衡偏股（股债性价比中高位）' : ePct >= 25 ? '均衡偏债（性价比中性偏低）' : '减配股票（M9：<25% 减股至 20-30%）';
+  const peLvl = peLast ? (peLast[2] == null ? '—' : peLast[2] >= 80 ? '偏贵（>80% 减速止盈）' : peLast[2] >= 60 ? '中性偏暖' : peLast[2] >= 40 ? '中性' : peLast[2] >= 20 ? '中性偏冷' : '便宜（<20% 加档定投）') : '—';
+  const gapLvl = cCur.gap == null ? '—' : cCur.gap >= 0 ? '盈利扩张·顺风（M1>M2，中枢可维持）' : cCur.gap >= -2 ? '收敛观察·等拐点（剪刀差负值收窄=回暖前兆）' : '盈利收缩·逆风（M1&lt;M2 深负，降仓位中枢）';
   const spxLvl = spxPct == null ? '—' : spxPct >= 80 ? '偏贵（>80% 减速止盈）' : spxPct >= 60 ? '中性偏暖' : spxPct >= 40 ? '中性' : spxPct >= 20 ? '中性偏冷' : '便宜（<20% 加档定投）';
+  /* fw2_v522_overview：nky 本体随 BLOCK1 抽出（nkyVal/nkyChg/nkyOk/nkyTs/nkyTsTxt/nkySrcTxt/nkyPts/
+     nkyP0/nkyPL/nkyPRet/nkyFreqTxt/nkyHi/nkyLo/nkyDd/nkyRangeBar 仍在 renderMacro 原声明，依赖 nky 与解构值） */
+  const nky = d.nky || null;
+  return { d: d, ushf: ushf, ushfIC: ushfIC, ushfUR: ushfUR, ushfRet: ushfRet, ushfPce: ushfPce, ushfDur: ushfDur, ushfLei: ushfLei, ushfFF: ushfFF, ushfBE: ushfBE, ushfFis: ushfFis, ushfCc: ushfCc, ushfCli: ushfCli, altUs: altUs, ismMfg: ismMfg, ismSvc: ismSvc, cbRates: cbRates, cbRatesArr: cbRatesArr, N: N, cyc: cyc, indList: indList, erp: erp, pe: pe, cr: cr, eCur: eCur, ePct: ePct, cCur: cCur, peLast: peLast, erpLvl: erpLvl, peLvl: peLvl, gapLvl: gapLvl, price: price, fx: fx, vix: vix, broad: broad, rates: rates, rtLast: rtLast, spx: spx, spxPts: spxPts, spxLast: spxLast, spxPct: spxPct, spxLvl: spxLvl, nky: nky, amtDall: amtDall, amtDunset: amtDunset, amtDallLast: amtDallLast, amtDpts: amtDpts, amtDlast: amtDlast, amtDv: amtDv, amtDAsOf: amtDAsOf, amtDcap: amtDcap, amtDavg: amtDavg, amtDmin: amtDmin, amtDmax: amtDmax, amtDrl: amtDrl, amtDtxt: amtDtxt, amtDlvl: amtDlvl, pLast: pLast, cpiL: cpiL, ppiL: ppiL, pgL: pgL, priceLvl: priceLvl, fL: fL, uL: uL, tL: tL, jpyL: jpyL, fRef: fRef, fChg: fChg, uChg: uChg, badCnt: badCnt, fxGate: fxGate, vL: vL, vixLvl: vixLvl, pmi: pmi, mrg: mrg, amt: amt, pmLast: pmLast, mk: mk, nm2: nm2, pmPrev: pmPrev, pmiLvl: pmiLvl, mLast: mLast, myYe: myYe, myZb: myZb, zbSeries: zbSeries, zbPct: zbPct, aCur: aCur, aPct: aPct, moodLvl: moodLvl };
+}
+function mcActOk(d) {
+  const cn = (d && d.cnMacro) || {}, alt = (d && d.macroAlt) || {};
+  const fmt = function (v) { if (!v || v.value == null) return '—'; if (v.pct) return (v.value * v.scale).toFixed(2) + '%'; if (v.unit) return (v.value * v.scale).toFixed(2) + ' ' + v.unit; return (v.value * v.scale).toFixed(2); };
+  var names = ['GDP', '社零', '固投', '出口', '工业增加值'];
+  var act = [cn.gdp, cn.retail, cn.fai, cn.export, alt.ip];
+  var ok = act.filter(function (v) { return v && v.value != null && (v.value * v.scale) > 0; }).length;
+  var txt = act.map(function (v, i) { return names[i] + ' ' + fmt(v); }).join(' · ');
+  var lvl = ok >= 4 ? '增长动能偏强' : (ok <= 1 ? '增长动能偏弱' : '增长动能分化');
+  return { ok: ok, txt: txt, lvl: lvl, dir: ok >= 4 ? 1 : ok <= 1 ? -1 : 0 };
+}
+function mcRegisterEvidence(C) {
+  window.__MC_EV = {};
+  var mcEv = window.mcEv;
+  var ePct = C.ePct, peLast = C.peLast, broad = C.broad, cCur = C.cCur, mk = C.mk, pmPrev = C.pmPrev, pgL = C.pgL,
+      zbPct = C.zbPct, aPct = C.aPct, amtDunset = C.amtDunset, amtDv = C.amtDv, amtDtxt = C.amtDtxt, vL = C.vL,
+      fxGate = C.fxGate, badCnt = C.badCnt, spxPct = C.spxPct, ushfBE = C.ushfBE, cbRatesArr = C.cbRatesArr,
+      ushfIC = C.ushfIC, ushfUR = C.ushfUR, ushfRet = C.ushfRet, ushfPce = C.ushfPce, ushfCc = C.ushfCc,
+      ushfDur = C.ushfDur, ismMfg = C.ismMfg, ismSvc = C.ismSvc, ushfCli = C.ushfCli;
+  mcEv('val', ePct == null ? 0 : (ePct >= 75 ? 1 : ePct < 25 ? -1 : 0), 'ERP 10年分位 ' + (ePct != null ? fmtNum(ePct, 1) + '%' : '—'));
+  mcEv('val', (peLast && peLast[2] != null) ? (peLast[2] >= 80 ? -1 : peLast[2] < 20 ? 1 : 0) : 0, '沪深300 PE 分位 ' + (peLast && peLast[2] != null ? fmtNum(peLast[2], 1) + '%' : '—'));
+  (function () {
+    var subs = [['中证500', broad.zz500], ['中证1000', broad.zz1000], ['创业板', broad.cyb]], sum = 0, txt = [];
+    subs.forEach(function (sb) {
+      var c = sb[1] && sb[1].cur, p = c ? c[1] : null;
+      txt.push(sb[0] + ' ' + (p != null ? fmtNum(p, 0) + '%' : '—'));
+      if (p != null) sum += (p >= 80 ? -1 : p < 20 ? 1 : 0);
+    });
+    mcEv('val', sum > 0 ? 1 : sum < 0 ? -1 : 0, '宽基估值 ' + txt.join(' · '));
+  })();
+  mcEv('cred', cCur.gap == null ? 0 : (cCur.gap >= 0 ? 1 : cCur.gap >= -2 ? 0 : -1), 'M1−M2 剪刀差 ' + (cCur.gap != null ? fmtNum(cCur.gap, 1) + 'pct' : '—'));
+  mcEv('cred', mk == null ? 0 : ((mk >= 50 && pmPrev && pmPrev[1] >= 50) ? 1 : ((mk < 49 && pmPrev && pmPrev[1] < 49) ? -1 : 0)), '制造业 PMI ' + (mk != null ? fmtNum(mk, 1) : '—') + (pmPrev ? '（前值 ' + fmtNum(pmPrev[1], 1) + '）' : ''));
+  mcEv('cred', 0, 'CPI−PPI 剪刀差 ' + (pgL != null ? fmtNum(pgL, 1) + 'pct' : '—') + ' · 风格参考（非方向证据）');
+  mcEv('mood', ((zbPct != null && zbPct > 90) || (aPct != null && aPct > 90)) ? -1 : ((zbPct != null && zbPct < 10) || (aPct != null && aPct < 10)) ? 1 : 0, '两融占比分位 ' + (zbPct != null ? fmtNum(zbPct, 1) + '%' : '—') + ' · 成交额分位 ' + (aPct != null ? fmtNum(aPct, 1) + '%' : '—'));
+  mcEv('mood', amtDunset ? 0 : (amtDv == null ? 0 : (amtDv < 15000 ? 1 : amtDv >= 30000 ? -1 : 0)), '全A成交额 ' + amtDtxt + (amtDunset ? '（盘中未结算·不判读）' : ''));
+  mcEv('mood', vL == null ? 0 : (vL >= 30 ? -1 : vL < 20 ? 1 : 0), 'VIX ' + (vL != null ? fmtNum(vL, 2) : '—'));
+  mcEv('ovs', fxGate === '逆风·防御' ? -1 : fxGate === '顺风' ? 1 : 0, '外围红绿灯 ' + fxGate + '（达标 ' + badCnt + '/3）');
+  mcEv('ovs', spxPct == null ? 0 : (spxPct >= 80 ? -1 : spxPct < 20 ? 1 : 0), '标普500 PE 分位 ' + (spxPct != null ? fmtNum(spxPct, 0) + '%' : '—'));
+  mcEv('ovs', (ushfBE.cur != null && ushfBE.cur > 2.5) ? -1 : 0, '10Y 盈亏平衡通胀 ' + (ushfBE.cur != null ? fmtNum(ushfBE.cur, 2) + '%' : '—') + '（>2.5% 压制久期）');
+  mcEv('ovs', 0, '五国政策利率 ' + (cbRatesArr.length ? cbRatesArr.map(function (r) { return r.name + ' ' + fmtNum(r.rate, 2) + '%'; }).join(' · ') : '—') + '（水平值·非方向证据）');
+  mcEv('us', (ushfIC.avg4w != null && ushfIC.avg4w > 250000) ? -1 : (ushfIC.avg4w != null && ushfIC.avg4w < 200000) ? 1 : 0, '初请4周均值 ' + (ushfIC.avg4w != null ? fmtNum(ushfIC.avg4w / 1000, 1) + ' 万' : '—'));
+  mcEv('us', (ushfUR.cur != null && ushfUR.cur > 5) ? -1 : 0, 'U-3 失业率 ' + (ushfUR.cur != null ? fmtNum(ushfUR.cur, 1) + '%' : '—'));
+  mcEv('us', ushfRet.cur == null ? 0 : (ushfRet.cur < 0 ? -1 : ushfRet.cur > 5 ? 1 : 0), '零售同比 ' + (ushfRet.cur != null ? fmtNum(ushfRet.cur, 1) + '%' : '—'));
+  mcEv('us', ushfPce.corePceYoy == null ? 0 : (ushfPce.corePceYoy > 2.5 ? -1 : ushfPce.corePceYoy < 2 ? 1 : 0), '核心 PCE 同比 ' + (ushfPce.corePceYoy != null ? fmtNum(ushfPce.corePceYoy, 1) + '%' : '—'));
+  mcEv('us', ushfCc.cur == null ? 0 : (ushfCc.cur < 70 ? -1 : ushfCc.cur > 80 ? 1 : 0), '密歇根信心 ' + (ushfCc.cur != null ? fmtNum(ushfCc.cur, 1) : '—'));
+  mcEv('us', (ushfDur.cur != null && ushfDur.cur < 0) ? -1 : 0, '耐用品同比 ' + (ushfDur.cur != null ? fmtNum(ushfDur.cur, 1) + '%' : '—'));
+  mcEv('us', ismMfg.value == null ? 0 : (ismMfg.value < 50 ? -1 : 1), 'ISM 制造业 ' + (ismMfg.value != null ? fmtNum(ismMfg.value, 1) : '—') + ' · 非制造业 ' + (ismSvc.value != null ? fmtNum(ismSvc.value, 1) : '—'));
+  (function () {
+    var keys = Object.keys(ushfCli).filter(function (k) { return ushfCli[k] && (ushfCli[k].points || []).length; });
+    if (!keys.length) return;
+    var vals = keys.map(function (k) { var p = ushfCli[k].points; return p[p.length - 1][1]; });
+    var avg = vals.reduce(function (a, b) { return a + b; }, 0) / vals.length;
+    mcEv('gbl', avg > 100 ? 1 : avg < 100 ? -1 : 0, 'OECD CLI ' + keys.length + ' 经济体均值 ' + fmtNum(avg, 1) + '（>100 扩张 / <100 收缩）');
+  })();
+}
+function mcMatrix(C) {
+  function mcard(key, title, verdict, cls, detail, go) {
+    return '<div class="mc-matrix ' + cls + '" data-mx="' + key + '"><b>' + esc(title) + '</b>'
+      + '<span class="mc-mx-v">' + esc(verdict) + '</span>'
+      + '<span class="mc-mx-d">' + esc(detail) + '</span>'
+      + (go ? '<span class="mc-mx-go" onclick="window.__mcGo(\'' + go[0] + '\'' + (go[1] != null ? ',' + go[1] : '') + ')">→ ' + esc(go[2]) + '</span>' : '') + '</div>';
+  }
+  var out = [];
+  var e = C.ePct, p = (C.peLast && C.peLast[2] != null) ? C.peLast[2] : null;
+  var b = C.broad || {}, bs = 0, bt = [];
+  [['中证500', b.zz500], ['中证1000', b.zz1000], ['创业板', b.cyb]].forEach(function (sb) {
+    var c = sb[1] && sb[1].cur, pv = c ? c[1] : null;
+    bt.push(sb[0] + ' ' + (pv != null ? fmtNum(pv, 0) + '%' : '—'));
+    if (pv != null) bs += (pv >= 80 ? -1 : pv < 20 ? 1 : 0);
+  });
+  var v1 = 0;
+  if (e != null) v1 += (e >= 75 ? 1 : e < 25 ? -1 : 0);
+  if (p != null) v1 += (p >= 80 ? -1 : p < 20 ? 1 : 0);
+  if (bs > 0) v1 += 1; else if (bs < 0) v1 -= 1;
+  out.push(mcard('odds', 'A股综合赔率', v1 >= 2 ? '便宜 · 可积极' : v1 <= -2 ? '偏贵 · 防御' : '中性 · 维持', v1 >= 2 ? 'pos' : v1 <= -2 ? 'neg' : 'div',
+    'ERP ' + (e != null ? fmtNum(e, 1) + '%' : '—') + ' · PE ' + (p != null ? fmtNum(p, 0) + '%' : '—') + ' · 宽基 ' + bt.join(' / '), ['mi', 0, '估值明细']));
+  var mk = C.mk, gap = C.cCur.gap, pulse = (C.cyc && C.cyc.layers && C.cyc.layers.pulse) ? C.cyc.layers.pulse.phase.s : '';
+  var v2 = 0;
+  if (mk != null && C.pmPrev) v2 += (mk >= 50 && C.pmPrev[1] >= 50) ? 1 : ((mk < 49 && C.pmPrev[1] < 49) ? -1 : 0);
+  if (gap != null) v2 += gap >= 0 ? 1 : gap < -2 ? -1 : 0;
+  v2 += pulse === '扩张' ? 1 : pulse === '收缩' ? -1 : 0;
+  out.push(mcard('earn', '盈利周期位置', v2 >= 2 ? '扩张 · 顺风' : v2 <= -2 ? '收缩 · 逆风' : '僵持 · 观察', v2 >= 2 ? 'pos' : v2 <= -2 ? 'neg' : 'div',
+    'PMI ' + (mk != null ? fmtNum(mk, 1) : '—') + ' · 剪刀差 ' + (gap != null ? fmtNum(gap, 1) : '—') + ' · 信用脉冲 ' + (pulse || '—'), ['mi', 1, '信用明细']));
+  var vL = C.vL, bad = C.badCnt || 0, fsiS = (C.d && C.d.fsi && C.d.fsi.score != null) ? C.d.fsi.score : null;
+  var risk = 0;
+  if (vL != null) risk += vL >= 30 ? 2 : vL >= 20 ? 1 : 0;
+  risk += bad;
+  out.push(mcard('risk', '风险开关', risk >= 3 ? '开启 · 防御' : risk >= 1 ? '半开 · 警惕' : '关闭 · 平稳', risk >= 3 ? 'neg' : risk >= 1 ? 'div' : 'pos',
+    'VIX ' + (vL != null ? fmtNum(vL, 1) : '—') + ' · 汇率红绿灯 ' + C.fxGate + '（' + bad + '/3）' + (fsiS != null ? ' · FSI ' + fmtNum(fsiS, 2) + '（口径未确认·不计分）' : ''), ['mi', 2, '情绪明细']));
+  var sp = C.spxPct, u = C.uChg;
+  var v4 = 0;
+  if (sp != null) v4 += sp >= 80 ? -1 : sp < 20 ? 1 : 0;
+  if (u != null && u > 3) v4 -= 1;
+  v4 -= bad;
+  out.push(mcard('ovs', '海外顺逆风', v4 >= 1 ? '顺风' : v4 <= -1 ? '逆风' : '中性', v4 >= 1 ? 'pos' : v4 <= -1 ? 'neg' : 'div',
+    '标普PE分位 ' + (sp != null ? fmtNum(sp, 0) + '%' : '—') + ' · 美元指数近6月 ' + (u != null ? (u > 0 ? '+' : '') + fmtNum(u, 1) + '%' : '—') + ' · 红绿灯 ' + C.fxGate, ['mi', 3, '海外明细']));
+  return out.join('');
+}
+function renderMacroOverview(d) {
+  var C = mcCalcCommon(d);
+  mcRegisterEvidence(C);
+  /* fw2_v522_overview：实体景气证据在此单独注册（与 mi 页 renderMacroGrowth 的注册同判据同时序，
+     ov 与 mi 两侧②组证据数/顺序/方向完全一致 ⇒ 同源；不放进 mcRegisterEvidence 以免 mi 双注册） */
+  var _g = mcActOk(C.d);
+  window.mcEv('cred', _g.dir, '实体 5 项同比为正 ' + _g.ok + '/5（' + _g.txt + '）');
+  var gi = window.MI_GROUPS || [];
+  var magnets = gi.slice(0, 6).map(function (g, i) { return window.mcMagnet(g, i); }).join('');
+  var mx = mcMatrix(C);
+  var sopSteps = [
+    ['① 总览定位', 'ov', null, '六磁铁 + 联动矩阵 ⇒ 周期位置'],
+    ['② 中国 · 赔率与盈利', 'mi', 0, '估值 / 信用 / 流动性'],
+    ['③ 海外 · 顺逆风', 'mi', 3, '约束 / 美国 / 全球'],
+    ['④ 资产与情绪', 'px', null, '价格全景 + 情绪极值'],
+    ['⑤ 汇成动作', 'ov', null, '加档 / 正常 / 防御']
+  ];
+  var sop = '<div class="mc-ov-sop"><b>五步阅读法</b>' + sopSteps.map(function (st, i) {
+    return '<span class="mc-ov-step' + (i === 0 ? ' on' : '') + '" onclick="window.__mcGo(\'' + st[1] + '\'' + (st[2] != null ? ',' + st[2] : '') + ')"><i>' + st[0] + '</i><em>' + esc(st[3]) + '</em></span>';
+  }).join('') + '</div>';
+  return '<div class="card"><div class="card-h"><h3>周期总览 · 六磁铁与联动矩阵</h3>'
+    + '<span class="hint">fw2_v522_overview：L1 总览层——磁铁与各明细页 100% 同源（mcRegisterEvidence 同一函数注册）；矩阵卡＝跨组组合指标。数据截至 ' + esc((d && d.updatedAt) || '—') + ' · 点步骤条可跳转明细</span></div>'
+    + sop
+    + '<div class="mc-ov-grid">' + magnets + '</div>'
+    + '<div class="mc-ov-grid mc-ov-mx">' + mx + '</div>'
+    + '</div>';
+}
+window.__mcGo = function (region, group) {
+  state.macroRegion = region;
+  if (group != null) state.miGroup = group;
+  if (typeof renderMacro === 'function') renderMacro();
+  if (typeof fillMacroTabs === 'function') fillMacroTabs();
+};
+function renderMacro() {
+  const body = $('#macroBody'); if (!body) return;
+  const d = state.macro;
+  if (!d) { body.innerHTML = '<div class="card"><div class="empty st st-empty">宏观数据加载中…</div></div>'; return; }
+  const C = mcCalcCommon(d);
+  const { ushf, ushfIC, ushfUR, ushfRet, ushfPce, ushfDur, ushfLei, ushfFF, ushfBE, ushfFis, ushfCc, ushfCli,
+    altUs, ismMfg, ismSvc, cbRates, cbRatesArr, N, cyc, indList, erp, pe, cr, eCur, ePct, cCur, peLast,
+    erpLvl, peLvl, gapLvl, price, fx, vix, broad, rates, rtLast, spx, spxPts, spxLast, spxPct, spxLvl, nky,
+    amtDall, amtDunset, amtDallLast, amtDpts, amtDlast, amtDv, amtDAsOf, amtDcap, amtDavg, amtDmin, amtDmax, amtDrl, amtDtxt, amtDlvl,
+    pLast, cpiL, ppiL, pgL, priceLvl, fL, uL, tL, jpyL, fRef, fChg, uChg, badCnt, fxGate, vL, vixLvl,
+    pmi, mrg, amt, pmLast, mk, nm2, pmPrev, pmiLvl, mLast, myYe, myZb, zbSeries, zbPct, aCur, aPct, moodLvl } = C;
+  /* fw2_v431 宏观周期并列模块：中国周期 / 美国/全球周期 / 宏观指标 / 资产价格监控 四并列 tab 整屏切换。
+     中国周期=9 张周期卡平铺（四周期嵌套/周期定位/历史相似阶段回放/层1/层2/信用脉冲/层3/层4/行业周期）；
+     美国/全球周期=FSI+美国资产温度+美国四周期+美元/黄金/大宗全球资产信号（fw2_v436 并入）；
+     宏观指标=13 张指标卡平铺（股债性价比/PE/信用脉冲/CPI-PPI/美元利差/VIX/PMI/两融成交/成交额/宽基估值/全球利率/美股估值/日经225）。 */
+  const _region = state.macroRegion || 'ov';
+  const _navEl = document.getElementById('dcMcNav');
+  /* fw2_v431：静态导航恒隐藏（显示规则由 __mcApply 按 region 统一执行） */
+  if (_navEl) _navEl.style.display = 'none';
+  fillMacroTabs();
+  if (_region === 'ov') { body.innerHTML = renderMacroOverview(d); return; }   /* fw2_v522_overview：L1 周期总览（B1 新增层，默认落点） */
+  if (_region === 'us') { body.innerHTML = renderMacroUS(d); renderMacroUSCharts(); return; }   /* fw2_v464_fsi_dedup：FSI 横幅从美国/全球周期移除（与「市场情绪」重复），全球金融压力指数只留在市场情绪页 */
+  if (_region === 'sm') { body.innerHTML = renderMacroSentiment(d); return; }
+  /* fw2_v432 资产价格监控：19 项全景 · 磁贴+分区表+弹层走势 · 周期/持仓/信号三联动 */
+  if (_region === 'px') { renderPriceMon(d); return; }
+  /* fw2_v463_growth：mh「宏观硬指标」独立 tab 已删（并入 mi 的「实体景气」区，见 renderMacroGrowth） */
   const nkyVal = nky && nky.val != null ? nky.val : null;
   const nkyChg = nky && nky.chgPct != null ? nky.chgPct : null;
   const nkyOk = !!(nky && nky.ok);
@@ -8017,105 +8222,17 @@ function renderMacro() {
     s += '<span>最低 ' + fmtNum(nky.low, 0) + '</span><span>昨收 ' + (nky.prevClose != null ? fmtNum(nky.prevClose, 0) : '—') + '</span><span>最高 ' + fmtNum(nky.high, 0) + '</span></div></div>';
     return s;
   };
-  /* v66 全A日成交额（沪深京·近30日） */
-  /* v119 修复（INC-09-17-a）：amtD.settled === false ＝ 序列末点是「当日盘中累计」而非收盘全天值。
-     此种半日值若照常参与 M7 阈值判读，会被读成「冰点·网格定投区」→ 直接误导加档决策。
-     故：判读改为「盘中数据·待收盘确认」、展示值加「盘中累计」标注、阈值配色与较均值比一并停用；
-     同时 均值/区间/较均值 一律只用**已结算的收盘全天值**，避免统计被系统性拉低。 */
-  const amtDall = (d.amtD && d.amtD.points) || [];
-  const amtDunset = !!(d.amtD && d.amtD.settled === false && amtDall.length > 1);
-  const amtDallLast = amtDall.length ? amtDall[amtDall.length - 1] : null;
-  const amtDpts = amtDunset ? amtDall.slice(0, -1) : amtDall;
-  const amtDlast = amtDpts.length ? amtDpts[amtDpts.length - 1] : null;
-  const amtDv = amtDunset ? amtDallLast[1] : (amtDlast ? amtDlast[1] : null);
-  const amtDAsOf = amtDallLast ? amtDallLast[0] : null;
-  const amtDcap = amtDunset ? String((d.amtD && d.amtD.capturedAt) || '').slice(11, 16) : '';
-  const amtDavg = amtDpts.length ? amtDpts.reduce((a, p) => a + p[1], 0) / amtDpts.length : null;
-  const amtDmin = amtDpts.length ? Math.min.apply(null, amtDpts.map((p) => p[1])) : null;
-  const amtDmax = amtDpts.length ? Math.max.apply(null, amtDpts.map((p) => p[1])) : null;
-  const amtDrl = (!amtDunset && amtDv != null && amtDavg) ? (amtDv / amtDavg - 1) * 100 : null;
-  /* 低于 2万(亿)=2万亿 → 直接显示具体亿数；否则显示 X.XX 万亿 */
-  const amtDtxt = amtDv == null ? '—' : (amtDv < 20000 ? fmtNum(amtDv, 0) + ' 亿' : fmtNum(amtDv / 10000, 2) + ' 万亿');
-  const amtDlvl = amtDv == null ? '—' : amtDunset ? '盘中数据·待收盘确认'
-    : amtDv < 15000 ? '冰点·网格定投区' : amtDv < 20000 ? '关注入场点' : amtDv < 30000 ? '正常区' : '过热·分批卖';
-  const pLast = price.length ? price[price.length - 1] : null;
-  const cpiL = pLast ? pLast[1] : null, ppiL = pLast ? pLast[2] : null, pgL = pLast ? pLast[3] : null;
-  const priceLvl = pgL == null ? '—' : pgL <= -2 ? 'PPI 强势·上游资源/顺周期占优（再平衡参考）' : pgL >= 2 ? 'CPI 强势·中下游消费占优' : '剪刀差温和·风格均衡';
-  const fL = fx.length ? fx[fx.length - 1][1] : null, uL = fx.length ? fx[fx.length - 1][2] : null, tL = fx.length ? fx[fx.length - 1][3] : null, jpyL = fx.length ? fx[fx.length - 1][4] : null;
-  const fRef = fx.length > 6 ? fx[fx.length - 7] : null;
-  const fChg = fRef && fL ? (fL / fRef[1] - 1) * 100 : null;   /* 近6个月人民币贬值幅度%（正=贬） */
-  const uChg = fRef && uL != null && fRef[2] != null ? (uL / fRef[2] - 1) * 100 : null;
-  const badCnt = (fChg != null && fChg > 2 ? 1 : 0) + (tL != null && tL >= 4.5 ? 1 : 0) + (uChg != null && uChg > 3 ? 1 : 0);
-  const fxGate = badCnt >= 2 ? '逆风·防御' : badCnt === 1 ? '警惕·半档' : '顺风';
-  const vL = vix.length ? vix[vix.length - 1][1] : null;
-  const vixLvl = vL == null ? '—' : vL >= 30 ? '恐慌区·外围风险开关开启（降杠杆、避开开仓）' : vL >= 20 ? '警惕区·控制新仓' : '平稳区·外围无警示';
-  /* v55 fw2_v55_macrop2：PMI / 两融 / 成交额 */
-  const pmi = _mcSlice(d.pmi && d.pmi.points, N);
-  const mrg = _mcSlice(d.margin && d.margin.points, N);
-  const amt = _mcSlice(d.amt && d.amt.points, N);
-  const pmLast = pmi.length ? pmi[pmi.length - 1] : null;
-  const mk = pmLast ? pmLast[1] : null, nm2 = pmLast ? pmLast[2] : null;
-  const pmPrev = pmi.length > 1 ? pmi[pmi.length - 2] : null;
-  const pmiLvl = mk == null ? '—' : (mk >= 50 && pmPrev && pmPrev[1] >= 50) ? '盈利扩张·顺风（连续站上荣枯线，定投可加档）' : (mk < 49 && pmPrev && pmPrev[1] < 49) ? '盈利收缩·逆风（连续低于 49，降仓位中枢）' : '荣枯线附近·观察（等待方向确认）';
-  const mLast = mrg.length ? mrg[mrg.length - 1] : null;
-  const myYe = mLast ? mLast[1] : null, myZb = mLast ? mLast[2] : null;
-  const zbSeries = d.margin && d.margin.points ? d.margin.points.map((p) => p[2]).filter((v) => v != null) : [];
-  const zbPct = myZb != null && zbSeries.length ? Math.round(zbSeries.filter((v) => v <= myZb).length / zbSeries.length * 1000) / 10 : null;
-  const aCur = d.amt && d.amt.cur || null;
-  const aPct = aCur ? aCur[2] : null;
-  const moodLvl = ((zbPct != null && zbPct > 90) || (aPct != null && aPct > 90)) ? '过热·杠杆拥挤（防御，暂停加档）' : ((zbPct != null && zbPct < 10) || (aPct != null && aPct < 10)) ? '冰点·逆向关注（可小幅加档）' : '中性区·正常节奏';
   /* fw2_v430c：中国周期 / 宏观指标 渲染同一中国模板但不带窗口工具条（mi 也不带）；
      模块显示控制由 __mcApply 按 region 统一执行（cn 显示周期卡不含美元卡、mi 显示指标卡不含美元卡）。 */
   /* fw2_v521_magnet：证据注册块——每张卡按自身「指向」行同源条件注册 dir(+1有利/-1不利/0中性)与短文本；
      磁铁只汇总不二次判断（口径 100% 同源）。注册顺序：本块（主模板 19 项）→ renderMacroGrowth（实体景气 1 项）
      → wrapMcMods → renderMcMagnets。仅①-⑥组有证据；⑦SOP 磁铁为静态三步摘要（mcSopMagnet）。
      缺源卡（非农·引用/LEI/BDI/日银短观/全球PMI合成）无数据可注册，不臆造方向。 */
-  window.__MC_EV = {};
-  var mcEv = window.mcEv;   /* fw2_v521_magnet：mcEv 定义于数据中心 IIFE，经 window 暴露后取别名 */
-  /* ① A股估值：ERP 分位 ≥75 便宜(+1)/<25 贵(-1)；沪深300 PE 分位 <20 便宜(+1)/>80 贵(-1)；宽基三指数分位少数服从多数 */
-  mcEv('val', ePct == null ? 0 : (ePct >= 75 ? 1 : ePct < 25 ? -1 : 0), 'ERP 10年分位 ' + (ePct != null ? fmtNum(ePct, 1) + '%' : '—'));
-  mcEv('val', (peLast && peLast[2] != null) ? (peLast[2] >= 80 ? -1 : peLast[2] < 20 ? 1 : 0) : 0, '沪深300 PE 分位 ' + (peLast && peLast[2] != null ? fmtNum(peLast[2], 1) + '%' : '—'));
-  (function () {
-    var subs = [['中证500', broad.zz500], ['中证1000', broad.zz1000], ['创业板', broad.cyb]], sum = 0, txt = [];
-    subs.forEach(function (sb) {
-      var c = sb[1] && sb[1].cur, p = c ? c[1] : null;
-      txt.push(sb[0] + ' ' + (p != null ? fmtNum(p, 0) + '%' : '—'));
-      if (p != null) sum += (p >= 80 ? -1 : p < 20 ? 1 : 0);
-    });
-    mcEv('val', sum > 0 ? 1 : sum < 0 ? -1 : 0, '宽基估值 ' + txt.join(' · '));
-  })();
-  /* ② 信用与增长：M1−M2 剪刀差 ≥0 扩张(+1)/−2~0 观察(0)/<−2 收缩(-1)；制造业 PMI 连续≥50 扩张(+1)/连续<49 收缩(-1)/之间观察(0)；
-     CPI−PPI 为风格参考无固有方向，恒 0（卡内明示「非方向证据」）；实体景气在 renderMacroGrowth 注册 */
-  mcEv('cred', cCur.gap == null ? 0 : (cCur.gap >= 0 ? 1 : cCur.gap >= -2 ? 0 : -1), 'M1−M2 剪刀差 ' + (cCur.gap != null ? fmtNum(cCur.gap, 1) + 'pct' : '—'));
-  mcEv('cred', mk == null ? 0 : ((mk >= 50 && pmPrev && pmPrev[1] >= 50) ? 1 : ((mk < 49 && pmPrev && pmPrev[1] < 49) ? -1 : 0)), '制造业 PMI ' + (mk != null ? fmtNum(mk, 1) : '—') + (pmPrev ? '（前值 ' + fmtNum(pmPrev[1], 1) + '）' : ''));
-  mcEv('cred', 0, 'CPI−PPI 剪刀差 ' + (pgL != null ? fmtNum(pgL, 1) + 'pct' : '—') + ' · 风格参考（非方向证据）');
-  /* ③ 情绪与流动性：两融占比/成交额分位 >90 过热(-1)/<10 冰冷(+1)；全A成交额 <1.5万亿 冰冷(+1)/≥3万亿 过热(-1)（盘中未结算=0）；VIX >30 恐慌(-1)/<20 平稳(+1) */
-  mcEv('mood', ((zbPct != null && zbPct > 90) || (aPct != null && aPct > 90)) ? -1 : ((zbPct != null && zbPct < 10) || (aPct != null && aPct < 10)) ? 1 : 0, '两融占比分位 ' + (zbPct != null ? fmtNum(zbPct, 1) + '%' : '—') + ' · 成交额分位 ' + (aPct != null ? fmtNum(aPct, 1) + '%' : '—'));
-  mcEv('mood', amtDunset ? 0 : (amtDv == null ? 0 : (amtDv < 15000 ? 1 : amtDv >= 30000 ? -1 : 0)), '全A成交额 ' + amtDtxt + (amtDunset ? '（盘中未结算·不判读）' : ''));
-  mcEv('mood', vL == null ? 0 : (vL >= 30 ? -1 : vL < 20 ? 1 : 0), 'VIX ' + (vL != null ? fmtNum(vL, 2) : '—'));
-  /* ④ 海外约束：外围红绿灯 逆风(-1)/警惕(0)/顺风(+1)；标普500 PE 分位 >80 贵(-1)/<20 便宜(+1)；
-     10Y 盈亏平衡通胀 >2.5% 压制久期(-1)（卡内阈值原文）；五国政策利率为水平值恒 0 */
-  mcEv('ovs', fxGate === '逆风·防御' ? -1 : fxGate === '顺风' ? 1 : 0, '外围红绿灯 ' + fxGate + '（达标 ' + badCnt + '/3）');
-  mcEv('ovs', spxPct == null ? 0 : (spxPct >= 80 ? -1 : spxPct < 20 ? 1 : 0), '标普500 PE 分位 ' + (spxPct != null ? fmtNum(spxPct, 0) + '%' : '—'));
-  mcEv('ovs', (ushfBE.cur != null && ushfBE.cur > 2.5) ? -1 : 0, '10Y 盈亏平衡通胀 ' + (ushfBE.cur != null ? fmtNum(ushfBE.cur, 2) + '%' : '—') + '（>2.5% 压制久期）');
-  mcEv('ovs', 0, '五国政策利率 ' + (cbRatesArr.length ? cbRatesArr.map(function (r) { return r.name + ' ' + fmtNum(r.rate, 2) + '%'; }).join(' · ') : '—') + '（水平值·非方向证据）');
-  /* ⑤ 美国周期（dir=对美国基本面/外围环境有利性）：初请4周>25万(-1)/<20万(+1)；U-3>5%(-1)；零售同比<0(-1)/>5%(+1)；
-     核心PCE>2.5% 顽固(-1)/<2% 支持宽松(+1)；密歇根信心<70(-1)/>80(+1)；耐用品同比<0(-1)；ISM 制造业<50(-1)/≥50(+1) */
-  mcEv('us', (ushfIC.avg4w != null && ushfIC.avg4w > 250000) ? -1 : (ushfIC.avg4w != null && ushfIC.avg4w < 200000) ? 1 : 0, '初请4周均值 ' + (ushfIC.avg4w != null ? fmtNum(ushfIC.avg4w / 1000, 1) + ' 万' : '—'));
-  mcEv('us', (ushfUR.cur != null && ushfUR.cur > 5) ? -1 : 0, 'U-3 失业率 ' + (ushfUR.cur != null ? fmtNum(ushfUR.cur, 1) + '%' : '—'));
-  mcEv('us', ushfRet.cur == null ? 0 : (ushfRet.cur < 0 ? -1 : ushfRet.cur > 5 ? 1 : 0), '零售同比 ' + (ushfRet.cur != null ? fmtNum(ushfRet.cur, 1) + '%' : '—'));
-  mcEv('us', ushfPce.corePceYoy == null ? 0 : (ushfPce.corePceYoy > 2.5 ? -1 : ushfPce.corePceYoy < 2 ? 1 : 0), '核心 PCE 同比 ' + (ushfPce.corePceYoy != null ? fmtNum(ushfPce.corePceYoy, 1) + '%' : '—'));
-  mcEv('us', ushfCc.cur == null ? 0 : (ushfCc.cur < 70 ? -1 : ushfCc.cur > 80 ? 1 : 0), '密歇根信心 ' + (ushfCc.cur != null ? fmtNum(ushfCc.cur, 1) : '—'));
-  mcEv('us', (ushfDur.cur != null && ushfDur.cur < 0) ? -1 : 0, '耐用品同比 ' + (ushfDur.cur != null ? fmtNum(ushfDur.cur, 1) + '%' : '—'));
-  mcEv('us', ismMfg.value == null ? 0 : (ismMfg.value < 50 ? -1 : 1), 'ISM 制造业 ' + (ismMfg.value != null ? fmtNum(ismMfg.value, 1) : '—') + ' · 非制造业 ' + (ismSvc.value != null ? fmtNum(ismSvc.value, 1) : '—'));
-  /* ⑥ 全球景气：OECD CLI 各经济体最新点均值 >100 扩张(+1)/<100 收缩(-1)（BDI 与日银短观缺源不注册） */
-  (function () {
-    var keys = Object.keys(ushfCli).filter(function (k) { return ushfCli[k] && (ushfCli[k].points || []).length; });
-    if (!keys.length) return;
-    var vals = keys.map(function (k) { var p = ushfCli[k].points; return p[p.length - 1][1]; });
-    var avg = vals.reduce(function (a, b) { return a + b; }, 0) / vals.length;
-    mcEv('gbl', avg > 100 ? 1 : avg < 100 ? -1 : 0, 'OECD CLI ' + keys.length + ' 经济体均值 ' + fmtNum(avg, 1) + '（>100 扩张 / <100 收缩）');
-  })();
+  /* fw2_v521_magnet 证据注册（fw2_v522_overview：抽为 mcRegisterEvidence(C)，总览页同源复用）——
+     每张卡按自身「指向」行同源条件注册 dir(+1有利/-1不利/0中性)与短文本；磁铁只汇总不二次判断（口径 100% 同源）。
+     注册顺序：本块（主模板 19 项）→ renderMacroGrowth（实体景气 1 项，mcActOk 同判据）→ wrapMcMods → renderMcMagnets。
+     仅①-⑥组有证据；⑦SOP 磁铁为静态三步摘要（mcSopMagnet）。缺源卡无数据不臆造方向。 */
+  mcRegisterEvidence(C);
   body.innerHTML = (_region === 'mi' ? renderMacroGroupCaps() : renderMacroToolsHtml()) + `
   <!-- ===== v201 涛动周期：四周期嵌套定位 + 共振合成（周金涛框架） ===== -->
   <div class="card dc-cyc">
@@ -9018,13 +9135,9 @@ function renderMacroGrowth(d) {
   /* fw2_v521_magnet：实体景气补「指向/阈值」行（与其余卡同构），并向②信用与增长组注册证据——
      判据＝GDP/社零/固投/出口/工业增加值五项累计同比为正的项数（70城房价为价格背景不计入）；
      卡内指向与证据注册用同一判据（磁铁只汇总不二次判断 ⇒ 口径同源）。 */
-  var mcEv = window.mcEv;   /* fw2_v521_magnet：mcEv 经 window 暴露（数据中心 IIFE 内定义） */
-  var _actNames = ['GDP', '社零', '固投', '出口', '工业增加值'];
-  var _act = [cn.gdp, cn.retail, cn.fai, cn.export, alt.ip];
-  var _actOk = _act.filter(function (v) { return v && v.value != null && (v.value * v.scale) > 0; }).length;
-  var _actTxt = _act.map(function (v, i) { return _actNames[i] + ' ' + (v ? fmt(v) : '—'); }).join(' · ');
-  var growthLvl = _actOk >= 4 ? '增长动能偏强' : (_actOk <= 1 ? '增长动能偏弱' : '增长动能分化');
-  mcEv('cred', _actOk >= 4 ? 1 : _actOk <= 1 ? -1 : 0, '实体 5 项同比为正 ' + _actOk + '/5（' + _actTxt + '）');
+  /* fw2_v522_overview：实体景气证据计算抽为 mcActOk(d)（总览层同源复用；v521 判据原样迁移） */
+  var _g = mcActOk(d), _actOk = _g.ok, _actTxt = _g.txt, growthLvl = _g.lvl;
+  window.mcEv('cred', _g.dir, '实体 5 项同比为正 ' + _g.ok + '/5（' + _g.txt + '）');
   return '<div class="card" id="miGrowth" style="margin-top:10px"><div class="card-h"><h3>实体景气 · 中国增长与活动</h3>'
     + '<span class="hint">GDP / 社零 / 固投 / 出口 / 工业增加值 / 70城房价 · 理杏仁 + 腾讯westock + 东财(转发统计局) · 每卡独立标注数据截至与来源</span></div>'
     + '<div style="display:flex;flex-wrap:wrap">' + cards + '</div>'
@@ -9094,10 +9207,11 @@ function fillMacroTabs() {
      填充到静态容器 #macroRegion（位于 dcMcNav 之前，页面最上方）。
      只填按钮（静态容器本身已是 #macroRegion，不能嵌套外层 div 造成重复 id） */
   const host = $('#macroRegion'); if (!host) return;
-  const reg = state.macroRegion || 'cn';
+  const reg = state.macroRegion || 'ov';
   const tBase = 'padding:8px 22px;border-radius:10px;border:1px solid var(--line-mid,#d8dee6);background:var(--panel-3,#f1f5f9);color:var(--slate-600,#475569);font-size:13px;font-weight:600;cursor:pointer';
   const tAct = 'padding:8px 22px;border-radius:10px;border:1px solid var(--nav-blue,#2f6bff);background:var(--nav-blue,#2f6bff);color:#fff;font-size:13px;font-weight:600;cursor:pointer';
   const items = [
+    ['ov', '周期总览'],   /* fw2_v522_overview：B1 新增 L1 层（默认落点） */
     ['cn', '中国周期'],
     ['us', '全球周期'],   /* fw2_v467_us_tab_rename：标签「美国/全球周期」→「全球周期」（用户要求，仅显示名，data-r 路由键 us 不动） */
     ['mi', '宏观指标'],
@@ -11170,7 +11284,23 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
      ③实体景气卡补「指向/阈值」行（判据＝GDP/社零/固投/出口/工业增加值五项累计同比为正的项数：≥4 偏强 / 2-3 分化 / ≤1 偏弱）并注册证据。
      ④原「框架与传导」知识卡扩写为「判读 SOP · 三步法」（顺序→结论→动作 + 反例），SOP 组磁铁为静态三步摘要。
      ⑤胶囊行渲染组名 + 结论一句话（该组回答的问题）。数据/口径零改动，纯前端结构层；描述串「宏观指标分组大磁铁重构」入 verify_sync 标记组 */
-  if (vc) vc.textContent = 'v521 · 自选' /* fw2_v516_a500lk fw2_v517_4otc fw2_v518_hspos fw2_v519_sm_merge fw2_v520_chgflat fw2_v521_magnet */ + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  /* fw2_v522_overview：宏观周期模块 B1「周期总览」层（方案B架构重组第一阶段，2026-10-12）——
+     背景：view-macro 原 5 tab 混维（地域/功能/资产类别同级并列）、15 类指标 13 类跨模块重复、跨模块无阅读 SOP，
+     用户痛点＝「按什么顺序看、得出什么结论」不明确。B1 新增 L1 周期总览（macroRegion 增 'ov' tab 并设为默认落点）：
+     ①五步阅读法步骤条（总览定位→中国赔率与盈利→海外顺逆风→资产与情绪→汇成动作，点击跳转对应明细页）；
+     ②六磁铁（MI_GROUPS ①-⑥，omit ⑦SOP——总览自带五步条即 L1 的顺序答案）；
+     ③跨组联动矩阵 4 卡（组合指标，单组磁铁回答不了的跨组问题）：A股综合赔率＝ERP+沪深300PE+宽基三票（±2 档判便宜/偏贵）、
+       盈利周期位置＝PMI两期+剪刀差+信用脉冲、风险开关＝VIX+汇率红绿灯（FSI score 口径未确认只展示不计分，不臆造）、
+       海外顺逆风＝标普PE分位+美元指数近6月+红绿灯；每卡带「→ 跳转明细」链接。
+     ★同源设计：mcCalcCommon/mcActOk/mcRegisterEvidence 从 renderMacro/renderMacroGrowth 原样抽出，
+       明细页与总览页调用同一函数 ⇒ ov 六磁铁与 mi 六磁铁读数 100% 同源（_test_v522_dom.py 逐字段断言 q/v/cnt/cls/evTexts 全等）；
+       实体景气证据在 ov 侧由 renderMacroOverview 单独注册（与 mi 侧 renderMacroGrowth 同判据同时序，避免双注册）。
+     ★踩坑记录：①BLOCK1 cut 误删夹在 spx 系中间的 nky 本体（L7977）→ mi 页 ReferenceError，补抽至 mcCalcCommon；
+       ②gapLvl 抄写漏转义（v521 原文 M1&lt;M2，裸 <M2 被浏览器当标签）→ 未闭合 <b> 吞掉「物价剪刀差」起全部指标卡、
+       wrapMcMods 只包 body 直接子级 .card 致 mi 页 27 卡只剩 4 卡——HTML 文本层 diff 全过但运行时结构崩，CDP DOM 实测才抓到。
+     数据/口径零改动，纯前端结构层；macroRegion 默认落点 4 处（renderMacro/fillMacroTabs/__mcApply×2）cn→ov；
+     __mcGo(region, group) 跨 tab 跳转；描述串「周期总览层与联动矩阵」入 verify_sync 标记组 */
+  if (vc) vc.textContent = 'v522 · 自选' /* fw2_v516_a500lk fw2_v517_4otc fw2_v518_hspos fw2_v519_sm_merge fw2_v520_chgflat fw2_v521_magnet fw2_v522_overview */ + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
@@ -12364,7 +12494,7 @@ setTimeout(() => { renderResearchChips(); if (!state.news.items.length) loadNews
        fw2_v436：原 dm（美元/黄金/大宗）独立 tab 已移除，萧条期资产信号并入美国/全球周期页。 */
     var body = $('macroBody');
     var mods = body ? Array.prototype.slice.call(body.querySelectorAll('.mc-mod')) : [];
-    var reg = state.macroRegion || 'cn';
+    var reg = state.macroRegion || 'ov';
     var isDollar = function (m) { return (m.getAttribute('data-title') || '').indexOf('美元 / 黄金 / 大宗') > -1; };
     var isCyc = function (m) {
       var t = m.getAttribute('data-title') || '';
@@ -12409,7 +12539,7 @@ setTimeout(() => { renderResearchChips(); if (!state.news.items.length) loadNews
       });
     }
     /* 高亮：cn/mi 由顶部模块 tab（fillMacroTabs 重建时已高亮当前 region）；其他 region 沿用 mcMod */
-    var _reg2 = state.macroRegion || 'cn';
+    var _reg2 = state.macroRegion || 'ov';
     ['#dcMcNav', '#mcNavNames'].forEach(function (sel) {
       Array.prototype.forEach.call(document.querySelectorAll(sel + ' button'), function (b) {
         if (_reg2 === 'cn' || _reg2 === 'mi') return;
