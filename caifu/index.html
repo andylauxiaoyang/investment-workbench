@@ -9113,10 +9113,13 @@ function renderMacroSentiment(d) {
   var sNa = (naR && naR.available) ? card('北向成交活跃度(买+卖)', '官方2024停更净买入后盘后总额 · 探测',
     metric('活跃度', fmtNum(naR.value, 1)) +
     '<div style="margin-top:8px">' + sSpark(naR, '#7c3aed') + '</div>' + sSrc(naR)) : '';
+  /* fw2_v523_sm_dedup：市场情绪页去重——核心估值/流动性(ERP/PE/VIX/两融/成交额)已在「宏观指标」mi 页统一呈现，
+     本页删除其重复 spark 卡(erpCard/peCard/mrgCard/vixCard)，聚焦广度(涨跌家数/大小盘)+情绪+资金系数(M2)；
+     FSI/非农/ISM 早已单源(见 v464/v465 注释)，不重复。erpCard/peCard/mrgCard/vixCard 定义暂留为死代码，验证后清理。 */
   var smHtml =
-    '<div style="font-size:12px;color:var(--slate-500,#64748b);margin-bottom:8px">数据截至 ' + esc(d.updatedAt || '') + ' · 聚合视图（ERP/估值/两融/成交额/VIX/FSI 复用各原模块；换手率/股息率/市净率中位数/融资买入额/总市值/大小盘/超额流动性＝理杏仁，恐贪＝CNN）</div>' +
+    '<div style="font-size:12px;color:var(--slate-500,#64748b);margin-bottom:8px">数据截至 ' + esc(d.updatedAt || '') + ' · 市场情绪与广度视图——核心估值/流动性（ERP/PE/VIX/两融/成交额）已在「宏观指标」页统一呈现，本页聚焦广度（涨跌家数 · 大小盘）+ 情绪 + 资金系数(M2)；换手率/股息率/市净率中位数/融资买入额/总市值/超额流动性＝理杏仁，恐贪＝CNN，FSI＝FRED</div>' +
     '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px;margin-top:10px">' +
-    (fsi && fsi.score != null ? fsiCard : '') + erpCard + peCard + mrgCard + amtCard + vixCard + brCard + sSec + sTurn + sDiv + sPb + sMbuy + sCap + sSize + sLiq + sCnn + sLift + sHolder + sCrowd + sBasis + sBp + sCr + sSecUp + sFi + sRp + sOp + sNa + todoCard +
+    (fsi && fsi.score != null ? fsiCard : '') + amtCard + brCard + sSec + sTurn + sDiv + sPb + sMbuy + sCap + sSize + sLiq + sCnn + sLift + sHolder + sCrowd + sBasis + sBp + sCr + sSecUp + sFi + sRp + sOp + sNa + todoCard +
     '</div>';
   return smHtml;
 }
@@ -11300,7 +11303,18 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
        wrapMcMods 只包 body 直接子级 .card 致 mi 页 27 卡只剩 4 卡——HTML 文本层 diff 全过但运行时结构崩，CDP DOM 实测才抓到。
      数据/口径零改动，纯前端结构层；macroRegion 默认落点 4 处（renderMacro/fillMacroTabs/__mcApply×2）cn→ov；
      __mcGo(region, group) 跨 tab 跳转；描述串「周期总览层与联动矩阵」入 verify_sync 标记组 */
-  if (vc) vc.textContent = 'v522 · 自选' /* fw2_v516_a500lk fw2_v517_4otc fw2_v518_hspos fw2_v519_sm_merge fw2_v520_chgflat fw2_v521_magnet fw2_v522_overview */ + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  /* fw2_v523_sm_dedup：宏观周期模块 B2（方案B架构重组第二阶段，2026-10-12）——
+     范围＝B2 三件中可安全落地且不与 B1 磁铁架构冲突的部分：
+     ①市场情绪(sm)页去重：删 erpCard/peCard/mrgCard/vixCard 四张与 mi 宏观指标页重复的 spark 卡（ERP/PE/VIX/两融），
+       保留 amtCard（唯一提供资金系数＝成交/M2，对应"保留 M2"）、brCard（涨跌家数）、sSize（大小盘）及全部情绪专属卡；
+       sm intro 改为「市场情绪与广度视图」并说明核心估值/流动性已归 mi 页。
+     ②FSI/非农/ISM 独享：实测 v464/v465 早已把 FSI 移出美国/全球周期只留 sm、非农/ISM 仅在 us 页渲染并注册到磁铁⑤组，
+       mi 无对应卡 ⇒ 该条已是历史完成项（no-op），仅核验不改动。
+     ③「mi 拆分迁入中国/海外」：与 B1 刚建的 mi 七组磁铁架构（证据按 data-g 绑定）直接冲突，盲迁会崩同源架构，
+       留待与用户确认重设计方案后再动（本轮不做）。
+     ★诚实限定：erpCard/peCard/mrgCard/vixCard 定义及其 erpSpark/peSpark/mrgSpark/vixSpark 函数本轮暂留为死代码（不入 DOM、无害），
+       待下一轮随 sm 模块重构一并清理。数据/口径零改动，纯前端结构层；描述串「sm 去重 · 删重复估值流动性卡」入 verify_sync 标记组 */
+  if (vc) vc.textContent = 'v523 · 自选' /* fw2_v516_a500lk fw2_v517_4otc fw2_v518_hspos fw2_v519_sm_merge fw2_v520_chgflat fw2_v521_magnet fw2_v522_overview fw2_v523_sm_dedup */ + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
