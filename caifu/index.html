@@ -1382,6 +1382,34 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
       #view-macro .mc-meta{display:flex;flex-wrap:wrap;align-items:baseline;gap:var(--sp-8);margin:0 0 10px;padding:6px 10px;background:var(--panel-2);border:1px solid var(--line);border-radius:var(--r-6);font-size:var(--fs-sm);color:var(--muted);line-height:1.6}
       #view-macro .mc-meta b{color:var(--text-2)}
       #view-macro .mc-meta .mc-lag{color:var(--warn)}
+      /* fw2_v521_magnet：组内大磁铁（方向结论 + 证据链）——插在各组第一张卡上方，
+         __mcApply 按 data-mg 过滤显隐；红=支持(涨红) / 绿=反对(跌绿) / 琥珀=证据分歧 / 灰=无方向证据 */
+      #view-macro .mc-magnet{border:1px solid var(--line);border-left:4px solid var(--muted);border-radius:var(--r-8);padding:10px 14px;margin:0 0 10px;background:var(--panel-2)}
+      #view-macro .mc-magnet-h{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+      #view-macro .mc-magnet-q{font-size:11px;color:var(--muted);font-weight:600}
+      #view-macro .mc-magnet-v{font-size:17px;font-weight:800;color:var(--text);line-height:1.2}
+      #view-macro .mc-magnet-cnt{font-size:11px;color:var(--muted);margin-left:auto;font-variant-numeric:tabular-nums}
+      #view-macro .mc-magnet-ev{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+      #view-macro .mc-ev{font-size:11px;line-height:1.5;background:var(--panel);border:1px solid var(--line-2);border-radius:var(--r-6);padding:3px 9px;color:var(--text-2)}
+      #view-macro .mc-ev b{font-weight:700;margin-right:1px}
+      #view-macro .mc-ev b.p{color:var(--up)}
+      #view-macro .mc-ev b.n{color:var(--down)}
+      #view-macro .mc-ev b.z{color:var(--flat)}
+      #view-macro .mc-ev.mc-ev-none{color:var(--muted);border-style:dashed;background:var(--panel-2)}
+      #view-macro .mc-magnet.pos{border-left-color:var(--up)}
+      #view-macro .mc-magnet.pos .mc-magnet-v{color:var(--up)}
+      #view-macro .mc-magnet.neg{border-left-color:var(--down)}
+      #view-macro .mc-magnet.neg .mc-magnet-v{color:var(--down)}
+      #view-macro .mc-magnet.div{border-left-color:var(--warn)}
+      #view-macro .mc-magnet.div .mc-magnet-v{color:var(--warn)}
+      #view-macro .mc-magnet.zero{border-left-color:var(--flat)}
+      #view-macro .mc-magnet.zero .mc-magnet-v{color:var(--flat)}
+      #view-macro .mc-magnet.sop{border-left-color:var(--accent,#4D6BFE)}
+      #view-macro .mc-magnet.sop .mc-magnet-v{color:var(--accent,#4D6BFE)}
+      /* fw2_v521_magnet：组胶囊＝组序阅读入口——组名(①-⑦) + 结论一句话(该组回答的问题) */
+      #mcGroupCaps .v-tab{padding:6px 16px;text-align:left;white-space:normal;line-height:1.25}
+      #mcGroupCaps .v-tab i{display:block;font-style:normal;font-size:10px;font-weight:500;opacity:.78;margin-top:2px}
+      #mcGroupCaps .v-tab.active i{opacity:.92}
 
       /* v196 fw2_v196_macro_cycle：宏观周期 四层定位 + 决策输出 样式 */
       #view-macro .dc-cyc{border-left:3px solid var(--accent,#4D6BFE)}
@@ -8038,6 +8066,56 @@ function renderMacro() {
   const moodLvl = ((zbPct != null && zbPct > 90) || (aPct != null && aPct > 90)) ? '过热·杠杆拥挤（防御，暂停加档）' : ((zbPct != null && zbPct < 10) || (aPct != null && aPct < 10)) ? '冰点·逆向关注（可小幅加档）' : '中性区·正常节奏';
   /* fw2_v430c：中国周期 / 宏观指标 渲染同一中国模板但不带窗口工具条（mi 也不带）；
      模块显示控制由 __mcApply 按 region 统一执行（cn 显示周期卡不含美元卡、mi 显示指标卡不含美元卡）。 */
+  /* fw2_v521_magnet：证据注册块——每张卡按自身「指向」行同源条件注册 dir(+1有利/-1不利/0中性)与短文本；
+     磁铁只汇总不二次判断（口径 100% 同源）。注册顺序：本块（主模板 19 项）→ renderMacroGrowth（实体景气 1 项）
+     → wrapMcMods → renderMcMagnets。仅①-⑥组有证据；⑦SOP 磁铁为静态三步摘要（mcSopMagnet）。
+     缺源卡（非农·引用/LEI/BDI/日银短观/全球PMI合成）无数据可注册，不臆造方向。 */
+  window.__MC_EV = {};
+  var mcEv = window.mcEv;   /* fw2_v521_magnet：mcEv 定义于数据中心 IIFE，经 window 暴露后取别名 */
+  /* ① A股估值：ERP 分位 ≥75 便宜(+1)/<25 贵(-1)；沪深300 PE 分位 <20 便宜(+1)/>80 贵(-1)；宽基三指数分位少数服从多数 */
+  mcEv('val', ePct == null ? 0 : (ePct >= 75 ? 1 : ePct < 25 ? -1 : 0), 'ERP 10年分位 ' + (ePct != null ? fmtNum(ePct, 1) + '%' : '—'));
+  mcEv('val', (peLast && peLast[2] != null) ? (peLast[2] >= 80 ? -1 : peLast[2] < 20 ? 1 : 0) : 0, '沪深300 PE 分位 ' + (peLast && peLast[2] != null ? fmtNum(peLast[2], 1) + '%' : '—'));
+  (function () {
+    var subs = [['中证500', broad.zz500], ['中证1000', broad.zz1000], ['创业板', broad.cyb]], sum = 0, txt = [];
+    subs.forEach(function (sb) {
+      var c = sb[1] && sb[1].cur, p = c ? c[1] : null;
+      txt.push(sb[0] + ' ' + (p != null ? fmtNum(p, 0) + '%' : '—'));
+      if (p != null) sum += (p >= 80 ? -1 : p < 20 ? 1 : 0);
+    });
+    mcEv('val', sum > 0 ? 1 : sum < 0 ? -1 : 0, '宽基估值 ' + txt.join(' · '));
+  })();
+  /* ② 信用与增长：M1−M2 剪刀差 ≥0 扩张(+1)/−2~0 观察(0)/<−2 收缩(-1)；制造业 PMI 连续≥50 扩张(+1)/连续<49 收缩(-1)/之间观察(0)；
+     CPI−PPI 为风格参考无固有方向，恒 0（卡内明示「非方向证据」）；实体景气在 renderMacroGrowth 注册 */
+  mcEv('cred', cCur.gap == null ? 0 : (cCur.gap >= 0 ? 1 : cCur.gap >= -2 ? 0 : -1), 'M1−M2 剪刀差 ' + (cCur.gap != null ? fmtNum(cCur.gap, 1) + 'pct' : '—'));
+  mcEv('cred', mk == null ? 0 : ((mk >= 50 && pmPrev && pmPrev[1] >= 50) ? 1 : ((mk < 49 && pmPrev && pmPrev[1] < 49) ? -1 : 0)), '制造业 PMI ' + (mk != null ? fmtNum(mk, 1) : '—') + (pmPrev ? '（前值 ' + fmtNum(pmPrev[1], 1) + '）' : ''));
+  mcEv('cred', 0, 'CPI−PPI 剪刀差 ' + (pgL != null ? fmtNum(pgL, 1) + 'pct' : '—') + ' · 风格参考（非方向证据）');
+  /* ③ 情绪与流动性：两融占比/成交额分位 >90 过热(-1)/<10 冰冷(+1)；全A成交额 <1.5万亿 冰冷(+1)/≥3万亿 过热(-1)（盘中未结算=0）；VIX >30 恐慌(-1)/<20 平稳(+1) */
+  mcEv('mood', ((zbPct != null && zbPct > 90) || (aPct != null && aPct > 90)) ? -1 : ((zbPct != null && zbPct < 10) || (aPct != null && aPct < 10)) ? 1 : 0, '两融占比分位 ' + (zbPct != null ? fmtNum(zbPct, 1) + '%' : '—') + ' · 成交额分位 ' + (aPct != null ? fmtNum(aPct, 1) + '%' : '—'));
+  mcEv('mood', amtDunset ? 0 : (amtDv == null ? 0 : (amtDv < 15000 ? 1 : amtDv >= 30000 ? -1 : 0)), '全A成交额 ' + amtDtxt + (amtDunset ? '（盘中未结算·不判读）' : ''));
+  mcEv('mood', vL == null ? 0 : (vL >= 30 ? -1 : vL < 20 ? 1 : 0), 'VIX ' + (vL != null ? fmtNum(vL, 2) : '—'));
+  /* ④ 海外约束：外围红绿灯 逆风(-1)/警惕(0)/顺风(+1)；标普500 PE 分位 >80 贵(-1)/<20 便宜(+1)；
+     10Y 盈亏平衡通胀 >2.5% 压制久期(-1)（卡内阈值原文）；五国政策利率为水平值恒 0 */
+  mcEv('ovs', fxGate === '逆风·防御' ? -1 : fxGate === '顺风' ? 1 : 0, '外围红绿灯 ' + fxGate + '（达标 ' + badCnt + '/3）');
+  mcEv('ovs', spxPct == null ? 0 : (spxPct >= 80 ? -1 : spxPct < 20 ? 1 : 0), '标普500 PE 分位 ' + (spxPct != null ? fmtNum(spxPct, 0) + '%' : '—'));
+  mcEv('ovs', (ushfBE.cur != null && ushfBE.cur > 2.5) ? -1 : 0, '10Y 盈亏平衡通胀 ' + (ushfBE.cur != null ? fmtNum(ushfBE.cur, 2) + '%' : '—') + '（>2.5% 压制久期）');
+  mcEv('ovs', 0, '五国政策利率 ' + (cbRatesArr.length ? cbRatesArr.map(function (r) { return r.name + ' ' + fmtNum(r.rate, 2) + '%'; }).join(' · ') : '—') + '（水平值·非方向证据）');
+  /* ⑤ 美国周期（dir=对美国基本面/外围环境有利性）：初请4周>25万(-1)/<20万(+1)；U-3>5%(-1)；零售同比<0(-1)/>5%(+1)；
+     核心PCE>2.5% 顽固(-1)/<2% 支持宽松(+1)；密歇根信心<70(-1)/>80(+1)；耐用品同比<0(-1)；ISM 制造业<50(-1)/≥50(+1) */
+  mcEv('us', (ushfIC.avg4w != null && ushfIC.avg4w > 250000) ? -1 : (ushfIC.avg4w != null && ushfIC.avg4w < 200000) ? 1 : 0, '初请4周均值 ' + (ushfIC.avg4w != null ? fmtNum(ushfIC.avg4w / 1000, 1) + ' 万' : '—'));
+  mcEv('us', (ushfUR.cur != null && ushfUR.cur > 5) ? -1 : 0, 'U-3 失业率 ' + (ushfUR.cur != null ? fmtNum(ushfUR.cur, 1) + '%' : '—'));
+  mcEv('us', ushfRet.cur == null ? 0 : (ushfRet.cur < 0 ? -1 : ushfRet.cur > 5 ? 1 : 0), '零售同比 ' + (ushfRet.cur != null ? fmtNum(ushfRet.cur, 1) + '%' : '—'));
+  mcEv('us', ushfPce.corePceYoy == null ? 0 : (ushfPce.corePceYoy > 2.5 ? -1 : ushfPce.corePceYoy < 2 ? 1 : 0), '核心 PCE 同比 ' + (ushfPce.corePceYoy != null ? fmtNum(ushfPce.corePceYoy, 1) + '%' : '—'));
+  mcEv('us', ushfCc.cur == null ? 0 : (ushfCc.cur < 70 ? -1 : ushfCc.cur > 80 ? 1 : 0), '密歇根信心 ' + (ushfCc.cur != null ? fmtNum(ushfCc.cur, 1) : '—'));
+  mcEv('us', (ushfDur.cur != null && ushfDur.cur < 0) ? -1 : 0, '耐用品同比 ' + (ushfDur.cur != null ? fmtNum(ushfDur.cur, 1) + '%' : '—'));
+  mcEv('us', ismMfg.value == null ? 0 : (ismMfg.value < 50 ? -1 : 1), 'ISM 制造业 ' + (ismMfg.value != null ? fmtNum(ismMfg.value, 1) : '—') + ' · 非制造业 ' + (ismSvc.value != null ? fmtNum(ismSvc.value, 1) : '—'));
+  /* ⑥ 全球景气：OECD CLI 各经济体最新点均值 >100 扩张(+1)/<100 收缩(-1)（BDI 与日银短观缺源不注册） */
+  (function () {
+    var keys = Object.keys(ushfCli).filter(function (k) { return ushfCli[k] && (ushfCli[k].points || []).length; });
+    if (!keys.length) return;
+    var vals = keys.map(function (k) { var p = ushfCli[k].points; return p[p.length - 1][1]; });
+    var avg = vals.reduce(function (a, b) { return a + b; }, 0) / vals.length;
+    mcEv('gbl', avg > 100 ? 1 : avg < 100 ? -1 : 0, 'OECD CLI ' + keys.length + ' 经济体均值 ' + fmtNum(avg, 1) + '（>100 扩张 / <100 收缩）');
+  })();
   body.innerHTML = (_region === 'mi' ? renderMacroGroupCaps() : renderMacroToolsHtml()) + `
   <!-- ===== v201 涛动周期：四周期嵌套定位 + 共振合成（周金涛框架） ===== -->
   <div class="card dc-cyc">
@@ -8400,9 +8478,13 @@ function renderMacro() {
     <div class="card-h"><h3>全球 PMI 合成口径</h3><span class="hint">JPMorgan 全球 PMI（受限）</span></div>
     <div class="rv-line"><span class="tag tag-data">说明</span><span>JPMorgan 全球制造业 PMI 数据源受限，暂用合成口径观察：中国官方 PMI（信用与通胀组）+ 美国 ISM（见本页「ISM 制造业 PMI」卡，v512 已接通）→ 美中两大引擎齐下 = 全球周期下行确认</span></div>
   </div>
-  <!-- ===== fw2_v453 ⑦框架与传导 · 知识卡（静态 · 零取数） ===== -->
+  <!-- ===== fw2_v521_magnet ⑦判读 SOP · 三步法（原 fw2_v453「框架与传导」知识卡扩写；MI_GROUPS key 同步改「判读 SOP」） ===== -->
   <div class="card">
-    <div class="card-h"><h3>框架与传导 · 知识卡</h3><span class="hint">静态框架 · 零取数 · 供分析定位</span></div>
+    <div class="card-h"><h3>判读 SOP · 三步法</h3><span class="hint">顺序 → 结论 → 动作 · 静态知识卡 · 零取数 · 不构成投资建议</span></div>
+    <div class="rv-line"><span class="tag tag-ai">第1步 · 顺序</span><span><b>按组序读，不跳步</b>：①A股估值 → ②信用与增长 → ③情绪与流动性 → ④海外约束 → ⑤美国周期 → ⑥全球景气。估值回答「贵不贵」、信用增长回答「基本面方不方」、情绪回答「拥不拥挤」、海外与美国回答「外围顺不顺」——四问都有答案再谈动作</span></div>
+    <div class="rv-line"><span class="tag tag-ai">第2步 · 结论</span><span><b>先读每组顶部大磁铁，再读组内证据链</b>：磁铁给方向（多数证据方向 + N 正 / M 负计数），证据链（▲支持 / ▼反对 / －中性）验证方向是否被组内各卡同向支撑；任一组「证据分歧」⇒ 该组结论降级为「观察」，不作为行动依据</span></div>
+    <div class="rv-line"><span class="tag tag-ai">第3步 · 动作</span><span><b>对照各卡「阈值」行落动作</b>：加档 / 维持 / 减速一律以卡内分位与剪刀差阈值为准（M1 / M7 / M9 同口径），不凭感觉、不用磁铁替代阈值——磁铁只回答「往哪边看」，阈值才回答「动不动、动多少」</span></div>
+    <div class="rv-line"><span class="tag tag-data">反例</span><span>磁铁「偏便宜」但 ERP 卡阈值未达 75% ⇒ 只记录观察、不加档；磁铁「证据分歧」但某张卡已触发自身阈值 ⇒ 按该卡阈值处理，并知悉组内其他证据不支持</span></div>
     <details><summary>半导体链条与全球周期</summary><div class="rv-line"><span class="tag tag-data">传导</span><span>半导体库存周期 ≈ 全球资本开支先行指标：费半/台积电营收 → 韩国出口 → A股电子/科创</span></div></details>
     <details><summary>利率 × 股市四阶段</summary><div class="rv-line"><span class="tag tag-data">传导</span><span>①加息+盈利↓=熊市 → ②加息+盈利稳=估值消化 → ③降息+盈利↓=政策底 → ④降息+盈利↑=主升浪</span></div></details>
     <details><summary>B2B 循环（设备投资）</summary><div class="rv-line"><span class="tag tag-data">传导</span><span>需求↑ → 产能利用率↑ → 设备投资↑ → 就业/工资↑ → 消费↑ → 需求↑（朱格拉内核）</span></div></details>
@@ -8438,6 +8520,8 @@ function renderMacro() {
       }
       if (gi >= 0) w.setAttribute('data-g', String(gi));
     });
+    /* fw2_v521_magnet：data-g 写完后插各组大磁铁（磁铁是 .mc-mod 兄弟节点，显隐由 __mcApply 按组过滤） */
+    if (typeof window.renderMcMagnets === 'function') window.renderMcMagnets();
   })();
   const axis = (v) => fmtNum(v, 1);
   const base = { tooltip: { trigger: 'axis' }, legend: { top: 0, textStyle: { fontSize: 10, color: '#475569' } }, grid: { left: 44, right: 16, top: 30, bottom: 24 } };
@@ -8931,9 +9015,21 @@ function renderMacroGrowth(d) {
       + '<div style="font-size:23px;font-weight:700;color:var(--slate-800,#1e293b);margin-top:6px;font-variant-numeric:tabular-nums">' + fmt(v) + '</div>'
       + '<div class="asof" style="margin-top:9px;line-height:1.45;display:flex;flex-direction:column;align-items:flex-start">数据截至 <b>' + (v.asOf || '—') + '</b><span>' + esc(v.src) + '</span></div></div>'; };
   const cards = [cn.gdp, cn.retail, cn.fai, cn.export, alt.ip, em.house70].map(card).join('');
+  /* fw2_v521_magnet：实体景气补「指向/阈值」行（与其余卡同构），并向②信用与增长组注册证据——
+     判据＝GDP/社零/固投/出口/工业增加值五项累计同比为正的项数（70城房价为价格背景不计入）；
+     卡内指向与证据注册用同一判据（磁铁只汇总不二次判断 ⇒ 口径同源）。 */
+  var mcEv = window.mcEv;   /* fw2_v521_magnet：mcEv 经 window 暴露（数据中心 IIFE 内定义） */
+  var _actNames = ['GDP', '社零', '固投', '出口', '工业增加值'];
+  var _act = [cn.gdp, cn.retail, cn.fai, cn.export, alt.ip];
+  var _actOk = _act.filter(function (v) { return v && v.value != null && (v.value * v.scale) > 0; }).length;
+  var _actTxt = _act.map(function (v, i) { return _actNames[i] + ' ' + (v ? fmt(v) : '—'); }).join(' · ');
+  var growthLvl = _actOk >= 4 ? '增长动能偏强' : (_actOk <= 1 ? '增长动能偏弱' : '增长动能分化');
+  mcEv('cred', _actOk >= 4 ? 1 : _actOk <= 1 ? -1 : 0, '实体 5 项同比为正 ' + _actOk + '/5（' + _actTxt + '）');
   return '<div class="card" id="miGrowth" style="margin-top:10px"><div class="card-h"><h3>实体景气 · 中国增长与活动</h3>'
     + '<span class="hint">GDP / 社零 / 固投 / 出口 / 工业增加值 / 70城房价 · 理杏仁 + 腾讯westock + 东财(转发统计局) · 每卡独立标注数据截至与来源</span></div>'
-    + '<div style="display:flex;flex-wrap:wrap">' + cards + '</div></div>';
+    + '<div style="display:flex;flex-wrap:wrap">' + cards + '</div>'
+    + '<div class="rv-line"><span class="tag tag-ai">指向</span><span><b>' + growthLvl + '</b> · 5 项同比为正 <b>' + _actOk + '/5</b>（' + _actTxt + '）</span></div>'
+    + '<div class="rv-line"><span class="tag tag-data">阈值</span><span>判据＝五项同比为正的项数：<b>≥4</b> 偏强 · <b>2–3</b> 分化 · <b>≤1</b> 偏弱（累计同比口径，滞后约 1 个月；70城房价为价格背景不计入）</span></div></div>';
 }
 function renderMacroHard(d) {
   /* fw2_v462_pmi：宏观硬指标接统计局官方制造业/非制造业PMI（东财 RPT_ECONOMY_PMI，gen_macro_em.py get_pmi → macroEm.pmiMfg/pmiSvc），替代商业授权的财新PMI；失业率维持留白（统计局WAF+东财无镜像）。
@@ -9029,11 +9125,13 @@ function renderMacroToolsHtml() {
 function renderMacroGroupCaps() {
   const g = window.MI_GROUPS || [];
   const cur = (typeof state.miGroup === 'number') ? String(state.miGroup) : '0';
-  const items = g.map((x) => x.name);
   /* fw2_v466_vtab：mi 子模块胶囊改挂全站标杆 .v-tab（原内联小胶囊 r14/pad4·11/浅蓝tint选中 → 统一为实心蓝白字胶囊） */
-  const html = items.map((t, i) => {
+  /* fw2_v521_magnet：胶囊＝组序阅读入口——组名（①-⑦ 序号）+ 结论一句话（该组回答的问题，见 MI_GROUPS concl）；
+     组序即阅读序，方向结论由组内大磁铁给出（mcMagnet） */
+  const html = g.map((x, i) => {
     const key = String(i);
-    return '<button type="button" data-mg="' + key + '" onclick="window.__mcSetGroup(\'' + key + '\')" class="v-tab' + (cur === key ? ' active' : '') + '">' + t + '</button>';
+    return '<button type="button" data-mg="' + key + '" onclick="window.__mcSetGroup(\'' + key + '\')" class="v-tab' + (cur === key ? ' active' : '') + '">'
+      + '<b>' + esc(x.name) + '</b>' + (x.concl ? '<i>' + esc(x.concl) + '</i>' : '') + '</button>';
   }).join('');
   return '<div id="mcGroupCaps" class="v-tabs" style="margin:0 0 10px">' + html + '</div>';
 }
@@ -11060,7 +11158,19 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
   /* fw2_v520_chgflat：环比「+0.0%」伪精度显示修正——共四处渲染点：4 期对比矩阵（matrixBody 内联）、汇金A股持仓季度面板与个股·中央汇金/证金持仓表（共用 chgCell）、国家队宽基 ETF 每日份额表（renderEtfShares 内匿名 cell，v282 既有功能，同一现象）。现象＝相邻报告期持股数/份额变化极小的行（如工商银行 601398：86,180,148,138 → 86,188,588,272）原显示「+0.0%」或「-0.0%」：toFixed(1) 把 [0, 0.05) 压成 0.0，属伪精度噪声而非真实持平，且与 chgCell 的「—」（无变化）视觉混淆。修法＝|chg| < 0.05（toFixed(1) 必然显 0.0 的区间）改显「≈持平」；阈值依据：toFixed(1) 显 0.0 ⟺ |x|<0.05，该区间一律判持平、不损失任何可辨变化。数据/口径零改动，纯显示层。描述串「环比伪精度显示修正」入 verify_sync 标记组 */
   /* fw2_v519_sm_merge：13F独立版下线·三项整合——①数据同源判定：独立版 smartmoney/13f_workbench_ashare.html 的 window.SM 与窗口 SM_ASHARE 解析后完全相等（48 代表股/报告期 2026-06-30/asOf 2026-09-22/东财 F10 十大股东），ETF 份额同为 data/etf-shares.json；逐视图比对确认模块已是超集（美股 13F 四视图+更快信号 Form4/13D/大宗/两融+与我持仓联动+看板/雷达），独立版仅剩三项模块未渲染内容且数据均在窗口内，全部移植进「聪明的钱」：国家队 tab 新增「宽基 ETF·汇金年报具名明细」表（15 只：hj25/hj24 汇金投资+资产份额与占比、24→25 变动 pp、26H1 机构占比/总份额、前十名持有人 details 展开，替代原 12 张简化卡片）、「汇金 A股持仓·季度」面板（smAqRows：两家合计/中央汇金投资/中央汇金资产切换 chips，8 报告期序列+新进/清仓统计+市值环比）、「个股·中央汇金/证金持仓」表（37 只）；机构反查弹层 openInstA 增「4 期对比矩阵」模式（每股×5 报告期持股数+环比+最新季动作，自独立版 proBody 移植）。②独立版退役：页脚外链 sm-extlink/smOpenTab 与其 CSS 删除、push_gh_v39 FILES 两条移除、_embed_v186_assets 13F b64 处理移除、verify_sync sync pair 与 sm-extlink/smOpenTab 标记移除、gen_fast_signals.load_cn_names 改读本文件 SM_ASHARE.stocks；本地三文件归档 _retired_v519_smartmoney/，远端 GH caifu/smartmoney/ 两文件删除。③移植顺带修正独立版两处显示 bug：个股表环比原 chgTag 把百分比再 /100（5.2% 显 0.1%），改为直接 toFixed(1)；原 12 张卡片只显示前二持有人占比，年报明细表为信息超集。描述串「13F独立版下线·三项整合」入 verify_sync 标记组 */
   /* fw2_v518_hspos：沪深300估值分位单位修正——市场情绪「估值温度 沪深300」卡的「10年分位」把 MKT_SNAP.idx['000300'].pos（理杏仁 cvpos，0-1 小数，0.5917=59.17%）直接当百分比渲染，误显示约 0.6% 并标「便宜」（应 59.2% / 中性）；根因＝该卡 hsPos 漏 ×100（同库 px()/sigMktPos 均已 ×100，唯 renderMacroSentiment 遗漏）。修法：hsPos = idx300.pos*100（回退 pePos 取自 macro pe.points 已是 0-100 不变）。数据侧 MKT_SNAP 与 macro pe.points 均正确（59.17%/59.2%），纯前端渲染 bug；描述串「沪深300估值分位单位修正」入 verify_sync 标记组 */
-  if (vc) vc.textContent = 'v520 · 自选' /* fw2_v516_a500lk fw2_v517_4otc fw2_v518_hspos fw2_v519_sm_merge fw2_v520_chgflat */ + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  /* fw2_v521_magnet：宏观指标页「组内大磁铁」重构（L1 阅读顺序 + L0 结论前置 + L3 判读 SOP，2026-10-12）——
+     ①MI_GROUPS 8 组重构为 7 组结论式分组：每组＝同一类指标指向一个共同结论，新增 id（证据注册键）/ concl（该组回答的问题）/
+       vd（磁铁方向词）字段，组名带①②③序号；「实体景气」并入②信用与增长（原第 8 独立组割裂证据链）；
+       组序即阅读序：①估值 → ②信用增长 → ③情绪 → ④海外 → ⑤美国 → ⑥全球 → ⑦判读 SOP。
+     ②新增 mcEv() 证据注册 + mcMagnet() 磁铁汇总：每张卡渲染时按自身「指向」行同源条件注册 dir（+1 有利 / -1 不利 / 0 中性）与短文本，
+       磁铁只做组内汇总、不做二次判断 ⇒ 口径 100% 同源，杜绝「卡片说偏多、磁铁说偏空」；汇总规则＝多数证据方向 + N正/M负计数，
+       正负相等标「证据分歧」（结论降级为观察）、全中性或零证据标「无方向证据」（零证据仍渲染磁铁明示原因，不用空壳缺席），磁铁插在各组第一张卡上方（.mc-mod 兄弟节点），
+       __mcApply 按 data-mg 过滤显隐（仅 mi 页当前组可见）。共 22 项证据：①3 ②4 ③3 ④4 ⑤7 ⑥1（含 CPI−PPI、五国政策利率两项恒中性背景值）；
+       缺源卡（非农 · 引用 / LEI / BDI / 日银短观 / 全球 PMI 合成）无数据不注册、不臆造方向（⑥组当前 OECD CLI 数据为空 ⇒ 磁铁显「无方向证据」并注明原因）。
+     ③实体景气卡补「指向/阈值」行（判据＝GDP/社零/固投/出口/工业增加值五项累计同比为正的项数：≥4 偏强 / 2-3 分化 / ≤1 偏弱）并注册证据。
+     ④原「框架与传导」知识卡扩写为「判读 SOP · 三步法」（顺序→结论→动作 + 反例），SOP 组磁铁为静态三步摘要。
+     ⑤胶囊行渲染组名 + 结论一句话（该组回答的问题）。数据/口径零改动，纯前端结构层；描述串「宏观指标分组大磁铁重构」入 verify_sync 标记组 */
+  if (vc) vc.textContent = 'v521 · 自选' /* fw2_v516_a500lk fw2_v517_4otc fw2_v518_hspos fw2_v519_sm_merge fw2_v520_chgflat fw2_v521_magnet */ + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
@@ -12159,18 +12269,85 @@ setTimeout(() => { renderResearchChips(); if (!state.news.items.length) loadNews
   };
   /* fw2_fix_mcnav2row：宏观导航两排——周期相关第一行，其他指标第二排 */
   var MC_CYCLE_KEYS = ['周期', '层', '美元 / 黄金', '行业周期', '信用脉冲（社融同比', '历史相似阶段回放'];
-  /* fw2_v455_macro_hb：宏观指标页 7 组（原 4 组 + 美国高频景气 + 全球景气先行 + 框架传导）；
-     组顶胶囊直接按子模块切换（无「全部」聚合，默认组 0）；keys 按 data-title 前缀匹配，同时用于 wrapMcMods 写 data-g */
+  /* fw2_v521_magnet：宏观指标页结论式分组（原 fw2_v455 八组重构为七组）——
+     每组＝同一类指标指向一个共同结论，字段：
+       id   = 证据注册键（mcEv 用）；name = 带①-⑦序号的胶囊名；concl = 该组回答的问题（磁铁标题·胶囊副行）；
+       vd   = 磁铁方向词（p=多数支持 / n=多数反对 / d=正负相等标分歧）；
+       keys = data-title 前缀匹配（wrapMcMods 写 data-g 用）。
+     ★「实体景气」并入②信用与增长（原第 8 独立组）：同为增长侧证据，独立成组反而割裂证据链。
+     ★组序即阅读序（L1）：①估值 → ②信用增长 → ③情绪 → ④海外 → ⑤美国 → ⑥全球 → ⑦判读 SOP。 */
   window.MI_GROUPS = [
-    { name:'估值与性价比 · A股', keys:['ERP 股债性价比', '沪深300 PE-TTM', '宽基估值温度'] },
-    { name:'信用与通胀', keys:['信用脉冲：社融', '物价剪刀差', '制造业 PMI'] },
-    { name:'情绪与流动性', keys:['情绪温度计', '全A成交额', 'VIX 恐慌'] },
-    { name:'海外与利率', keys:['全球利率与汇率', '美股估值温度', '政策利率与收益率曲线', '全球央行政策利率一览'] },
-    { name:'美国 · 高频景气', keys:['非农 · 引用', '初请失业金', '失业率 U3 / U6', '零售销售', '个人收入与 PCE', '消费者信心', '耐用品新订单', 'LEI 领先指标', 'ISM 制造业 PMI'] },
-    { name:'全球 · 景气先行', keys:['OECD 领先指标', 'BDI 波罗的海', '日银短观', '全球 PMI 合成'] },
-    { name:'框架与传导', keys:['框架与传导'] },
-    { name:'实体景气', keys:['实体景气'] }   /* fw2_v463b_growth_capsule：实体景气并入 mi 第 8 组胶囊（v463 追加卡未进 MI_GROUPS→被 __mcApply 隐藏，此修复注册为组，点胶囊显示）*/
+    { id:'val',  name:'① A股估值',       concl:'便宜 / 合理 / 贵',           vd:{ p:'偏便宜', n:'偏贵', d:'证据分歧' },             keys:['ERP 股债性价比', '沪深300 PE-TTM', '宽基估值温度'] },
+    { id:'cred', name:'② 信用与增长',    concl:'扩张 / 收缩 / 僵持',         vd:{ p:'偏扩张', n:'偏收缩', d:'证据分歧' },           keys:['信用脉冲：社融', '物价剪刀差', '制造业 PMI', '实体景气'] },
+    { id:'mood', name:'③ 情绪与流动性',  concl:'过热 / 中性 / 冰冷',         vd:{ p:'偏冰冷·逆向关注', n:'偏过热·防御', d:'证据分歧' }, keys:['情绪温度计', '全A成交额', 'VIX 恐慌'] },
+    { id:'ovs',  name:'④ 海外约束',      concl:'顺风 / 中性 / 逆风',         vd:{ p:'偏顺风', n:'偏逆风', d:'证据分歧' },           keys:['全球利率与汇率', '美股估值温度', '政策利率与收益率曲线', '全球央行政策利率一览'] },
+    { id:'us',   name:'⑤ 美国周期',      concl:'增长 × 通胀 · 周期定位',     vd:{ p:'偏顺风', n:'偏逆风', d:'证据分歧' },           keys:['非农 · 引用', '初请失业金', '失业率 U3 / U6', '零售销售', '个人收入与 PCE', '消费者信心', '耐用品新订单', 'LEI 领先指标', 'ISM 制造业 PMI'] },
+    { id:'gbl',  name:'⑥ 全球景气',      concl:'扩张 / 收缩',                vd:{ p:'偏扩张', n:'偏收缩', d:'证据分歧' },           keys:['OECD 领先指标', 'BDI 波罗的海', '日银短观', '全球 PMI 合成'] },
+    { id:'sop',  name:'⑦ 判读 SOP',      concl:'顺序 → 结论 → 动作',         vd:{ p:'', n:'', d:'' },                               keys:['判读 SOP'] },
   ];
+  /* fw2_v521_magnet：证据注册 + 磁铁汇总（架构核心）——
+     ①卡片渲染时按自身「指向」行同源条件注册证据 mcEv(组id, dir, 短文本)：
+       dir = +1（对按阈值行动有利：便宜/扩张/顺风/冰冷）/ -1（不利：贵/收缩/逆风/过热）/ 0（中性·观察·水平值背景）
+     ②磁铁 mcMagnet 只做组内汇总、不做二次判断 → 口径 100% 同源，杜绝「卡片说偏多、磁铁说偏空」；
+     ③汇总规则＝多数证据方向 + N正/M负计数；正负相等标「证据分歧」（降级为观察）；全中性或零证据标「无方向证据」
+       （零证据仍渲染磁铁明示原因，不用空壳缺席——用户承诺「每个子模块都有大磁铁」）。
+     renderMacro 每次全量重建前先清空 __MC_EV（见 renderMacro 证据注册块），避免重复累计。 */
+  window.mcEv = function (gid, dir, text) {
+    if (!gid) return '';
+    var arr = window.__MC_EV[gid] || (window.__MC_EV[gid] = []);
+    arr.push({ dir: dir, text: text });
+    return '';
+  }
+  window.mcMagnet = function (g, gi) {
+    var ev = (window.__MC_EV && window.__MC_EV[g.id]) || [];
+    var pos = 0, neg = 0, zero = 0, i;
+    for (i = 0; i < ev.length; i++) { if (ev[i].dir > 0) pos++; else if (ev[i].dir < 0) neg++; else zero++; }
+    var cls, verdict, evHtml;
+    if (!ev.length) {
+      /* 组内零注册证据（缺源/背景/说明卡，如⑥全球景气当前 OECD CLI 数据为空）：仍渲染磁铁但明示无方向证据 */
+      cls = 'zero'; verdict = '无方向证据';
+      evHtml = '<span class="mc-ev mc-ev-none">组内暂无方向证据（缺源 / 背景 / 说明卡，见各卡；不臆造方向）</span>';
+    } else {
+      if (pos === 0 && neg === 0) { cls = 'zero'; verdict = '无方向证据'; }
+      else if (pos > neg) { cls = 'pos'; verdict = g.vd.p; }
+      else if (neg > pos) { cls = 'neg'; verdict = g.vd.n; }
+      else { cls = 'div'; verdict = g.vd.d; }
+      evHtml = ev.map(function (e) {
+        var mk = e.dir > 0 ? '<b class="p">▲</b>' : (e.dir < 0 ? '<b class="n">▼</b>' : '<b class="z">－</b>');
+        return '<span class="mc-ev">' + mk + ' ' + esc(e.text) + '</span>';
+      }).join('');
+    }
+    return '<div class="mc-magnet ' + cls + '" data-mg="' + gi + '">'
+      + '<div class="mc-magnet-h"><span class="mc-magnet-q">' + esc(g.name) + ' · ' + esc(g.concl) + '</span>'
+      + '<b class="mc-magnet-v">' + esc(verdict) + '</b>'
+      + '<span class="mc-magnet-cnt">' + pos + ' 项支持 · ' + neg + ' 项反对' + (zero ? ' · ' + zero + ' 项中性' : '') + '</span></div>'
+      + '<div class="mc-magnet-ev">' + evHtml + '</div></div>';
+  }
+  /* fw2_v521_magnet：⑦判读 SOP 组磁铁＝静态三步摘要（该组无取数卡，磁铁即方法本身） */
+  window.mcSopMagnet = function (gi) {
+    return '<div class="mc-magnet sop" data-mg="' + gi + '">'
+      + '<div class="mc-magnet-h"><span class="mc-magnet-q">判读 SOP · 顺序 → 结论 → 动作</span>'
+      + '<b class="mc-magnet-v">三步：先磁铁 → 再证据 → 后阈值</b></div>'
+      + '<div class="mc-magnet-ev">'
+      + '<span class="mc-ev"><b class="z">①</b> 按组序读：①估值 → ②信用增长 → ③情绪 → ④海外 → ⑤美国 → ⑥全球，任何一组「分歧」先放一放</span>'
+      + '<span class="mc-ev"><b class="z">②</b> 组内看证据链：磁铁方向是否被 ▲支持 / ▼反对 同向验证，分歧组结论降级为「观察」</span>'
+      + '<span class="mc-ev"><b class="z">③</b> 对照各卡「阈值」行落动作：加档 / 维持 / 减速以分位与剪刀差阈值为准，磁铁只回答「往哪边看」</span>'
+      + '</div></div>';
+  }
+  /* fw2_v521_magnet：把各组磁铁插到该组第一张 .mc-mod 之前（磁铁＝.mc-mod 兄弟节点）。
+     调用点＝wrapMcMods 末尾（data-g 已写好）；renderMacro 每次重建 body 后自然重插。 */
+  window.renderMcMagnets = function () {
+    var body = $('macroBody'); if (!body) return;
+    (window.MI_GROUPS || []).forEach(function (g, gi) {
+      var html = (g.id === 'sop') ? mcSopMagnet(gi) : mcMagnet(g, gi);
+      if (!html) return;
+      var first = body.querySelector('.mc-mod[data-g="' + gi + '"]');
+      if (!first) return;
+      var wrap = document.createElement('div');
+      wrap.innerHTML = html;
+      body.insertBefore(wrap.firstChild, first);
+    });
+  }
   function renderDcMcNav(){
     /* fw2_v431：名字按钮区已废弃——中国周期改为 8 张周期卡直接平铺、指标卡收进「宏观指标」模块，
        不再注入 #mcNavNames；静态 #dcMcNav 保持隐藏（显示规则由 __mcApply 统一执行）。 */
@@ -12203,6 +12380,11 @@ setTimeout(() => { renderResearchChips(); if (!state.news.items.length) loadNews
         var on = (isCyc(m) === showCyc);
         if (on && reg === 'mi') on = (m.getAttribute('data-g') === grp);
         m.style.display = on ? 'block' : 'none';
+      });
+      /* fw2_v521_magnet：组磁铁随组过滤显隐（磁铁不参与上面 mods 过滤）；
+         仅 mi 页显示当前组磁铁，cn/us/px/sm 一律隐藏 */
+      Array.prototype.forEach.call(body.querySelectorAll('.mc-magnet'), function (mg) {
+        mg.style.display = (reg === 'mi' && mg.getAttribute('data-mg') === grp) ? 'block' : 'none';
       });
       vis = mods.filter(function (m) { return m.style.display === 'block'; });
       /* fw2_v457_mc_banner_removed：宏观指标页组名横幅（mc-gbanner）已移除——顶部子模块胶囊行
