@@ -8224,9 +8224,15 @@ function renderMacroOverview(d) {
     ['② 中国 · 赔率与盈利', 'mi', 0, '估值 / 信用 / 流动性'],
     ['③ 海外 · 顺逆风', 'mi', 3, '约束 / 美国 / 全球'],
     ['④ 资产与情绪', 'px', null, '价格全景 + 情绪极值'],
-    ['⑤ 汇成动作', 'ov', null, '加档 / 正常 / 防御']
+    /* fw2_v527b_step5：第⑤步原为 ['ov', null] 自指跳转（点了回到周期总览自己、无产出）；
+       改为跨 view 跳「策略执行」——周期判断汇成动作的正确落点（资产配置/执行卡/定投/复盘）。 */
+    ['⑤ 汇成动作', 'STRAT', null, '策略执行 · 资产配置 / 定投 / 执行卡'],
   ];
   var sop = '<div class="mc-ov-sop"><b>五步阅读法</b>' + sopSteps.map(function (st, i) {
+    /* 跨 view 哨兵 'STRAT' → showView('strategy')；其余仍走 __mcGo(region[, group])。 */
+    if (st[1] === 'STRAT') {
+      return '<span class="mc-ov-step" onclick="window.showView(\'strategy\')"><i>' + st[0] + '</i><em>' + esc(st[3]) + '</em></span>';
+    }
     return '<span class="mc-ov-step' + (i === 0 ? ' on' : '') + '" onclick="window.__mcGo(\'' + st[1] + '\'' + (st[2] != null ? ',' + st[2] : '') + ')"><i>' + st[0] + '</i><em>' + esc(st[3]) + '</em></span>';
   }).join('') + '</div>';
   return '<div class="card"><div class="card-h"><h3>周期总览 · 六磁铁与联动矩阵</h3>'
