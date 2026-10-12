@@ -1431,11 +1431,9 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
       #mcGroupCaps .v-tab{padding:6px 16px;text-align:left;white-space:normal;line-height:1.25}
       #mcGroupCaps .v-tab i{display:block;font-style:normal;font-size:10px;font-weight:500;opacity:.78;margin-top:2px}
       #mcGroupCaps .v-tab.active i{opacity:.92}
-      /* fw2_v525_geo_filter：mi 页 geo 渲染层 filter（方案B）— 复用 .v-tabs/.v-tab 观感，与组胶囊同源 */
-      .mc-geo-filter{margin:0 0 8px}
-      .mc-geo-filter .v-tab{padding:5px 14px;font-size:12px;font-weight:600;white-space:nowrap}
-      .mc-geo-filter .v-tab.active{background:var(--accent,#4D6BFE);color:#fff}
-      .mc-geo-filter .v-tab:not(.active){background:#eef1f6;color:#475569}
+      /* fw2_v526_geo_filter_removed：v525 的 mi 页 geo 三态 filter（全部/中国指标/海外指标）已按用户要求删除——
+         单剩「全部」按钮独占一行且无操作价值，且与下方组胶囊行的 geo 徽标（v524 保留，仍标注中国/海外/方法）
+         语义重叠。geo 分组信息保留在徽标上，零额外占行。 */
 
       /* v196 fw2_v196_macro_cycle：宏观周期 四层定位 + 决策输出 样式 */
       #view-macro .dc-cyc{border-left:3px solid var(--accent,#4D6BFE)}
@@ -8167,7 +8165,6 @@ window.__mcGo = function (region, group) {
   state.macroRegion = region;
   if (group != null) {
     state.miGroup = group;
-    if (region === 'mi') state.miGeo = 'all';  /* fw2_v525_geo_filter：跨 tab 跳 mi 时复位 geo 过滤，确保目标组可见 */
   }
   if (typeof renderMacro === 'function') renderMacro();
   if (typeof fillMacroTabs === 'function') fillMacroTabs();
@@ -8246,7 +8243,7 @@ function renderMacro() {
      注册顺序：本块（主模板 19 项）→ renderMacroGrowth（实体景气 1 项，mcActOk 同判据）→ wrapMcMods → renderMcMagnets。
      仅①-⑥组有证据；⑦SOP 磁铁为静态三步摘要（mcSopMagnet）。缺源卡无数据不臆造方向。 */
   mcRegisterEvidence(C);
-  body.innerHTML = (_region === 'mi' ? (mcGeoFilter() + renderMacroGroupCaps()) : renderMacroToolsHtml()) + `
+body.innerHTML = (_region === 'mi' ? renderMacroGroupCaps() : renderMacroToolsHtml()) + `
   <!-- ===== v201 涛动周期：四周期嵌套定位 + 共振合成（周金涛框架） ===== -->
   <div class="card dc-cyc">
     <div class="card-h"><h3>四周期嵌套 · 涛动周期定位</h3><span class="hint">康波60年 ⊃ 库兹涅茨20年 ⊃ 朱格拉10年 ⊃ 基钦3-4年 · 理论+数据驱动 · 不构成投资建议</span></div>
@@ -9259,34 +9256,21 @@ function mcGeoBadge(g) {
   var t = map[g.geo]; if (!t) return '';
   return '<span class="mc-geo" style="display:inline-block;font-size:10px;line-height:1.4;padding:1px 6px;border-radius:8px;background:' + t[2] + ';color:' + t[1] + ';font-weight:600;margin-right:6px;white-space:nowrap">' + esc(t[0]) + '</span>';
 }
-/* fw2_v525_geo_filter：mi 页 geo 渲染层 filter（方案B 真正按中国/海外视图切换，data-g/mcEv/__mcGo 不动，零风险）。
-   三态：all/cn/ovs；sop(⑦判读SOP) 仅在 all 显示。复用 .v-tabs/.v-tab 样式与组胶囊同源。 */
-function mcGeoFilter() {
-  var cur = state.miGeo || 'all';
-  var btns = [['all', '全部'], ['cn', '中国指标'], ['ovs', '海外指标']].map(function (b) {
-    return '<button type="button" data-geo="' + b[0] + '" onclick="window.__mcSetGeo(\'' + b[0] + '\')" class="v-tab' + (cur === b[0] ? ' active' : '') + '">' + b[1] + '</button>';
-  }).join('');
-  return '<div class="mc-geo-filter v-tabs" style="margin:0 0 8px">' + btns + '</div>';
-}
+/* fw2_v526_geo_filter_removed：v525 的 mcGeoFilter（geo 三态 filter）与 __mcSetGeo 已按用户要求删除——
+   保留 mcGeoBadge 的地理徽标（v524），geo 分组信息仍在组胶囊与磁铁头部可见，但不再占一整行切换控件。 */
 /* fw2_v455 宏观指标页组胶囊（去除「全部」聚合与「子模块」标签，默认直接显示第一个子模块；组归属由 wrapMcMods 按 MI_GROUPS keys 匹配 data-title 写入 data-g） */
 function renderMacroGroupCaps() {
   const g = window.MI_GROUPS || [];
   const cur = (typeof state.miGroup === 'number') ? String(state.miGroup) : '0';
-  const gf = state.miGeo || 'all';
-  /* fw2_v525_geo_filter：按 geo 过滤胶囊（sop 仅在 all 显示）。
-     ★用原始索引 oi 作 data-mg（__mcApply 按 data-g 显示，必须对应 MI_GROUPS 原始序），过滤后不再用 map 的位移索引。 */
-  const list = g.map((x, i) => ({ x: x, i: i })).filter((o) => {
-    if (gf === 'all') return true;
-    if (o.x.geo === 'sop') return false;
-    return o.x.geo === gf;
-  });
+  /* fw2_v526_geo_filter_removed：v525 按 geo 过滤胶囊的分支已删，七组恒定全部显示；
+     geo 信息由胶囊内的 mcGeoBadge 徽标承载（不再有「全部/中国指标/海外指标」切换行）。 */
   /* fw2_v466_vtab：mi 子模块胶囊改挂全站标杆 .v-tab（原内联小胶囊 r14/pad4·11/浅蓝tint选中 → 统一为实心蓝白字胶囊） */
   /* fw2_v521_magnet：胶囊＝组序阅读入口——组名（①-⑦ 序号）+ 结论一句话（该组回答的问题，见 MI_GROUPS concl）；
      组序即阅读序，方向结论由组内大磁铁给出（mcMagnet） */
-  const html = list.map((o) => {
-    const key = String(o.i);
+  const html = g.map((x, i) => {
+    const key = String(i);
     return '<button type="button" data-mg="' + key + '" onclick="window.__mcSetGroup(\'' + key + '\')" class="v-tab' + (cur === key ? ' active' : '') + '">'
-      + mcGeoBadge(o.x) + '<b>' + esc(o.x.name) + '</b>' + (o.x.concl ? '<i>' + esc(o.x.concl) + '</i>' : '') + '</button>';
+      + mcGeoBadge(x) + '<b>' + esc(x.name) + '</b>' + (x.concl ? '<i>' + esc(x.concl) + '</i>' : '') + '</button>';
   }).join('');
   return '<div id="mcGroupCaps" class="v-tabs" style="margin:0 0 10px">' + html + '</div>';
 }
@@ -9302,21 +9286,6 @@ window.__mcSetGroup = function (k) {
     if (fresh && fresh.id === 'mcGroupCaps') cap.parentNode.replaceChild(fresh, cap);
   }
   if (window.__mcApply) window.__mcApply();
-};
-/* fw2_v525_geo_filter：geo filter 切换——改 state.miGeo 并校准当前组到可见 geo 内首组，重渲 mi 页。
-   不触碰 data-g/mcEv/__mcGo ⇒ 同源架构零风险（仅过滤胶囊可见集合 + 校准当前组）。 */
-window.__mcSetGeo = function (g) {
-  state.miGeo = g;
-  var arr = window.MI_GROUPS || [];
-  if (g !== 'all') {
-    var cur = (typeof state.miGroup === 'number') ? state.miGroup : 0;
-    var curGeo = arr[cur] && arr[cur].geo;
-    if (curGeo !== g) {
-      for (var i = 0; i < arr.length; i++) { if (arr[i].geo === g) { state.miGroup = i; break; } }
-    }
-  }
-  if (typeof renderMacro === 'function') renderMacro();
-  if (typeof fillMacroTabs === 'function') fillMacroTabs();
 };
 function renderMacroUS(d) {
   const fsi = (d && d.fsi) || {};
@@ -11367,7 +11336,7 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
        留待与用户确认重设计方案后再动（本轮不做）。
      ★诚实限定：erpCard/peCard/mrgCard/vixCard 定义及其 erpSpark/peSpark/mrgSpark/vixSpark 函数本轮暂留为死代码（不入 DOM、无害），
        待下一轮随 sm 模块重构一并清理。数据/口径零改动，纯前端结构层；描述串「sm 去重 · 删重复估值流动性卡」入 verify_sync 标记组 */
-  if (vc) vc.textContent = 'v525 · 自选' /* fw2_v516_a500lk fw2_v517_4otc fw2_v518_hspos fw2_v519_sm_merge fw2_v520_chgflat fw2_v521_magnet fw2_v522_overview fw2_v523_sm_dedup fw2_v524_geo_fsi fw2_v525_geo_filter */ + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  if (vc) vc.textContent = 'v526 · 自选' /* fw2_v516_a500lk fw2_v517_4otc fw2_v518_hspos fw2_v519_sm_merge fw2_v520_chgflat fw2_v521_magnet fw2_v522_overview fw2_v523_sm_dedup fw2_v524_geo_fsi fw2_v525_geo_filter fw2_v526_geo_filter_removed */ + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
