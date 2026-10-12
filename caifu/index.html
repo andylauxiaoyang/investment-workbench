@@ -8112,11 +8112,16 @@ function mcMatrix(C) {
   out.push(mcard('earn', '盈利周期位置', v2 >= 2 ? '扩张 · 顺风' : v2 <= -2 ? '收缩 · 逆风' : '僵持 · 观察', v2 >= 2 ? 'pos' : v2 <= -2 ? 'neg' : 'div',
     'PMI ' + (mk != null ? fmtNum(mk, 1) : '—') + ' · 剪刀差 ' + (gap != null ? fmtNum(gap, 1) : '—') + ' · 信用脉冲 ' + (pulse || '—'), ['mi', 1, '信用明细']));
   var vL = C.vL, bad = C.badCnt || 0, fsiS = (C.d && C.d.fsi && C.d.fsi.score != null) ? C.d.fsi.score : null;
-  var risk = 0;
-  if (vL != null) risk += vL >= 30 ? 2 : vL >= 20 ? 1 : 0;
-  risk += bad;
+  /* fw2_v524_geo_fsi：FSI 计入风险开关——与 VIX 同构（≥70→+2 / ≥50→+1 / <50→0）；
+     但 VIX 是 FSI 6 分项之一（同源压力），故取较强者 max 封顶 +2，避免双计放大；
+     标注「相对分级·未校准」：gen_us_wave.level_of 为经验阈值，未经历史压力事件(2008/2020/2022)回测校准（见 meta.scaleNote）。 */
+  var vixPt = (vL != null) ? (vL >= 30 ? 2 : vL >= 20 ? 1 : 0) : 0;
+  var fsiPt = (fsiS != null) ? (fsiS >= 70 ? 2 : fsiS >= 50 ? 1 : 0) : 0;
+  var stress = Math.max(vixPt, fsiPt);
+  var risk = stress + bad;
   out.push(mcard('risk', '风险开关', risk >= 3 ? '开启 · 防御' : risk >= 1 ? '半开 · 警惕' : '关闭 · 平稳', risk >= 3 ? 'neg' : risk >= 1 ? 'div' : 'pos',
-    'VIX ' + (vL != null ? fmtNum(vL, 1) : '—') + ' · 汇率红绿灯 ' + C.fxGate + '（' + bad + '/3）' + (fsiS != null ? ' · FSI ' + fmtNum(fsiS, 2) + '（口径未确认·不计分）' : ''), ['mi', 2, '情绪明细']));
+    'VIX ' + (vL != null ? fmtNum(vL, 1) : '—') + ' · 汇率红绿灯 ' + C.fxGate + '（' + bad + '/3）'
+      + (fsiS != null ? ' · FSI ' + fmtNum(fsiS, 1) + '（相对分级·未校准·计+' + fsiPt + '）' : ''), ['mi', 2, '情绪明细']));
   var sp = C.spxPct, u = C.uChg;
   var v4 = 0;
   if (sp != null) v4 += sp >= 80 ? -1 : sp < 20 ? 1 : 0;
@@ -9238,6 +9243,14 @@ function renderMacroToolsHtml() {
     '<div class="seg seg-tabs" id="macroWin">' + btns + '</div>' +
     '<span class="hint" id="macroSrcHint">' + esc(hintTxt) + '</span></div>';
 }
+/* fw2_v524_geo_fsi：mi 组胶囊 + 大磁铁加「中国指标 / 海外指标 / 方法」地理徽标（方案A 视觉重聚类·零风险）。
+   徽标用内联样式（不依赖全局 CSS），只新增 geo 标注层；data-g / mcEv / __mcGo 完全不动 ⇒ 同源不受影响。 */
+function mcGeoBadge(g) {
+  if (!g || !g.geo) return '';
+  var map = { cn:['中国指标', '#1d6fb8', '#e8f1fb'], ovs:['海外指标', '#b8741d', '#fbf1e3'], sop:['方法', '#6b7280', '#eef0f2'] };
+  var t = map[g.geo]; if (!t) return '';
+  return '<span class="mc-geo" style="display:inline-block;font-size:10px;line-height:1.4;padding:1px 6px;border-radius:8px;background:' + t[2] + ';color:' + t[1] + ';font-weight:600;margin-right:6px;white-space:nowrap">' + esc(t[0]) + '</span>';
+}
 /* fw2_v455 宏观指标页组胶囊（去除「全部」聚合与「子模块」标签，默认直接显示第一个子模块；组归属由 wrapMcMods 按 MI_GROUPS keys 匹配 data-title 写入 data-g） */
 function renderMacroGroupCaps() {
   const g = window.MI_GROUPS || [];
@@ -9248,7 +9261,7 @@ function renderMacroGroupCaps() {
   const html = g.map((x, i) => {
     const key = String(i);
     return '<button type="button" data-mg="' + key + '" onclick="window.__mcSetGroup(\'' + key + '\')" class="v-tab' + (cur === key ? ' active' : '') + '">'
-      + '<b>' + esc(x.name) + '</b>' + (x.concl ? '<i>' + esc(x.concl) + '</i>' : '') + '</button>';
+      + mcGeoBadge(x) + '<b>' + esc(x.name) + '</b>' + (x.concl ? '<i>' + esc(x.concl) + '</i>' : '') + '</button>';
   }).join('');
   return '<div id="mcGroupCaps" class="v-tabs" style="margin:0 0 10px">' + html + '</div>';
 }
@@ -11314,7 +11327,7 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
        留待与用户确认重设计方案后再动（本轮不做）。
      ★诚实限定：erpCard/peCard/mrgCard/vixCard 定义及其 erpSpark/peSpark/mrgSpark/vixSpark 函数本轮暂留为死代码（不入 DOM、无害），
        待下一轮随 sm 模块重构一并清理。数据/口径零改动，纯前端结构层；描述串「sm 去重 · 删重复估值流动性卡」入 verify_sync 标记组 */
-  if (vc) vc.textContent = 'v523 · 自选' /* fw2_v516_a500lk fw2_v517_4otc fw2_v518_hspos fw2_v519_sm_merge fw2_v520_chgflat fw2_v521_magnet fw2_v522_overview fw2_v523_sm_dedup */ + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  if (vc) vc.textContent = 'v524 · 自选' /* fw2_v516_a500lk fw2_v517_4otc fw2_v518_hspos fw2_v519_sm_merge fw2_v520_chgflat fw2_v521_magnet fw2_v522_overview fw2_v523_sm_dedup fw2_v524_geo_fsi */ + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
@@ -12420,14 +12433,17 @@ setTimeout(() => { renderResearchChips(); if (!state.news.items.length) loadNews
        keys = data-title 前缀匹配（wrapMcMods 写 data-g 用）。
      ★「实体景气」并入②信用与增长（原第 8 独立组）：同为增长侧证据，独立成组反而割裂证据链。
      ★组序即阅读序（L1）：①估值 → ②信用增长 → ③情绪 → ④海外 → ⑤美国 → ⑥全球 → ⑦判读 SOP。 */
+  /* fw2_v524_geo_fsi：geo 字段＝mi 页视觉重聚类（方案A·零风险）——仅作「中国指标/海外指标/方法」徽标标注层，
+     data-g（wrapMcMods 按 keys 前缀匹配写入）、mcEv 证据注册、__mcGo 跨 tab 跳转 完全不动 ⇒ 同源架构不受影响。
+     cn＝①A股估值/②信用增长/③情绪流动性（中国侧）；ovs＝④海外约束/⑤美国周期/⑥全球景气（海外侧）；sop＝⑦判读SOP（方法）。 */
   window.MI_GROUPS = [
-    { id:'val',  name:'① A股估值',       concl:'便宜 / 合理 / 贵',           vd:{ p:'偏便宜', n:'偏贵', d:'证据分歧' },             keys:['ERP 股债性价比', '沪深300 PE-TTM', '宽基估值温度'] },
-    { id:'cred', name:'② 信用与增长',    concl:'扩张 / 收缩 / 僵持',         vd:{ p:'偏扩张', n:'偏收缩', d:'证据分歧' },           keys:['信用脉冲：社融', '物价剪刀差', '制造业 PMI', '实体景气'] },
-    { id:'mood', name:'③ 情绪与流动性',  concl:'过热 / 中性 / 冰冷',         vd:{ p:'偏冰冷·逆向关注', n:'偏过热·防御', d:'证据分歧' }, keys:['情绪温度计', '全A成交额', 'VIX 恐慌'] },
-    { id:'ovs',  name:'④ 海外约束',      concl:'顺风 / 中性 / 逆风',         vd:{ p:'偏顺风', n:'偏逆风', d:'证据分歧' },           keys:['全球利率与汇率', '美股估值温度', '政策利率与收益率曲线', '全球央行政策利率一览'] },
-    { id:'us',   name:'⑤ 美国周期',      concl:'增长 × 通胀 · 周期定位',     vd:{ p:'偏顺风', n:'偏逆风', d:'证据分歧' },           keys:['非农 · 引用', '初请失业金', '失业率 U3 / U6', '零售销售', '个人收入与 PCE', '消费者信心', '耐用品新订单', 'LEI 领先指标', 'ISM 制造业 PMI'] },
-    { id:'gbl',  name:'⑥ 全球景气',      concl:'扩张 / 收缩',                vd:{ p:'偏扩张', n:'偏收缩', d:'证据分歧' },           keys:['OECD 领先指标', 'BDI 波罗的海', '日银短观', '全球 PMI 合成'] },
-    { id:'sop',  name:'⑦ 判读 SOP',      concl:'顺序 → 结论 → 动作',         vd:{ p:'', n:'', d:'' },                               keys:['判读 SOP'] },
+    { id:'val',  geo:'cn',  name:'① A股估值',       concl:'便宜 / 合理 / 贵',           vd:{ p:'偏便宜', n:'偏贵', d:'证据分歧' },             keys:['ERP 股债性价比', '沪深300 PE-TTM', '宽基估值温度'] },
+    { id:'cred', geo:'cn',  name:'② 信用与增长',    concl:'扩张 / 收缩 / 僵持',         vd:{ p:'偏扩张', n:'偏收缩', d:'证据分歧' },           keys:['信用脉冲：社融', '物价剪刀差', '制造业 PMI', '实体景气'] },
+    { id:'mood', geo:'cn',  name:'③ 情绪与流动性',  concl:'过热 / 中性 / 冰冷',         vd:{ p:'偏冰冷·逆向关注', n:'偏过热·防御', d:'证据分歧' }, keys:['情绪温度计', '全A成交额', 'VIX 恐慌'] },
+    { id:'ovs',  geo:'ovs', name:'④ 海外约束',      concl:'顺风 / 中性 / 逆风',         vd:{ p:'偏顺风', n:'偏逆风', d:'证据分歧' },           keys:['全球利率与汇率', '美股估值温度', '政策利率与收益率曲线', '全球央行政策利率一览'] },
+    { id:'us',   geo:'ovs', name:'⑤ 美国周期',      concl:'增长 × 通胀 · 周期定位',     vd:{ p:'偏顺风', n:'偏逆风', d:'证据分歧' },           keys:['非农 · 引用', '初请失业金', '失业率 U3 / U6', '零售销售', '个人收入与 PCE', '消费者信心', '耐用品新订单', 'LEI 领先指标', 'ISM 制造业 PMI'] },
+    { id:'gbl',  geo:'ovs', name:'⑥ 全球景气',      concl:'扩张 / 收缩',                vd:{ p:'偏扩张', n:'偏收缩', d:'证据分歧' },           keys:['OECD 领先指标', 'BDI 波罗的海', '日银短观', '全球 PMI 合成'] },
+    { id:'sop',  geo:'sop', name:'⑦ 判读 SOP',      concl:'顺序 → 结论 → 动作',         vd:{ p:'', n:'', d:'' },                               keys:['判读 SOP'] },
   ];
   /* fw2_v521_magnet：证据注册 + 磁铁汇总（架构核心）——
      ①卡片渲染时按自身「指向」行同源条件注册证据 mcEv(组id, dir, 短文本)：
@@ -12463,6 +12479,7 @@ setTimeout(() => { renderResearchChips(); if (!state.news.items.length) loadNews
     }
     return '<div class="mc-magnet ' + cls + '" data-mg="' + gi + '">'
       + '<div class="mc-magnet-h"><span class="mc-magnet-q">' + esc(g.name) + ' · ' + esc(g.concl) + '</span>'
+      + mcGeoBadge(g)
       + '<b class="mc-magnet-v">' + esc(verdict) + '</b>'
       + '<span class="mc-magnet-cnt">' + pos + ' 项支持 · ' + neg + ' 项反对' + (zero ? ' · ' + zero + ' 项中性' : '') + '</span></div>'
       + '<div class="mc-magnet-ev">' + evHtml + '</div></div>';
@@ -12471,6 +12488,7 @@ setTimeout(() => { renderResearchChips(); if (!state.news.items.length) loadNews
   window.mcSopMagnet = function (gi) {
     return '<div class="mc-magnet sop" data-mg="' + gi + '">'
       + '<div class="mc-magnet-h"><span class="mc-magnet-q">判读 SOP · 顺序 → 结论 → 动作</span>'
+      + '<span class="mc-geo" style="display:inline-block;font-size:10px;line-height:1.4;padding:1px 6px;border-radius:8px;background:#eef0f2;color:#6b7280;font-weight:600;margin-right:6px;white-space:nowrap">方法</span>'
       + '<b class="mc-magnet-v">三步：先磁铁 → 再证据 → 后阈值</b></div>'
       + '<div class="mc-magnet-ev">'
       + '<span class="mc-ev"><b class="z">①</b> 按组序读：①估值 → ②信用增长 → ③情绪 → ④海外 → ⑤美国 → ⑥全球，任何一组「分歧」先放一放</span>'
