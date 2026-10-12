@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>理财工作台</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script>
+/* 旧投资工作台已下线：注销其 Service Worker 并清理缓存，防止旧页面残留 */
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.getRegistrations().then(function (rs) { rs.forEach(function (r) { r.unregister(); }); }).catch(function(){});
+}
+if (window.caches && caches.keys) {
+  caches.keys().then(function (ks) { ks.forEach(function (k) { caches.delete(k); }); }).catch(function(){});
+}
+location.replace('caifu/');
+</script>
+</head>
+<body style="font-family:system-ui,sans-serif;padding:24px;line-height:1.6">旧工作台已下线，正在进入理财工作台……如未自动跳转，<a href="caifu/">点此进入</a>。</body>
+</html>
