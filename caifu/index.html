@@ -216,7 +216,8 @@ button, input, select, textarea { font-family: inherit; font-size: var(--fs-md);
    撑满 main 剩余高度并纵向滚动；窄屏 .app 为 height:auto，此时高度随内容、由文档滚动，不受影响。 */
 #view-smartmoney.active { flex: 1 1 auto; min-height: 0; overflow-y: auto; padding-bottom: 38px; }
 /* fw2_v216_scroll_fix：决策总览/资金平衡位于 .main 直下（不在 .scroll-area 内），补视图内滚动，根治大视口下底部内容被裁且无滚动条 */
-#view-decision.active, #view-capbal.active { flex: 1 1 auto; min-height: 0; overflow-y: auto; padding-bottom: 38px; }
+/* fw2_v533d_dm_scroll：数据管理视图同为 .scroll-area 兄弟节点（v530 新增时漏加滚动规则），内容高于视口被裁、用户报「不能下滑导致下面内容看不到」——补同款视图内滚动 */
+#view-decision.active, #view-capbal.active, #view-datamgmt.active { flex: 1 1 auto; min-height: 0; overflow-y: auto; padding-bottom: 38px; }
 .view { display: none; }
 .view.active { display: block; }
 
@@ -11269,6 +11270,11 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
   */
     /* v168 fw2_v168_stcards_cluster：逐标的执行卡 表 → 角色簇卡片（方向2）。
        纯前端渲染，STRATEGY_SNAP 数据不动。verChip v167->v168
+  */
+  /* v533d fw2_v533d_dm_scroll：数据管理视图滚动修复——view-datamgmt 是 .scroll-area 的兄弟节点（v530 新增时未加滚动规则，
+     内容高于视口被 .app{overflow:hidden} 裁掉，用户报「这个模块内容不能下滑导致下面的内容看不到」）；补 #view-datamgmt.active
+     同款视图内滚动（flex:1 1 auto + min-height:0 + overflow-y:auto，与 view-decision/view-capbal/view-smartmoney 同构）。
+     纯前端 CSS 层修复，数据集零改动；字母子版不动 verChip（仍 v533）
   */
   /* v533 fw2_v533_px_long：px 资产一览·长历史月频序列（用户 2026-10-13「10年/20年为什么缺失？主要资产可追溯到30年/50年」→ 一步到位）。
      ①新增 gen_px_long.py：A股 6 指数=东财 push2his 日K 月末收盘（上证 36 年/沪深300 21 年/中证500 19 年/创业板 16 年/科创50 7 年/中证1000 12 年），
