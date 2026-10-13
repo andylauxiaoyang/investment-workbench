@@ -5,6 +5,7 @@
   "fund_daily": {
    "key": "fund_daily",
    "name": "基金日频净值",
+   "module": "基金",
    "file": "data/fund-daily.json",
    "freq": "日",
    "track": "日轨",
@@ -20,6 +21,7 @@
   "fund_monthly": {
    "key": "fund_monthly",
    "name": "基金月频净值",
+   "module": "基金",
    "file": "data/fund-monthly.json",
    "freq": "月",
    "track": "月轨",
@@ -35,6 +37,7 @@
   "fund_basic": {
    "key": "fund_basic",
    "name": "基金基础档案",
+   "module": "基金",
    "file": "fund-basic.json",
    "freq": "低频",
    "track": "日轨",
@@ -50,6 +53,7 @@
   "macro": {
    "key": "macro",
    "name": "宏观·估值情绪",
+   "module": "宏观周期",
    "file": "macro-data.json",
    "freq": "日~月",
    "track": "日轨",
@@ -65,6 +69,7 @@
   "nky": {
    "key": "nky",
    "name": "日经225",
+   "module": "宏观周期",
    "file": "macro-data.json#nky",
    "freq": "日",
    "track": "日轨",
@@ -80,6 +85,7 @@
   "amt": {
    "key": "amt",
    "name": "全A成交额/资金温度",
+   "module": "宏观周期",
    "file": "macro-data.json#amtD",
    "freq": "日",
    "track": "日轨",
@@ -95,6 +101,7 @@
   "mkt_snap": {
    "key": "mkt_snap",
    "name": "行情快照/估值温度",
+   "module": "宏观周期",
    "file": "index.html",
    "freq": "日·盘中",
    "track": "日轨",
@@ -110,6 +117,7 @@
   "us_fsi": {
    "key": "us_fsi",
    "name": "全球周期/FSI",
+   "module": "宏观周期",
    "file": "macro-data.json#fsi/us/ushf",
    "freq": "日~月",
    "track": "日轨",
@@ -125,6 +133,7 @@
   "gold": {
    "key": "gold",
    "name": "黄金",
+   "module": "宏观周期",
    "file": "gold-data.json",
    "freq": "日线+月报",
    "track": "日轨+季轨",
@@ -140,6 +149,7 @@
   "wave": {
    "key": "wave",
    "name": "宽基/行业/康波",
+   "module": "宏观周期",
    "file": "macro-data.json#wave/industry/replay",
    "freq": "周~月",
    "track": "月轨",
@@ -155,6 +165,7 @@
   "etf_shares": {
    "key": "etf_shares",
    "name": "国家队ETF份额",
+   "module": "聪明的钱",
    "file": "data/etf-shares.json",
    "freq": "日·披露后",
    "track": "日轨",
@@ -170,6 +181,7 @@
   "bundle": {
    "key": "bundle",
    "name": "四合一数据包",
+   "module": "平台/治理",
    "file": "data/meta-bundle.json",
    "freq": "随数据",
    "track": "随主轨",
@@ -185,6 +197,7 @@
   "screen_pool": {
    "key": "screen_pool",
    "name": "基金筛选池",
+   "module": "基金",
    "file": "screen-pool.json",
    "freq": "月重筛",
    "track": "月轨",
@@ -200,6 +213,7 @@
   "fund_profiles": {
    "key": "fund_profiles",
    "name": "基金画像池",
+   "module": "基金",
    "file": "fund-profiles.json",
    "freq": "月重筛",
    "track": "月轨",
@@ -215,6 +229,7 @@
   "index_daily": {
    "key": "index_daily",
    "name": "指数日线基准",
+   "module": "宏观周期",
    "file": "data/index-daily.json",
    "freq": "日线·按需",
    "track": "月轨",
@@ -230,6 +245,7 @@
   "screen_rules": {
    "key": "screen_rules",
    "name": "筛选规则",
+   "module": "基金",
    "file": "screen-rules.json",
    "freq": "手动",
    "track": "手动轨",
@@ -242,10 +258,27 @@
    "lagDays": 6,
    "lagStatus": "manual"
   },
+  "holdings": {
+   "key": "holdings",
+   "name": "持仓",
+   "module": "持仓/账本",
+   "file": "holdings-data.json",
+   "freq": "手动",
+   "track": "手动轨",
+   "src": "资料库持仓表（真源·飞书多维表格）→ gen_holdings_seed.py 只读镜像；改持仓请改资料库表再重跑镜像",
+   "script": "gen_holdings_seed.py",
+   "verifier": "—",
+   "yellow": null,
+   "red": null,
+   "lastUpdate": "2026-09-18",
+   "lagDays": 25,
+   "lagStatus": "manual"
+  },
   "user_track": {
    "key": "user_track",
-   "name": "台账/自选/持仓",
-   "file": "capital-balance+watchlist+holdings+ledger-import",
+   "name": "台账/自选",
+   "module": "持仓/账本",
+   "file": "capital-balance+watchlist+ledger-import",
    "freq": "手动",
    "track": "手动轨",
    "src": "用户录入（无外部互验）",
@@ -257,9 +290,27 @@
    "lagDays": 13,
    "lagStatus": "manual"
   },
+  "news": {
+   "key": "news",
+   "name": "财经资讯（实时聚合）",
+   "module": "资讯",
+   "file": "—（运行时）",
+   "freq": "实时",
+   "track": "实时轨",
+   "src": "新浪 × 金十 × 华尔街见闻 × 公告 × IR（前端实时聚合，不落盘）",
+   "script": "页面内 aggregateNews",
+   "verifier": "—",
+   "yellow": null,
+   "red": null,
+   "realtime": true,
+   "lastUpdate": "—（运行时）",
+   "lagDays": null,
+   "lagStatus": "realtime"
+  },
   "sources": {
    "key": "sources",
    "name": "数据源清单",
+   "module": "平台/治理",
    "file": "sources.json",
    "freq": "低频",
    "track": "手动轨",
@@ -275,6 +326,7 @@
   "bench_long": {
    "key": "bench_long",
    "name": "长基准（经理超额）",
+   "module": "基金",
    "file": "data/bench-long.json",
    "freq": "低频",
    "track": "手动轨",
@@ -290,6 +342,7 @@
   "fast_signals": {
    "key": "fast_signals",
    "name": "更快信号·内幕/举牌/大宗",
+   "module": "聪明的钱",
    "file": "_fast_signals.json",
    "freq": "日",
    "track": "日轨",
@@ -305,6 +358,7 @@
   "sm_ashare": {
    "key": "sm_ashare",
    "name": "国家队十大股东（A股）",
+   "module": "聪明的钱",
    "file": "index.html",
    "freq": "季",
    "track": "季轨",
@@ -320,6 +374,7 @@
   "sm13f": {
    "key": "sm13f",
    "name": "美股 13F 机构持仓",
+   "module": "聪明的钱",
    "file": "index.html",
    "freq": "季",
    "track": "季轨",
