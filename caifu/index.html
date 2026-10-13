@@ -823,12 +823,12 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 /* v539 fw2_v539_tb_pad2：v539 持仓真实收益接入后金额字符串变长（账户值 ¥+4,875.37 比原推算值多一位整数），
    1440 视口持仓表最小内容宽重新超出容器 → 横向溢出 61px（v115 已压到 0，属本轮自己改出来的回归）。
    修法同 v115：桌面端（@media(min-width:768px)）全体单元格水平内边距 8→7px（16 列 ×2 侧 ×1px = 32px）
-   + num 列 8→6px（10 个 num 列 ×2 侧 ×3px = 60px），合计 92px；实测 61→9px 后再收 1px 到 0。
+   + num 列 8→6px（10 个 num 列 ×2 侧 ×3px = 60px），合计 92px；★v539a 补：顺序修复后行情真实加载（市值/现价/权重等列有值），实测再溢出 31px → 全体 7→6px + num 5→4px（再省 52px）压回 0。
    ★与 .tb thead th / .tb tbody td 同特异性 (0,1,2)、包在媒体查询内、置末尾靠源码顺序赢下桌面；
    对 ≤767px 一概不生效；不用 #hdTable 抬特异性（v101 教训：id 规则会反压媒体查询）。 */
 @media (min-width: 768px) {
-  .tb thead th, .tb tbody td { padding: 8px 7px; }
-  .tb thead th.num, .tb tbody td.num { padding: 8px 5px; }
+  .tb thead th, .tb tbody td { padding: 8px 6px; }
+  .tb thead th.num, .tb tbody td.num { padding: 8px 4px; }
 }
 /* v129 fw2_v129_theme：Apple 设计语言桌面端打磨（逻辑/数据/口径零改动）——玻璃拟态 + 分层阴影 + 大圆角 + 焦点环 + 滚动条。
    以 @media(min-width:768px) 包裹：移动端（≤767px 媒体查询）规则不被本块压掉。 */
@@ -4038,6 +4038,15 @@ function renderPfSrcNote() {
 async function loadPortfolioFromDB() {
   if (state._pfSrc !== 'local') { state._pfSrc = ''; state._pfAt = ''; } /* v177 fw2_v177_pf_draft：本地草稿在 DB 命中前不被种子冲掉 */
   /* ① 内嵌种子：0 网络依赖，毫秒级落地，先把画面填上（免登录端不再空 8s） */
+  /* v539a fw2_v539a_seed_order：★真因修复——启动序列所在的 script 块先于内嵌种子块（文件后部）执行，
+     本函数调用时 window.HOLDINGS_SEED 尚为 undefined → 兜底从未生效（DOM 实测启动时 portfolio=0、
+     _pfSrc='empty'，免登录端恒显示「未取到持仓数据」）。修法＝等种子脚本就绪再 apply（最多 3s，
+     同文档解析通常 <100ms）；★刻意不搬动种子 script 大块（跨块搬移风险高）。 */
+  if (!window.HOLDINGS_SEED) {
+    for (var _sdI = 0; _sdI < 60 && !window.HOLDINGS_SEED; _sdI++) {
+      await new Promise(function (r) { setTimeout(r, 50); });
+    }
+  }
   applySeed(window.HOLDINGS_SEED, 'inline');
   /* ② 旁挂快照：比内嵌更新时覆盖 */
   await fetchSeedFile();
@@ -16619,8 +16628,8 @@ if ('serviceWorker' in navigator) {
   window.addEventListener('load', function(){ navigator.serviceWorker.register('./sw.js').catch(function(){}); });
 }
 </script>
-<script>/* v123 fw2_v123_pf_seed：持仓只读镜像（由 gen_holdings_seed.py 生成的 holdings-data.json 内嵌而来，与该文件同源；勿手改） */
-window.HOLDINGS_SEED = {"syncedAt":"2026-09-18T14:53:38+08:00","source":"资料库持仓表（database_id GjLvwNekmiaDCgMZrhaa29）的只读镜像；字段口径与资料库一致（份额=天天基金 ACCOUNT_HOLDING，成本价=单位成本）。★改持仓请改资料库表，然后重跑 gen_holdings_seed.py——勿手改本文件。","total":"15410.47","holdings":[{"name":"招商行业精选股票基金","code":"000746","shares":16.34,"unitCost":6.12,"cost":100.0,"assetType":"fund","sector":"主动权益","buyDate":"2025-07-25"},{"name":"华夏沪深300指数增强A","code":"001015","shares":420.02,"unitCost":2.3808,"cost":999.98,"assetType":"fund","sector":"宽基指数","buyDate":"2026-08-10"},{"name":"创金合信货币C（活期宝）","code":"007866","shares":1000.28,"unitCost":1.0,"cost":1000.28,"assetType":"cash","sector":"现金管理","buyDate":"2026-09-09"},{"name":"易方达全球成长精选混合(QDII)人民币A","code":"012920","shares":5045.18,"unitCost":2.6164,"cost":13200.21,"assetType":"fund","sector":"海外权益","buyDate":"2025-11-24"},{"name":"南方纳斯达克100指数发起(QDII)A","code":"016452","shares":4.42,"unitCost":2.2624,"cost":10.0,"assetType":"fund","sector":"海外权益","buyDate":"2025-06-25"},{"name":"万家纳斯达克100指数发起式(QDII)A","code":"019441","shares":59.87,"unitCost":1.6703,"cost":100.0,"assetType":"fund","sector":"海外权益","buyDate":"2026-09-16"}]};
+<script>/* v123 fw2_v123_pf_seed：持仓只读镜像（由 gen_holdings_seed.py 生成的 holdings-data.json 内嵌而来，与该文件同源；勿手改） v539a fw2_v539a_seed_sync：真源已切天天基金（ttskill 账户 + 对账单），不再由 gen_holdings_seed.py 从资料库镜像生成。 */
+window.HOLDINGS_SEED = {"syncedAt":"2026-10-14T03:15:39+0800","source":"天天基金账户持仓（真源＝ACCOUNT_HOLDING ttskill 登录态实时查询 + 用户最新对账单；份额/成本权威＝对账单）的只读镜像，与 holdings-data.json 同源（v539a fw2_v539a_seed_sync）。★改持仓请发最新对账单→rebuild_holdings.py 重建，或改天天基金账户后跑 refresh_holdings_ttskill.py；勿手改本文件。","total":20745.48,"holdings":[{"name":"招商行业精选股票基金","code":"000746","shares":16.34,"unitCost":6.12,"cost":100.0,"assetType":"fund","sector":"主动权益","buyDate":"2025-07-25"},{"name":"华夏沪深300指数增强A","code":"001015","shares":875.13,"unitCost":2.2879,"cost":2002.25,"assetType":"fund","sector":"宽基指数","buyDate":"2026-08-10"},{"name":"创金合信货币C","code":"007866","shares":0.14,"unitCost":1.0,"cost":0.14,"assetType":"cash","sector":"现金管理","buyDate":"2026-09-09"},{"name":"易方达全球成长精选混合(QDII)人民币A","code":"012920","shares":5045.18,"unitCost":2.6164,"cost":13200.21,"assetType":"fund","sector":"海外权益","buyDate":"2025-11-24"},{"name":"南方纳斯达克100指数发起(QDII)A","code":"016452","shares":4.42,"unitCost":2.2624,"cost":10.0,"assetType":"fund","sector":"海外权益","buyDate":"2025-06-25"},{"name":"万家纳斯达克100指数发起式(QDII)A","code":"019441","shares":65.65,"unitCost":1.6757,"cost":110.01,"assetType":"fund","sector":"海外权益","buyDate":"2026-09-16"},{"name":"华安三菱日联日经225ETF发起式联接(QDII)A","code":"020712","shares":27.77,"unitCost":null,"cost":30.03,"assetType":"fund","sector":"海外权益","buyDate":"2026-10-08"},{"name":"华泰柏瑞中证A500ETF联接A","code":"022438","shares":439.37,"unitCost":1.1387,"cost":500.3,"assetType":"fund","sector":"宽基指数","buyDate":"2026-10-13"}]};
 </script>
 
 <script>
