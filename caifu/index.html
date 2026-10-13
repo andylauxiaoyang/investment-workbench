@@ -3961,7 +3961,7 @@ const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': 
 function loadStore() {
   try { state.settings = Object.assign({}, DEFAULT_SETTINGS, JSON.parse(localStorage.getItem(LS.settings) || '{}')); } catch (e) {}
   state.settings.fx = Object.assign({}, DEFAULT_SETTINGS.fx, state.settings.fx || {});
-  state.portfolio = []; // 持仓改由资料库数据表异步加载
+  state.portfolio = []; // 持仓改由离线镜像异步加载（真源＝天天基金 ttskill 账户 + 用户最新对账单；资料库持仓表 v537 起已停用）
   /* v177 fw2_v177_pf_draft：未登录（DB 不可用）时恢复本地草稿，编辑不再刷新即丢；
      登录后 DB 加载成功会覆盖（DB 恒为权威源）。 */
   try {
@@ -4023,7 +4023,7 @@ function renderPfSrcNote() {
   var el = document.getElementById('pfSrcNote');
   if (!el) return;
   var map = {
-    DB: '资料库持仓表（实时）',
+    DB: '资料库持仓表（已停用）',
     'seed-inline': '内置只读镜像快照',
     'seed-file': '旁挂快照 holdings-data.json',
     local: '本地草稿', /* v323b fw2_v323_bdmerge：补 v177 遗漏的 local 标签（此前显示为「未取到持仓数据」误导） */
@@ -4031,7 +4031,7 @@ function renderPfSrcNote() {
   };
   var label = map[state._pfSrc] || '未取到持仓数据';
   var at = state._pfAt ? ' · 同步于 ' + state._pfAt.slice(0, 16).replace('T', ' ') : '';
-  var tip = (state._pfSrc === 'DB') ? '' : '（只读：改持仓请到资料库持仓表）';
+  var tip = (state._pfSrc === 'DB') ? '' : '（只读：改持仓请发最新对账单）';
   el.textContent = '持仓来源：' + label + at + tip;
   el.style.color = (state._pfSrc === 'DB') ? 'var(--muted)' : '#b45309';
 }
@@ -5273,7 +5273,7 @@ function renderDiscipline(all) {
     if (!rows.some(function (r) { return r.assetType === 'bond'; })) miss.push('债券');
     if (!rows.some(function (r) { return r.assetType === 'gold'; })) miss.push('黄金');
     var txt = miss.length
-      ? '持仓表未登记：' + miss.join('、') + ' → 按 0% 计。若实际持有，请到资料库持仓表补录后重跑同步。'
+      ? '持仓表未登记：' + miss.join('、') + ' → 按 0% 计。若实际持有，请发最新对账单重建持仓。'
       : '';
     if (noPx) txt = (txt ? txt + ' ' : '') + '另有 ' + noPx + '/' + rows.length + ' 只未取到行情，按持仓成本计（与真实市值口径有偏差）。';
     hintEl.textContent = txt;
@@ -6757,7 +6757,7 @@ function openSettings(tab) {
         · 市场统计：真实行业指数报价，按行业涨跌占比估算个股涨跌家数（标注 partial）<br>
         · K线：web.ifzq.gtimg.cn 前复权日/周/月线，A股在腾讯不可用时回退东财<br>
         · 资讯：新浪财经滚动、金十快讯、华尔街见闻快讯、东财交易所公告、按持仓代码拉取的公司公告（IR）<br>
-        · 持仓与交易信号保存在资料库数据表中，在线增删改、多端双向同步；行情与资讯实时来自公开财经接口。
+        · 持仓真源＝天天基金账户（ttskill 登录态实时查询）+ 用户最新对账单，每晚 21:30 自动同步；改持仓请发最新对账单（资料库持仓表 v537 起已停用）。交易信号保存在资料库数据表中，在线增删改、多端双向同步；行情与资讯实时来自公开财经接口。
       </p>`;
   }
   openModal('设置与数据', tabs + body);
@@ -9718,7 +9718,7 @@ var PX_GRP = { a:'A股', o:'海外', b:'债券', c:'商品与汇率', e:'情绪�
 /* v433 fw2_v433_px_held_dynamic：持仓高亮动态读 SIGNALS_CFG.barbell.funds（策略执行杠铃配置）——
    配置改、持仓高亮自动跟随，不再写死在 PX_ASSETS；命中返回该基金配置名，未命中返回 null */
 /* v445 fw2_v445_px_held_real：持仓徽标改以「我的持仓」真实数据为准——state.portfolio 三层兜底
-   （资料库持仓表/旁挂快照 holdings-data.json/内嵌种子 HOLDINGS_SEED，applySeed 均已过滤 qty>0）。
+   （旁挂快照 holdings-data.json/内嵌种子 HOLDINGS_SEED，applySeed 均已过滤 qty>0；资料库持仓表 v537 起已停用，连接器访问返回 91402 NOTEXIST）。
    背景：v433 起用杠铃目标配置判持仓，把配置中未实际持有的场内 ETF 占位（159949 创业板50/
    511260 10年国债/159934 黄金 等）误标为「持仓」，与用户实际场外持仓不符；现改为真实持仓命中
    才显示（代码末尾 6 位数字归一化匹配），配置名仅作展示名，配置无此代码但有真实持仓时用资产名兜底 */
@@ -10736,7 +10736,7 @@ $('#modal').onclick = (e) => { if (e.target.id === 'modal') closeModal(); };
 /* 持仓页 */
 $('#hdAdd').onclick = () => openHoldingEditor('');
 $('#hdClear').onclick = async () => {
-  if (!(await appConfirm('确认清空全部持仓？将同步删除资料库持仓表中的全部记录。'))) return;
+  if (!(await appConfirm('确认清空全部持仓？页面持仓为真源只读镜像，清空只影响本机显示（不会改动天天基金账户），下一轮同步会重新拉回。'))) return;
   state.portfolio = []; saveStore(); toast('已清空'); renderCurrentView();
 };
 $('#hdCny').onchange = (e) => { state.settings.cnyView = e.target.checked; saveStore(); renderHoldings(); };
@@ -11318,6 +11318,17 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
      ④手动轨操作说明补全（持仓：资料库表改→gen_holdings_seed→发布；资讯：打开资讯页即抓取）。
      连带：verify_sync 加 v534 组 + 标记组 chip 断言 v533->v534（chip 值 'v534 · 自选'）+ _test_v534_dom.py。verChip v533->v534
   */
+  /* v540 fw2_v540_hold_path：清理指向已停用「资料库持仓表」的旧路径文案（v539 审计遗留 P1-4）——
+     依据：2026-10-14 查证 资料库持仓表 GjLvwNekmiaDCgMZrhaa29 连接器访问返回 91402 NOTEXIST，
+     而 v537 起持仓真源已切天天基金 ttskill 账户 + 用户最新对账单 —— 页面里「改持仓请到资料库持仓表」是死指引。
+     用户可见 4 处：①持仓来源徽标 tip 改「（只读：改持仓请发最新对账单）」；
+     ②资产配置未登记提示改「请发最新对账单重建持仓」；
+     ③清空持仓确认框改「页面持仓为真源只读镜像，清空只影响本机显示（不会改动天天基金账户），下一轮同步会重新拉回」
+       （原句「将同步删除资料库持仓表中的全部记录」已不成立：该表不存在，且 syncHoldings 有空列表保护不会真删）；
+     ④设置·关于页数据来源说明改写持仓真源＝ttskill 账户 + 对账单、每晚 21:30 自动同步，并标注资料库持仓表已停用。
+     注释 3 处：loadStore 行异步加载说明、v445 三层兜底说明改两层并标注停用。
+     ★保留「资料库持仓表」字样（v445 注释 + 逐版 changelog），verify_sync 的 v534 标记串不失效；
+     ★刻意不动 DB 通道逻辑：__LK_DB__.holdingsList 分支保留，表不存在时自然不覆盖种子，无需改优先级。2026-10-14。verChip v539->v540 */
   /* v539 fw2_v539_hold_realpnl：持仓真实收益接入 + 数据管理兜底同源（用户「两个都做」）——
      ①数据管理兜底同源：index.html 内置 DMCONFIG（状态文件加载失败时的兜底事实）与 _gen_data_mgmt.py 生成的
        data/data-mgmt.json 必须同源；v538 只改了生成器，本次补平——module 全称化 13 行（基金→基金数据、
@@ -11727,7 +11738,7 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
        留待与用户确认重设计方案后再动（本轮不做）。
      ★诚实限定：erpCard/peCard/mrgCard/vixCard 定义及其 erpSpark/peSpark/mrgSpark/vixSpark 函数已于 **v529（fw2_v529_smux P3）一并清理**（连同 erpLv/peLv/vixLv/rzyeLv 与顶部 erp/pe/margin/vix 局部变量，mi 页判读走 mcCalcCommon 不受影响）。
        数据/口径零改动，纯前端结构层；描述串「sm 去重 · 删重复估值流动性卡」入 verify_sync 标记组 */
-  if (vc) vc.textContent = 'v539 · 自选' /* fw2_v516_a500lk fw2_v517_4otc fw2_v518_hspos fw2_v519_sm_merge fw2_v520_chgflat fw2_v521_magnet fw2_v522_overview fw2_v523_sm_dedup fw2_v524_geo_fsi fw2_v525_geo_filter fw2_v526_geo_filter_removed fw2_v527_verdict fw2_v529_smux fw2_v530_datamgmt fw2_v531_sm_dmgmt fw2_v532_all_dm fw2_v533_px_long fw2_v533d_dm_scroll fw2_v534_dm_module fw2_v535_dm_auto fw2_v539_hold_realpnl */ + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  if (vc) vc.textContent = 'v540 · 自选' /* fw2_v516_a500lk fw2_v517_4otc fw2_v518_hspos fw2_v519_sm_merge fw2_v520_chgflat fw2_v521_magnet fw2_v522_overview fw2_v523_sm_dedup fw2_v524_geo_fsi fw2_v525_geo_filter fw2_v526_geo_filter_removed fw2_v527_verdict fw2_v529_smux fw2_v530_datamgmt fw2_v531_sm_dmgmt fw2_v532_all_dm fw2_v533_px_long fw2_v533d_dm_scroll fw2_v534_dm_module fw2_v535_dm_auto fw2_v539_hold_realpnl fw2_v539a_seed_sync fw2_v539a_seed_order fw2_v540_hold_path */ + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
