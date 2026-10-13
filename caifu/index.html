@@ -9647,6 +9647,7 @@ function renderMacroUS(d) {
  * 联动：周期指向（复用宏观页阈值）· 持仓高亮（SIGNALS_CFG.barbell.track）· 信号徽标
  * ========================================================== */
 var PX_ASSETS = [
+  { id:'szi',   g:'a', label:'上证指数', qt:'sh000001', dec:2 }, /* fw2_v530_szi：用户 2026-10-13「沪深300 前加入一个上证指数」 */
   { id:'hs300', g:'a', label:'沪深300', qt:'sh000300', dec:2, heldBy:'001015' },
   { id:'zz500', g:'a', label:'中证500', qt:'sh000905', dec:2 },
   { id:'cyb',   g:'a', label:'创业板指', qt:'sz399006', dec:2, heldBy:'160422' },
@@ -9799,18 +9800,18 @@ function renderPriceMon(d) {
   var preTable = PX_ASSETS.map(function (a) { return pxRowHtml(d, a, pre[a.id], null); }).join('');
   body.innerHTML =
     '<div class="dc-us-wrap">' +
-    '<div class="card"><div class="card-h"><h3>资产价格监控 · 长期趋势 · 全景表 · 相关性</h3><span class="hint">两个问题一起看：① 各资产长期怎么走 ② 资产之间是共振还是互补；全景表=全量 19 项时点与判断一览，点击行查看长期走势</span></div>' +
+    '<div class="card"><div class="card-h"><h3>资产价格监控 · 长期趋势 · 全景表 · 相关性</h3><span class="hint">两个问题一起看：① 各资产长期怎么走 ② 资产之间是共振还是互补；全景表=全量 20 项时点与判断一览，点击行查看长期走势</span></div>' +
     '<div id="pxTrendA"></div>' +
     '<div id="pxTrendB"></div>' +
     '<div style="margin-top:16px">' +
     '<div style="font-size:13px;font-weight:700;color:var(--ink,#0f172a);margin-bottom:2px">资产一览 · 时点与判断</div>' +
-    '<div style="font-size:11px;color:var(--slate-500,#64748b);margin-bottom:6px">全量 19 项：现价/今日/1月/年初至今/1-20年/52周位置 + 周期指向与持仓·信号判断；点击行查看长期走势。现价=腾讯实时快照（月频资产=最新月频值）。<span id="pxAsofBadge" class="asof" style="margin-left:8px"></span></div>' +
+    '<div style="font-size:11px;color:var(--slate-500,#64748b);margin-bottom:6px">全量 20 项：现价/今日/1月/年初至今/1-20年/52周位置 + 周期指向与持仓·信号判断；点击行查看长期走势。现价=腾讯实时快照（月频资产=最新月频值）。<span id="pxAsofBadge" class="asof" style="margin-left:8px"></span></div>' +
     '<div id="pxTable" style="overflow-x:auto">' + pxTableHeadHtml() + preTable + '</tbody></table></div>' +
     '</div>' +
     '<div id="pxCorr">' + pxCorrHtml(pre, false) + '</div>' +
     '<div id="pxFund">' + pxFundBlockHtml(d, pre) + '</div>' +
     '<div id="pxGoldCb"></div>' +
-    '<div class="asof" style="margin-top:6px">趋势=以所选窗口起点为 100 的归一化比值（无量纲）；相关性=Pearson 相关系数（全局 14 项统一近 12 月月收益口径，日频资产由日K聚合为月末点）；1-20年收益=月末序列口径，日频资产约5年可得（更长显示 —），月频资产按理杏仁可得历史；两融/成交额按资金面口径单列，不进入价格相关性矩阵。周期指向与信号徽标复用宏观指标页同口径阈值；日经 225 数据仅覆盖近 1 年，3/5 年窗口自动剔除。数据不构成投资建议。</div>' +
+    '<div class="asof" style="margin-top:6px">趋势=以所选窗口起点为 100 的归一化比值（无量纲）；相关性=Pearson 相关系数（全局 15 项统一近 12 月月收益口径，日频资产由日K聚合为月末点）；1-20年收益=月末序列口径，日频资产约5年可得（更长显示 —），月频资产按理杏仁可得历史；两融/成交额按资金面口径单列，不进入价格相关性矩阵。周期指向与信号徽标复用宏观指标页同口径阈值；日经 225 数据仅覆盖近 1 年，3/5 年窗口自动剔除。数据不构成投资建议。</div>' +
     '</div></div>';
   pxDrawFundCharts(pre);
   /* 异步：腾讯快照（现价/今日）+ 日K（1300 点 ≈5 年），趋势图按窗口切片复用；表格日频行由日K 重算 52周统计 */
@@ -9876,14 +9877,14 @@ function pxSeq(d, a) {
   return pts.map(function (r) { return [r[0], r[1] * scale]; });
 }
 /* ============ fw2_v438_px_rel：长期趋势 + 相关性（磁贴/时点表移除） ============ */
-var PX_DAILY = ['hs300', 'zz500', 'cyb', 'kc50', 'zz1000', 'nq', 'spx', 'hsi', 'nky'];
+var PX_DAILY = ['szi', 'hs300', 'zz500', 'cyb', 'kc50', 'zz1000', 'nq', 'spx', 'hsi', 'nky'];
 var PX_MONTHLY = ['ust10', 'cn10', 'gold', 'wti', 'cu', 'usdx', 'usdcnh', 'vix'];
 function pxById(id) {
   for (var i = 0; i < PX_ASSETS.length; i++) { if (PX_ASSETS[i].id === id) return PX_ASSETS[i]; }
   return null;
 }
 function pxLabelShort(id) {
-  var m = { hs300: '沪深300', zz500: '中证500', cyb: '创业板', kc50: '科创50', zz1000: '中证1000', nq: '纳斯达克', spx: '标普500', hsi: '恒生', nky: '日经225', ust10: '10年美债', cn10: '中债10Y', gold: '伦敦金', wti: 'WTI原油', cu: 'COMEX铜', usdx: '美元指数', usdcnh: 'USD/CNH', vix: 'VIX', rzye: '两融', amt: '全A成交' };
+  var m = { szi: '上证指数', hs300: '沪深300', zz500: '中证500', cyb: '创业板', kc50: '科创50', zz1000: '中证1000', nq: '纳斯达克', spx: '标普500', hsi: '恒生', nky: '日经225', ust10: '10年美债', cn10: '中债10Y', gold: '伦敦金', wti: 'WTI原油', cu: 'COMEX铜', usdx: '美元指数', usdcnh: 'USD/CNH', vix: 'VIX', rzye: '两融', amt: '全A成交' };
   return m[id] || id;
 }
 function pxTrendControls(st) {
