@@ -1,7 +1,7 @@
 {
   "_note": "数据源登记表（DAR: Data-source Authority Registry）。硬规则：任何输出数据必须在本表登记；每项数据至少 2 个渠道；渠道性质必须标注为「监管披露 / 持牌数据商 / 主流平台」。禁止使用未登记来源（含网页随笔、自媒体、搜索结果摘要）。",
-  "version": "1.3",
-  "updated": "2026-09-17",
+  "version": "1.4",
+  "updated": "2026-10-13",
   "tiers": {
     "T0": "监管/交易所/官方机构直属披露（最高权威，无加工）：美国财政部、CBOE、交易所、基金公司",
     "T1": "持牌金融数据商（Wind 万得、理杏仁等，专业授权数据）",
@@ -312,6 +312,13 @@
           "tier": "T2",
           "name": "东方财富 push2delay 实时行情（secid=100.N225，f60=昨收）",
           "url": "https://push2delay.eastmoney.com/api/qt/stock/get?secid=100.N225"
+        },
+        {
+          "id": "em_push2his_index",
+          "tier": "T2",
+          "name": "东方财富 push2his 指数日K（A股 6 指数 + 恒生/日经/标普/纳指，klt=101 日线→月末收盘聚合）",
+          "url": "https://push2his.eastmoney.com/api/qt/stock/kline/get?secid=1.000001&klt=101&beg=19900101",
+          "note": "2026-10-13 复测：1.000001/1.000300/1.000905/0.399006/1.000688/1.000852 + 100.HSI + 100.N225 + 100.SPX + 100.NDX 全部可达（gen_px_long.py 抓取成功，写入 macro-data.json pxLong）；修正早期「push2his 已死（RemoteDisconnected）」记录——当时为瞬时连接失败。海外指数 100.NDX 实测 name=纳斯达克、现价与腾讯一致，口径正确。"
         },
         {
           "id": "wind_index",
