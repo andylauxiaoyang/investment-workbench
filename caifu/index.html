@@ -1795,7 +1795,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
       </section>
       </div>
 </section>
-      <section class="view" id="view-datamgmt"><!-- fw2_v530_datamgmt：数据管理（16 数据集 新鲜度/滞后提示/更新指令） -->
+      <section class="view" id="view-datamgmt"><!-- fw2_v532_all_dm：数据管理（22 数据集 新鲜度/滞后提示/更新指令） -->
         <div class="card" id="dmHeroCard"></div>
         <div class="card" id="dmDashCard"></div>
         <div class="card" id="dmTableCard"></div>
@@ -6890,7 +6890,7 @@ const VIEW_META = {
   capbal: ['资金平衡', '投资记账 · 三张报表 · 盈亏台账（与持仓自动同步）'], /* fw2_capbal_merge */
   smartmoney: ['聪明的钱', '机构动向 · A股+美股 · 季度环比'], /* fw2_v194_sm_merge：并入美股聪明钱(13F)，双市场分区 */
   decision: ['决策总览', '跨模块决策主链路 · 六层收口'], /* fw2_v206_decision */
-  datamgmt: ['数据管理', '16 数据集 · 更新频率 / 手动自动 / 双源互验 · 最后更新回写 + 滞后红黄提示'], /* fw2_v530_datamgmt */
+  datamgmt: ['数据管理', '22 数据集 · 更新频率 / 手动自动 / 双源互验 · 最后更新回写 + 滞后红黄提示'], /* fw2_v532_all_dm */
 };
 function showView(name) {
   if (name === 'sm13f') { name = 'smartmoney'; } /* fw2_v194_sm_merge：美股聪明钱并入聪明的钱，旧链接兼容 */
@@ -6939,7 +6939,9 @@ function renderCurrentView() {
   } catch (e) { console.error('[render]', e); }
 }
 /* ================= 数据管理（fw2_v530_datamgmt，2026-10-13） =================
- * 数据管理（19 数据集 新鲜度/滞后提示/更新指令）＋聪明钱数据纳入数据管理（fw2_v531_sm_dmgmt，2026-10-13）：
+ * 数据管理（22 数据集 新鲜度/滞后提示/更新指令）＋聪明钱数据纳入数据管理（fw2_v531_sm_dmgmt，2026-10-13）＋
+ * 全部数据纳入数据管理（fw2_v532_all_dm，2026-10-13）：数据源清单/指数日线基准/长基准 入列，
+ * 行情快照改读内嵌 MKT_SNAP 时间戳；前端「16 数据集」残留文案一并改为 22。
  * 新鲜度总览 + 滞后红黄提示 + 更新指令复制。
  * 状态源：data/data-mgmt.json（_gen_data_mgmt.py 每次数据更新后回写「最后更新日期/滞后状态」）；
  * 未加载时用内置 DMCONFIG 兜底（滞后列显示「状态文件未加载」）。
@@ -6960,8 +6962,11 @@ const DMCONFIG = [
   ['bundle','四合一数据包','随数据','随主轨','派生（holdings/watchlist/macro/gold）','_make_bundle.py','镜像漂移闸',3,5],
   ['screen_pool','基金筛选池','月重筛','月轨','东财(jbgk/lsjz/manager/jjjl/gmbd) × pingzhongdata × jjcc','market_screen 五步链','_screen_shadow 影子',15,45],
   ['fund_profiles','基金画像池','月重筛','月轨','同筛选池（东财 × pingzhongdata × jjcc）','_gen_profiles.py','—',15,45],
+  ['index_daily','指数日线基准','日线·按需','月轨','理杏仁指数 K 线（A股）× 东财 push2his/腾讯 ifzq（QDII/黄金/债）','gen_index_bench+gen_index_bench_extra','—',15,45],
   ['screen_rules','筛选规则','手动','手动轨','用户规则（无外部互验）','—','—',null,null],
   ['user_track','台账/自选/持仓','手动','手动轨','用户录入（无外部互验）','_capbal_lib_sync（镜像）','verify_watchlist（四处一致）',null,null],
+  ['sources','数据源清单','低频','手动轨','数据源登记表 DAR（每项≥2 渠道·渠道性质分级·禁止未登记来源）','sources.json 登记维护','—',null,null],
+  ['bench_long','长基准（经理超额）','低频','手动轨','天天基金 pingzhongdata 净值（权益/海外/黄金/债 4 风格 ETF 代理）','_mgr_excess.py','—',null,null],
   ['fast_signals','更快信号·内幕/举牌/大宗','日','日轨','SEC EDGAR（Form4/13D）× 理杏仁开放平台（大宗/两融）','gen_fast_signals.py+_merge_fast_signals.py','—',3,5],
   ['sm_ashare','国家队十大股东（A股）','季','季轨','东财 F10 十大股东（定期报告披露·中报8月底/三季报10月底）','—（SM_ASHARE 内嵌注入）','—',90,120],
   ['sm13f','美股 13F 机构持仓','季','季轨','SEC EDGAR 13F-HR（季度披露·45 天滞后）','—（#sm13f-data 内嵌注入）','—',90,120],
@@ -7031,7 +7036,7 @@ async function renderDataMgmt() {
         '</div>';
     }).join('') + '</div>';
   tab.innerHTML =
-    '<div style="font-size:var(--fs-md,15px);font-weight:700;margin-bottom:8px">16 数据集明细</div>' +
+    '<div style="font-size:var(--fs-md,15px);font-weight:700;margin-bottom:8px">22 数据集明细</div>' +
     '<div style="overflow-x:auto"><table class="tbl" style="width:100%;min-width:960px;border-collapse:collapse;font-size:var(--fs-xs,12px)">' +
     '<thead><tr>' +
     '<th style="text-align:left;padding:6px 8px;background:var(--panel-2,#eef1f6)">数据集</th>' +
@@ -11242,6 +11247,16 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
     /* v168 fw2_v168_stcards_cluster：逐标的执行卡 表 → 角色簇卡片（方向2）。
        纯前端渲染，STRATEGY_SNAP 数据不动。verChip v167->v168
   */
+  /* v532 fw2_v532_all_dm：全部数据纳入数据管理——DMCONFIG/_gen_data_mgmt 19→22 数据集：
+     ①新增 sources（数据源清单，手动轨，读 sources.json updated=2026-09-17）、index_daily（指数日线基准，
+       月轨，读 data/index-daily.json updatedAt，gen_index_bench/gen_index_bench_extra 写盘补时间戳）、
+       bench_long（长基准·经理超额，手动轨，读 data/bench-long.json updatedAt，_mgr_excess.py 写盘补时间戳）；
+     ②mkt_snap 改 text 模式读 index.html 内嵌 window.MKT_SNAP.updatedAt（refresh_mkt_snap 独立时间戳，
+       此前误用 macro-data.json 整体 updatedAt 顶替）；
+     ③前端「16 数据集」残留文案三处（nav 描述/明细表标题/视图注释）与 DMCONFIG 兜底 16→22；
+     ④gold/amt/nky 行 src 补原始层缓存（_gold_hist/amt_day_raw/amt_month_raw/_nky_hist_*）。
+     连带：verify_sync 加 v532 组 + 标记组 chip 断言 v531->v532 + 新增 _test_v532_dom.py。verChip v531->v532
+  */
   /* v167 fw2_v167_xmap_scope + fw2_v167_disc_radius：用户 2026-09-21 两条。
        ① 纪律核查磁贴圆角：var(--r-full)=999px（椭圆）→ var(--radius)，与站内 .card 一致。
        ② 场内外对照：原挂在 #view-strategy 共享层（四个 st-pane 之外）→ 切到任一 tab 都出现。
@@ -11607,7 +11622,7 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
        留待与用户确认重设计方案后再动（本轮不做）。
      ★诚实限定：erpCard/peCard/mrgCard/vixCard 定义及其 erpSpark/peSpark/mrgSpark/vixSpark 函数已于 **v529（fw2_v529_smux P3）一并清理**（连同 erpLv/peLv/vixLv/rzyeLv 与顶部 erp/pe/margin/vix 局部变量，mi 页判读走 mcCalcCommon 不受影响）。
        数据/口径零改动，纯前端结构层；描述串「sm 去重 · 删重复估值流动性卡」入 verify_sync 标记组 */
-  if (vc) vc.textContent = 'v531 · 自选' /* fw2_v516_a500lk fw2_v517_4otc fw2_v518_hspos fw2_v519_sm_merge fw2_v520_chgflat fw2_v521_magnet fw2_v522_overview fw2_v523_sm_dedup fw2_v524_geo_fsi fw2_v525_geo_filter fw2_v526_geo_filter_removed fw2_v527_verdict fw2_v529_smux fw2_v530_datamgmt fw2_v531_sm_dmgmt */ + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  if (vc) vc.textContent = 'v532 · 自选' /* fw2_v516_a500lk fw2_v517_4otc fw2_v518_hspos fw2_v519_sm_merge fw2_v520_chgflat fw2_v521_magnet fw2_v522_overview fw2_v523_sm_dedup fw2_v524_geo_fsi fw2_v525_geo_filter fw2_v526_geo_filter_removed fw2_v527_verdict fw2_v529_smux fw2_v530_datamgmt fw2_v531_sm_dmgmt fw2_v532_all_dm */ + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
