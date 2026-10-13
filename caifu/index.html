@@ -9016,25 +9016,27 @@ body.innerHTML = (_region === 'mi' ? renderMacroGroupCaps() : renderMacroToolsHt
    复用 d.erp / d.pe / d.margin / d.vix / d.fsi / d.amtD + window.MKT_SNAP + state.snapshot.market
    仅做聚合展示层；证券化率/恐惧贪婪/破净率/北向/iVIX 等需新数据源，列在「待接入」卡 */
 /* fw2_v510_sent8 · 市场情绪8卡上线：gen_macro_sent.py 产出 sentiment 键的 brokenPct/cr10/sectorUp/basis/fundIssue/repurchase/optionPcr/northAmt 八卡，本期 5 卡有数、3 卡缺源留白（basis 中金所不可达 / optionPcr·northAmt 无合规源） */
+/* fw2_v529_smux：市场情绪页综合优化（P1-P6）——情绪温度磁铁 + 卡片分组（P1）、宽度卡快照自动拉取（P2）、死代码清理（P3）、todoCard 可折叠（P5）、手动刷新入口（P6） */
+window.__mcRefreshing = false;
+window.__mcRefreshMacro = async function (btn) {
+  if (window.__mcRefreshing) return;
+  window.__mcRefreshing = true;
+  if (btn) { btn.disabled = true; btn.textContent = '刷新中…'; }
+  try {
+    /* P6：手动刷新绕过 loadMacroData 的 state.macro 守卫，直取 macro-data.json 本体（最新数据） */
+    const r = await fetch('./macro-data.json', { cache: 'no-cache' });
+    const j = await r.json();
+    if (j && j.sentiment) { state.macro = j; state.macroSrc = '手动刷新'; renderMacro(); }
+    else console.warn('[mcRefresh] 无 sentiment 键', j && j.__v);
+  } catch (e) { console.warn('[mcRefresh] 取数失败', e && e.message); }
+  finally { window.__mcRefreshing = false; if (btn) { btn.disabled = false; btn.textContent = '刷新数据'; } }
+};
 function renderMacroSentiment(d) {
   d = d || {};
-  var erp = d.erp || {}, erpCur = erp.cur || {}, erpPct = erp.erpPct;
-  var ep = erpCur.ep, y10 = erpCur.y10;
-  var pePts = (d.pe && d.pe.points) || [];
-  var peLast = pePts.length ? pePts[pePts.length - 1] : null;
-  var peCur = peLast ? peLast[1] : null, pePos = peLast ? peLast[2] : null;
+  /* fw2_v529_smux P3：erp/pe/margin/vix 序列局部变量随死卡（erpCard/peCard/mrgCard/vixCard）一并删除——
+     mi 页已统一呈现核心估值/流动性，sm 页不再取这些序列（v518 hsPos 单位修正的受卡已删，修正结论见 v518 块注释）；
+     mkt/amt/br 变量保留（amtCard/brCard + 资金系数 M2 口径用） */
   var mkt = window.MKT_SNAP || {};
-  var idx300 = (mkt.idx && mkt.idx['000300']) || {};
-  var hsPe = idx300.pe != null ? idx300.pe : peCur;
-  var hsPos = idx300.pos != null ? idx300.pos * 100 : pePos; /* fw2_v518_hspos：MKT_SNAP.idx.pos 为 0-1 小数（0.5917=59.17%），此前直接当百分比渲染致沪深300「10年分位」误显约 0.6%/便宜（应 59.2%/中性）；×100 与 px()/sigMktPos 口径一致，回退 pePos 已是 0-100 不变 */
-  var mrg = (d.margin && d.margin.points) || [];
-  var mrgLast = mrg.length ? mrg[mrg.length - 1] : null;
-  var rzyeYi = mrgLast ? mrgLast[1] : null;
-  var rzyeTw = rzyeYi != null ? rzyeYi / 1e4 : null;
-  var rzbl = mrgLast ? mrgLast[2] : null;
-  var vixPts = (d.vix && d.vix.points) || [];
-  var vixCur = (d.vix && d.vix.cur) || {};
-  var vixVal = vixCur.val != null ? vixCur.val : (vixPts.length ? vixPts[vixPts.length - 1][1] : null);
   var amtAll = (d.amtD && d.amtD.points) || [];
   /* fw2_v472_amt_settle：与信号横幅 M7 同口径——amtD.settled===false（今日盘中未结算）时剔除最后一个盘中点，
      「最近成交」用最近一个已结算全日，避免与横幅出现「一个 09-30 全日 / 一个 10-09 盘中」的日期不一致。 */
@@ -9047,6 +9049,16 @@ function renderMacroSentiment(d) {
   var up = br.up || 0, down = br.down || 0;
   var upPct = (up + down) ? up / (up + down) * 100 : null;
   var fsi = d.fsi || {};
+  /* fw2_v529_smux P1：情绪证据注册——每卡按自身判读方向注册 dir（1 偏热 / -1 偏冷 / 0 中性），
+     磁铁只汇总不二次判断 ⇒ 口径与卡内判读 100% 同源（同 v521 mcMagnet 设计）；无明确方向语义的卡不注册。 */
+  var smEv = [];
+  function smReg(label, dir) { smEv.push({ label: label, dir: dir || 0 }); }
+  /* fw2_v529_smux P2：市场宽度卡依赖实时快照（state.snapshot.market），未加载时自动触发一次 refreshSnapshot
+     （refreshSnapshot 完成即 renderCurrentView 重渲当前 sm 视图；__smBrPull 防重入，只自动拉一次） */
+  if (upPct == null && !window.__smBrPull && typeof refreshSnapshot === 'function') {
+    window.__smBrPull = true;
+    try { refreshSnapshot(false).catch(function () {}); } catch (e) { console.warn('[smBrPull]', e); }
+  }
   function spark(arr, color) {
     arr = (arr || []).slice(-36);
     if (arr.length < 2) return '';
@@ -9055,17 +9067,11 @@ function renderMacroSentiment(d) {
     var pts = arr.map(function (v, i) { return (i / (arr.length - 1) * 100).toFixed(1) + ',' + (34 - (v - mn) / rng * 30).toFixed(1); }).join(' ');
     return '<svg viewBox="0 0 100 36" preserveAspectRatio="none" style="width:100%;height:36px;display:block"><polyline points="' + pts + '" fill="none" stroke="' + color + '" stroke-width="1.5"/></svg>';
   }
-  function erpSpark() { return spark((d.erp && d.erp.points || []).map(function (p) { return p[3]; }), '#2f6bff'); }
-  function peSpark() { return spark((d.pe && d.pe.points || []).map(function (p) { return p[2]; }), '#2f6bff'); }
-  function vixSpark() { return spark((d.vix && d.vix.points || []).map(function (p) { return p[1]; }), '#dc2626'); }
+  /* fw2_v529_smux P3：v523 去重后的死代码清理——erpSpark/peSpark/vixSpark/mrgSpark 随 erpCard/peCard/vixCard/mrgCard 一并删除（仅 amtCard 仍用 amtSpark） */
   function amtSpark() { return spark(amtAll.map(function (p) { return p[1]; }), '#7c3aed'); }
-  function mrgSpark() { return spark(mrg.map(function (p) { return p[1]; }), '#2f6bff'); }
   function pct(v) { return v == null ? '—' : fmtNum(v, 1) + '%'; }
   function tag(txt, col) { return '<span style="color:' + col + ';font-weight:600">' + txt + '</span>'; }
-  function erpLv(p) { return p == null ? '—' : p >= 75 ? tag('增配股票', '#0d9f4d') : p >= 50 ? tag('均衡偏股', '#2f6bff') : p >= 25 ? tag('均衡偏债', '#d98c00') : tag('减配股票', '#dc2626'); }
-  function peLv(p) { return p == null ? '—' : p >= 80 ? tag('偏贵', '#dc2626') : p >= 60 ? tag('中性偏暖', '#d98c00') : p >= 40 ? tag('中性', '#475569') : p >= 20 ? tag('中性偏冷', '#2f6bff') : tag('便宜', '#0d9f4d'); }
-  function vixLv(v) { return v == null ? '—' : v >= 35 ? tag('极度恐慌', '#dc2626') : v >= 25 ? tag('恐慌', '#e06a1b') : v >= 15 ? tag('正常', '#475569') : tag('低恐慌·贪婪', '#0d9f4d'); }
-  function rzyeLv(t) { return t == null ? '—' : t >= 3 ? tag('过热观察', '#dc2626') : t >= 2 ? tag('正常', '#0d9f4d') : tag('偏低', '#d98c00'); }
+  /* fw2_v529_smux P3：erpLv/peLv/vixLv/rzyeLv 已随死卡删除（mi 页判读走 mcCalcCommon 的 erpLvl/peLvl/vixLvl，此处为 sm 页独立判读，无残留引用） */
   function fcLv(c) { return c == null ? '—' : c < 0.2 ? tag('低迷·机会', '#0d9f4d') : c < 0.8 ? tag('平稳', '#475569') : c < 1.5 ? tag('活跃', '#d98c00') : tag('过热·清仓', '#dc2626'); }
   function card(h, hint, inner) {
     return '<div class="card"><div class="card-h"><h3>' + h + '</h3><span class="hint">' + hint + '</span></div>' + inner + '</div>';
@@ -9075,44 +9081,28 @@ function renderMacroSentiment(d) {
   }
   /* fw2_v473_sm_src：上排 6 卡补「数据源 + 数据截至日」页脚（对齐下排卡 sSrc，死规则②）。源据 gen_macro_snap 实测：ERP/PE=理杏仁、两融=东财 RPTA_RZRQ_LSHJ、VIX=CBOE、成交额=新浪+westock、宽度=实时行情快照。日期取各自序列末点。 */
   function srcLine(src, date) { return '<div class="asof" style="margin-top:6px;display:flex">' + esc(src) + (date ? ' · 截至 <b>' + esc(date) + '</b>' : '') + '</div>'; }
-  var erpDate = (d.erp && d.erp.points && d.erp.points.length) ? d.erp.points[d.erp.points.length - 1][0] : '';
-  var peDate = peLast ? peLast[0] : '';
-  var mrgDate = mrgLast ? mrgLast[0] : '';
-  var vixDate = (vixPts && vixPts.length) ? vixPts[vixPts.length - 1][0] : '';
   var amtDate = amtLast ? amtLast[0] : '';
   var brDate = (state.snapshot && state.snapshot.id) ? state.snapshot.id : '';
-  var erpCard = card('股债性价比 ERP（格雷厄姆指数）', 'E/P − 10Y国债 · 分位 ' + pct(erpPct),
-    metric('盈利收益率 E/P', ep != null ? fmtNum(ep, 2) + '%' : '—') +
-    metric('10Y 国债', y10 != null ? fmtNum(y10, 2) + '%' : '—') +
-    metric('历史分位', pct(erpPct), ' · ' + erpLv(erpPct)) +
-    '<div style="margin-top:8px">' + erpSpark() + '</div>' + srcLine('理杏仁', erpDate));
-  var peCard = card('估值温度 沪深300', 'PE-TTM · 理杏仁 10年分位',
-    metric('PE-TTM', hsPe != null ? fmtNum(hsPe, 1) : '—') +
-    metric('10年分位', pct(hsPos), ' · ' + peLv(hsPos)) +
-    '<div style="margin-top:8px">' + peSpark() + '</div>' + srcLine('理杏仁', peDate));
-  var mrgCard = card('杠杆温度计 两融', '融资余额 / 占流通市值比',
-    metric('融资余额', rzyeTw != null ? fmtNum(rzyeTw, 2) + ' 万亿' : '—', ' · ' + rzyeLv(rzyeTw)) +
-    metric('占流通市值比', rzbl != null ? fmtNum(rzbl, 2) + '%' : '—') +
-    '<div style="margin-top:8px">' + mrgSpark() + '</div>' + srcLine('东财·两融(RPTA_RZRQ_LSHJ)', mrgDate));
   var amtCard = card('资金温度计 全A成交额', '沪深京 · 资金系数=成交/M2',
     metric('最近成交', amtYi != null ? fmtNum(amtYi, 0) + ' 亿' : '—') +
     metric('资金系数', fundCoef != null ? fmtNum(fundCoef, 2) + '%' : '—', ' · ' + fcLv(fundCoef)) +
     '<div style="margin-top:8px">' + amtSpark() + '</div>' + srcLine('新浪+westock(沪深京)', amtDate));
-  var vixCard = card('VIX 恐慌指数', '标普500 期权隐含波动率',
-    metric('VIX', vixVal != null ? fmtNum(vixVal, 1) : '—', ' · ' + vixLv(vixVal)) +
-    '<div style="margin-top:8px">' + vixSpark() + '</div>' + srcLine('CBOE 官方', vixDate));
+  smReg('资金系数(成交/M2)', fundCoef == null ? 0 : (fundCoef < 0.2 ? -1 : (fundCoef < 0.8 ? 0 : 1)));
   var brCard = card('市场宽度 上涨占比', '全市场涨跌家数',
     metric('上涨家数', up ? fmtNum(up, 0) : '—') +
     metric('上涨占比', upPct != null ? fmtNum(upPct, 1) + '%' : '数据未加载', upPct != null ? (upPct >= 50 ? tag('多头', '#0d9f4d') : tag('空头', '#dc2626')) : '') +
-    (upPct == null ? '<div style="font-size:11px;color:var(--slate-400,#94a3b8);margin-top:6px">行情快照未加载（先打开概览/持仓模块拉取一次）</div>' : '') + srcLine('实时行情快照(腾讯/东财)', brDate));
-  var todoCard = card('数据源状态（官方停更说明 · 手册有·工作台已通）', '缺源不渲染不编造，取数失败立即修复',
+    (upPct == null ? '<div style="font-size:11px;color:var(--slate-400,#94a3b8);margin-top:6px">行情快照未加载（已自动拉取一次，稍候自动出现）</div>' : '') + srcLine('实时行情快照(腾讯/东财)', brDate));
+  smReg('市场宽度(上涨占比)', upPct == null ? 0 : (upPct >= 50 ? 1 : -1));
+  /* fw2_v529_smux P5：todoCard 可折叠——占整格，点击标题区折叠/展开内容（内联 onclick 切换 data-todo-body 显隐） */
+  var todoCard = '<div class="card" style="cursor:pointer" onclick="var _b=this.querySelector(\'[data-todo-body]\');_b.style.display=_b.style.display===\'none\'?\'\':\'none\';var _a=this.querySelector(\'[data-todo-arrow]\');if(_a)_a.textContent=_b.style.display===\'none\'?\'▸\':\'▾\'"><div class="card-h"><h3>数据源状态（官方停更说明 · 手册有·工作台已通）</h3><span class="hint">缺源不渲染不编造，取数失败立即修复 · 点击<span data-todo-arrow style="font-weight:600">▾</span>折叠</span></div><div data-todo-body>' +
     '<div style="font-size:12px;color:var(--slate-600,#475569);line-height:1.9">· 中国波指 iVIX：<b>官方 2018-02-22 起暂停发布至今未恢复</b>（上交所仅剩期权风险指标 Delta/Gamma 类）→ 国内期权情绪已由「期权 PCR」替代<br>· 北向资金：<b>官方 2024-05-13 起取消日度净买入披露</b>（盘后仅公布买+卖成交额/十大活跃股）→ 已改「北向成交活跃度」探测中<br>· 财新PMI：商业授权非统计局序列 → 已用统计局官方 PMI 替代（宏观硬指标页）</div>' +
-    '<div style="font-size:11px;color:#0d9f4d;line-height:1.7;margin-top:8px">✓ 已接入：换手率、股息率 vs 10Y、市净率中位数、融资买入额、A股总市值、大小盘相对强弱、超额流动性、CNN 恐贪(美股)、证券化率/巴菲特指数、限售解禁(未来30日)、产业资本净增减持(近30日)、板块拥挤度(当日)、破净率(全A)、成交集中度(CR10)、行业情绪(上涨占比)、期指升贴水(IF/IH/IC/IM)、新发公募(发行中+待发行)、产业资本回购(公告数)<br><span style="color:var(--slate-500,#64748b)">◇ 探测中/缺源：期权 PCR（东财报表名不存在、期权行情接口限流，通道待换）；北向成交活跃度（官方 2024-05-13 停更日度净买入，接口仅剩占位数据，无合规机读源）</span></div>');
+    '<div style="font-size:11px;color:#0d9f4d;line-height:1.7;margin-top:8px">✓ 已接入：换手率、股息率 vs 10Y、市净率中位数、融资买入额、A股总市值、大小盘相对强弱、超额流动性、CNN 恐贪(美股)、证券化率/巴菲特指数、限售解禁(未来30日)、产业资本净增减持(近30日)、板块拥挤度(当日)、破净率(全A)、成交集中度(CR10)、行业情绪(上涨占比)、期指升贴水(IF/IH/IC/IM)、新发公募(发行中+待发行)、产业资本回购(公告数)<br><span style="color:var(--slate-500,#64748b)">◇ 探测中/缺源：期权 PCR（东财报表名不存在、期权行情接口限流，通道待换）；北向成交活跃度（官方 2024-05-13 停更日度净买入，接口仅剩占位数据，无合规机读源）</span></div></div>';
   /* fw2_v465_fsi_card：FSI 全球金融压力指数由整幅横幅改为与其它卡同款的卡片，置于网格首位（用户要求）。
      复用本模块 card()/metric()/spark() 助手，数据源同 d.fsi，不新增取数；renderMacroTop 横幅不再在此调用。 */
   var fsiSc = fsi.score, fsiPct = fsi.percentile;
   var fsiLvC = fsiSc == null ? '#94a3b8' : fsiSc >= 70 ? '#dc2626' : fsiSc >= 50 ? '#f59e0b' : fsiSc >= 30 ? '#c98a1b' : '#2f6bff';
   var fsiLvTxt = fsiSc == null ? '—' : (fsiSc >= 70 ? '危机' : fsiSc >= 50 ? '警戒' : fsiSc >= 30 ? '关注' : '正常');
+  smReg('FSI 全球金融压力指数', fsiSc == null ? 0 : (fsiSc >= 50 ? 1 : (fsiSc >= 30 ? 0 : -1)));
   var fsiIndis = (fsi.indis || []).map(function (it) {
     var zc = it.z >= 1 ? '#dc2626' : it.z <= -1 ? '#2f6bff' : '#94a3b8';
     return '<span style="margin-right:10px" title="' + esc(it.name + '（z ' + fmtNum(it.z, 2) + '）' + (it.note ? ' · ' + it.note : '')) + '">' + esc(it.name) + ' <b style="color:' + zc + '">' + fmtNum(it.val, 2) + (it.unit || '') + '</b></span>';
@@ -9137,6 +9127,7 @@ function renderMacroSentiment(d) {
     metric('10Y 国债', y10v != null ? fmtNum(y10v, 2) + '%' : '—') +
     metric('股息率−10Y', dySpread != null ? (dySpread >= 0 ? '+' : '') + fmtNum(dySpread, 2) + '%' : '—', dySpread != null ? (dySpread >= 0 ? tag('股票占优', '#0d9f4d') : tag('债券占优', '#d98c00')) : '') +
     '<div style="margin-top:8px">' + sSpark(dyRec) + '</div>' + sSrc(dyRec)) : '';
+  smReg('股息率−10Y(性价比)', dySpread == null ? 0 : (dySpread >= 0 ? -1 : 1));
   var sPb = sCard(S.pbMedian, '全A市净率中位数 · 理杏仁', metric('PB 中位数', S.pbMedian && S.pbMedian.value != null ? fmtNum(S.pbMedian.value, 2) : '—'));
   var sMbuy = sCard(S.marginBuy, '全市场融资买入额 · 理杏仁', metric('融资买入额', S.marginBuy && S.marginBuy.value != null ? fmtNum(S.marginBuy.value, 0) + ' 亿元' : '—'));
   var sCap = sCard(S.mktcap, 'A股总市值 · 理杏仁', metric('总市值', S.mktcap && S.mktcap.value != null ? fmtNum(S.mktcap.value, 2) + ' 万亿元' : '—'));
@@ -9147,15 +9138,18 @@ function renderMacroSentiment(d) {
   var sCnn = (cnnR && cnnR.available) ? card('恐惧贪婪指数(美股)', 'CNN Fear & Greed 0-100',
     metric('指数', '<span style="color:' + cnnCol + '">' + fmtNum(cnnR.value, 1) + '</span>', ' · ' + tag(esc(cnnR.rating || ''), cnnCol)) +
     '<div style="margin-top:8px">' + sSpark(cnnR, cnnCol) + '</div>' + sSrc(cnnR)) : '';
+  smReg('CNN 恐贪(美股)', (!cnnR || !cnnR.available || cnnR.value == null) ? 0 : (cnnR.value >= 55 ? 1 : (cnnR.value <= 45 ? -1 : 0)));
   /* fw2_v469_sent2：证券化率/巴菲特指数 + 限售解禁(未来30日) + 产业资本净增减持(近30日) */
   var secR = S.secRatio;
   var secLv = function (v) { return v == null ? '' : v >= 120 ? tag('显著高估', '#dc2626') : v >= 100 ? tag('高估', '#e06a1b') : v >= 80 ? tag('偏高', '#d98c00') : v >= 50 ? tag('合理', '#0d9f4d') : tag('低估', '#2f6bff'); };
   var sSec = sCard(secR, 'A股总市值/名义GDP · 东财(自算)', metric('巴菲特指数', secR && secR.value != null ? fmtNum(secR.value, 1) + '%' : '—', secR && secR.value != null ? ' · ' + secLv(secR.value) : ''));
+  smReg('巴菲特指数(证券化率)', secR && secR.value == null ? 0 : (secR.value >= 80 ? 1 : (secR.value >= 50 ? 0 : -1)));
   var sLift = sCard(S.lift, '未来30日待解禁市值 · 东财', metric('解禁市值', S.lift && S.lift.value != null ? fmtNum(S.lift.value, 0) + ' 亿元' : '—'), '#d98c00');
   var hR = S.holder;
   var sHolder = (hR && hR.available) ? card(hR.label, '重要股东增减持净额 · 东财',
     metric('近30日净增减持', '<span style="color:' + (hR.value >= 0 ? 'var(--green,#0d9f4d)' : 'var(--up,#dc2626)') + '">' + (hR.value >= 0 ? '+' : '') + fmtNum(hR.value, 2) + ' 亿元</span>', ' · ' + (hR.value >= 0 ? tag('净增持', '#0d9f4d') : tag('净减持', '#dc2626'))) +
     '<div style="margin-top:8px">' + sSpark(hR, hR.value >= 0 ? '#0d9f4d' : '#dc2626') + '</div>' + sSrc(hR)) : '';
+  smReg('产业资本增减持', (!hR || !hR.available || hR.value == null) ? 0 : (hR.value >= 0 ? 1 : -1));
   /* fw2_v470_crowd：板块拥挤度（当日快照，最热单板块成交额/全A；东财板块含行业+概念重叠故只取最热单块、不做topN求和） */
   var sc = S.sectorCrowd;
   var sCrowd = (sc && sc.available) ? card('板块拥挤度(当日)', '最热单板块成交额/全A · 东财快照',
@@ -9172,22 +9166,26 @@ function renderMacroSentiment(d) {
       return metric(p, v == null ? '—' : (v >= 0 ? '+' : '') + fmtNum(v, 2) + '%', v == null ? '' : (v >= 0 ? tag('升水', '#0d9f4d') : tag('贴水', '#dc2626')));
     }).join('')) +
     '<div style="margin-top:8px">' + sSpark(bsR, (bsR.value != null && bsR.value >= 0) ? '#0d9f4d' : '#dc2626') + '</div>' + sSrc(bsR)) : '';
+  smReg('期指升贴水', (!bsR || !bsR.available || bsR.value == null) ? 0 : (bsR.value >= 0 ? 1 : -1));
   var bpR = S.brokenPct;
   var bpLv = function (v) { return v == null ? '' : v >= 12 ? tag('深度底部', '#0d9f4d') : v >= 8 ? tag('底部特征', '#2f6bff') : v >= 5 ? tag('偏低', '#d98c00') : tag('常态', '#475569'); };
   var sBp = (bpR && bpR.available) ? card('破净率(全A)', '市净率<1 个股占比 · 东财全A截面',
     metric('破净率', fmtNum(bpR.value, 2) + '%', bpR.detail ? ' · ' + esc(bpR.detail) : '') +
     metric('信号', bpLv(bpR.value), '') +
     '<div style="margin-top:8px">' + sSpark(bpR, '#2f6bff') + '</div>' + sSrc(bpR)) : '';
+  smReg('破净率(全A)', (!bpR || !bpR.available || bpR.value == null) ? 0 : (bpR.value >= 5 ? -1 : 0));
   var crR = S.cr10;
   var crLv = function (v) { return v == null ? '' : v >= 25 ? tag('极端抱团', '#dc2626') : v >= 18 ? tag('高集中', '#d98c00') : v >= 12 ? tag('正常', '#475569') : tag('分散', '#0d9f4d'); };
   var sCr = (crR && crR.available) ? card('成交集中度(CR10)', '前10大个股成交额/全A · 东财截面',
     metric('CR10', fmtNum(crR.value, 2) + '%', ' · ' + crLv(crR.value)) +
     '<div style="margin-top:8px">' + sSpark(crR, '#7c3aed') + '</div>' + sSrc(crR)) : '';
+  smReg('成交集中度(CR10)', (!crR || !crR.available || crR.value == null) ? 0 : (crR.value >= 18 ? 1 : (crR.value >= 12 ? 0 : -1)));
   var suR = S.sectorUp;
   var sSecUp = (suR && suR.available) ? card('行业情绪(上涨占比)', '行业板块涨跌分布 · 东财快照',
     metric('上涨行业', fmtNum(suR.value, 1) + '%', ' · ' + (suR.value >= 60 ? tag('普涨·强', '#0d9f4d') : suR.value <= 40 ? tag('普跌·弱', '#dc2626') : tag('分化', '#475569'))) +
     '<div style="margin-top:8px;font-size:11px;color:var(--slate-500,#64748b);line-height:1.9">强势 ' + (suR.top || []).map(function (t) { return esc(t.name) + ' ' + fmtNum(t.pct, 1) + '%'; }).join('　') + '<br>弱势 ' + (suR.bot || []).map(function (b) { return esc(b.name) + ' ' + fmtNum(b.pct, 1) + '%'; }).join('　') + '</div>' +
     '<div style="margin-top:8px">' + sSpark(suR, suR.value >= 50 ? '#0d9f4d' : '#dc2626') + '</div>' + sSrc(suR)) : '';
+  smReg('行业情绪(上涨占比)', (!suR || !suR.available || suR.value == null) ? 0 : (suR.value >= 60 ? 1 : (suR.value <= 40 ? -1 : 0)));
   var fiR = S.fundIssue;
   var sFi = (fiR && fiR.available) ? card('新发公募(近30日)', '基金发行规模 · 东财探测',
     metric('新发规模', fmtNum(fiR.value, 1) + ' 亿', fiR.detail ? ' · ' + esc(fiR.detail) : '') +
@@ -9207,12 +9205,29 @@ function renderMacroSentiment(d) {
     '<div style="margin-top:8px">' + sSpark(naR, '#7c3aed') + '</div>' + sSrc(naR)) : '';
   /* fw2_v523_sm_dedup：市场情绪页去重——核心估值/流动性(ERP/PE/VIX/两融/成交额)已在「宏观指标」mi 页统一呈现，
      本页删除其重复 spark 卡(erpCard/peCard/mrgCard/vixCard)，聚焦广度(涨跌家数/大小盘)+情绪+资金系数(M2)；
-     FSI/非农/ISM 早已单源(见 v464/v465 注释)，不重复。erpCard/peCard/mrgCard/vixCard 定义暂留为死代码，验证后清理。 */
+     FSI/非农/ISM 早已单源(见 v464/v465 注释)，不重复。erpCard/peCard/mrgCard/vixCard 定义已于 v529（fw2_v529_smux P3）清理。 */
+  /* fw2_v529_smux P1：情绪温度磁铁（汇总 smEv 方向——只计数不二次判断，与各卡判读同源）+ 卡片分组 + P6 手动刷新入口 */
+  var smHot = 0, smCold = 0, smNeu = 0;
+  smEv.forEach(function (e) { if (e.dir > 0) smHot++; else if (e.dir < 0) smCold++; else smNeu++; });
+  var smTxt = (smHot === 0 && smCold === 0) ? '暂无方向证据' : (smHot > smCold ? '偏热' : smCold > smHot ? '偏冷' : '中性·信号张力');
+  var smCol = (smHot === 0 && smCold === 0) ? '#64748b' : (smHot > smCold ? '#dc2626' : smCold > smHot ? '#2f6bff' : '#d98c00');
+  var smMagnet = '<div style="display:flex;align-items:center;gap:18px;padding:14px 18px;border:1px solid #e3e8ef;border-radius:14px;background:#fff;margin-top:10px;box-shadow:0 1px 3px rgba(20,40,80,.05)">'
+    + '<div style="font-size:12px;color:var(--slate-500,#64748b);line-height:1.5;flex:none">市场情绪<br>温度</div>'
+    + '<div style="font-size:26px;font-weight:700;color:' + smCol + ';flex:none">' + smTxt + '</div>'
+    + '<div style="font-size:12px;color:var(--slate-500,#64748b);line-height:1.8">偏热 ' + smHot + ' · 偏冷 ' + smCold + ' · 中性 ' + smNeu + '<br><span style="color:var(--slate-400,#94a3b8)">由各卡自身判读方向汇总 · 同源不二次判断 · 相对分级未校准（缺源卡不计）</span></div></div>';
+  function smGroup(t, inner) {
+    return '<div style="font-size:12px;font-weight:700;color:var(--slate-500,#64748b);margin:16px 0 2px;letter-spacing:.02em">' + t + '</div>'
+      + '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px;margin-top:8px">' + inner + '</div>';
+  }
   var smHtml =
-    '<div style="font-size:12px;color:var(--slate-500,#64748b);margin-bottom:8px">数据截至 ' + esc(d.updatedAt || '') + ' · 市场情绪与广度视图——核心估值/流动性（ERP/PE/VIX/两融/成交额）已在「宏观指标」页统一呈现，本页聚焦广度（涨跌家数 · 大小盘）+ 情绪 + 资金系数(M2)；换手率/股息率/市净率中位数/融资买入额/总市值/超额流动性＝理杏仁，恐贪＝CNN，FSI＝FRED</div>' +
-    '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px;margin-top:10px">' +
-    (fsi && fsi.score != null ? fsiCard : '') + amtCard + brCard + sSec + sTurn + sDiv + sPb + sMbuy + sCap + sSize + sLiq + sCnn + sLift + sHolder + sCrowd + sBasis + sBp + sCr + sSecUp + sFi + sRp + sOp + sNa + todoCard +
-    '</div>';
+    '<div style="display:flex;justify-content:space-between;align-items:flex-start;font-size:12px;color:var(--slate-500,#64748b);margin-bottom:8px"><span>数据截至 ' + esc(d.updatedAt || '') + ' · 市场情绪与广度视图——核心估值/流动性（ERP/PE/VIX/两融/成交额）已在「宏观指标」页统一呈现，本页聚焦广度（涨跌家数 · 大小盘）+ 情绪 + 资金系数(M2)；换手率/股息率/市净率中位数/融资买入额/总市值/超额流动性＝理杏仁，恐贪＝CNN，FSI＝FRED</span><button onclick="__mcRefreshMacro(this)" style="flex:none;margin-left:12px;padding:5px 12px;border:1px solid #e3e8ef;border-radius:8px;background:#fff;font-size:12px;color:var(--ink,#0f172a);cursor:pointer">刷新数据</button></div>' +
+    smMagnet +
+    smGroup('① 风险偏好 · 海外', (fsi && fsi.score != null ? fsiCard : '') + sCnn + sOp) +
+    smGroup('② 估值与性价比', sDiv + sBp + sPb + sSec) +
+    smGroup('③ 资金与供给', amtCard + sMbuy + sFi + sRp + sLift + sHolder) +
+    smGroup('④ 广度与结构', brCard + sSize + sCr + sSecUp + sCrowd + sTurn) +
+    smGroup('⑤ 信号与补充', sBasis + sLiq + sCap + sNa) +
+    '<div style="margin-top:16px">' + todoCard + '</div>';
   return smHtml;
 }
 
@@ -11416,9 +11431,9 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
        mi 无对应卡 ⇒ 该条已是历史完成项（no-op），仅核验不改动。
      ③「mi 拆分迁入中国/海外」：与 B1 刚建的 mi 七组磁铁架构（证据按 data-g 绑定）直接冲突，盲迁会崩同源架构，
        留待与用户确认重设计方案后再动（本轮不做）。
-     ★诚实限定：erpCard/peCard/mrgCard/vixCard 定义及其 erpSpark/peSpark/mrgSpark/vixSpark 函数本轮暂留为死代码（不入 DOM、无害），
-       待下一轮随 sm 模块重构一并清理。数据/口径零改动，纯前端结构层；描述串「sm 去重 · 删重复估值流动性卡」入 verify_sync 标记组 */
-  if (vc) vc.textContent = 'v527 · 自选' /* fw2_v516_a500lk fw2_v517_4otc fw2_v518_hspos fw2_v519_sm_merge fw2_v520_chgflat fw2_v521_magnet fw2_v522_overview fw2_v523_sm_dedup fw2_v524_geo_fsi fw2_v525_geo_filter fw2_v526_geo_filter_removed fw2_v527_verdict */ + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+     ★诚实限定：erpCard/peCard/mrgCard/vixCard 定义及其 erpSpark/peSpark/mrgSpark/vixSpark 函数已于 **v529（fw2_v529_smux P3）一并清理**（连同 erpLv/peLv/vixLv/rzyeLv 与顶部 erp/pe/margin/vix 局部变量，mi 页判读走 mcCalcCommon 不受影响）。
+       数据/口径零改动，纯前端结构层；描述串「sm 去重 · 删重复估值流动性卡」入 verify_sync 标记组 */
+  if (vc) vc.textContent = 'v529 · 自选' /* fw2_v516_a500lk fw2_v517_4otc fw2_v518_hspos fw2_v519_sm_merge fw2_v520_chgflat fw2_v521_magnet fw2_v522_overview fw2_v523_sm_dedup fw2_v524_geo_fsi fw2_v525_geo_filter fw2_v526_geo_filter_removed fw2_v527_verdict fw2_v529_smux */ + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
