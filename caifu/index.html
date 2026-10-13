@@ -9793,11 +9793,25 @@ function renderPriceMon(d) {
       if (v != null) { it.cur = v; it.time = d.updatedAt || ''; }
       var seq = a.seq ? pxSeq(d, a) : null;
       if (seq && seq.length) { it.mfPts = seq.slice(); it.pts = seq.slice(); it.st = pxStats(seq, v != null ? v * sc : null, 13); it.pct = it.st ? it.st.d : null; }
+      /* fw2_v533_px_long：长历史月频（pxLong）优先接管收益列——10/20 年按各资产可追溯上限；
+         st（今日/1月/52周时点统计）保持理杏仁 13 点口径，不被长序列稀释 */
+      var pl0 = d.pxLong && d.pxLong.items && d.pxLong.items[a.id];
+      if (pl0 && pl0.points && pl0.points.length > (it.mfPts || []).length) {
+        it.mfPts = pl0.points.slice();
+        if (it.pts && it.pts.length) it.pts = pl0.points.slice();
+      }
     } else if (a.nky) {
       var nk = d.nky || {};
       if (nk.val != null) { it.cur = nk.val; it.pct = nk.chgPct; }
       it.pts = (nk.points || []).slice();
       if (it.pts.length) it.st = pxStats(it.pts, nk.val, 250);
+      var pln = d.pxLong && d.pxLong.items && d.pxLong.items[a.id];
+      if (pln && pln.points && pln.points.length) it.mfPts = pln.points.slice();
+    } else if (a.qt) {
+      /* fw2_v533_px_long：日频股指接入长历史月频（东财日K 月末收盘）——收益列 10/20 年由 pxLong 提供；
+         st 保持 null：今日/1月/52周由腾讯快照 + 日K 异步重算 */
+      var plq = d.pxLong && d.pxLong.items && d.pxLong.items[a.id];
+      if (plq && plq.points && plq.points.length) it.mfPts = plq.points.slice();
     }
     pre[a.id] = it;
   });
@@ -9820,7 +9834,7 @@ function renderPriceMon(d) {
     '<div id="pxCorr">' + pxCorrHtml(pre, false) + '</div>' +
     '<div id="pxFund">' + pxFundBlockHtml(d, pre) + '</div>' +
     '<div id="pxGoldCb"></div>' +
-    '<div class="asof" style="margin-top:6px">趋势=以所选窗口起点为 100 的归一化比值（无量纲）；相关性=Pearson 相关系数（全局 15 项统一近 12 月月收益口径，日频资产由日K聚合为月末点）；1-20年收益=月末序列口径，日频资产约5年可得（更长显示 —），月频资产按理杏仁可得历史；两融/成交额按资金面口径单列，不进入价格相关性矩阵。周期指向与信号徽标复用宏观指标页同口径阈值；日经 225 数据仅覆盖近 1 年，3/5 年窗口自动剔除。数据不构成投资建议。</div>' +
+    '<div class="asof" style="margin-top:6px">趋势=以所选窗口起点为 100 的归一化比值（无量纲）；相关性=Pearson 相关系数（全局 15 项统一近 12 月月收益口径，日频资产由日K聚合为月末点）；1-20年收益=月末序列口径：股指长历史已接（上证 36 年/沪深300 21 年/标普 40 年/纳指 35 年/恒生 36 年/日经 39 年，10/20 年列按各资产可得，物理上限如科创50 仅 7 年）；月频资产=理杏仁 10 年（美债/伦敦金/WTI/VIX 的 20 年+待 FRED 接入，美元指数因口径不一致暂不接）；两融/成交额按资金面口径单列，不进入价格相关性矩阵。周期指向与信号徽标复用宏观指标页同口径阈值；日经 225 日频仅近 1 年（3/5 年窗口自动剔除，10/20 年走月末长序列）。数据不构成投资建议。</div>' +
     '</div></div>';
   pxDrawFundCharts(pre);
   /* 异步：腾讯快照（现价/今日）+ 日K（1300 点 ≈5 年），趋势图按窗口切片复用；表格日频行由日K 重算 52周统计 */
@@ -9905,7 +9919,7 @@ function pxTrendControls(st) {
     '<span style="font-size:13px;font-weight:700;color:var(--ink,#0f172a)">长期趋势 · 归一化叠线</span>' +
     '<span style="font-size:10px;color:var(--slate-400,#94a3b8)">（起点=100 比值口径，不同资产可同图比较）</span>' +
     '<span style="margin-left:10px;font-size:10px;color:var(--slate-500,#64748b)">时间</span>' +
-    btn('yr', 1, '1年', st.years) + btn('yr', 3, '3年', st.years) + btn('yr', 5, '5年', st.years) +
+    btn('yr', 1, '1年', st.years) + btn('yr', 3, '3年', st.years) + btn('yr', 5, '5年', st.years) + btn('yr', 10, '10年', st.years) + btn('yr', 20, '20年', st.years) +
     '<span style="margin-left:10px;font-size:10px;color:var(--slate-500,#64748b)">分组</span>' +
     btn('grp', 'all', '全部', st.grp) + btn('grp', 'a', 'A股', st.grp) + btn('grp', 'o', '海外', st.grp) +
     '</div>';
@@ -9914,25 +9928,32 @@ function pxDrawTrendA() {
   var el = document.getElementById('pxTrendA');
   if (!el) return;
   var st = window.__pxState || { years: 1, grp: 'all' };
-  var days = st.years >= 5 ? 1220 : st.years >= 3 ? 732 : 244;
+  /* fw2_v533_px_long：10/20 年窗口=月末长序列（pxLong），1/3/5 年=日K（1300 点≈5 年） */
+  var days = st.years >= 10 ? 0 : st.years >= 5 ? 1220 : st.years >= 3 ? 732 : 244;
   var ids = PX_DAILY.filter(function (id) {
-    if (id === 'nky' && st.years > 1) return false;
+    if (id === 'nky' && st.years > 1 && st.years < 10) return false;
     var a = pxById(id); if (!a) return false;
     if (st.grp === 'a') return a.g === 'a';
     if (st.grp === 'o') return a.g === 'o';
     return true;
   });
   el.innerHTML = pxTrendControls(st) + '<div id="pxTrendAChart" style="width:100%;height:330px"></div>' +
-    (st.years > 1 ? '<div style="font-size:10px;color:var(--slate-400,#94a3b8);margin-top:2px">日经225 数据仅覆盖近 1 年，3/5 年窗口未纳入。</div>' : '');
+    (st.years >= 10 ? '<div style="font-size:10px;color:var(--slate-400,#94a3b8);margin-top:2px">10/20 年窗口=月末序列（东财/FRED 长历史），日经225 已纳入。</div>'
+      : (st.years > 1 ? '<div style="font-size:10px;color:var(--slate-400,#94a3b8);margin-top:2px">日经225 数据仅覆盖近 1 年，3/5 年窗口未纳入。</div>' : ''));
   var chartEl = document.getElementById('pxTrendAChart');
   if (!chartEl || !window.echarts) return;
   var inst = echarts.getInstanceByDom(chartEl); if (inst) inst.dispose();
   var winMap = {}, xAll = [];
   ids.forEach(function (id) {
     var a = pxById(id);
-    var raw = (window.__pxKline && a.qt && window.__pxKline[a.qt]) ? window.__pxKline[a.qt]
-      : (window.__pxData && window.__pxData.items[id] ? window.__pxData.items[id].pts : []);
-    var win = raw.slice(-days);
+    var raw;
+    if (st.years >= 10) {
+      raw = (window.__pxData && window.__pxData.items[id]) ? (window.__pxData.items[id].mfPts || []) : [];
+    } else {
+      raw = (window.__pxKline && a.qt && window.__pxKline[a.qt]) ? window.__pxKline[a.qt]
+        : (window.__pxData && window.__pxData.items[id] ? window.__pxData.items[id].pts : []);
+    }
+    var win = st.years >= 10 ? raw : raw.slice(-days);
     if (win.length < 30) return;
     var base = win[0][1];
     if (!base || base <= 0 || !isFinite(base)) return;
@@ -10540,8 +10561,10 @@ function pxRowHtml(d, a, it, kl) {
 }
 
 function pxOpenChart(a, it) {
-  var pts = it.pts || [];
-  var mf = !!a.mf;
+  /* fw2_v533_px_long：日频资产无日K 长历史时用 pxLong 月末序列画长走势（标注月频） */
+  var hasPts = it.pts && it.pts.length;
+  var pts = hasPts ? it.pts : ((it.mfPts && it.mfPts.length) ? it.mfPts : []);
+  var mf = !!a.mf || !hasPts;
   if (!pts.length) { openModal(a.label, '<div style="font-size:12px;color:var(--slate-500,#64748b)">无历史序列（仅当前值）</div>'); return; }
   var win = pts.slice();
   var title = a.label + ' · 长期走势' + (mf ? '（月频）' : '');
@@ -11247,6 +11270,16 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
     /* v168 fw2_v168_stcards_cluster：逐标的执行卡 表 → 角色簇卡片（方向2）。
        纯前端渲染，STRATEGY_SNAP 数据不动。verChip v167->v168
   */
+  /* v533 fw2_v533_px_long：px 资产一览·长历史月频序列（用户 2026-10-13「10年/20年为什么缺失？主要资产可追溯到30年/50年」→ 一步到位）。
+     ①新增 gen_px_long.py：A股 6 指数=东财 push2his 日K 月末收盘（上证 36 年/沪深300 21 年/中证500 19 年/创业板 16 年/科创50 7 年/中证1000 12 年），
+       标普/纳指=东财海外指数（40 年/35 年，口径与腾讯现价一致），恒生/日经=东财海外（36 年/39 年）；注入 macro-data.json pxLong 键。
+       月频资产（10Y 美债/伦敦金/WTI/VIX）FRED 长序列本轮本机不可达（Connection reset，环境问题），保持理杏仁 10 年；
+       美元指数因 FRED 贸易加权口径与 DXY 不一致跳过；中债/铜/USDCNH/两融/成交额无匹配免费长源保持现状。
+     ②前端 renderPriceMon：pxLong 优先接管收益列 mfPts（10/20 年列自动按各资产可得），st 时点统计保持原口径不被稀释；
+       nky 日频仍 1 年（3/5 年窗口剔除），10/20 年走月末长序列；pxOpenChart 日频资产用月末长序列画走势。
+     ③趋势图 A 新增 10 年/20 年按钮（10/20 年窗口=月末序列口径，归一化起点=窗口起点）。
+     ④文案更新：1-20 年收益列口径说明。数据管理 macro 行 src 补 gen_px_long.py。verChip v532->v533
+  */
   /* v532 fw2_v532_all_dm：全部数据纳入数据管理——DMCONFIG/_gen_data_mgmt 19→22 数据集：
      ①新增 sources（数据源清单，手动轨，读 sources.json updated=2026-09-17）、index_daily（指数日线基准，
        月轨，读 data/index-daily.json updatedAt，gen_index_bench/gen_index_bench_extra 写盘补时间戳）、
@@ -11255,7 +11288,7 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
        此前误用 macro-data.json 整体 updatedAt 顶替）；
      ③前端「16 数据集」残留文案三处（nav 描述/明细表标题/视图注释）与 DMCONFIG 兜底 16→22；
      ④gold/amt/nky 行 src 补原始层缓存（_gold_hist/amt_day_raw/amt_month_raw/_nky_hist_*）。
-     连带：verify_sync 加 v532 组 + 标记组 chip 断言 v531->v532 + 新增 _test_v532_dom.py。verChip v531->v532
+     连带：verify_sync 加 v532 组 + 标记组 chip 断言 v531->v532（chip 值 'v532 · 自选'）+ 新增 _test_v532_dom.py。verChip v531->v532
   */
   /* v167 fw2_v167_xmap_scope + fw2_v167_disc_radius：用户 2026-09-21 两条。
        ① 纪律核查磁贴圆角：var(--r-full)=999px（椭圆）→ var(--radius)，与站内 .card 一致。
@@ -11622,7 +11655,7 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
        留待与用户确认重设计方案后再动（本轮不做）。
      ★诚实限定：erpCard/peCard/mrgCard/vixCard 定义及其 erpSpark/peSpark/mrgSpark/vixSpark 函数已于 **v529（fw2_v529_smux P3）一并清理**（连同 erpLv/peLv/vixLv/rzyeLv 与顶部 erp/pe/margin/vix 局部变量，mi 页判读走 mcCalcCommon 不受影响）。
        数据/口径零改动，纯前端结构层；描述串「sm 去重 · 删重复估值流动性卡」入 verify_sync 标记组 */
-  if (vc) vc.textContent = 'v532 · 自选' /* fw2_v516_a500lk fw2_v517_4otc fw2_v518_hspos fw2_v519_sm_merge fw2_v520_chgflat fw2_v521_magnet fw2_v522_overview fw2_v523_sm_dedup fw2_v524_geo_fsi fw2_v525_geo_filter fw2_v526_geo_filter_removed fw2_v527_verdict fw2_v529_smux fw2_v530_datamgmt fw2_v531_sm_dmgmt fw2_v532_all_dm */ + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  if (vc) vc.textContent = 'v533 · 自选' /* fw2_v516_a500lk fw2_v517_4otc fw2_v518_hspos fw2_v519_sm_merge fw2_v520_chgflat fw2_v521_magnet fw2_v522_overview fw2_v523_sm_dedup fw2_v524_geo_fsi fw2_v525_geo_filter fw2_v526_geo_filter_removed fw2_v527_verdict fw2_v529_smux fw2_v530_datamgmt fw2_v531_sm_dmgmt fw2_v532_all_dm fw2_v533_px_long */ + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
