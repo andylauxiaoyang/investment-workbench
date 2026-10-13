@@ -819,6 +819,17 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 @media (min-width: 768px) {
   .tb thead th, .tb tbody td { padding: 8px 8px; }
 }
+
+/* v539 fw2_v539_tb_pad2：v539 持仓真实收益接入后金额字符串变长（账户值 ¥+4,875.37 比原推算值多一位整数），
+   1440 视口持仓表最小内容宽重新超出容器 → 横向溢出 61px（v115 已压到 0，属本轮自己改出来的回归）。
+   修法同 v115：桌面端（@media(min-width:768px)）全体单元格水平内边距 8→7px（16 列 ×2 侧 ×1px = 32px）
+   + num 列 8→6px（10 个 num 列 ×2 侧 ×3px = 60px），合计 92px；实测 61→9px 后再收 1px 到 0。
+   ★与 .tb thead th / .tb tbody td 同特异性 (0,1,2)、包在媒体查询内、置末尾靠源码顺序赢下桌面；
+   对 ≤767px 一概不生效；不用 #hdTable 抬特异性（v101 教训：id 规则会反压媒体查询）。 */
+@media (min-width: 768px) {
+  .tb thead th, .tb tbody td { padding: 8px 7px; }
+  .tb thead th.num, .tb tbody td.num { padding: 8px 5px; }
+}
 /* v129 fw2_v129_theme：Apple 设计语言桌面端打磨（逻辑/数据/口径零改动）——玻璃拟态 + 分层阴影 + 大圆角 + 焦点环 + 滚动条。
    以 @media(min-width:768px) 包裹：移动端（≤767px 媒体查询）规则不被本块压掉。 */
 @media (min-width: 768px) {
@@ -1177,8 +1188,8 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
                   <th data-page-node-id="QYN973Djza77tFjto7sqDa"><!--pnid:EEtUKja24y5PL365TNIMcU-->资产类型</th>
                   <th data-page-node-id="hu4UKojLp4nQBgyfgTiUiq" class="num"><!--pnid:Pe1LkM54Up7qLUCkZ5GgbT-->持仓市值</th>
                   <th data-page-node-id="hdCostThK114mN2pQv4Rs8Tz" class="num"><!--pnid:hdCost0Th1K114mN2pQv4R-->持仓成本</th>
-                  <th data-page-node-id="0s9owBAvjYdXlvslpJlPIm" class="num"><!--pnid:12d22HMzBf8vRa9yIegoh8-->总盈亏</th>
-                  <th data-page-node-id="X5FxJFHbA7MVWIGwKaoWl2" class="num"><!--pnid:A50LgFBc4akIska8SOZTWj-->当日盈亏</th>
+                  <th data-page-node-id="0s9owBAvjYdXlvslpJlPIm" class="num" title="天天基金账户持有收益（含份额确认/费用）；无账户数据时按 市值−成本 推算"><!--pnid:12d22HMzBf8vRa9yIegoh8-->总盈亏</th>
+                  <th data-page-node-id="X5FxJFHbA7MVWIGwKaoWl2" class="num" title="天天基金账户当日收益（含份额确认/费用）；无账户数据时按（现价−昨收）×数量 推算"><!--pnid:A50LgFBc4akIska8SOZTWj-->当日盈亏</th>
                   <!-- fw2_v114_col_order: 持仓市值 > 持仓成本 > 总盈亏 > 当日盈亏 -->
                   <th data-page-node-id="jVTh0PBGCv5GN5AVSRVGYv" class="num"><!--pnid:Xjcc7GfG3kbbgeT4quXlL9-->单位成本</th>
                   <th data-page-node-id="KEEnVp3Z4MzPXgVVbYRqDy" class="num"><!--pnid:y3JVQIVbKc3VqkTPodnSfO-->现价</th>
@@ -4426,8 +4437,18 @@ function buildRows() {
     const fx = fxOf(market);
     const costLocal = h.cost * h.qty;
     const mvLocal = mvPx != null ? mvPx * h.qty : null;
-    const dayLocal = h.assetType === 'cash' ? 0 : (price != null && pre ? (price - pre) * h.qty : null); /* v26g */
-    const totLocal = mvLocal != null ? mvLocal - costLocal : null;
+    let dayLocal = h.assetType === 'cash' ? 0 : (price != null && pre ? (price - pre) * h.qty : null); /* v26g */
+    let totLocal = mvLocal != null ? mvLocal - costLocal : null;
+    /* fw2_v539_hold_realpnl：天天基金账户真实收益（v538 ttskill 的 dailyProfit/holdProfit/holdProfitRate，
+       人民币口径、含份额确认与费用）优先接管 dayLocal/totLocal/totPct；字段缺失时保持原推算
+       （当日＝（现价−昨收）×数量，总＝市值−成本）。★真实值已是人民币，故按 fx 反算回 local，
+       保证「折人民币 / 原币」两栏同源不打架（v539）。 */
+    var _dpR = (h.dailyProfit != null && isFinite(Number(h.dailyProfit))) ? Number(h.dailyProfit) : null;
+    var _hpR = (h.holdProfit != null && isFinite(Number(h.holdProfit))) ? Number(h.holdProfit) : null;
+    var _hprRaw = (h.holdProfitRate != null) ? parseFloat(String(h.holdProfitRate).replace('%', '')) : NaN;
+    var _hprR = isFinite(_hprRaw) ? _hprRaw : null;
+    if (_dpR != null) dayLocal = _dpR / (fx || 1);
+    if (_hpR != null) totLocal = _hpR / (fx || 1);
     return {
       code: h.code, name: (quote && quote.name) || h.name || shortCode(h.code),
       market, marketLabel: marketLabelOf(atKey, market, h.name), cur: CUR_SYMBOL[market],
@@ -4441,7 +4462,7 @@ function buildRows() {
       mvCny: mvLocal != null ? mvLocal * fx : null,
       dayCny: dayLocal != null ? dayLocal * fx : null,
       totCny: totLocal != null ? totLocal * fx : null,
-      totPct: costLocal ? ((totLocal || 0) / costLocal) * 100 : null,
+      totPct: _hprR != null ? _hprR : (costLocal ? ((totLocal || 0) / costLocal) * 100 : null),
       status: tradeStatus(market, quote),
       quoteTime: quote ? quote.time : '',
     };
@@ -5345,7 +5366,7 @@ function renderHoldings() {
   }
   $('#hdFoot').innerHTML = `数据快照：<b>${state.snapshot.id}</b>（${state.snapshot.at ? fmtDateTime(state.snapshot.at) : '—'}）
     · 持仓市值 / 盈亏按设置汇率折算人民币（HKD ${state.settings.fx.HKD}、USD ${state.settings.fx.USD}）
-    · 权重＝个股市值 ÷ 持仓总市值 · 当日盈亏＝（现价 − 昨收）× 数量
+    · 权重＝个股市值 ÷ 持仓总市值 · 当日盈亏＝（现价 − 昨收）× 数量；有账户数据时为天天基金账户真实日收益（含份额确认/费用）
     · 当前表格显示 <b>${rows.length}</b> / ${all.rows.length} 只${filter !== 'all' ? '（已按资产类型筛选）' : ''}
     · 示例持仓为模拟数据，可随时编辑或清空。`;
   renderPnlCalendar();
@@ -6951,9 +6972,9 @@ function renderCurrentView() {
 /* v534 fw2_v534_dm_module：数据集明细加「所属模块」字段 + 持仓单独成行 + 财经资讯实时行（22→24 数据集）。
    每行：[key, name, module, freq, track, src, script, verifier, yellow, red] */
 const DMCONFIG = [
-  ['fund_daily','基金日频净值','基金','日','日轨','东财 lsjz（月频缓存）· 月频双源对拍（东财×新浪）兜底','gen_fund_daily.py','verify_fund_daily',3,5],
-  ['fund_monthly','基金月频净值','基金','月','月轨','东财 lsjz × 新浪 acc（双源互验）','gen_fund_monthly.py','verify_dual_source+acc_nav+wind',15,45],
-  ['fund_basic','基金基础档案','基金','低频','日轨','东财实时 × Wind 快照 × 本地（三源）','gen_fund_basic.py','verify_fund_basic',7,30],
+  ['fund_daily','基金日频净值','基金数据','日','日轨','东财 lsjz（月频缓存）· 月频双源对拍（东财×新浪）兜底','gen_fund_daily.py','verify_fund_daily',3,5],
+  ['fund_monthly','基金月频净值','基金数据','月','月轨','东财 lsjz × 新浪 acc（双源互验）','gen_fund_monthly.py','verify_dual_source+acc_nav+wind',15,45],
+  ['fund_basic','基金基础档案','基金数据','低频','日轨','东财实时 × Wind 快照 × 本地（三源）','gen_fund_basic.py','verify_fund_basic',7,30],
   ['macro','宏观·估值情绪','宏观周期','日~月','日轨','理杏仁 × 东财 × CNN × CBOE × FRED × 央行 × OECD','gen_macro_snap+sent+cn+westock+em+us_wave+us_hf+cb_rates','verify_macro',3,5],
   ['nky','日经225','宏观周期','日','日轨','三源互验（日经官网等）','refresh_nky_hist.py','verify_nky',3,5],
   ['amt','全A成交额/资金温度','宏观周期','日','日轨','新浪 × westock + 东财 push2his 回补','refresh_amt30.py','verify_macro',3,5],
@@ -6962,17 +6983,17 @@ const DMCONFIG = [
   ['gold','黄金','宏观周期','日线+月报','日轨+季轨','WGC × 中国人民银行 × 伦敦金','refresh_gold_hist+gen_gold_data','内嵌镜像闸',3,5],
   ['wave','宽基/行业/康波','宏观周期','周~月','月轨','东财/理杏仁/历史序列','gen_wave_snap+gen_industry+gen_replay','—',15,45],
   ['etf_shares','国家队ETF份额','聪明的钱','日·披露后','日轨','东财 push2 × 腾讯 qt（双通道）· Tushare Pro 第三方（可选 token）','fetch_etf_shares.py','—',3,5],
-  ['bundle','四合一数据包','平台/治理','随数据','随主轨','派生（holdings/watchlist/macro/gold）','_make_bundle.py','镜像漂移闸',3,5],
-  ['screen_pool','基金筛选池','基金','月重筛','月轨','东财(jbgk/lsjz/manager/jjjl/gmbd) × pingzhongdata × jjcc','market_screen 五步链','_screen_shadow 影子',15,45],
-  ['fund_profiles','基金画像池','基金','月重筛','月轨','同筛选池（东财 × pingzhongdata × jjcc）','_gen_profiles.py','—',15,45],
+  ['bundle','四合一数据包','数据管理','随数据','随主轨','派生（holdings/watchlist/macro/gold）','_make_bundle.py','镜像漂移闸',3,5],
+  ['screen_pool','基金筛选池','基金数据','月重筛','月轨','东财(jbgk/lsjz/manager/jjjl/gmbd) × pingzhongdata × jjcc','market_screen 五步链','_screen_shadow 影子',15,45],
+  ['fund_profiles','基金画像池','基金数据','月重筛','月轨','同筛选池（东财 × pingzhongdata × jjcc）','_gen_profiles.py','—',15,45],
   ['index_daily','指数日线基准','宏观周期','日线·按需','月轨','理杏仁指数 K 线（A股）× 东财 push2his/腾讯 ifzq（QDII/黄金/债）','gen_index_bench+gen_index_bench_extra','—',15,45],
-  ['screen_rules','筛选规则','基金','手动','手动轨','用户规则（无外部互验）','—','—',null,null],
-  ['holdings','持仓','持仓/账本','日','日轨','资料库持仓表（真源·飞书多维表格）→ gen_holdings_seed.py 只读镜像；每晚 21:30 自动同步','gen_holdings_seed.py','—',3,5],
-  ['user_track','台账/自选','持仓/账本','手动','手动轨','自选=资料库「理财·自选表」实时拉取；台账/资金平衡=本机录入（localStorage，无外部互验，无法自动）','_capbal_lib_sync（镜像）','verify_watchlist（四处一致）',null,null],
-  ['news','财经资讯（实时聚合）','资讯','实时','实时轨','新浪 × 金十 × 华尔街见闻 × 公告 × IR（前端实时聚合·不落盘）','页面内 aggregateNews','—',null,null],
-  ['sources','数据源清单','平台/治理','月','月轨','数据源登记表 DAR（每项≥2 渠道·渠道性质分级·禁止未登记来源）','sources.json 登记维护','—',15,45],
-  ['bench_long','长基准（经理超额）','基金','月','月轨','天天基金 pingzhongdata 净值（权益/海外/黄金/债 4 风格 ETF 代理）','_mgr_excess.py','—',15,45],
-  ['fast_signals','更快信号·内幕/举牌/大宗','聪明的钱','日','日轨','SEC EDGAR（Form4/13D）× 理杏仁开放平台（大宗/两融）','gen_fast_signals.py+_merge_fast_signals.py','—',3,5],
+  ['screen_rules','筛选规则','策略执行','手动','手动轨','用户规则（无外部互验）','—','—',null,null],
+  ['holdings','持仓','我的持仓','日','日轨','天天基金 ttskill CLI（ACCOUNT_HOLDING 登录态实时查询 holding_total/holding_list/holding_hqb，marketValue/收益/总资产=账户权威）+ 东财 lsjz × 天天基金 pingzhongdata 净值 API 双通道；份额只随最新对账单重建','refresh_holdings_ttskill.py（每日）+ rebuild_holdings.py（发新对账单时）','—',3,5],
+  ['user_track','台账/资金平衡','资金平衡','手动','手动轨','自选=资料库「理财·自选表」实时拉取；台账/资金平衡=本机录入（localStorage，无外部互验，无法自动）','_capbal_lib_sync（镜像）','verify_watchlist（四处一致）',null,null],
+  ['news','财经资讯（实时聚合）','财经资讯','实时','实时轨','新浪 × 金十 × 华尔街见闻 × 公告 × IR（前端实时聚合·不落盘）','页面内 aggregateNews','—',null,null],
+  ['sources','数据源清单','数据管理','月','月轨','数据源登记表 DAR（每项≥2 渠道·渠道性质分级·禁止未登记来源）','sources.json 登记维护','—',15,45],
+  ['bench_long','长基准（经理超额）','基金数据','月','月轨','天天基金 pingzhongdata 净值（权益/海外/黄金/债 4 风格 ETF 代理）','_mgr_excess.py','—',15,45],
+  ['fast_signals','更快信号·内幕/举牌/大宗','交易信号','日','日轨','SEC EDGAR（Form4/13D）× 理杏仁开放平台（大宗/两融）','gen_fast_signals.py+_merge_fast_signals.py','—',3,5],
   ['sm_ashare','国家队十大股东（A股）','聪明的钱','季','季轨','东财 F10 十大股东（定期报告披露·中报8月底/三季报10月底）','—（SM_ASHARE 内嵌注入）','—',90,120],
   ['sm13f','美股 13F 机构持仓','聪明的钱','季','季轨','SEC EDGAR 13F-HR（季度披露·45 天滞后）','—（#sm13f-data 内嵌注入）','—',90,120],
 ];
@@ -6982,8 +7003,8 @@ const DMTRACKS = [
     cmd:'refresh_all.py --gate && _make_bundle.py && _gen_data_mgmt.py && push_gh_v39.py',
     note:'refresh_all 含发布与闸门；末尾重打四合一与状态文件并再发布（低频月/季数据不必每次全跑，见分轨）。' },
   { key:'daily', name:'日轨', freq:'每个交易日', need:'自动：每晚 21:30 定时任务已开通（含持仓自动同步），无需发指令；手动可复制命令',
-    cmd:'fetch_etf_shares.py && refresh_all.py --only fund-daily,fund-basic,macro,gold,fast-signals && gen_holdings_seed.py _hold_q_after.json && _make_bundle.py && _gen_data_mgmt.py && push_gh_v39.py',
-    note:'基金日频 + 基础档 + 宏观/情绪 + 黄金 + ETF 份额 + 更快信号（内幕/举牌/大宗/两融）+ 持仓（每晚自动拉资料库持仓表→gen_holdings_seed.py 镜像→发布，改持仓只需改资料库表）。' },
+    cmd:'fetch_etf_shares.py && refresh_all.py --only fund-daily,fund-basic,macro,gold,fast-signals && refresh_holdings_ttskill.py && _make_bundle.py && _gen_data_mgmt.py && push_gh_v39.py',
+    note:'基金日频 + 基础档 + 宏观/情绪 + 黄金 + ETF 份额 + 更快信号（内幕/举牌/大宗/两融）+ 持仓（每晚 21:30 自动：天天基金 ttskill 账户查询→镜像→发布；改持仓请发最新对账单或改天天基金账户，登录态失效先跑 ttskill login）。' },
   { key:'weekly', name:'周轨', freq:'每周六', need:'需发指令（对话说「跑周轨」或复制命令）',
     cmd:'refresh_all.py --only fund-daily,fund-basic,macro,gold && _make_bundle.py && _gen_data_mgmt.py && push_gh_v39.py',
     note:'周频序列（宏观内周频/资金温度）与日轨同链路，建议周六跑。' },
@@ -11288,6 +11309,17 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
      ④手动轨操作说明补全（持仓：资料库表改→gen_holdings_seed→发布；资讯：打开资讯页即抓取）。
      连带：verify_sync 加 v534 组 + 标记组 chip 断言 v533->v534（chip 值 'v534 · 自选'）+ _test_v534_dom.py。verChip v533->v534
   */
+  /* v539 fw2_v539_hold_realpnl：持仓真实收益接入 + 数据管理兜底同源（用户「两个都做」）——
+     ①数据管理兜底同源：index.html 内置 DMCONFIG（状态文件加载失败时的兜底事实）与 _gen_data_mgmt.py 生成的
+       data/data-mgmt.json 必须同源；v538 只改了生成器，本次补平——module 全称化 13 行（基金→基金数据、
+       平台/治理→数据管理、持仓/账本→我的持仓/资金平衡、资讯→财经资讯、筛选规则→策略执行、更快信号→交易信号），
+       holdings 行 src/script 由「资料库持仓表（真源·飞书多维表格）→ gen_holdings_seed.py」改为 ttskill 口径
+       （每日 refresh_holdings_ttskill.py + 发新对账单 rebuild_holdings.py），日轨卡 cmd 与 note 同步。
+     ②持仓真实收益接入：v538 ttskill 拉回的 dailyProfit/holdProfit/holdProfitRate 此前前端 0 处引用（数据拉了不展示），
+       本次在 buildRows 内优先接管 dayLocal/totLocal/totPct（账户真实值为人民币，按 fx 反算回 local 保证
+       「折人民币 / 原币」两栏同源），字段缺失时退回原推算（当日＝（现价−昨收）×数量、总＝市值−成本）；
+       表头「总盈亏 / 当日盈亏」加 title 标注口径、脚注同步说明；★刻意不新增列（v115 教训：加列会撑破 1440 视口表格）。
+     2026-10-14。verChip v535->v539 */
   /* v535 fw2_v535_dm_auto：手动轨改自动轨（用户「手动轨改成自动轨」）——
      ①持仓 holdings 手动轨→日轨自动：真源=资料库持仓表，每晚 21:30 定时自动拉全量→gen_holdings_seed.py 镜像→发布（syncedAt 回写当日）；
        滞后判定改日轨口径 黄3/红5（改持仓只需改资料库表，次日自动生效，无需发指令）；
@@ -11686,7 +11718,7 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
        留待与用户确认重设计方案后再动（本轮不做）。
      ★诚实限定：erpCard/peCard/mrgCard/vixCard 定义及其 erpSpark/peSpark/mrgSpark/vixSpark 函数已于 **v529（fw2_v529_smux P3）一并清理**（连同 erpLv/peLv/vixLv/rzyeLv 与顶部 erp/pe/margin/vix 局部变量，mi 页判读走 mcCalcCommon 不受影响）。
        数据/口径零改动，纯前端结构层；描述串「sm 去重 · 删重复估值流动性卡」入 verify_sync 标记组 */
-  if (vc) vc.textContent = 'v535 · 自选' /* fw2_v516_a500lk fw2_v517_4otc fw2_v518_hspos fw2_v519_sm_merge fw2_v520_chgflat fw2_v521_magnet fw2_v522_overview fw2_v523_sm_dedup fw2_v524_geo_fsi fw2_v525_geo_filter fw2_v526_geo_filter_removed fw2_v527_verdict fw2_v529_smux fw2_v530_datamgmt fw2_v531_sm_dmgmt fw2_v532_all_dm fw2_v533_px_long fw2_v533d_dm_scroll fw2_v534_dm_module fw2_v535_dm_auto */ + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  if (vc) vc.textContent = 'v539 · 自选' /* fw2_v516_a500lk fw2_v517_4otc fw2_v518_hspos fw2_v519_sm_merge fw2_v520_chgflat fw2_v521_magnet fw2_v522_overview fw2_v523_sm_dedup fw2_v524_geo_fsi fw2_v525_geo_filter fw2_v526_geo_filter_removed fw2_v527_verdict fw2_v529_smux fw2_v530_datamgmt fw2_v531_sm_dmgmt fw2_v532_all_dm fw2_v533_px_long fw2_v533d_dm_scroll fw2_v534_dm_module fw2_v535_dm_auto fw2_v539_hold_realpnl */ + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
