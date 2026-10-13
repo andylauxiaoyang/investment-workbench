@@ -6967,11 +6967,11 @@ const DMCONFIG = [
   ['fund_profiles','基金画像池','基金','月重筛','月轨','同筛选池（东财 × pingzhongdata × jjcc）','_gen_profiles.py','—',15,45],
   ['index_daily','指数日线基准','宏观周期','日线·按需','月轨','理杏仁指数 K 线（A股）× 东财 push2his/腾讯 ifzq（QDII/黄金/债）','gen_index_bench+gen_index_bench_extra','—',15,45],
   ['screen_rules','筛选规则','基金','手动','手动轨','用户规则（无外部互验）','—','—',null,null],
-  ['holdings','持仓','持仓/账本','手动','手动轨','资料库持仓表（真源·飞书多维表格）→ gen_holdings_seed.py 只读镜像','gen_holdings_seed.py','—',null,null],
-  ['user_track','台账/自选','持仓/账本','手动','手动轨','用户录入（无外部互验）','_capbal_lib_sync（镜像）','verify_watchlist（四处一致）',null,null],
+  ['holdings','持仓','持仓/账本','日','日轨','资料库持仓表（真源·飞书多维表格）→ gen_holdings_seed.py 只读镜像；每晚 21:30 自动同步','gen_holdings_seed.py','—',3,5],
+  ['user_track','台账/自选','持仓/账本','手动','手动轨','自选=资料库「理财·自选表」实时拉取；台账/资金平衡=本机录入（localStorage，无外部互验，无法自动）','_capbal_lib_sync（镜像）','verify_watchlist（四处一致）',null,null],
   ['news','财经资讯（实时聚合）','资讯','实时','实时轨','新浪 × 金十 × 华尔街见闻 × 公告 × IR（前端实时聚合·不落盘）','页面内 aggregateNews','—',null,null],
-  ['sources','数据源清单','平台/治理','低频','手动轨','数据源登记表 DAR（每项≥2 渠道·渠道性质分级·禁止未登记来源）','sources.json 登记维护','—',null,null],
-  ['bench_long','长基准（经理超额）','基金','低频','手动轨','天天基金 pingzhongdata 净值（权益/海外/黄金/债 4 风格 ETF 代理）','_mgr_excess.py','—',null,null],
+  ['sources','数据源清单','平台/治理','月','月轨','数据源登记表 DAR（每项≥2 渠道·渠道性质分级·禁止未登记来源）','sources.json 登记维护','—',15,45],
+  ['bench_long','长基准（经理超额）','基金','月','月轨','天天基金 pingzhongdata 净值（权益/海外/黄金/债 4 风格 ETF 代理）','_mgr_excess.py','—',15,45],
   ['fast_signals','更快信号·内幕/举牌/大宗','聪明的钱','日','日轨','SEC EDGAR（Form4/13D）× 理杏仁开放平台（大宗/两融）','gen_fast_signals.py+_merge_fast_signals.py','—',3,5],
   ['sm_ashare','国家队十大股东（A股）','聪明的钱','季','季轨','东财 F10 十大股东（定期报告披露·中报8月底/三季报10月底）','—（SM_ASHARE 内嵌注入）','—',90,120],
   ['sm13f','美股 13F 机构持仓','聪明的钱','季','季轨','SEC EDGAR 13F-HR（季度披露·45 天滞后）','—（#sm13f-data 内嵌注入）','—',90,120],
@@ -6981,21 +6981,21 @@ const DMTRACKS = [
   { key:'all', name:'全域更新', freq:'全部 · 按需', need:'需发指令（对话说「全域更新」或复制命令）',
     cmd:'refresh_all.py --gate && _make_bundle.py && _gen_data_mgmt.py && push_gh_v39.py',
     note:'refresh_all 含发布与闸门；末尾重打四合一与状态文件并再发布（低频月/季数据不必每次全跑，见分轨）。' },
-  { key:'daily', name:'日轨', freq:'每个交易日', need:'自动：每晚 21:30 定时任务已开通，无需发指令；手动可复制命令',
-    cmd:'fetch_etf_shares.py && refresh_all.py --only fund-daily,fund-basic,macro,gold,fast-signals && _make_bundle.py && _gen_data_mgmt.py && push_gh_v39.py',
-    note:'基金日频 + 基础档 + 宏观/情绪 + 黄金 + ETF 份额 + 更快信号（内幕/举牌/大宗/两融）。' },
+  { key:'daily', name:'日轨', freq:'每个交易日', need:'自动：每晚 21:30 定时任务已开通（含持仓自动同步），无需发指令；手动可复制命令',
+    cmd:'fetch_etf_shares.py && refresh_all.py --only fund-daily,fund-basic,macro,gold,fast-signals && gen_holdings_seed.py _hold_q_after.json && _make_bundle.py && _gen_data_mgmt.py && push_gh_v39.py',
+    note:'基金日频 + 基础档 + 宏观/情绪 + 黄金 + ETF 份额 + 更快信号（内幕/举牌/大宗/两融）+ 持仓（每晚自动拉资料库持仓表→gen_holdings_seed.py 镜像→发布，改持仓只需改资料库表）。' },
   { key:'weekly', name:'周轨', freq:'每周六', need:'需发指令（对话说「跑周轨」或复制命令）',
     cmd:'refresh_all.py --only fund-daily,fund-basic,macro,gold && _make_bundle.py && _gen_data_mgmt.py && push_gh_v39.py',
     note:'周频序列（宏观内周频/资金温度）与日轨同链路，建议周六跑。' },
   { key:'monthly', name:'月轨', freq:'每月 1 号', need:'需发指令（对话说「跑月轨」或复制命令）',
-    cmd:'refresh_all.py --only fund-monthly,macro,gold && _make_bundle.py && _gen_data_mgmt.py && push_gh_v39.py',
-    note:'基金月频 + 筛选池/画像（重筛链 _screen_shadow 每月 1 号定时）+ 宏观月序列。' },
+    cmd:'refresh_all.py --only fund-monthly,macro,gold && _gen_data_mgmt.py && push_gh_v39.py',
+    note:'基金月频 + 筛选池/画像（重筛链 _screen_shadow 每月 1 号定时）+ 宏观月序列 + 数据源清单/长基准（低频治理随月轨核验更新）。' },
   { key:'quarterly', name:'季轨', freq:'每季首月', need:'需发指令（对话说「跑季轨」或复制命令）',
     cmd:'refresh_all.py --only macro && _make_bundle.py && _gen_data_mgmt.py && push_gh_v39.py',
     note:'季频数据（宏观季序列/黄金月报已含于宏观链路）。' },
   { key:'manual', name:'手动轨', freq:'随时', need:'无需定时指令：在工作台/资料库直接操作',
-    cmd:'# 持仓：改资料库持仓表 → 对话说「更新持仓」或：\npython gen_holdings_seed.py _hold_q_after.json && python push_gh_v39.py\n# 台账/自选：工作台「资金平衡/交易台账/自选」界面直接增删改\n# 筛选规则：工作台「筛选基金」规则卡直接编辑\n# 资讯：打开「财经资讯」页即实时抓取（运行时，不落盘）',
-    note:'手动轨数据集：持仓（真源=资料库持仓表，改完须重跑 gen_holdings_seed.py 镜像再发布，勿手改 holdings-data.json）、台账/自选（用户录入）、筛选规则、数据源清单、长基准。无外部源互验；四处一致由 verify_watchlist 校验。' },
+    cmd:'# 台账/自选：工作台「资金平衡/交易台账/自选」界面直接增删改\n# 筛选规则：工作台「筛选基金」规则卡直接编辑（导出 JSON 后可发我同步 screen-rules.json）\n# 资讯：打开「财经资讯」页即实时抓取（运行时，不落盘）',
+    note:'手动轨数据集仅剩：台账/资金平衡（本机 localStorage 用户录入，AI 无法替你记账，无法自动）、筛选规则（你的纪律，AI 不替你改）；自选真源在资料库表已随页面实时拉取。持仓已改日轨自动（每晚同步资料库表），数据源清单/长基准已改月轨自动。无外部源互验；四处一致由 verify_watchlist 校验。' },
 ];
 let __dmLoaded = false;
 async function renderDataMgmt() {
@@ -7030,7 +7030,7 @@ async function renderDataMgmt() {
     '<span class="chip lag-ok">新鲜 ' + cnt.ok + '</span>' +
     '<span class="chip" style="background:var(--panel-2,#eef1f6)">手动 ' + cnt.manual + '</span>' +
     '</div>' +
-    '<div style="font-size:var(--fs-xs,12px);color:var(--txt3,#5b6472);margin-top:6px">滞后口径（距最后一次成功更新）：日频 黄3天/红5天 · 周频 黄7/红10 · 月频 黄15/红45（=月周期30+15缓冲）· 季频 黄90/红120。手动轨不判滞后，仅显示距上次更新天数。每次更新后由 _gen_data_mgmt.py 自动回写本页日期。</div>';
+    '<div style="font-size:var(--fs-xs,12px);color:var(--txt3,#5b6472);margin-top:6px">滞后口径（距最后一次成功更新）：日频 黄3天/红5天 · 周频 黄7/红10 · 月频 黄15/红45（=月周期30+15缓冲）· 季频 黄90/红120。手动轨（台账/筛选规则=本机录入）不判滞后，仅显示距上次更新天数。每次更新后由 _gen_data_mgmt.py 自动回写本页日期。</div>';
   dash.innerHTML =
     '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:6px">' +
     rows.map((r) => {
@@ -11288,6 +11288,14 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
      ④手动轨操作说明补全（持仓：资料库表改→gen_holdings_seed→发布；资讯：打开资讯页即抓取）。
      连带：verify_sync 加 v534 组 + 标记组 chip 断言 v533->v534（chip 值 'v534 · 自选'）+ _test_v534_dom.py。verChip v533->v534
   */
+  /* v535 fw2_v535_dm_auto：手动轨改自动轨（用户「手动轨改成自动轨」）——
+     ①持仓 holdings 手动轨→日轨自动：真源=资料库持仓表，每晚 21:30 定时自动拉全量→gen_holdings_seed.py 镜像→发布（syncedAt 回写当日）；
+       滞后判定改日轨口径 黄3/红5（改持仓只需改资料库表，次日自动生效，无需发指令）；
+     ②数据源清单 sources / 长基准 bench_long 手动轨→月轨自动（低频治理随月轨核验更新，月口径 黄15/红45）；
+     ③手动轨仅剩台账/资金平衡（本机 localStorage 用户录入，AI 无法替你记账）与筛选规则（你的纪律）——页面说明不可自动原因；
+       自选真源在资料库表已随页面实时拉取；DMTRACKS manual 卡精简、daily 卡加持仓自动同步、monthly 卡加低频治理；
+     ④cron query 数据集字样 22→24 + 加持仓同步步骤。chip v534->v535
+  */
   /* v533d fw2_v533d_dm_scroll：数据管理视图滚动修复——view-datamgmt 是 .scroll-area 的兄弟节点（v530 新增时未加滚动规则，
      内容高于视口被 .app{overflow:hidden} 裁掉，用户报「这个模块内容不能下滑导致下面的内容看不到」）；补 #view-datamgmt.active
      同款视图内滚动（flex:1 1 auto + min-height:0 + overflow-y:auto，与 view-decision/view-capbal/view-smartmoney 同构）。
@@ -11678,7 +11686,7 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
        留待与用户确认重设计方案后再动（本轮不做）。
      ★诚实限定：erpCard/peCard/mrgCard/vixCard 定义及其 erpSpark/peSpark/mrgSpark/vixSpark 函数已于 **v529（fw2_v529_smux P3）一并清理**（连同 erpLv/peLv/vixLv/rzyeLv 与顶部 erp/pe/margin/vix 局部变量，mi 页判读走 mcCalcCommon 不受影响）。
        数据/口径零改动，纯前端结构层；描述串「sm 去重 · 删重复估值流动性卡」入 verify_sync 标记组 */
-  if (vc) vc.textContent = 'v534 · 自选' /* fw2_v516_a500lk fw2_v517_4otc fw2_v518_hspos fw2_v519_sm_merge fw2_v520_chgflat fw2_v521_magnet fw2_v522_overview fw2_v523_sm_dedup fw2_v524_geo_fsi fw2_v525_geo_filter fw2_v526_geo_filter_removed fw2_v527_verdict fw2_v529_smux fw2_v530_datamgmt fw2_v531_sm_dmgmt fw2_v532_all_dm fw2_v533_px_long fw2_v533d_dm_scroll fw2_v534_dm_module */ + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  if (vc) vc.textContent = 'v535 · 自选' /* fw2_v516_a500lk fw2_v517_4otc fw2_v518_hspos fw2_v519_sm_merge fw2_v520_chgflat fw2_v521_magnet fw2_v522_overview fw2_v523_sm_dedup fw2_v524_geo_fsi fw2_v525_geo_filter fw2_v526_geo_filter_removed fw2_v527_verdict fw2_v529_smux fw2_v530_datamgmt fw2_v531_sm_dmgmt fw2_v532_all_dm fw2_v533_px_long fw2_v533d_dm_scroll fw2_v534_dm_module fw2_v535_dm_auto */ + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
