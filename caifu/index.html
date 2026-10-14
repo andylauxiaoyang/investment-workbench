@@ -7085,7 +7085,7 @@ const DMCONFIG = [
 const DMTRACKS = [
   { key:'all', name:'全域更新', freq:'全部 · 按需', need:'需发指令（对话说「全域更新」或复制命令）',
     cmd:'refresh_all.py --gate && _make_bundle.py && _gen_data_mgmt.py && push_gh_v39.py',
-    note:'refresh_all 含发布与闸门；末尾重打四合一与状态文件并再发布（低频月/季数据不必每次全跑，见分轨）。' },
+    note:'refresh_all 含发布与闸门；末尾重打四合一与状态文件并再发布（低频月/季数据不必每次全跑，见分轨）。★持仓不在全域链内：marketValue/净值/收益每日 21:30 日轨自动刷（ttskill），份额/成本仅随新对账单 rebuild_holdings.py 变更。' },
   { key:'daily', name:'日轨', freq:'每个交易日', need:'自动：每晚 21:30 定时任务已开通（含持仓自动同步），无需发指令；手动可复制命令',
     cmd:'fetch_etf_shares.py && refresh_all.py --only fund-daily,fund-basic,macro,gold,fast-signals && refresh_holdings_ttskill.py && _make_bundle.py && _gen_data_mgmt.py && push_gh_v39.py',
     note:'基金日频 + 基础档 + 宏观/情绪 + 黄金 + ETF 份额 + 更快信号（内幕/举牌/大宗/两融）+ 持仓（每晚 21:30 自动：天天基金 ttskill 账户查询→镜像→发布；改持仓请发最新对账单或改天天基金账户，登录态失效先跑 ttskill login）。' },
@@ -7100,7 +7100,7 @@ const DMTRACKS = [
     note:'季频数据（宏观季序列/黄金月报已含于宏观链路）。' },
   { key:'manual', name:'手动轨', freq:'随时', need:'无需定时指令：在工作台/资料库直接操作',
     cmd:'# 台账/自选：工作台「资金平衡/交易台账/自选」界面直接增删改\n# 筛选规则：工作台「筛选基金」规则卡直接编辑（导出 JSON 后可发我同步 screen-rules.json）\n# 资讯：打开「财经资讯」页即实时抓取（运行时，不落盘）',
-    note:'手动轨数据集仅剩：台账/资金平衡（本机 localStorage 用户录入，AI 无法替你记账，无法自动）、筛选规则（你的纪律，AI 不替你改）；自选真源在资料库表已随页面实时拉取。持仓已改日轨自动（每晚同步资料库表），数据源清单/长基准已改月轨自动。无外部源互验；四处一致由 verify_watchlist 校验。' },
+    note:'手动轨数据集仅剩：台账/资金平衡（本机 localStorage 用户录入，AI 无法替你记账，无法自动）、筛选规则（你的纪律，AI 不替你改）；自选真源在资料库表已随页面实时拉取。持仓已改日轨自动（每晚 21:30 ttskill 账户查询→镜像→发布），数据源清单/长基准已改月轨自动。无外部源互验；四处一致由 verify_watchlist 校验。' },
 ];
 let __dmLoaded = false;
 async function renderDataMgmt() {
@@ -11404,6 +11404,16 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
      注释 3 处：loadStore 行异步加载说明、v445 三层兜底说明改两层并标注停用。
      ★保留「资料库持仓表」字样（v445 注释 + 逐版 changelog），verify_sync 的 v534 标记串不失效；
      ★刻意不动 DB 通道逻辑：__LK_DB__.holdingsList 分支保留，表不存在时自然不覆盖种子，无需改优先级。2026-10-14。verChip v539->v540 */
+  /* v543 fw2_v543_dm_holdings_note：数据管理页持仓轨文案修正（2026-10-14，用户两连问「全域更新为什么持仓没更新」
+     /「会不会全部更新我的持仓」）——
+     ①手动轨 note 死指引：「持仓已改日轨自动（每晚同步资料库表）」→「（每晚 21:30 ttskill 账户查询→镜像→发布）」。
+     资料库持仓表 v537 起已停用（连接器 91402 NOTEXIST），v540 已清 4 处用户可见死文案，此句是 DMTRACKS manual
+     卡的漏网遗存（v535 改自动轨时所写，v537/v538 改真源时漏改）。
+     ②全域轨 note 补口径：★持仓不在全域链内——refresh_all GROUPS 六组（fund-monthly/fund-daily/fund-basic/
+     macro/gold/fast-signals）无 holdings 组（2026-10-14 日档实证），marketValue/净值/收益走每晚 21:30 日轨
+     ttskill 自动刷，份额/成本仅随新对账单 rebuild_holdings.py 变更。防用户再遇「全域更新后持仓不动」误解。
+     纯文案层零逻辑/零数据改动；chip v542→v543。
+  */
   /* v542 fw2_v542_pf_mirror_first / fw2_v542_mv_settled / fw2_v542_mv_account：
      持仓数据「一直没变过」根因修复（2026-10-14 用户截图实证，逐行对拍）——
      根因 A（份额/成本冻结）：legacy 数据源压着新镜像不放。A1 loadStore() 把 localStorage 旧草稿
@@ -11836,7 +11846,7 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
        留待与用户确认重设计方案后再动（本轮不做）。
      ★诚实限定：erpCard/peCard/mrgCard/vixCard 定义及其 erpSpark/peSpark/mrgSpark/vixSpark 函数已于 **v529（fw2_v529_smux P3）一并清理**（连同 erpLv/peLv/vixLv/rzyeLv 与顶部 erp/pe/margin/vix 局部变量，mi 页判读走 mcCalcCommon 不受影响）。
        数据/口径零改动，纯前端结构层；描述串「sm 去重 · 删重复估值流动性卡」入 verify_sync 标记组 */
-  if (vc) vc.textContent = 'v542 · 自选' /* fw2_v516_a500lk fw2_v517_4otc fw2_v518_hspos fw2_v519_sm_merge fw2_v520_chgflat fw2_v521_magnet fw2_v522_overview fw2_v523_sm_dedup fw2_v524_geo_fsi fw2_v525_geo_filter fw2_v526_geo_filter_removed fw2_v527_verdict fw2_v529_smux fw2_v530_datamgmt fw2_v531_sm_dmgmt fw2_v532_all_dm fw2_v533_px_long fw2_v533d_dm_scroll fw2_v534_dm_module fw2_v535_dm_auto fw2_v539_hold_realpnl fw2_v539a_seed_sync fw2_v539a_seed_order fw2_v540_hold_path fw2_v542_pf_mirror_first fw2_v542_mv_settled fw2_v542_mv_account */ + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  if (vc) vc.textContent = 'v543 · 自选' /* fw2_v516_a500lk fw2_v517_4otc fw2_v518_hspos fw2_v519_sm_merge fw2_v520_chgflat fw2_v521_magnet fw2_v522_overview fw2_v523_sm_dedup fw2_v524_geo_fsi fw2_v525_geo_filter fw2_v526_geo_filter_removed fw2_v527_verdict fw2_v529_smux fw2_v530_datamgmt fw2_v531_sm_dmgmt fw2_v532_all_dm fw2_v533_px_long fw2_v533d_dm_scroll fw2_v534_dm_module fw2_v535_dm_auto fw2_v539_hold_realpnl fw2_v539a_seed_sync fw2_v539a_seed_order fw2_v540_hold_path fw2_v542_pf_mirror_first fw2_v542_mv_settled fw2_v542_mv_account fw2_v543_dm_holdings_note */ + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
