@@ -3962,11 +3962,17 @@ function loadStore() {
   try { state.settings = Object.assign({}, DEFAULT_SETTINGS, JSON.parse(localStorage.getItem(LS.settings) || '{}')); } catch (e) {}
   state.settings.fx = Object.assign({}, DEFAULT_SETTINGS.fx, state.settings.fx || {});
   state.portfolio = []; // 持仓改由离线镜像异步加载（真源＝天天基金 ttskill 账户 + 用户最新对账单；资料库持仓表 v537 起已停用）
-  /* v177 fw2_v177_pf_draft：未登录（DB 不可用）时恢复本地草稿，编辑不再刷新即丢；
-     登录后 DB 加载成功会覆盖（DB 恒为权威源）。 */
+  /* v542 fw2_v542_pf_mirror_first：★废黜 v177「本地草稿优先」——原逻辑把 localStorage 旧草稿
+     （fw2_portfolio）恢复进 state.portfolio 并标 _pfSrc='local'，applySeed 见 'local' 即整体
+     拒绝 apply（内嵌种子 + 旁挂 holdings-data.json 全被挡）→ 用户浏览器里几个月前的手工数据
+     （007866=1000.8 股、001015=420.02 股、020712 单卡 7.15 股、缺 022438）反成永久真源，
+     「持仓一直没变过」（2026-10-14 用户截图实证，7 行全为 10 月前旧值）。
+     v537 起真源＝天天基金账户镜像（旁挂文件→内嵌种子），草稿降级为「镜像+DB 全失败」时的
+     最后兜底：此处只捡进 state._pfDraft，不碰 state.portfolio / _pfSrc，
+     由 loadPortfolioFromDB() 末尾兜底（tag 仍为 'local'，来源标注「本地草稿」）。 */
   try {
     const _pf = JSON.parse(localStorage.getItem(LS.portfolio) || 'null');
-    if (Array.isArray(_pf) && _pf.length) { state.portfolio = _pf; state._pfSrc = 'local'; }
+    if (Array.isArray(_pf) && _pf.length) state._pfDraft = _pf;
   } catch (e) {}
   try {
     const w = JSON.parse(localStorage.getItem(LS.watchlist) || 'null');
@@ -3977,7 +3983,13 @@ function loadStore() {
 }
 function saveStore() {
   localStorage.setItem(LS.settings, JSON.stringify(state.settings));
-  localStorage.setItem(LS.portfolio, JSON.stringify(state.portfolio || [])); /* v177 fw2_v177_pf_draft 未登录时本地草稿 */
+  /* v542 fw2_v542_pf_mirror_first：空持仓不写盘——loadStore() 结尾会调一次 saveStore()，
+     彼时镜像尚未异步落地（state.portfolio=[]），原逻辑会把旧草稿抹成空数组→兜底链断。
+     改为：portfolio 非空照写（用户手工改动只活到下次加载、被镜像覆盖——与 v540
+     「清空只影响本机显示、下一轮同步会重新拉回」同口径）；为空则原样保留既有草稿。 */
+  var _pfNow = state.portfolio || [];
+  if (!_pfNow.length) { try { _pfNow = JSON.parse(localStorage.getItem(LS.portfolio) || '[]'); } catch (e) { _pfNow = []; } }
+  localStorage.setItem(LS.portfolio, JSON.stringify(_pfNow)); /* v177 fw2_v177_pf_draft 未登录时本地草稿（v542 起降级为镜像兜底） */
   if (window.__LK_DB__ && window.__LK_DB__.ready()) window.__LK_DB__.syncHoldings(state.portfolio);
   localStorage.setItem(LS.watchlist, JSON.stringify(state.watchlist));
   localStorage.setItem(LS.sectors, JSON.stringify(state.sectors));
@@ -3991,19 +4003,39 @@ function saveStore() {
 function applySeed(j, tag) {
   var arr = (j && j.holdings) || [];
   var list = arr.map(function (x) {
+    /* v542 fw2_v542_mv_account：透传天天基金账户口径字段——nav/navDate（同步时点已结算净值）、
+       marketValue（账户权威市值，人民币，含份额确认与费用，＝天天基金 App 持仓市值）、
+       chg 与收益四件套（dailyProfit/holdProfit/holdProfitRate，v538 ttskill 拉取）、货基年化。
+       buildRows 优先用 marketValue → 持仓市值/盈亏恒等于账户；字段缺失时按原回退链走，
+       不影响无镜像数据场景（股票/旧格式种子）。
+       ★unitCost=null（020712 9 月份成本未知）时按 cost/shares 反推单位成本——原回落
+       「+x.cost」会把总成本当单位成本，020712 成本列错显 30.03×27.77=834.23。 */
+    var _uc = (x.unitCost != null) ? +x.unitCost
+            : ((x.shares > 0 && x.cost != null) ? +(x.cost / x.shares) : 0);
     return {
       _id: 'seed-' + String(x.code || ''),
       code: String(x.code || ''),
       name: x.name || '',
       qty: +x.shares || 0,
-      cost: x.unitCost != null ? +x.unitCost : (+x.cost || 0),
+      cost: _uc,
       assetType: x.assetType || x.type || 'stock', /* v129 fw2_v129_assettype_fix：v128 写入端已改 assetType、读取端漏改→现金资产误判 stock，活期宝市值 — */
       sector: x.sector || '',
       buyDate: x.buyDate || '', /* v323 fw2_v323_t5 T5 时间止损：买入日期（最早买入确认日） */
+      nav: (x.nav != null && isFinite(Number(x.nav))) ? Number(x.nav) : null,
+      navDate: x.navDate || '',
+      marketValue: (x.marketValue != null && isFinite(Number(x.marketValue))) ? Number(x.marketValue) : null,
+      chg: (x.chg != null && isFinite(Number(x.chg))) ? Number(x.chg) : null,
+      dailyProfit: (x.dailyProfit != null && isFinite(Number(x.dailyProfit))) ? Number(x.dailyProfit) : null,
+      holdProfit: (x.holdProfit != null && isFinite(Number(x.holdProfit))) ? Number(x.holdProfit) : null,
+      holdProfitRate: (x.holdProfitRate != null) ? String(x.holdProfitRate) : null,
+      annual7D: (x.annual7D != null) ? String(x.annual7D) : null,
     };
   }).filter(function (h) { return h.code && h.qty > 0; });
   if (!list.length) return false;
-  if (state._pfSrc === 'local') return false; /* v177 fw2_v177_pf_draft：本地草稿优先于种子（DB 仍恒为权威源） */
+  /* v542 fw2_v542_pf_mirror_first：删「本地草稿优先于种子」闸门——v177 遗产（DB 恒为权威源时代）。
+     v537 起 DB 通道停用（连接器 91402 NOTEXIST），草稿再无被权威源覆盖的机会，反而永久挡住
+     新镜像（事故链见 loadStore 注释）。现在镜像（内嵌种子→旁挂文件）无条件覆盖草稿；
+     草稿仅在 loadPortfolioFromDB 末尾、镜像与 DB 全空时兜底。 */
   state.portfolio = list;
   state._pfSrc = 'seed-' + tag;
   state._pfAt = (j && j.syncedAt) ? String(j.syncedAt) : '';
@@ -4026,7 +4058,7 @@ function renderPfSrcNote() {
     DB: '资料库持仓表（已停用）',
     'seed-inline': '内置只读镜像快照',
     'seed-file': '旁挂快照 holdings-data.json',
-    local: '本地草稿', /* v323b fw2_v323_bdmerge：补 v177 遗漏的 local 标签（此前显示为「未取到持仓数据」误导） */
+    local: '本地草稿（镜像兜底）', /* v323b fw2_v323_bdmerge：补 v177 遗漏的 local 标签（此前显示为「未取到持仓数据」误导）；v542 fw2_v542_pf_mirror_first：镜像优先后，此标签仅在镜像+DB 全失败时出现 */
     'empty': '未取到持仓数据',
   };
   var label = map[state._pfSrc] || '未取到持仓数据';
@@ -4051,7 +4083,15 @@ async function loadPortfolioFromDB() {
   /* ② 旁挂快照：比内嵌更新时覆盖 */
   await fetchSeedFile();
   /* ③ 资料库实时表：先做 SDK 预检（免登录端根本没有 __SMART_PAGE__，不必干等 waitDb 的 8s 轮询），
-        预检通过才进主通道，并带 8s 超时（与自选通道 v56 同款）；成功且非空才覆盖种子 */
+        预检通过才进主通道，并带 8s 超时（与自选通道 v56 同款）。
+        v542 fw2_v542_pf_mirror_first：★DB 通道降级为兜底——v537 起真源已切天天基金账户镜像
+        （旁挂 holdings-data.json + 内嵌 HOLDINGS_SEED，每晚 21:30 cron 经 ttskill 刷新），
+        资料库持仓表已停用（连接器访问返回 91402 NOTEXIST）。事故链（2026-10-14 用户截图实证）：
+        资料库环境内 holdingsList() 把表里数月前的手工数据连同 localStorage 写穿快照 lk_wc_v2
+        一起返回，旧优先级「DB 恒为权威源」直接覆盖新镜像 → 持仓一直没变过。
+        现在：镜像（②①）非空时绝不被 DB 覆盖；DB 仅当镜像全失败时兜底。
+        ★仍然调用 holdingsList()——刷新 hMerged/hReady（syncHoldings 的删除/更新基准），
+        使镜像能自愈写回资料库表；只是不用其结果覆盖镜像。 */
   var hasSdk = !!(window.__SMART_PAGE__ && window.__SMART_PAGE__.database);
   if (!hasSdk) {
     await new Promise(function (r) { setTimeout(r, 1200); });
@@ -4062,8 +4102,14 @@ async function loadPortfolioFromDB() {
       window.__LK_DB__.holdingsList(),
       new Promise(function (_, rej) { setTimeout(function () { rej(new Error('DB 超时(8s)')); }, 8000); }),
     ]) : null;
-    if (Array.isArray(list) && list.length) { state.portfolio = list; state._pfSrc = 'DB'; state._pfAt = ''; }
+    if (Array.isArray(list) && list.length && !state.portfolio.length) { state.portfolio = list; state._pfSrc = 'DB'; state._pfAt = ''; }
   } catch (e) { /* 主通道不可用：保持种子（与「空列表不误清库」原则一致） */ }
+  /* v542 fw2_v542_pf_mirror_first：本地草稿最后兜底——镜像与 DB 全空时（离线且旁挂文件 404），
+     才用 loadStore 捡到的 state._pfDraft（v177 旧草稿），标签仍为 'local'（来源标注「本地草稿」）。
+     正常路径下永不经此分支（内嵌种子毫秒级落地）。 */
+  if (!state.portfolio.length && state._pfDraft && state._pfDraft.length) {
+    state.portfolio = state._pfDraft; state._pfSrc = 'local'; state._pfAt = '';
+  }
   if (!state.portfolio.length) state._pfSrc = 'empty';
   /* v323b fw2_v323_bdmerge：本地草稿/旧格式持仓缺 buyDate（T5 时间止损基准）→ 用内嵌种子按 code 补齐。
      背景：v177 本地草稿优先于种子，草稿是历史保存的无 buyDate 版本，直接覆盖导致 T5 永不触发。 */
@@ -4430,22 +4476,51 @@ function buildRows() {
     const quote = q[h.code] || null;
     /* v127 fw2_v127_fund_label：种子持仓无 assetType 字段 → 按行情 fund 标志推断，缺省 guessAssetType（ETF 前缀→etf） */
     const atKey = h.assetType || (quote && quote.fund ? 'fund' : guessAssetType(h.code));
-    const price = quote && quote.price ? quote.price : (h.assetType === 'cash' ? (h.cost || 1) : null);
+    const fx = fxOf(market);
+    /* v542 fw2_v542_mv_settled：现价优先取镜像自带已结算净值（nav，与市值同源、行内自洽：
+       现价×份额=市值）；无镜像数据（股票/旧格式种子）才回落实时行情 price。 */
+    const price = (h.nav != null && h.nav > 0) ? h.nav
+                : (quote && quote.price ? quote.price : (h.assetType === 'cash' ? (h.cost || 1) : null));
     const pre = quote && quote.preclose ? quote.preclose : null;
     /* v260 fw2_v260_px_unify：市值/总盈亏统一「昨收（preclose，已结算收盘价）」口径，与资金平衡 v181 收盘价口径一致；
        当日盈亏 dayLocal 保留现价差（盘中实时）。
        v261 fw2_v261_nav_fb：市值回退链 preclose → price → fund-daily(__ALLOC_NAV__) → cost(cash)——
-       QDII/场外基金无行情时与资产配置表/决策总览/资金平衡同源（fund-daily.json 净值），避免跨模块对不上。 */
-    let mvPx = (pre != null && pre > 0) ? pre : (quote && quote.price != null ? quote.price : null);
-    if (mvPx == null && h.assetType !== 'cash') {
-      const c6 = String(h.code || '').replace(/\D/g, '').slice(-6);
-      const nav = (window.__ALLOC_NAV__ && window.__ALLOC_NAV__[c6]) ? window.__ALLOC_NAV__[c6].nav : null;
-      if (nav != null && nav > 0) mvPx = nav;
+       QDII/场外基金无行情时与资产配置表/决策总览/资金平衡同源（fund-daily.json 净值），避免跨模块对不上。
+       v542 fw2_v542_mv_settled：★基金例外——基金行情的 preclose 是 fundShape 用当日涨跌幅「反推」的
+       上一净值日（pre=price/(1+pct/100)），不是已结算价。012920 实证（2026-10-14 用户截图）：
+       price=3.5831（估值）、preclose=3.6848（=10-09 净值）→ 市值按 10-09 旧净值算成 18588.46，
+       比账户权威值 18075.37 高 513 元，总盈亏/权重/健康度连带全偏。股票的 preclose 是真·昨收，保留；
+       基金的 price 本身即已结算净值（dwjz）或当日估值，应优先于反推 preclose。 */
+    /* v542 fw2_v542_mv_account：市值三级优先——① 账户权威 marketValue（人民币，ttskill 镜像，
+       ＝天天基金 App 持仓市值，含份额确认与费用）；② 镜像 nav×份额（同步时点已结算净值）；
+       ③ 实时行情（基金走 price 不走反推 preclose；股票维持昨收口径）→ ④ fund-daily
+       (__ALLOC_NAV__) → ⑤ cost(cash)。
+       ★marketValue 是人民币口径：fx=1 时 mvLocal=marketValue；fx≠1 时 mvCny=marketValue、
+       mvLocal=marketValue/fx（现持仓均为人民币份额、fx 恒 1，外币分支仅为将来预留）。 */
+    let mvLocal = null, mvCny = null;
+    if (h.marketValue != null && isFinite(Number(h.marketValue))) {
+      mvCny = Number(h.marketValue);
+      mvLocal = mvCny / (fx || 1);
+    } else if (h.nav != null && h.nav > 0) {
+      mvLocal = h.nav * h.qty;
+      mvCny = mvLocal * fx;
+    } else {
+      let mvPx;
+      if (quote && quote.fund) {
+        mvPx = (quote.price != null && quote.price > 0) ? quote.price : (pre != null && pre > 0 ? pre : null);
+      } else {
+        mvPx = (pre != null && pre > 0) ? pre : (quote && quote.price != null ? quote.price : null);
+      }
+      if (mvPx == null && h.assetType !== 'cash') {
+        const c6 = String(h.code || '').replace(/\D/g, '').slice(-6);
+        const nav = (window.__ALLOC_NAV__ && window.__ALLOC_NAV__[c6]) ? window.__ALLOC_NAV__[c6].nav : null;
+        if (nav != null && nav > 0) mvPx = nav;
+      }
+      if (mvPx == null && h.assetType === 'cash') mvPx = h.cost || 1;
+      mvLocal = mvPx != null ? mvPx * h.qty : null;
+      mvCny = mvLocal != null ? mvLocal * fx : null;
     }
-    if (mvPx == null && h.assetType === 'cash') mvPx = h.cost || 1;
-    const fx = fxOf(market);
     const costLocal = h.cost * h.qty;
-    const mvLocal = mvPx != null ? mvPx * h.qty : null;
     let dayLocal = h.assetType === 'cash' ? 0 : (price != null && pre ? (price - pre) * h.qty : null); /* v26g */
     let totLocal = mvLocal != null ? mvLocal - costLocal : null;
     /* fw2_v539_hold_realpnl：天天基金账户真实收益（v538 ttskill 的 dailyProfit/holdProfit/holdProfitRate，
@@ -4464,11 +4539,11 @@ function buildRows() {
       assetType: atKey,
       sector: state.sectors[h.code] || h.sector || '—',
       qty: h.qty, cost: h.cost, price, pre,
-      pct: h.assetType === 'cash' ? 0 : (quote ? quote.pct : null), /* v26g */
+      pct: h.assetType === 'cash' ? 0 : (h.chg != null ? h.chg : (quote ? quote.pct : null)), /* v26g；v542 fw2_v542_mv_settled：镜像 chg 优先（与 nav 同源） */
       high: quote ? quote.high : null, low: quote ? quote.low : null,
       fx, costLocal, mvLocal, dayLocal, totLocal,
       costCny: costLocal * fx,
-      mvCny: mvLocal != null ? mvLocal * fx : null,
+      mvCny: mvCny,
       dayCny: dayLocal != null ? dayLocal * fx : null,
       totCny: totLocal != null ? totLocal * fx : null,
       totPct: _hprR != null ? _hprR : (costLocal ? ((totLocal || 0) / costLocal) * 100 : null),
@@ -11329,6 +11404,29 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
      注释 3 处：loadStore 行异步加载说明、v445 三层兜底说明改两层并标注停用。
      ★保留「资料库持仓表」字样（v445 注释 + 逐版 changelog），verify_sync 的 v534 标记串不失效；
      ★刻意不动 DB 通道逻辑：__LK_DB__.holdingsList 分支保留，表不存在时自然不覆盖种子，无需改优先级。2026-10-14。verChip v539->v540 */
+  /* v542 fw2_v542_pf_mirror_first / fw2_v542_mv_settled / fw2_v542_mv_account：
+     持仓数据「一直没变过」根因修复（2026-10-14 用户截图实证，逐行对拍）——
+     根因 A（份额/成本冻结）：legacy 数据源压着新镜像不放。A1 loadStore() 把 localStorage 旧草稿
+     （fw2_portfolio）恢复进 state.portfolio 并标 _pfSrc='local'，applySeed 见 'local' 即整体拒绝
+     apply → 内嵌种子 + 旁挂 holdings-data.json 全被挡（v177「DB 恒为权威源」时代遗产，v537 起 DB
+     已停用）；A2 loadPortfolioFromDB() ③DB 通道「成功且非空即覆盖种子」→ 资料库环境里 holdingsList()
+     返回表里数月前手工数据 + localStorage 写穿快照 lk_wc_v2，直接覆盖新镜像。截图实证 7 行全为
+     10 月前旧值：007866=1000.8 股（真账户 0.14）、001015=420.02 股（真 875.13）、019441=59.87 股
+     （真 65.65）、020712 单卡 7.15 股（真 27.77）、缺 022438（10-13 新买 500 元）；012920/000746/
+     016452 因用户手工维护过恰好与镜像一致。
+     根因 B（市值比账户高一个净值日）：buildRows 的 mvPx 对基金也优先取 preclose，而基金行情的
+     preclose 是 fundShape 用当日涨跌幅反推的上一净值日（pre=price/(1+pct/100)）。012920 实证：
+     price=3.5831（估值）、preclose=3.6848（=10-09 净值）→ 市值 18588.46，比账户权威值 18075.37
+     高 513 元，总盈亏/权重/健康度连带全偏。★本地 DOM 测试（无 BrowserBackend、行情取不到）走
+     __ALLOC_NAV__ 回退链显示正确值 →「真空 PASS 假绿」，只在用户环境（有实时行情）暴露。
+     修法：A → 镜像（旁挂 holdings-data.json → 内嵌 HOLDINGS_SEED）升为最高优先级；DB 表与本地草稿
+     降级为「镜像全失败时」兜底（仍调 holdingsList 刷新 hMerged/hReady，使镜像自愈写回资料库表；
+     saveStore 空持仓不抹草稿）。B → 基金 mvPx 改取 price（已结算净值/估值），股票维持 v260 昨收口径。
+     C → applySeed 透传账户口径字段（nav/navDate/marketValue/chg/收益四件套），buildRows 三级优先：
+     ①账户 marketValue（人民币，＝天天基金 App 持仓市值）②镜像 nav×份额 ③实时行情→④fund-daily
+     →⑤cost；顺带修 unitCost=null 时把总成本当单位成本的旧 bug（020712 成本列错显 834.23）；
+     内嵌种子同步补全同字段（与旁挂文件完全同源）。verChip v540->v542（v541 为数据轨不升 chip）。
+  */
   /* v539 fw2_v539_hold_realpnl：持仓真实收益接入 + 数据管理兜底同源（用户「两个都做」）——
      ①数据管理兜底同源：index.html 内置 DMCONFIG（状态文件加载失败时的兜底事实）与 _gen_data_mgmt.py 生成的
        data/data-mgmt.json 必须同源；v538 只改了生成器，本次补平——module 全称化 13 行（基金→基金数据、
@@ -11738,7 +11836,7 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
        留待与用户确认重设计方案后再动（本轮不做）。
      ★诚实限定：erpCard/peCard/mrgCard/vixCard 定义及其 erpSpark/peSpark/mrgSpark/vixSpark 函数已于 **v529（fw2_v529_smux P3）一并清理**（连同 erpLv/peLv/vixLv/rzyeLv 与顶部 erp/pe/margin/vix 局部变量，mi 页判读走 mcCalcCommon 不受影响）。
        数据/口径零改动，纯前端结构层；描述串「sm 去重 · 删重复估值流动性卡」入 verify_sync 标记组 */
-  if (vc) vc.textContent = 'v540 · 自选' /* fw2_v516_a500lk fw2_v517_4otc fw2_v518_hspos fw2_v519_sm_merge fw2_v520_chgflat fw2_v521_magnet fw2_v522_overview fw2_v523_sm_dedup fw2_v524_geo_fsi fw2_v525_geo_filter fw2_v526_geo_filter_removed fw2_v527_verdict fw2_v529_smux fw2_v530_datamgmt fw2_v531_sm_dmgmt fw2_v532_all_dm fw2_v533_px_long fw2_v533d_dm_scroll fw2_v534_dm_module fw2_v535_dm_auto fw2_v539_hold_realpnl fw2_v539a_seed_sync fw2_v539a_seed_order fw2_v540_hold_path */ + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  if (vc) vc.textContent = 'v542 · 自选' /* fw2_v516_a500lk fw2_v517_4otc fw2_v518_hspos fw2_v519_sm_merge fw2_v520_chgflat fw2_v521_magnet fw2_v522_overview fw2_v523_sm_dedup fw2_v524_geo_fsi fw2_v525_geo_filter fw2_v526_geo_filter_removed fw2_v527_verdict fw2_v529_smux fw2_v530_datamgmt fw2_v531_sm_dmgmt fw2_v532_all_dm fw2_v533_px_long fw2_v533d_dm_scroll fw2_v534_dm_module fw2_v535_dm_auto fw2_v539_hold_realpnl fw2_v539a_seed_sync fw2_v539a_seed_order fw2_v540_hold_path fw2_v542_pf_mirror_first fw2_v542_mv_settled fw2_v542_mv_account */ + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
@@ -16640,7 +16738,7 @@ if ('serviceWorker' in navigator) {
 }
 </script>
 <script>/* v123 fw2_v123_pf_seed：持仓只读镜像（由 gen_holdings_seed.py 生成的 holdings-data.json 内嵌而来，与该文件同源；勿手改） v539a fw2_v539a_seed_sync：真源已切天天基金（ttskill 账户 + 对账单），不再由 gen_holdings_seed.py 从资料库镜像生成。 */
-window.HOLDINGS_SEED = {"syncedAt":"2026-10-14T03:15:39+0800","source":"天天基金账户持仓（真源＝ACCOUNT_HOLDING ttskill 登录态实时查询 + 用户最新对账单；份额/成本权威＝对账单）的只读镜像，与 holdings-data.json 同源（v539a fw2_v539a_seed_sync）。★改持仓请发最新对账单→rebuild_holdings.py 重建，或改天天基金账户后跑 refresh_holdings_ttskill.py；勿手改本文件。","total":20745.48,"holdings":[{"name":"招商行业精选股票基金","code":"000746","shares":16.34,"unitCost":6.12,"cost":100.0,"assetType":"fund","sector":"主动权益","buyDate":"2025-07-25"},{"name":"华夏沪深300指数增强A","code":"001015","shares":875.13,"unitCost":2.2879,"cost":2002.25,"assetType":"fund","sector":"宽基指数","buyDate":"2026-08-10"},{"name":"创金合信货币C","code":"007866","shares":0.14,"unitCost":1.0,"cost":0.14,"assetType":"cash","sector":"现金管理","buyDate":"2026-09-09"},{"name":"易方达全球成长精选混合(QDII)人民币A","code":"012920","shares":5045.18,"unitCost":2.6164,"cost":13200.21,"assetType":"fund","sector":"海外权益","buyDate":"2025-11-24"},{"name":"南方纳斯达克100指数发起(QDII)A","code":"016452","shares":4.42,"unitCost":2.2624,"cost":10.0,"assetType":"fund","sector":"海外权益","buyDate":"2025-06-25"},{"name":"万家纳斯达克100指数发起式(QDII)A","code":"019441","shares":65.65,"unitCost":1.6757,"cost":110.01,"assetType":"fund","sector":"海外权益","buyDate":"2026-09-16"},{"name":"华安三菱日联日经225ETF发起式联接(QDII)A","code":"020712","shares":27.77,"unitCost":null,"cost":30.03,"assetType":"fund","sector":"海外权益","buyDate":"2026-10-08"},{"name":"华泰柏瑞中证A500ETF联接A","code":"022438","shares":439.37,"unitCost":1.1387,"cost":500.3,"assetType":"fund","sector":"宽基指数","buyDate":"2026-10-13"}]};
+window.HOLDINGS_SEED = {"syncedAt":"2026-10-14T03:15:39+0800","source":"天天基金账户持仓（真源＝ACCOUNT_HOLDING ttskill 登录态实时查询 + 用户最新对账单；份额/成本权威＝对账单）的只读镜像，与 holdings-data.json 同源（v539a fw2_v539a_seed_sync；v542 fw2_v542_mv_account 补全 nav/marketValue/收益字段）。★改持仓请发最新对账单→rebuild_holdings.py 重建，或改天天基金账户后跑 refresh_holdings_ttskill.py；勿手改本文件。","total":20745.48,"holdings":[{"name":"招商行业精选股票基金","code":"000746","shares":16.34,"unitCost":6.12,"cost":100.0,"assetType":"fund","sector":"主动权益","buyDate":"2025-07-25","nav":6.037,"navDate":"2026-10-13","marketValue":98.64,"chg":"-0.64","dailyProfit":"-0.64","holdProfit":"-1.36","holdProfitRate":"-1.36%","constantProfit":"-1.36","constantProfitRate":"-1.36%"},{"name":"华夏沪深300指数增强A","code":"001015","shares":875.13,"unitCost":2.2879,"cost":2002.25,"assetType":"fund","sector":"宽基指数","buyDate":"2026-08-10","nav":2.169,"navDate":"2026-10-13","marketValue":1898.16,"chg":"-0.28","dailyProfit":"-5.25","holdProfit":"-102.91","holdProfitRate":"-5.14%","constantProfit":"-102.91","constantProfitRate":"-5.14%"},{"name":"创金合信货币C","code":"007866","shares":0.14,"unitCost":1.0,"cost":0.14,"assetType":"cash","sector":"现金管理","buyDate":"2026-09-09","nav":1.0,"navDate":"2026-10-13","marketValue":0.14,"annual7D":"1.242","unitAccrual":"0.3262"},{"name":"易方达全球成长精选混合(QDII)人民币A","code":"012920","shares":5045.18,"unitCost":2.6164,"cost":13200.21,"assetType":"fund","sector":"海外权益","buyDate":"2025-11-24","nav":3.5827,"navDate":"2026-10-12","marketValue":18075.37,"chg":"-2.76","dailyProfit":"-512.59","holdProfit":"4875.37","holdProfitRate":"36.93%","constantProfit":"4875.36","constantProfitRate":"36.93%"},{"name":"南方纳斯达克100指数发起(QDII)A","code":"016452","shares":4.42,"unitCost":2.2624,"cost":10.0,"assetType":"fund","sector":"海外权益","buyDate":"2025-06-25","nav":2.3598,"navDate":"2026-10-12","marketValue":10.43,"chg":"-0.70","dailyProfit":"-0.07","holdProfit":"0.43","holdProfitRate":"4.30%","constantProfit":"0.43","constantProfitRate":"4.30%"},{"name":"万家纳斯达克100指数发起式(QDII)A","code":"019441","shares":65.65,"unitCost":1.6757,"cost":110.01,"assetType":"fund","sector":"海外权益","buyDate":"2026-09-16","nav":1.74,"navDate":"2026-10-12","marketValue":114.23,"chg":"-0.70","dailyProfit":"-0.80","holdProfit":"4.23","holdProfitRate":"3.85%","constantProfit":"4.23","constantProfitRate":"3.85%"},{"name":"华安三菱日联日经225ETF发起式联接(QDII)A","code":"020712","shares":27.77,"unitCost":1.081383,"cost":30.03,"assetType":"fund","sector":"海外权益","buyDate":"2026-10-08","nav":1.4373,"navDate":"2026-10-13","marketValue":49.91,"chg":"-1.86","dailyProfit":"-0.76","holdProfit":"-0.09","holdProfitRate":"-0.22%","constantProfit":"-0.09","constantProfitRate":"-0.23%"},{"name":"华泰柏瑞中证A500ETF联接A","code":"022438","shares":439.37,"unitCost":1.1387,"cost":500.3,"assetType":"fund","sector":"宽基指数","buyDate":"2026-10-13","nav":1.1348,"navDate":"2026-10-13","marketValue":498.6,"chg":"-0.22","dailyProfit":"-1.40","holdProfit":"-1.40","holdProfitRate":"-0.28%","constantProfit":"-1.40","constantProfitRate":"-0.28%"}]};
 </script>
 
 <script>
