@@ -4520,8 +4520,27 @@ function buildRows() {
       mvLocal = mvPx != null ? mvPx * h.qty : null;
       mvCny = mvLocal != null ? mvLocal * fx : null;
     }
-    const costLocal = h.cost * h.qty;
-    let dayLocal = h.assetType === 'cash' ? 0 : (price != null && pre ? (price - pre) * h.qty : null); /* v26g */
+    /* v544 fw2_v544_ledger_mirror_guard：货基份额自愈 + 单侧背离打标（FIX 1 的双保险）——
+       若个别设备仍残留旧草稿覆盖路径：① 货基（nav≈1，007866 货币型）且账户 marketValue 权威且与
+       nav×qty 背离 >0.005 ⇒ _qtyEff=marketValue（份额即金额，0.14 元即 0.14 份）；
+       ② 非货基 marketValue 单侧向下背离（< qty×price - max(1元,5%)）⇒ _qtyStale=true；
+       在途申购致市值偏高（020712 49.91 vs 39.92）方向相反，不误报。
+       costLocal/dayLocal 改喂 _qtyEff；return 暴露 qtyStale 供 DOM 打标。 */
+    const _isCashV5 = (atKey === 'cash') || (h.assetType === 'cash') || (String(h.code) === '007866');
+    let _qtyEff = h.qty;
+    if (_isCashV5 && h.marketValue != null && isFinite(Number(h.marketValue)) && Number(h.marketValue) > 0
+        && price != null && price > 0 && price <= 1.05
+        && Math.abs(Number(h.marketValue) - price * h.qty) > 0.005) {
+      _qtyEff = Math.round(Number(h.marketValue) * 100) / 100;
+    }
+    let _qtyStale = false;
+    if (!_isCashV5 && h.marketValue != null && isFinite(Number(h.marketValue)) && Number(h.marketValue) > 0
+        && price != null && price > 0 && h.qty > 0) {
+      const _tol = Math.max(1, h.qty * price * 0.05);
+      if (Number(h.marketValue) < h.qty * price - _tol) _qtyStale = true;
+    }
+    const costLocal = h.cost * _qtyEff;
+    let dayLocal = h.assetType === 'cash' ? 0 : (price != null && pre ? (price - pre) * _qtyEff : null); /* v26g；v544 fw2_v544_ledger_mirror_guard：喂 _qtyEff 与成本/市值同口径 */
     let totLocal = mvLocal != null ? mvLocal - costLocal : null;
     /* fw2_v539_hold_realpnl：天天基金账户真实收益（v538 ttskill 的 dailyProfit/holdProfit/holdProfitRate，
        人民币口径、含份额确认与费用）优先接管 dayLocal/totLocal/totPct；字段缺失时保持原推算
@@ -4538,7 +4557,7 @@ function buildRows() {
       market, marketLabel: marketLabelOf(atKey, market, h.name), cur: CUR_SYMBOL[market],
       assetType: atKey,
       sector: state.sectors[h.code] || h.sector || '—',
-      qty: h.qty, cost: h.cost, price, pre,
+      qty: _qtyEff, cost: h.cost, price, pre, qtyStale: _qtyStale,
       pct: h.assetType === 'cash' ? 0 : (h.chg != null ? h.chg : (quote ? quote.pct : null)), /* v26g；v542 fw2_v542_mv_settled：镜像 chg 优先（与 nav 同源） */
       high: quote ? quote.high : null, low: quote ? quote.low : null,
       fx, costLocal, mvLocal, dayLocal, totLocal,
@@ -5422,7 +5441,7 @@ function renderHoldings() {
       return `<tr data-code="${r.code}" data-sp-bindable="database" data-sp-database-id="GjLvwNekmiaDCgMZrhaa29">
         <td>
           <div class="nm"><b class="lk-rs" data-rscode="${r.code}" data-rast="${r.assetType || 'fund'}">${esc(r.name)}</b></div>
-          <div class="cd">${shortCode(r.code)} · ${r.qty} 股</div>
+          <div class="cd">${shortCode(r.code)} · ${r.qty} 股${r.qtyStale ? ' <span style="color:var(--warn);font-weight:600">⚠份额待核对</span>' : ''}</div>
         </td>
         <td><span class="tag">${esc(r.sector)}</span></td>
         <td><span class="at-tag ${at.cls}">${at.label}</span></td>
@@ -11404,6 +11423,29 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
      注释 3 处：loadStore 行异步加载说明、v445 三层兜底说明改两层并标注停用。
      ★保留「资料库持仓表」字样（v445 注释 + 逐版 changelog），verify_sync 的 v534 标记串不失效；
      ★刻意不动 DB 通道逻辑：__LK_DB__.holdingsList 分支保留，表不存在时自然不覆盖种子，无需改优先级。2026-10-14。verChip v539->v540 */
+  /* v544 fw2_v544_ledger_mirror_guard：台账覆盖镜像持仓 bug 修复（2026-10-14 用户截图实证，
+     CDP 复现 _test_v544_repro.py V544_DOM_FAIL → V544_DOM_OK）——
+     现象：007866 持仓市值 ¥0.14、持仓成本 ¥1,000.00、总盈亏 -¥1,000.00（-99.99%）；其余多行份额
+     显示 09-30 旧值。服务器三方数据（holdings-data.json / meta-bundle.json / 内嵌种子）全部正确，
+     纯前端覆盖路径污染。
+     根因：renderLedger（策略/工具视图）→ syncPortfolioFromLedger 用台账聚合值覆盖 state.portfolio
+     行的 qty/cost。云端 data/ledger-import.json 是 09-30 旧台账（缺 10 月全部新交易）；旧台账经
+     localStorage 旧草稿/云端恢复路径进浏览器后，007866 qty 被覆盖成 1000.8、cost=1.0，而
+     marketValue 是 ttskill 账户新值 0.14 ⇒「份额旧、市值新」⇒ 成本 1000.80 vs 市值 0.14
+     ⇒ 总盈亏 -99.99%。
+     修复三处：
+     FIX 1 syncPortfolioFromLedger：镜像行（对账单/账户权威）不被台账覆盖——_id 'seed-' 行只读，
+           台账仅可更新自有 ledger- 行；缺失代码行仍可创建（else 分支不动）。
+     FIX 2 buildRows：货基份额自愈——cash 且 nav≈1 且账户 marketValue 权威且背离 >0.005 ⇒
+           _qtyEff=marketValue（份额即金额）；非货基单侧向下背离（marketValue < qty×price
+           - max(1元,5%)）⇒ _qtyStale=true，在途申购致市值偏高（020712 49.91 vs 39.92）不误报；
+           costLocal/dayLocal 改喂 _qtyEff，return 暴露 qtyStale。
+     FIX 3 renderHoldings：名称子行按 qtyStale 显示「⚠份额待核对」。
+     配套数据：data/ledger-import.json 并入 10 月 7 笔交易 + 3 笔分红（007866 10-12 活期宝即充即用
+     流出 1001.07 记 sell，为 001015 买单）；更新后台账聚合与镜像逐行一致（019441 65.65 /
+     020712 27.77 / 007866 0.14 / 022438 439.37）。
+     chip v543→v544。
+  */
   /* v543 fw2_v543_dm_holdings_note：数据管理页持仓轨文案修正（2026-10-14，用户两连问「全域更新为什么持仓没更新」
      /「会不会全部更新我的持仓」）——
      ①手动轨 note 死指引：「持仓已改日轨自动（每晚同步资料库表）」→「（每晚 21:30 ttskill 账户查询→镜像→发布）」。
@@ -11846,7 +11888,7 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
        留待与用户确认重设计方案后再动（本轮不做）。
      ★诚实限定：erpCard/peCard/mrgCard/vixCard 定义及其 erpSpark/peSpark/mrgSpark/vixSpark 函数已于 **v529（fw2_v529_smux P3）一并清理**（连同 erpLv/peLv/vixLv/rzyeLv 与顶部 erp/pe/margin/vix 局部变量，mi 页判读走 mcCalcCommon 不受影响）。
        数据/口径零改动，纯前端结构层；描述串「sm 去重 · 删重复估值流动性卡」入 verify_sync 标记组 */
-  if (vc) vc.textContent = 'v543 · 自选' /* fw2_v516_a500lk fw2_v517_4otc fw2_v518_hspos fw2_v519_sm_merge fw2_v520_chgflat fw2_v521_magnet fw2_v522_overview fw2_v523_sm_dedup fw2_v524_geo_fsi fw2_v525_geo_filter fw2_v526_geo_filter_removed fw2_v527_verdict fw2_v529_smux fw2_v530_datamgmt fw2_v531_sm_dmgmt fw2_v532_all_dm fw2_v533_px_long fw2_v533d_dm_scroll fw2_v534_dm_module fw2_v535_dm_auto fw2_v539_hold_realpnl fw2_v539a_seed_sync fw2_v539a_seed_order fw2_v540_hold_path fw2_v542_pf_mirror_first fw2_v542_mv_settled fw2_v542_mv_account fw2_v543_dm_holdings_note */ + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  if (vc) vc.textContent = 'v544 · 自选' /* fw2_v516_a500lk fw2_v517_4otc fw2_v518_hspos fw2_v519_sm_merge fw2_v520_chgflat fw2_v521_magnet fw2_v522_overview fw2_v523_sm_dedup fw2_v524_geo_fsi fw2_v525_geo_filter fw2_v526_geo_filter_removed fw2_v527_verdict fw2_v529_smux fw2_v530_datamgmt fw2_v531_sm_dmgmt fw2_v532_all_dm fw2_v533_px_long fw2_v533d_dm_scroll fw2_v534_dm_module fw2_v535_dm_auto fw2_v539_hold_realpnl fw2_v539a_seed_sync fw2_v539a_seed_order fw2_v540_hold_path fw2_v542_pf_mirror_first fw2_v542_mv_settled fw2_v542_mv_account fw2_v543_dm_holdings_note fw2_v544_ledger_mirror_guard */ + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
@@ -15073,7 +15115,15 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
       var q = Math.round((+o.qty || 0) * 100) / 100;
       var c = Math.round((+o.cost || 0) * 10000) / 10000;
       if (h) {
-        if (Math.abs((+h.qty || 0) - q) > 1e-9 || Math.abs((+h.cost || 0) - c) > 1e-9) { h.qty = q; h.cost = c; changed = true; }
+        /* v544 fw2_v544_ledger_mirror_guard：镜像行（对账单/账户权威）不被台账覆盖——2026-10-14 用户
+           截图实证：007866 持仓市值 ¥0.14、持仓成本 ¥1,000.00、总盈亏 -99.99%。根因＝云端
+           data/ledger-import.json 是 09-30 旧台账（19 笔，007866=1000.8 股，缺 10 月全部新交易），
+           旧台账经 localStorage 旧草稿/云端恢复路径进浏览器后，renderLedger→本函数用旧聚合值
+           （qty=1000.8）覆盖镜像行 qty=0.14，而 marketValue 是 ttskill 账户新值 0.14
+           ⇒「份额旧、市值新」弗兰肯斯坦行。台账仅可更新自有 ledger- 行；缺失代码行仍可创建
+           （下方 else 分支不动）。 */
+        var _ledgerOwn = (typeof h._id === 'string' && h._id.indexOf('ledger-') === 0);
+        if (_ledgerOwn && (Math.abs((+h.qty || 0) - q) > 1e-9 || Math.abs((+h.cost || 0) - c) > 1e-9)) { h.qty = q; h.cost = c; changed = true; }
       } else if (q > 0) {
         var firstD = '';
         (ld.trades || []).forEach(function (t) { if (String(t.code) === o.code && t.d && (!firstD || t.d < firstD)) firstD = t.d; });
