@@ -830,6 +830,21 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   .tb thead th, .tb tbody td { padding: 8px 6px; }
   .tb thead th.num, .tb tbody td.num { padding: 8px 4px; }
 }
+/* v545 fw2_v545_hold_total_row：持仓表底部合计行（与 KPI 卡同源）——renderHoldings 的 tbody 数据行
+   之后追加 tr.tot-row：持仓市值/持仓成本/总盈亏/当日盈亏四列直取 all.totals（折人民币、不受资产筛选/
+   币种视图影响），权重列＝当前显示行权重合计（未筛选时恒 100.00%），无持仓或筛选为空时不渲染。
+   ★.tb tbody tr.tot-row td 特异性 (0,2,3) 压 .tb tbody td (0,1,2) 与 tr:hover (0,2,2)；
+   不用 #hdTable 抬特异性（v101 教训）。 */
+.tb tbody tr.tot-row td { font-weight: 700; border-top: 2px solid var(--line); background: var(--panel-2); }
+.tb tbody tr.tot-row .sub-line { font-weight: 600; opacity: .85; }
+/* v545a fw2_v545a_tot_pad：v545 合计行加粗四位金额列抬高最小内容宽 +7px（A/B 取证 _test_v545_ab.py：
+   1440 无合计行 1194 / 有合计行 1201；本机容器 1184 基线已溢 10px，用户环境 v539a 实测为 0）——
+   修法同 v115/v539/v539a 既定模式：桌面端 num 列水平内边距 4→3px（10 列 ×2 侧 ×1px = 20px）
+   压回 0 并留 3px 余量；对 ≤767px 一概不生效；不用 #hdTable 抬特异性（v101 教训）。
+   字母子版不升 chip（仍 v545）。 */
+@media (min-width: 768px) {
+  .tb thead th.num, .tb tbody td.num { padding: 8px 3px; }
+}
 /* v129 fw2_v129_theme：Apple 设计语言桌面端打磨（逻辑/数据/口径零改动）——玻璃拟态 + 分层阴影 + 大圆角 + 焦点环 + 滚动条。
    以 @media(min-width:768px) 包裹：移动端（≤767px 媒体查询）规则不被本块压掉。 */
 @media (min-width: 768px) {
@@ -5464,7 +5479,22 @@ function renderHoldings() {
           <button class="btn-link" data-act="del" data-code="${r.code}" style="color:var(--up)">删</button>
         </td>
       </tr>`;
-    }).join('');
+    }).join('') + (sorted.length ? `<tr class="tot-row">
+        <td title="合计＝全部持仓（折人民币），与上方 KPI 卡一致"><b>合计（${totals.count} 只）</b></td>
+        <td></td>
+        <td></td>
+        <td class="num"><b>¥${fmtMoney(totals.mv)}</b></td>
+        <td class="num"><b>¥${fmtMoney(Number.isFinite(totals.cost) ? totals.cost : 0)}</b></td>
+        <td class="num ${cls(totals.total)}"><b>¥${fmtMoney(totals.total, true)}</b>
+          <div class="sub-line ${cls(totals.total)}">${fmtPct(totals.totalPct)}</div></td>
+        <td class="num ${cls(totals.day)}"><b>¥${fmtMoney(totals.day, true)}</b>
+          <div class="sub-line ${cls(totals.day)}">${fmtPct(totals.dayPct)}</div></td>
+        <td class="num">—</td>
+        <td class="num">—</td>
+        <td class="num">—</td>
+        <td class="num"><b>${sorted.reduce((s2, r2) => s2 + r2.weight, 0).toFixed(2)}%</b></td>
+        <td></td><td></td><td></td><td></td><td></td>
+      </tr>` : ''); /* v545 fw2_v545_hold_total_row：持仓表底部合计行（红框需求），四列金额与 KPI 卡同源 all.totals */
     ensureSparks(sorted);
   }
   $('#hdFoot').innerHTML = `数据快照：<b>${state.snapshot.id}</b>（${state.snapshot.at ? fmtDateTime(state.snapshot.at) : '—'}）
@@ -11423,6 +11453,24 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
      注释 3 处：loadStore 行异步加载说明、v445 三层兜底说明改两层并标注停用。
      ★保留「资料库持仓表」字样（v445 注释 + 逐版 changelog），verify_sync 的 v534 标记串不失效；
      ★刻意不动 DB 通道逻辑：__LK_DB__.holdingsList 分支保留，表不存在时自然不覆盖种子，无需改优先级。2026-10-14。verChip v539->v540 */
+  /* v545a fw2_v545a_tot_pad：v545 合计行加粗金额列致 1440 最小内容宽 +7px——A/B 取证
+     _test_v545_ab.py（同一探测两态）：无合计行 wrap.scrollWidth 1194、有合计行 1201；本机容器
+     1184（基线已溢 10px，用户环境 v539a 实测压回 0）。修法同 v115/v539/v539a 既定模式：桌面端
+     num 列水平内边距 4→3px（10 列 ×2 侧 = 20px）压回 0 并留 3px 余量。字母子版不升 chip（仍 v545）。
+  */
+  /* v545 fw2_v545_hold_total_row：持仓表底部合计行（2026-10-14 用户红框截图需求「红框加入合计，
+     与上面持仓市值/持仓成本/总盈亏/当日盈亏金额一致」）——
+     做法：renderHoldings 的 tbody 数据行之后追加合计行（class tot-row）——持仓市值/持仓成本/
+     总盈亏/当日盈亏四列直取 all.totals，与 KPI 卡同源同式（fmtMoney(totals.mv)、fmtMoney(totals.cost)、
+     fmtMoney(totals.total,true)+fmtPct(totalPct)、fmtMoney(totals.day,true)+fmtPct(dayPct)），
+     权重列＝当前显示行权重合计（未筛选时恒 100.00%），单位成本/现价/涨跌幅显「—」，其余列留空；
+     无持仓或筛选为空时不渲染合计行。
+     ★口径：totals 恒为折人民币（KPI 卡亦恒显 ¥）——cnyView 关闭时数据行显原币、合计行仍显 ¥，
+       已在合计标签 title 注明「合计＝全部持仓（折人民币），与上方 KPI 卡一致」；盈亏两列带 ¥ 前缀
+       为表格行惯例（数据行同式），数值与 KPI 卡逐位一致。
+     CSS：.tb tbody tr.tot-row td（(0,2,3)）加粗 + 2px 上边框 + panel-2 浅底；sub-line 降不透明度。
+     chip v544→v545。
+  */
   /* v544 fw2_v544_ledger_mirror_guard：台账覆盖镜像持仓 bug 修复（2026-10-14 用户截图实证，
      CDP 复现 _test_v544_repro.py V544_DOM_FAIL → V544_DOM_OK）——
      现象：007866 持仓市值 ¥0.14、持仓成本 ¥1,000.00、总盈亏 -¥1,000.00（-99.99%）；其余多行份额
@@ -11888,7 +11936,7 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
        留待与用户确认重设计方案后再动（本轮不做）。
      ★诚实限定：erpCard/peCard/mrgCard/vixCard 定义及其 erpSpark/peSpark/mrgSpark/vixSpark 函数已于 **v529（fw2_v529_smux P3）一并清理**（连同 erpLv/peLv/vixLv/rzyeLv 与顶部 erp/pe/margin/vix 局部变量，mi 页判读走 mcCalcCommon 不受影响）。
        数据/口径零改动，纯前端结构层；描述串「sm 去重 · 删重复估值流动性卡」入 verify_sync 标记组 */
-  if (vc) vc.textContent = 'v544 · 自选' /* fw2_v516_a500lk fw2_v517_4otc fw2_v518_hspos fw2_v519_sm_merge fw2_v520_chgflat fw2_v521_magnet fw2_v522_overview fw2_v523_sm_dedup fw2_v524_geo_fsi fw2_v525_geo_filter fw2_v526_geo_filter_removed fw2_v527_verdict fw2_v529_smux fw2_v530_datamgmt fw2_v531_sm_dmgmt fw2_v532_all_dm fw2_v533_px_long fw2_v533d_dm_scroll fw2_v534_dm_module fw2_v535_dm_auto fw2_v539_hold_realpnl fw2_v539a_seed_sync fw2_v539a_seed_order fw2_v540_hold_path fw2_v542_pf_mirror_first fw2_v542_mv_settled fw2_v542_mv_account fw2_v543_dm_holdings_note fw2_v544_ledger_mirror_guard */ + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  if (vc) vc.textContent = 'v545 · 自选' /* fw2_v516_a500lk fw2_v517_4otc fw2_v518_hspos fw2_v519_sm_merge fw2_v520_chgflat fw2_v521_magnet fw2_v522_overview fw2_v523_sm_dedup fw2_v524_geo_fsi fw2_v525_geo_filter fw2_v526_geo_filter_removed fw2_v527_verdict fw2_v529_smux fw2_v530_datamgmt fw2_v531_sm_dmgmt fw2_v532_all_dm fw2_v533_px_long fw2_v533d_dm_scroll fw2_v534_dm_module fw2_v535_dm_auto fw2_v539_hold_realpnl fw2_v539a_seed_sync fw2_v539a_seed_order fw2_v540_hold_path fw2_v542_pf_mirror_first fw2_v542_mv_settled fw2_v542_mv_account fw2_v543_dm_holdings_note fw2_v544_ledger_mirror_guard fw2_v545_hold_total_row */ + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
