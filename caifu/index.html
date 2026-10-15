@@ -843,7 +843,11 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
    压回 0 并留 3px 余量；对 ≤767px 一概不生效；不用 #hdTable 抬特异性（v101 教训）。
    字母子版不升 chip（仍 v545）。 */
 @media (min-width: 768px) {
-  .tb thead th.num, .tb tbody td.num { padding: 8px 3px; }
+  /* v546 fw2_v546_navdate_all：status 列全部「净值MM/DD」7 字符后本机 1440 溢出 15px（A/B 取证
+     _test_v546_dom.py：status 全「昨日净值」态 1184 / 现状「净值10/13」态 1199，容器 1184）——
+     同 v545a 既定模式再压 num 列水平内边距 3→2px（10 列 ×2 侧 ×1px = 20px）→ 1179 留 5px 余量；
+     对 ≤767px 一概不生效；不用 #hdTable 抬特异性（v101 教训）。 */
+  .tb thead th.num, .tb tbody td.num { padding: 8px 2px; }
 }
 /* v129 fw2_v129_theme：Apple 设计语言桌面端打磨（逻辑/数据/口径零改动）——玻璃拟态 + 分层阴影 + 大圆角 + 焦点环 + 滚动条。
    以 @media(min-width:768px) 包裹：移动端（≤767px 媒体查询）规则不被本块压掉。 */
@@ -4331,20 +4335,30 @@ function sessionOf(market, now) {
   if (hm > closeH && hm <= postEnd) return { open: false, label: '盘后' };
   return { open: false, label: '休市' };
 }
-function tradeStatus(market, q) {
-  if (!q) return { label: '无数据', kind: 'flat' };
-  /* v128 fw2_v128_fund_status：场外基金无盘中时段概念——按净值日期显示新鲜度（T日净值约 21:00 更新，QDII 滞后 1-2 交易日），不再套 A 股时段 */
-  if (q.fund) {
+function tradeStatus(market, q, navDate) {
+  /* v546 fw2_v546_navdate_all：交易状态列全部标记具体净值日期（净值MM/DD）——今日/昨日不再用相对文案，
+     按新鲜度保留配色（今日 live / 昨日 flat / 更早 warn）；货币基金等无行情快照的持仓用 navDate 兜底（buildRows 传入）。 */
+  if (q && q.fund) {
     if (!q.price) return { label: '净值获取失败', kind: 'warn' };
     const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(q.time || '');
-    if (!m) return { label: '净值', kind: 'flat' };
+    if (!m) {
+      const n = /^(\d{4})-(\d{2})-(\d{2})/.exec(navDate ? String(navDate) : '');
+      if (n) return { label: '净值' + n[2] + '/' + n[3], kind: 'flat' };
+      return { label: '净值', kind: 'flat' };
+    }
     const b = beijingNow();
     const nd = Date.UTC(+m[1], +m[2] - 1, +m[3], 12);
     const nb = Date.UTC(b.getUTCFullYear(), b.getUTCMonth(), b.getUTCDate(), 12);
     const days = Math.round((nb - nd) / 86400000);
-    if (days <= 0) return { label: '今日净值', kind: 'live' };
-    if (days === 1) return { label: '昨日净值', kind: 'flat' };
-    return { label: '净值' + m[2] + '/' + m[3], kind: 'warn' };
+    const label = '净值' + m[2] + '/' + m[3];
+    if (days <= 0) return { label, kind: 'live' };
+    if (days === 1) return { label, kind: 'flat' };
+    return { label, kind: 'warn' };
+  }
+  if (!q) {
+    const n = /^(\d{4})-(\d{2})-(\d{2})/.exec(navDate ? String(navDate) : '');
+    if (n) return { label: '净值' + n[2] + '/' + n[3], kind: 'flat' };
+    return { label: '无数据', kind: 'flat' };
   }
   if (!q.price) return { label: '停牌', kind: 'warn' };
   const s = sessionOf(market);
@@ -4581,7 +4595,7 @@ function buildRows() {
       dayCny: dayLocal != null ? dayLocal * fx : null,
       totCny: totLocal != null ? totLocal * fx : null,
       totPct: _hprR != null ? _hprR : (costLocal ? ((totLocal || 0) / costLocal) * 100 : null),
-      status: tradeStatus(market, quote),
+      status: tradeStatus(market, quote, h.navDate), /* v546 fw2_v546_navdate_all：传持仓 navDate 兜底（货币基金无行情快照） */
       quoteTime: quote ? quote.time : '',
     };
   });
@@ -11453,6 +11467,17 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
      注释 3 处：loadStore 行异步加载说明、v445 三层兜底说明改两层并标注停用。
      ★保留「资料库持仓表」字样（v445 注释 + 逐版 changelog），verify_sync 的 v534 标记串不失效；
      ★刻意不动 DB 通道逻辑：__LK_DB__.holdingsList 分支保留，表不存在时自然不覆盖种子，无需改优先级。2026-10-14。verChip v539->v540 */
+  /* v546 fw2_v546_navdate_all：交易状态列全部标记净值日期（2026-10-15 用户截图红框「交易状态」列——
+     全部标记净值日期）——
+     现状：基金行按行情快照 q.time 给相对文案「今日净值/昨日净值/净值MM/DD」，货币基金（007866）无
+     行情快照显「无数据」，用户看不到具体净值日期。
+     改法：tradeStatus(market,q,navDate) 加第三参 navDate——基金分支统一 label＝「净值MM/DD」
+     （今日 live / 昨日 flat / 更早 warn 配色保留）；无行情快照的持仓（货币基金等）取持仓镜像 navDate
+     兜底；buildRows 调用处传 h.navDate；研究头部调用不受影响（不传第三参，股票逻辑不变）。
+     验证：_test_v546_dom.py V546_DOM_OK（8 行全「净值10/13/10/12」、无「昨日净值/无数据」残留、
+     chip v546、1440 不溢出、ERRS 0）+ 四门禁全绿。
+     chip v545→v546。
+  */
   /* v545a fw2_v545a_tot_pad：v545 合计行加粗金额列致 1440 最小内容宽 +7px——A/B 取证
      _test_v545_ab.py（同一探测两态）：无合计行 wrap.scrollWidth 1194、有合计行 1201；本机容器
      1184（基线已溢 10px，用户环境 v539a 实测压回 0）。修法同 v115/v539/v539a 既定模式：桌面端
@@ -11936,7 +11961,7 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
        留待与用户确认重设计方案后再动（本轮不做）。
      ★诚实限定：erpCard/peCard/mrgCard/vixCard 定义及其 erpSpark/peSpark/mrgSpark/vixSpark 函数已于 **v529（fw2_v529_smux P3）一并清理**（连同 erpLv/peLv/vixLv/rzyeLv 与顶部 erp/pe/margin/vix 局部变量，mi 页判读走 mcCalcCommon 不受影响）。
        数据/口径零改动，纯前端结构层；描述串「sm 去重 · 删重复估值流动性卡」入 verify_sync 标记组 */
-  if (vc) vc.textContent = 'v545 · 自选' /* fw2_v516_a500lk fw2_v517_4otc fw2_v518_hspos fw2_v519_sm_merge fw2_v520_chgflat fw2_v521_magnet fw2_v522_overview fw2_v523_sm_dedup fw2_v524_geo_fsi fw2_v525_geo_filter fw2_v526_geo_filter_removed fw2_v527_verdict fw2_v529_smux fw2_v530_datamgmt fw2_v531_sm_dmgmt fw2_v532_all_dm fw2_v533_px_long fw2_v533d_dm_scroll fw2_v534_dm_module fw2_v535_dm_auto fw2_v539_hold_realpnl fw2_v539a_seed_sync fw2_v539a_seed_order fw2_v540_hold_path fw2_v542_pf_mirror_first fw2_v542_mv_settled fw2_v542_mv_account fw2_v543_dm_holdings_note fw2_v544_ledger_mirror_guard fw2_v545_hold_total_row */ + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  if (vc) vc.textContent = 'v546 · 自选' /* fw2_v516_a500lk fw2_v517_4otc fw2_v518_hspos fw2_v519_sm_merge fw2_v520_chgflat fw2_v521_magnet fw2_v522_overview fw2_v523_sm_dedup fw2_v524_geo_fsi fw2_v525_geo_filter fw2_v526_geo_filter_removed fw2_v527_verdict fw2_v529_smux fw2_v530_datamgmt fw2_v531_sm_dmgmt fw2_v532_all_dm fw2_v533_px_long fw2_v533d_dm_scroll fw2_v534_dm_module fw2_v535_dm_auto fw2_v539_hold_realpnl fw2_v539a_seed_sync fw2_v539a_seed_order fw2_v540_hold_path fw2_v542_pf_mirror_first fw2_v542_mv_settled fw2_v542_mv_account fw2_v543_dm_holdings_note fw2_v544_ledger_mirror_guard fw2_v545_hold_total_row fw2_v546_navdate_all */ + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
