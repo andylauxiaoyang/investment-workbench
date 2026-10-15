@@ -8417,7 +8417,7 @@ function mcRegisterEvidence(C) {
       zbPct = C.zbPct, aPct = C.aPct, amtDunset = C.amtDunset, amtDv = C.amtDv, amtDtxt = C.amtDtxt, vL = C.vL,
       fxGate = C.fxGate, badCnt = C.badCnt, spxPct = C.spxPct, ushfBE = C.ushfBE, cbRatesArr = C.cbRatesArr,
       ushfIC = C.ushfIC, ushfUR = C.ushfUR, ushfRet = C.ushfRet, ushfPce = C.ushfPce, ushfCc = C.ushfCc,
-      ushfDur = C.ushfDur, ismMfg = C.ismMfg, ismSvc = C.ismSvc, ushfCli = C.ushfCli;
+      ushfDur = C.ushfDur, ismMfg = C.ismMfg, ismSvc = C.ismSvc, ushfCli = C.ushfCli, ushfKr = C.ushf.krExport;
   mcEv('val', ePct == null ? 0 : (ePct >= 75 ? 1 : ePct < 25 ? -1 : 0), 'ERP 10年分位 ' + (ePct != null ? fmtNum(ePct, 1) + '%' : '—'));
   mcEv('val', (peLast && peLast[2] != null) ? (peLast[2] >= 80 ? -1 : peLast[2] < 20 ? 1 : 0) : 0, '沪深300 PE 分位 ' + (peLast && peLast[2] != null ? fmtNum(peLast[2], 1) + '%' : '—'));
   (function () {
@@ -8454,6 +8454,9 @@ function mcRegisterEvidence(C) {
     var avg = vals.reduce(function (a, b) { return a + b; }, 0) / vals.length;
     mcEv('gbl', avg > 100 ? 1 : avg < 100 ? -1 : 0, 'OECD CLI ' + keys.length + ' 经济体均值 ' + fmtNum(avg, 1) + '（>100 扩张 / <100 收缩）');
   })();
+  /* fw2_v548_ovs_mrg：⑥组韩国出口同比补注册（v548 数据卡已渲染，补证据进 gbl 磁铁——
+     阈值与卡上完全同源：yoy >= 5 扩张顺风(+1) / yoy <= -5 收缩逆风(-1) / 之间中性(0)·经验口径未回测） */
+  mcEv('gbl', !ushfKr || ushfKr.yoy == null ? 0 : (ushfKr.yoy >= 5 ? 1 : ushfKr.yoy <= -5 ? -1 : 0), '韩国出口同比 ' + (ushfKr && ushfKr.yoy != null ? fmtNum(ushfKr.yoy, 1) + '%' : '—') + '（>5% 扩张 / <-5% 收缩·经验口径未回测）');
 }
 function mcMatrix(C) {
   function mcard(key, title, verdict, cls, detail, go, asOf) {
