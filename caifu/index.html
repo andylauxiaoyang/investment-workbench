@@ -1424,6 +1424,12 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
          __mcApply 按 data-mg 过滤显隐；红=支持(涨红) / 绿=反对(跌绿) / 琥珀=证据分歧 / 灰=无方向证据 */
       /* fw2_v522_overview：L1 周期总览层样式（六磁铁网格/五步SOP/联动矩阵卡；红=有利·涨红惯例） */
   #view-macro .mc-ov-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:0 0 12px}
+  /* fw2_v556_market_split：①定调段中国/全球分栏容器 */
+  #view-macro .mc-mkt{border:1px solid var(--line-mid,#d8dee6);border-radius:10px;padding:10px 12px;margin:0 0 10px;background:#fff}
+  #view-macro .mc-mkt-h{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;margin-bottom:8px}
+  #view-macro .mc-mkt-h b{font-size:13px;color:var(--ink,#0f172a)}
+  #view-macro .mc-mkt-geo{font-size:10px;padding:1px 6px;border-radius:8px;background:#eef0f2;color:#6b7280;font-weight:600;white-space:nowrap}
+  #view-macro .mc-mkt-d{font-size:11px;color:var(--slate-500,#64748b)}
   #view-macro .mc-ov-sop{display:flex;flex-wrap:wrap;gap:8px;align-items:stretch;margin:0 0 12px}
   #view-macro .mc-ov-sop>b{font-size:13px;font-weight:500;color:var(--slate-600,#475569);align-self:center;margin-right:2px}
   #view-macro .mc-ov-step{flex:1 1 120px;min-width:120px;border:1px solid var(--line-mid,#d8dee6);border-radius:10px;padding:8px 10px;cursor:pointer;background:var(--panel-3,#f1f5f9)}
@@ -8507,48 +8513,56 @@ function mcMatrix(C) {
   v4 -= bad;
   out.push(mcard('ovs', '海外顺逆风', v4 >= 1 ? '顺风' : v4 <= -1 ? '逆风' : '中性', v4 >= 1 ? 'pos' : v4 <= -1 ? 'neg' : 'div',
     '标普PE分位 ' + (sp != null ? fmtNum(sp, 0) + '%' : '—') + ' · 美元指数近6月 ' + (u != null ? (u > 0 ? '+' : '') + fmtNum(u, 1) + '%' : '—') + ' · 红绿灯 ' + C.fxGate, ['ovs', null, '海外明细'], (_A.spx || _A.page)));
-  /* fw2_v527_verdict：除 HTML 外回传各卡原始分数，供综合读数聚合（只读此处，不改任何判据）。 */
-  return { html: out.join(''), scores: { odds: v1, earn: v2, risk: risk, ovs: v4 } };
+  /* fw2_v527_verdict：除 HTML 外回传各卡原始分数，供综合读数聚合（只读此处，不改任何判据）。
+     fw2_v556_market_split：cards 分卡返回（odds/earn/risk/ovs 四段独立 html，①段中国/全球分栏各取 2 卡）；html 保留供 renderMacroOverview 死代码。 */
+  return { html: out.join(''), scores: { odds: v1, earn: v2, risk: risk, ovs: v4 }, cards: { odds: out[0], earn: out[1], risk: out[2], ovs: out[3] } };
 }
-/* fw2_v527_verdict：周期总览「综合读数」——把联动矩阵 4 卡的分数聚合成单值周期位置判断。
+/* fw2_v556_market_split：综合读数按市场拆分——中国/全球各自独立合成与判断词，互不加权（用户：两个完全不同的市场）。
    ★设计边界（诚实标注，不得含糊）：
-     1) 回答「当前处在什么周期位置」，**不回答「该买/该卖/仓位多少」**——后者是投资建议，超出工具边界；
-     2) 聚合权重 0.35/0.30/0.20/0.15 是本工具主观设定（判断依据：A股赔率与盈利是主变量，
-        海外为外部约束、风险开关为放大器），**未经历史回测校准**，与 FSI 的「相对分级·未校准」同处理；
-     3) 各分项判据（阈值与方向）**完全沿用 mcMatrix**，不新造、不改写 ⇒ 与四张卡 100% 同源，可对拍；
-     4) 当两类信号同时为正负（如「中国便宜」vs「海外逆风」）时显式给出张力提示，
-        因为这种矛盾本身就是最重要的信息，不该被加权平均抹平。 */
-function mcVerdict(C, SC) {
+     1) 回答「当前周期位置」，不回答「该买/该卖/仓位多少」——后者是投资建议，超出工具边界；
+     2) 分市场权重沿用 v527 比例（中国 0.35/0.30、全球 0.20/0.15，各自归一满权），仍为主观设定未经回测校准，
+        与 FSI 的「相对分级·未校准」同处理；中国=赔率+盈利、全球=海外+风险，市场内部不再跨市场加权；
+     3) 各分项判据（阈值与方向）完全沿用 mcMatrix ⇒ 与四张卡 100% 同源，可对拍；
+     4) 各市场内部正负兼有时显式给出张力提示（如「中国便宜」vs「中国盈利收缩」），不被加权平均抹平。 */
+function mcVerdict(C, SC, mkt) {
+  mkt = mkt || 'cn';
   var v1 = SC.odds, v2 = SC.earn, risk = SC.risk, v4 = SC.ovs;
-  var fw2_v527_note = '加权 赔率0.35·盈利0.30·海外0.20·风险0.15（主观设定·未经回测校准）';
   function norm(v, span) { return Math.max(-1, Math.min(1, (v || 0) / span)); }
   /* 风险开关口径与其他三项相反（值越大越危险）⇒ 取负贡献 */
   var rT = risk >= 3 ? -1 : risk >= 1 ? -0.4 : 0.2;
-  var net = norm(v1, 3) * 0.35 + norm(v2, 3) * 0.30 + norm(v4, 3) * 0.20 + rT * 0.15;
+  var net, note, parts, posN, negN, vC;
+  if (mkt === 'ovs') {
+    net = (norm(v4, 3) * 0.20 + rT * 0.15) / 0.35;
+    parts = ['海外 ' + (v4 > 0 ? '+' : '') + v4, '风险 ' + risk];
+    posN = (v4 > 0 ? 1 : 0);
+    negN = (v4 < 0 ? 1 : 0) + (risk >= 1 ? 1 : 0);
+    note = '加权 海外0.20·风险0.15（归一满权 · 主观设定·未经回测校准）';
+    vC = '全球 · 周期位置';
+  } else {
+    net = (norm(v1, 3) * 0.35 + norm(v2, 3) * 0.30) / 0.65;
+    parts = ['赔率 ' + (v1 > 0 ? '+' : '') + v1, '盈利 ' + (v2 > 0 ? '+' : '') + v2];
+    posN = (v1 > 0 ? 1 : 0) + (v2 > 0 ? 1 : 0);
+    negN = (v1 < 0 ? 1 : 0) + (v2 < 0 ? 1 : 0);
+    note = '加权 赔率0.35·盈利0.30（归一满权 · 主观设定·未经回测校准）';
+    vC = '中国 · 周期位置';
+  }
   var verdict, cls;
   if (net >= 0.30) { verdict = '顺风 · 可积极'; cls = 'pos'; }
   else if (net >= 0.05) { verdict = '中性偏积极'; cls = 'pos'; }
   else if (net > -0.05) { verdict = '中性 · 观察'; cls = 'div'; }
   else if (net > -0.30) { verdict = '中性偏防御'; cls = 'div'; }
   else { verdict = '逆风 · 防御'; cls = 'neg'; }
-  /* 张力提示：正反两侧各有一项以上显著时指出矛盾，避免被加权平均掩盖 */
-  var posN = [v1 > 0, v2 > 0, v4 > 0].filter(Boolean).length;
-  var negN = [v1 < 0, v2 < 0, v4 < 0].filter(Boolean).length;
+  /* 张力提示：市场内部正反两侧各有一项以上显著时指出矛盾，避免被加权平均掩盖 */
   var tension = '';
   if (posN > 0 && negN > 0) {
     tension = '⚠ 信号存在张力：' + posN + ' 项偏多 / ' + negN + ' 项偏空（已按权重合成上式，但分项方向不一致时信号可靠性下降）';
   }
-  var parts = [];
-  parts.push('赔率 ' + (v1 > 0 ? '+' : '') + v1);
-  parts.push('盈利 ' + (v2 > 0 ? '+' : '') + v2);
-  parts.push('海外 ' + (v4 > 0 ? '+' : '') + v4);
-  parts.push('风险 ' + risk);
-  return '<div class="mc-verdict ' + cls + '" id="mcVerdict"><span class="mc-vd-t">综合读数</span>'
+  return '<div class="mc-verdict ' + cls + '" id="mcVerdict' + (mkt === 'ovs' ? 'Ovs' : 'Cn') + '"><span class="mc-vd-t">' + esc(vC) + '</span>'
     + '<span class="mc-vd-v">' + esc(verdict) + '</span>'
     + '<span class="mc-vd-n">net ' + (net >= 0 ? '+' : '') + net.toFixed(2) + '</span>'
     + '<span class="mc-vd-s">' + esc(parts.join(' · ')) + '</span>'
     + (tension ? '<span class="mc-vd-w">' + esc(tension) + '</span>' : '')
-    + '<span class="mc-vd-c">' + esc(fw2_v527_note) + ' · 回答「周期位置」不含投资建议</span></div>';
+    + '<span class="mc-vd-c">' + esc(note) + ' · 回答「周期位置」不含投资建议</span></div>';
 }
 /* fw2_v527_asof：周期总览「数据截至」——矩阵卡与综合读数按各自时间序列真实末点标注（死规则②）。
    ★日期一律取该序列 points 末点[0]，不用页面级 updatedAt 顶替（各序列更新频率不同：
@@ -8751,12 +8765,16 @@ function renderMacroSop(d, C) {
       + arr() + node('汇率', { now: 'USD/CNH ' + (fL != null ? f(fL, 4) : '—'), past: fChg != null ? '近6期 ' + (fChg > 0 ? '↑' : fChg < 0 ? '↓' : '→') + ' ' + f(Math.abs(fChg)) + '%' : null, future: null, link: 'px' })
       + arr() + node('股债波动', { now: 'VIX ' + f(vL, 2), past: trend(C.vix, 6), future: null, link: 'ovs' }));
   /* ① 定调：综合读数 + 六磁铁计数 */
-  var _mx = (typeof mcMatrix === 'function') ? mcMatrix(C) : { scores: {} };
-  var vdHtml = (typeof mcVerdict === 'function') ? mcVerdict(C, _mx.scores) : '';
-  /* fw2_v555_ov_merge：原周期总览内容并入①段——六磁铁明细 grid + 联动矩阵 4 卡（与 renderMacroOverview 同组装） */
+  var _mx = (typeof mcMatrix === 'function') ? mcMatrix(C) : { scores: {}, cards: {} };
+  var vdCn = (typeof mcVerdict === 'function') ? mcVerdict(C, _mx.scores, 'cn') : '';
+  var vdOvs = (typeof mcVerdict === 'function') ? mcVerdict(C, _mx.scores, 'ovs') : '';
+  /* fw2_v556_market_split：中国/全球分栏——磁铁按 geo 分（val/cred/mood=中国，ovs/us/gbl=全球），矩阵按市场取 2 卡 */
   var _gi2 = window.MI_GROUPS || [];
-  var _magGrid = _gi2.slice(0, 6).map(function (g, i) { return window.mcMagnet(g, i); }).join('');
-  var _mxHtml = (_mx && _mx.html) || '';
+  var _magCn = _gi2.slice(0, 3).map(function (g, i) { return window.mcMagnet(g, i); }).join('');
+  var _magOvs = _gi2.slice(3, 6).map(function (g, i) { return window.mcMagnet(g, i + 3); }).join('');
+  var _mxCards = (_mx && _mx.cards) || {};
+  var _mxCn = (_mxCards.odds || '') + (_mxCards.earn || '');
+  var _mxOvs = (_mxCards.risk || '') + (_mxCards.ovs || '');
   var magnetLine = 'A股估值 ' + mVal.p + '正' + mVal.n + '负 · 信用 ' + mCre.p + '正' + mCre.n + '负 · 情绪 ' + mMoo.p + '正' + mMoo.n + '负 · 海外 ' + mOvs.p + '正' + mOvs.n + '负 · 美国 ' + mUs.p + '正' + mUs.n + '负 · 全球 ' + mGbl.p + '正' + mGbl.n + '负 · 合计 ' + tP + ' 正 / ' + tN + ' 负';
   /* 研读顺序条 */
   var seq = [['方法', 'sop'], ['中国周期', 'cn'], ['估值', 'val'], ['信用', 'cred'], ['情绪', 'mood'], ['美国周期', 'us'], ['海外景气', 'gbl'], ['海外约束', 'ovs'], ['资产价格', 'px'], ['市场情绪', 'sm']];   /* fw2_v555_ov_merge：删『定调』节点（定调并入驾驶舱本页），研读顺序条 10 节点 */
@@ -8768,10 +8786,17 @@ function renderMacroSop(d, C) {
     + '<div style="margin-bottom:10px">' + seqHtml + '</div>'
     + '<div style="font-size:12px;color:var(--slate-500,#64748b);line-height:1.7">研读顺序：<b>定调与方法</b>（研读驾驶舱本页一体）→ <b>中国决策</b>（中国周期→估值→盈利→温度）→ <b>海外约束</b>（美国→全球→顺逆风）→ <b>结果验证</b>（资产价格→市场情绪）。点步骤条直达各 tab。</div>'
     + '</div>'
-    + '<div class="card"><div class="card-h"><h3>① 定调 · 周期位置</h3><span class="hint">综合读数 + 六磁铁 + 联动矩阵（fw2_v555_ov_merge：原周期总览内容并入 · 同源判读）</span></div>'
-    + vdHtml
-    + '<div class="mc-ov-grid">' + _magGrid + '</div>'
-    + '<div class="mc-ov-grid mc-ov-mx">' + _mxHtml + '</div>'
+    + '<div class="card"><div class="card-h"><h3>① 定调 · 周期位置</h3><span class="hint">中国 / 全球分栏 · 各市场独立读数与联动矩阵（fw2_v556_market_split：两个不同市场零融合）</span></div>'
+    + '<div class="mc-mkt"><div class="mc-mkt-h"><b>中国 · 周期位置</b><span class="mc-mkt-geo">中国指标</span><span class="mc-mkt-d">估值 → 信用 → 情绪（val/cred/mood 同源判读）</span></div>'
+    + vdCn
+    + '<div class="mc-ov-grid">' + _magCn + '</div>'
+    + '<div class="mc-ov-grid mc-ov-mx">' + _mxCn + '</div>'
+    + '</div>'
+    + '<div class="mc-mkt"><div class="mc-mkt-h"><b>全球 · 周期位置</b><span class="mc-mkt-geo">海外指标</span><span class="mc-mkt-d">海外约束 → 美国 → 全球景气（ovs/us/gbl 同源判读）</span></div>'
+    + vdOvs
+    + '<div class="mc-ov-grid">' + _magOvs + '</div>'
+    + '<div class="mc-ov-grid mc-ov-mx">' + _mxOvs + '</div>'
+    + '</div>'
     + '</div>'
     + '<div class="card"><div class="card-h"><h3>② 中国决策</h3><span class="hint">估值 → 盈利 → 温度（val/cred/mood tab 同源判读）</span></div>'
     + row('估值', 'ERP 分位 ' + pctv(ePct) + ' · 沪深300 PE 分位 ' + pctv(peL2), vErp + ' · ' + vPe, (ePct >= 75 || peL2 < 20) ? 'pos' : ((ePct < 25 || peL2 >= 80) ? 'neg' : 'div'), 'val')
@@ -11788,6 +11813,17 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
      mi 页⑤⑥ 引用卡+磁铁、无「海外全景」残留、chip v549、ERRS 0）+ 四门禁全绿 + 真实渲染截图核验。
      chip v548→v549。
   */
+  /* v556 fw2_v556_market_split：①定调段按市场拆分中国/全球纵向两段（2026-10-15 用户「能区分中国和全球吗？不用刻意融合，完全是两个不同的市场」拍板方案C）——
+     ①mcVerdict(C, SC, mkt) 参数化：cn＝赔率+盈利（0.35/0.30 归一满权）、ovs＝海外+风险（0.20/0.15 归一满权，风险方向相反取负）；
+       各市场独立 net 与判断词，中外零融合；张力提示按市场内部正负计算；
+     ②mcMatrix 返回 cards 分卡（odds/earn/risk/ovs 四段 html），html 保留供 renderMacroOverview 死代码；
+     ③①定调段重排：上「中国 · 周期位置」＝中国读数 + val/cred/mood 3 磁铁 + A股赔率/盈利 2 矩阵；
+       下「全球 · 周期位置」＝全球读数 + ovs/us/gbl 3 磁铁 + 风险/海外顺逆风 2 矩阵；
+     ④情绪磁铁（混合：两融/成交额=中国 + VIX=美国）归中国栏（磁铁头标「中国指标」，VIX 由 ovs 磁铁与③海外约束行覆盖）；
+     ⑤CSS 加 .mc-mkt 分段容器。
+     验证：check_js + 四门禁全绿 + V556_DOM_OK（两段标题/各 3 磁铁可见/各 2 矩阵/无旧综合读数单卡/判断词独立/回归项/chip v556）。
+     chip v555→v556。
+  */
   /* v555 fw2_v555_ov_merge：周期总览并入研读驾驶舱（2026-10-15 用户截图「这两个可以合并吗？」拍板方案A）——
      ①fillMacroTabs 删『周期总览』tab（11→10），sop 升第1位；默认落点 macroRegion 'ov'→'sop'（8813/9782/13528/13577 四处）；
      ②renderMacro ov 分支删除，'ov' 残留兼容落 sop 分支（renderMacroSop）；
@@ -12345,7 +12381,7 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
        留待与用户确认重设计方案后再动（本轮不做）。
      ★诚实限定：erpCard/peCard/mrgCard/vixCard 定义及其 erpSpark/peSpark/mrgSpark/vixSpark 函数已于 **v529（fw2_v529_smux P3）一并清理**（连同 erpLv/peLv/vixLv/rzyeLv 与顶部 erp/pe/margin/vix 局部变量，mi 页判读走 mcCalcCommon 不受影响）。
        数据/口径零改动，纯前端结构层；描述串「sm 去重 · 删重复估值流动性卡」入 verify_sync 标记组 */
-  if (vc) vc.textContent = 'v555 · 自选' /* fw2_v516_a500lk fw2_v517_4otc fw2_v518_hspos fw2_v519_sm_merge fw2_v520_chgflat fw2_v521_magnet fw2_v522_overview fw2_v523_sm_dedup fw2_v524_geo_fsi fw2_v525_geo_filter fw2_v526_geo_filter_removed fw2_v527_verdict fw2_v529_smux fw2_v530_datamgmt fw2_v531_sm_dmgmt fw2_v532_all_dm fw2_v533_px_long fw2_v533d_dm_scroll fw2_v534_dm_module fw2_v535_dm_auto fw2_v539_hold_realpnl fw2_v539a_seed_sync fw2_v539a_seed_order fw2_v540_hold_path fw2_v542_pf_mirror_first fw2_v542_mv_settled fw2_v542_mv_account fw2_v543_dm_holdings_note fw2_v544_ledger_mirror_guard fw2_v545_hold_total_row fw2_v546_navdate_all fw2_v547_vix_to_ovs fw2_v548_ovs_mrg fw2_v549_region_align fw2_v550_grp_tabs fw2_v551_sop_cockpit fw2_v552_sop_taborder fw2_v553_chain_data fw2_v554_sop_rename */ + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  if (vc) vc.textContent = 'v556 · 自选' /* fw2_v516_a500lk fw2_v517_4otc fw2_v518_hspos fw2_v519_sm_merge fw2_v520_chgflat fw2_v521_magnet fw2_v522_overview fw2_v523_sm_dedup fw2_v524_geo_fsi fw2_v525_geo_filter fw2_v526_geo_filter_removed fw2_v527_verdict fw2_v529_smux fw2_v530_datamgmt fw2_v531_sm_dmgmt fw2_v532_all_dm fw2_v533_px_long fw2_v533d_dm_scroll fw2_v534_dm_module fw2_v535_dm_auto fw2_v539_hold_realpnl fw2_v539a_seed_sync fw2_v539a_seed_order fw2_v540_hold_path fw2_v542_pf_mirror_first fw2_v542_mv_settled fw2_v542_mv_account fw2_v543_dm_holdings_note fw2_v544_ledger_mirror_guard fw2_v545_hold_total_row fw2_v546_navdate_all fw2_v547_vix_to_ovs fw2_v548_ovs_mrg fw2_v549_region_align fw2_v550_grp_tabs fw2_v551_sop_cockpit fw2_v552_sop_taborder fw2_v553_chain_data fw2_v554_sop_rename fw2_v556_market_split */ + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
