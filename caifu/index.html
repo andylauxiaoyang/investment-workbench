@@ -8697,7 +8697,7 @@ function renderMacroSop(d, C) {
       + arr() + node('韩国出口', { now: '同比 ' + (_us.yoy != null ? f(_us.yoy) + '%' : '—'), past: null, future: '全球景气领先信号（代理电子需求）', link: 'gbl' })
       + arr() + node('A股电子/科创', { tag: 'wait', flow: '见交易信号/自选池', now: null, past: null, future: null }))
     + chain('链3 · 利率 × 股市四阶段（政策利率 × 盈利 → 股债估值锚）',
-      node('政策利率', { now: '五国政策利率水平（见④海外约束）', past: null, future: null, link: 'ovs' })
+      node('政策利率', { now: '五国政策利率水平（见海外约束）', past: null, future: null, link: 'ovs' })
       + arr() + node('盈利（PMI×PCE）', { now: 'PMI ' + f(mk) + ' · 美核心PCE ' + f(pce) + '%', past: trend(C.pmi, 6), future: null, link: 'us' })
       + arr() + node('股债估值锚', { now: '沪深300 PE 分位 ' + pctv(peL2) + ' · 标普 ' + pctv(spxPct), past: null, future: null, link: 'val' }))
     + chain('链4 · B2B 循环（需求 → 产能利用率 → 设备投资 → 就业 → 消费）',
@@ -8726,9 +8726,9 @@ function renderMacroSop(d, C) {
   /* ① 定调：综合读数 + 六磁铁计数 */
   var _mx = (typeof mcMatrix === 'function') ? mcMatrix(C) : { scores: {} };
   var vdHtml = (typeof mcVerdict === 'function') ? mcVerdict(C, _mx.scores) : '';
-  var magnetLine = '①A股估值 ' + mVal.p + '正' + mVal.n + '负 · ②信用 ' + mCre.p + '正' + mCre.n + '负 · ③情绪 ' + mMoo.p + '正' + mMoo.n + '负 · ④海外 ' + mOvs.p + '正' + mOvs.n + '负 · ⑤美国 ' + mUs.p + '正' + mUs.n + '负 · ⑥全球 ' + mGbl.p + '正' + mGbl.n + '负 · 合计 ' + tP + ' 正 / ' + tN + ' 负';
+  var magnetLine = 'A股估值 ' + mVal.p + '正' + mVal.n + '负 · 信用 ' + mCre.p + '正' + mCre.n + '负 · 情绪 ' + mMoo.p + '正' + mMoo.n + '负 · 海外 ' + mOvs.p + '正' + mOvs.n + '负 · 美国 ' + mUs.p + '正' + mUs.n + '负 · 全球 ' + mGbl.p + '正' + mGbl.n + '负 · 合计 ' + tP + ' 正 / ' + tN + ' 负';
   /* 研读顺序条 */
-  var seq = [['定调', 'ov'], ['方法', 'sop'], ['中国周期', 'cn'], ['①估值', 'val'], ['②信用', 'cred'], ['③情绪', 'mood'], ['美国周期', 'us'], ['海外景气', 'gbl'], ['④海外约束', 'ovs'], ['资产价格', 'px'], ['市场情绪', 'sm']];
+  var seq = [['定调', 'ov'], ['方法', 'sop'], ['中国周期', 'cn'], ['估值', 'val'], ['信用', 'cred'], ['情绪', 'mood'], ['美国周期', 'us'], ['海外景气', 'gbl'], ['海外约束', 'ovs'], ['资产价格', 'px'], ['市场情绪', 'sm']];
   var seqHtml = '<div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center">' + seq.map(function (s) {
     return '<span style="cursor:pointer;padding:4px 10px;border-radius:8px;border:1px solid var(--line-mid,#d8dee6);background:var(--panel-3,#f1f5f9);color:var(--slate-600,#475569);font-size:12px;font-weight:600" onclick="window.__mcGo(\'' + s[1] + '\')">' + s[0] + '</span>';
   }).join('<span style="color:#9ca3af;flex:none">→</span>') + '</div>';
@@ -9124,7 +9124,7 @@ body.innerHTML = (_region === 'cn' ? renderMacroToolsHtml() : (_region === 'mi' 
   <!-- ===== fw2_v521_magnet ⑦判读 SOP · 三步法（原 fw2_v453「框架与传导」知识卡扩写；MI_GROUPS key 同步改「判读 SOP」） ===== -->
   <div class="card">
     <div class="card-h"><h3>判读 SOP · 三步法</h3><span class="hint">顺序 → 结论 → 动作 · 静态知识卡 · 零取数 · 不构成投资建议</span></div>
-    <div class="rv-line"><span class="tag tag-ai">第1步 · 顺序</span><span><b>按组序读，不跳步</b>：①A股估值 → ②信用与增长 → ③情绪与流动性 → ④海外约束 → ⑤美国周期 → ⑥全球景气。估值回答「贵不贵」、信用增长回答「基本面方不方」、情绪回答「拥不拥挤」、海外与美国回答「外围顺不顺」——四问都有答案再谈动作</span></div>
+    <div class="rv-line"><span class="tag tag-ai">第1步 · 顺序</span><span><b>按组序读，不跳步</b>：A股估值 → 信用与增长 → 情绪与流动性 → 海外约束 → 美国周期 → 全球景气。估值回答「贵不贵」、信用增长回答「基本面方不方」、情绪回答「拥不拥挤」、海外与美国回答「外围顺不顺」——四问都有答案再谈动作</span></div>
     <div class="rv-line"><span class="tag tag-ai">第2步 · 结论</span><span><b>先读每组顶部大磁铁，再读组内证据链</b>：磁铁给方向（多数证据方向 + N 正 / M 负计数），证据链（▲支持 / ▼反对 / －中性）验证方向是否被组内各卡同向支撑；任一组「证据分歧」⇒ 该组结论降级为「观察」，不作为行动依据</span></div>
     <div class="rv-line"><span class="tag tag-ai">第3步 · 动作</span><span><b>对照各卡「阈值」行落动作</b>：加档 / 维持 / 减速一律以卡内分位与剪刀差阈值为准（M1 / M7 / M9 同口径），不凭感觉、不用磁铁替代阈值——磁铁只回答「往哪边看」，阈值才回答「动不动、动多少」</span></div>
     <div class="rv-line"><span class="tag tag-data">反例</span><span>磁铁「偏便宜」但 ERP 卡阈值未达 75% ⇒ 只记录观察、不加档；磁铁「证据分歧」但某张卡已触发自身阈值 ⇒ 按该卡阈值处理，并知悉组内其他证据不支持</span></div>
@@ -9759,14 +9759,14 @@ function fillMacroTabs() {
   const tAct = 'padding:8px 22px;border-radius:10px;border:1px solid var(--nav-blue,#2f6bff);background:var(--nav-blue,#2f6bff);color:#fff;font-size:13px;font-weight:600;cursor:pointer';
   const items = [
     ['ov', '周期总览'],   /* fw2_v522_overview：B1 新增 L1 层（默认落点） */
-    ['cn', '中国周期'],
-    ['us', '美国周期'],   /* fw2_v549_region_align：tab「海外全景」→「美国周期」（用户拍板方案B′区域平级：中国周期/美国周期/海外景气三域 tab 并列，消除「海外全景≈美国」名实不符；data-r 路由键 us 不动；原 fw2_v467_us_tab_rename / fw2_v548_ovs_mrg 改名记录） */
-    ['gbl', '海外景气'],  /* fw2_v549_region_align：新增「海外景气」tab（⑥全球景气非美内容上移为独立域：韩国出口/OECD/BDI日银/PMI合成；data-r 路由键 gbl） */
-    ['val', '①A股估值'],   /* fw2_v550_grp_tabs：方案B 全平铺——宏观指标 7 组升 tab（原 mi 页①A股估值组：ERP/PE/宽基） */
-    ['cred', '②信用与增长'], /* fw2_v550_grp_tabs：原 mi 页②信用与增长组（信用脉冲/剪刀差/PMI/实体景气） */
-    ['mood', '③情绪与流动性'], /* fw2_v550_grp_tabs：原 mi 页③情绪与流动性组（情绪温度计/全A成交额） */
-    ['ovs', '④海外约束'],  /* fw2_v550_grp_tabs：原 mi 页④海外约束组（全球利率汇率/美股估值/政策利率/VIX） */
-    ['sop', '⑦判读SOP'],  /* fw2_v550_grp_tabs：原 mi 页⑦判读SOP组（三步法静态知识卡） */
+    ['sop', '判读SOP'],   /* fw2_v552_sop_taborder：研读顺序第2位（定调→方法→中国决策→海外→结果验证），模块名去序号（原⑦判读SOP） */
+    ['cn', '中国周期'],   /* fw2_v552_sop_taborder：研读顺序第3位（中国决策起点） */
+    ['val', 'A股估值'],   /* fw2_v552_sop_taborder：研读顺序第4位·①中国决策-估值；fw2_v550_grp_tabs：原 mi 页①A股估值组（ERP/PE/宽基），模块名去序号 */
+    ['cred', '信用与增长'], /* fw2_v552_sop_taborder：研读顺序第5位·②中国决策-信用；fw2_v550_grp_tabs：原 mi 页②信用与增长组，模块名去序号 */
+    ['mood', '情绪与流动性'], /* fw2_v552_sop_taborder：研读顺序第6位·③中国决策-情绪；fw2_v550_grp_tabs：原 mi 页③情绪与流动性组，模块名去序号 */
+    ['us', '美国周期'],   /* fw2_v552_sop_taborder：研读顺序第7位·海外-美国；fw2_v549_region_align：tab「海外全景」→「美国周期」（用户拍板方案B′区域平级：中国周期/美国周期/海外景气三域 tab 并列，消除「海外全景≈美国」名实不符；data-r 路由键 us 不动；原 fw2_v467_us_tab_rename / fw2_v548_ovs_mrg 改名记录） */
+    ['gbl', '海外景气'],  /* fw2_v552_sop_taborder：研读顺序第8位·海外-全球；fw2_v549_region_align：新增「海外景气」tab（⑥全球景气非美内容上移为独立域：韩国出口/OECD/BDI日银/PMI合成；data-r 路由键 gbl） */
+    ['ovs', '海外约束'],  /* fw2_v552_sop_taborder：研读顺序第9位·④海外约束；fw2_v550_grp_tabs：原 mi 页④海外约束组（全球利率汇率/美股估值/政策利率/VIX），模块名去序号 */
     ['px', '资产价格监控'],
     ['sm', '市场情绪']
   ];
@@ -9987,7 +9987,7 @@ function renderMacroUS(d) {
     (kC ? '<div style="font-size:12px;color:var(--slate-600,#475569);margin-top:4px">' + esc(kC) + '</div>' : '') +
     '<div style="font-size:11px;color:var(--slate-500,#64748b);margin-top:6px">' + esc(kProxy) + '</div></div>' +
     '<div class="card"><div class="card-h"><h3>海外压力温度（引用）</h3><span class="hint">VIX / 美债利差 / 美元 / 美股估值分位 · 与 FSI 同口径</span></div>' +
-    '<div class="rv-line"><span class="tag tag-data">说明</span><span>海外压力温度四项（VIX 恐慌 · 全球利率与汇率[美债10Y/2Y/利差/美元] · 美股估值温度）见「宏观指标 → ④海外约束」组，此处不重复建卡（fw2_v548 去重）；FSI 各分项 z 分位细节见下「FSI 压力分项」表</span></div></div>' +
+    '<div class="rv-line"><span class="tag tag-data">说明</span><span>海外压力温度四项（VIX 恐慌 · 全球利率与汇率[美债10Y/2Y/利差/美元] · 美股估值温度）见「海外约束」tab，此处不重复建卡（fw2_v548 去重）；FSI 各分项 z 分位细节见下「FSI 压力分项」表</span></div></div>' +
     indCard + chartCard + cycHtml + dlHtml + nfCard + usCards + foot + '</div>';
 }
 /* fw2_v549_region_align：海外景气页（gbl tab）＝⑥全球景气非美实体卡全集——
@@ -10008,7 +10008,7 @@ function renderMacroGbl(d) {
   </div>
   <div class="card">
     <div class="card-h"><h3>韩国出口同比 · 全球景气代理</h3><span class="hint">FRED XTEXVA01KRM667S（商品出口额 · 美元计价）· 月度 · 同比 YoY</span></div>
-    ${_mcMeta(ushf.krExport && ushf.krExport.asOf, '月度', '韩国出口同比（FRED XTEXVA01KRM667S）· 半导体/资本开支周期强代理（费半→台积电→韩国出口→A股电子传导链，见⑦判读SOP）', 75)}
+    ${_mcMeta(ushf.krExport && ushf.krExport.asOf, '月度', '韩国出口同比（FRED XTEXVA01KRM667S）· 半导体/资本开支周期强代理（费半→台积电→韩国出口→A股电子传导链，见判读SOP）', 75)}
     <div class="metric-grid">
       ${metric('最新同比', (ushf.krExport && ushf.krExport.yoy != null) ? fmtNum(ushf.krExport.yoy, 1) + '%' : '—', (ushf.krExport && ushf.krExport.yoy != null) ? (ushf.krExport.yoy >= 5 ? 'v up' : ushf.krExport.yoy <= -5 ? 'v down' : '') : '')}
       ${metric('当月出口额', (ushf.krExport && ushf.krExport.val != null) ? fmtNum(ushf.krExport.val, 0) + ' 亿$' : '—')}
@@ -10022,7 +10022,7 @@ function renderMacroGbl(d) {
   </div>
   <div class="card">
     <div class="card-h"><h3>全球 PMI 合成口径</h3><span class="hint">JPMorgan 全球 PMI（受限）· 引用卡 · 无独立数据</span></div>
-    <div class="rv-line"><span class="tag tag-data">说明</span><span>JPMorgan 全球制造业 PMI 数据源受限，暂用合成口径观察：<b>中国官方 PMI（②信用与增长组）+ 美国 ISM（⑤美国周期组）</b> → 美中两大引擎齐下 = 全球周期下行确认。<b>本卡数据即②+⑤两组的汇总视角，无独立序列</b>（fw2_v548 明确引用关系）</span></div>
+    <div class="rv-line"><span class="tag tag-data">说明</span><span>JPMorgan 全球制造业 PMI 数据源受限，暂用合成口径观察：<b>中国官方 PMI（信用与增长组）+ 美国 ISM（美国周期组）</b> → 美中两大引擎齐下 = 全球周期下行确认。<b>本卡数据即这两组的汇总视角，无独立序列</b>（fw2_v548 明确引用关系）</span></div>
   </div>
   <p class="foot-note">海外景气页＝⑥全球景气非美域实体卡（韩国出口为唯一独立信号；OECD/BDI/日银缺源如实标注，PMI 合成引用②+⑤）；本页不构成投资建议。</p>
   ` + '</div>';
@@ -11756,6 +11756,22 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
      mi 页⑤⑥ 引用卡+磁铁、无「海外全景」残留、chip v549、ERRS 0）+ 四门禁全绿 + 真实渲染截图核验。
      chip v548→v549。
   */
+  /* v552 fw2_v552_sop_taborder：宏观 tab 顺序调整 + 模块名去序号（2026-10-15 用户截图追问「这个顺序怎么调整呢？模块的名称别带数字符号」——
+     拍板方案A：tab 顺序与研读顺序一致）——
+     ①fillMacroTabs 重排：ov│sop│cn│val│cred│mood│us│gbl│ovs│px│sm（判读SOP 第2位·方法前置、中国周期第3位、
+       A股估值/信用与增长/情绪与流动性 三决策组居中、美国周期/海外景气/海外约束 后置——从左到右即研读流程：
+       定调→方法→中国决策→海外→结果验证，与 renderMacroSop 研读顺序条 seq 完全一致）；
+     ②模块名去序号：tab『①A股估值→A股估值 / ②信用与增长→信用与增长 / ③情绪与流动性→情绪与流动性 /
+       ④海外约束→海外约束 / ⑦判读SOP→判读SOP』；研读顺序条 seq『①估值→估值 / ②信用→信用 / ③情绪→情绪 /
+       ④海外约束→海外约束』；定调磁铁行 magnetLine 去 ①-⑥；MI_GROUPS 7 组 name 去序号（mcMagnet 磁铁头
+       g.name 渲染位）；rv-line 判读指引、mcSopMagnet 静态文本、gbl 页 PMI 合成卡说明（②信用/⑤美国组引用）、
+       us 页海外压力温度引用卡（顺带修 v550 遗留「宏观指标 →」过期路径→「海外约束」tab）、链6 政策利率
+       节点文案同步去序号；
+     ③步骤序号保留（非模块名）：ov 五步法①-⑤、驾驶舱四段标题①-④、sm 页五组①-④；
+     ④路由/数据零改动（data-r 键不动、__MC_GRP_REG 组索引不变、默认落点 ov 不变）。
+     验证：check_js + 四门禁全绿 + V552_DOM_OK（11 tab 新序 + 序号残留 0 + 磁铁/顺序条/内文无①-⑦ + 回归）。
+     chip v551→v552。
+  */
   /* v550 fw2_v550_grp_tabs：宏观组全平铺升 tab（2026-10-15 用户拍板方案B「先看看效果」：宏观指标与 TAB 层
      逻辑不够清晰——mi 页⑤⑥引用卡与 us/gbl tab 双轨、①②③中国组与 cn tab 错层）——
      ①fillMacroTabs 删「宏观指标」tab，组升 tab：ov│cn│us│gbl│val①A股估值│cred②信用与增长│mood③情绪与流动性│ovs④海外约束│sop⑦判读SOP│px│sm
@@ -12273,7 +12289,7 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
        留待与用户确认重设计方案后再动（本轮不做）。
      ★诚实限定：erpCard/peCard/mrgCard/vixCard 定义及其 erpSpark/peSpark/mrgSpark/vixSpark 函数已于 **v529（fw2_v529_smux P3）一并清理**（连同 erpLv/peLv/vixLv/rzyeLv 与顶部 erp/pe/margin/vix 局部变量，mi 页判读走 mcCalcCommon 不受影响）。
        数据/口径零改动，纯前端结构层；描述串「sm 去重 · 删重复估值流动性卡」入 verify_sync 标记组 */
-  if (vc) vc.textContent = 'v551 · 自选' /* fw2_v516_a500lk fw2_v517_4otc fw2_v518_hspos fw2_v519_sm_merge fw2_v520_chgflat fw2_v521_magnet fw2_v522_overview fw2_v523_sm_dedup fw2_v524_geo_fsi fw2_v525_geo_filter fw2_v526_geo_filter_removed fw2_v527_verdict fw2_v529_smux fw2_v530_datamgmt fw2_v531_sm_dmgmt fw2_v532_all_dm fw2_v533_px_long fw2_v533d_dm_scroll fw2_v534_dm_module fw2_v535_dm_auto fw2_v539_hold_realpnl fw2_v539a_seed_sync fw2_v539a_seed_order fw2_v540_hold_path fw2_v542_pf_mirror_first fw2_v542_mv_settled fw2_v542_mv_account fw2_v543_dm_holdings_note fw2_v544_ledger_mirror_guard fw2_v545_hold_total_row fw2_v546_navdate_all fw2_v547_vix_to_ovs fw2_v548_ovs_mrg fw2_v549_region_align fw2_v551_sop_cockpit */ + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  if (vc) vc.textContent = 'v552 · 自选' /* fw2_v516_a500lk fw2_v517_4otc fw2_v518_hspos fw2_v519_sm_merge fw2_v520_chgflat fw2_v521_magnet fw2_v522_overview fw2_v523_sm_dedup fw2_v524_geo_fsi fw2_v525_geo_filter fw2_v526_geo_filter_removed fw2_v527_verdict fw2_v529_smux fw2_v530_datamgmt fw2_v531_sm_dmgmt fw2_v532_all_dm fw2_v533_px_long fw2_v533d_dm_scroll fw2_v534_dm_module fw2_v535_dm_auto fw2_v539_hold_realpnl fw2_v539a_seed_sync fw2_v539a_seed_order fw2_v540_hold_path fw2_v542_pf_mirror_first fw2_v542_mv_settled fw2_v542_mv_account fw2_v543_dm_holdings_note fw2_v544_ledger_mirror_guard fw2_v545_hold_total_row fw2_v546_navdate_all fw2_v547_vix_to_ovs fw2_v548_ovs_mrg fw2_v549_region_align fw2_v550_grp_tabs fw2_v551_sop_cockpit fw2_v552_sop_taborder */ + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
@@ -13383,13 +13399,13 @@ setTimeout(() => { renderResearchChips(); if (!state.news.items.length) loadNews
      data-g（wrapMcMods 按 keys 前缀匹配写入）、mcEv 证据注册、__mcGo 跨 tab 跳转 完全不动 ⇒ 同源架构不受影响。
      cn＝①A股估值/②信用增长/③情绪流动性（中国侧）；ovs＝④海外约束/⑤美国周期/⑥全球景气（海外侧）；sop＝⑦判读SOP（方法）。 */
   window.MI_GROUPS = [
-    { id:'val',  geo:'cn',  name:'① A股估值',       concl:'便宜 / 合理 / 贵',           vd:{ p:'偏便宜', n:'偏贵', d:'证据分歧' },             keys:['ERP 股债性价比', '沪深300 PE-TTM', '宽基估值温度'] },
-    { id:'cred', geo:'cn',  name:'② 信用与增长',    concl:'扩张 / 收缩 / 僵持',         vd:{ p:'偏扩张', n:'偏收缩', d:'证据分歧' },           keys:['信用脉冲：社融', '物价剪刀差', '制造业 PMI', '实体景气'] },
-    { id:'mood', geo:'cn',  name:'③ 情绪与流动性',  concl:'过热 / 中性 / 冰冷',         vd:{ p:'偏冰冷·逆向关注', n:'偏过热·防御', d:'证据分歧' }, keys:['情绪温度计', '全A成交额'] },
-    { id:'ovs',  geo:'ovs', name:'④ 海外约束',      concl:'顺风 / 中性 / 逆风',         vd:{ p:'偏顺风', n:'偏逆风', d:'证据分歧' },           q:'本组回答：海外环境紧不紧（压力温度：利率 / 汇率 / 估值 / VIX）', keys:['全球利率与汇率', '美股估值温度', '政策利率与收益率曲线', '全球央行政策利率一览', 'VIX 恐慌'] },
-    { id:'us',   geo:'ovs', name:'⑤ 美国周期',      concl:'增长 × 通胀 · 周期定位',     vd:{ p:'偏顺风', n:'偏逆风', d:'证据分歧' },           q:'本组回答：美国经济强不强（增长 × 通胀 9 项硬指标）', keys:['美国周期 · 完整卡', '非农 · 引用', '初请失业金', '失业率 U3 / U6', '零售销售', '个人收入与 PCE', '消费者信心', '耐用品新订单', 'LEI 领先指标', 'ISM 制造业 PMI'] },
-    { id:'gbl',  geo:'ovs', name:'⑥ 全球景气',      concl:'扩张 / 收缩',                vd:{ p:'偏扩张', n:'偏收缩', d:'证据分歧' },           q:'本组回答：全球动能旺不旺（非美景气；韩国出口为独立信号）', keys:['全球景气 · 完整卡', 'OECD 领先指标', '韩国出口同比', '全球航运与日本景气', '全球 PMI 合成'] },
-    { id:'sop',  geo:'sop', name:'⑦ 判读 SOP',      concl:'顺序 → 结论 → 动作',         vd:{ p:'', n:'', d:'' },                               keys:['判读 SOP'] },
+    { id:'val',  geo:'cn',  name:'A股估值',       concl:'便宜 / 合理 / 贵',           vd:{ p:'偏便宜', n:'偏贵', d:'证据分歧' },             keys:['ERP 股债性价比', '沪深300 PE-TTM', '宽基估值温度'] },
+    { id:'cred', geo:'cn',  name:'信用与增长',    concl:'扩张 / 收缩 / 僵持',         vd:{ p:'偏扩张', n:'偏收缩', d:'证据分歧' },           keys:['信用脉冲：社融', '物价剪刀差', '制造业 PMI', '实体景气'] },
+    { id:'mood', geo:'cn',  name:'情绪与流动性',  concl:'过热 / 中性 / 冰冷',         vd:{ p:'偏冰冷·逆向关注', n:'偏过热·防御', d:'证据分歧' }, keys:['情绪温度计', '全A成交额'] },
+    { id:'ovs',  geo:'ovs', name:'海外约束',      concl:'顺风 / 中性 / 逆风',         vd:{ p:'偏顺风', n:'偏逆风', d:'证据分歧' },           q:'本组回答：海外环境紧不紧（压力温度：利率 / 汇率 / 估值 / VIX）', keys:['全球利率与汇率', '美股估值温度', '政策利率与收益率曲线', '全球央行政策利率一览', 'VIX 恐慌'] },
+    { id:'us',   geo:'ovs', name:'美国周期',      concl:'增长 × 通胀 · 周期定位',     vd:{ p:'偏顺风', n:'偏逆风', d:'证据分歧' },           q:'本组回答：美国经济强不强（增长 × 通胀 9 项硬指标）', keys:['美国周期 · 完整卡', '非农 · 引用', '初请失业金', '失业率 U3 / U6', '零售销售', '个人收入与 PCE', '消费者信心', '耐用品新订单', 'LEI 领先指标', 'ISM 制造业 PMI'] },
+    { id:'gbl',  geo:'ovs', name:'全球景气',      concl:'扩张 / 收缩',                vd:{ p:'偏扩张', n:'偏收缩', d:'证据分歧' },           q:'本组回答：全球动能旺不旺（非美景气；韩国出口为独立信号）', keys:['全球景气 · 完整卡', 'OECD 领先指标', '韩国出口同比', '全球航运与日本景气', '全球 PMI 合成'] },
+    { id:'sop',  geo:'sop', name:'判读 SOP',      concl:'顺序 → 结论 → 动作',         vd:{ p:'', n:'', d:'' },                               keys:['判读 SOP'] },
   ];
   /* fw2_v521_magnet：证据注册 + 磁铁汇总（架构核心）——
      ①卡片渲染时按自身「指向」行同源条件注册证据 mcEv(组id, dir, 短文本)：
@@ -13438,7 +13454,7 @@ setTimeout(() => { renderResearchChips(); if (!state.news.items.length) loadNews
       + '<span class="mc-geo" style="display:inline-block;font-size:10px;line-height:1.4;padding:1px 6px;border-radius:8px;background:#eef0f2;color:#6b7280;font-weight:600;margin-right:6px;white-space:nowrap">方法</span>'
       + '<b class="mc-magnet-v">三步：先磁铁 → 再证据 → 后阈值</b></div>'
       + '<div class="mc-magnet-ev">'
-      + '<span class="mc-ev"><b class="z">①</b> 按组序读：①估值 → ②信用增长 → ③情绪 → ④海外 → ⑤美国 → ⑥全球，任何一组「分歧」先放一放</span>'
+      + '<span class="mc-ev"><b class="z">①</b> 按组序读：A股估值 → 信用与增长 → 情绪与流动性 → 海外约束 → 美国周期 → 全球景气，任何一组「分歧」先放一放</span>'
       + '<span class="mc-ev"><b class="z">②</b> 组内看证据链：磁铁方向是否被 ▲支持 / ▼反对 同向验证，分歧组结论降级为「观察」</span>'
       + '<span class="mc-ev"><b class="z">③</b> 对照各卡「阈值」行落动作：加档 / 维持 / 减速以分位与剪刀差阈值为准，磁铁只回答「往哪边看」</span>'
       + '</div></div>';
