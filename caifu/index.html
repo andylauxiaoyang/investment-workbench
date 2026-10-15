@@ -8607,6 +8607,8 @@ function renderMacroOverview(d) {
 function renderMacroSop(d, C) {
   C = C || {};
   if (typeof mcRegisterEvidence === 'function') mcRegisterEvidence(C);
+  /* fw2_v555_ov_merge：①段六磁铁含 cred 组——补注册实体景气证据（原 ov 页 renderMacroOverview 单独注册，同判据同时序） */
+  if (typeof mcActOk === 'function') { var _gEnt = mcActOk(C.d); if (_gEnt && _gEnt.ok != null) window.mcEv('cred', _gEnt.dir, '实体 5 项同比为正 ' + _gEnt.ok + '/5（' + _gEnt.txt + '）'); }
   var cCur = C.cCur || {}, cnM = (d && d.cnMacro) || {}, _us = (C.ushf && C.ushf.krExport) || {};
   var ePct = C.ePct, peL2 = (C.peLast && C.peLast[2] != null) ? C.peLast[2] : null;
   var gap = cCur.gap, m2y = cCur.m2, mk = C.mk;
@@ -8751,21 +8753,25 @@ function renderMacroSop(d, C) {
   /* ① 定调：综合读数 + 六磁铁计数 */
   var _mx = (typeof mcMatrix === 'function') ? mcMatrix(C) : { scores: {} };
   var vdHtml = (typeof mcVerdict === 'function') ? mcVerdict(C, _mx.scores) : '';
+  /* fw2_v555_ov_merge：原周期总览内容并入①段——六磁铁明细 grid + 联动矩阵 4 卡（与 renderMacroOverview 同组装） */
+  var _gi2 = window.MI_GROUPS || [];
+  var _magGrid = _gi2.slice(0, 6).map(function (g, i) { return window.mcMagnet(g, i); }).join('');
+  var _mxHtml = (_mx && _mx.html) || '';
   var magnetLine = 'A股估值 ' + mVal.p + '正' + mVal.n + '负 · 信用 ' + mCre.p + '正' + mCre.n + '负 · 情绪 ' + mMoo.p + '正' + mMoo.n + '负 · 海外 ' + mOvs.p + '正' + mOvs.n + '负 · 美国 ' + mUs.p + '正' + mUs.n + '负 · 全球 ' + mGbl.p + '正' + mGbl.n + '负 · 合计 ' + tP + ' 正 / ' + tN + ' 负';
   /* 研读顺序条 */
-  var seq = [['定调', 'ov'], ['方法', 'sop'], ['中国周期', 'cn'], ['估值', 'val'], ['信用', 'cred'], ['情绪', 'mood'], ['美国周期', 'us'], ['海外景气', 'gbl'], ['海外约束', 'ovs'], ['资产价格', 'px'], ['市场情绪', 'sm']];
+  var seq = [['方法', 'sop'], ['中国周期', 'cn'], ['估值', 'val'], ['信用', 'cred'], ['情绪', 'mood'], ['美国周期', 'us'], ['海外景气', 'gbl'], ['海外约束', 'ovs'], ['资产价格', 'px'], ['市场情绪', 'sm']];   /* fw2_v555_ov_merge：删『定调』节点（定调并入驾驶舱本页），研读顺序条 10 节点 */
   var seqHtml = '<div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center">' + seq.map(function (s) {
     return '<span style="cursor:pointer;padding:4px 10px;border-radius:8px;border:1px solid var(--line-mid,#d8dee6);background:var(--panel-3,#f1f5f9);color:var(--slate-600,#475569);font-size:12px;font-weight:600" onclick="window.__mcGo(\'' + s[1] + '\')">' + s[0] + '</span>';
   }).join('<span style="color:#9ca3af;flex:none">→</span>') + '</div>';
   return '<div class="dc-us-wrap">'
     + '<div class="card"><div class="card-h"><h3>研读驾驶舱</h3><span class="hint">指引直接带现状结果 + 判断 + 链原始数据 · 判断词与各明细 tab 100% 同源（mcCalcCommon/mcVerdict/mcMagnet 同一判读口径） · 数据截至 ' + esc((d && d.updatedAt) || '—') + ' · 不构成投资建议</span></div>'
     + '<div style="margin-bottom:10px">' + seqHtml + '</div>'
-    + '<div style="font-size:12px;color:var(--slate-500,#64748b);line-height:1.7">研读顺序：<b>定调与方法</b>（周期总览→本页方法）→ <b>中国决策</b>（中国周期→估值→盈利→温度）→ <b>海外约束</b>（美国→全球→顺逆风）→ <b>结果验证</b>（资产价格→市场情绪）。点步骤条直达各 tab。</div>'
+    + '<div style="font-size:12px;color:var(--slate-500,#64748b);line-height:1.7">研读顺序：<b>定调与方法</b>（研读驾驶舱本页一体）→ <b>中国决策</b>（中国周期→估值→盈利→温度）→ <b>海外约束</b>（美国→全球→顺逆风）→ <b>结果验证</b>（资产价格→市场情绪）。点步骤条直达各 tab。</div>'
     + '</div>'
-    + '<div class="card"><div class="card-h"><h3>① 定调 · 周期位置</h3><span class="hint">综合读数与六磁铁（与周期总览同源）</span></div>'
+    + '<div class="card"><div class="card-h"><h3>① 定调 · 周期位置</h3><span class="hint">综合读数 + 六磁铁 + 联动矩阵（fw2_v555_ov_merge：原周期总览内容并入 · 同源判读）</span></div>'
     + vdHtml
-    + '<div class="rv-line"><span class="tag tag-data">六磁铁</span><span>' + esc(magnetLine) + '</span></div>'
-    + '<div class="rv-line"><span class="tag tag-ai">跳转</span><span style="cursor:pointer;color:var(--nav-blue,#2f6bff);font-weight:600" onclick="window.__mcGo(\'ov\')">→ 打开周期总览（六磁铁明细 + 联动矩阵）</span></div>'
+    + '<div class="mc-ov-grid">' + _magGrid + '</div>'
+    + '<div class="mc-ov-grid mc-ov-mx">' + _mxHtml + '</div>'
     + '</div>'
     + '<div class="card"><div class="card-h"><h3>② 中国决策</h3><span class="hint">估值 → 盈利 → 温度（val/cred/mood tab 同源判读）</span></div>'
     + row('估值', 'ERP 分位 ' + pctv(ePct) + ' · 沪深300 PE 分位 ' + pctv(peL2), vErp + ' · ' + vPe, (ePct >= 75 || peL2 < 20) ? 'pos' : ((ePct < 25 || peL2 >= 80) ? 'neg' : 'div'), 'val')
@@ -8780,6 +8786,7 @@ function renderMacroSop(d, C) {
     + '<div class="card"><div class="card-h"><h3>④ 结果验证</h3><span class="hint">资产位置与情绪映射（px/sm 页同源）</span></div>'
     + row('资产', '上证指数 ' + (sziTxt || '—') + ' · 10年收益 ' + (szi10 != null ? f(szi10) + '%' : '—'), null, null, 'px')
     + row('情绪', '市场宽度（上涨占比）' + (upPctW != null ? f(upPctW) + '%' : '数据未加载'), vBrd, upPctW == null ? null : (upPctW >= 50 ? 'pos' : 'neg'), 'sm')
+    + '<div class="rv-line"><span class="tag tag-ai">动作</span><span style="cursor:pointer;color:var(--nav-blue,#2f6bff);font-weight:600" onclick="window.showView(\'strategy\')">→ 汇成动作：策略执行（资产配置 / 定投 / 执行卡）</span></div>'
     + '</div>'
     + '<div class="card"><div class="card-h"><h3>传导链 · 现状 → 判断 → 原始数据</h3><span class="hint">7 条传导链直接展开 · 每节点三态（现状=最新读数 / 过去=近6期趋势 / 未来=领先指标方向，无前瞻数据标「—」不臆造）· 无数据节点标「待接」只给传导关系</span></div>'
     + chains
@@ -8810,19 +8817,18 @@ function renderMacro() {
      中国周期=9 张周期卡平铺（四周期嵌套/周期定位/历史相似阶段回放/层1/层2/信用脉冲/层3/层4/行业周期）；
      美国/全球周期=FSI+美国资产温度+美国四周期+美元/黄金/大宗全球资产信号（fw2_v436 并入）；
      宏观指标=13 张指标卡平铺（股债性价比/PE/信用脉冲/CPI-PPI/美元利差/VIX/PMI/两融成交/成交额/宽基估值/全球利率/美股估值/日经225）。 */
-  const _region = state.macroRegion || 'ov';
+  const _region = state.macroRegion || 'sop';   /* fw2_v555_ov_merge：周期总览并入研读驾驶舱，默认落点改驾驶舱 */
   const _navEl = document.getElementById('dcMcNav');
   /* fw2_v431：静态导航恒隐藏（显示规则由 __mcApply 按 region 统一执行） */
   if (_navEl) _navEl.style.display = 'none';
   fillMacroTabs();
-  if (_region === 'ov') { body.innerHTML = renderMacroOverview(d); return; }   /* fw2_v522_overview：L1 周期总览（B1 新增层，默认落点） */
   if (_region === 'us') { mcRegisterEvidence(mcCalcCommon(d)); body.innerHTML = renderMacroUS(d); renderMacroUSCharts(); return; }   /* fw2_v549_region_align：美国周期页＝康波+FSI+非农+⑤组9项硬指标全集（实体卡从 mi ⑤组迁入，mi 页⑤组改引用卡）；证据注册先于渲染（磁铁需 __MC_EV） */
   if (_region === 'gbl') { mcRegisterEvidence(mcCalcCommon(d)); body.innerHTML = renderMacroGbl(d); renderMacroGblCharts(); return; }  /* fw2_v549_region_align：海外景气页＝⑥全球景气非美实体卡（韩国出口/OECD/BDI日银/PMI合成，mi 页⑥组改引用卡） */
   if (_region === 'sm') { body.innerHTML = renderMacroSentiment(d); return; }
   /* fw2_v432 资产价格监控：19 项全景 · 磁贴+分区表+弹层走势 · 周期/持仓/信号三联动 */
   if (_region === 'px') { renderPriceMon(d); return; }
   /* fw2_v551_sop_cockpit：⑦判读SOP 升级为研读驾驶舱（指引+现状+判断+链接）——直接渲染 renderMacroSop，不再走大模板三步法静态卡（旧静态卡无显示路径）；证据注册先于渲染（①定调需 __MC_EV 磁铁计数） */
-  if (_region === 'sop') { mcRegisterEvidence(C); body.innerHTML = renderMacroSop(d, C); return; }
+  if (_region === 'sop' || _region === 'ov') { mcRegisterEvidence(C); body.innerHTML = renderMacroSop(d, C); return; }   /* fw2_v555_ov_merge：ov 残留兼容（旧 localStorage 值落驾驶舱） */
   /* fw2_v463_growth：mh「宏观硬指标」独立 tab 已删（并入 mi 的「实体景气」区，见 renderMacroGrowth） */
   const nkyVal = nky && nky.val != null ? nky.val : null;
   const nkyChg = nky && nky.chgPct != null ? nky.chgPct : null;
@@ -9773,18 +9779,19 @@ function renderMacroHard(d) {
 }
 /* fw2_v550_grp_tabs：方案B 全平铺——宏观指标 7 组升 tab（val/cred/mood/ovs/sop 为组索引路由；us=⑤/gbl=⑥ 已是 tab；
    mi 键保留兼容残留 state（tab 删除后不可达）；__mcApply 按 region→组索引过滤卡片与磁铁 */
-window.__MC_GRP_REG = { val:0, cred:1, mood:2, ovs:3, sop:6 };
+/* fw2_v555_ov_merge：__MC_GRP_REG 移除 sop:6——v551 起 sop 走独立 renderMacroSop 分支（renderMacro 8825 return），
+   不再复用 mi 大模板与组索引路由；残留的 sop:6 会让 __mcApply 按组 6 过滤磁铁，把 v555 并入①段的六磁铁（data-mg 0-5）隐藏 */
+window.__MC_GRP_REG = { val:0, cred:1, mood:2, ovs:3 };
 function fillMacroTabs() {
   /* fw2_v430c：模块级 tab 置顶——中国周期 / 美国/全球周期 / 宏观指标 / 资产价格监控 并列（fw2_v436 移除美元/黄金/大宗独立 tab，并入美国/全球周期）。
      填充到静态容器 #macroRegion（位于 dcMcNav 之前，页面最上方）。
      只填按钮（静态容器本身已是 #macroRegion，不能嵌套外层 div 造成重复 id） */
   const host = $('#macroRegion'); if (!host) return;
-  const reg = state.macroRegion || 'ov';
+  const reg = state.macroRegion || 'sop';   /* fw2_v555_ov_merge：默认落点改研读驾驶舱 */
   const tBase = 'padding:8px 22px;border-radius:10px;border:1px solid var(--line-mid,#d8dee6);background:var(--panel-3,#f1f5f9);color:var(--slate-600,#475569);font-size:13px;font-weight:600;cursor:pointer';
   const tAct = 'padding:8px 22px;border-radius:10px;border:1px solid var(--nav-blue,#2f6bff);background:var(--nav-blue,#2f6bff);color:#fff;font-size:13px;font-weight:600;cursor:pointer';
   const items = [
-    ['ov', '周期总览'],   /* fw2_v522_overview：B1 新增 L1 层（默认落点） */
-    ['sop', '研读驾驶舱'],   /* fw2_v554_sop_rename：判读SOP→研读驾驶舱（SOP 英文缩写去化，与页头统一）；原 fw2_v552_sop_taborder 研读顺序第2位（定调→方法→中国决策→海外→结果验证），模块名去序号（原⑦判读SOP） */
+    ['sop', '研读驾驶舱'],   /* fw2_v555_ov_merge：周期总览并入后 sop 升第1位（10 tab）；fw2_v554_sop_rename：判读SOP→研读驾驶舱；原 fw2_v552_sop_taborder 研读顺序第2位，模块名去序号 */
     ['cn', '中国周期'],   /* fw2_v552_sop_taborder：研读顺序第3位（中国决策起点） */
     ['val', 'A股估值'],   /* fw2_v552_sop_taborder：研读顺序第4位·①中国决策-估值；fw2_v550_grp_tabs：原 mi 页①A股估值组（ERP/PE/宽基），模块名去序号 */
     ['cred', '信用与增长'], /* fw2_v552_sop_taborder：研读顺序第5位·②中国决策-信用；fw2_v550_grp_tabs：原 mi 页②信用与增长组，模块名去序号 */
@@ -11781,6 +11788,19 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
      mi 页⑤⑥ 引用卡+磁铁、无「海外全景」残留、chip v549、ERRS 0）+ 四门禁全绿 + 真实渲染截图核验。
      chip v548→v549。
   */
+  /* v555 fw2_v555_ov_merge：周期总览并入研读驾驶舱（2026-10-15 用户截图「这两个可以合并吗？」拍板方案A）——
+     ①fillMacroTabs 删『周期总览』tab（11→10），sop 升第1位；默认落点 macroRegion 'ov'→'sop'（8813/9782/13528/13577 四处）；
+     ②renderMacro ov 分支删除，'ov' 残留兼容落 sop 分支（renderMacroSop）；
+     ③研读驾驶舱①定调段升级：综合读数 + 六磁铁明细 grid + 联动矩阵 4 卡（原 renderMacroOverview 内容并入，同源判读）；
+       删『打开周期总览』跳转行与磁铁计数行（grid 磁铁头自带正负计数）；
+     ④研读顺序条删『定调』节点（10 节点，方法居首），说明改『定调与方法（研读驾驶舱本页一体）』；
+     ⑤④结果验证段尾加『汇成动作 → 策略执行』（保留 v527b 五步法⑤跳转功能）；
+     ⑥renderMacroSop 补注册 cred 实体景气证据（原 ov 页单独注册，磁铁与明细页同源）；
+     renderMacroOverview 保留为死代码（无调用路径，verify_sync 锚点不失效）。
+     验证：check_js + 四门禁全绿 + V555_DOM_OK（tab 10 个无周期总览、默认落点 sop、①段 mc-ov-grid×2、
+     研读顺序条 10 节点、④段汇成动作、ov 残留兼容、传导链回归、chip v555）。
+     chip v554→v555。
+  */
   /* v554 fw2_v554_sop_rename：判读SOP → 研读驾驶舱（2026-10-15 用户「这名字是不是改下更好？」拍板改名）——
      ①tab 名『判读SOP→研读驾驶舱』（fillMacroTabs sop 项，SOP 英文缩写去化，与页头统一）；
      ②页头标题『判读 SOP · 研读驾驶舱→研读驾驶舱』（renderMacroSop h3，两段式简化）；
@@ -12325,7 +12345,7 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
        留待与用户确认重设计方案后再动（本轮不做）。
      ★诚实限定：erpCard/peCard/mrgCard/vixCard 定义及其 erpSpark/peSpark/mrgSpark/vixSpark 函数已于 **v529（fw2_v529_smux P3）一并清理**（连同 erpLv/peLv/vixLv/rzyeLv 与顶部 erp/pe/margin/vix 局部变量，mi 页判读走 mcCalcCommon 不受影响）。
        数据/口径零改动，纯前端结构层；描述串「sm 去重 · 删重复估值流动性卡」入 verify_sync 标记组 */
-  if (vc) vc.textContent = 'v554 · 自选' /* fw2_v516_a500lk fw2_v517_4otc fw2_v518_hspos fw2_v519_sm_merge fw2_v520_chgflat fw2_v521_magnet fw2_v522_overview fw2_v523_sm_dedup fw2_v524_geo_fsi fw2_v525_geo_filter fw2_v526_geo_filter_removed fw2_v527_verdict fw2_v529_smux fw2_v530_datamgmt fw2_v531_sm_dmgmt fw2_v532_all_dm fw2_v533_px_long fw2_v533d_dm_scroll fw2_v534_dm_module fw2_v535_dm_auto fw2_v539_hold_realpnl fw2_v539a_seed_sync fw2_v539a_seed_order fw2_v540_hold_path fw2_v542_pf_mirror_first fw2_v542_mv_settled fw2_v542_mv_account fw2_v543_dm_holdings_note fw2_v544_ledger_mirror_guard fw2_v545_hold_total_row fw2_v546_navdate_all fw2_v547_vix_to_ovs fw2_v548_ovs_mrg fw2_v549_region_align fw2_v550_grp_tabs fw2_v551_sop_cockpit fw2_v552_sop_taborder fw2_v553_chain_data fw2_v554_sop_rename */ + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  if (vc) vc.textContent = 'v555 · 自选' /* fw2_v516_a500lk fw2_v517_4otc fw2_v518_hspos fw2_v519_sm_merge fw2_v520_chgflat fw2_v521_magnet fw2_v522_overview fw2_v523_sm_dedup fw2_v524_geo_fsi fw2_v525_geo_filter fw2_v526_geo_filter_removed fw2_v527_verdict fw2_v529_smux fw2_v530_datamgmt fw2_v531_sm_dmgmt fw2_v532_all_dm fw2_v533_px_long fw2_v533d_dm_scroll fw2_v534_dm_module fw2_v535_dm_auto fw2_v539_hold_realpnl fw2_v539a_seed_sync fw2_v539a_seed_order fw2_v540_hold_path fw2_v542_pf_mirror_first fw2_v542_mv_settled fw2_v542_mv_account fw2_v543_dm_holdings_note fw2_v544_ledger_mirror_guard fw2_v545_hold_total_row fw2_v546_navdate_all fw2_v547_vix_to_ovs fw2_v548_ovs_mrg fw2_v549_region_align fw2_v550_grp_tabs fw2_v551_sop_cockpit fw2_v552_sop_taborder fw2_v553_chain_data fw2_v554_sop_rename */ + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
@@ -13525,7 +13545,7 @@ setTimeout(() => { renderResearchChips(); if (!state.news.items.length) loadNews
        fw2_v436：原 dm（美元/黄金/大宗）独立 tab 已移除，萧条期资产信号并入美国/全球周期页。 */
     var body = $('macroBody');
     var mods = body ? Array.prototype.slice.call(body.querySelectorAll('.mc-mod')) : [];
-    var reg = state.macroRegion || 'ov';
+    var reg = state.macroRegion || 'sop';   /* fw2_v555_ov_merge：默认落点改驾驶舱 */
     var isDollar = function (m) { return (m.getAttribute('data-title') || '').indexOf('美元 / 黄金 / 大宗') > -1; };
     var isCyc = function (m) {
       var t = m.getAttribute('data-title') || '';
@@ -13574,7 +13594,7 @@ setTimeout(() => { renderResearchChips(); if (!state.news.items.length) loadNews
       });
     }
     /* 高亮：cn/mi 由顶部模块 tab（fillMacroTabs 重建时已高亮当前 region）；其他 region 沿用 mcMod */
-    var _reg2 = state.macroRegion || 'ov';
+    var _reg2 = state.macroRegion || 'sop';   /* fw2_v555_ov_merge */
     ['#dcMcNav', '#mcNavNames'].forEach(function (sel) {
       Array.prototype.forEach.call(document.querySelectorAll(sel + ' button'), function (b) {
         if (_reg2 === 'cn' || _reg2 === 'mi') return;
