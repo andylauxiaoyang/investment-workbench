@@ -8943,8 +8943,8 @@ body.innerHTML = (_region === 'mi' ? renderMacroGroupCaps() : renderMacroToolsHt
   </div>
   <!-- ===== fw2_v453 ⑤美国·高频景气（USH 手册）：非农引用 + 8 卡 ===== -->
   <div class="card">
-    <div class="card-h"><h3>非农 · 引用</h3><span class="hint">主展示在全球周期页</span></div>
-    <div class="rv-line"><span class="tag tag-data">指向</span><span>非农就业完整卡（新增就业/失业率/时薪）见「全球周期」页，此处不重复建卡</span></div>
+    <div class="card-h"><h3>非农 · 引用</h3><span class="hint">主展示在「海外全景」页</span></div>
+    <div class="rv-line"><span class="tag tag-data">指向</span><span>非农就业完整卡（新增就业/失业率/时薪）见「海外全景」页（tab 全球周期→海外全景），此处不重复建卡</span></div>
   </div>
   <div class="card">
     <div class="card-h"><h3>初请失业金</h3><span class="hint">周频 · 月末周值 + 4周均值 · FRED</span></div>
@@ -9027,19 +9027,26 @@ body.innerHTML = (_region === 'mi' ? renderMacroGroupCaps() : renderMacroToolsHt
     ${_mcMeta(ushf.globalCli && ushf.globalCli.updatedAt, '月度', 'OECD 领先指标 CLI：美国/中国/日本/德国/英国/欧元区（EA19）· 100=长期趋势', 75)}
     <div class="rv-line"><span class="tag tag-data">读数</span><span>${Object.keys(ushfCli).map(function (k) { var r = ushfCli[k] || {}, p = (r.points && r.points.length) ? r.points[r.points.length - 1] : null; return k + ' ' + (p ? fmtNum(p[1], 1) + '（' + p[0] + '）' : '—'); }).join(' · ')}</span></div>
     <div class="rv-line"><span class="tag tag-data">阈值</span><span>CLI &gt;100 景气扩张 · &lt;100 收缩；连续下行=周期见顶回落信号（领先市场约 3-6 个月）</span></div>
+    <div class="rv-line"><span class="tag tag-ai">数据状态</span><span>macro-data.json ushf.globalCli 当前无数据（v548 复核），待接源后自动填充；缺源不臆造</span></div>
     <div class="chart" id="mcOecdCli" style="height:220px"></div>
   </div>
   <div class="card">
-    <div class="card-h"><h3>BDI 波罗的海干散货</h3><span class="hint">航运景气 · 全球贸易代理</span></div>
-    <div class="rv-line"><span class="tag tag-ai">缺源</span><span>2026-10-12 复测四源均不可用：stooq ^bdi 返回 JS 浏览器挑战页 · FRED BALTICDRY 返回反爬 HTML（该序列不存在）· 东财 push2 无此标的 · 东财数据中心无对应报表 → 本环境无合规机读源，缺源不编造（复测日期已标注，供后续换源时对照）</span></div>
+    <div class="card-h"><h3>韩国出口同比 · 全球景气代理</h3><span class="hint">FRED XTEXVA01KRM667S（商品出口额 · 美元计价）· 月度 · 同比 YoY</span></div>
+    ${_mcMeta(ushf.krExport && ushf.krExport.asOf, '月度', '韩国出口同比（FRED XTEXVA01KRM667S）· 半导体/资本开支周期强代理（费半→台积电→韩国出口→A股电子传导链，见⑦判读SOP）', 75)}
+    <div class="metric-grid">
+      ${metric('最新同比', (ushf.krExport && ushf.krExport.yoy != null) ? fmtNum(ushf.krExport.yoy, 1) + '%' : '—', (ushf.krExport && ushf.krExport.yoy != null) ? (ushf.krExport.yoy >= 5 ? 'v up' : ushf.krExport.yoy <= -5 ? 'v down' : '') : '')}
+      ${metric('当月出口额', (ushf.krExport && ushf.krExport.val != null) ? fmtNum(ushf.krExport.val, 0) + ' 亿$' : '—')}
+    </div>
+    <div class="rv-line"><span class="tag tag-ai">指向</span><span><b>${(ushf.krExport && ushf.krExport.yoy != null) ? (ushf.krExport.yoy >= 5 ? '偏扩张' : ushf.krExport.yoy <= -5 ? '偏收缩' : '中性区间') : '—'}</b> · 同比 ${(ushf.krExport && ushf.krExport.yoy != null) ? fmtNum(ushf.krExport.yoy, 1) + '%' : '—'}</span></div>
+    <div class="rv-line"><span class="tag tag-data">阈值</span><span>同比 <b>&gt;5%</b> 出口扩张（全球景气顺风） · <b>&lt;-5%</b> 收缩（逆风） · 之间中性观察。经验口径 · 未回测校准；FRED 月频发布滞后如实显示 asOf</span></div>
   </div>
   <div class="card">
-    <div class="card-h"><h3>日银短观</h3><span class="hint">日本央行企业景气调查</span></div>
-    <div class="rv-line"><span class="tag tag-ai">缺源</span><span>2026-10-12 复测：BOJ 官网 /statistics/boj/other/tk/ 与 /other/tankan/ 路径均 404（站点结构与旧文档不符）、stat-search.boj.or.jp 仅返回检索表单页（需会话参数、无公开机读接口）→ 本环境无可解析的合规通道，缺源不编造。若后续人工下载 BOJ 发布表（Excel/CSV）再行接入</span></div>
+    <div class="card-h"><h3>全球航运与日本景气（BDI / 日银短观）</h3><span class="hint">航运景气 · 全球贸易代理 / 日本央行企业景气调查 · 缺源合并卡</span></div>
+    <div class="rv-line"><span class="tag tag-ai">缺源</span><span>2026-10-12 复测四源（BDI：stooq ^bdi 返回 JS 浏览器挑战页 · FRED BALTICDRY 返回反爬 HTML/该序列不存在 · 东财 push2 无此标的 · 东财数据中心无对应报表）与两通道（日银短观：BOJ /statistics/boj/other/tk/ 与 /other/tankan/ 均 404 · stat-search 仅返回检索表单页需会话参数）均不可用 → 本环境无合规机读源，缺源不编造（复测日期已标注，供换源时对照）</span></div>
   </div>
   <div class="card">
-    <div class="card-h"><h3>全球 PMI 合成口径</h3><span class="hint">JPMorgan 全球 PMI（受限）</span></div>
-    <div class="rv-line"><span class="tag tag-data">说明</span><span>JPMorgan 全球制造业 PMI 数据源受限，暂用合成口径观察：中国官方 PMI（信用与通胀组）+ 美国 ISM（见本页「ISM 制造业 PMI」卡，v512 已接通）→ 美中两大引擎齐下 = 全球周期下行确认</span></div>
+    <div class="card-h"><h3>全球 PMI 合成口径</h3><span class="hint">JPMorgan 全球 PMI（受限）· 引用卡 · 无独立数据</span></div>
+    <div class="rv-line"><span class="tag tag-data">说明</span><span>JPMorgan 全球制造业 PMI 数据源受限，暂用合成口径观察：<b>中国官方 PMI（②信用与增长组）+ 美国 ISM（⑤美国周期组）</b> → 美中两大引擎齐下 = 全球周期下行确认。<b>本卡数据即②+⑤两组的汇总视角，无独立序列</b>（fw2_v548 明确引用关系）</span></div>
   </div>
   <!-- ===== fw2_v521_magnet ⑦判读 SOP · 三步法（原 fw2_v453「框架与传导」知识卡扩写；MI_GROUPS key 同步改「判读 SOP」） ===== -->
   <div class="card">
@@ -9677,7 +9684,7 @@ function fillMacroTabs() {
   const items = [
     ['ov', '周期总览'],   /* fw2_v522_overview：B1 新增 L1 层（默认落点） */
     ['cn', '中国周期'],
-    ['us', '全球周期'],   /* fw2_v467_us_tab_rename：标签「美国/全球周期」→「全球周期」（用户要求，仅显示名，data-r 路由键 us 不动） */
+    ['us', '海外全景'],   /* fw2_v548_ovs_mrg：tab「全球周期」→「海外全景」（用户要求：消除与⑥全球景气撞名/与⑤美国周期混淆；data-r 路由键 us 不动；原 fw2_v467_us_tab_rename 改名记录） */
     ['mi', '宏观指标'],
     ['px', '资产价格监控'],
     ['sm', '市场情绪']
@@ -9759,15 +9766,9 @@ function renderMacroUS(d) {
   const kPhase = (typeof kpRaw === 'string' ? kpRaw : (kpRaw.s || konbo.s)) || '—';
   const kC = (typeof kpRaw === 'string' ? (kTbl.length ? (kTbl[kTbl.length - 1].note || '') : '') : (kpRaw.c || ''));
   const kProxy = konbo.proxy || konbo.note || '—';
-  /* 美国资产温度 4 项 */
-  const tItems = [['美债10Y-2Y', temp.rate], ['VIX 恐慌', temp.vix], ['美元强度', temp.usdx], ['美股估值分位', temp.spxPct]];
-  const tHtml = tItems.map(function (it) {
-    const v = it[1] && it[1].val;
-    const note = (it[1] && it[1].note) || '';
-    return '<div class="dc-us-temp" style="flex:1 1 0;min-width:150px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:10px 12px"><div style="font-size:11px;color:var(--slate-500,#64748b)">' + esc(it[0]) + '</div>' +
-      '<div style="font-size:19px;font-weight:700;color:var(--ink,#0f172a);margin:2px 0">' + (v == null ? '—' : fmtNum(v, 2)) + '</div>' +
-      '<div style="font-size:10px;color:var(--slate-400,#94a3b8)">' + esc(note) + '</div></div>';
-  }).join('');
+  /* fw2_v548_ovs_mrg：美国资产温度 4 项（美债10Y-2Y/VIX/美元强度/美股估值分位）与 mi ④海外约束组
+     （VIX 恐慌/全球利率与汇率/美股估值温度）FSI 同源重复渲染 ~80% —— 删除本卡，改引用提示（见下方渲染处）。
+     us.temp 数据保留于 macro-data.json，不再于本页渲染。 */
   /* FSI 明细表 */
   const indTr = (fsi.indis || []).map(function (it) {
     const zc = it.z >= 1 ? '#dc2626' : it.z <= -1 ? '#2f6bff' : '#475569';
@@ -9819,8 +9820,8 @@ function renderMacroUS(d) {
     '<div style="font-size:15px;font-weight:700;color:var(--ink,#0f172a)">' + esc(kPhase) + '</div>' +
     (kC ? '<div style="font-size:12px;color:var(--slate-600,#475569);margin-top:4px">' + esc(kC) + '</div>' : '') +
     '<div style="font-size:11px;color:var(--slate-500,#64748b);margin-top:6px">' + esc(kProxy) + '</div></div>' +
-    '<div class="card"><div class="card-h"><h3>美国资产温度（FSI 同源）</h3><span class="hint">四维读数 · 与全球压力指数同口径 · 截至 ' + esc(_usAsOf) + '</span></div>' +
-    '<div style="display:flex;flex-wrap:wrap;gap:8px">' + tHtml + '</div></div>' +
+    '<div class="card"><div class="card-h"><h3>海外压力温度（引用）</h3><span class="hint">VIX / 美债利差 / 美元 / 美股估值分位 · 与 FSI 同口径</span></div>' +
+    '<div class="rv-line"><span class="tag tag-data">说明</span><span>海外压力温度四项（VIX 恐慌 · 全球利率与汇率[美债10Y/2Y/利差/美元] · 美股估值温度）见「宏观指标 → ④海外约束」组，此处不重复建卡（fw2_v548 去重）；FSI 各分项 z 分位细节见下「FSI 压力分项」表</span></div></div>' +
     indCard + chartCard + cycHtml + dlHtml + nfCard + foot + '</div>';
 }
 /* ==========================================================
@@ -11493,6 +11494,29 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
      mood 磁铁 2 条证据、ovs 磁铁含「VIX」证据、chip v547、ERRS 0）+ 四门禁全绿。
      chip v546→v547。
   */
+  /* v548 fw2_v548_ovs_mrg：海外四块整合（2026-10-15 用户三连问「全球周期/美国周期/海外约束是否重复、
+     把全球景气也加进去一起看」——方案2 落地：去重 + 职责厘清 + ⑥瘦身 + tab 改名 + 韩国出口数据补强）——
+     ①tab「全球周期」（data-r=us）→「海外全景」：消除与⑥「全球景气」撞名、与⑤「美国周期」混淆
+       （fillMacroTabs 仅改显示名，路由键 us 不动）；
+     ②删 us 页「美国资产温度」卡（美债10Y-2Y/VIX/美元强度/美股估值分位 = FSI 同源，与 mi ④组
+       「全球利率与汇率/VIX 恐慌/美股估值温度」重复渲染 ~80%）→ 原位换「海外压力温度（引用）」提示卡
+       （明细见 宏观指标→④海外约束；FSI 分项 z 分位表保留独有细节）；us.temp 数据保留不再渲染；
+     ③MI_GROUPS ④⑤⑥ 加 q 职责字段（④海外环境紧不紧·压力温度 / ⑤美国经济强不强·基本面 /
+       ⑥全球动能旺不旺·非美景气），mcMagnet 磁铁头部渲染「本组回答」副标（内联样式，不依赖 CSS）；
+     ④⑥全球景气组瘦身：BDI/日银短观两张缺源卡合并为「全球航运与日本景气（BDI/日银短观）」一张
+       （复测证据并入，keys 同步改）；OECD 领先指标卡标「数据缺失待接源」（macro-data.json 无
+       globalCli，v548 复核）；全球 PMI 合成卡明示「无独立数据 = ②中国PMI+⑤美国ISM 引用卡」；
+     ⑤数据侧补强：新增 gen_kr_export.py 抓 FRED XTEXVA01KRM667S（韩国出口·月度·美元）→ 同比 YoY
+       注入 macro-data.json ushf.krExport（2026-06-01：yoy +70.67% / val 1005.58 亿$ / prev 589.19 亿$，
+       n=834 月）；⑥组新增「韩国出口同比 · 全球景气代理」卡（半导体/资本开支周期强代理：
+       费半→台积电→韩国出口→A股电子传导链，见⑦判读SOP；阈值 >5% 扩张 / <-5% 收缩·经验口径未回测；
+       费半指数东财/腾讯通道本轮探源均不可达，韩国出口为唯一落地独立信号）；
+     ⑥非农引用卡文案「全球周期页」→「海外全景页」；verify_sync 17+1 组 chip token 全升 v548 + v548 组。
+     验证：V548_DOM_OK（tab 名「海外全景」、mood/ovs/us/gbl 四组 keys 正确、磁铁 q 副标在位、
+     us 页无「美国资产温度」残留 + 引用提示卡在、⑥组 4 卡＝OECD/韩国出口/航运日本/PMI 合成、
+     韩国出口卡渲染 +70.67%、chip v548、ERRS 0）+ 四门禁全绿 + 真实渲染截图核验。
+     chip v547→v548。
+  */
   /* v545a fw2_v545a_tot_pad：v545 合计行加粗金额列致 1440 最小内容宽 +7px——A/B 取证
      _test_v545_ab.py（同一探测两态）：无合计行 wrap.scrollWidth 1194、有合计行 1201；本机容器
      1184（基线已溢 10px，用户环境 v539a 实测压回 0）。修法同 v115/v539/v539a 既定模式：桌面端
@@ -11976,7 +12000,7 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
        留待与用户确认重设计方案后再动（本轮不做）。
      ★诚实限定：erpCard/peCard/mrgCard/vixCard 定义及其 erpSpark/peSpark/mrgSpark/vixSpark 函数已于 **v529（fw2_v529_smux P3）一并清理**（连同 erpLv/peLv/vixLv/rzyeLv 与顶部 erp/pe/margin/vix 局部变量，mi 页判读走 mcCalcCommon 不受影响）。
        数据/口径零改动，纯前端结构层；描述串「sm 去重 · 删重复估值流动性卡」入 verify_sync 标记组 */
-  if (vc) vc.textContent = 'v547 · 自选' /* fw2_v516_a500lk fw2_v517_4otc fw2_v518_hspos fw2_v519_sm_merge fw2_v520_chgflat fw2_v521_magnet fw2_v522_overview fw2_v523_sm_dedup fw2_v524_geo_fsi fw2_v525_geo_filter fw2_v526_geo_filter_removed fw2_v527_verdict fw2_v529_smux fw2_v530_datamgmt fw2_v531_sm_dmgmt fw2_v532_all_dm fw2_v533_px_long fw2_v533d_dm_scroll fw2_v534_dm_module fw2_v535_dm_auto fw2_v539_hold_realpnl fw2_v539a_seed_sync fw2_v539a_seed_order fw2_v540_hold_path fw2_v542_pf_mirror_first fw2_v542_mv_settled fw2_v542_mv_account fw2_v543_dm_holdings_note fw2_v544_ledger_mirror_guard fw2_v545_hold_total_row fw2_v546_navdate_all fw2_v547_vix_to_ovs */ + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  if (vc) vc.textContent = 'v548 · 自选' /* fw2_v516_a500lk fw2_v517_4otc fw2_v518_hspos fw2_v519_sm_merge fw2_v520_chgflat fw2_v521_magnet fw2_v522_overview fw2_v523_sm_dedup fw2_v524_geo_fsi fw2_v525_geo_filter fw2_v526_geo_filter_removed fw2_v527_verdict fw2_v529_smux fw2_v530_datamgmt fw2_v531_sm_dmgmt fw2_v532_all_dm fw2_v533_px_long fw2_v533d_dm_scroll fw2_v534_dm_module fw2_v535_dm_auto fw2_v539_hold_realpnl fw2_v539a_seed_sync fw2_v539a_seed_order fw2_v540_hold_path fw2_v542_pf_mirror_first fw2_v542_mv_settled fw2_v542_mv_account fw2_v543_dm_holdings_note fw2_v544_ledger_mirror_guard fw2_v545_hold_total_row fw2_v546_navdate_all fw2_v547_vix_to_ovs fw2_v548_ovs_mrg */ + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
@@ -13089,9 +13113,9 @@ setTimeout(() => { renderResearchChips(); if (!state.news.items.length) loadNews
     { id:'val',  geo:'cn',  name:'① A股估值',       concl:'便宜 / 合理 / 贵',           vd:{ p:'偏便宜', n:'偏贵', d:'证据分歧' },             keys:['ERP 股债性价比', '沪深300 PE-TTM', '宽基估值温度'] },
     { id:'cred', geo:'cn',  name:'② 信用与增长',    concl:'扩张 / 收缩 / 僵持',         vd:{ p:'偏扩张', n:'偏收缩', d:'证据分歧' },           keys:['信用脉冲：社融', '物价剪刀差', '制造业 PMI', '实体景气'] },
     { id:'mood', geo:'cn',  name:'③ 情绪与流动性',  concl:'过热 / 中性 / 冰冷',         vd:{ p:'偏冰冷·逆向关注', n:'偏过热·防御', d:'证据分歧' }, keys:['情绪温度计', '全A成交额'] },
-    { id:'ovs',  geo:'ovs', name:'④ 海外约束',      concl:'顺风 / 中性 / 逆风',         vd:{ p:'偏顺风', n:'偏逆风', d:'证据分歧' },           keys:['全球利率与汇率', '美股估值温度', '政策利率与收益率曲线', '全球央行政策利率一览', 'VIX 恐慌'] },
-    { id:'us',   geo:'ovs', name:'⑤ 美国周期',      concl:'增长 × 通胀 · 周期定位',     vd:{ p:'偏顺风', n:'偏逆风', d:'证据分歧' },           keys:['非农 · 引用', '初请失业金', '失业率 U3 / U6', '零售销售', '个人收入与 PCE', '消费者信心', '耐用品新订单', 'LEI 领先指标', 'ISM 制造业 PMI'] },
-    { id:'gbl',  geo:'ovs', name:'⑥ 全球景气',      concl:'扩张 / 收缩',                vd:{ p:'偏扩张', n:'偏收缩', d:'证据分歧' },           keys:['OECD 领先指标', 'BDI 波罗的海', '日银短观', '全球 PMI 合成'] },
+    { id:'ovs',  geo:'ovs', name:'④ 海外约束',      concl:'顺风 / 中性 / 逆风',         vd:{ p:'偏顺风', n:'偏逆风', d:'证据分歧' },           q:'本组回答：海外环境紧不紧（压力温度：利率 / 汇率 / 估值 / VIX）', keys:['全球利率与汇率', '美股估值温度', '政策利率与收益率曲线', '全球央行政策利率一览', 'VIX 恐慌'] },
+    { id:'us',   geo:'ovs', name:'⑤ 美国周期',      concl:'增长 × 通胀 · 周期定位',     vd:{ p:'偏顺风', n:'偏逆风', d:'证据分歧' },           q:'本组回答：美国经济强不强（增长 × 通胀 9 项硬指标）', keys:['非农 · 引用', '初请失业金', '失业率 U3 / U6', '零售销售', '个人收入与 PCE', '消费者信心', '耐用品新订单', 'LEI 领先指标', 'ISM 制造业 PMI'] },
+    { id:'gbl',  geo:'ovs', name:'⑥ 全球景气',      concl:'扩张 / 收缩',                vd:{ p:'偏扩张', n:'偏收缩', d:'证据分歧' },           q:'本组回答：全球动能旺不旺（非美景气；韩国出口为独立信号）', keys:['OECD 领先指标', '韩国出口同比', '全球航运与日本景气', '全球 PMI 合成'] },
     { id:'sop',  geo:'sop', name:'⑦ 判读 SOP',      concl:'顺序 → 结论 → 动作',         vd:{ p:'', n:'', d:'' },                               keys:['判读 SOP'] },
   ];
   /* fw2_v521_magnet：证据注册 + 磁铁汇总（架构核心）——
@@ -13131,6 +13155,7 @@ setTimeout(() => { renderResearchChips(); if (!state.news.items.length) loadNews
       + mcGeoBadge(g)
       + '<b class="mc-magnet-v">' + esc(verdict) + '</b>'
       + '<span class="mc-magnet-cnt">' + pos + ' 项支持 · ' + neg + ' 项反对' + (zero ? ' · ' + zero + ' 项中性' : '') + '</span></div>'
+      + (g.q ? '<div class="mc-magnet-q2" style="font-size:11px;color:var(--slate-500,#64748b);margin:2px 0 6px">' + esc(g.q) + '</div>' : '')
       + '<div class="mc-magnet-ev">' + evHtml + '</div></div>';
   }
   /* fw2_v521_magnet：⑦判读 SOP 组磁铁＝静态三步摘要（该组无取数卡，磁铁即方法本身） */
