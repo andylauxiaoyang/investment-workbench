@@ -8622,6 +8622,31 @@ function renderMacroSop(d, C) {
   var f = function (v, n) { return v == null ? '—' : fmtNum(v, (n == null ? 1 : n)); };
   var pctv = function (v) { return v == null ? '—' : f(v, 1) + '%'; };
   var cnV = function (k) { var v = cnM[k]; if (!v || v.value == null) return null; if (v.pct) return (v.value * v.scale).toFixed(1) + '%'; return (v.value * v.scale).toFixed(1); };
+  function trendRev(points, back) { var p = points && points.slice(); if (!p) return null; p.reverse(); return trend(p, back); }
+  /* 同比类序列（fai/retail/export 为同比百分数）不能套比率 trend，改用「较6期前 ±X pct」点差 */
+  function trendRevDelta(points, back) {
+    var p = points && points.slice(); if (!p) return null; p.reverse();
+    var n = p.length; if (n < 3) return null;
+    var p0 = p[Math.max(0, n - 1 - (back || 6))][1], p1 = p[n - 1][1];
+    if (p0 == null || p1 == null) return null;
+    var dd = (p1 - p0) * 100;
+    return dd > 0.05 ? '较6期前 ↑ ' + f(dd, 1) + 'pct' : dd < -0.05 ? '较6期前 ↓ ' + f(Math.abs(dd), 1) + 'pct' : '较6期前 → 持平';
+  }
+  /* 传导链补强：费半/台积电(ADR) 腾讯行情 + 科创50 快照/长序列 + 中美利差（工作台已有数据） */
+  var ce = (d && d.chainExtra) || {};
+  var ceTxt = function (k) { var o = ce[k]; if (!o || o.price == null) return null; return o.name + ' ' + f(o.price, 2) + (o.chgPct != null ? '（' + f(o.chgPct, 1) + '%）' : ''); };
+  var kcSnap = (state.snapshot && state.snapshot.quotes) || {};
+  var kc = kcSnap['sh000688'] || {};
+  var kcTxt = (kc.price != null) ? '科创50 ' + f(kc.price, 2) + ((kc.pct != null) ? '（' + f(kc.pct, 2) + '%）' : '') : null;
+  var plKc = (d.pxLong && d.pxLong.items && d.pxLong.items.kc50 && d.pxLong.items.kc50.points) || [];
+  var kcTrend = plKc.length > 8 ? trend(plKc, 6) : null;
+  var fxPts = (C.fx && C.fx.points) || [];
+  var us10Pts = []; for (var _i = 0; _i < fxPts.length; _i++) { if (fxPts[_i] && fxPts[_i][3] != null) us10Pts.push([fxPts[_i][0], fxPts[_i][3]]); }
+  var us10Trend = trend(us10Pts, 6);
+  var cn10b = (d.erp && d.erp.cur && d.erp.cur.y10 != null) ? d.erp.cur.y10 : null;
+  var spread = (tL != null && cn10b != null) ? (tL - cn10b) : null;
+  var spreadTxt = spread == null ? null : '利差 ' + f(spread, 2) + 'pct（美债10Y ' + f(tL, 2) + '% − 中债10Y ' + f(cn10b, 2) + '%）';
+  var spreadV = spread == null ? null : (spread > 0.5 ? '正利差·美元资产吸金' : spread < -0.5 ? '负利差·人民币资产吸金' : '利差中性');
   /* 趋势 helper：末点 vs 前 N 期（序列 points 取 [1] 列） */
   function trend(points, back) {
     if (!points || points.length < 3) return null;
@@ -8688,14 +8713,14 @@ function renderMacroSop(d, C) {
     chain('链1 · 信用周期（M2/社融 → 银行信贷 → 地产/基建/制造 → 资产价格 → 财富效应 → 消费）',
       node('M2/社融', { now: 'M2 同比 ' + f(m2y) + '% · 剪刀差 ' + f(gap) + 'pct', past: '信用脉冲 ' + (trend(crPts, 6) || '—'), future: '信用脉冲 3 月变化 ' + (crLast ? f(crLast[1]) + 'pct' : '—') + '（领先社融）', link: 'cred' })
       + arr() + node('银行信贷', { tag: 'wait', flow: '社融的信用派生通道', now: null, past: null, future: null })
-      + arr() + node('地产/基建/制造', { now: '固投累计同比 ' + (cnV('fai') || '—'), past: null, future: null, link: 'cred' })
+      + arr() + node('地产/基建/制造', { now: '固投累计同比 ' + (cnV('fai') || '—'), past: trendRevDelta(cnM.fai && cnM.fai.points, 6), future: null, link: 'cred' })
       + arr() + node('资产价格', { now: 'ERP 分位 ' + pctv(ePct) + ' · PE 分位 ' + pctv(peL2), past: trend(C.erp, 6), future: null, link: 'val' })
-      + arr() + node('财富效应/消费', { now: '社零同比 ' + (cnV('retail') || '—'), past: null, future: null, link: 'cred' }))
-    + chain('链2 · 半导体链条（费半 → 台积电营收 → 韩国出口 → A股电子/科创）',
-      node('费半', { tag: 'wait', flow: '海外半导体景气龙头', now: null, past: null, future: null })
-      + arr() + node('台积电营收', { tag: 'wait', flow: '全球资本开支先行', now: null, past: null, future: null })
+      + arr() + node('财富效应/消费', { now: '社零同比 ' + (cnV('retail') || '—'), past: trendRevDelta(cnM.retail && cnM.retail.points, 6), future: null, link: 'cred' }))
+    + chain('链2 · 半导体链条（费半 → 台积电(ADR) → 韩国出口 → A股电子/科创）',
+      node('费半', { now: ceTxt('soxx'), past: null, future: '半导体景气先行（SOXX 跟踪费半）', link: 'px' })
+      + arr() + node('台积电(ADR)', { now: ceTxt('tsm'), past: null, future: '全球资本开支先行（营收代理）', link: 'px' })
       + arr() + node('韩国出口', { now: '同比 ' + (_us.yoy != null ? f(_us.yoy) + '%' : '—'), past: null, future: '全球景气领先信号（代理电子需求）', link: 'gbl' })
-      + arr() + node('A股电子/科创', { tag: 'wait', flow: '见交易信号/自选池', now: null, past: null, future: null }))
+      + arr() + node('A股电子/科创', { now: kcTxt, past: kcTrend, future: null, link: 'px' }))
     + chain('链3 · 利率 × 股市四阶段（政策利率 × 盈利 → 股债估值锚）',
       node('政策利率', { now: '五国政策利率水平（见海外约束）', past: null, future: null, link: 'ovs' })
       + arr() + node('盈利（PMI×PCE）', { now: 'PMI ' + f(mk) + ' · 美核心PCE ' + f(pce) + '%', past: trend(C.pmi, 6), future: null, link: 'us' })
@@ -8707,7 +8732,7 @@ function renderMacroSop(d, C) {
       + arr() + node('就业', { now: '美初请 ' + (ics != null ? f(ics / 1000, 1) + ' 万' : '—') + ' · 失业率 ' + f(ur) + '%', past: null, future: null, link: 'us' })
       + arr() + node('消费', { now: '社零 ' + (cnV('retail') || '—') + ' · 美零售 ' + f(usRet) + '%', past: null, future: null, link: 'us' }))
     + chain('链5 · 全球价值链（中国出口 → 韩国设备/材料 → 东南亚组装 → 欧美终端消费 → 订单回流）',
-      node('中国出口', { now: '出口同比 ' + (cnV('export') || '—'), past: null, future: null, link: 'cred' })
+      node('中国出口', { now: '出口同比 ' + (cnV('export') || '—'), past: trendRevDelta(cnM.export && cnM.export.points, 6), future: null, link: 'cred' })
       + arr() + node('韩国设备/材料', { tag: 'wait', flow: '出口结构细分待接', now: null, past: null, future: null })
       + arr() + node('东南亚组装', { tag: 'wait', flow: '区域数据缺源', now: null, past: null, future: null })
       + arr() + node('欧美终端消费', { now: '美零售同比 ' + f(usRet) + '%', past: null, future: null, link: 'us' })
@@ -8720,7 +8745,7 @@ function renderMacroSop(d, C) {
       + arr() + node('股债估值锚', { now: '沪深300 PE 分位 ' + pctv(peL2) + ' · 标普 ' + pctv(spxPct), past: null, future: null, link: 'val' }))
     + chain('链7 · 热钱（中美利差 → 套利资金 → 汇率与股债波动）',
       node('中美利差', { now: '美债10Y ' + f(tL) + '% · 中债10Y ' + (cn10v != null ? f(cn10v) + '%' : '—'), past: null, future: null, link: 'px' })
-      + arr() + node('套利资金', { tag: 'wait', flow: '跨境资金流缺源', now: null, past: null, future: null })
+      + arr() + node('套利资金', { now: (spreadTxt == null ? null : spreadTxt + ' · ' + spreadV), past: us10Trend, future: null, link: 'px' })
       + arr() + node('汇率', { now: 'USD/CNH ' + (fL != null ? f(fL, 4) : '—'), past: fChg != null ? '近6期 ' + (fChg > 0 ? '↑' : fChg < 0 ? '↓' : '→') + ' ' + f(Math.abs(fChg)) + '%' : null, future: null, link: 'px' })
       + arr() + node('股债波动', { now: 'VIX ' + f(vL, 2), past: trend(C.vix, 6), future: null, link: 'ovs' }));
   /* ① 定调：综合读数 + 六磁铁计数 */
@@ -8759,7 +8784,7 @@ function renderMacroSop(d, C) {
     + '<div class="card"><div class="card-h"><h3>传导链 · 现状 → 判断 → 原始数据</h3><span class="hint">7 条传导链直接展开 · 每节点三态（现状=最新读数 / 过去=近6期趋势 / 未来=领先指标方向，无前瞻数据标「—」不臆造）· 无数据节点标「待接」只给传导关系</span></div>'
     + chains
     + '</div>'
-    + '<p class="foot-note">三态口径：现状=最新读数；过去=序列近 6 期趋势（代码现算，↑/↓/→）；未来=领先指标方向（信用脉冲领先社融、韩国出口领先电子），无前瞻数据标「—」。所有判断词与 mcRegisterEvidence/mcVerdict/mcMagnet 同一判读口径（100% 同源，可与各 tab 对拍）；待接节点为当前无合规数据源，不臆造读数。数据不构成投资建议。</p>'
+    + '<p class="foot-note">三态口径：现状=最新读数；过去=序列近 6 期趋势（代码现算，↑/↓/→）；未来=领先指标方向（信用脉冲领先社融、韩国出口领先电子、费半/台积电领先 A股电子），无前瞻数据标「—」。所有判断词与 mcRegisterEvidence/mcVerdict/mcMagnet 同一判读口径（100% 同源，可与各 tab 对拍）；待接节点为当前无合规数据源，不臆造读数。费半=SOXX ETF、台积电=ADR 行情（腾讯，代理口径：指数/官网源被反爬或不可达）；科创50、中美利差为工作台已有数据。数据不构成投资建议。</p>'
     + '</div>';
 }
 window.__mcGo = function (region, group) {
@@ -12289,7 +12314,7 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
        留待与用户确认重设计方案后再动（本轮不做）。
      ★诚实限定：erpCard/peCard/mrgCard/vixCard 定义及其 erpSpark/peSpark/mrgSpark/vixSpark 函数已于 **v529（fw2_v529_smux P3）一并清理**（连同 erpLv/peLv/vixLv/rzyeLv 与顶部 erp/pe/margin/vix 局部变量，mi 页判读走 mcCalcCommon 不受影响）。
        数据/口径零改动，纯前端结构层；描述串「sm 去重 · 删重复估值流动性卡」入 verify_sync 标记组 */
-  if (vc) vc.textContent = 'v552 · 自选' /* fw2_v516_a500lk fw2_v517_4otc fw2_v518_hspos fw2_v519_sm_merge fw2_v520_chgflat fw2_v521_magnet fw2_v522_overview fw2_v523_sm_dedup fw2_v524_geo_fsi fw2_v525_geo_filter fw2_v526_geo_filter_removed fw2_v527_verdict fw2_v529_smux fw2_v530_datamgmt fw2_v531_sm_dmgmt fw2_v532_all_dm fw2_v533_px_long fw2_v533d_dm_scroll fw2_v534_dm_module fw2_v535_dm_auto fw2_v539_hold_realpnl fw2_v539a_seed_sync fw2_v539a_seed_order fw2_v540_hold_path fw2_v542_pf_mirror_first fw2_v542_mv_settled fw2_v542_mv_account fw2_v543_dm_holdings_note fw2_v544_ledger_mirror_guard fw2_v545_hold_total_row fw2_v546_navdate_all fw2_v547_vix_to_ovs fw2_v548_ovs_mrg fw2_v549_region_align fw2_v550_grp_tabs fw2_v551_sop_cockpit fw2_v552_sop_taborder */ + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  if (vc) vc.textContent = 'v553 · 自选' /* fw2_v516_a500lk fw2_v517_4otc fw2_v518_hspos fw2_v519_sm_merge fw2_v520_chgflat fw2_v521_magnet fw2_v522_overview fw2_v523_sm_dedup fw2_v524_geo_fsi fw2_v525_geo_filter fw2_v526_geo_filter_removed fw2_v527_verdict fw2_v529_smux fw2_v530_datamgmt fw2_v531_sm_dmgmt fw2_v532_all_dm fw2_v533_px_long fw2_v533d_dm_scroll fw2_v534_dm_module fw2_v535_dm_auto fw2_v539_hold_realpnl fw2_v539a_seed_sync fw2_v539a_seed_order fw2_v540_hold_path fw2_v542_pf_mirror_first fw2_v542_mv_settled fw2_v542_mv_account fw2_v543_dm_holdings_note fw2_v544_ledger_mirror_guard fw2_v545_hold_total_row fw2_v546_navdate_all fw2_v547_vix_to_ovs fw2_v548_ovs_mrg fw2_v549_region_align fw2_v550_grp_tabs fw2_v551_sop_cockpit fw2_v552_sop_taborder fw2_v553_chain_data */ + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
