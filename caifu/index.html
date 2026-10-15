@@ -8505,7 +8505,7 @@ function mcMatrix(C) {
   var risk = stress + bad;
   out.push(mcard('risk', '风险开关', risk >= 3 ? '开启 · 防御' : risk >= 1 ? '半开 · 警惕' : '关闭 · 平稳', risk >= 3 ? 'neg' : risk >= 1 ? 'div' : 'pos',
     'VIX ' + (vL != null ? fmtNum(vL, 1) : '—') + ' · 汇率红绿灯 ' + C.fxGate + '（' + bad + '/3）'
-      + (fsiS != null ? ' · FSI ' + fmtNum(fsiS, 1) + '（相对分级·未校准·计+' + fsiPt + '）' : ''), ['mood', null, '情绪明细'], (_A.vix || _A.page)));
+      + (fsiS != null ? ' · FSI ' + fmtNum(fsiS, 1) + '（相对分级·未校准·计+' + fsiPt + '）' : '') + ' · FSI 明细见「情绪全景」页', ['sm', null, '情绪全景'], (_A.vix || _A.page)));
   var sp = C.spxPct, u = C.uChg;
   var v4 = 0;
   if (sp != null) v4 += sp >= 80 ? -1 : sp < 20 ? 1 : 0;
@@ -8777,14 +8777,14 @@ function renderMacroSop(d, C) {
   var _mxOvs = (_mxCards.risk || '') + (_mxCards.ovs || '');
   var magnetLine = 'A股估值 ' + mVal.p + '正' + mVal.n + '负 · 信用 ' + mCre.p + '正' + mCre.n + '负 · 情绪 ' + mMoo.p + '正' + mMoo.n + '负 · 海外 ' + mOvs.p + '正' + mOvs.n + '负 · 美国 ' + mUs.p + '正' + mUs.n + '负 · 全球 ' + mGbl.p + '正' + mGbl.n + '负 · 合计 ' + tP + ' 正 / ' + tN + ' 负';
   /* 研读顺序条 */
-  var seq = [['方法', 'sop'], ['中国周期', 'cn'], ['估值', 'val'], ['信用', 'cred'], ['情绪', 'mood'], ['美国周期', 'us'], ['海外景气', 'gbl'], ['海外约束', 'ovs'], ['资产价格', 'px'], ['市场情绪', 'sm']];   /* fw2_v555_ov_merge：删『定调』节点（定调并入驾驶舱本页），研读顺序条 10 节点 */
+  var seq = [['方法', 'sop'], ['中国周期', 'cn'], ['估值', 'val'], ['信用', 'cred'], ['情绪温度', 'mood'], ['美国周期', 'us'], ['海外景气', 'gbl'], ['海外约束', 'ovs'], ['资产价格', 'px'], ['情绪全景', 'sm']];   /* fw2_v555_ov_merge：删『定调』节点（定调并入驾驶舱本页），研读顺序条 10 节点 */
   var seqHtml = '<div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center">' + seq.map(function (s) {
     return '<span style="cursor:pointer;padding:4px 10px;border-radius:8px;border:1px solid var(--line-mid,#d8dee6);background:var(--panel-3,#f1f5f9);color:var(--slate-600,#475569);font-size:12px;font-weight:600" onclick="window.__mcGo(\'' + s[1] + '\')">' + s[0] + '</span>';
   }).join('<span style="color:#9ca3af;flex:none">→</span>') + '</div>';
   return '<div class="dc-us-wrap">'
     + '<div class="card"><div class="card-h"><h3>研读驾驶舱</h3><span class="hint">指引直接带现状结果 + 判断 + 链原始数据 · 判断词与各明细 tab 100% 同源（mcCalcCommon/mcVerdict/mcMagnet 同一判读口径） · 数据截至 ' + esc((d && d.updatedAt) || '—') + ' · 不构成投资建议</span></div>'
     + '<div style="margin-bottom:10px">' + seqHtml + '</div>'
-    + '<div style="font-size:12px;color:var(--slate-500,#64748b);line-height:1.7">研读顺序：<b>定调与方法</b>（研读驾驶舱本页一体）→ <b>中国决策</b>（中国周期→估值→盈利→温度）→ <b>海外约束</b>（美国→全球→顺逆风）→ <b>结果验证</b>（资产价格→市场情绪）。点步骤条直达各 tab。</div>'
+    + '<div style="font-size:12px;color:var(--slate-500,#64748b);line-height:1.7">研读顺序：<b>定调与方法</b>（研读驾驶舱本页一体）→ <b>中国决策</b>（中国周期→估值→盈利→温度）→ <b>海外约束</b>（美国→全球→顺逆风）→ <b>结果验证</b>（资产价格→情绪全景）。点步骤条直达各 tab。</div>'
     + '</div>'
     + '<div class="card"><div class="card-h"><h3>① 定调 · 周期位置</h3><span class="hint">中国 / 全球分栏 · 各市场独立读数与联动矩阵（fw2_v556_market_split：两个不同市场零融合）</span></div>'
     + '<div class="mc-mkt"><div class="mc-mkt-h"><b>中国 · 周期位置</b><span class="mc-mkt-geo">中国指标</span><span class="mc-mkt-d">估值 → 信用 → 情绪（val/cred/mood 同源判读）</span></div>'
@@ -8801,7 +8801,7 @@ function renderMacroSop(d, C) {
     + '<div class="card"><div class="card-h"><h3>② 中国决策</h3><span class="hint">估值 → 盈利 → 温度（val/cred/mood tab 同源判读）</span></div>'
     + row('估值', 'ERP 分位 ' + pctv(ePct) + ' · 沪深300 PE 分位 ' + pctv(peL2), vErp + ' · ' + vPe, (ePct >= 75 || peL2 < 20) ? 'pos' : ((ePct < 25 || peL2 >= 80) ? 'neg' : 'div'), 'val')
     + row('盈利', 'M1−M2 剪刀差 ' + f(gap) + 'pct · 制造业 PMI ' + f(mk), vGap + ' · ' + vPmi, (gap >= 0 || mk >= 50) ? 'pos' : ((gap < -2 || mk < 49) ? 'neg' : 'div'), 'cred')
-    + row('情绪', '两融占比分位 ' + pctv(zbPct) + ' · 成交额分位 ' + pctv(aPct) + ' · 全A成交 ' + (C.amtDtxt || '—'), vMoo, ((zbPct != null && zbPct < 10) || (aPct != null && aPct < 10)) ? 'pos' : (((zbPct != null && zbPct > 90) || (aPct != null && aPct > 90)) ? 'neg' : 'div'), 'mood')
+    + row('情绪温度', '两融占比分位 ' + pctv(zbPct) + ' · 成交额分位 ' + pctv(aPct) + ' · 全A成交 ' + (C.amtDtxt || '—'), vMoo, ((zbPct != null && zbPct < 10) || (aPct != null && aPct < 10)) ? 'pos' : (((zbPct != null && zbPct > 90) || (aPct != null && aPct > 90)) ? 'neg' : 'div'), 'mood')
     + '</div>'
     + '<div class="card"><div class="card-h"><h3>③ 海外约束</h3><span class="hint">美国基本盘 → 全球动能 → 顺逆风开关（us/gbl/ovs tab 同源判读）</span></div>'
     + row('美国', '核心PCE ' + f(pce) + '% · ISM 制造 ' + f(ism) + ' · 初请4周 ' + (ics != null ? f(ics / 1000, 1) + ' 万' : '—'), vPce + ' · ' + vIsm, (pce < 2 || ism >= 50) ? 'pos' : ((pce > 2.5 || ism < 50) ? 'neg' : 'div'), 'us')
@@ -8810,7 +8810,7 @@ function renderMacroSop(d, C) {
     + '</div>'
     + '<div class="card"><div class="card-h"><h3>④ 结果验证</h3><span class="hint">资产位置与情绪映射（px/sm 页同源）</span></div>'
     + row('资产', '上证指数 ' + (sziTxt || '—') + ' · 10年收益 ' + (szi10 != null ? f(szi10) + '%' : '—'), null, null, 'px')
-    + row('情绪', '市场宽度（上涨占比）' + (upPctW != null ? f(upPctW) + '%' : '数据未加载'), vBrd, upPctW == null ? null : (upPctW >= 50 ? 'pos' : 'neg'), 'sm')
+    + row('情绪全景', '市场宽度（上涨占比）' + (upPctW != null ? f(upPctW) + '%' : '数据未加载'), vBrd, upPctW == null ? null : (upPctW >= 50 ? 'pos' : 'neg'), 'sm')
     + '<div class="rv-line"><span class="tag tag-ai">动作</span><span style="cursor:pointer;color:var(--nav-blue,#2f6bff);font-weight:600" onclick="window.showView(\'strategy\')">→ 汇成动作：策略执行（资产配置 / 定投 / 执行卡）</span></div>'
     + '</div>'
     + '<div class="card"><div class="card-h"><h3>传导链 · 现状 → 判断 → 原始数据</h3><span class="hint">7 条传导链直接展开 · 每节点三态（现状=最新读数 / 过去=近6期趋势 / 未来=领先指标方向，无前瞻数据标「—」不臆造）· 无数据节点标「待接」只给传导关系</span></div>'
@@ -9180,7 +9180,7 @@ body.innerHTML = (_region === 'cn' ? renderMacroToolsHtml() : (_region === 'mi' 
   <!-- ===== fw2_v521_magnet ⑦研读驾驶舱 · 三步法（原 fw2_v453「框架与传导」知识卡扩写；MI_GROUPS key 同步改「研读驾驶舱」） ===== -->
   <div class="card">
     <div class="card-h"><h3>研读驾驶舱 · 三步法</h3><span class="hint">顺序 → 结论 → 动作 · 静态知识卡 · 零取数 · 不构成投资建议</span></div>
-    <div class="rv-line"><span class="tag tag-ai">第1步 · 顺序</span><span><b>按组序读，不跳步</b>：A股估值 → 信用与增长 → 情绪与流动性 → 海外约束 → 美国周期 → 全球景气。估值回答「贵不贵」、信用增长回答「基本面方不方」、情绪回答「拥不拥挤」、海外与美国回答「外围顺不顺」——四问都有答案再谈动作</span></div>
+    <div class="rv-line"><span class="tag tag-ai">第1步 · 顺序</span><span><b>按组序读，不跳步</b>：A股估值 → 信用与增长 → 情绪温度 → 海外约束 → 美国周期 → 全球景气。估值回答「贵不贵」、信用增长回答「基本面方不方」、情绪回答「拥不拥挤」、海外与美国回答「外围顺不顺」——四问都有答案再谈动作</span></div>
     <div class="rv-line"><span class="tag tag-ai">第2步 · 结论</span><span><b>先读每组顶部大磁铁，再读组内证据链</b>：磁铁给方向（多数证据方向 + N 正 / M 负计数），证据链（▲支持 / ▼反对 / －中性）验证方向是否被组内各卡同向支撑；任一组「证据分歧」⇒ 该组结论降级为「观察」，不作为行动依据</span></div>
     <div class="rv-line"><span class="tag tag-ai">第3步 · 动作</span><span><b>对照各卡「阈值」行落动作</b>：加档 / 维持 / 减速一律以卡内分位与剪刀差阈值为准（M1 / M7 / M9 同口径），不凭感觉、不用磁铁替代阈值——磁铁只回答「往哪边看」，阈值才回答「动不动、动多少」</span></div>
     <div class="rv-line"><span class="tag tag-data">反例</span><span>磁铁「偏便宜」但 ERP 卡阈值未达 75% ⇒ 只记录观察、不加档；磁铁「证据分歧」但某张卡已触发自身阈值 ⇒ 按该卡阈值处理，并知悉组内其他证据不支持</span></div>
@@ -9573,8 +9573,7 @@ function renderMacroSentiment(d) {
   function srcLine(src, date) { return '<div class="asof" style="margin-top:6px;display:flex">' + esc(src) + (date ? ' · 截至 <b>' + esc(date) + '</b>' : '') + '</div>'; }
   var amtDate = amtLast ? amtLast[0] : '';
   var brDate = (state.snapshot && state.snapshot.id) ? state.snapshot.id : '';
-  var amtCard = card('资金温度计 全A成交额', '沪深京 · 资金系数=成交/M2',
-    metric('最近成交', amtYi != null ? fmtNum(amtYi, 0) + ' 亿' : '—') +
+  var amtCard = card('资金系数（成交/M2）', '沪深京 · 成交绝对值见「情绪温度」页近30日卡 · 资金系数=成交/M2',
     metric('资金系数', fundCoef != null ? fmtNum(fundCoef, 2) + '%' : '—', ' · ' + fcLv(fundCoef)) +
     '<div style="margin-top:8px">' + amtSpark() + '</div>' + srcLine('新浪+westock(沪深京)', amtDate));
   smReg('资金系数(成交/M2)', fundCoef == null ? 0 : (fundCoef < 0.2 ? -1 : (fundCoef < 0.8 ? 0 : 1)));
@@ -9606,20 +9605,13 @@ function renderMacroSentiment(d) {
   /* fw2_v468_sentiment：市场情绪「可接入项」落地——换手率/股息率vs10Y/市净率中位数/融资买入额/A股总市值/大小盘相对强弱/超额流动性/CNN恐贪(美股)。
      数据源 d.sentiment（gen_macro_sent.py：理杏仁中证全指000985 + 指数收盘000300/000852 + CNN + cnMacro社融/M2）。每卡标数据截至+来源，缺源不渲染、不编造。 */
   var S = d.sentiment || {};
-  var y10v = (d.erp && d.erp.cur && d.erp.cur.y10 != null) ? d.erp.cur.y10 : null;
   function sSpark(rec, col) { return spark((rec.points || []).map(function (p) { return p[1]; }), col || '#2f6bff'); }
   function sSrc(rec) { return '<div class="asof" style="margin-top:6px;display:flex">' + esc(rec.src || '') + ' · 截至 <b>' + esc(rec.asOf || '—') + '</b></div>'; }
   function sCard(rec, hint, rows, col) { if (!rec || !rec.available) return ''; return card(rec.label, hint, rows + '<div style="margin-top:8px">' + sSpark(rec, col) + '</div>' + sSrc(rec)); }
   var sTurn = sCard(S.turnover, '日成交额/流通市值 · 理杏仁', metric('换手率', S.turnover && S.turnover.value != null ? fmtNum(S.turnover.value, 2) + '%' : '—'));
-  var dyRec = S.dividend, dySpread = (dyRec && dyRec.available && y10v != null) ? (dyRec.value - y10v) : null;
-  var sDiv = (dyRec && dyRec.available) ? card('股息率 vs 10Y 国债', '股票性价比 · 理杏仁+ERP',
-    metric('股息率(全A)', fmtNum(dyRec.value, 2) + '%') +
-    metric('10Y 国债', y10v != null ? fmtNum(y10v, 2) + '%' : '—') +
-    metric('股息率−10Y', dySpread != null ? (dySpread >= 0 ? '+' : '') + fmtNum(dySpread, 2) + '%' : '—', dySpread != null ? (dySpread >= 0 ? tag('股票占优', '#0d9f4d') : tag('债券占优', '#d98c00')) : '') +
-    '<div style="margin-top:8px">' + sSpark(dyRec) + '</div>' + sSrc(dyRec)) : '';
-  smReg('股息率−10Y(性价比)', dySpread == null ? 0 : (dySpread >= 0 ? -1 : 1));
+  /* fw2_v557_sm_renamed：删「股息率 vs 10Y 国债」卡（股债性价比=val A股估值 ERP 已覆盖，v523 去重残留）＋其 smReg 注册（温度磁铁随之剔除估值性价比维度） */
   var sPb = sCard(S.pbMedian, '全A市净率中位数 · 理杏仁', metric('PB 中位数', S.pbMedian && S.pbMedian.value != null ? fmtNum(S.pbMedian.value, 2) : '—'));
-  var sMbuy = sCard(S.marginBuy, '全市场融资买入额 · 理杏仁', metric('融资买入额', S.marginBuy && S.marginBuy.value != null ? fmtNum(S.marginBuy.value, 0) + ' 亿元' : '—'));
+  var sMbuy = sCard(S.marginBuy, '日度融资买入额 · 区别于「情绪温度」页两融余额（月频）· 理杏仁', metric('融资买入额', S.marginBuy && S.marginBuy.value != null ? fmtNum(S.marginBuy.value, 0) + ' 亿元' : '—'));
   var sCap = sCard(S.mktcap, 'A股总市值 · 理杏仁', metric('总市值', S.mktcap && S.mktcap.value != null ? fmtNum(S.mktcap.value, 2) + ' 万亿元' : '—'));
   var sSize = sCard(S.sizeRatio, '沪深300/中证1000 · 走低=小盘走强', metric('大小盘比值', S.sizeRatio && S.sizeRatio.value != null ? fmtNum(S.sizeRatio.value, 3) : '—'), '#7c3aed');
   var sLiq = sCard(S.liqSpread, '社融增速−M2增速 · 理杏仁(自算)', metric('剪刀差', S.liqSpread && S.liqSpread.value != null ? (S.liqSpread.value >= 0 ? '+' : '') + fmtNum(S.liqSpread.value, 2) + ' pp' : '—'), '#0d9f4d');
@@ -9702,7 +9694,7 @@ function renderMacroSentiment(d) {
   var smTxt = (smHot === 0 && smCold === 0) ? '暂无方向证据' : (smHot > smCold ? '偏热' : smCold > smHot ? '偏冷' : '中性·信号张力');
   var smCol = (smHot === 0 && smCold === 0) ? '#64748b' : (smHot > smCold ? '#dc2626' : smCold > smHot ? '#2f6bff' : '#d98c00');
   var smMagnet = '<div style="display:flex;align-items:center;gap:18px;padding:14px 18px;border:1px solid #e3e8ef;border-radius:14px;background:#fff;margin-top:10px;box-shadow:0 1px 3px rgba(20,40,80,.05)">'
-    + '<div style="font-size:12px;color:var(--slate-500,#64748b);line-height:1.5;flex:none">市场情绪<br>温度</div>'
+    + '<div style="font-size:12px;color:var(--slate-500,#64748b);line-height:1.5;flex:none">情绪全景<br>温度</div>'
     + '<div style="font-size:26px;font-weight:700;color:' + smCol + ';flex:none">' + smTxt + '</div>'
     + '<div style="font-size:12px;color:var(--slate-500,#64748b);line-height:1.8">偏热 ' + smHot + ' · 偏冷 ' + smCold + ' · 中性 ' + smNeu + '<br><span style="color:var(--slate-400,#94a3b8)">由各卡自身判读方向汇总 · 同源不二次判断 · 相对分级未校准（缺源卡不计）</span></div></div>';
   function smGroup(t, inner) {
@@ -9710,13 +9702,13 @@ function renderMacroSentiment(d) {
       + '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px;margin-top:8px">' + inner + '</div>';
   }
   var smHtml =
-    '<div style="display:flex;justify-content:space-between;align-items:flex-start;font-size:12px;color:var(--slate-500,#64748b);margin-bottom:8px"><span>数据截至 ' + esc(d.updatedAt || '') + ' · 市场情绪与广度视图——核心估值/流动性（ERP/PE/VIX/两融/成交额）已在「宏观指标」页统一呈现，本页聚焦广度（涨跌家数 · 大小盘）+ 情绪 + 资金系数(M2)；换手率/股息率/市净率中位数/融资买入额/总市值/超额流动性＝理杏仁，恐贪＝CNN，FSI＝FRED</span><button onclick="__mcRefreshMacro(this)" style="flex:none;margin-left:12px;padding:5px 12px;border:1px solid #e3e8ef;border-radius:8px;background:#fff;font-size:12px;color:var(--ink,#0f172a);cursor:pointer">刷新数据</button></div>' +
+    '<div style="display:flex;justify-content:space-between;align-items:flex-start;font-size:12px;color:var(--slate-500,#64748b);margin-bottom:8px"><span>数据截至 ' + esc(d.updatedAt || '') + ' · 情绪全景 · 广度与情绪视图——核心估值/流动性（ERP/PE/VIX/两融/成交额）已在 A股估值 / 情绪温度 等明细 tab 统一呈现，本页聚焦广度（涨跌家数 · 大小盘）+ 情绪 + 资金系数(M2)；换手率/股息率/市净率中位数/融资买入额/总市值/超额流动性＝理杏仁，恐贪＝CNN，FSI＝FRED</span><button onclick="__mcRefreshMacro(this)" style="flex:none;margin-left:12px;padding:5px 12px;border:1px solid #e3e8ef;border-radius:8px;background:#fff;font-size:12px;color:var(--ink,#0f172a);cursor:pointer">刷新数据</button></div>' +
     smMagnet +
-    smGroup('① 风险偏好 · 海外', (fsi && fsi.score != null ? fsiCard : '') + sCnn + sOp) +
-    smGroup('② 估值与性价比', sDiv + sBp + sPb + sSec) +
-    smGroup('③ 资金与供给', amtCard + sMbuy + sFi + sRp + sLift + sHolder) +
-    smGroup('④ 广度与结构', brCard + sSize + sCr + sSecUp + sCrowd + sTurn) +
-    smGroup('⑤ 信号与补充', sBasis + sLiq + sCap + sNa) +
+    smGroup('风险偏好 · 海外', (fsi && fsi.score != null ? fsiCard : '') + sCnn + sOp) +
+    smGroup('估值与性价比', sBp + sPb + sSec) +
+    smGroup('资金与供给', amtCard + sMbuy + sFi + sRp + sLift + sHolder) +
+    smGroup('广度与结构', brCard + sSize + sCr + sSecUp + sCrowd + sTurn) +
+    smGroup('信号与补充', sBasis + sLiq + sCap + sNa) +
     '<div style="margin-top:16px">' + todoCard + '</div>';
   return smHtml;
 }
@@ -9820,12 +9812,12 @@ function fillMacroTabs() {
     ['cn', '中国周期'],   /* fw2_v552_sop_taborder：研读顺序第3位（中国决策起点） */
     ['val', 'A股估值'],   /* fw2_v552_sop_taborder：研读顺序第4位·①中国决策-估值；fw2_v550_grp_tabs：原 mi 页①A股估值组（ERP/PE/宽基），模块名去序号 */
     ['cred', '信用与增长'], /* fw2_v552_sop_taborder：研读顺序第5位·②中国决策-信用；fw2_v550_grp_tabs：原 mi 页②信用与增长组，模块名去序号 */
-    ['mood', '情绪与流动性'], /* fw2_v552_sop_taborder：研读顺序第6位·③中国决策-情绪；fw2_v550_grp_tabs：原 mi 页③情绪与流动性组，模块名去序号 */
+    ['mood', '情绪温度'], /* fw2_v557_sm_renamed：情绪与流动性→情绪温度（中国拥挤度，去同义误导）；fw2_v552_sop_taborder：研读顺序第6位·③中国决策-情绪；fw2_v550_grp_tabs：原 mi 页③情绪与流动性组，模块名去序号 */
     ['us', '美国周期'],   /* fw2_v552_sop_taborder：研读顺序第7位·海外-美国；fw2_v549_region_align：tab「海外全景」→「美国周期」（用户拍板方案B′区域平级：中国周期/美国周期/海外景气三域 tab 并列，消除「海外全景≈美国」名实不符；data-r 路由键 us 不动；原 fw2_v467_us_tab_rename / fw2_v548_ovs_mrg 改名记录） */
     ['gbl', '海外景气'],  /* fw2_v552_sop_taborder：研读顺序第8位·海外-全球；fw2_v549_region_align：新增「海外景气」tab（⑥全球景气非美内容上移为独立域：韩国出口/OECD/BDI日银/PMI合成；data-r 路由键 gbl） */
     ['ovs', '海外约束'],  /* fw2_v552_sop_taborder：研读顺序第9位·④海外约束；fw2_v550_grp_tabs：原 mi 页④海外约束组（全球利率汇率/美股估值/政策利率/VIX），模块名去序号 */
     ['px', '资产价格监控'],
-    ['sm', '市场情绪']
+    ['sm', '情绪全景'] /* fw2_v557_sm_renamed：市场情绪→情绪全景（广度/资金/海外风险偏好全图，去同义误导） */
   ];
   host.innerHTML = items.map((it) => '<button data-r="' + it[0] + '" type="button" style="' + (reg === it[0] ? tAct : tBase) + '">' + it[1] + '</button>').join('');
 }
@@ -11813,6 +11805,20 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
      mi 页⑤⑥ 引用卡+磁铁、无「海外全景」残留、chip v549、ERRS 0）+ 四门禁全绿 + 真实渲染截图核验。
      chip v548→v549。
   */
+  /* v557 fw2_v557_sm_renamed：情绪页改名厘清 + 卡级去重 + 修失效引用（2026-10-15 用户截图「是不是重复了呢？如何整合和优化？」拍板方案B）——
+     ①tab 改名：『情绪与流动性→情绪温度』（中国拥挤度）、『市场情绪→情绪全景』（广度/资金/海外风险偏好全图），去同义误导；
+       同步 seq 研读顺序条（『情绪→情绪温度』『市场情绪→情绪全景』）、页头说明（结果验证→情绪全景）、MI_GROUPS mood name、
+       ②中国决策行（情绪→情绪温度）、④结果验证行（情绪→情绪全景）、sop 按组序读串、sm 温度磁铁头；
+     ②卡级去重：sm『资金温度计 全A成交额』→『资金系数（成交/M2）』删重复的『最近成交』行（绝对值归情绪温度页近30日卡），卡内注明互链；
+     ③sm②组删『股息率 vs 10Y 国债』卡＋smReg（股债性价比=val A股估值 ERP 已覆盖，v523 去重残留；温度磁铁随之剔除估值性价比维度）；
+     ④FSI 互链：mcMatrix risk 卡 detail 加『FSI 明细见「情绪全景」页』，link 跳转 ['mood','情绪明细']→['sm','情绪全景']（FSI 整卡所在页）；
+     ⑤两融族注明：sm 融资买入额卡 hint 改『日度融资买入额 · 区别于「情绪温度」页两融余额（月频）』；
+     ⑥sm intro 修失效引用：『已在「宏观指标」页统一呈现』→『已在 A股估值 / 情绪温度 等明细 tab 统一呈现』（宏观指标页 v550 已删）；
+     ⑦sm 组标题去序号（①风险偏好·海外→风险偏好·海外 等，与 v552 去序号约定一致）。
+     验证：check_js + 四门禁全绿 + V557_DOM_OK（tab 无旧名残留、研读顺序条 10 节点新名、sm 页无股息率卡/无最近成交行、
+     温度磁铁=中性·信号张力 偏热3·偏冷3·中性4、FSI 互链文字、ERRS 0）+ 真实渲染截图核验。
+     chip v556→v557。
+  */
   /* v556 fw2_v556_market_split：①定调段按市场拆分中国/全球纵向两段（2026-10-15 用户「能区分中国和全球吗？不用刻意融合，完全是两个不同的市场」拍板方案C）——
      ①mcVerdict(C, SC, mkt) 参数化：cn＝赔率+盈利（0.35/0.30 归一满权）、ovs＝海外+风险（0.20/0.15 归一满权，风险方向相反取负）；
        各市场独立 net 与判断词，中外零融合；张力提示按市场内部正负计算；
@@ -12381,7 +12387,7 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
        留待与用户确认重设计方案后再动（本轮不做）。
      ★诚实限定：erpCard/peCard/mrgCard/vixCard 定义及其 erpSpark/peSpark/mrgSpark/vixSpark 函数已于 **v529（fw2_v529_smux P3）一并清理**（连同 erpLv/peLv/vixLv/rzyeLv 与顶部 erp/pe/margin/vix 局部变量，mi 页判读走 mcCalcCommon 不受影响）。
        数据/口径零改动，纯前端结构层；描述串「sm 去重 · 删重复估值流动性卡」入 verify_sync 标记组 */
-  if (vc) vc.textContent = 'v556 · 自选' /* fw2_v516_a500lk fw2_v517_4otc fw2_v518_hspos fw2_v519_sm_merge fw2_v520_chgflat fw2_v521_magnet fw2_v522_overview fw2_v523_sm_dedup fw2_v524_geo_fsi fw2_v525_geo_filter fw2_v526_geo_filter_removed fw2_v527_verdict fw2_v529_smux fw2_v530_datamgmt fw2_v531_sm_dmgmt fw2_v532_all_dm fw2_v533_px_long fw2_v533d_dm_scroll fw2_v534_dm_module fw2_v535_dm_auto fw2_v539_hold_realpnl fw2_v539a_seed_sync fw2_v539a_seed_order fw2_v540_hold_path fw2_v542_pf_mirror_first fw2_v542_mv_settled fw2_v542_mv_account fw2_v543_dm_holdings_note fw2_v544_ledger_mirror_guard fw2_v545_hold_total_row fw2_v546_navdate_all fw2_v547_vix_to_ovs fw2_v548_ovs_mrg fw2_v549_region_align fw2_v550_grp_tabs fw2_v551_sop_cockpit fw2_v552_sop_taborder fw2_v553_chain_data fw2_v554_sop_rename fw2_v556_market_split */ + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  if (vc) vc.textContent = 'v557 · 自选' /* fw2_v516_a500lk fw2_v517_4otc fw2_v518_hspos fw2_v519_sm_merge fw2_v520_chgflat fw2_v521_magnet fw2_v522_overview fw2_v523_sm_dedup fw2_v524_geo_fsi fw2_v525_geo_filter fw2_v526_geo_filter_removed fw2_v527_verdict fw2_v529_smux fw2_v530_datamgmt fw2_v531_sm_dmgmt fw2_v532_all_dm fw2_v533_px_long fw2_v533d_dm_scroll fw2_v534_dm_module fw2_v535_dm_auto fw2_v539_hold_realpnl fw2_v539a_seed_sync fw2_v539a_seed_order fw2_v540_hold_path fw2_v542_pf_mirror_first fw2_v542_mv_settled fw2_v542_mv_account fw2_v543_dm_holdings_note fw2_v544_ledger_mirror_guard fw2_v545_hold_total_row fw2_v546_navdate_all fw2_v547_vix_to_ovs fw2_v548_ovs_mrg fw2_v549_region_align fw2_v550_grp_tabs fw2_v551_sop_cockpit fw2_v552_sop_taborder fw2_v553_chain_data fw2_v554_sop_rename fw2_v556_market_split fw2_v557_sm_renamed */ + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
@@ -13493,7 +13499,7 @@ setTimeout(() => { renderResearchChips(); if (!state.news.items.length) loadNews
   window.MI_GROUPS = [
     { id:'val',  geo:'cn',  name:'A股估值',       concl:'便宜 / 合理 / 贵',           vd:{ p:'偏便宜', n:'偏贵', d:'证据分歧' },             keys:['ERP 股债性价比', '沪深300 PE-TTM', '宽基估值温度'] },
     { id:'cred', geo:'cn',  name:'信用与增长',    concl:'扩张 / 收缩 / 僵持',         vd:{ p:'偏扩张', n:'偏收缩', d:'证据分歧' },           keys:['信用脉冲：社融', '物价剪刀差', '制造业 PMI', '实体景气'] },
-    { id:'mood', geo:'cn',  name:'情绪与流动性',  concl:'过热 / 中性 / 冰冷',         vd:{ p:'偏冰冷·逆向关注', n:'偏过热·防御', d:'证据分歧' }, keys:['情绪温度计', '全A成交额'] },
+    { id:'mood', geo:'cn',  name:'情绪温度',  concl:'过热 / 中性 / 冰冷',         vd:{ p:'偏冰冷·逆向关注', n:'偏过热·防御', d:'证据分歧' }, keys:['情绪温度计', '全A成交额'] },
     { id:'ovs',  geo:'ovs', name:'海外约束',      concl:'顺风 / 中性 / 逆风',         vd:{ p:'偏顺风', n:'偏逆风', d:'证据分歧' },           q:'本组回答：海外环境紧不紧（压力温度：利率 / 汇率 / 估值 / VIX）', keys:['全球利率与汇率', '美股估值温度', '政策利率与收益率曲线', '全球央行政策利率一览', 'VIX 恐慌'] },
     { id:'us',   geo:'ovs', name:'美国周期',      concl:'增长 × 通胀 · 周期定位',     vd:{ p:'偏顺风', n:'偏逆风', d:'证据分歧' },           q:'本组回答：美国经济强不强（增长 × 通胀 9 项硬指标）', keys:['美国周期 · 完整卡', '非农 · 引用', '初请失业金', '失业率 U3 / U6', '零售销售', '个人收入与 PCE', '消费者信心', '耐用品新订单', 'LEI 领先指标', 'ISM 制造业 PMI'] },
     { id:'gbl',  geo:'ovs', name:'全球景气',      concl:'扩张 / 收缩',                vd:{ p:'偏扩张', n:'偏收缩', d:'证据分歧' },           q:'本组回答：全球动能旺不旺（非美景气；韩国出口为独立信号）', keys:['全球景气 · 完整卡', 'OECD 领先指标', '韩国出口同比', '全球航运与日本景气', '全球 PMI 合成'] },
@@ -13546,7 +13552,7 @@ setTimeout(() => { renderResearchChips(); if (!state.news.items.length) loadNews
       + '<span class="mc-geo" style="display:inline-block;font-size:10px;line-height:1.4;padding:1px 6px;border-radius:8px;background:#eef0f2;color:#6b7280;font-weight:600;margin-right:6px;white-space:nowrap">方法</span>'
       + '<b class="mc-magnet-v">三步：先磁铁 → 再证据 → 后阈值</b></div>'
       + '<div class="mc-magnet-ev">'
-      + '<span class="mc-ev"><b class="z">①</b> 按组序读：A股估值 → 信用与增长 → 情绪与流动性 → 海外约束 → 美国周期 → 全球景气，任何一组「分歧」先放一放</span>'
+      + '<span class="mc-ev"><b class="z">①</b> 按组序读：A股估值 → 信用与增长 → 情绪温度 → 海外约束 → 美国周期 → 全球景气，任何一组「分歧」先放一放</span>'
       + '<span class="mc-ev"><b class="z">②</b> 组内看证据链：磁铁方向是否被 ▲支持 / ▼反对 同向验证，分歧组结论降级为「观察」</span>'
       + '<span class="mc-ev"><b class="z">③</b> 对照各卡「阈值」行落动作：加档 / 维持 / 减速以分位与剪刀差阈值为准，磁铁只回答「往哪边看」</span>'
       + '</div></div>';
