@@ -9395,6 +9395,7 @@ body.innerHTML = (_region === 'cn' ? renderMacroToolsHtml() : (_region === 'mi' 
     curRate.resize();
   }
   /* fw2_v454_cbRates：全球央行政策利率一览 横向对比图（五国/六棒） */
+  /* fw2_v558a_cb_label：v558 中国/美国 type 文案变长后 grid.left 110 放不下完整 y 轴标签（『中国 · 7天逆回购利率（政策利率）』『美国 · 联邦基金目标利率（区间中值）』被 ECharts 裁成『回购利率(政策利率)』『:目标利率(区间中值)』）→ left 110→180 全显；rate2 全 None 后实为五棒 */
   const cbRateChart = chartOf('mcCbRates');
   if (cbRateChart && cbRatesArr.length) {
     const rows = [];
@@ -9404,7 +9405,7 @@ body.innerHTML = (_region === 'cn' ? renderMacroToolsHtml() : (_region === 'mi' 
     });
     const colors = { US: '#2f6bff', EA: '#2f6bff', UK: '#2f6bff', JP: '#2f6bff', CN: '#5b8def' };
     cbRateChart.setOption(Object.assign({}, base, {
-      grid: { left: 110, right: 42, top: 12, bottom: 24 },
+      grid: { left: 180, right: 42, top: 12, bottom: 24 },
       xAxis: { type: 'value', axisLabel: { fontSize: 10, color: '#475569', formatter: (v) => v + '%' }, splitLine: { lineStyle: { color: '#e3e8ee' } } },
       yAxis: { type: 'category', data: rows.map((r) => r.n), axisLabel: { fontSize: 10, color: '#475569' }, axisLine: { lineStyle: { color: '#d8dee6' } } },
       series: [{
@@ -12397,7 +12398,7 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
        留待与用户确认重设计方案后再动（本轮不做）。
      ★诚实限定：erpCard/peCard/mrgCard/vixCard 定义及其 erpSpark/peSpark/mrgSpark/vixSpark 函数已于 **v529（fw2_v529_smux P3）一并清理**（连同 erpLv/peLv/vixLv/rzyeLv 与顶部 erp/pe/margin/vix 局部变量，mi 页判读走 mcCalcCommon 不受影响）。
        数据/口径零改动，纯前端结构层；描述串「sm 去重 · 删重复估值流动性卡」入 verify_sync 标记组 */
-  if (vc) vc.textContent = 'v558 · 自选' /* fw2_v516_a500lk fw2_v517_4otc fw2_v518_hspos fw2_v519_sm_merge fw2_v520_chgflat fw2_v521_magnet fw2_v522_overview fw2_v523_sm_dedup fw2_v524_geo_fsi fw2_v525_geo_filter fw2_v526_geo_filter_removed fw2_v527_verdict fw2_v529_smux fw2_v530_datamgmt fw2_v531_sm_dmgmt fw2_v532_all_dm fw2_v533_px_long fw2_v533d_dm_scroll fw2_v534_dm_module fw2_v535_dm_auto fw2_v539_hold_realpnl fw2_v539a_seed_sync fw2_v539a_seed_order fw2_v540_hold_path fw2_v542_pf_mirror_first fw2_v542_mv_settled fw2_v542_mv_account fw2_v543_dm_holdings_note fw2_v544_ledger_mirror_guard fw2_v545_hold_total_row fw2_v546_navdate_all fw2_v547_vix_to_ovs fw2_v548_ovs_mrg fw2_v549_region_align fw2_v550_grp_tabs fw2_v551_sop_cockpit fw2_v552_sop_taborder fw2_v553_chain_data fw2_v554_sop_rename fw2_v556_market_split fw2_v557_sm_renamed fw2_v558_cbrates_fix */ + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  if (vc) vc.textContent = 'v558 · 自选' /* fw2_v516_a500lk fw2_v517_4otc fw2_v518_hspos fw2_v519_sm_merge fw2_v520_chgflat fw2_v521_magnet fw2_v522_overview fw2_v523_sm_dedup fw2_v524_geo_fsi fw2_v525_geo_filter fw2_v526_geo_filter_removed fw2_v527_verdict fw2_v529_smux fw2_v530_datamgmt fw2_v531_sm_dmgmt fw2_v532_all_dm fw2_v533_px_long fw2_v533d_dm_scroll fw2_v534_dm_module fw2_v535_dm_auto fw2_v539_hold_realpnl fw2_v539a_seed_sync fw2_v539a_seed_order fw2_v540_hold_path fw2_v542_pf_mirror_first fw2_v542_mv_settled fw2_v542_mv_account fw2_v543_dm_holdings_note fw2_v544_ledger_mirror_guard fw2_v545_hold_total_row fw2_v546_navdate_all fw2_v547_vix_to_ovs fw2_v548_ovs_mrg fw2_v549_region_align fw2_v550_grp_tabs fw2_v551_sop_cockpit fw2_v552_sop_taborder fw2_v553_chain_data fw2_v554_sop_rename fw2_v556_market_split fw2_v557_sm_renamed fw2_v558_cbrates_fix fw2_v558a_cb_label */ + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
