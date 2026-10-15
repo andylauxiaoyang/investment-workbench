@@ -1,4 +1,14 @@
 ---
+ **v553 传导链数据补强已发布（fw2_v553_chain_data，2026-10-15）**——用户截图上轮报「传导链没有数据」，经线上 v552 实测渲染正常（无 JS 错误、数据节点 22/待接 9/数值在位），真实痛点是空节点/空态过多（9 待接 + 14 过去 — + 仅 2 未来），拍板全量补强（A+B+C）：
+   A 零成本前端映射：A股电子/科创→科创50 快照（1,359.52 -1.50%）、套利资金→中美利差 3.55pct（美债10Y 5.22 − 中债10Y 1.67，正利差·美元资产吸金）；
+   B 接新数据源：腾讯 qt.gtimg.cn 实时行情（gen_chain_extra.py 写 macro-data.json 顶层 chainExtra{soxx 费城半导体ETF-iShares 519.42(-4.5%) / tsm 台积电ADR 430.00(-3.4%) / asOf 2026-10-14}），费半/台积电(ADR) 由「待接」转「数据」——费半用 SOXX ETF 代理（费半指数东财 push2his rc=56、台积电官网 Cloudflare 反爬、新浪/Yahoo/stooq/腾讯苹果日K 美股序列全灭，已验死路勿重试）；
+   C 给 ≥6 期序列补「过去」近6期趋势：固投/社零/出口为同比序列改用**点差**「较6期前 ↓ 9.0pct / ↓ 1.7pct / ↓ 2.3pct」（比率 trend 套同比会算出荒谬值），美债10Y 近6期趋势接入链7；
+   传导链数据节点 22、待接 9→5（剩 银行信贷/产能利用率/韩国设备材料/东南亚组装/订单回流——均无合规免费机读源，只给传导关系）；
+   DMCONFIG +chain_extra（日频·日轨·源腾讯 qt·黄2红4，_gen_data_mgmt.py 已重跑 data-mgmt.json 25 行）；
+   版本链：chip v552→v553、changelog v553 块、verify_sync 24 处升版；
+   V553_DOM_OK 19 项（费半/台积电/科创50/套利资金 4 节点+过去趋势 11 行+待接=5）+ 四门禁全绿 + 真实渲染截图核验（链1 地产「过去 较6期前 ↓ 9.0pct」、链2 费半 519.42/台积电 430.00/科创50 1,359.52、链5 出口、链6 美元指数、链7 套利资金）;
+   ★修渲染 bug×2：①插入区在 `var q` 定义点之前引用 state.snapshot.quotes → 改独立 kcSnap 直取；②cn10v 定义在插入点之后（var 提升未赋值 → NaN）→ spread 改独立 cn10b 直取 d.erp.cur.y10；DOM 断言口径修正（过去趋势=直接箭头 5 + 近6期 3 + 信用脉冲 1 + 较6期前 3 = 11 行，原正则漏计后两类形态）。
+   发布 head 932e12c5f069 · index.html 4058622 B · macro-data.json 295626 B（含 chainExtra）· meta-bundle.json 661203 B · data-mgmt.json 11339 B，verify_sync 24 处标记线上全 OK + 0 字节不一致。
  **v552 宏观 tab 按研读顺序重排 + 模块名去序号已发布（fw2_v552_sop_taborder，2026-10-15）**——用户截图追问「这个顺序怎么调整呢？模块的名称别带数字符号」拍板方案A（tab 顺序与研读顺序一致）：
    11 tab 重排为 周期总览→判读SOP→中国周期→A股估值→信用与增长→情绪与流动性→美国周期→海外景气→海外约束→资产价格监控→市场情绪（判读SOP 提到第 2 位=方法前置，顺序=研读驾驶舱研读顺序条 11 节点）；
    所有用户可见模块名去 ①-⑦ 序号（判读SOP/A股估值/信用与增长/情绪与流动性/海外约束 5 个组 tab、研读顺序条 ①估值→估值 等 4 节点、定调磁铁计数行 A股估值1正0负…、MI_GROUPS 7 组 name 全部去序号、链6 政策利率「见④海外约束」→「见海外约束」）；
@@ -2060,6 +2070,7 @@ verify --gh-only PASS（rc=0，849 项 OK / 0 FAIL，GitHub 六文件字节一�
 个人投资管理项目。
 
 ## 当前进度
+**v553 传导链数据补强已发布上线（2026-10-15，fw2_v553_chain_data，head 932e12c5f069）**：用户报「传导链没有数据」→ 线上实测渲染正常、痛点是空节点/空态过多 → 全量补强 A+B+C：费半(SOXX ETF 519.42 -4.5%)/台积电(ADR 430.00 -3.4%) 腾讯 qt 实时行情接入（gen_chain_extra.py → macro-data.json chainExtra）、A股电子/科创→科创50 快照 1,359.52、套利资金→中美利差 3.55pct（正利差·美元资产吸金）、固投/社零/出口/美债10Y 补「过去」趋势（同比序列点差法），待接 9→5；DMCONFIG +chain_extra（日轨）。V553_DOM_OK 19 项 + 四门禁全绿 + 真实渲染截图核验 + verify_sync 24 处线上全 OK。发布 head 932e12c5f069 · index.html 4058622 B。
 **v535 手动轨改自动轨已发布上线（2026-10-13，fw2_v535_dm_auto，head 4e050f7cf662）**：持仓→日轨自动（真源=飞书资料库持仓表，每晚 21:30 cron 拉全量→gen_holdings_seed.py 镜像 syncedAt 回写当日→发布；页面 holdings 行如实显示 2026-09-18 滞后 25 天红标，首次自动生效在下一个 21:30）、数据源清单/长基准→月轨自动（低频治理随月轨核验更新）、手动轨仅剩台账/资金平衡（本机 localStorage 录入）与筛选规则（用户纪律）；21:30 cron query 已同步（24 数据集 + 持仓自动同步步骤）。验证：V535_DOM_OK + 四门禁全绿 + verify_sync --gh-only PASS。
 **宏观硬指标模块收官（2026-10-08 v461）**：新增「宏观硬指标」tab（`mh`/`renderMacroHard`），数据从零到有——理杏仁 17 项（`cnMacro`+`usMacro`）+ 腾讯 westock 4 项（`macroAlt`：工业增加值/核心PCE/ISM制造/ISM非制造）+ 东财 1 项（`macroEm`：70城房价），v458 另加「市场情绪」tab。双轨上线+字节核验（index.html 4338507 B）。环境坑（urllib必挂走curl / 统计局WAF 403 / gate+verify_sync 必 SIGTERM / skill-library 升级已修 / 库token 30min）与口径教训详见 `交接_宏观硬指标v461_2026-10-08.md`。**评分线 v394–v409**（捕获率/上行打分/生涯年化+胜率置信/估值分位）见对应版本段。
 **定时任务·国家队ETF每日份额（2026-10-08）**：东财单只通道 510300 成功取到当日实时份额 24,164,587,776 份（市值 1,070.97 亿元，较 10-06 +4,500 万份），已幂等追加 etf-shares.json（updatedAt 10-06→10-08）并推送上线；其余 8 只东财持续 RemoteDisconnected 限流、腾讯批量返回 09-30 滞后快照（idx74 份额与契约不符）→ 按契约跳过并注明「东财份额接口持续限流，当日部分更新」，次日自动补。线上字节一致性：push_gh_v39 VERIFY head 通过 + bu 拉 GitHub Pages 线上文件 sha256 与本地 MATCH（a744d3e55f0427be）。
@@ -2080,7 +2091,8 @@ verify --gh-only PASS（rc=0，849 项 OK / 0 FAIL，GitHub 六文件字节一�
 Python 3.13.14（managed，python/python3 均可调用）；Node v22.22.2 / v24.14.0；Windows。
 
 ## 关键文件（枢纽，按需 Read）
-- 工作台页面：edit_work/index.html（单文件，当前 v494）
+- 工作台页面：edit_work/index.html（单文件，当前 v553）
+- **传导链补强（v553）**：数据层 `edit_work/gen_chain_extra.py`（腾讯 qt.gtimg.cn 实时行情→macro-data.json 顶层 `chainExtra`{soxx 费城半导体ETF/tsm 台积电ADR/asOf}）；前端 renderMacroSop（index.html ~L8620 起：trendRevDelta 点差法 + ceTxt/kcSnap/spread 判断）；DMCONFIG `chain_extra` 行（日轨·黄2红4）
 - **宏观硬指标（v458–v461）**：ETL `edit_work/gen_macro_cn.py`（理杏仁→`cnMacro`13/`usMacro`4）、`edit_work/gen_macro_westock.py`（腾讯westock→`macroAlt`：工业增加值/核心PCE/ISM制造/ISM非制造）、`edit_work/gen_macro_em.py`（东财→`macroEm`：70城房价）；数据 `edit_work/macro-data.json` 的 `cnMacro`/`usMacro`/`macroAlt`/`macroEm` 四键；前端 `renderMacroHard`（index.html ~L10392，`mh` tab）。取数一律 curl（沙箱 urllib 走代理必挂），详见交接 §2。
 - 发布：push_gh_v39.py（GitHub，FILES 已含 screen-pool.json）/ 校验：verify_sync.py、check_js.py
 - 持仓种子：edit_work/holdings-data.json；ETF 日份额：edit_work/data/etf-shares.json
@@ -2195,6 +2207,7 @@ Python 3.13.14（managed，python/python3 均可调用）；Node v22.22.2 / v24.
 - **现状**：v390 保留的是安全部分——全表 `vertical-align:middle` + 组间 2px 实线。居中效果请用户确认；若仍要调整，**不再引入 rowspan / min-width**
 
 ## 下一步
+- **[2026-10-15 · v553 已闭环]** 传导链补强：待接 9→5，剩 银行信贷/产能利用率/韩国设备材料/东南亚组装/订单回流（无合规免费机读源；已验死路清单见 MEMORY/交接）；费半/台积电 美股历史 K 线免费源全灭（新浪/Yahoo/stooq 反爬、腾讯苹果日K 只回 2 行）→「过去」保持 —；科创50 长序列 pxLong 未含 kc50 键 → A股电子/科创「过去」— 属已知局限。
 - **[2026-10-13 · v535 已闭环]** 手动轨改自动轨：持仓→日轨自动（每晚 21:30 拉飞书资料库持仓表→gen_holdings_seed.py 镜像→发布，改持仓只需改资料库表）、数据源清单/长基准→月轨自动、手动轨仅剩台账/资金平衡与筛选规则；head 4e050f7cf662，V535_DOM_OK + 四门禁全绿 + verify_sync --gh-only PASS；21:30 cron query 已同步（24 数据集 + 持仓同步步骤）。**遗留**：持仓页面仍如实红标 2026-09-18 滞后 25 天——首个自动同步生效在今晚 21:30；若需立即更新到最新须确认授权 + 真源表有 09-18 后新数据。
 - **[2026-10-10 · 全面梳理已完成]** 优化升级方案已出：`工作台优化升级方案_2026-10-10.md`（现状盘点 9 模块 + 内容/UI/架构三层诊断 + P0-P3 路线图 + 7 项待拍板点）。**等待用户对方案逐项确认后分批实施**；未确认前不改代码。
 - **[宏观·待用户拍板] 中国失业率**：理杏仁/westock/东财盲猜均无合规机读源，官方值(2026-08 全国5.3%)来自统计局发布会非机读源、未硬编码。唯一路径=换能穿统计局 WAF 的出口或引入 Wind 授权——**需用户定**。
