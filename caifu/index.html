@@ -8434,7 +8434,8 @@ function mcRegisterEvidence(C) {
   mcEv('cred', 0, 'CPI−PPI 剪刀差 ' + (pgL != null ? fmtNum(pgL, 1) + 'pct' : '—') + ' · 风格参考（非方向证据）');
   mcEv('mood', ((zbPct != null && zbPct > 90) || (aPct != null && aPct > 90)) ? -1 : ((zbPct != null && zbPct < 10) || (aPct != null && aPct < 10)) ? 1 : 0, '两融占比分位 ' + (zbPct != null ? fmtNum(zbPct, 1) + '%' : '—') + ' · 成交额分位 ' + (aPct != null ? fmtNum(aPct, 1) + '%' : '—'));
   mcEv('mood', amtDunset ? 0 : (amtDv == null ? 0 : (amtDv < 15000 ? 1 : amtDv >= 30000 ? -1 : 0)), '全A成交额 ' + amtDtxt + (amtDunset ? '（盘中未结算·不判读）' : ''));
-  mcEv('mood', vL == null ? 0 : (vL >= 30 ? -1 : vL < 20 ? 1 : 0), 'VIX ' + (vL != null ? fmtNum(vL, 2) : '—'));
+  /* fw2_v547_vix_to_ovs：VIX 为 CBOE 美国指标，证据随卡归入 ④海外约束（ovs）——③情绪组保持纯中国口径（两融/成交额），中美市场区分独立 */
+  mcEv('ovs', vL == null ? 0 : (vL >= 30 ? -1 : vL < 20 ? 1 : 0), 'VIX ' + (vL != null ? fmtNum(vL, 2) : '—'));
   mcEv('ovs', fxGate === '逆风·防御' ? -1 : fxGate === '顺风' ? 1 : 0, '外围红绿灯 ' + fxGate + '（达标 ' + badCnt + '/3）');
   mcEv('ovs', spxPct == null ? 0 : (spxPct >= 80 ? -1 : spxPct < 20 ? 1 : 0), '标普500 PE 分位 ' + (spxPct != null ? fmtNum(spxPct, 0) + '%' : '—'));
   mcEv('ovs', (ushfBE.cur != null && ushfBE.cur > 2.5) ? -1 : 0, '10Y 盈亏平衡通胀 ' + (ushfBE.cur != null ? fmtNum(ushfBE.cur, 2) + '%' : '—') + '（>2.5% 压制久期）');
@@ -11478,6 +11479,20 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
      chip v546、1440 不溢出、ERRS 0）+ 四门禁全绿。
      chip v545→v546。
   */
+  /* v547 fw2_v547_vix_to_ovs：宏观 mi 页 ③情绪与流动性 组归位矛盾修复（2026-10-15 用户截图红框
+     「中国指标」徽标 + 组内 VIX 卡——方案3：海外单列海外组看，保持中国指标独立性，中美不同市场区分）——
+     现状：MI_GROUPS mood 组 geo:'cn'（中国指标）但 keys 含 'VIX 恐慌'——VIX 为 CBOE 美国期权隐含
+     波动率，归入中国情绪组造成徽标矛盾。
+     改法：①mood keys 去 'VIX 恐慌'（③组＝情绪温度计+全A成交额，纯中国口径）；②ovs keys 加
+     'VIX 恐慌'（④海外约束＝全球利率汇率/美股估值/政策利率/央行利率+VIX，纯海外口径）；③mcEv 注册
+     'mood'→'ovs'（VIX 证据随卡归海外组，ovs 磁铁 4→5 条证据，mood 磁铁 3→2 条纯中国证据——
+     磁铁汇总自动重算，无需手动干预）。VIX 卡物理位置本就在「全球利率与汇率」ovs 卡之后，
+     组内阅读序自然衔接。geo 徽标层（mcGeoBadge）与组胶囊（renderMacroGroupCaps）按 MI_GROUPS
+     自动跟随，data-g 归属由 wrapMcMods keys 前缀匹配自动重写。
+     验证：_test_v547_dom.py V547_DOM_OK（mood 组 data-g=2 两卡无 VIX、ovs 组 data-g=3 五卡含 VIX、
+     mood 磁铁 2 条证据、ovs 磁铁含「VIX」证据、chip v547、ERRS 0）+ 四门禁全绿。
+     chip v546→v547。
+  */
   /* v545a fw2_v545a_tot_pad：v545 合计行加粗金额列致 1440 最小内容宽 +7px——A/B 取证
      _test_v545_ab.py（同一探测两态）：无合计行 wrap.scrollWidth 1194、有合计行 1201；本机容器
      1184（基线已溢 10px，用户环境 v539a 实测压回 0）。修法同 v115/v539/v539a 既定模式：桌面端
@@ -11961,7 +11976,7 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
        留待与用户确认重设计方案后再动（本轮不做）。
      ★诚实限定：erpCard/peCard/mrgCard/vixCard 定义及其 erpSpark/peSpark/mrgSpark/vixSpark 函数已于 **v529（fw2_v529_smux P3）一并清理**（连同 erpLv/peLv/vixLv/rzyeLv 与顶部 erp/pe/margin/vix 局部变量，mi 页判读走 mcCalcCommon 不受影响）。
        数据/口径零改动，纯前端结构层；描述串「sm 去重 · 删重复估值流动性卡」入 verify_sync 标记组 */
-  if (vc) vc.textContent = 'v546 · 自选' /* fw2_v516_a500lk fw2_v517_4otc fw2_v518_hspos fw2_v519_sm_merge fw2_v520_chgflat fw2_v521_magnet fw2_v522_overview fw2_v523_sm_dedup fw2_v524_geo_fsi fw2_v525_geo_filter fw2_v526_geo_filter_removed fw2_v527_verdict fw2_v529_smux fw2_v530_datamgmt fw2_v531_sm_dmgmt fw2_v532_all_dm fw2_v533_px_long fw2_v533d_dm_scroll fw2_v534_dm_module fw2_v535_dm_auto fw2_v539_hold_realpnl fw2_v539a_seed_sync fw2_v539a_seed_order fw2_v540_hold_path fw2_v542_pf_mirror_first fw2_v542_mv_settled fw2_v542_mv_account fw2_v543_dm_holdings_note fw2_v544_ledger_mirror_guard fw2_v545_hold_total_row fw2_v546_navdate_all */ + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  if (vc) vc.textContent = 'v547 · 自选' /* fw2_v516_a500lk fw2_v517_4otc fw2_v518_hspos fw2_v519_sm_merge fw2_v520_chgflat fw2_v521_magnet fw2_v522_overview fw2_v523_sm_dedup fw2_v524_geo_fsi fw2_v525_geo_filter fw2_v526_geo_filter_removed fw2_v527_verdict fw2_v529_smux fw2_v530_datamgmt fw2_v531_sm_dmgmt fw2_v532_all_dm fw2_v533_px_long fw2_v533d_dm_scroll fw2_v534_dm_module fw2_v535_dm_auto fw2_v539_hold_realpnl fw2_v539a_seed_sync fw2_v539a_seed_order fw2_v540_hold_path fw2_v542_pf_mirror_first fw2_v542_mv_settled fw2_v542_mv_account fw2_v543_dm_holdings_note fw2_v544_ledger_mirror_guard fw2_v545_hold_total_row fw2_v546_navdate_all fw2_v547_vix_to_ovs */ + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
@@ -13073,8 +13088,8 @@ setTimeout(() => { renderResearchChips(); if (!state.news.items.length) loadNews
   window.MI_GROUPS = [
     { id:'val',  geo:'cn',  name:'① A股估值',       concl:'便宜 / 合理 / 贵',           vd:{ p:'偏便宜', n:'偏贵', d:'证据分歧' },             keys:['ERP 股债性价比', '沪深300 PE-TTM', '宽基估值温度'] },
     { id:'cred', geo:'cn',  name:'② 信用与增长',    concl:'扩张 / 收缩 / 僵持',         vd:{ p:'偏扩张', n:'偏收缩', d:'证据分歧' },           keys:['信用脉冲：社融', '物价剪刀差', '制造业 PMI', '实体景气'] },
-    { id:'mood', geo:'cn',  name:'③ 情绪与流动性',  concl:'过热 / 中性 / 冰冷',         vd:{ p:'偏冰冷·逆向关注', n:'偏过热·防御', d:'证据分歧' }, keys:['情绪温度计', '全A成交额', 'VIX 恐慌'] },
-    { id:'ovs',  geo:'ovs', name:'④ 海外约束',      concl:'顺风 / 中性 / 逆风',         vd:{ p:'偏顺风', n:'偏逆风', d:'证据分歧' },           keys:['全球利率与汇率', '美股估值温度', '政策利率与收益率曲线', '全球央行政策利率一览'] },
+    { id:'mood', geo:'cn',  name:'③ 情绪与流动性',  concl:'过热 / 中性 / 冰冷',         vd:{ p:'偏冰冷·逆向关注', n:'偏过热·防御', d:'证据分歧' }, keys:['情绪温度计', '全A成交额'] },
+    { id:'ovs',  geo:'ovs', name:'④ 海外约束',      concl:'顺风 / 中性 / 逆风',         vd:{ p:'偏顺风', n:'偏逆风', d:'证据分歧' },           keys:['全球利率与汇率', '美股估值温度', '政策利率与收益率曲线', '全球央行政策利率一览', 'VIX 恐慌'] },
     { id:'us',   geo:'ovs', name:'⑤ 美国周期',      concl:'增长 × 通胀 · 周期定位',     vd:{ p:'偏顺风', n:'偏逆风', d:'证据分歧' },           keys:['非农 · 引用', '初请失业金', '失业率 U3 / U6', '零售销售', '个人收入与 PCE', '消费者信心', '耐用品新订单', 'LEI 领先指标', 'ISM 制造业 PMI'] },
     { id:'gbl',  geo:'ovs', name:'⑥ 全球景气',      concl:'扩张 / 收缩',                vd:{ p:'偏扩张', n:'偏收缩', d:'证据分歧' },           keys:['OECD 领先指标', 'BDI 波罗的海', '日银短观', '全球 PMI 合成'] },
     { id:'sop',  geo:'sop', name:'⑦ 判读 SOP',      concl:'顺序 → 结论 → 动作',         vd:{ p:'', n:'', d:'' },                               keys:['判读 SOP'] },
