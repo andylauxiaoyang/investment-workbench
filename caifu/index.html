@@ -1300,6 +1300,10 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
             <button class="dc-tab v-tab active" data-dc="overview">资产配置</button>
             <!-- v353 fw2_v353_pool_tabs：基金数据三池重构——「基金列表」更名「持仓基金」（data-dc="overview" 路由键/契约不动），新增「自选基金」(pool-watch)「筛选基金」(pool-screen) 两 Tab；自选池=watchlist-data.json+筛选池加入，筛选池=screen-pool.json（40 只候选） -->
             <button class="dc-tab v-tab" data-dc="pool-screen">筛选基金</button>
+            <!-- v569 fw2_v569_manager_pool：新增「基金经理」Tab——工作台经理池（69 只基金+筛选池历任/现任经理去重 67 名），
+                理杏仁 fmi 量化字段 + shareholdings 持仓风格穿透 + 东财业绩画像（生涯年化/季胜率/星级/踩雷），
+                经理级评分排序，点经理名进东财档案页（fund.eastmoney.com/manager/{mid}.html） -->
+            <button class="dc-tab v-tab" data-dc="pool-manager">基金经理</button>
             <!-- v363 fw2_v363_pool_rules_tab：完整筛选规则文档独立 Tab（含启用+未启用），筛选基金 Tab 回归纯净表格 -->
             <button class="dc-tab v-tab" data-dc="pool-rules">筛选规则</button>
             <!-- v156 fw2_v156_fundlist_label：Tab「总览」更名「基金列表」（用户 2026-09-20 截图指定）。纯文案：data-dc="overview" 路由键 / #dcOverviewWrap / dcExportOverviewCsv 等 id 与 JS 函数名均不动（数据契约） -->
@@ -1327,6 +1331,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
         </div>
         <div id="dcPoolWatchWrap" class="dc-pane dc-pool-mark" style="display:none"><!-- v353 fw2_v353_pool_tabs：自选基金池（watchlist-data.json + 筛选池加入，剔除已持仓/已移除） --></div>
         <div id="dcPoolScreenWrap" class="dc-pane dc-pool-mark" style="display:none"><!-- v353 fw2_v353_pool_tabs：筛选基金池（screen-pool.json 40 只候选，可加入自选/永久删除） --></div>
+        <div id="dcPoolManagerWrap" class="dc-pane dc-pool-mark" style="display:none"><!-- v569 fw2_v569_manager_pool：基金经理池（manager-pool.json 67 名，理杏仁 fmi + 持仓穿透 + 东财画像） --></div>
         <div id="dcPoolRulesWrap" class="dc-pane" style="display:none"><!-- v363 fw2_v363_pool_rules_tab：完整筛选规则文档（漏斗全流程/硬门槛/加分项/批次/族表，启用+未启用全展示，含调整规则编辑面板） --></div>
         <!-- v95 fw2_v95_drop_table_pivot：表格视图与透视视图（含其内部控件）已删除 -->
         <div id="dcChartWrap" class="dc-pane" style="display:none">
@@ -8645,10 +8650,11 @@ var LXMAP = (function () {
     '初请': 'https://fred.stlouisfed.org/series/ICSA',
     '产能利用率': 'https://fred.stlouisfed.org/series/TCU'
   };
-  /* fw2_v568_lxlink_fix：外链可达性修复（实测证据见 verify_sync v568 标记组注释）。
-     ①场内基金（ETF/LOF，理杏仁 exchange=sh|sz）详情路由前缀必须用 sh/sz，不能用 jj —— 用户实测 jj/511360 报 NotFoundError；
-     ②场内代码非 0 开头，c5 不去前导零（canonical：sh/510880/510880、sz/159949/159949）；
-     ③007866 创金合信货币C 理杏仁开放平台未收录（open.lixinger.com/api/cn/fund 批量验证 69 只缺 1）→ 不渲染外链（返回 ''，ic 自动跳过）。 */
+  /* fw2_v569_manager_pool：基金数据新增「基金经理」Tab——工作台经理池（69 只基金+筛选池历任/现任经理去重 67 名）。
+     数据链：理杏仁 cn/fund/manager 反查经理代码 → fmi 批量量化（管理/从业年限·在管/非债规模·风格·代表年化）
+     → shareholdings 持仓穿透 + industries 申万一级行业聚合 → 东财画像（生涯年化·季胜率·6月胜率·星级·踩雷）。
+     数据文件 manager-pool.json（gen_manager_pool.py 产出，已入 push 清单）。经理级评分=生涯年化35%+管理年限15%+代表年化20%+季胜率20%+6月胜率10%，踩雷×0.7/0.85。
+     经理名暂不做外链（东财档案需 mid 字段、理杏仁经理页 URL 未实测，遵 v568 铁律：未验证不链接）。 */
   var fund = function (code) {
     var c6 = String(code == null ? '' : code).replace(/\D/g, '').slice(-6);
     if (c6.length !== 6) return '';
@@ -12547,7 +12553,7 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
        留待与用户确认重设计方案后再动（本轮不做）。
      ★诚实限定：erpCard/peCard/mrgCard/vixCard 定义及其 erpSpark/peSpark/mrgSpark/vixSpark 函数已于 **v529（fw2_v529_smux P3）一并清理**（连同 erpLv/peLv/vixLv/rzyeLv 与顶部 erp/pe/margin/vix 局部变量，mi 页判读走 mcCalcCommon 不受影响）。
        数据/口径零改动，纯前端结构层；描述串「sm 去重 · 删重复估值流动性卡」入 verify_sync 标记组 */
-  if (vc) vc.textContent = 'v568 · 自选' /* fw2_v516_a500lk fw2_v517_4otc fw2_v518_hspos fw2_v519_sm_merge fw2_v520_chgflat fw2_v521_magnet fw2_v522_overview fw2_v523_sm_dedup fw2_v524_geo_fsi fw2_v525_geo_filter fw2_v526_geo_filter_removed fw2_v527_verdict fw2_v529_smux fw2_v530_datamgmt fw2_v531_sm_dmgmt fw2_v532_all_dm fw2_v533_px_long fw2_v533d_dm_scroll fw2_v534_dm_module fw2_v535_dm_auto fw2_v539_hold_realpnl fw2_v539a_seed_sync fw2_v539a_seed_order fw2_v540_hold_path fw2_v542_pf_mirror_first fw2_v542_mv_settled fw2_v542_mv_account fw2_v543_dm_holdings_note fw2_v544_ledger_mirror_guard fw2_v545_hold_total_row fw2_v546_navdate_all fw2_v547_vix_to_ovs fw2_v548_ovs_mrg fw2_v549_region_align fw2_v550_grp_tabs fw2_v551_sop_cockpit fw2_v552_sop_taborder fw2_v553_chain_data fw2_v554_sop_rename fw2_v556_market_split fw2_v557_sm_renamed fw2_v558_cbrates_fix fw2_v558a_cb_label fw2_v559_chain_dates fw2_v560_chain_verdict fw2_v561_curve_hold fw2_v562_hold_inline fw2_v563_alloc fw2_v564_lxlink fw2_v565_cal_lx fw2_v565_sub_lx fw2_v566_fund_move fw2_v567_fund_merge fw2_v568_lxlink_fix */ + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  if (vc) vc.textContent = 'v569 · 自选' /* fw2_v516_a500lk fw2_v517_4otc fw2_v518_hspos fw2_v519_sm_merge fw2_v520_chgflat fw2_v521_magnet fw2_v522_overview fw2_v523_sm_dedup fw2_v524_geo_fsi fw2_v525_geo_filter fw2_v526_geo_filter_removed fw2_v527_verdict fw2_v529_smux fw2_v530_datamgmt fw2_v531_sm_dmgmt fw2_v532_all_dm fw2_v533_px_long fw2_v533d_dm_scroll fw2_v534_dm_module fw2_v535_dm_auto fw2_v539_hold_realpnl fw2_v539a_seed_sync fw2_v539a_seed_order fw2_v540_hold_path fw2_v542_pf_mirror_first fw2_v542_mv_settled fw2_v542_mv_account fw2_v543_dm_holdings_note fw2_v544_ledger_mirror_guard fw2_v545_hold_total_row fw2_v546_navdate_all fw2_v547_vix_to_ovs fw2_v548_ovs_mrg fw2_v549_region_align fw2_v550_grp_tabs fw2_v551_sop_cockpit fw2_v552_sop_taborder fw2_v553_chain_data fw2_v554_sop_rename fw2_v556_market_split fw2_v557_sm_renamed fw2_v558_cbrates_fix fw2_v558a_cb_label fw2_v559_chain_dates fw2_v560_chain_verdict fw2_v561_curve_hold fw2_v562_hold_inline fw2_v563_alloc fw2_v564_lxlink fw2_v565_cal_lx fw2_v565_sub_lx fw2_v566_fund_move fw2_v567_fund_merge fw2_v568_lxlink_fix fw2_v569_manager_pool */ + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
@@ -14977,6 +14983,93 @@ setTimeout(() => { renderResearchChips(); if (!state.news.items.length) loadNews
     }
   }
 
+  /* —— v569 fw2_v569_manager_pool：基金经理池 Tab —— */
+  function loadManagerPool(cb){
+    if(window.MANAGER_POOL){ if(cb)cb(); return; }
+    if(window.__MP_LOADING){ if(cb){ (window.__MP_WAIT=window.__MP_WAIT||[]).push(cb); } return; }
+    window.__MP_LOADING=true;
+    var urls=['./manager-pool.json','https://raw.githubusercontent.com/andylauxiaoyang/investment-workbench/master/caifu/manager-pool.json'];
+    var i=0;
+    var done=function(){ window.__MP_LOADING=false; (window.__MP_WAIT||[]).forEach(function(f){f();}); window.__MP_WAIT=null; if(cb)cb(); };
+    (function next(){
+      if(i>=urls.length){ done(); return; }
+      fetch(urls[i],{cache:'no-store'}).then(function(r){ if(!r.ok) throw 0; return r.json(); }).then(function(j){ window.MANAGER_POOL=j; done(); }).catch(function(){ i++; next(); });
+    })();
+  }
+  /* 经理级评分：生涯年化 35% + 管理年限 15% + 代表基金年化 20% + 季胜率 20% + 6月胜率 10%；
+     踩雷 severe×0.7 / career×0.85 乘性折扣。各分项 0-100 线性映射（生涯年化 0~20%→0~100，管理年限 0~15年→0~100，
+     代表基金年化 0~30%→0~100，季胜率/6月胜率 40%~100%→0~100），满分 100 展示。 */
+  function mgrScore(m){
+    if(!m) return null;
+    function lin(v, lo, hi){ if(v==null) return null; return Math.max(0, Math.min(100, (v-lo)/(hi-lo)*100)); }
+    var sAnn=lin(m.mgrCareerAnnRet, 0, 20);
+    var sMy=lin(m.fmMy, 0, 15);
+    var sCagr=lin(m.fmRCagr, 0, 30);
+    var sWq=(m.mgrWinQ!=null)?lin(m.mgrWinQ*100, 40, 100):null;
+    var sW6=(m.mgrWin6!=null)?lin(m.mgrWin6*100, 40, 100):null;
+    var dims=[];
+    if(sAnn!=null) dims.push([sAnn, 35]);
+    if(sMy!=null) dims.push([sMy, 15]);
+    if(sCagr!=null) dims.push([sCagr, 20]);
+    if(sWq!=null) dims.push([sWq, 20]);
+    if(sW6!=null) dims.push([sW6, 10]);
+    if(!dims.length) return null;
+    var wsum=0, acc=0;
+    dims.forEach(function(d){ acc += d[0]*d[1]; wsum += d[1]; });
+    var s = acc/wsum;
+    if(m.mgrBlowup==='severe') s*=0.7;
+    else if(m.mgrBlowup==='career') s*=0.85;
+    return Math.round(s*10)/10;
+  }
+  function renderPoolManager(){
+    var wrap=$('dcPoolManagerWrap'); if(!wrap) return;
+    wrap.innerHTML='<div style="padding:24px;color:var(--muted,#94a3b8);text-align:center">加载基金经理池…</div>';
+    loadManagerPool(function(){
+      var mp=window.MANAGER_POOL;
+      if(!mp||!mp.managers){ wrap.innerHTML='<div style="padding:24px;color:var(--warn,#d97706);text-align:center">基金经理池加载失败（manager-pool.json 不可达）。</div>'; return; }
+      var list=Object.keys(mp.managers).map(function(c){ return {code:c, m:mp.managers[c]}; });
+      /* 默认按评分降序；缺评分按代表基金年化降序 */
+      list.forEach(function(r){ r._score=mgrScore(r.m); });
+      list.sort(function(a,b){
+        var sa=a._score!=null?a._score:-1, sb=b._score!=null?b._score:-1;
+        if(sa!==sb) return sb-sa;
+        return ((b.m.fmRCagr||0))-((a.m.fmRCagr||0));
+      });
+      var fmMsl=function(v){ return v?({'bond':'债','hybrid':'混合','company':'公司','QDII':'QDII','commodity':'商品'}[v]||v):'—'; };
+      var blowChip=function(m){
+        if(m.mgrBlowup==='severe') return '<span style="color:var(--up,#dc2626);font-weight:600">✕ 踩雷</span>';
+        if(m.mgrBlowup==='career') return '<span style="color:var(--amber,#d97706);font-weight:600">⚠ 跑输</span>';
+        return null;
+      };
+      var cols=[
+        {k:'mgrName', t:'经理', get:function(r){ return '<b>'+esc(r.m.name)+'</b>'; }, html:true},
+        {k:'mgrScore', t:'评分', num:true, get:function(r){ return r._score!=null?r._score.toFixed(1):null; }},
+        {k:'fmMsl', t:'风格', get:function(r){ return fmMsl(r.m.fmMsl); }},
+        {k:'fmMy', t:'管理年', num:true, get:function(r){ return r.m.fmMy!=null?Number(r.m.fmMy).toFixed(1):null; }},
+        {k:'fmWy', t:'从业年', num:true, get:function(r){ return r.m.fmWy!=null?Number(r.m.fmWy).toFixed(0):null; }},
+        {k:'fmAs', t:'在管规模(亿)', num:true, get:function(r){ return r.m.fmAs!=null?Number(r.m.fmAs).toFixed(0):null; }},
+        {k:'fmNbAs', t:'非债规模(亿)', num:true, get:function(r){ return r.m.fmNbAs!=null?Number(r.m.fmNbAs).toFixed(0):null; }},
+        {k:'fmMfn', t:'在管基金', num:true, get:function(r){ return r.m.fmMfn!=null?Number(r.m.fmMfn).toFixed(0):null; }},
+        {k:'fmRCagr', t:'代表年化%', num:true, get:function(r){ return r.m.fmRCagr!=null?Number(r.m.fmRCagr).toFixed(1):null; }},
+        {k:'mgrCareerAnnRet', t:'生涯年化%', num:true, get:function(r){ return r.m.mgrCareerAnnRet!=null?Number(r.m.mgrCareerAnnRet).toFixed(1):null; }},
+        {k:'mgrWinQ', t:'季胜率%', num:true, get:function(r){ return r.m.mgrWinQ!=null?Math.round(r.m.mgrWinQ*100):null; }},
+        {k:'mgrWin6', t:'6月胜率%', num:true, get:function(r){ return r.m.mgrWin6!=null?Math.round(r.m.mgrWin6*100):null; }},
+        {k:'mgrStar', t:'星级', get:function(r){ return (r.m.managerStar!=null&&r.m.managerStar>0)?'★'+r.m.managerStar:null; }},
+        {k:'blow', t:'警示', html:true, get:function(r){ return blowChip(r.m); }},
+        {k:'holdInd', t:'持仓风格', html:true, get:function(r){ var hi=r.m.holdInd; if(!hi||!hi.length) return null; return '<span style="color:var(--muted,#94a3b8);font-size:11px">'+esc(hi.map(function(x){return x.ind+(x.cnt>1?('×'+x.cnt):'');}).join('·'))+'</span>'; }},
+        {k:'holdDate', t:'持仓日期', get:function(r){ return r.m.holdDate||null; }},
+      ];
+      var note='<div>基金经理池（'+list.length+' 名，updatedAt '+esc(mp.updatedAt||'')+'）：工作台 69 只基金 + 筛选池历任/现任经理去重。理杏仁 fmi 量化字段（管理/从业年限·在管/非债规模·风格·代表年化）+ 东财画像（生涯年化·季胜率·6月胜率·星级·踩雷）+ 理杏仁持仓风格穿透（最近报告期申万一级行业）。评分=生涯年化35%+管理年限15%+代表年化20%+季胜率20%+6月胜率10%，踩雷乘性折扣。</div>';
+      var h=poolTableHtml(list.map(function(r){ return {code:r.code, name:r.m.name, m:r.m, _meta:{m:r.m}, _score:r._score}; }), {
+        note:note,
+        foot:'基金经理 '+list.length+' 名（按评分·代表年化排序）',
+        cols:cols,
+        nameSub:function(row){ var m=row._meta.m; var s=[]; if(m.mgrFundCnt!=null) s.push('在管 '+m.mgrFundCnt+' 只'); if(m.mgrScaleSum!=null) s.push(m.mgrScaleSum.toFixed(0)+' 亿'); if(m.fundCnt!=null) s.push('工作台相关 '+m.fundCnt+' 只'); return s.join(' · '); }
+      });
+      wrap.innerHTML=h;
+    });
+  }
+
   // 事件绑定（元素均为静态 HTML，加载即可绑定）
   // v71：视图切到 data 即触发数据加载——覆盖「桌面点击 nav 按钮」「移动端『更多』弹层 showView」等所有路径
   if (typeof showView === 'function') {
@@ -14997,13 +15090,15 @@ setTimeout(() => { renderResearchChips(); if (!state.news.items.length) loadNews
       $('dcOverviewWrap').style.display = t==='overview'?'':'none';
       var pw=$('dcPoolWatchWrap'); if(pw) pw.style.display = t==='pool-watch'?'':'none';   /* v353 fw2_v353_pool_tabs */
       var ps=$('dcPoolScreenWrap'); if(ps) ps.style.display = t==='pool-screen'?'':'none';   /* v353 */
+      var pm=$('dcPoolManagerWrap'); if(pm) pm.style.display = t==='pool-manager'?'':'none';   /* v569 */
       var pr=$('dcPoolRulesWrap'); if(pr) pr.style.display = t==='pool-rules'?'':'none';   /* v363 fw2_v363_pool_rules_tab */
       var rw=$('dcResearchWrap'); if(rw) rw.style.display = rc?'':'none';   /* v97 */
-      var bar=$('dcBar'); if(bar) bar.style.display = (rc||t==='pool-watch'||t==='pool-screen'||t==='pool-rules')?'none':'';   /* v97 + v353 + v363：三池/规则 Tab 自带操作，隐藏公共筛选栏 */
+      var bar=$('dcBar'); if(bar) bar.style.display = (rc||t==='pool-watch'||t==='pool-screen'||t==='pool-manager'||t==='pool-rules')?'none':'';   /* v97 + v353 + v363 + v569：三池/经理/规则 Tab 自带操作，隐藏公共筛选栏 */
       if(t==='overview'){ if(FB_LOADED) renderDcOverview(); else loadDcBasic().then(function(){ if(FB_LOADED) renderDcOverview(); }); }
       else if(t==='chart' && DC_LOADED){ ensureDcDaily(); renderDcChart(); }
       else if(t==='pool-watch'){ renderPoolWatch(); }   /* v353 fw2_v353_pool_tabs */
       else if(t==='pool-screen'){ renderPoolScreen(); }   /* v353 */
+      else if(t==='pool-manager'){ renderPoolManager(); }   /* v569 */
       else if(t==='pool-rules'){ renderPoolRules(); }   /* v363 fw2_v363_pool_rules_tab */
       else if(rc){ state.research.tab=rc; if(typeof fillRsPick==='function') fillRsPick(); if(typeof renderResearchChips==='function') renderResearchChips(); renderResearch(); }   /* v97 fw2_v97_research_merge */
     });
@@ -15080,6 +15175,7 @@ setTimeout(() => { renderResearchChips(); if (!state.news.items.length) loadNews
         if(t==='overview'){ renderDcOverview(); }
         else if(t==='pool-watch'){ renderPoolWatch(); }
         else if(t==='pool-screen'){ renderPoolScreen(); }
+        else if(t==='pool-manager'){ renderPoolManager(); }   /* v569 */
         else if(t==='pool-rules'){ renderPoolRules(); }   /* v363 fw2_v363_pool_rules_tab */
       });
     }
