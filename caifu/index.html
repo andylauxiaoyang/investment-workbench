@@ -1240,7 +1240,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 
 
         <div data-page-node-id="8igpq59SY0GFuNaPAZKZ8Z" class="card">
-          <div data-page-node-id="dHTFV5JGD3tvddYAo7jIQw" class="card-h"><h3 data-page-node-id="0EriX7Zf2T3BDQDPga2FHJ"><!--pnid:ZTStIdGyCQovRZteLS8h6T-->每日盈亏日历</h3><span data-page-node-id="Mk0iIfX6zUJqkTVDohd29F" class="hint" id="hdCalHint"><!--pnid:sVYN56amZ35GW1NnSmaFcp-->基于持仓日K线还原的组合每日盈亏（A股红涨绿跌）</span></div>
+          <div data-page-node-id="dHTFV5JGD3tvddYAo7jIQw" class="card-h"><h3 data-page-node-id="0EriX7Zf2T3BDQDPga2FHJ"><!--pnid:ZTStIdGyCQovRZteLS8h6T-->月度盈亏日历</h3><span data-page-node-id="Mk0iIfX6zUJqkTVDohd29F" class="hint" id="hdCalHint"><!--pnid:sVYN56amZ35GW1NnSmaFcp-->近12个月月度收益热力 + 组合收益走势（当月=当月累计盈亏）</span></div>
           <div data-page-node-id="pYL8d46xNpWV9DygsLsFXv" class="grid-2" style="align-items:stretch; gap:14px; grid-template-columns:1fr">
             <div data-page-node-id="oABDOj56iESnaaJNuQvP4h">
               <div data-page-node-id="keVQ4zEj5qgxiLmtJYH5DN" class="cal-kpi" id="hdCalKpi"></div>
@@ -5091,12 +5091,6 @@ async function renderPnlCalendar() {
       const e0 = navAt(f.trend, y, m - 1), e1 = navAt(f.trend, y, m);
       return (e0 && e1 && e1.d !== e0.d) ? +(((e1.y / e0.y) - 1) * 100).toFixed(2) : null;
     }));
-    /* 当月逐日（净值日涨跌 %） */
-    const curKey = now.getFullYear() * 100 + (now.getMonth() + 1); /* YYYYMM，与 Math.floor(dkey/100) 同构 */
-    const dayRet = funds.map((f) => f.trend
-      .filter((p) => { const k = dkey(p.d); return Math.floor(k / 100) === curKey; })
-      .map((p, i, arr) => ({ d: p.d, v: p.r != null ? p.r : (i ? +(((p.y / arr[i - 1].y) - 1) * 100).toFixed(2) : null) })));
-
     /* 组合列：持仓基金按当前市值加权（现金权重收益记 0） */
     const weightOf = {};
     let wsum = 0;
@@ -5126,7 +5120,7 @@ async function renderPnlCalendar() {
     const ymLabel = ({ y, m }) => `${y}-${String(m).padStart(2, '0')}`;
     const curMonth = portMonth[portMonth.length - 1];
     $('#hdCalKpi').innerHTML =
-      `<div class="ck"><span class="k">本月组合收益</span><span class="v ${cls(curMonth)}">${curMonth != null ? fmtPct(curMonth) : '—'}</span></div>
+      `<div class="ck"><span class="k">当月累计盈亏</span><span class="v ${cls(curMonth)}">${curMonth != null ? fmtPct(curMonth) : '—'}</span></div>
        <div class="ck"><span class="k">近12月累计</span><span class="v ${cls((cum - 1) * 100)}">${portVals.length ? fmtPct((cum - 1) * 100) : '—'}</span></div>
        <div class="ck"><span class="k">最佳月</span><span class="v up">${bestI >= 0 ? fmtPct(portMonth[bestI]) + ' (' + ymLabel(months[bestI]).slice(2) + ')' : '—'}</span></div>
        <div class="ck"><span class="k">最差月</span><span class="v down">${worstI >= 0 ? fmtPct(portMonth[worstI]) + ' (' + ymLabel(months[worstI]).slice(2) + ')' : '—'}</span></div>`;
@@ -5145,7 +5139,6 @@ async function renderPnlCalendar() {
     };
     const cellBg = (v) => v45bg(v, Math.min(1, Math.abs(v) / maxAbs));
     const cellInk = (v) => (v != null && Math.abs(v) / maxAbs > 0.7 ? 'color:#fff' : '');
-    const dayBg = (v) => v45bg(v, Math.min(1, Math.abs(v) / Math.max(0.8, maxAbs / 3)));
     const shortName = (n) => (n.length > 8 ? n.slice(0, 8) + '…' : n);
     let html = '<div class="mc-wrap"><table class="mc-table"><tr><th style="text-align:left">月份</th><th>组合</th>';
     funds.forEach((f) => (html += `<th title="${esc(f.name)}">${esc(shortName(f.name))}</th>`));
@@ -5157,12 +5150,7 @@ async function renderPnlCalendar() {
       const allVals = [portMonth[i]].concat(monthRet.map((mr) => mr[i]));
       allVals.forEach((v, ci) => {
         if (isCur) {
-          const days = ci === 0 ? null : dayRet[ci - 1];
-          if (days && days.length) {
-            html += `<td><div class="mc-days">${days.map((dd) => `<i class="mc-day" style="background:${dayBg(dd.v)}" title="${dd.d}　${dd.v != null ? fmtPct(dd.v) : '—'}"></i>`).join('')}</div></td>`;
-          } else {
-            html += `<td class="mc-cell ${v == null ? 'na' : ''}" style="${v != null ? 'background:' + cellBg(v) + ';' + cellInk(v) : ''}" title="${ci === 0 ? '按持仓市值加权估算' : ''}">${v != null ? fmtPct(v) : '—'}</td>`;
-          }
+          html += `<td class="mc-cell ${v == null ? 'na' : ''}" style="${v != null ? 'background:' + cellBg(v) + ';' + cellInk(v) : ''}" title="${ci === 0 ? '按持仓市值加权估算' : ''}">${v != null ? fmtPct(v) : '—'}</td>`;
         } else {
           html += `<td class="mc-cell ${v == null ? 'na' : ''}" style="${v != null ? 'background:' + cellBg(v) + ';' + cellInk(v) : ''}">${v != null ? fmtPct(v) : '—'}</td>`;
         }
@@ -9234,7 +9222,7 @@ body.innerHTML = (_region === 'cn' ? renderMacroToolsHtml() : (_region === 'mi' 
     <div class="chart" id="mcFx" style="height:220px"></div>
   </div>
   <div class="card">
-    <div class="card-h"><h3>VIX 恐慌指数（标普500 期权隐含波动率）</h3><span class="hint">月末点 · ${vix.length} 个</span></div>
+    <div class="card-h"><h3>VIX 恐慌指数（标普500 期权隐含波动率）${LXMAP.ic(LXMAP.index('VIX'), '理杏仁 · VIX 恐慌指数')}</h3><span class="hint">月末点 · ${vix.length} 个</span></div>
     ${_mcMeta(_mcLastOf(vix), '月末', 'CBOE VIX 月末点', 75)}
     <div class="metric-grid">
       ${metric('最新 VIX', vL != null ? fmtNum(vL, 2) : '—', vL != null && vL >= 30 ? 'v down' : '')}
@@ -9244,7 +9232,7 @@ body.innerHTML = (_region === 'cn' ? renderMacroToolsHtml() : (_region === 'mi' 
     <div class="chart" id="mcVix" style="height:180px"></div>
   </div>
   <div class="card">
-    <div class="card-h"><h3>制造业 PMI（荣枯线 50）</h3><span class="hint">月度官方值 · ${pmi.length} 个月</span></div>
+    <div class="card-h"><h3>制造业 PMI（荣枯线 50）${LXMAP.ic(LXMAP.macro('PMI'), '东财 · 官方 PMI')}</h3><span class="hint">月度官方值 · ${pmi.length} 个月</span></div>
     ${_mcMeta(_mcLastOf(pmi), '月度', '官方制造业 / 非制造业 PMI（荣枯线 50）', 75)}
     <div class="metric-grid">
       ${metric('制造业 PMI', mk != null ? fmtNum(mk, 1) : '—', mk != null && mk >= 50 ? 'v up' : mk != null && mk < 49 ? 'v down' : '')}
@@ -9255,7 +9243,7 @@ body.innerHTML = (_region === 'cn' ? renderMacroToolsHtml() : (_region === 'mi' 
     <div class="chart" id="mcPmi" style="height:200px"></div>
   </div>
   <div class="card">
-    <div class="card-h"><h3>情绪温度计：两融与成交</h3><span class="hint">月末点 · ${mrg.length} 个月${aCur ? ' · 当月成交 ' + (aCur[1] / 10000).toFixed(1) + ' 万亿（未完月）' : ''}</span></div>
+    <div class="card-h"><h3>情绪温度计：两融与成交${LXMAP.ic(LXMAP.index('两融余额'), '理杏仁 · 两融余额')}</h3><span class="hint">月末点 · ${mrg.length} 个月${aCur ? ' · 当月成交 ' + (aCur[1] / 10000).toFixed(1) + ' 万亿（未完月）' : ''}</span></div>
     ${_mcMeta(_mcLastOf(mrg), '月末', '融资余额 + 占流通市值比 + 两市月成交额分位', 75)}
     <div class="metric-grid">
       ${metric('融资余额', myYe != null ? fmtNum(myYe / 10000, 2) + ' 万亿' : '—')}
@@ -9268,7 +9256,7 @@ body.innerHTML = (_region === 'cn' ? renderMacroToolsHtml() : (_region === 'mi' 
     <div class="chart" id="mcMood" style="height:200px"></div>
   </div>
   <div class="card">
-    <div class="card-h"><h3>全A成交额（沪深京 · 近30日）</h3><span class="hint">日成交额 · 三所合计(沪+深+京) · ${amtDall.length} 个交易日${amtDunset ? ' · <b>盘中未结算</b>（抓取 ' + (amtDcap || '—') + '，非全天值；均值/区间仅计已结算日）' : ''}</span></div>
+    <div class="card-h"><h3>全A成交额（沪深京 · 近30日）${LXMAP.ic(LXMAP.index('全A成交额'), '理杏仁 · 全A成交额')}</h3><span class="hint">日成交额 · 三所合计(沪+深+京) · ${amtDall.length} 个交易日${amtDunset ? ' · <b>盘中未结算</b>（抓取 ' + (amtDcap || '—') + '，非全天值；均值/区间仅计已结算日）' : ''}</span></div>
     ${_mcMeta(amtDAsOf, '日频', '沪深京三所合计日成交额（近 30 个交易日）', 10)}
     <div class="metric-grid">
       ${metric('最新全A成交额' + (amtDunset ? '（盘中累计）' : ''), amtDtxt, amtDunset ? '' : (amtDv != null && amtDv < 15000 ? 'v down' : amtDv != null && amtDv >= 30000 ? 'v up' : ''))}
@@ -9281,7 +9269,7 @@ body.innerHTML = (_region === 'cn' ? renderMacroToolsHtml() : (_region === 'mi' 
     <div class="chart" id="mcAmtD" style="height:200px"></div>
   </div>
   <div class="card">
-    <div class="card-h"><h3>宽基估值温度（A股·中小盘）</h3><span class="hint">PE-TTM 10年分位 · 理杏仁</span></div>
+    <div class="card-h"><h3>宽基估值温度（A股·中小盘）${LXMAP.ic(LXMAP.index('中证500'), '理杏仁 · 中证500')}</h3><span class="hint">PE-TTM 10年分位 · 理杏仁</span></div>
     ${_mcMeta(_mcLastOf(broad.zz500 && broad.zz500.points), '月末', 'PE-TTM 10年分位（理杏仁，与沪深300同口径）', 75)}
     <div class="metric-grid">
       ${broad.zz500 && broad.zz500.cur ? metric('中证500', fmtNum(broad.zz500.cur[0], 1) + ' · ' + fmtNum(broad.zz500.cur[1], 0) + '%', broad.zz500.cur[1] != null && broad.zz500.cur[1] >= 80 ? 'v up' : broad.zz500.cur[1] != null && broad.zz500.cur[1] < 20 ? 'v down' : '') : ''}
@@ -9293,7 +9281,7 @@ body.innerHTML = (_region === 'cn' ? renderMacroToolsHtml() : (_region === 'mi' 
     <div class="chart" id="mcBroad" style="height:200px"></div>
   </div>
   <div class="card">
-    <div class="card-h"><h3>美股估值温度（标普500）</h3><span class="hint">标普500=理杏仁(.INX) · PE-TTM 10年分位</span></div>
+    <div class="card-h"><h3>美股估值温度（标普500）${LXMAP.ic(LXMAP.index('标普500'), '腾讯行情 · 标普500')}</h3><span class="hint">标普500=理杏仁(.INX) · PE-TTM 10年分位</span></div>
     ${_mcMeta(_mcLastOf(spxPts), '月末', '标普500(.INX) PE-TTM 10年分位（理杏仁）', 75)}
     <div class="metric-grid">
       ${spxLast ? metric('标普500 PE-TTM', fmtNum(spxLast[1], 1), '') : ''}
@@ -9305,7 +9293,7 @@ body.innerHTML = (_region === 'cn' ? renderMacroToolsHtml() : (_region === 'mi' 
   </div>
   <!-- ===== fw2_v453 宏观指标手册整合：④海外与利率 新增 2 卡 ===== -->
   <div class="card">
-    <div class="card-h"><h3>政策利率与收益率曲线</h3><span class="hint">FRED 官方 · 有效联邦基金 ${ushfFF.curDate || '—'} · SOFR · 10Y 盈亏平衡通胀</span></div>
+    <div class="card-h"><h3>政策利率与收益率曲线${LXMAP.ic('https://fred.stlouisfed.org/series/DFF', 'FRED · 有效联邦基金利率')}</h3><span class="hint">FRED 官方 · 有效联邦基金 ${ushfFF.curDate || '—'} · SOFR · 10Y 盈亏平衡通胀</span></div>
     ${_mcMeta(ushfFF.curDate, '月度', '有效联邦基金利率 · SOFR 担保隔夜融资利率 · 10Y 盈亏平衡通胀率（T10YIE）', 75)}
     <div class="metric-grid">
       ${metric('有效联邦基金', ushfFF.cur != null ? fmtNum(ushfFF.cur, 2) + '%' : '—')}
@@ -10110,14 +10098,14 @@ function renderMacroUS(d) {
     '<div class="rv-line"><span class="tag tag-data">口径</span><span>伦敦金/WTI/伦敦铜＝理杏仁现货月末价；美元指数＝理杏仁 usdx 月末；均为真实数据可追溯</span></div></div>';
   /* fw2_v448_dm_us：美国非农就业净变动（原黄金研究分区③迁入；数据读 gold-data.json nonfarm，
      FRED PAYEMS 差分 · 季调 · 千人；异步 mount 见 renderMacroUsNf） */
-  const nfCard = '<div class="card"><div class="card-h"><h3>美国非农就业净变动</h3><span class="hint">BLS / FRED（PAYEMS 差分）· 季调 · 千人 · 正=绿（就业增加）负=红（就业减少） · 数据截至 ' + esc(_dAsOf) + '</span></div>' +
+  const nfCard = '<div class="card"><div class="card-h"><h3>美国非农就业净变动' + LXMAP.ic(LXMAP.macro('非农'), '理杏仁 · 非农') + '</h3><span class="hint">BLS / FRED（PAYEMS 差分）· 季调 · 千人 · 正=绿（就业增加）负=红（就业减少） · 数据截至 ' + esc(_dAsOf) + '</span></div>' +
     '<div id="mcNfChart" class="chart" style="width:100%;height:210px"></div>' +
     '<div id="mcNfNote" style="font-size:10px;color:var(--slate-400,#94a3b8);margin-top:6px"></div></div>';
   /* fw2_v549_region_align：⑤美国周期 8 张实体卡（初请/失业率/零售/PCE/信心/耐用品/LEI/ISM；非农实体卡＝上方 nfCard）——
      自 mi 主模板⑤组迁入（mi 页⑤组改引用卡），变量与 mi 主模板同源（mcCalcCommon 解构），图表容器 id 同名由 renderMacroUSCharts 绘制 */
   const usCards = `
   <div class="card">
-    <div class="card-h"><h3>初请失业金</h3><span class="hint">周频 · 月末周值 + 4周均值 · FRED</span></div>
+    <div class="card-h"><h3>初请失业金${LXMAP.ic(LXMAP.macro('初请'), 'FRED · 初请失业金')}</h3><span class="hint">周频 · 月末周值 + 4周均值 · FRED</span></div>
     ${_mcMeta(ushfIC.curDate, '周频月末', '周度初请失业金（ICSA）· 4周均值平滑', 75)}
     <div class="metric-grid">
       ${metric('月末周初请', ushfIC.cur != null ? fmtNum(ushfIC.cur / 1000, 1) + ' 万' : '—', ushfIC.cur != null && ushfIC.cur > 250000 ? 'v down' : '')}
@@ -10127,7 +10115,7 @@ function renderMacroUS(d) {
     <div class="chart" id="mcUsIC" style="height:200px"></div>
   </div>
   <div class="card">
-    <div class="card-h"><h3>失业率 U3 / U6</h3><span class="hint">U-6 含临时工/边缘劳动力 · FRED</span></div>
+    <div class="card-h"><h3>失业率 U3 / U6${LXMAP.ic('https://fred.stlouisfed.org/series/UNRATE', 'FRED · UNRATE')}</h3><span class="hint">U-6 含临时工/边缘劳动力 · FRED</span></div>
     ${_mcMeta(ushfUR.curDate, '月度', 'U-3 官方失业率 · U-6 广义失业率（UNRATE + U6RATE）', 75)}
     <div class="metric-grid">
       ${metric('U-3 失业率', ushfUR.cur != null ? fmtNum(ushfUR.cur, 1) + '%' : '—', ushfUR.cur != null && ushfUR.cur > 5 ? 'v down' : '')}
@@ -10138,7 +10126,7 @@ function renderMacroUS(d) {
     <div class="chart" id="mcUsU6" style="height:200px"></div>
   </div>
   <div class="card">
-    <div class="card-h"><h3>零售销售</h3><span class="hint">实际零售 · 同比% · FRED</span></div>
+    <div class="card-h"><h3>零售销售${LXMAP.ic('https://fred.stlouisfed.org/series/RRSFS', 'FRED · RRSFS')}</h3><span class="hint">实际零售 · 同比% · FRED</span></div>
     ${_mcMeta(ushfRet.curDate, '月度', '实际零售销售（RRSFS）· 同比%', 75)}
     <div class="metric-grid">
       ${metric('零售同比', ushfRet.cur != null ? fmtNum(ushfRet.cur, 1) + '%' : '—', ushfRet.cur != null && ushfRet.cur < 0 ? 'v down' : ushfRet.cur != null && ushfRet.cur > 5 ? 'v up' : '')}
@@ -10147,7 +10135,7 @@ function renderMacroUS(d) {
     <div class="chart" id="mcUsRet" style="height:200px"></div>
   </div>
   <div class="card">
-    <div class="card-h"><h3>个人收入与 PCE</h3><span class="hint">PCE 同比 + 核心 PCE（美联储 2% 锚）· FRED</span></div>
+    <div class="card-h"><h3>个人收入与 PCE${LXMAP.ic('https://fred.stlouisfed.org/series/PCEPI', 'FRED · PCEPI')}</h3><span class="hint">PCE 同比 + 核心 PCE（美联储 2% 锚）· FRED</span></div>
     ${_mcMeta(ushfPce.pceDate, '月度', 'PCE 价格指数同比（PCE/PCEPI）· 核心 PCE 同比（PCEPILFE）', 75)}
     <div class="metric-grid">
       ${metric('PCE 同比', ushfPce.pceYoy != null ? fmtNum(ushfPce.pceYoy, 1) + '%' : '—')}
@@ -10158,7 +10146,7 @@ function renderMacroUS(d) {
     <div class="chart" id="mcUsPce" style="height:200px"></div>
   </div>
   <div class="card">
-    <div class="card-h"><h3>消费者信心</h3><span class="hint">密歇根 UMCSENT · FRED 官方</span></div>
+    <div class="card-h"><h3>消费者信心${LXMAP.ic('https://fred.stlouisfed.org/series/UMCSENT', 'FRED · UMCSENT')}</h3><span class="hint">密歇根 UMCSENT · FRED 官方</span></div>
     ${_mcMeta(ushfCc.curDate, '月度', '密歇根消费者信心指数 UMCSENT（FRED 官方 CSV · 1952-11 起）', 75)}
     <div class="metric-grid">
       ${metric('密歇根信心', ushfCc.cur != null ? fmtNum(ushfCc.cur, 1) : '—', ushfCc.cur != null && ushfCc.cur < 70 ? 'v down' : '')}
@@ -10168,7 +10156,7 @@ function renderMacroUS(d) {
     <div class="chart" id="mcUsCc" style="height:200px"></div>
   </div>
   <div class="card">
-    <div class="card-h"><h3>耐用品新订单</h3><span class="hint">耐用品新订单 · 同比% · FRED</span></div>
+    <div class="card-h"><h3>耐用品新订单${LXMAP.ic('https://fred.stlouisfed.org/series/DGORDER', 'FRED · DGORDER')}</h3><span class="hint">耐用品新订单 · 同比% · FRED</span></div>
     ${_mcMeta(ushfDur.curDate, '月度', '耐用品新订单（DGORDER）· 同比%', 75)}
     <div class="metric-grid">
       ${metric('耐用品同比', ushfDur.cur != null ? fmtNum(ushfDur.cur, 1) + '%' : '—', ushfDur.cur != null && ushfDur.cur < 0 ? 'v down' : '')}
@@ -10177,12 +10165,12 @@ function renderMacroUS(d) {
     <div class="chart" id="mcUsDur" style="height:200px"></div>
   </div>
   <div class="card">
-    <div class="card-h"><h3>LEI 领先指标</h3><span class="hint">谘商会 LEI</span></div>
+    <div class="card-h"><h3>LEI 领先指标${LXMAP.ic('https://fred.stlouisfed.org/series/USSLIND', 'FRED · USSLIND')}</h3><span class="hint">谘商会 LEI</span></div>
     <div class="rv-line"><span class="tag tag-data">数据</span><span>最新 ${ushfLei.cur != null ? ushfLei.cur : '—'}（${ushfLei.curDate || '—'}）· FRED 序列 2020-02 停更</span></div>
     <div class="rv-line"><span class="tag tag-ai">待通</span><span>数据通道待通（备选谘商会官网），恢复后画 LEI 月度走势</span></div>
   </div>
   <div class="card">
-    <div class="card-h"><h3>ISM 制造业 PMI</h3><span class="hint">美国 ISM 制造业 + 非制造业</span></div>
+    <div class="card-h"><h3>ISM 制造业 PMI${LXMAP.ic('https://www.ismworld.org/', 'ISM 官网')}</h3><span class="hint">美国 ISM 制造业 + 非制造业</span></div>
     ${_mcMeta(ismMfg.asOf && String(ismMfg.asOf).length === 6 ? String(ismMfg.asOf).slice(0, 4) + '-' + String(ismMfg.asOf).slice(4) : (ismMfg.asOf || null), '月度', 'ISM 制造业 / 非制造业 PMI（腾讯自选股 westock 转发 ISM 官方）', 75)}
     <div class="metric-grid">
       ${metric('制造业 PMI', ismMfg.value != null ? fmtNum(ismMfg.value, 1) : '—', ismMfg.value != null && ismMfg.value < 50 ? 'v down' : '')}
@@ -10210,7 +10198,7 @@ function renderMacroGbl(d) {
   const gblMagnet = (g && typeof window.mcMagnet === 'function') ? window.mcMagnet(g, 5) : '';
   return '<div class="dc-us-wrap">' + gblMagnet + `
   <div class="card">
-    <div class="card-h"><h3>OECD 领先指标 · 主要经济体</h3><span class="hint">OECD CLI（趋势周期调整，基准100）· 官方 SDMX 通道 · 指数口径</span></div>
+    <div class="card-h"><h3>OECD 领先指标 · 主要经济体${LXMAP.ic('https://data.oecd.org/leading-indicator/leading-indicators.htm', 'OECD 官网')}</h3><span class="hint">OECD CLI（趋势周期调整，基准100）· 官方 SDMX 通道 · 指数口径</span></div>
     ${_mcMeta(ushf.globalCli && ushf.globalCli.updatedAt, '月度', 'OECD 领先指标 CLI：美国/中国/日本/德国/英国/欧元区（EA19）· 100=长期趋势', 75)}
     <div class="rv-line"><span class="tag tag-data">读数</span><span>${Object.keys(ushfCli).map(function (k) { var r = ushfCli[k] || {}, p = (r.points && r.points.length) ? r.points[r.points.length - 1] : null; return k + ' ' + (p ? fmtNum(p[1], 1) + '（' + p[0] + '）' : '—'); }).join(' · ')}</span></div>
     <div class="rv-line"><span class="tag tag-data">阈值</span><span>CLI &gt;100 景气扩张 · &lt;100 收缩；连续下行=周期见顶回落信号（领先市场约 3-6 个月）</span></div>
@@ -10218,7 +10206,7 @@ function renderMacroGbl(d) {
     <div class="chart" id="mcOecdCli" style="height:220px"></div>
   </div>
   <div class="card">
-    <div class="card-h"><h3>韩国出口同比 · 全球景气代理</h3><span class="hint">FRED XTEXVA01KRM667S（商品出口额 · 美元计价）· 月度 · 同比 YoY</span></div>
+    <div class="card-h"><h3>韩国出口同比 · 全球景气代理${LXMAP.ic(LXMAP.macro('韩国出口'), 'FRED · 韩国出口')}</h3><span class="hint">FRED XTEXVA01KRM667S（商品出口额 · 美元计价）· 月度 · 同比 YoY</span></div>
     ${_mcMeta(ushf.krExport && ushf.krExport.asOf, '月度', '韩国出口同比（FRED XTEXVA01KRM667S）· 半导体/资本开支周期强代理（费半→台积电→韩国出口→A股电子传导链，见研读驾驶舱）', 75)}
     <div class="metric-grid">
       ${metric('最新同比', (ushf.krExport && ushf.krExport.yoy != null) ? fmtNum(ushf.krExport.yoy, 1) + '%' : '—', (ushf.krExport && ushf.krExport.yoy != null) ? (ushf.krExport.yoy >= 5 ? 'v up' : ushf.krExport.yoy <= -5 ? 'v down' : '') : '')}
@@ -12559,7 +12547,7 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
        留待与用户确认重设计方案后再动（本轮不做）。
      ★诚实限定：erpCard/peCard/mrgCard/vixCard 定义及其 erpSpark/peSpark/mrgSpark/vixSpark 函数已于 **v529（fw2_v529_smux P3）一并清理**（连同 erpLv/peLv/vixLv/rzyeLv 与顶部 erp/pe/margin/vix 局部变量，mi 页判读走 mcCalcCommon 不受影响）。
        数据/口径零改动，纯前端结构层；描述串「sm 去重 · 删重复估值流动性卡」入 verify_sync 标记组 */
-  if (vc) vc.textContent = 'v564 · 自选' /* fw2_v516_a500lk fw2_v517_4otc fw2_v518_hspos fw2_v519_sm_merge fw2_v520_chgflat fw2_v521_magnet fw2_v522_overview fw2_v523_sm_dedup fw2_v524_geo_fsi fw2_v525_geo_filter fw2_v526_geo_filter_removed fw2_v527_verdict fw2_v529_smux fw2_v530_datamgmt fw2_v531_sm_dmgmt fw2_v532_all_dm fw2_v533_px_long fw2_v533d_dm_scroll fw2_v534_dm_module fw2_v535_dm_auto fw2_v539_hold_realpnl fw2_v539a_seed_sync fw2_v539a_seed_order fw2_v540_hold_path fw2_v542_pf_mirror_first fw2_v542_mv_settled fw2_v542_mv_account fw2_v543_dm_holdings_note fw2_v544_ledger_mirror_guard fw2_v545_hold_total_row fw2_v546_navdate_all fw2_v547_vix_to_ovs fw2_v548_ovs_mrg fw2_v549_region_align fw2_v550_grp_tabs fw2_v551_sop_cockpit fw2_v552_sop_taborder fw2_v553_chain_data fw2_v554_sop_rename fw2_v556_market_split fw2_v557_sm_renamed fw2_v558_cbrates_fix fw2_v558a_cb_label fw2_v559_chain_dates fw2_v560_chain_verdict fw2_v561_curve_hold fw2_v562_hold_inline fw2_v563_alloc fw2_v564_lxlink */ + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  if (vc) vc.textContent = 'v565 · 自选' /* fw2_v516_a500lk fw2_v517_4otc fw2_v518_hspos fw2_v519_sm_merge fw2_v520_chgflat fw2_v521_magnet fw2_v522_overview fw2_v523_sm_dedup fw2_v524_geo_fsi fw2_v525_geo_filter fw2_v526_geo_filter_removed fw2_v527_verdict fw2_v529_smux fw2_v530_datamgmt fw2_v531_sm_dmgmt fw2_v532_all_dm fw2_v533_px_long fw2_v533d_dm_scroll fw2_v534_dm_module fw2_v535_dm_auto fw2_v539_hold_realpnl fw2_v539a_seed_sync fw2_v539a_seed_order fw2_v540_hold_path fw2_v542_pf_mirror_first fw2_v542_mv_settled fw2_v542_mv_account fw2_v543_dm_holdings_note fw2_v544_ledger_mirror_guard fw2_v545_hold_total_row fw2_v546_navdate_all fw2_v547_vix_to_ovs fw2_v548_ovs_mrg fw2_v549_region_align fw2_v550_grp_tabs fw2_v551_sop_cockpit fw2_v552_sop_taborder fw2_v553_chain_data fw2_v554_sop_rename fw2_v556_market_split fw2_v557_sm_renamed fw2_v558_cbrates_fix fw2_v558a_cb_label fw2_v559_chain_dates fw2_v560_chain_verdict fw2_v561_curve_hold fw2_v562_hold_inline fw2_v563_alloc fw2_v564_lxlink fw2_v565_cal_lx fw2_v565_sub_lx */ + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
