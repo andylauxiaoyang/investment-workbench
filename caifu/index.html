@@ -5499,7 +5499,7 @@ function renderHoldings() {
       const hh = healthOf(r);
       return `<tr data-code="${r.code}" data-sp-bindable="database" data-sp-database-id="GjLvwNekmiaDCgMZrhaa29">
         <td>
-          <div class="nm"><b class="lk-rs" data-rscode="${r.code}" data-rast="${r.assetType || 'fund'}">${esc(r.name)}</b></div>
+          <div class="nm"><b class="lk-rs" data-rscode="${r.code}" data-rast="${r.assetType || 'fund'}">${esc(r.name)}${r.assetType === 'fund' ? LXMAP.ic(LXMAP.fund(r.code), '理杏仁基金') : ''}</b></div>
           <div class="cd">${shortCode(r.code)} · ${r.qty} 股${r.qtyStale ? ' <span style="color:var(--warn);font-weight:600">⚠份额待核对</span>' : ''}</div>
         </td>
         <td><span class="tag">${esc(r.sector)}</span></td>
@@ -5777,6 +5777,8 @@ function openResearch(code) {
    现统一：data-rast 优先，缺省 fund；toResearchCode 对已是 f 前缀的码幂等，故
    场外基金 / 场内 ETF / 已是研究码的三种输入都能正确落到对应分支。 */
 document.addEventListener('click', function (e) {
+  var lx = e.target && e.target.closest ? e.target.closest('.lx-ic') : null;
+  if (lx && lx.dataset && lx.dataset.lx) { e.preventDefault(); e.stopPropagation(); window.open(lx.dataset.lx, '_blank'); return; }
   var el = e.target && e.target.closest ? e.target.closest('.lk-rs') : null;
   if (!el || !el.dataset || !el.dataset.rscode) return;
   openResearch(toResearchCode(el.dataset.rscode, el.dataset.rast || 'fund'));
@@ -8600,6 +8602,73 @@ function mcOvAsOf(d) {
   };
 }
 
+/* fw2_v564_lxlink：理杏仁/数据源 外链统一工厂 —— 名称旁「↗」图标，点击新标签打开对应页。
+   基金=理杏仁基金详情（会员登录后可见；未登录显示官方「此页面已暂时关闭」提示页）；
+   指数=A股理杏仁指数详情 / 海外腾讯行情；宏观指标=理杏仁宏观板块；
+   理杏仁没有的（韩国出口/核心PCE/初请/产能利用率/美债10Y）连 FRED 原页。
+   URL 均 2026-10-16 实测（理杏仁宏观板块未登录可开壳、FRED 免费直达、腾讯行情直达）。 */
+var LXMAP = (function () {
+  var I = {
+    '上证指数': 'https://www.lixinger.com/equity/index/detail/sh/000001/000001/profile',
+    '沪深300': 'https://www.lixinger.com/equity/index/detail/csi/000300/000300/profile',
+    '中证500': 'https://www.lixinger.com/equity/index/detail/csi/000905/000905/profile',
+    '中证1000': 'https://www.lixinger.com/equity/index/detail/csi/000852/000852/profile',
+    '科创50': 'https://www.lixinger.com/equity/index/detail/sh/000688/000688/profile',
+    '创业板指': 'https://www.lixinger.com/equity/index/detail/sz/399006/399006/profile',
+    '标普500': 'https://gu.qq.com/usINX/zs',
+    '纳斯达克': 'https://gu.qq.com/usIXIC/zs',
+    '恒生指数': 'https://gu.qq.com/hkHSI/zs',
+    '10年美债': 'https://fred.stlouisfed.org/series/DGS10',
+    '中债10Y': 'https://www.lixinger.com/analytics/macro/interest-rate',
+    '伦敦金': 'https://www.lixinger.com/analytics/macro/bulk-commodity',
+    'WTI原油': 'https://www.lixinger.com/analytics/macro/bulk-commodity',
+    'COMEX铜': 'https://www.lixinger.com/analytics/macro/bulk-commodity',
+    '美元指数': 'https://www.lixinger.com/analytics/macro/currency-exchange-rate',
+    'USDCNH': 'https://www.lixinger.com/analytics/macro/currency-exchange-rate',
+    'VIX': 'https://www.lixinger.com/analytics/macro/vix-fear-index',
+    'VIX 恐慌': 'https://www.lixinger.com/analytics/macro/vix-fear-index',
+    '两融余额': 'https://www.lixinger.com/analytics/macro/security-market',
+    '全A成交额': 'https://www.lixinger.com/analytics/macro/security-market'
+  };
+  var M = {
+    'GDP': 'https://www.lixinger.com/analytics/macro/gdp',
+    'CPI': 'https://www.lixinger.com/analytics/macro/price-index',
+    'PPI': 'https://www.lixinger.com/analytics/macro/price-index',
+    'PMI': 'https://data.eastmoney.com/cjsj/pmi.html',
+    'M1': 'https://www.lixinger.com/analytics/macro/money-supply',
+    'M2': 'https://www.lixinger.com/analytics/macro/money-supply',
+    'M2/社融': 'https://www.lixinger.com/analytics/macro/money-supply',
+    '银行信贷': 'https://www.lixinger.com/analytics/macro/social-financing',
+    '社融': 'https://www.lixinger.com/analytics/macro/social-financing',
+    '失业率': 'https://www.lixinger.com/analytics/macro/unemployment-rate',
+    '非农': 'https://www.lixinger.com/analytics/macro/nonfarm-payroll',
+    '社零': 'https://www.lixinger.com/analytics/macro/social-retail-consumer',
+    '财富效应/消费': 'https://www.lixinger.com/analytics/macro/social-retail-consumer',
+    '出口': 'https://www.lixinger.com/analytics/macro/foreign-trade',
+    '固投': 'https://www.lixinger.com/analytics/macro/investment-in-fixed-assets',
+    '地产/基建/制造': 'https://www.lixinger.com/analytics/macro/investment-in-fixed-assets',
+    '房地产': 'https://www.lixinger.com/analytics/macro/real-estate',
+    '70城房价': 'https://www.lixinger.com/analytics/macro/real-estate',
+    '能源': 'https://www.lixinger.com/analytics/macro/energy',
+    '利率': 'https://www.lixinger.com/analytics/macro/interest-rate',
+    '汇率': 'https://www.lixinger.com/analytics/macro/currency-exchange-rate',
+    '韩国出口': 'https://fred.stlouisfed.org/series/XTEXVA01KRM667S',
+    '核心PCE': 'https://fred.stlouisfed.org/series/PCEPILFE',
+    '初请': 'https://fred.stlouisfed.org/series/ICSA',
+    '产能利用率': 'https://fred.stlouisfed.org/series/TCU'
+  };
+  var fund = function (code) {
+    var c6 = String(code == null ? '' : code).replace(/\D/g, '').slice(-6);
+    if (c6.length !== 6) return '';
+    var c5 = c6.replace(/^0+/, '') || '0';
+    return 'https://www.lixinger.com/equity/fund/detail/jj/' + c6 + '/' + c5 + '/profile';
+  };
+  var ic = function (url, tip) {
+    if (!url) return '';
+    return '<span class="lx-ic" data-lx="' + esc(url) + '" title="' + esc(tip || '理杏仁/数据源（新标签）') + '" style="cursor:pointer;display:inline-block;margin-left:5px;font-size:10px;line-height:1.4;color:var(--brand,#4D6BFE);border:1px solid rgba(77,107,254,.5);border-radius:4px;padding:0 4px;vertical-align:1px;user-select:none;background:#fff">↗</span>';
+  };
+  return { index: function (name) { return I[name] || ''; }, macro: function (name) { return M[name] || ''; }, fund: fund, ic: ic };
+})();
 function renderMacroOverview(d) {
   var C = mcCalcCommon(d);
   mcRegisterEvidence(C);
@@ -8734,7 +8803,7 @@ function renderMacroSop(d, C) {
     var wait = o.tag === 'wait';
     var bg = wait ? '#fff7ed' : '#f0fdf4', bd = wait ? '#fcd9a8' : '#bbe7c8', tc = wait ? '#b45309' : '#0d9f4d';
     return '<div style="background:' + bg + ';border:1px solid ' + bd + ';border-radius:8px;padding:7px 9px;min-width:128px;max-width:196px;flex:1 1 128px;font-size:11px;line-height:1.55">'
-      + '<div style="font-weight:700;color:var(--ink,#0f172a);font-size:12px">' + esc(name) + ' <span style="font-size:10px;color:' + tc + ';font-weight:600">●' + (wait ? '待接' : '数据') + '</span></div>'
+      + '<div style="font-weight:700;color:var(--ink,#0f172a);font-size:12px">' + esc(name) + LXMAP.ic(LXMAP.index(name) || LXMAP.macro(name), '理杏仁/数据源') + ' <span style="font-size:10px;color:' + tc + ';font-weight:600">●' + (wait ? '待接' : '数据') + '</span></div>'
       + '<div style="color:#374151;margin-top:3px"><b>现状</b> ' + (o.now == null ? '—' : esc(o.now)) + '</div>'
       + '<div style="color:#374151"><b>过去</b> ' + (o.past == null ? '—' : esc(o.past)) + '</div>'
       + '<div style="color:#374151"><b>未来</b> ' + (o.future == null ? '—' : esc(o.future)) + '</div>'
@@ -9813,7 +9882,7 @@ function renderMacroGrowth(d) {
   const fmt = function (v) { if (!v || v.value == null) return '—'; if (v.pct) return (v.value * v.scale).toFixed(2) + '%'; if (v.unit) return (v.value * v.scale).toFixed(2) + ' ' + v.unit; return (v.value * v.scale).toFixed(2); };
   const card = function (v) { if (!v) return ''; const dis = v.available ? '' : 'opacity:.5;border-style:dashed;';
     return '<div style="display:inline-block;vertical-align:top;width:180px;margin:5px;padding:14px 14px 12px;border:1px solid #e3e8ef;border-radius:12px;background:#fff;box-shadow:0 1px 3px rgba(20,40,80,.05);' + dis + '">'
-      + '<div style="font-size:12px;color:var(--slate-500,#64748b);min-height:32px;line-height:1.35">' + esc(v.label) + '</div>'
+      + '<div style="font-size:12px;color:var(--slate-500,#64748b);min-height:32px;line-height:1.35">' + esc(v.label) + LXMAP.ic(LXMAP.macro(v.label) || LXMAP.index(v.label), '理杏仁/数据源') + '</div>'
       + '<div style="font-size:23px;font-weight:700;color:var(--slate-800,#1e293b);margin-top:6px;font-variant-numeric:tabular-nums">' + fmt(v) + '</div>'
       + '<div class="asof" style="margin-top:9px;line-height:1.45;display:flex;flex-direction:column;align-items:flex-start">数据截至 <b>' + (v.asOf || '—') + '</b><span>' + esc(v.src) + '</span></div></div>'; };
   const cards = [cn.gdp, cn.retail, cn.fai, cn.export, alt.ip, em.house70].map(card).join('');
@@ -9852,7 +9921,7 @@ function renderMacroHard(d) {
     if (!v) return '';
     const dis = v.available ? '' : 'opacity:.5;border-style:dashed;';
     return '<div style="display:inline-block;vertical-align:top;width:180px;margin:5px;padding:14px 14px 12px;border:1px solid #e3e8ef;border-radius:12px;background:#fff;box-shadow:0 1px 3px rgba(20,40,80,.05);' + dis + '">'
-      + '<div style="font-size:12px;color:var(--slate-500,#64748b);min-height:32px;line-height:1.35">' + esc(v.label) + '</div>'
+      + '<div style="font-size:12px;color:var(--slate-500,#64748b);min-height:32px;line-height:1.35">' + esc(v.label) + LXMAP.ic(LXMAP.macro(v.label) || LXMAP.index(v.label), '理杏仁/数据源') + '</div>'
       + '<div style="font-size:23px;font-weight:700;color:var(--slate-800,#1e293b);margin-top:6px;font-variant-numeric:tabular-nums">' + fmt(v) + '</div>'
       + '<div class="asof" style="margin-top:9px;line-height:1.45;display:flex;flex-direction:column;align-items:flex-start">数据截至 <b>' + (v.asOf || '—') + '</b><span>' + esc(v.src) + '</span></div>'
       + '</div>';
@@ -11090,7 +11159,7 @@ function pxRowHtml(d, a, it, kl) {
     return '<td style="' + td + ';text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums;' + cls + '">' + txt + '</td>';
   }).join('');
   return '<tr data-px="' + a.id + '" style="cursor:pointer">' +
-    '<td style="' + td + ';font-weight:600;color:var(--ink,#0f172a);white-space:nowrap">' + esc(a.label) + (isMf ? ' <span style="font-size:9px;color:var(--slate-400,#94a3b8);font-weight:400">月频</span>' : '') + '</td>' +
+    '<td style="' + td + ';font-weight:600;color:var(--ink,#0f172a);white-space:nowrap">' + esc(a.label) + LXMAP.ic(LXMAP.index(a.label), '理杏仁/数据源') + (isMf ? ' <span style="font-size:9px;color:var(--slate-400,#94a3b8);font-weight:400">月频</span>' : '') + '</td>' +
     '<td style="' + td + ';text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums">' + curTxt + '</td>' +
     '<td style="' + td + ';text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums;' + dCls + '">' + dTxt + '</td>' +
     '<td style="' + td + ';text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums;' + m1Cls + '">' + m1Txt + '</td>' +
@@ -12490,7 +12559,7 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
        留待与用户确认重设计方案后再动（本轮不做）。
      ★诚实限定：erpCard/peCard/mrgCard/vixCard 定义及其 erpSpark/peSpark/mrgSpark/vixSpark 函数已于 **v529（fw2_v529_smux P3）一并清理**（连同 erpLv/peLv/vixLv/rzyeLv 与顶部 erp/pe/margin/vix 局部变量，mi 页判读走 mcCalcCommon 不受影响）。
        数据/口径零改动，纯前端结构层；描述串「sm 去重 · 删重复估值流动性卡」入 verify_sync 标记组 */
-  if (vc) vc.textContent = 'v563 · 自选' /* fw2_v516_a500lk fw2_v517_4otc fw2_v518_hspos fw2_v519_sm_merge fw2_v520_chgflat fw2_v521_magnet fw2_v522_overview fw2_v523_sm_dedup fw2_v524_geo_fsi fw2_v525_geo_filter fw2_v526_geo_filter_removed fw2_v527_verdict fw2_v529_smux fw2_v530_datamgmt fw2_v531_sm_dmgmt fw2_v532_all_dm fw2_v533_px_long fw2_v533d_dm_scroll fw2_v534_dm_module fw2_v535_dm_auto fw2_v539_hold_realpnl fw2_v539a_seed_sync fw2_v539a_seed_order fw2_v540_hold_path fw2_v542_pf_mirror_first fw2_v542_mv_settled fw2_v542_mv_account fw2_v543_dm_holdings_note fw2_v544_ledger_mirror_guard fw2_v545_hold_total_row fw2_v546_navdate_all fw2_v547_vix_to_ovs fw2_v548_ovs_mrg fw2_v549_region_align fw2_v550_grp_tabs fw2_v551_sop_cockpit fw2_v552_sop_taborder fw2_v553_chain_data fw2_v554_sop_rename fw2_v556_market_split fw2_v557_sm_renamed fw2_v558_cbrates_fix fw2_v558a_cb_label fw2_v559_chain_dates fw2_v560_chain_verdict fw2_v561_curve_hold fw2_v562_hold_inline fw2_v563_alloc */ + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  if (vc) vc.textContent = 'v564 · 自选' /* fw2_v516_a500lk fw2_v517_4otc fw2_v518_hspos fw2_v519_sm_merge fw2_v520_chgflat fw2_v521_magnet fw2_v522_overview fw2_v523_sm_dedup fw2_v524_geo_fsi fw2_v525_geo_filter fw2_v526_geo_filter_removed fw2_v527_verdict fw2_v529_smux fw2_v530_datamgmt fw2_v531_sm_dmgmt fw2_v532_all_dm fw2_v533_px_long fw2_v533d_dm_scroll fw2_v534_dm_module fw2_v535_dm_auto fw2_v539_hold_realpnl fw2_v539a_seed_sync fw2_v539a_seed_order fw2_v540_hold_path fw2_v542_pf_mirror_first fw2_v542_mv_settled fw2_v542_mv_account fw2_v543_dm_holdings_note fw2_v544_ledger_mirror_guard fw2_v545_hold_total_row fw2_v546_navdate_all fw2_v547_vix_to_ovs fw2_v548_ovs_mrg fw2_v549_region_align fw2_v550_grp_tabs fw2_v551_sop_cockpit fw2_v552_sop_taborder fw2_v553_chain_data fw2_v554_sop_rename fw2_v556_market_split fw2_v557_sm_renamed fw2_v558_cbrates_fix fw2_v558a_cb_label fw2_v559_chain_dates fw2_v560_chain_verdict fw2_v561_curve_hold fw2_v562_hold_inline fw2_v563_alloc fw2_v564_lxlink */ + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
@@ -12657,7 +12726,7 @@ function renderSignalDash() {
       const L = LVL[r.lvl] || LVL.watch;
       const curColor = r.lvl === 'act' ? 'var(--up)' : r.lvl === 'near' ? 'var(--warn)' : 'var(--text)';
       /* v324 fw2_v324_target_grp：标卡内行 showName=false → 省略 name/code 行，st-top 直接显示信号名（标头已含基金名） */
-      const nameHtml = showName === false ? '' : (r.noLink ? '<b>' + esc(r.name) + '</b>' : '<b class="lk-rs" data-rscode="' + esc(r.code) + '" style="cursor:pointer">' + esc(r.name) + '</b>');
+      const nameHtml = showName === false ? '' : (r.noLink ? '<b>' + esc(r.name) + '</b>' : '<b class="lk-rs" data-rscode="' + esc(r.code) + '" style="cursor:pointer">' + esc(r.name) + LXMAP.ic(LXMAP.fund(r.code), '理杏仁基金') + '</b>');
       return '<div class="sig-tile' + (r.lvl === 'act' ? ' t-act' : r.lvl === 'near' ? ' t-near' : ' t-watch') + '"' + dim + '>'
         + '<div class="st-top">' + (showName === false ? '<span class="st-name" style="opacity:.5;font-size:11.5px">' + esc(r.sig) + '</span>' : '<span class="st-name">' + nameHtml + '</span>')
         + '<span class="st-badge" style="background:' + L[2] + ';color:' + L[3] + '">' + L[0] + '</span></div>'
@@ -12771,7 +12840,7 @@ function renderSignalDash() {
           const tWatch = t.rows.filter((r) => r.lvl === 'watch');
           return '<div class="sig-target" style="border:1px solid ' + T[2] + 'aa;border-left:3px solid ' + T[2] + ';border-radius:10px;background:#fff;padding:8px 10px;margin-bottom:8px">'
             + '<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding-bottom:6px;margin-bottom:6px;border-bottom:1px dashed var(--line,#e3e7ee)">'
-            + '<b class="lk-rs" data-rscode="' + esc(t.code) + '" style="cursor:pointer;font-size:13px">' + esc(t.name) + '</b>'
+            + '<b class="lk-rs" data-rscode="' + esc(t.code) + '" style="cursor:pointer;font-size:13px">' + esc(t.name) + LXMAP.ic(LXMAP.fund(t.code), '理杏仁基金') + '</b>'
             + (String(t.code) !== 'T10' && main !== '筛选信号' && PILE_LABEL[_pileOf(t)] ? '<span style="display:inline-block;font-size:10.5px;padding:1px 6px;border-radius:5px;background:' + PILE_LABEL[_pileOf(t)][1] + ';color:' + PILE_LABEL[_pileOf(t)][2] + ';white-space:nowrap">' + PILE_LABEL[_pileOf(t)][0] + '</span>' : '')
             + (String(t.code) !== 'T10' ? '<span class="muted" style="font-size:11.5px">' + esc(t.code) + '</span>' : '')
             + '<span style="display:inline-block;background:' + T[2] + ';color:' + T[1] + ';font-size:11px;padding:1px 7px;border-radius:6px;font-weight:600">最高·' + T[0] + '</span>'
@@ -14194,7 +14263,7 @@ setTimeout(() => { renderResearchChips(); if (!state.news.items.length) loadNews
         else if(c.k==='scale'||c.k==='fee'||c.k==='aum'){ h += '<td class="'+cls+'">'+(v==null?'—':(+v).toFixed(2))+'</td>'; }
         else if(c.risk){ h += '<td class="'+(cls+(c.k==='mdd'&&v!=null&&v<0?' neg':'')).trim()+'" title="推断·自算，全历史·月频；分红型按累计净值">'+(v==null?'—':v.toFixed(2))+'</td>'; }
         else if(c.k==='liq'){ h += '<td class="'+(liqCls(v)+' '+cls).trim()+'" title="按规模派生评估，非官方判定">'+(v||'—')+'</td>'; }
-        else if(c.k==='name'){ h += '<td class="'+cls+'" title="点击进基金透视：'+esc(v||'')+'"><div class="tdclip"><b class="lk-rs" data-rscode="'+esc(r.code)+'" data-rast="fund">'+esc(v||'')+'</b></div></td>'; }   /* fw2_v383_pool_name_clip + fw2_v406_name_link：名称可点，跳基金透视 */
+        else if(c.k==='name'){ h += '<td class="'+cls+'" title="点击进基金透视：'+esc(v||'')+'"><div class="tdclip"><b class="lk-rs" data-rscode="'+esc(r.code)+'" data-rast="fund">'+esc(v||'')+LXMAP.ic(LXMAP.fund(r.code),'理杏仁基金')+'</b></div></td>'; }   /* fw2_v383_pool_name_clip + fw2_v406_name_link：名称可点，跳基金透视 + fw2_v564_lxlink */
         else if(c.k==='mgr'||c.k==='estab'){ h += '<td class="'+cls+'">'+esc(v||'')+'</td>'; }
         else { h += '<td class="'+cls+'">'+(v==null?'—':esc(v))+'</td>'; }
       });
@@ -14314,7 +14383,7 @@ setTimeout(() => { renderResearchChips(); if (!state.news.items.length) loadNews
         else if(c.k==='liq'){ h+='<td class="'+(liqCls(v)+' '+cls).trim()+'" title="按规模派生评估，非官方判定">'+(v||'—')+'</td>'; }
         else if(c.k==='name'||c.k==='mgr'||c.k==='estab'){
           var cell;
-          if(c.k==='name'){ cell='<div class="tdclip" title="点击进基金透视：'+esc(v||'')+'"><b class="lk-rs" data-rscode="'+esc(r.code)+'" data-rast="fund">'+esc(v||'')+'</b></div>'; }   /* fw2_v383_pool_name_clip + fw2_v406_name_link */
+          if(c.k==='name'){ cell='<div class="tdclip" title="点击进基金透视：'+esc(v||'')+'"><b class="lk-rs" data-rscode="'+esc(r.code)+'" data-rast="fund">'+esc(v||'')+LXMAP.ic(LXMAP.fund(r.code),'理杏仁基金')+'</b></div>'; }   /* fw2_v383_pool_name_clip + fw2_v406_name_link + fw2_v564_lxlink */
           else { cell=esc(v||''); }
           if(c.k==='name' && o.nameSub){
             var sub=o.nameSub(r);
@@ -17151,7 +17220,7 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
       var _am = _allocMap[p.code];
       var info = (g && g.gap > 0) ? '<div style="font-size: 11px;color:var(--muted);margin-top:2px">实时缺口 ' + fmt(Math.round(g.gap)) + ' · 本月建议 ' + (_am != null ? fmt(_am) : fmt(lm)) + '</div>' : '';
       var _bcell = (p.code === '020712') ? '日定投 10/日（限额）' : ((_am != null) ? fmt(_am) : esc(p.build));
-      html += '<tr><td><div class="nm"><b class="lk-rs" data-rscode="' + p.code + '">' + esc(p.name) + '</b></div><div class="cd">' + p.code + '</div>' + info + '</td>' +
+      html += '<tr><td><div class="nm"><b class="lk-rs" data-rscode="' + p.code + '">' + esc(p.name) + LXMAP.ic(LXMAP.fund(p.code), '理杏仁基金') + '</b></div><div class="cd">' + p.code + '</div>' + info + '</td>' +
         '<td><div class="qty">' + esc(_bcell) + '</div></td><td>' + esc(p.normal) + '</td><td>' + esc(p.dbl) + '</td><td>' + esc(p.src) + '</td></tr>';
     });
     html += '</tbody></table></div></div>';
