@@ -1809,7 +1809,13 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
            openInstA），独立版无残留价值：外链删除、push_gh FILES 两条移除、_embed_v186_assets
            13F b64 处理移除、verify_sync sync pair 移除、gen_fast_signals.load_cn_names 改读本文件；
            本地三文件归档 _retired_v519_smartmoney/，远端 GH caifu/smartmoney/ 两文件删除。 -->
+      <!-- fw2_v562_hold_inline:start -->
       <script>
+      window.HOLDINGS_SEED = {"syncedAt":"2026-10-15T21:45:18+0800","source":"天天基金 ttskill CLI（ACCOUNT_HOLDING 登录态实时查询 holding_total/holding_list/holding_hqb，marketValue/收益/总资产=账户权威）+ 东财 lsjz × 天天基金 pingzhongdata 公开净值API双通道；份额只随新对账单经 rebuild_holdings.py 重建，勿手改。","total":20056.57,"holdings":[{"name":"招商行业精选股票基金","code":"000746","shares":16.34,"unitCost":6.12,"cost":100.0,"assetType":"fund","sector":"主动权益","buyDate":"2025-07-25","nav":5.888,"navDate":"2026-10-15","marketValue":96.21,"chg":"-1.52","dailyProfit":"-1.49","holdProfit":"-3.79","holdProfitRate":"-3.79%","constantProfit":"-3.79","constantProfitRate":"-3.79%"},{"name":"华夏沪深300指数增强A","code":"001015","shares":875.13,"unitCost":2.2879,"cost":2002.25,"assetType":"fund","sector":"宽基指数","buyDate":"2026-08-10","nav":2.105,"navDate":"2026-10-15","marketValue":1842.15,"chg":"-1.31","dailyProfit":"-24.50","holdProfit":"-158.92","holdProfitRate":"-7.94%","constantProfit":"-158.92","constantProfitRate":"-7.94%"},{"name":"创金合信货币C","code":"007866","shares":0.14,"unitCost":1.0,"cost":0.14,"assetType":"fund","sector":"现金管理","buyDate":"2026-09-09","nav":1.0,"navDate":"2026-10-15","marketValue":0.14,"annual7D":"1.217","unitAccrual":"0.3358"},{"name":"易方达全球成长精选混合(QDII)人民币A","code":"012920","shares":5045.18,"unitCost":2.6164,"cost":13200.21,"assetType":"fund","sector":"海外权益","buyDate":"2025-11-24","nav":3.4578,"navDate":"2026-10-14","marketValue":17445.22,"chg":"-3.16","dailyProfit":"-569.60","holdProfit":"4245.22","holdProfitRate":"32.16%","constantProfit":"4245.22","constantProfitRate":"32.16%"},{"name":"南方纳斯达克100指数发起(QDII)A","code":"016452","shares":4.42,"unitCost":2.2624,"cost":10.0,"assetType":"fund","sector":"海外权益","buyDate":"2025-06-25","nav":2.3049,"navDate":"2026-10-14","marketValue":10.19,"chg":"-2.01","dailyProfit":"-0.21","holdProfit":"0.19","holdProfitRate":"1.90%","constantProfit":"0.19","constantProfitRate":"1.90%"},{"name":"万家纳斯达克100指数发起式(QDII)A","code":"019441","shares":65.65,"unitCost":1.6757,"cost":110.01,"assetType":"fund","sector":"海外权益","buyDate":"2026-09-16","nav":1.7345,"navDate":"2026-10-13","marketValue":111.61,"chg":-0.32,"dailyProfit":"-2.26","holdProfit":"1.61","holdProfitRate":"1.46%","constantProfit":"1.61","constantProfitRate":"1.46%"},{"name":"华安三菱日联日经225ETF发起式联接(QDII)A","code":"020712","shares":27.77,"unitCost":null,"cost":30.03,"assetType":"fund","sector":"海外权益","buyDate":"2026-10-08","nav":1.3742,"navDate":"2026-10-15","marketValue":67.26,"chg":"-4.38","dailyProfit":"-2.63","holdProfit":"-2.74","holdProfitRate":"-4.57%","constantProfit":"-2.74","constantProfitRate":"-4.57%"},{"name":"华泰柏瑞中证A500ETF联接A","code":"022438","shares":439.37,"unitCost":1.1387,"cost":500.3,"assetType":"fund","sector":"宽基指数","buyDate":"2026-10-13","nav":1.1011,"navDate":"2026-10-15","marketValue":483.79,"chg":"-1.55","dailyProfit":"-7.60","holdProfit":"-16.21","holdProfitRate":"-3.24%","constantProfit":"-16.21","constantProfitRate":"-3.24%"}]};
+      </script>
+      <!-- fw2_v562_hold_inline:end -->
+      <script>
+      
       /* fw2_v496_speed：静态数据 bundle —— holdings/watchlist/macro/gold 四合一，首屏少 3 个请求（data/meta-bundle.json，_make_bundle.py 生成） */
       window.__mbp = null;
       window.mbGet = function (key) {
@@ -4075,12 +4081,21 @@ function applySeed(j, tag) {
   return true;
 }
 async function fetchSeedFile() {
+  /* v562 fw2_v562_hold_inline：直连小文件 holdings-data.json 优先（4.4KB 秒下），
+     失败/超时再退 meta-bundle 四合一（662KB，慢网 CDN 下 6s 拿不到曾致持仓回退旧草稿） */
   try {
     var j = await Promise.race([
-      mbGet('holdings'),
-      new Promise(function (_, rej) { setTimeout(function () { rej(new Error('seed 超时(6s)')); }, 6000); }),
+      fetch('holdings-data.json', { cache: 'no-cache' }).then(function (r) { return r.ok ? r.json() : null; }),
+      new Promise(function (_, rej) { setTimeout(function () { rej(new Error('holdings 超时(8s)')); }, 8000); }),
     ]);
     if (j) { if (applySeed(j, 'file')) return true; }
+  } catch (e) { /* 直连不可用：退 meta-bundle */ }
+  try {
+    var j2 = await Promise.race([
+      mbGet('holdings'),
+      new Promise(function (_, rej) { setTimeout(function () { rej(new Error('seed 超时(12s)')); }, 12000); }),
+    ]);
+    if (j2) { if (applySeed(j2, 'file')) return true; }
   } catch (e) { /* 旁挂快照不可用：保持内嵌种子 */ }
   return false;
 }
@@ -4610,6 +4625,7 @@ function buildRows() {
       totCny: totLocal != null ? totLocal * fx : null,
       totPct: _hprR != null ? _hprR : (costLocal ? ((totLocal || 0) / costLocal) * 100 : null),
       status: tradeStatus(market, quote, h.navDate), /* v546 fw2_v546_navdate_all：传持仓 navDate 兜底（货币基金无行情快照） */
+      navDate: h.navDate || '', /* v562 fw2_v562_hold_inline：净值日期透传（ttskill 同步时点已结算净值日期） */
       quoteTime: quote ? quote.time : '',
     };
   });
@@ -5462,7 +5478,8 @@ function renderHoldings() {
     ${kpi('当日盈亏', fmtMoney(totals.day, true), fmtPct(totals.dayPct), cls(totals.day))}
     <!-- fw2_v114_kpi_order: 持仓市值 > 持仓成本 > 总盈亏 > 当日盈亏 -->
     <!-- fw2_v475_hold_date：持仓 KPI 区补数据截至（行情快照时间+净值日更+成本用户录入，死规则②审计） -->
-    <div class="asof" style="margin-top:2px">数据截至 <b>${((state.snapshot && state.snapshot.at) ? fmtClock(state.snapshot.at) : '未更新')}</b>（行情快照）· 净值随 fund-daily 日更 · 成本/份额为用户录入</div>
+    <!-- v562 fw2_v562_hold_inline：数据截至改以 ttskill 持仓同步时间为准（syncedAt），净值日期见净值列 -->
+    <div class="asof" style="margin-top:2px">持仓同步于 <b>${(state._pfAt || '').slice(0, 16).replace('T', ' ') || '未同步'}</b>（天天基金账户 · 每晚自动）· 行情快照 ${((state.snapshot && state.snapshot.at) ? fmtClock(state.snapshot.at) : '未更新')} · 成本/份额=账户口径</div>
     `;
 
 
@@ -5494,7 +5511,7 @@ function renderHoldings() {
           <div class="sub-line ${cls(r.totPct)}">${fmtPct(r.totPct)}</div></td>
         <td class="num ${cls(day)}">${day == null ? '—' : unit + fmtMoney(day, true)}</td>
         <td class="num">${fmtNum(r.cost, r.cost < 10 ? 3 : 2)}</td>
-        <td class="num ${cls(r.pct)}">${r.price == null ? '—' : fmtNum(r.price, r.price < 10 ? 3 : 2)}</td>
+        <td class="num ${cls(r.pct)}">${r.price == null ? '—' : fmtNum(r.price, r.price < 10 ? 3 : 2)}<div class="sub-line" style="font-size:10.5px;color:var(--muted)">${r.navDate ? esc(r.navDate.slice(5)) : '—'}</div></td>
         <td class="num ${cls(r.pct)}">${fmtPct(r.pct)}</td>
         <td class="num">${r.weight.toFixed(2)}%</td>
         <td class="num"><canvas class="spark" width="78" height="24" data-code="${r.code}"></canvas></td>
@@ -12474,7 +12491,7 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
        留待与用户确认重设计方案后再动（本轮不做）。
      ★诚实限定：erpCard/peCard/mrgCard/vixCard 定义及其 erpSpark/peSpark/mrgSpark/vixSpark 函数已于 **v529（fw2_v529_smux P3）一并清理**（连同 erpLv/peLv/vixLv/rzyeLv 与顶部 erp/pe/margin/vix 局部变量，mi 页判读走 mcCalcCommon 不受影响）。
        数据/口径零改动，纯前端结构层；描述串「sm 去重 · 删重复估值流动性卡」入 verify_sync 标记组 */
-  if (vc) vc.textContent = 'v561 · 自选' /* fw2_v516_a500lk fw2_v517_4otc fw2_v518_hspos fw2_v519_sm_merge fw2_v520_chgflat fw2_v521_magnet fw2_v522_overview fw2_v523_sm_dedup fw2_v524_geo_fsi fw2_v525_geo_filter fw2_v526_geo_filter_removed fw2_v527_verdict fw2_v529_smux fw2_v530_datamgmt fw2_v531_sm_dmgmt fw2_v532_all_dm fw2_v533_px_long fw2_v533d_dm_scroll fw2_v534_dm_module fw2_v535_dm_auto fw2_v539_hold_realpnl fw2_v539a_seed_sync fw2_v539a_seed_order fw2_v540_hold_path fw2_v542_pf_mirror_first fw2_v542_mv_settled fw2_v542_mv_account fw2_v543_dm_holdings_note fw2_v544_ledger_mirror_guard fw2_v545_hold_total_row fw2_v546_navdate_all fw2_v547_vix_to_ovs fw2_v548_ovs_mrg fw2_v549_region_align fw2_v550_grp_tabs fw2_v551_sop_cockpit fw2_v552_sop_taborder fw2_v553_chain_data fw2_v554_sop_rename fw2_v556_market_split fw2_v557_sm_renamed fw2_v558_cbrates_fix fw2_v558a_cb_label fw2_v559_chain_dates fw2_v560_chain_verdict fw2_v561_curve_hold */ + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  if (vc) vc.textContent = 'v562 · 自选' /* fw2_v516_a500lk fw2_v517_4otc fw2_v518_hspos fw2_v519_sm_merge fw2_v520_chgflat fw2_v521_magnet fw2_v522_overview fw2_v523_sm_dedup fw2_v524_geo_fsi fw2_v525_geo_filter fw2_v526_geo_filter_removed fw2_v527_verdict fw2_v529_smux fw2_v530_datamgmt fw2_v531_sm_dmgmt fw2_v532_all_dm fw2_v533_px_long fw2_v533d_dm_scroll fw2_v534_dm_module fw2_v535_dm_auto fw2_v539_hold_realpnl fw2_v539a_seed_sync fw2_v539a_seed_order fw2_v540_hold_path fw2_v542_pf_mirror_first fw2_v542_mv_settled fw2_v542_mv_account fw2_v543_dm_holdings_note fw2_v544_ledger_mirror_guard fw2_v545_hold_total_row fw2_v546_navdate_all fw2_v547_vix_to_ovs fw2_v548_ovs_mrg fw2_v549_region_align fw2_v550_grp_tabs fw2_v551_sop_cockpit fw2_v552_sop_taborder fw2_v553_chain_data fw2_v554_sop_rename fw2_v556_market_split fw2_v557_sm_renamed fw2_v558_cbrates_fix fw2_v558a_cb_label fw2_v559_chain_dates fw2_v560_chain_verdict fw2_v561_curve_hold fw2_v562_hold_inline */ + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
@@ -17821,6 +17838,12 @@ function renderHoldings() {
     el.innerHTML = '<div class="cb-empty"><div class="big">· · ·</div><div class="txt">暂无标的，点"新增标的"建立台账</div></div>';
     return;
   }
+  /* v562 fw2_v562_hold_inline：标的明细顶部数据日期行（ttskill 持仓同步时间 + 口径说明） */
+  const _pfAt2 = (typeof state !== "undefined" && state && state._pfAt) ? String(state._pfAt).slice(0, 16).replace("T", " ") : "";
+  const _pfNote2 = _pfAt2
+    ? '持仓数据同步于 <b>' + _pfAt2 + '</b>（天天基金账户 · 每晚自动）· 份额/成本=台账流水口径，与账户不一致时以天天基金为准（发最新对账单可重建）'
+    : '持仓镜像未同步 · 点右上「同步持仓」刷新';
+  const _asofBar = '<div class="muted" style="font-size:11px;padding:4px 2px 6px;line-height:1.5">' + _pfNote2 + '</div>';
   const head = "<colgroup><col style='width:9%'><col style='width:20%'><col style='width:11%'><col style='width:10%'><col style='width:8%'><col style='width:10%'><col style='width:10%'><col style='width:10%'><col style='width:12%'></colgroup>" +
     "<tr><th>代码</th><th>名称</th><th>类别</th><th>市场</th><th>状态</th><th>成本</th><th>市值</th><th>盈亏</th><th>操作</th></tr>";
   let totalCost = 0, totalMv = 0, totalPnl = 0;
@@ -17833,7 +17856,7 @@ function renderHoldings() {
     totalCost += st.costBasis; totalMv += mv; totalPnl += pnl;
     const sub = t.status === "off"
       ? '<span class="muted" style="font-size:10.5px">清盘 ' + esc(t.offDate || "") + "</span>"
-      : '<span class="muted" style="font-size:10.5px">净值 ' + fmt(nav, 3) + "</span>";
+      : '<span class="muted" style="font-size:10.5px">净值 ' + fmt(nav, 3) + (_pfAt2 ? " · 同步 " + _pfAt2.slice(5, 10) : "") + "</span>";
     return "<tr class='cb-clickable' data-target-id='" + t.id + "'>" +
       "<td class='num'>" + esc(t.code || "—") + "</td>" +
       "<td>" + esc(t.name) + "<br>" + sub + "</td>" +
@@ -17853,7 +17876,7 @@ function renderHoldings() {
     "<td class='num'>" + fmt(totalCost) + "</td>" +
     "<td class='num'>" + fmt(totalMv) + "</td>" +
     '<td class="num ' + pnlCls(totalPnl) + '">' + (totalPnl >= 0 ? "+" : "") + fmt(totalPnl) + "</td><td></td></tr>";
-  el.innerHTML = '<div class="cb-tbl-wrap"><table class="cb-tbl">' + head + body + totalRow + "</table></div>";
+  el.innerHTML = _asofBar + '<div class="cb-tbl-wrap"><table class="cb-tbl">' + head + body + totalRow + "</table></div>";
   el.querySelectorAll("[data-edit-t]").forEach(function (b) { b.onclick = function () { openTargetForm(b.dataset.editT); }; });
   el.querySelectorAll("[data-nav-t]").forEach(function (b) { b.onclick = function () { openNavForm(b.dataset.navT); }; });
   el.querySelectorAll("[data-del-t]").forEach(function (b) { b.onclick = function () { delTarget(b.dataset.delT); }; });
@@ -18728,7 +18751,8 @@ function maybeAutoSync() {
     const missing2 = wb.filter(function (h) { return !mine2[normCode(h.code)]; }).length;
     syncInfo2.textContent = "已自动同步：新增 " + (r2 ? (r2.added || 0) : 0) + " 只 · 净值刷新 "
       + (r2 ? (r2.filled || 0) : 0) + " 只（收盘价口径）"
-      + (missing2 ? " · 仍有 " + missing2 + " 只未入账" : "");
+      + (missing2 ? " · 仍有 " + missing2 + " 只未入账" : "")
+      + ((typeof state !== "undefined" && state && state._pfAt) ? " · 持仓同步 " + String(state._pfAt).slice(0, 10) : ""); /* v562 fw2_v562_hold_inline：同步状态行补数据日期 */
   }
 }
 
