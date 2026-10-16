@@ -8996,7 +8996,9 @@ function renderMacro() {
   fillMacroTabs();
   if (_region === 'us') { mcRegisterEvidence(mcCalcCommon(d)); body.innerHTML = renderMacroUS(d); renderMacroUSCharts(); return; }   /* fw2_v549_region_align：美国周期页＝康波+FSI+非农+⑤组9项硬指标全集（实体卡从 mi ⑤组迁入，mi 页⑤组改引用卡）；证据注册先于渲染（磁铁需 __MC_EV） */
   if (_region === 'gbl') { mcRegisterEvidence(mcCalcCommon(d)); body.innerHTML = renderMacroGbl(d); renderMacroGblCharts(); return; }  /* fw2_v549_region_align：海外景气页＝⑥全球景气非美实体卡（韩国出口/OECD/BDI日银/PMI合成，mi 页⑥组改引用卡） */
-  if (_region === 'sm') { body.innerHTML = renderMacroSentiment(d); return; }
+  if (_region === 'sm') { body.innerHTML = renderMacroSentiment(d);
+    pxDrawFundCharts({ rzye: { mfPts: (d.margin && d.margin.points) || [] }, amt: { mfPts: (d.amtD && d.amtD.points) || [] } });   /* fw2_v566_fund_move：资金面双图数据源=d.margin/d.amtD（与 px 同源，不重复抓取） */
+    return; }
   /* fw2_v432 资产价格监控：19 项全景 · 磁贴+分区表+弹层走势 · 周期/持仓/信号三联动 */
   if (_region === 'px') { renderPriceMon(d); return; }
   /* fw2_v551_sop_cockpit：⑦判读SOP 升级为研读驾驶舱（指引+现状+判断+链接）——直接渲染 renderMacroSop，不再走大模板三步法静态卡（旧静态卡无显示路径）；证据注册先于渲染（①定调需 __MC_EV 磁铁计数） */
@@ -9856,6 +9858,7 @@ function renderMacroSentiment(d) {
     smMagnet +
     smGroup('风险偏好 · 海外', (fsi && fsi.score != null ? fsiCard : '') + sCnn + sOp) +
     smGroup('估值与性价比', sBp + sPb + sSec) +
+    smGroup('资金面', card('资金面 · 两融与成交' + LXMAP.ic(LXMAP.index('两融余额'), '理杏仁 · 两融/成交'), '两融余额=月频杠杆资金规模（万亿，自2010年）；全A成交额=近30交易日活跃度（日频，万亿）。均为资金参与度指标，下方与三大宽基比收益相关性，越正=资金与行情同步越强。', pxFundBlockHtml(d, window.__pxPre || {}))) +   /* fw2_v566_fund_move：资金面卡自资产价格监控迁入（两融月频+成交额30日，相关性复用 px 宽基价格缓存） */
     smGroup('资金与供给', amtCard + sMbuy + sFi + sRp + sLift + sHolder) +
     smGroup('广度与结构', brCard + sSize + sCr + sSecUp + sCrowd + sTurn) +
     smGroup('信号与补充', sBasis + sLiq + sCap + sNa) +
@@ -10431,11 +10434,9 @@ function renderPriceMon(d) {
     '<div id="pxTable" style="overflow-x:auto">' + pxTableHeadHtml() + preTable + '</tbody></table></div>' +
     '</div>' +
     '<div id="pxCorr">' + pxCorrHtml(pre, false) + '</div>' +
-    '<div id="pxFund">' + pxFundBlockHtml(d, pre) + '</div>' +
     '<div id="pxGoldCb"></div>' +
-    '<div class="asof" style="margin-top:6px">趋势=以所选窗口起点为 100 的归一化比值（无量纲）；相关性=Pearson 相关系数（全局 15 项统一近 12 月月收益口径，日频资产由日K聚合为月末点）；1-20年收益=月末序列口径：股指长历史已接（上证 36 年/沪深300 21 年/标普 40 年/纳指 35 年/恒生 36 年/日经 39 年，10/20 年列按各资产可得，物理上限如科创50 仅 7 年）；月频资产=理杏仁 10 年（美债/伦敦金/WTI/VIX 的 20 年+待 FRED 接入，美元指数因口径不一致暂不接）；两融/成交额按资金面口径单列，不进入价格相关性矩阵。周期指向与信号徽标复用宏观指标页同口径阈值；日经 225 日频仅近 1 年（3/5 年窗口自动剔除，10/20 年走月末长序列）。数据不构成投资建议。</div>' +
+    '<div class="asof" style="margin-top:6px">趋势=以所选窗口起点为 100 的归一化比值（无量纲）；相关性=Pearson 相关系数（全局 15 项统一近 12 月月收益口径，日频资产由日K聚合为月末点）；1-20年收益=月末序列口径：股指长历史已接（上证 36 年/沪深300 21 年/标普 40 年/纳指 35 年/恒生 36 年/日经 39 年，10/20 年列按各资产可得，物理上限如科创50 仅 7 年）；月频资产=理杏仁 10 年（美债/伦敦金/WTI/VIX 的 20 年+待 FRED 接入，美元指数因口径不一致暂不接）；资金面（两融余额/全A成交额）已迁至情绪全景·资金与供给，不进入价格相关性矩阵。周期指向与信号徽标复用宏观指标页同口径阈值；日经 225 日频仅近 1 年（3/5 年窗口自动剔除，10/20 年走月末长序列）。数据不构成投资建议。</div>' +
     '</div></div>';
-  pxDrawFundCharts(pre);
   /* 异步：腾讯快照（现价/今日）+ 日K（1300 点 ≈5 年），趋势图按窗口切片复用；表格日频行由日K 重算 52周统计 */
   var klineDone = {};
   var p1 = pxFetchQuotes(qtIds).then(function (quotes) {
@@ -10477,8 +10478,7 @@ function renderPriceMon(d) {
     var tEl = document.getElementById('pxTable');
     if (tEl) tEl.innerHTML = pxTableHeadHtml() + PX_ASSETS.map(function (a) { return pxRowHtml(d, a, pre[a.id], klineDone[a.qt] || null); }).join('') + '</tbody></table>';
     var cEl = document.getElementById('pxCorr'); if (cEl) cEl.innerHTML = pxCorrHtml(pre, true);
-    var fEl = document.getElementById('pxFund'); if (fEl) fEl.innerHTML = pxFundBlockHtml(d, pre);
-    pxDrawFundCharts(pre);
+    window.__pxPre = pre;   /* fw2_v566_fund_move：资金面卡迁情绪全景后，宽基价格缓存供 sm 相关性复用 */
     /* fw2_v450_gold_removed：黄金研究模块迁入 px —— 中国央行购金卡（loadGoldData→gold-data.json cb_m/cb_y/csv_payloads） */
     var gEl = document.getElementById('pxGoldCb');
     if (gEl && window.loadGoldData) loadGoldData().then(function (gd) { if (gd && gd.cb_m && gd.cb_m.length) { gEl.innerHTML = pxGoldCbHtml(gd); pxDrawGoldCb(gd); } });
@@ -10784,6 +10784,7 @@ function pxCorrHtml(pre, ready) {
     '</div>';
 }
 function pxFundBlockHtml(d, pre) {
+  pre = pre || window.__pxPre || {};
   var amtTw = (d.amtD && d.amtD.cur && d.amtD.cur[1] != null) ? d.amtD.cur[1] / 1e4 : null;
   var rzyeTw = d.margin && d.margin.cur && d.margin.cur.rzye != null ? d.margin.cur.rzye / 1e4 : null;
   var amtTag = amtTw == null ? '—' : amtTw >= 3 ? '过热区' : amtTw >= 2 ? '正常区' : amtTw >= 1.5 ? '关注入场点' : '网格定投区';
@@ -10801,12 +10802,9 @@ function pxFundBlockHtml(d, pre) {
     });
     return m.join(' · ');
   };
-  var rzyeCorr = ready ? corrLine('rzye') : '<span style="color:var(--slate-400,#94a3b8)">日线加载中…</span>';
-  var amtCorr = ready ? corrLine('amt') : '<span style="color:var(--slate-400,#94a3b8)">日线加载中…</span>';
-  return '<div style="margin-top:16px">' +
-    '<div style="font-size:13px;font-weight:700;color:var(--ink,#0f172a);margin-bottom:2px">资金面 · 单列口径</div>' +
-    '<div style="font-size:11px;color:var(--slate-500,#64748b);margin-bottom:10px">两融余额为月频序列（万亿，自 2010 年）；全A成交额为最近 30 个交易日快照（日频，万亿）。两者都是资金数据、不进价格相关性矩阵；下方分别与三大宽基比「月收益相关性」（两融）与「近 1 月日收益相关性」（成交额），越正=资金与行情同步越强。</div>' +
-    '<div style="display:flex;gap:12px;flex-wrap:wrap">' +
+  var rzyeCorr = ready ? corrLine('rzye') : '<span style="color:var(--slate-400,#94a3b8)">相关性需资产价格页行情 · 先打开资产价格监控后可见</span>';
+  var amtCorr = ready ? corrLine('amt') : '<span style="color:var(--slate-400,#94a3b8)">相关性需资产价格页行情 · 先打开资产价格监控后可见</span>';
+  return '<div style="display:flex;gap:12px;flex-wrap:wrap">' +
     '<div style="flex:1 1 300px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:10px 12px">' +
     '<div style="display:flex;justify-content:space-between;align-items:center"><b style="font-size:12px;color:var(--ink,#0f172a)">两融余额</b>' +
     '<span style="font-size:10px;color:var(--slate-500,#64748b)">' + (rzyeTw != null ? rzyeTw.toFixed(2) + ' 万亿' : '—') + ' · <span style="color:' + rzyeCol + ';font-weight:600">' + rzyeTag + '</span></span></div>' +
@@ -10819,7 +10817,7 @@ function pxFundBlockHtml(d, pre) {
     '<div id="pxFundAmt" style="height:92px;margin-top:6px"></div>' +
     '<div style="font-size:10px;color:var(--slate-500,#64748b);margin-top:4px">与宽基日收益相关性（近1月）：' + amtCorr + '</div>' +
     '</div>' +
-    '</div></div>';
+    '</div>';
 }
 function pxDrawFundCharts(pre) {
   [['rzye', 'pxFundRzye', '两融余额', '#2f6bff'], ['amt', 'pxFundAmt', '全A成交额', '#7c3aed']].forEach(function (cfg) {
@@ -12547,7 +12545,7 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
        留待与用户确认重设计方案后再动（本轮不做）。
      ★诚实限定：erpCard/peCard/mrgCard/vixCard 定义及其 erpSpark/peSpark/mrgSpark/vixSpark 函数已于 **v529（fw2_v529_smux P3）一并清理**（连同 erpLv/peLv/vixLv/rzyeLv 与顶部 erp/pe/margin/vix 局部变量，mi 页判读走 mcCalcCommon 不受影响）。
        数据/口径零改动，纯前端结构层；描述串「sm 去重 · 删重复估值流动性卡」入 verify_sync 标记组 */
-  if (vc) vc.textContent = 'v565 · 自选' /* fw2_v516_a500lk fw2_v517_4otc fw2_v518_hspos fw2_v519_sm_merge fw2_v520_chgflat fw2_v521_magnet fw2_v522_overview fw2_v523_sm_dedup fw2_v524_geo_fsi fw2_v525_geo_filter fw2_v526_geo_filter_removed fw2_v527_verdict fw2_v529_smux fw2_v530_datamgmt fw2_v531_sm_dmgmt fw2_v532_all_dm fw2_v533_px_long fw2_v533d_dm_scroll fw2_v534_dm_module fw2_v535_dm_auto fw2_v539_hold_realpnl fw2_v539a_seed_sync fw2_v539a_seed_order fw2_v540_hold_path fw2_v542_pf_mirror_first fw2_v542_mv_settled fw2_v542_mv_account fw2_v543_dm_holdings_note fw2_v544_ledger_mirror_guard fw2_v545_hold_total_row fw2_v546_navdate_all fw2_v547_vix_to_ovs fw2_v548_ovs_mrg fw2_v549_region_align fw2_v550_grp_tabs fw2_v551_sop_cockpit fw2_v552_sop_taborder fw2_v553_chain_data fw2_v554_sop_rename fw2_v556_market_split fw2_v557_sm_renamed fw2_v558_cbrates_fix fw2_v558a_cb_label fw2_v559_chain_dates fw2_v560_chain_verdict fw2_v561_curve_hold fw2_v562_hold_inline fw2_v563_alloc fw2_v564_lxlink fw2_v565_cal_lx fw2_v565_sub_lx */ + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  if (vc) vc.textContent = 'v566 · 自选' /* fw2_v516_a500lk fw2_v517_4otc fw2_v518_hspos fw2_v519_sm_merge fw2_v520_chgflat fw2_v521_magnet fw2_v522_overview fw2_v523_sm_dedup fw2_v524_geo_fsi fw2_v525_geo_filter fw2_v526_geo_filter_removed fw2_v527_verdict fw2_v529_smux fw2_v530_datamgmt fw2_v531_sm_dmgmt fw2_v532_all_dm fw2_v533_px_long fw2_v533d_dm_scroll fw2_v534_dm_module fw2_v535_dm_auto fw2_v539_hold_realpnl fw2_v539a_seed_sync fw2_v539a_seed_order fw2_v540_hold_path fw2_v542_pf_mirror_first fw2_v542_mv_settled fw2_v542_mv_account fw2_v543_dm_holdings_note fw2_v544_ledger_mirror_guard fw2_v545_hold_total_row fw2_v546_navdate_all fw2_v547_vix_to_ovs fw2_v548_ovs_mrg fw2_v549_region_align fw2_v550_grp_tabs fw2_v551_sop_cockpit fw2_v552_sop_taborder fw2_v553_chain_data fw2_v554_sop_rename fw2_v556_market_split fw2_v557_sm_renamed fw2_v558_cbrates_fix fw2_v558a_cb_label fw2_v559_chain_dates fw2_v560_chain_verdict fw2_v561_curve_hold fw2_v562_hold_inline fw2_v563_alloc fw2_v564_lxlink fw2_v565_cal_lx fw2_v565_sub_lx fw2_v566_fund_move */ + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
