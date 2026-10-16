@@ -1332,6 +1332,14 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
         <!-- v95 fw2_v95_drop_table_pivot：表格视图与透视视图（含其内部控件）已删除 -->
         <div id="dcChartWrap" class="dc-pane" style="display:none">
           <div class="dc-chart-ctrl">
+            <label>曲线范围   <!-- fw2_v561_curve_hold：收益曲线默认显示持仓基金，可切 自选/筛选/全部 -->
+              <select id="dcChartRng">
+                <option value="hold">持仓基金</option>
+                <option value="watch">自选基金</option>
+                <option value="screen">筛选基金</option>
+                <option value="all">全部基金</option>
+              </select>
+            </label>
             <label>图型
               <select id="dcChartType">
                 <option value="reinv">收益曲线（分红再投）</option>
@@ -12466,7 +12474,7 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
        留待与用户确认重设计方案后再动（本轮不做）。
      ★诚实限定：erpCard/peCard/mrgCard/vixCard 定义及其 erpSpark/peSpark/mrgSpark/vixSpark 函数已于 **v529（fw2_v529_smux P3）一并清理**（连同 erpLv/peLv/vixLv/rzyeLv 与顶部 erp/pe/margin/vix 局部变量，mi 页判读走 mcCalcCommon 不受影响）。
        数据/口径零改动，纯前端结构层；描述串「sm 去重 · 删重复估值流动性卡」入 verify_sync 标记组 */
-  if (vc) vc.textContent = 'v560 · 自选' /* fw2_v516_a500lk fw2_v517_4otc fw2_v518_hspos fw2_v519_sm_merge fw2_v520_chgflat fw2_v521_magnet fw2_v522_overview fw2_v523_sm_dedup fw2_v524_geo_fsi fw2_v525_geo_filter fw2_v526_geo_filter_removed fw2_v527_verdict fw2_v529_smux fw2_v530_datamgmt fw2_v531_sm_dmgmt fw2_v532_all_dm fw2_v533_px_long fw2_v533d_dm_scroll fw2_v534_dm_module fw2_v535_dm_auto fw2_v539_hold_realpnl fw2_v539a_seed_sync fw2_v539a_seed_order fw2_v540_hold_path fw2_v542_pf_mirror_first fw2_v542_mv_settled fw2_v542_mv_account fw2_v543_dm_holdings_note fw2_v544_ledger_mirror_guard fw2_v545_hold_total_row fw2_v546_navdate_all fw2_v547_vix_to_ovs fw2_v548_ovs_mrg fw2_v549_region_align fw2_v550_grp_tabs fw2_v551_sop_cockpit fw2_v552_sop_taborder fw2_v553_chain_data fw2_v554_sop_rename fw2_v556_market_split fw2_v557_sm_renamed fw2_v558_cbrates_fix fw2_v558a_cb_label fw2_v559_chain_dates fw2_v560_chain_verdict */ + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  if (vc) vc.textContent = 'v561 · 自选' /* fw2_v516_a500lk fw2_v517_4otc fw2_v518_hspos fw2_v519_sm_merge fw2_v520_chgflat fw2_v521_magnet fw2_v522_overview fw2_v523_sm_dedup fw2_v524_geo_fsi fw2_v525_geo_filter fw2_v526_geo_filter_removed fw2_v527_verdict fw2_v529_smux fw2_v530_datamgmt fw2_v531_sm_dmgmt fw2_v532_all_dm fw2_v533_px_long fw2_v533d_dm_scroll fw2_v534_dm_module fw2_v535_dm_auto fw2_v539_hold_realpnl fw2_v539a_seed_sync fw2_v539a_seed_order fw2_v540_hold_path fw2_v542_pf_mirror_first fw2_v542_mv_settled fw2_v542_mv_account fw2_v543_dm_holdings_note fw2_v544_ledger_mirror_guard fw2_v545_hold_total_row fw2_v546_navdate_all fw2_v547_vix_to_ovs fw2_v548_ovs_mrg fw2_v549_region_align fw2_v550_grp_tabs fw2_v551_sop_cockpit fw2_v552_sop_taborder fw2_v553_chain_data fw2_v554_sop_rename fw2_v556_market_split fw2_v557_sm_renamed fw2_v558_cbrates_fix fw2_v558a_cb_label fw2_v559_chain_dates fw2_v560_chain_verdict fw2_v561_curve_hold */ + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
@@ -13133,6 +13141,36 @@ setTimeout(() => { renderResearchChips(); if (!state.news.items.length) loadNews
     return dcUI.sel.size+'/'+DC.funds.length;
   }
   function selFundCount(){ if(!DC) return 0; return DC.funds.filter(function(f){ return passSel(f.code); }).length; }
+  /* fw2_v561_curve_hold：收益曲线/基金列表默认显示「持仓基金」——筛选面板新增「范围」快捷切换（持仓/自选/筛选/全部），
+     进入基金数据模块且用户未手动筛选时默认=持仓池（dcUI._defApplied 标志防覆盖手动操作）。池 code 来源：
+     持仓=state.portfolio（holdings-data.json，非 cash）、自选=window.POOL_WATCHLIST + localStorage fw2_watch_added_v1、
+     筛选=window.SCREEN_POOL.funds；与 DC.funds 取交集，保证选中数正确。 */
+  function dcPoolCodes(kind){
+    var set=new Set();
+    try{
+      if(kind==='hold'){ (state.portfolio||[]).forEach(function(h){ if((h.assetType||'')!=='cash') set.add(shortCode(h.code)); }); }
+      else if(kind==='watch'){
+        (window.POOL_WATCHLIST||[]).forEach(function(w){ set.add(shortCode(w.code)); });
+        try{ var wl=JSON.parse(localStorage.getItem('fw2_watch_added_v1')||'[]'); (wl||[]).forEach(function(c){ set.add(shortCode(c)); }); }catch(e1){}
+      }
+      else if(kind==='screen'){ var sp=(window.SCREEN_POOL&&window.SCREEN_POOL.funds)||{}; Object.keys(sp).forEach(function(c){ set.add(shortCode(c)); }); }
+    }catch(e){}
+    return set;
+  }
+  function dcRangeSet(kind){
+    if(!DC) return null;
+    var dcAll=new Set(DC.funds.map(function(f){ return f.code; }));
+    var out=new Set();
+    dcPoolCodes(kind).forEach(function(c){ if(dcAll.has(c)) out.add(c); });
+    return out.size ? out : null;
+  }
+  function applyDcDefaultSel(){
+    if(dcUI._defApplied) return;
+    dcUI._defApplied=true;
+    if(dcUI.sel!==null) return;
+    var s=dcRangeSet('hold');
+    if(s) dcUI.sel=s;
+  }
 
   async function loadDcData(force){
     if(DC_LOADED && !force) return DC;
@@ -13166,6 +13204,7 @@ setTimeout(() => { renderResearchChips(); if (!state.news.items.length) loadNews
         return;
       }
       DC=d; DC_LOADED=true;
+      applyDcDefaultSel();   /* fw2_v561_curve_hold：进入基金数据默认只显示持仓基金（用户未手动筛选时） */
       renderDcCaliber(d);
       /* fw2_v420_dcrerender：DC 就绪后重渲染当前激活的分块。
          根因：iv_* 区间收益列与 vol/mdd/sharpe/calmar/sortino 全部由 ivMap() 现算（依赖 DC.rows），
@@ -13314,6 +13353,15 @@ setTimeout(() => { renderResearchChips(); if (!state.news.items.length) loadNews
   }
 
   function renderDcChart(){
+    /* fw2_v561_curve_hold：同步「曲线范围」下拉与当前 dcUI.sel（默认持仓池） */
+    var rngEl=$('dcChartRng');
+    if(rngEl && DC){
+      var _hs=dcRangeSet('hold'), _ws=dcRangeSet('watch'), _ss=dcRangeSet('screen');
+      if(!dcUI.sel || dcUI.sel.size===DC.funds.length) rngEl.value='all';
+      else if(_hs && _hs.size && _hs.size===dcUI.sel.size) rngEl.value='hold';
+      else if(_ws && _ws.size && _ws.size===dcUI.sel.size) rngEl.value='watch';
+      else if(_ss && _ss.size && _ss.size===dcUI.sel.size) rngEl.value='screen';
+    }
     /* fw2_v479_dcchart_date：死规则②审计——DC收益曲线图(月频renderDcChartMonthly+日频renderDcChartDaily)hint补「数据截至{窗口末点}（月/日频净值）」 */
     if(!DC || !window.echarts) return;
     /* v158：日频数据就绪走日频；否则静默回退月频（v157 原逻辑） */
@@ -14887,6 +14935,21 @@ setTimeout(() => { renderResearchChips(); if (!state.news.items.length) loadNews
     else if(at && at.dataset.dc==='chart'){ ensureDcDaily(); renderDcChart(); }
   });
   $('dcChartType').addEventListener('change', function(){ if(DC_LOADED){ ensureDcDaily(); renderDcChart(); } });
+  /* fw2_v561_curve_hold：曲线范围切换（持仓/自选/筛选/全部）→ dcUI.sel 过滤 + 重渲曲线；空池回退全部并提示 */
+  $('dcChartRng').addEventListener('change', function(){
+    if(!DC_LOADED) return;
+    var v=this.value;
+    if(v==='all'){ dcUI.sel=null; }
+    else {
+      var s=dcRangeSet(v);
+      if(!s || !s.size){ dcUI.sel=null; this.value='all'; elText('dcChartHint','该池无可用基金，已回退全部'); }
+      else dcUI.sel=s;
+    }
+    dcUI._defApplied=true;
+    ensureDcDaily(); renderDcChart();
+    var at=document.querySelector('.dc-tab.active');
+    if(at && at.dataset.dc==='overview') renderDcOverview();
+  });
   (function(){
     var wb=document.getElementById('dcWinBtns'); if(!wb) return;
     wb.addEventListener('click', function(e){
