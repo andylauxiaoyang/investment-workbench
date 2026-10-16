@@ -8724,6 +8724,20 @@ function renderMacroSop(d, C) {
       + '<div style="font-size:13px;font-weight:700;color:var(--slate-700,#334155);margin-bottom:8px">' + esc(title) + '</div>'
       + '<div style="display:flex;flex-wrap:wrap;align-items:stretch;gap:5px">' + inner + '</div></div>';
   }
+  /* fw2_v560_chain_verdict：每条传导链末尾的「链结论」卡——传导结果方向（由链上关键读数动态判，可复算）
+      + 对宏观经济的影响 + 依据读数；与各明细 tab 同源（引用同一组 cnV/趋势/读数变量，不新造口径）。 */
+  function vd(dir, txt, macro, ev) {
+    var col = dir > 0 ? '#0d9f4d' : dir < 0 ? '#dc2626' : '#b45309';
+    var bg = dir > 0 ? '#f0fdf4' : dir < 0 ? '#fef2f2' : '#fffbeb';
+    var bd = dir > 0 ? '#bbe7c8' : dir < 0 ? '#fecaca' : '#fde68a';
+    var lbl = dir > 0 ? '扩张 / 偏多' : dir < 0 ? '收缩 / 偏空' : '中性 / 僵持';
+    return '<div style="background:' + bg + ';border:1px solid ' + bd + ';border-radius:8px;padding:8px 10px;margin:-4px 0 10px;font-size:12px;line-height:1.65">'
+      + '<div style="font-weight:700;color:var(--ink,#0f172a)">链结论 <span style="font-size:11px;color:' + col + ';font-weight:700">' + lbl + '</span></div>'
+      + '<div style="color:#374151;margin-top:2px">' + esc(txt) + '</div>'
+      + '<div style="color:#475569;margin-top:3px"><b>对宏观：</b>' + esc(macro) + '</div>'
+      + '<div style="color:#94a3b8;margin-top:3px;font-size:11px">依据 ' + esc(ev) + '</div>'
+      + '</div>';
+  }
   /* 传导链数据（现状=最新读数；过去=序列近6期趋势；未来=领先指标方向，无前瞻标「—」；无数据节点标待接不臆造；
      ★fw2_v559_chain_dates：每节点标注「数据截至」日期（数据日期），滞后一目了然；银行信贷/韩国设备材料/产能利用率
      转数据（代理口径明确标注），东南亚组装/订单回流保持待接并更新探源说明） */
@@ -8755,38 +8769,67 @@ function renderMacroSop(d, C) {
       + arr() + node('地产/基建/制造', { now: '固投累计同比 ' + (cnV('fai') || '—'), past: trendRevDelta(cnM.fai && cnM.fai.points, 6), future: null, asOf: _faiA, link: 'cred' })
       + arr() + node('资产价格', { now: 'ERP 分位 ' + pctv(ePct) + ' · PE 分位 ' + pctv(peL2), past: trend(C.erp, 6), future: null, asOf: _erpA, link: 'val' })
       + arr() + node('财富效应/消费', { now: '社零同比 ' + (cnV('retail') || '—'), past: trendRevDelta(cnM.retail && cnM.retail.points, 6), future: null, asOf: _retA, link: 'cred' }))
+    + vd(gap == null ? 0 : (gap < -2 ? -1 : (gap > 0 ? 1 : 0)),
+      '信用扩张' + (gap < 0 ? '偏弱——M1−M2 剪刀差 ' + f(gap) + 'pct（资金活化不足），社融存量同比 ' + (cnV('sf') || '—') : '正常——剪刀差 ' + f(gap) + 'pct，社融存量同比 ' + (cnV('sf') || '—')),
+      (gap < 0 ? '信用是内需与资产价格的先行变量：资金未活化、固投 ' + (cnV('fai') || '—') + ' → 地产/基建/制造投资承压，资产价格缺盈利支撑，估值靠流动性而非盈利。' : '信用顺风支撑投资扩张与风险资产，内需修复带动企业盈利。'),
+      'M2 ' + f(m2y) + '% · 剪刀差 ' + f(gap) + 'pct · 社融 ' + (cnV('sf') || '—') + ' · 固投 ' + (cnV('fai') || '—'))
     + chain('链2 · 半导体链条（费半 → 台积电(ADR) → 韩国出口 → A股电子/科创）',
       node('费半', { now: ceTxt('soxx'), past: null, future: '半导体景气先行（SOXX 跟踪费半）', asOf: _soA, link: 'px' })
       + arr() + node('台积电(ADR)', { now: ceTxt('tsm'), past: null, future: '全球资本开支先行（营收代理）', asOf: _tsA, link: 'px' })
       + arr() + node('韩国出口', { now: '同比 ' + (_us.yoy != null ? f(_us.yoy) + '%' : '—'), past: null, future: '全球景气领先信号（代理电子需求）', asOf: _krA, link: 'gbl' })
       + arr() + node('A股电子/科创', { now: kcTxt, past: kcTrend, future: null, asOf: _snapA, link: 'px' }))
+    + vd((_us.yoy != null && _us.yoy >= 5) ? 1 : ((_us.yoy != null && _us.yoy <= -5) ? -1 : 0),
+      '全球半导体景气' + ((_us.yoy != null && _us.yoy >= 5) ? '高扩张' : '收缩') + '（韩国出口同比 ' + f(_us.yoy) + '%），费半 ' + (ce.soxx ? f(ce.soxx.price, 2) : '—') + '（' + (ce.soxx ? f(ce.soxx.chgPct, 1) + '%' : '—') + '）/台积电ADR ' + (ce.tsm ? f(ce.tsm.price, 2) : '—') + ' 高位小幅回调',
+      '半导体是科技制造与出口链的领先指标：景气高 → A股电子/科创盈利与出口获支撑（' + (kcTxt || '科创50 —') + '）；但美股科技若持续回调，A股电子情绪面受传导。',
+      '费半 ' + (ce.soxx ? f(ce.soxx.price, 2) : '—') + ' · 台积电ADR ' + (ce.tsm ? f(ce.tsm.price, 2) : '—') + ' · 韩国出口 ' + f(_us.yoy) + '%')
     + chain('链3 · 利率 × 股市四阶段（政策利率 × 盈利 → 股债估值锚）',
       node('政策利率', { now: '五国政策利率水平（见海外约束）', past: null, future: null, asOf: _cbA, link: 'ovs' })
       + arr() + node('盈利（PMI×PCE）', { now: 'PMI ' + f(mk) + ' · 美核心PCE ' + f(pce) + '%', past: trend(C.pmi, 6), future: null, asOf: 'PMI ' + (_pmA || '—') + (_pceA ? ' · PCE ' + _pceA : ''), link: 'us' })
       + arr() + node('股债估值锚', { now: '沪深300 PE 分位 ' + pctv(peL2) + ' · 标普 ' + pctv(spxPct), past: null, future: null, asOf: '沪深300 ' + (_peA || '—') + (_spxA ? ' · 标普 ' + _spxA : ''), link: 'val' }))
+    + vd(pce == null ? 0 : (pce > 2.5 ? -1 : (pce < 2 ? 1 : 0)),
+      '盈利温和（PMI ' + f(mk) + '）· 通胀' + (pce > 2.5 ? '偏热（核心PCE ' + f(pce) + '%）→ 政策利率难快速下行' : '温和 → 政策利率具备下行空间') + '，股债估值锚' + (peL2 != null && peL2 >= 60 ? '中性偏贵（沪深300 PE 分位 ' + pctv(peL2) + '）' : '中性（沪深300 PE 分位 ' + pctv(peL2) + '）'),
+      '利率水平决定估值扩张空间：' + (pce > 2.5 ? '利率高位 → 市场靠盈利驱动而非估值驱动，估值分位 ' + pctv(peL2) + '，权益安全边际一般。' : '利率下行预期 → 估值有扩张空间，盈利温和+流动性改善利于权益。'),
+      'PMI ' + f(mk) + ' · 核心PCE ' + f(pce) + '% · 沪深300 PE ' + pctv(peL2) + ' · 标普 PE ' + pctv(spxPct))
     + chain('链4 · B2B 循环（需求 → 产能利用率 → 设备投资 → 就业 → 消费）',
       node('需求', { now: '制造业 PMI ' + f(mk), past: trend(C.pmi, 6), future: null, asOf: _pmA, link: 'cred' })
       + arr() + node('产能利用率', { now: '美国产能利用率 ' + ((ce.usCapu && ce.usCapu.value != null) ? f(ce.usCapu.value, 1) + '%' : '—') + '（中国产能利用率缺源·美代理）', past: null, future: null, asOf: _ucA, link: 'us' })
       + arr() + node('设备投资', { now: '固投累计同比 ' + (cnV('fai') || '—'), past: null, future: null, asOf: _faiA, link: 'cred' })
       + arr() + node('就业', { now: '美初请 ' + (ics != null ? f(ics / 1000, 1) + ' 万' : '—') + ' · 失业率 ' + f(ur) + '%', past: null, future: null, asOf: '初请 ' + (_icA || '—') + (_urA ? ' · 失业率 ' + _urA : ''), link: 'us' })
       + arr() + node('消费', { now: '社零 ' + (cnV('retail') || '—') + ' · 美零售 ' + f(usRet) + '%', past: null, future: null, asOf: '社零 ' + (_retA || '—') + (_urtA ? ' · 美零售 ' + _urtA : ''), link: 'us' }))
+    + vd((cnV('fai') != null && parseFloat(cnV('fai')) < 0) ? -1 : (mk != null && mk >= 50 ? 1 : 0),
+      '需求温和（PMI ' + f(mk) + '）· 美产能利用率 ' + (ce.usCapu ? f(ce.usCapu.value, 1) + '%' : '—') + ' · 中国设备投资' + (cnV('fai') != null && parseFloat(cnV('fai')) < 0 ? '负增长（固投 ' + (cnV('fai') || '—') + '）' : '平稳（固投 ' + (cnV('fai') || '—') + '）'),
+      (cnV('fai') != null && parseFloat(cnV('fai')) < 0 ? 'B2B 循环是中国制造业资本开支的引擎：设备投资负增长 → 补库存动力不足；美国侧就业稳健（失业率 ' + f(ur) + '%）支撑消费。' : '需求→产能→投资正循环，制造业景气延续，就业与消费互为支撑。'),
+      'PMI ' + f(mk) + ' · 美产能利用率 ' + (ce.usCapu ? f(ce.usCapu.value, 1) + '%' : '—') + ' · 固投 ' + (cnV('fai') || '—') + ' · 失业率 ' + f(ur) + '%')
     + chain('链5 · 全球价值链（中国出口 → 韩国设备/材料 → 东南亚组装 → 欧美终端消费 → 订单回流）',
       node('中国出口', { now: '出口同比 ' + (cnV('export') || '—'), past: trendRevDelta(cnM.export && cnM.export.points, 6), future: null, asOf: _expA, link: 'cred' })
       + arr() + node('韩国设备/材料', { now: '韩国出口同比 ' + (_us.yoy != null ? f(_us.yoy) + '%' : '—') + '（设备/材料细分缺源·总出口代理）', past: null, future: null, asOf: _krA, link: 'gbl' })
       + arr() + node('东南亚组装', { tag: 'wait', flow: '区域数据缺源：FRED 越南出口系列不存在（2026-10-16 实测）', now: null, past: null, future: null })
       + arr() + node('欧美终端消费', { now: '美零售同比 ' + f(usRet) + '%', past: null, future: null, asOf: _urtA, link: 'us' })
       + arr() + node('订单回流', { tag: 'wait', flow: '缺独立源：东财 PMI 接口无新出口订单分项（2026-10-16 实测）', now: null, past: null, future: null }))
+    + vd((cnV('export') != null && parseFloat(cnV('export')) >= 10) ? 1 : 0,
+      '出口链高景气（中国出口 ' + (cnV('export') || '—') + ' · 韩国出口 ' + f(_us.yoy) + '%），但东南亚组装/订单回流两环缺源待接（2026-10-16 实测：FRED 越南无系列 / 东财 PMI 无新出口订单分项）',
+      '外需强劲支撑中国出口与制造业盈利；但订单回流信号缺失，需跟踪关税与产业转移对后续订单的扰动。',
+      '中国出口 ' + (cnV('export') || '—') + ' · 韩国出口 ' + f(_us.yoy) + '% · 美零售 ' + f(usRet) + '%')
     + chain('链6 · 美元与通胀（美元指数 ↔ 大宗 → 输入性通胀 → 央行利率 → 股债估值锚）',
       node('美元指数', { now: f(uL), past: uChg != null ? '近6期 ' + (uChg > 0 ? '↑' : uChg < 0 ? '↓' : '→') + ' ' + f(Math.abs(uChg)) + '%' : null, future: null, asOf: _fxA, link: 'ovs' })
       + arr() + node('大宗（金/油）', { now: '见资产价格监控（伦敦金/WTI）', past: null, future: null, asOf: _fxA, link: 'px' })
       + arr() + node('输入性通胀', { now: 'CPI−PPI 剪刀差 ' + (C.pgL != null ? f(C.pgL) + 'pct' : '—'), past: trend(C.price, 6), future: null, asOf: _prA, link: 'cred' })
       + arr() + node('央行利率', { now: '五国政策利率（美/欧/英/日/中）', past: null, future: null, asOf: _cbA, link: 'ovs' })
       + arr() + node('股债估值锚', { now: '沪深300 PE 分位 ' + pctv(peL2) + ' · 标普 ' + pctv(spxPct), past: null, future: null, asOf: '沪深300 ' + (_peA || '—') + (_spxA ? ' · 标普 ' + _spxA : ''), link: 'val' }))
+    + vd((uL != null && uL >= 100) ? -1 : ((uL != null && uL < 95) ? 1 : 0),
+      '美元' + (uL != null && uL >= 100 ? '强势（' + f(uL, 1) + '，近6月 ' + (fChg > 0 ? '↑' : fChg < 0 ? '↓' : '→') + ' ' + f(Math.abs(fChg)) + '%）→ 输入性通胀压力与人民币资产承压并存' : '中性（' + f(uL, 1) + '）→ 外部约束温和') + ' · 美债10Y ' + f(tL) + '%',
+      (uL != null && uL >= 100 ? '美元强+美债高 → 人民币与新兴市场资产估值受压，大宗承压缓解国内输入性通胀；中美利差高位约束国内宽松空间。' : '美元平稳 → 外部约束温和，利于风险资产与人民币汇率稳定。'),
+      '美元指数 ' + f(uL, 1) + ' · 美债10Y ' + f(tL) + '% · 中债10Y ' + (cn10v != null ? f(cn10v) + '%' : '—') + ' · CPI−PPI ' + (C.pgL != null ? f(C.pgL) + 'pct' : '—'))
     + chain('链7 · 热钱（中美利差 → 套利资金 → 汇率与股债波动）',
       node('中美利差', { now: '美债10Y ' + f(tL) + '% · 中债10Y ' + (cn10v != null ? f(cn10v) + '%' : '—'), past: null, future: null, asOf: _fxA, link: 'px' })
       + arr() + node('套利资金', { now: (spreadTxt == null ? null : spreadTxt + ' · ' + spreadV), past: us10Trend, future: null, asOf: _fxA, link: 'px' })
       + arr() + node('汇率', { now: 'USD/CNH ' + (fL != null ? f(fL, 4) : '—'), past: fChg != null ? '近6期 ' + (fChg > 0 ? '↑' : fChg < 0 ? '↓' : '→') + ' ' + f(Math.abs(fChg)) + '%' : null, future: null, asOf: _fxA, link: 'px' })
-      + arr() + node('股债波动', { now: 'VIX ' + f(vL, 2), past: trend(C.vix, 6), future: null, asOf: _viA, link: 'ovs' }));
+      + arr() + node('股债波动', { now: 'VIX ' + f(vL, 2), past: trend(C.vix, 6), future: null, asOf: _viA, link: 'ovs' }))
+    + vd((spread != null && spread > 0.5) ? -1 : ((spread != null && spread < -0.5) ? 1 : 0),
+      '中美' + (spread > 0.5 ? '正利差 ' + f(spread, 2) + 'pct → 美元资产吸金，人民币资产资金面承压' : spread < -0.5 ? '负利差 ' + f(spread, 2) + 'pct → 人民币资产吸金' : '利差中性（' + f(spread, 2) + 'pct）') + '（美债10Y ' + f(tL) + '% − 中债10Y ' + (cn10v != null ? f(cn10v) + '%' : '—') + '）',
+      '利差与汇率约束国内货币政策空间：正利差下热钱流出压制 A股估值与债市收益率；利差收窄则压力缓解，人民币资产吸引力回升。',
+      '利差 ' + f(spread, 2) + 'pct · USD/CNH ' + (fL != null ? f(fL, 4) : '—') + ' · VIX ' + f(vL, 2))
+    ;
   /* ① 定调：综合读数 + 六磁铁计数 */
   var _mx = (typeof mcMatrix === 'function') ? mcMatrix(C) : { scores: {}, cards: {} };
   var vdCn = (typeof mcVerdict === 'function') ? mcVerdict(C, _mx.scores, 'cn') : '';
@@ -8836,7 +8879,7 @@ function renderMacroSop(d, C) {
     + row('情绪全景', '市场宽度（上涨占比）' + (upPctW != null ? f(upPctW) + '%' : '数据未加载'), vBrd, upPctW == null ? null : (upPctW >= 50 ? 'pos' : 'neg'), 'sm')
     + '<div class="rv-line"><span class="tag tag-ai">动作</span><span style="cursor:pointer;color:var(--nav-blue,#2f6bff);font-weight:600" onclick="window.showView(\'strategy\')">→ 汇成动作：策略执行（资产配置 / 定投 / 执行卡）</span></div>'
     + '</div>'
-    + '<div class="card"><div class="card-h"><h3>传导链 · 现状 → 判断 → 原始数据</h3><span class="hint">7 条传导链直接展开 · 每节点三态（现状=最新读数 / 过去=近6期趋势 / 未来=领先指标方向，无前瞻数据标「—」不臆造）· 每节点标注<b>数据截至日期</b>（数据日期，滞后一目了然）· 代理口径已标注 · 无数据节点标「待接」只给传导关系</span></div>'
+    + '<div class="card"><div class="card-h"><h3>传导链 · 现状 → 判断 → 原始数据</h3><span class="hint">7 条传导链直接展开 · 每节点三态（现状=最新读数 / 过去=近6期趋势 / 未来=领先指标方向，无前瞻数据标「—」不臆造）· 每节点标注<b>数据截至日期</b>（数据日期，滞后一目了然）· <b>每条链末尾带「链结论」</b>（传导结果方向 + 对宏观的影响，由链上读数动态判、可复算）· 代理口径已标注 · 无数据节点标「待接」只给传导关系</span></div>'
     + chains
     + '</div>'
     + '<p class="foot-note">三态口径：现状=最新读数；过去=序列近 6 期趋势（代码现算，↑/↓/→）；未来=领先指标方向（信用脉冲领先社融、韩国出口领先电子、费半/台积电领先 A股电子），无前瞻数据标「—」。所有判断词与 mcRegisterEvidence/mcVerdict/mcMagnet 同一判读口径（100% 同源，可与各 tab 对拍）；待接节点为当前无合规数据源，不臆造读数。费半=SOXX ETF、台积电=ADR 行情（腾讯，代理口径：指数/官网源被反爬或不可达）；科创50、中美利差为工作台已有数据。数据不构成投资建议。</p>'
@@ -12423,7 +12466,7 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
        留待与用户确认重设计方案后再动（本轮不做）。
      ★诚实限定：erpCard/peCard/mrgCard/vixCard 定义及其 erpSpark/peSpark/mrgSpark/vixSpark 函数已于 **v529（fw2_v529_smux P3）一并清理**（连同 erpLv/peLv/vixLv/rzyeLv 与顶部 erp/pe/margin/vix 局部变量，mi 页判读走 mcCalcCommon 不受影响）。
        数据/口径零改动，纯前端结构层；描述串「sm 去重 · 删重复估值流动性卡」入 verify_sync 标记组 */
-  if (vc) vc.textContent = 'v559 · 自选' /* fw2_v516_a500lk fw2_v517_4otc fw2_v518_hspos fw2_v519_sm_merge fw2_v520_chgflat fw2_v521_magnet fw2_v522_overview fw2_v523_sm_dedup fw2_v524_geo_fsi fw2_v525_geo_filter fw2_v526_geo_filter_removed fw2_v527_verdict fw2_v529_smux fw2_v530_datamgmt fw2_v531_sm_dmgmt fw2_v532_all_dm fw2_v533_px_long fw2_v533d_dm_scroll fw2_v534_dm_module fw2_v535_dm_auto fw2_v539_hold_realpnl fw2_v539a_seed_sync fw2_v539a_seed_order fw2_v540_hold_path fw2_v542_pf_mirror_first fw2_v542_mv_settled fw2_v542_mv_account fw2_v543_dm_holdings_note fw2_v544_ledger_mirror_guard fw2_v545_hold_total_row fw2_v546_navdate_all fw2_v547_vix_to_ovs fw2_v548_ovs_mrg fw2_v549_region_align fw2_v550_grp_tabs fw2_v551_sop_cockpit fw2_v552_sop_taborder fw2_v553_chain_data fw2_v554_sop_rename fw2_v556_market_split fw2_v557_sm_renamed fw2_v558_cbrates_fix fw2_v558a_cb_label fw2_v559_chain_dates */ + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  if (vc) vc.textContent = 'v560 · 自选' /* fw2_v516_a500lk fw2_v517_4otc fw2_v518_hspos fw2_v519_sm_merge fw2_v520_chgflat fw2_v521_magnet fw2_v522_overview fw2_v523_sm_dedup fw2_v524_geo_fsi fw2_v525_geo_filter fw2_v526_geo_filter_removed fw2_v527_verdict fw2_v529_smux fw2_v530_datamgmt fw2_v531_sm_dmgmt fw2_v532_all_dm fw2_v533_px_long fw2_v533d_dm_scroll fw2_v534_dm_module fw2_v535_dm_auto fw2_v539_hold_realpnl fw2_v539a_seed_sync fw2_v539a_seed_order fw2_v540_hold_path fw2_v542_pf_mirror_first fw2_v542_mv_settled fw2_v542_mv_account fw2_v543_dm_holdings_note fw2_v544_ledger_mirror_guard fw2_v545_hold_total_row fw2_v546_navdate_all fw2_v547_vix_to_ovs fw2_v548_ovs_mrg fw2_v549_region_align fw2_v550_grp_tabs fw2_v551_sop_cockpit fw2_v552_sop_taborder fw2_v553_chain_data fw2_v554_sop_rename fw2_v556_market_split fw2_v557_sm_renamed fw2_v558_cbrates_fix fw2_v558a_cb_label fw2_v559_chain_dates fw2_v560_chain_verdict */ + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
