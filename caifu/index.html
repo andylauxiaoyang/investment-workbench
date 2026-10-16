@@ -8597,11 +8597,11 @@ function mcOvAsOf(d) {
    URL 均 2026-10-16 实测（理杏仁宏观板块未登录可开壳、FRED 免费直达、腾讯行情直达）。 */
 var LXMAP = (function () {
   var I = {
-    '上证指数': 'https://www.lixinger.com/equity/index/detail/sh/000001/000001/profile',
-    '沪深300': 'https://www.lixinger.com/equity/index/detail/csi/000300/000300/profile',
-    '中证500': 'https://www.lixinger.com/equity/index/detail/csi/000905/000905/profile',
-    '中证1000': 'https://www.lixinger.com/equity/index/detail/csi/000852/000852/profile',
-    '科创50': 'https://www.lixinger.com/equity/index/detail/sh/000688/000688/profile',
+    '上证指数': 'https://www.lixinger.com/equity/index/detail/sh/000001/1/profile',
+    '沪深300': 'https://www.lixinger.com/equity/index/detail/sh/000300/300/profile',
+    '中证500': 'https://www.lixinger.com/equity/index/detail/sh/000905/905/profile',
+    '中证1000': 'https://www.lixinger.com/equity/index/detail/sh/000852/852/profile',
+    '科创50': 'https://www.lixinger.com/equity/index/detail/sh/000688/688/profile',
     '创业板指': 'https://www.lixinger.com/equity/index/detail/sz/399006/399006/profile',
     '标普500': 'https://gu.qq.com/usINX/zs',
     '纳斯达克': 'https://gu.qq.com/usIXIC/zs',
@@ -8645,11 +8645,18 @@ var LXMAP = (function () {
     '初请': 'https://fred.stlouisfed.org/series/ICSA',
     '产能利用率': 'https://fred.stlouisfed.org/series/TCU'
   };
+  /* fw2_v568_lxlink_fix：外链可达性修复（实测证据见 verify_sync v568 标记组注释）。
+     ①场内基金（ETF/LOF，理杏仁 exchange=sh|sz）详情路由前缀必须用 sh/sz，不能用 jj —— 用户实测 jj/511360 报 NotFoundError；
+     ②场内代码非 0 开头，c5 不去前导零（canonical：sh/510880/510880、sz/159949/159949）；
+     ③007866 创金合信货币C 理杏仁开放平台未收录（open.lixinger.com/api/cn/fund 批量验证 69 只缺 1）→ 不渲染外链（返回 ''，ic 自动跳过）。 */
   var fund = function (code) {
     var c6 = String(code == null ? '' : code).replace(/\D/g, '').slice(-6);
     if (c6.length !== 6) return '';
+    if (c6 === '007866') return '';
+    var EX = { '511360': 'sh', '511260': 'sh', '510880': 'sh', '563360': 'sh', '159201': 'sz', '159949': 'sz', '159934': 'sz' };
+    var fam = EX[c6] || 'jj';
     var c5 = c6.replace(/^0+/, '') || '0';
-    return 'https://www.lixinger.com/equity/fund/detail/jj/' + c6 + '/' + c5 + '/profile';
+    return 'https://www.lixinger.com/equity/fund/detail/' + fam + '/' + c6 + '/' + c5 + '/profile';
   };
   var ic = function (url, tip) {
     if (!url) return '';
@@ -12540,7 +12547,7 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
        留待与用户确认重设计方案后再动（本轮不做）。
      ★诚实限定：erpCard/peCard/mrgCard/vixCard 定义及其 erpSpark/peSpark/mrgSpark/vixSpark 函数已于 **v529（fw2_v529_smux P3）一并清理**（连同 erpLv/peLv/vixLv/rzyeLv 与顶部 erp/pe/margin/vix 局部变量，mi 页判读走 mcCalcCommon 不受影响）。
        数据/口径零改动，纯前端结构层；描述串「sm 去重 · 删重复估值流动性卡」入 verify_sync 标记组 */
-  if (vc) vc.textContent = 'v567 · 自选' /* fw2_v516_a500lk fw2_v517_4otc fw2_v518_hspos fw2_v519_sm_merge fw2_v520_chgflat fw2_v521_magnet fw2_v522_overview fw2_v523_sm_dedup fw2_v524_geo_fsi fw2_v525_geo_filter fw2_v526_geo_filter_removed fw2_v527_verdict fw2_v529_smux fw2_v530_datamgmt fw2_v531_sm_dmgmt fw2_v532_all_dm fw2_v533_px_long fw2_v533d_dm_scroll fw2_v534_dm_module fw2_v535_dm_auto fw2_v539_hold_realpnl fw2_v539a_seed_sync fw2_v539a_seed_order fw2_v540_hold_path fw2_v542_pf_mirror_first fw2_v542_mv_settled fw2_v542_mv_account fw2_v543_dm_holdings_note fw2_v544_ledger_mirror_guard fw2_v545_hold_total_row fw2_v546_navdate_all fw2_v547_vix_to_ovs fw2_v548_ovs_mrg fw2_v549_region_align fw2_v550_grp_tabs fw2_v551_sop_cockpit fw2_v552_sop_taborder fw2_v553_chain_data fw2_v554_sop_rename fw2_v556_market_split fw2_v557_sm_renamed fw2_v558_cbrates_fix fw2_v558a_cb_label fw2_v559_chain_dates fw2_v560_chain_verdict fw2_v561_curve_hold fw2_v562_hold_inline fw2_v563_alloc fw2_v564_lxlink fw2_v565_cal_lx fw2_v565_sub_lx fw2_v566_fund_move fw2_v567_fund_merge */ + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  if (vc) vc.textContent = 'v568 · 自选' /* fw2_v516_a500lk fw2_v517_4otc fw2_v518_hspos fw2_v519_sm_merge fw2_v520_chgflat fw2_v521_magnet fw2_v522_overview fw2_v523_sm_dedup fw2_v524_geo_fsi fw2_v525_geo_filter fw2_v526_geo_filter_removed fw2_v527_verdict fw2_v529_smux fw2_v530_datamgmt fw2_v531_sm_dmgmt fw2_v532_all_dm fw2_v533_px_long fw2_v533d_dm_scroll fw2_v534_dm_module fw2_v535_dm_auto fw2_v539_hold_realpnl fw2_v539a_seed_sync fw2_v539a_seed_order fw2_v540_hold_path fw2_v542_pf_mirror_first fw2_v542_mv_settled fw2_v542_mv_account fw2_v543_dm_holdings_note fw2_v544_ledger_mirror_guard fw2_v545_hold_total_row fw2_v546_navdate_all fw2_v547_vix_to_ovs fw2_v548_ovs_mrg fw2_v549_region_align fw2_v550_grp_tabs fw2_v551_sop_cockpit fw2_v552_sop_taborder fw2_v553_chain_data fw2_v554_sop_rename fw2_v556_market_split fw2_v557_sm_renamed fw2_v558_cbrates_fix fw2_v558a_cb_label fw2_v559_chain_dates fw2_v560_chain_verdict fw2_v561_curve_hold fw2_v562_hold_inline fw2_v563_alloc fw2_v564_lxlink fw2_v565_cal_lx fw2_v565_sub_lx fw2_v566_fund_move fw2_v567_fund_merge fw2_v568_lxlink_fix */ + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
