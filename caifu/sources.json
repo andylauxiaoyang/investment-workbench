@@ -1,7 +1,7 @@
 {
   "_note": "数据源登记表（DAR: Data-source Authority Registry）。硬规则：任何输出数据必须在本表登记；每项数据至少 2 个渠道；渠道性质必须标注为「监管披露 / 持牌数据商 / 主流平台」。禁止使用未登记来源（含网页随笔、自媒体、搜索结果摘要）。",
-  "version": "1.4",
-  "updated": "2026-10-13",
+  "version": "1.5",
+  "updated": "2026-10-17",
   "tiers": {
     "T0": "监管/交易所/官方机构直属披露（最高权威，无加工）：美国财政部、CBOE、交易所、基金公司",
     "T1": "持牌金融数据商（Wind 万得、理杏仁等，专业授权数据）",
@@ -123,10 +123,10 @@
         {
           "field": "pe / broad（沪深300、中证500/1000、创业板指 PE-TTM）",
           "primary": {
-            "id": "lixinger",
-            "tier": "T1",
-            "name": "理杏仁开放平台 · 指数基本面",
-            "url": "https://open.lixinger.com/api/cn/index/fundamental"
+            "id": "danjuan_eva",
+            "tier": "T2",
+            "name": "蛋卷基金 · 指数估值（djapi/index_eva/dj，含 pe/pe_percentile/pb）",
+            "url": "https://danjuanfunds.com/djapi/index_eva/dj"
           },
           "checkers": [
             {
@@ -136,14 +136,14 @@
               "url": "mcp:wind-finance/get_index_fundamentals"
             }
           ],
-          "verified": "偏差均 < 1%（容差 2%）"
+          "verified": "v573 起替代理杏仁（Open API 停用）；danjuan 当前值分位（date 用 ts 时间戳转 ISO）"
         },
         {
           "field": "spx（标普500 PE-TTM）",
           "primary": {
-            "id": "lixinger_us",
-            "tier": "T1",
-            "name": "理杏仁 us 接口 .INX（整体法）"
+            "id": "snapshot_old",
+            "tier": "T2",
+            "name": "旧快照（理杏仁 us 接口 .INX 已随 Open API 停用；无公开 10 年分位替代源，data-mgmt 红标如实）"
           },
           "checkers": [
             {
@@ -152,7 +152,7 @@
               "name": "Wind SPX.GI（成分股加权）"
             }
           ],
-          "verified": "相对差约 2.8% —— 属**口径差异**（整体法 vs 成分股加权），非数据错误，容差 5% 并披露"
+          "verified": "v573 起为旧快照（源失效标注）；Wind 可用时相对差约 2.8%（整体法 vs 成分股加权口径差异）"
         },
         {
           "field": "vix（VIX 波动率指数）",
@@ -180,47 +180,38 @@
         {
           "field": "rates（美债 2Y/10Y）",
           "primary": {
-            "id": "lixinger_ust",
-            "tier": "T1",
-            "name": "理杏仁 · 10Y 国债（日度）"
+            "id": "treasury_csv",
+            "tier": "T0",
+            "name": "美国财政部官方 Daily Treasury Yield Curve CSV",
+            "url": "https://home.treasury.gov/resource-center/data-chart-center/interest-rates/daily-treasury-rates.csv/2026/all?type=daily_treasury_yield_curve&field_tdr_date_value=2026&page&_format=csv"
           },
-          "checkers": [
-            {
-              "id": "treasury_csv",
-              "tier": "T0",
-              "name": "美国财政部官方 Daily Treasury Yield Curve CSV",
-              "url": "https://home.treasury.gov/resource-center/data-chart-center/interest-rates/daily-treasury-rates.csv/2026/all?type=daily_treasury_yield_curve&field_tdr_date_value=2026&page&_format=csv"
-            }
-          ],
-          "verified": "macro (4.43, 4.83) 命中官方 2026-09-09 同日"
+          "checkers": [],
+          "verified": "v573 起主源提升为美财政部官方（理杏仁 Open API 停用）；macro 逐日命中官方同日"
         },
         {
           "field": "fx.usdcnh（离岸人民币）",
           "primary": {
-            "id": "lixinger_fx",
-            "tier": "T1",
-            "name": "理杏仁 · 汇率"
+            "id": "qq_daily",
+            "tier": "T2",
+            "name": "腾讯日K web.ifzq.gtimg.cn（whUSDCNY）",
+            "url": "https://web.ifzq.gtimg.cn/appstock/app/fqkline/get?param=whUSDCNY,day,,,120,qfq"
           },
           "checkers": [
             {
               "id": "sina_fx",
               "tier": "T2",
               "name": "新浪 hq fx_susdcnh 实时"
-            },
-            {
-              "id": "em_push2delay",
-              "tier": "T2",
-              "name": "东财 push2delay 133.USDCNH 实时"
             }
           ],
-          "verified": "最大偏差 0.00%"
+          "verified": "v573 起替代理杏仁（Open API 停用）；腾讯日K × 新浪实时偏差 0.00%"
         },
         {
           "field": "fx.usdjpy（美元日元）",
           "primary": {
-            "id": "lixinger_jpy",
-            "tier": "T1",
-            "name": "理杏仁 · 汇率"
+            "id": "qq_daily_jpy",
+            "tier": "T2",
+            "name": "腾讯日K web.ifzq.gtimg.cn（whUSDJPY）",
+            "url": "https://web.ifzq.gtimg.cn/appstock/app/fqkline/get?param=whUSDJPY,day,,,120,qfq"
           },
           "checkers": [
             {
@@ -230,7 +221,7 @@
               "url": "https://vip.stock.finance.sina.com.cn/forex/api/jsonp.php/x/NewForexService.getDayKLine?symbol=fx_susdjpy"
             }
           ],
-          "verified": "值一致；**已知** 本地 fx.points 日期标签比新浪日线偏 +1 日（值本身可由新浪证实），已在校验器备注登记"
+          "verified": "v573 起替代理杏仁（Open API 停用）；腾讯日K 与新浪日线值一致"
         },
         {
           "field": "amtD（沪深京日成交额）",
@@ -276,18 +267,24 @@
         {
           "field": "pmi/cpi/ppi/m1/m2/社融（国内宏观，月频）",
           "primary": {
-            "id": "lixinger_cn",
-            "tier": "T1",
-            "name": "理杏仁 · 国内宏观（原始来源 国家统计局 / 中国人民银行）"
+            "id": "westock_macro",
+            "tier": "T2",
+            "name": "腾讯 westock CLI macro indicator（原始来源 国家统计局 / 中国人民银行，v572 主源）"
           },
           "checkers": [
+            {
+              "id": "em_datacenter",
+              "tier": "T2",
+              "name": "东方财富 datacenter（RPT_ECONOMY_CPI/PPI/PMI 等，v572 自动切换备源）",
+              "url": "https://datacenter-web.eastmoney.com/api/data/v1/get"
+            },
             {
               "id": "wind_edb",
               "tier": "T1",
               "name": "Wind EDB 经济数据库（T1，原始来源同上）"
             }
           ],
-          "verified": "逐月一致（末月 pmi 49.8 / cpi 0.8 / ppi 3.8 / m1 4.0 / m2 7.7 / 社融 7.4）"
+          "verified": "v572 起双源（westock 主+东财备，失效自动切换实测）；与理杏仁历史逐项对齐（gdp 用 westock 修正理杏仁脏数据）"
         }
       ]
     },
@@ -333,6 +330,15 @@
     }
   },
   "incidents": [
+    {
+      "id": "INC-2026-10-17-a",
+      "dataset": "macro_snapshot（全工作台数据源）",
+      "severity": "高",
+      "found": "理杏仁开放平台 Open API 全量不可用：2026-10-16 实测 403「Exceed maximum access time, please purchase Open API」（访问时长额度耗尽）；10-17 复测真/假/无 token 一律 401「token权限验证错误」（服务端统一拒绝，非本地 token 问题）；网页端 www.lixinger.com 200 正常（网页年卡权益不受影响）",
+      "fix": "用户拍板不充值、绕过——v571 经理池 / v572 cnMacro / v573 6+1 脚本全部双源化（westock / danjuan / 东财 / 腾讯 / CBOE / FRED / 新浪）；本登记表 primary 同步改为新源；理杏仁仅保留网页外链（详情页为登录墙）",
+      "verifiedBy": "v573 发布 head d0f1ade1f4ec + data-mgmt/macro-data 线上核验 updatedAt=2026-10-17",
+      "version": "v573"
+    },
     {
       "id": "INC-2026-09-14-a",
       "dataset": "fund_monthly_nav",
