@@ -15076,7 +15076,7 @@ setTimeout(() => { renderResearchChips(); if (!state.news.items.length) loadNews
           {k:'holdDate', t:'持仓日期', get:function(r){ return r.m.holdDate||null; }},
         ];
         var meta=mp.meta||{};
-        var note='<div>经理池（主动权益 '+pools.equity.length+' + 债券 Top '+pools.bond.length+'，共 '+(pools.equity.length+pools.bond.length)+' 名，updatedAt '+esc(mp.updatedAt||'')+'）：全市场现任经理筛出——权益池门槛 ≥3年·在管≥10亿·代表年化≥8%·主动/混合/QDII，债券池门槛 ≥3年·在管≥10亿·代表年化≥5%·债。理杏仁 fmi 量化（年限·规模·风格·代表年化）+ 东财 pingzhongdata 代表基金近3年风险自算（夏普/卡玛/回撤）+ 星级/业绩评价画像 + 理杏仁持仓穿透（权益池）。评分含风险维度（权益：年化20%+风险25%+年限15%+规模10%+基金数10%+画像10%+穿透10%；债：业绩15%+风险35%+年限15%+规模10%+稳定10%+画像15%）；「评分」列后为子评分（业绩/风险/年限/规模/稳定/画像/穿透，悬停见口径）。</div>';
+        var note='<div>经理池（主动权益 '+pools.equity.length+' + 债券 Top '+pools.bond.length+'，共 '+(pools.equity.length+pools.bond.length)+' 名，updatedAt '+esc(mp.updatedAt||'')+'）：全市场现任经理筛出——权益池门槛 ≥3年·在管≥10亿·代表年化≥8%·主动/混合/QDII，债券池门槛 ≥3年·在管≥10亿·代表年化≥5%·债。理杏仁 fmi 量化（年限·规模·风格·代表年化）+ 东财 pingzhongdata 代表基金近3年风险自算（夏普/卡玛/回撤）+ 星级/业绩评价画像 + 理杏仁持仓穿透（权益池）。评分权重（v579：权益 业绩25%+风险25%+年限10%+规模10%+稳定10%+画像10%+穿透10%，规模=200亿适中最优倒U；债 业绩20%+风险35%+年限10%+规模10%+稳定10%+画像15%，规模越大越高）；「评分」列后为子评分（业绩/风险/年限/规模/稳定/画像/穿透，悬停见口径）。</div>';
         var h=poolTableHtml(rows.map(function(r){ return r._sep?r:{code:r.code, name:r.m.name, m:r.m, _meta:{m:r.m}, _score:r._score, _pool:r._pool}; }), {
           note:note,
           foot:'主动权益 '+pools.equity.length+' + 债券 Top '+pools.bond.length+' = 共 '+(pools.equity.length+pools.bond.length)+' 名（组内按评分降序，横线下方为债券池）',
