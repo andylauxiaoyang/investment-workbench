@@ -1329,7 +1329,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
         </div>
         <div id="dcPoolWatchWrap" class="dc-pane dc-pool-mark" style="display:none"><!-- v353 fw2_v353_pool_tabs：自选基金池（watchlist-data.json + 筛选池加入，剔除已持仓/已移除） --></div>
         <div id="dcPoolScreenWrap" class="dc-pane dc-pool-mark" style="display:none"><!-- v353 fw2_v353_pool_tabs：筛选基金池（screen-pool.json 40 只候选，可加入自选/永久删除） --></div>
-        <div id="dcPoolManagerWrap" class="dc-pane dc-pool-mark" style="display:none"><!-- v569 fw2_v569_manager_pool / v571 fw2_v571_mgr_east：基金经理池（manager-pool.json 全市场双池：主动权益50+债券50，天天基金公开接口全市场4360名筛选+东财画像+持仓穿透，绕过理杏仁 Open API） / v574 fw2_v574_mgr_subscore：评分聚合为「评分+子评分」列 / v575 fw2_v575_mgr_merge：两池合并为一张表（主动权益50 + 债券Top10 共60名，加「池」列，删分池 seg） / v576 fw2_v576_mgr_group：主动权益组在上、债券组在下（组间横线隔离，组内按评分降序） / v577 fw2_v577_mgr_lxlink：经理名外链天天基金经理档案（理杏仁经理页未登录实测登录墙，按 v568 铁律改可访问源） --></div>
+        <div id="dcPoolManagerWrap" class="dc-pane dc-pool-mark" style="display:none"><!-- v569 fw2_v569_manager_pool / v571 fw2_v571_mgr_east：基金经理池（manager-pool.json 全市场双池：主动权益50+债券50，天天基金公开接口全市场4360名筛选+东财画像+持仓穿透，绕过理杏仁 Open API） / v574 fw2_v574_mgr_subscore：评分聚合为「评分+子评分」列 / v575 fw2_v575_mgr_merge：两池合并为一张表（主动权益50 + 债券Top10 共60名，加「池」列，删分池 seg） / v576 fw2_v576_mgr_group：主动权益组在上、债券组在下（组间横线隔离，组内按评分降序） / v577 fw2_v577_mgr_lxlink：经理名外链天天基金经理档案（理杏仁经理页未登录实测登录墙，按 v568 铁律改可访问源） / v578 fw2_v578_mgr_lxreal：用户登录理杏仁后，经理名外链改理杏仁经理详情（manager-lx.json 映射，/detail/fm/{stockCode}/{tickerId}/fund-list），无映射回退天天基金 --></div>
         <div id="dcPoolRulesWrap" class="dc-pane" style="display:none"><!-- v363 fw2_v363_pool_rules_tab：完整筛选规则文档（漏斗全流程/硬门槛/加分项/批次/族表，启用+未启用全展示，含调整规则编辑面板） --></div>
         <!-- v95 fw2_v95_drop_table_pivot：表格视图与透视视图（含其内部控件）已删除 -->
         <div id="dcChartWrap" class="dc-pane" style="display:none">
@@ -12561,7 +12561,7 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
        留待与用户确认重设计方案后再动（本轮不做）。
      ★诚实限定：erpCard/peCard/mrgCard/vixCard 定义及其 erpSpark/peSpark/mrgSpark/vixSpark 函数已于 **v529（fw2_v529_smux P3）一并清理**（连同 erpLv/peLv/vixLv/rzyeLv 与顶部 erp/pe/margin/vix 局部变量，mi 页判读走 mcCalcCommon 不受影响）。
        数据/口径零改动，纯前端结构层；描述串「sm 去重 · 删重复估值流动性卡」入 verify_sync 标记组 */
-  if (vc) vc.textContent = 'v577 · 自选' /* fw2_v516_a500lk fw2_v517_4otc fw2_v518_hspos fw2_v519_sm_merge fw2_v520_chgflat fw2_v521_magnet fw2_v522_overview fw2_v523_sm_dedup fw2_v524_geo_fsi fw2_v525_geo_filter fw2_v526_geo_filter_removed fw2_v527_verdict fw2_v529_smux fw2_v530_datamgmt fw2_v531_sm_dmgmt fw2_v532_all_dm fw2_v533_px_long fw2_v533d_dm_scroll fw2_v534_dm_module fw2_v535_dm_auto fw2_v539_hold_realpnl fw2_v539a_seed_sync fw2_v539a_seed_order fw2_v540_hold_path fw2_v542_pf_mirror_first fw2_v542_mv_settled fw2_v542_mv_account fw2_v543_dm_holdings_note fw2_v544_ledger_mirror_guard fw2_v545_hold_total_row fw2_v546_navdate_all fw2_v547_vix_to_ovs fw2_v548_ovs_mrg fw2_v549_region_align fw2_v550_grp_tabs fw2_v551_sop_cockpit fw2_v552_sop_taborder fw2_v553_chain_data fw2_v554_sop_rename fw2_v556_market_split fw2_v557_sm_renamed fw2_v558_cbrates_fix fw2_v558a_cb_label fw2_v559_chain_dates fw2_v560_chain_verdict fw2_v561_curve_hold fw2_v562_hold_inline fw2_v563_alloc fw2_v564_lxlink fw2_v565_cal_lx fw2_v565_sub_lx fw2_v566_fund_move fw2_v567_fund_merge fw2_v568_lxlink_fix fw2_v569_manager_pool fw2_v570_manager_universe fw2_v571_mgr_east fw2_v574_mgr_subscore fw2_v575_mgr_merge fw2_v576_mgr_group fw2_v577_mgr_lxlink */ + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  if (vc) vc.textContent = 'v578 · 自选' /* fw2_v516_a500lk fw2_v517_4otc fw2_v518_hspos fw2_v519_sm_merge fw2_v520_chgflat fw2_v521_magnet fw2_v522_overview fw2_v523_sm_dedup fw2_v524_geo_fsi fw2_v525_geo_filter fw2_v526_geo_filter_removed fw2_v527_verdict fw2_v529_smux fw2_v530_datamgmt fw2_v531_sm_dmgmt fw2_v532_all_dm fw2_v533_px_long fw2_v533d_dm_scroll fw2_v534_dm_module fw2_v535_dm_auto fw2_v539_hold_realpnl fw2_v539a_seed_sync fw2_v539a_seed_order fw2_v540_hold_path fw2_v542_pf_mirror_first fw2_v542_mv_settled fw2_v542_mv_account fw2_v543_dm_holdings_note fw2_v544_ledger_mirror_guard fw2_v545_hold_total_row fw2_v546_navdate_all fw2_v547_vix_to_ovs fw2_v548_ovs_mrg fw2_v549_region_align fw2_v550_grp_tabs fw2_v551_sop_cockpit fw2_v552_sop_taborder fw2_v553_chain_data fw2_v554_sop_rename fw2_v556_market_split fw2_v557_sm_renamed fw2_v558_cbrates_fix fw2_v558a_cb_label fw2_v559_chain_dates fw2_v560_chain_verdict fw2_v561_curve_hold fw2_v562_hold_inline fw2_v563_alloc fw2_v564_lxlink fw2_v565_cal_lx fw2_v565_sub_lx fw2_v566_fund_move fw2_v567_fund_merge fw2_v568_lxlink_fix fw2_v569_manager_pool fw2_v570_manager_universe fw2_v571_mgr_east fw2_v574_mgr_subscore fw2_v575_mgr_merge fw2_v576_mgr_group fw2_v577_mgr_lxlink fw2_v578_mgr_lxreal */ + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
@@ -15002,8 +15002,28 @@ setTimeout(() => { renderResearchChips(); if (!state.news.items.length) loadNews
     var done=function(){ window.__MP_LOADING=false; (window.__MP_WAIT||[]).forEach(function(f){f();}); window.__MP_WAIT=null; if(cb)cb(); };
     (function next(){
       if(i>=urls.length){ done(); return; }
-      fetch(urls[i],{cache:'no-store'}).then(function(r){ if(!r.ok) throw 0; return r.json(); }).then(function(j){ window.MANAGER_POOL=j; done(); }).catch(function(){ i++; next(); });
+      fetch(urls[i],{cache:'no-store'}).then(function(r){ if(!r.ok) throw 0; return r.json(); }).then(function(j){ window.MANAGER_POOL=j; loadMgrLx(); done(); }).catch(function(){ i++; next(); });
     })();
+    /* fw2_v578_mgr_lxreal：理杏仁经理链接映射——内嵌常量（消除 fetch/CORS/时序依赖，渲染必然读到 MGR_LX_MAP；
+       2026-10-17 实测理杏仁经理页登录态 200 可访问，未登录重定向 fund-list 弹登录窗）＋保留 fetch 线上 manager-lx.json 覆盖（映射更新无需改 HTML）。 */
+    function loadMgrLx(){
+      var TPL='https://www.lixinger.com/analytics/fund/fund-manager/detail/fm/{sc}/{tk}/fund-list';
+      var RAW={'金梓才':'db20300407/102603140010','祁禾':'8801592104/1708178560','徐成':'8801403060/2403159340','陈韫中':'db20823124/32526215980','金璜':'db20875478/1008234950','狄星华':'8801603933/42408183730','吴可凡':'db20906401/231106237890','江山':'db20814373/1019210010','刘健维':'8801616851/121023190290','桑翔宇':'db20909245/192425235320','马丽娜':'db20844917/131214226150','莫海波':'8801397236/130802159030','武阳':'8801400668/2325150020','杨宗昌':'8801612607/252603199100','陈思靖':'db20831789/31910219030','陈皓':'db20164448/308120010','马磊':'db20912641/1312231930','杨瑨':'db20522071/2510176680','张其思':'db20794317/261719214760','陈俊杰':'db20895360/31010237300','容志能':'db20897358/182614230750','冯炉丹':'db20826228/61204218850','刘力':'db20828024/1212210080','孙硕':'db20842020/1919229030','王贵重':'db20686178/230726193430','罗擎':'db20840717/1217220960','欧阳良琦':'db20903521/152512233910','陈思远':'j101021114/31925266050','俞瑾':'db20876836/2510225550','陈文':'db20747429/323201860','梁辰星':'db20911867/120324238760','黄维':'db20338077/823166640','武玉迪':'db20910800/232504236330','方建':'db20418748/610181190','雷志勇':'8801612488/122625193090','孙权':'db20843771/1917220480','赵启元':'db20912619/261725231440','刘杰':'db20272703/1210147110','胡泽':'db20906188/826233860','刘畅畅':'db20728734/120303205320','李涛':'db20873248/1220207490','韩浩':'8801478923/808179360','刘慧影':'db20875646/120825220250','许炎':'db20486052/2425160200','杨维维':'db20890927/252323226230','吴清宇':'db20657367/231725181170','余懿':'db20883263/2525229590','张海啸':'db20905734/260824239670','彭珂':'db20918517/1611233890','张萍':'db20628543/2616189400','吴萍萍':'db20435029/231616160200','刘明宇':'db20551762/121325170420','黄纪亮':'db20071479/81012130720','卓勇':'db20721520/2625198770','司马义买买提':'db20800074/191325215450','张清华':'db20090251/261708130270','徐栋':'db20243901/2404152160','毛从容':'db20048306/130318051010','黄莹洁':'db20346660/82510157170','严志勇':'8801471711/252625170810'};
+      var map={};
+      Object.keys(RAW).forEach(function(n){ var s=RAW[n].split('/'); if(s.length===2) map[n]=TPL.replace('{sc}',s[0]).replace('{tk}',s[1]); });
+      window.MGR_LX_MAP=map;
+      var u=['./manager-lx.json','https://raw.githubusercontent.com/andylauxiaoyang/investment-workbench/master/caifu/manager-lx.json'];
+      var k=0;
+      (function nxt(){
+        if(k>=u.length){ return; }
+        fetch(u[k],{cache:'no-store'}).then(function(r){ if(!r.ok) throw 0; return r.json(); }).then(function(j){
+          var tpl=j.urlTemplate||TPL;
+          var m2={};
+          Object.keys(j.links||{}).forEach(function(n){ var seg=(j.links[n]||'').split('/'); if(seg.length===2) m2[n]=tpl.replace('{sc}',seg[0]).replace('{tk}',seg[1]); });
+          window.MGR_LX_MAP=m2;
+        }).catch(function(){ k++; nxt(); });
+      })();
+    }
   }
   /* 经理级评分（v570 fw2_v570_manager_universe / v571 fw2_v571_mgr_east 全市场版）：评分已在数据层 gen_manager_pool_v3.py 算好写入
      manager-pool.json（全市场 4360 名经理，天天基金公开接口筛选两池；权益池=代表年化20+风险25+年限15+规模10+在管基金数10+画像10+持仓穿透10；
@@ -15031,7 +15051,7 @@ setTimeout(() => { renderResearchChips(); if (!state.news.items.length) loadNews
         if(bdRows.length) rows.push({_sep:'▼ 债券池 Top '+bdRows.length+'（组内按评分降序）'});
         rows=rows.concat(bdRows);
         var cols=[
-          {k:'mgrName', t:'经理', get:function(r){ return '<b class="tdclip" title="点击进天天基金经理档案：'+esc(r.m.name)+'">'+esc(r.m.name)+'</b>'+LXMAP.ic(LXMAP.mgr(r.m.code),'天天基金经理档案'); }, html:true},   /* fw2_v577_mgr_lxlink */
+          {k:'mgrName', t:'经理', get:function(r){ var nm=r.m.name; var lx=(window.MGR_LX_MAP||{})[nm]; var ic= lx ? LXMAP.ic(lx,'理杏仁基金经理（需登录）') : LXMAP.ic(LXMAP.mgr(r.m.code),'天天基金经理档案'); return '<b class="tdclip" title="'+esc(nm)+'">'+esc(nm)+'</b>'+ic; }, html:true},   /* fw2_v577_mgr_lxlink + fw2_v578_mgr_lxreal：理杏仁经理页优先（登录态 200 实测），无映射回退天天基金 */
           {k:'mgrScore', t:'评分', num:true, get:function(r){ return r._score!=null?r._score.toFixed(1):null; }},
           {k:'subScore', t:'子评分', html:true, get:function(r){
             var m=r.m, add=function(arr,k,t,d){ var v=m[k]; if(v!=null) arr.push('<span title="'+d+'" style="margin-right:8px">'+t+' '+Number(v).toFixed(0)+'</span>'); };
