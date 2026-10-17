@@ -15017,7 +15017,13 @@ setTimeout(() => { renderResearchChips(); if (!state.news.items.length) loadNews
         var cols=[
           {k:'mgrName', t:'经理', get:function(r){ return '<b>'+esc(r.m.name)+'</b>'; }, html:true},
           {k:'mgrScore', t:'评分', num:true, get:function(r){ return r._score!=null?r._score.toFixed(1):null; }},
-          {k:'riskScore', t:'风险分', num:true, get:function(r){ return r.m.riskScore!=null?Number(r.m.riskScore).toFixed(0):null; }},
+          {k:'subScore', t:'子评分', html:true, get:function(r){
+            var m=r.m, add=function(arr,k,t,d){ var v=m[k]; if(v!=null) arr.push('<span title="'+d+'" style="margin-right:8px">'+t+' '+Number(v).toFixed(0)+'</span>'); };
+            var l1=[],l2=[];
+            add(l1,'retScore','业绩','代表年化归一'); add(l1,'riskScore','风险','近3年夏普归一'); add(l1,'yearScore','年限','管理年限'); add(l1,'scaleScore','规模','在管规模');
+            add(l2,'stabScore','稳定','在管基金数'); add(l2,'imgScore','画像','星级+业绩评价'); add(l2,'concScore','穿透','持仓集中度');
+            return (l1.length||l2.length)?'<span style="color:var(--muted,#94a3b8);font-size:11px;white-space:nowrap">'+l1.join('')+'<br>'+l2.join('')+'</span>':null;
+          }},
           {k:'fmMsl', t:'风格', get:function(r){ return fmMsl(r.m.fmMsl); }},
           {k:'fmMy', t:'管理年', num:true, get:function(r){ return r.m.fmMy!=null?Number(r.m.fmMy).toFixed(1):null; }},
           {k:'fmWy', t:'从业年', num:true, get:function(r){ return r.m.fmWy!=null?Number(r.m.fmWy).toFixed(0):null; }},
@@ -15028,7 +15034,6 @@ setTimeout(() => { renderResearchChips(); if (!state.news.items.length) loadNews
           {k:'shp3', t:'近3年夏普', num:true, get:function(r){ var z=r.m.risk3y; return (z&&z.sharpe!=null)?Number(z.sharpe).toFixed(2):null; }},
           {k:'cal3', t:'近3年卡玛', num:true, get:function(r){ var z=r.m.risk3y; return (z&&z.calmar!=null)?Number(z.calmar).toFixed(2):null; }},
           {k:'mgrStar', t:'星级', get:function(r){ return (r.m.mgrStar!=null&&r.m.mgrStar>0)?'★'+r.m.mgrStar:null; }},
-          {k:'ratingAvr', t:'业绩评分', num:true, get:function(r){ return r.m.ratingAvr!=null?Number(r.m.ratingAvr).toFixed(0):null; }},
           {k:'holdConc', t:'持仓集中%', num:true, get:function(r){ return r.m.holdConc!=null?Number(r.m.holdConc).toFixed(0):null; }},
           {k:'holdInd', t:'持仓风格', html:true, get:function(r){ var hi=r.m.holdInd; if(!hi||!hi.length) return null; return '<span style="color:var(--muted,#94a3b8);font-size:11px">'+esc(hi.map(function(x){return x.ind+(x.cnt>1?('×'+x.cnt):'');}).join('·'))+'</span>'; }},
           {k:'holdDate', t:'持仓日期', get:function(r){ return r.m.holdDate||null; }},
@@ -15036,7 +15041,7 @@ setTimeout(() => { renderResearchChips(); if (!state.news.items.length) loadNews
         var pn=p==='bond'?'债券池':'主动权益池';
         var meta=mp.meta||{};
         var crit=p==='bond'?'≥3年 · 在管≥10亿 · 代表年化≥5% · 债':'≥3年 · 在管≥10亿 · 代表年化≥8% · 主动/混合/QDII';
-        var note='<div>'+pn+'（Top '+rows.length+'，updatedAt '+esc(mp.updatedAt||'')+'）：全市场现任经理筛出（'+esc(crit)+'）。理杏仁 fmi 量化（年限·规模·风格·代表年化）+ 东财 pingzhongdata 代表基金近3年风险自算（夏普/卡玛/回撤）+ 星级/业绩评价画像 + 理杏仁持仓穿透（权益池）。评分含风险维度（权益：年化20%+风险25%+年限15%+规模10%+基金数10%+画像10%+穿透10%；债：业绩15%+风险35%+年限15%+规模10%+稳定10%+画像15%）。</div>';
+        var note='<div>'+pn+'（Top '+rows.length+'，updatedAt '+esc(mp.updatedAt||'')+'）：全市场现任经理筛出（'+esc(crit)+'）。理杏仁 fmi 量化（年限·规模·风格·代表年化）+ 东财 pingzhongdata 代表基金近3年风险自算（夏普/卡玛/回撤）+ 星级/业绩评价画像 + 理杏仁持仓穿透（权益池）。评分含风险维度（权益：年化20%+风险25%+年限15%+规模10%+基金数10%+画像10%+穿透10%；债：业绩15%+风险35%+年限15%+规模10%+稳定10%+画像15%）；「评分」列后为子评分（业绩/风险/年限/规模/稳定/画像/穿透，悬停见口径）。</div>';
         var tabs='<div style="display:flex;gap:8px;margin:16px 0 10px">'+
           ['equity','bond'].map(function(p2){
             var on=p2===p;
