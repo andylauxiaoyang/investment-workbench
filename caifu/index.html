@@ -14999,6 +14999,19 @@ setTimeout(() => { renderResearchChips(); if (!state.news.items.length) loadNews
       fetch(urls[i],{cache:'no-store'}).then(function(r){ if(!r.ok) throw 0; return r.json(); }).then(function(j){ window.SCREEN_POOL=j; done(); }).catch(function(){ i++; next(); });
     })();
   }
+  /* fw2_anti_halluc_p0：#13 持仓重合矩阵——FUND_OVERLAP 独立加载（幂等，与 SCREEN_POOL 解耦；缺失时 null 不阻塞表格） */
+  function loadFundOverlap(cb){
+    if(window.FUND_OVERLAP){ if(cb)cb(); return; }
+    if(window.__OV_LOADING){ if(cb){ (window.__OV_WAIT=window.__OV_WAIT||[]).push(cb); } return; }
+    window.__OV_LOADING=true;
+    var urls=['./data/fund-overlap.json','https://raw.githubusercontent.com/andylauxiaoyang/investment-workbench/master/caifu/data/fund-overlap.json'];
+    var i=0;
+    var done=function(){ window.__OV_LOADING=false; (window.__OV_WAIT||[]).forEach(function(f){f();}); window.__OV_WAIT=null; if(cb)cb(); };
+    (function next(){
+      if(i>=urls.length){ window.FUND_OVERLAP=null; done(); return; }
+      fetch(urls[i],{cache:'no-store'}).then(function(r){ if(!r.ok) throw 0; return r.json(); }).then(function(j){ window.FUND_OVERLAP=j||null; done(); }).catch(function(){ i++; next(); });
+    })();
+  }
   /* fw2_v365_mgr_career：经理能力小字增强（季度/6月胜率 + 生涯踩雷红黄警示 + 生涯曲线弹层入口），数据字段缺失时自然省略 */
   function poolMgrBits(e, code){
     if(!e) return '';
@@ -15091,7 +15104,7 @@ setTimeout(() => { renderResearchChips(); if (!state.news.items.length) loadNews
     wrap.innerHTML='<div style="padding:24px;color:var(--muted,#94a3b8);text-align:center">加载筛选池…</div>';
     loadScreenRules(false, function(){ finish(); });
     function finish(){
-    loadScreenPool(function(){
+    loadScreenPool(function(){ loadFundOverlap(function(){
       var sp=window.SCREEN_POOL;
       if(!sp||!sp.funds){ wrap.innerHTML='<div style="padding:24px;color:var(--warn,#d97706);text-align:center">筛选池数据加载失败（screen-pool.json 不可达）。</div>'; return; }
       var held=poolHeldCodes(), added=poolWatchAdded(), removed=poolScreenRemoved();
@@ -15138,6 +15151,7 @@ setTimeout(() => { renderResearchChips(); if (!state.news.items.length) loadNews
       /* fw2_v368_bc：重仓明细弹层 */
       wrap.querySelectorAll('[data-top-hold]').forEach(function(a){
         a.addEventListener('click', function(){ openTopHoldings(a.dataset.topHold); });
+      });
       });
     });
     }
