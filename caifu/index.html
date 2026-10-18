@@ -8658,11 +8658,15 @@ var LXMAP = (function () {
      经理外链 v577 起接通（fw2_v577_mgr_lxlink）：理杏仁经理页未登录实测被重定向 fund-list 弹登录窗（打不开）→ 按 v568 铁律改链天天基金经理档案
      fund.eastmoney.com/manager/{code}.html（200 实测可用），经理名后「↗」新标签打开。 */
   var fund = function (code) {
-    /* fw2_v570_lx_index_fix：理杏仁 equity/fund/detail 详情页同 403「已暂时关闭」（2026-10-16 实测）→ 改天天基金 fund.eastmoney.com
-       （实测 HTTP 200、所有基金统一 6 位代码、含 007866/场内 511360 等，删原理杏仁 fam/sh-sz 前缀与 007866 缺失特判）。 */
-    var c6 = String(code == null ? '' : code).replace(/\D/g, '').slice(-6);
-    if (c6.length !== 6) return '';
-    return 'https://fund.eastmoney.com/' + c6 + '.html';
+    /* fw2_v581_fund_lxreal：基金外链切理杏仁（用户拍板「全部改成理杏仁，不要用天天基金」）。2026-10-18 理杏仁登录态实测：
+       场内基金 detail/{sh|sz}/{code}/{code}（510300/159915 等）、场外基金 detail/jj/{code}/{tickerId}（012920→12920、160422→160422，
+       tickerId 为理杏仁库内 ID，以 fund-lx.json 映射为准勿自行推导）；工作台 69 只基金 68 只收录（007866 无命中、001239 命中公司非基金 → 不渲染外链）。
+       映射=内嵌 FUND_LX_RAW 常量 + fetch 线上 fund-lx.json 覆盖（v578 loadMgrLx 同模式）。 */
+    var c = String(code == null ? '' : code).replace(/\D/g, '').slice(-6);
+    if (c.length !== 6) return '';
+    var p = (window.FUND_LX_MAP || {})[c];
+    if (!p) return '';
+    return 'https://www.lixinger.com/analytics/fund/detail/' + p;
   };
   var mgr = function (code) {
     /* fw2_v577_mgr_lxlink：经理外链实测——理杏仁 /analytics/fund/manager/detail 未登录被重定向 fund-list 弹登录窗「加载数据失败」
@@ -8677,6 +8681,25 @@ var LXMAP = (function () {
     return '<span class="lx-ic" data-lx="' + esc(url) + '" title="' + esc(tip || '理杏仁/数据源（新标签）') + '" style="cursor:pointer;display:inline-block;margin-left:5px;font-size:10px;line-height:1.4;color:var(--brand,#4D6BFE);border:1px solid rgba(77,107,254,.5);border-radius:4px;padding:0 4px;vertical-align:1px;user-select:none;background:#fff">↗</span>';
   };
   return { index: function (name) { return I[name] || ''; }, macro: function (name) { return M[name] || ''; }, fund: fund, mgr: mgr, ic: ic };
+})();
+/* fw2_v581_fund_lxreal：基金外链理杏仁映射——内嵌常量（渲染必然读到 FUND_LX_MAP，消除 fetch/CORS/时序依赖）
+   ＋保留 fetch 线上 fund-lx.json 覆盖（映射更新无需改 HTML）。links 值=path 段（exchange/stockCode/tickerId 三段）。
+   2026-10-18 理杏仁登录态实测：场内基金 exchange=sh/sz、场外=jj；007866/001239 未收录不渲染。 */
+var FUND_LX_RAW = {"000216":"jj/000216/216","000218":"jj/000218/218","000307":"jj/000307/307","000746":"jj/000746/746","001015":"jj/001015/1015","001037":"jj/001037/1037","001076":"jj/001076/1076","001194":"jj/001194/1194","001480":"jj/001480/1480","001512":"jj/001512/1512","001513":"jj/001513/1513","002910":"jj/002910/2910","004320":"jj/004320/4320","004788":"jj/004788/4788","004945":"jj/004945/4945","006373":"jj/006373/6373","006502":"jj/006502/6502","007817":"jj/007817/7817","008326":"jj/008326/8326","008988":"jj/008988/8988","009108":"jj/009108/9108","009608":"jj/009608/9608","010736":"jj/010736/10736","011369":"jj/011369/11369","012060":"jj/012060/12060","012535":"jj/012535/12535","012761":"jj/012761/12761","012920":"jj/012920/12920","013328":"jj/013328/13328","013840":"jj/013840/13840","013914":"jj/013914/13914","016452":"jj/016452/16452","016500":"jj/016500/16500","016664":"jj/016664/16664","017102":"jj/017102/17102","017436":"jj/017436/17436","017469":"jj/017469/17469","017559":"jj/017559/17559","017641":"jj/017641/17641","017644":"jj/017644/17644","017730":"jj/017730/17730","017953":"jj/017953/17953","018013":"jj/018013/18013","019155":"jj/019155/19155","019441":"jj/019441/19441","020712":"jj/020712/20712","022438":"jj/022438/22438","022688":"jj/022688/22688","023917":"jj/023917/23917","040046":"jj/040046/40046","159201":"sz/159201/159201","159934":"sz/159934/159934","159949":"sz/159949/159949","160422":"jj/160422/160422","162201":"jj/162201/162201","163813":"jj/163813/163813","164212":"jj/164212/164212","270023":"jj/270023/270023","270042":"jj/270042/270042","378006":"jj/378006/378006","501226":"jj/501226/501226","510880":"sh/510880/510880","511260":"sh/511260/511260","511360":"sh/511360/511360","539001":"jj/539001/539001","563360":"sh/563360/563360","720001":"jj/720001/720001"};
+(function () {
+  var map = {};
+  Object.keys(FUND_LX_RAW).forEach(function (c) { map[c] = FUND_LX_RAW[c]; });
+  window.FUND_LX_MAP = map;
+  var u = ['./fund-lx.json', 'https://raw.githubusercontent.com/andylauxiaoyang/investment-workbench/master/caifu/fund-lx.json'];
+  var k = 0;
+  (function nxt() {
+    if (k >= u.length) return;
+    fetch(u[k], { cache: 'no-store' }).then(function (r) { if (!r.ok) throw 0; return r.json(); }).then(function (j) {
+      var m2 = {};
+      Object.keys(j.links || {}).forEach(function (c) { var seg = (j.links[c] || '').split('/'); if (seg.length === 3) m2[c] = j.links[c]; });
+      window.FUND_LX_MAP = m2;
+    }).catch(function () { k++; nxt(); });
+  })();
 })();
 function renderMacroOverview(d) {
   var C = mcCalcCommon(d);
@@ -12561,7 +12584,7 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
        留待与用户确认重设计方案后再动（本轮不做）。
      ★诚实限定：erpCard/peCard/mrgCard/vixCard 定义及其 erpSpark/peSpark/mrgSpark/vixSpark 函数已于 **v529（fw2_v529_smux P3）一并清理**（连同 erpLv/peLv/vixLv/rzyeLv 与顶部 erp/pe/margin/vix 局部变量，mi 页判读走 mcCalcCommon 不受影响）。
        数据/口径零改动，纯前端结构层；描述串「sm 去重 · 删重复估值流动性卡」入 verify_sync 标记组 */
-  if (vc) vc.textContent = 'v579 · 自选' /* fw2_v516_a500lk fw2_v517_4otc fw2_v518_hspos fw2_v519_sm_merge fw2_v520_chgflat fw2_v521_magnet fw2_v522_overview fw2_v523_sm_dedup fw2_v524_geo_fsi fw2_v525_geo_filter fw2_v526_geo_filter_removed fw2_v527_verdict fw2_v529_smux fw2_v530_datamgmt fw2_v531_sm_dmgmt fw2_v532_all_dm fw2_v533_px_long fw2_v533d_dm_scroll fw2_v534_dm_module fw2_v535_dm_auto fw2_v539_hold_realpnl fw2_v539a_seed_sync fw2_v539a_seed_order fw2_v540_hold_path fw2_v542_pf_mirror_first fw2_v542_mv_settled fw2_v542_mv_account fw2_v543_dm_holdings_note fw2_v544_ledger_mirror_guard fw2_v545_hold_total_row fw2_v546_navdate_all fw2_v547_vix_to_ovs fw2_v548_ovs_mrg fw2_v549_region_align fw2_v550_grp_tabs fw2_v551_sop_cockpit fw2_v552_sop_taborder fw2_v553_chain_data fw2_v554_sop_rename fw2_v556_market_split fw2_v557_sm_renamed fw2_v558_cbrates_fix fw2_v558a_cb_label fw2_v559_chain_dates fw2_v560_chain_verdict fw2_v561_curve_hold fw2_v562_hold_inline fw2_v563_alloc fw2_v564_lxlink fw2_v565_cal_lx fw2_v565_sub_lx fw2_v566_fund_move fw2_v567_fund_merge fw2_v568_lxlink_fix fw2_v569_manager_pool fw2_v570_manager_universe fw2_v571_mgr_east fw2_v574_mgr_subscore fw2_v575_mgr_merge fw2_v576_mgr_group fw2_v577_mgr_lxlink fw2_v578_mgr_lxreal fw2_v579_mgr_weight */ + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  if (vc) vc.textContent = 'v581 · 自选' /* fw2_v516_a500lk fw2_v517_4otc fw2_v518_hspos fw2_v519_sm_merge fw2_v520_chgflat fw2_v521_magnet fw2_v522_overview fw2_v523_sm_dedup fw2_v524_geo_fsi fw2_v525_geo_filter fw2_v526_geo_filter_removed fw2_v527_verdict fw2_v529_smux fw2_v530_datamgmt fw2_v531_sm_dmgmt fw2_v532_all_dm fw2_v533_px_long fw2_v533d_dm_scroll fw2_v534_dm_module fw2_v535_dm_auto fw2_v539_hold_realpnl fw2_v539a_seed_sync fw2_v539a_seed_order fw2_v540_hold_path fw2_v542_pf_mirror_first fw2_v542_mv_settled fw2_v542_mv_account fw2_v543_dm_holdings_note fw2_v544_ledger_mirror_guard fw2_v545_hold_total_row fw2_v546_navdate_all fw2_v547_vix_to_ovs fw2_v548_ovs_mrg fw2_v549_region_align fw2_v550_grp_tabs fw2_v551_sop_cockpit fw2_v552_sop_taborder fw2_v553_chain_data fw2_v554_sop_rename fw2_v556_market_split fw2_v557_sm_renamed fw2_v558_cbrates_fix fw2_v558a_cb_label fw2_v559_chain_dates fw2_v560_chain_verdict fw2_v561_curve_hold fw2_v562_hold_inline fw2_v563_alloc fw2_v564_lxlink fw2_v565_cal_lx fw2_v565_sub_lx fw2_v566_fund_move fw2_v567_fund_merge fw2_v568_lxlink_fix fw2_v569_manager_pool fw2_v570_manager_universe fw2_v571_mgr_east fw2_v574_mgr_subscore fw2_v575_mgr_merge fw2_v576_mgr_group fw2_v577_mgr_lxlink fw2_v578_mgr_lxreal fw2_v579_mgr_weight fw2_v581_fund_lxreal */ + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
