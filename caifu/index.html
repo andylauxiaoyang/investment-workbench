@@ -12584,7 +12584,7 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
        留待与用户确认重设计方案后再动（本轮不做）。
      ★诚实限定：erpCard/peCard/mrgCard/vixCard 定义及其 erpSpark/peSpark/mrgSpark/vixSpark 函数已于 **v529（fw2_v529_smux P3）一并清理**（连同 erpLv/peLv/vixLv/rzyeLv 与顶部 erp/pe/margin/vix 局部变量，mi 页判读走 mcCalcCommon 不受影响）。
        数据/口径零改动，纯前端结构层；描述串「sm 去重 · 删重复估值流动性卡」入 verify_sync 标记组 */
-  if (vc) vc.textContent = 'v587 · 自选' /* fw2_v516_a500lk fw2_v517_4otc fw2_v518_hspos fw2_v519_sm_merge fw2_v520_chgflat fw2_v521_magnet fw2_v522_overview fw2_v523_sm_dedup fw2_v524_geo_fsi fw2_v525_geo_filter fw2_v526_geo_filter_removed fw2_v527_verdict fw2_v529_smux fw2_v530_datamgmt fw2_v531_sm_dmgmt fw2_v532_all_dm fw2_v533_px_long fw2_v533d_dm_scroll fw2_v534_dm_module fw2_v535_dm_auto fw2_v539_hold_realpnl fw2_v539a_seed_sync fw2_v539a_seed_order fw2_v540_hold_path fw2_v542_pf_mirror_first fw2_v542_mv_settled fw2_v542_mv_account fw2_v543_dm_holdings_note fw2_v544_ledger_mirror_guard fw2_v545_hold_total_row fw2_v546_navdate_all fw2_v547_vix_to_ovs fw2_v548_ovs_mrg fw2_v549_region_align fw2_v550_grp_tabs fw2_v551_sop_cockpit fw2_v552_sop_taborder fw2_v553_chain_data fw2_v554_sop_rename fw2_v556_market_split fw2_v557_sm_renamed fw2_v558_cbrates_fix fw2_v558a_cb_label fw2_v559_chain_dates fw2_v560_chain_verdict fw2_v561_curve_hold fw2_v562_hold_inline fw2_v563_alloc fw2_v564_lxlink fw2_v565_cal_lx fw2_v565_sub_lx fw2_v566_fund_move fw2_v567_fund_merge fw2_v568_lxlink_fix fw2_v569_manager_pool fw2_v570_manager_universe fw2_v571_mgr_east fw2_v574_mgr_subscore fw2_v575_mgr_merge fw2_v576_mgr_group fw2_v577_mgr_lxlink fw2_v578_mgr_lxreal fw2_v579_mgr_weight fw2_v581_fund_lxreal fw2_v582_mgr_min10 fw2_v583_mgr_noyear fw2_v584_mgr_career fw2_v585_mgr_srank */ + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  if (vc) vc.textContent = 'v589 · 自选' /* fw2_v516_a500lk fw2_v517_4otc fw2_v518_hspos fw2_v519_sm_merge fw2_v520_chgflat fw2_v521_magnet fw2_v522_overview fw2_v523_sm_dedup fw2_v524_geo_fsi fw2_v525_geo_filter fw2_v526_geo_filter_removed fw2_v527_verdict fw2_v529_smux fw2_v530_datamgmt fw2_v531_sm_dmgmt fw2_v532_all_dm fw2_v533_px_long fw2_v533d_dm_scroll fw2_v534_dm_module fw2_v535_dm_auto fw2_v539_hold_realpnl fw2_v539a_seed_sync fw2_v539a_seed_order fw2_v540_hold_path fw2_v542_pf_mirror_first fw2_v542_mv_settled fw2_v542_mv_account fw2_v543_dm_holdings_note fw2_v544_ledger_mirror_guard fw2_v545_hold_total_row fw2_v546_navdate_all fw2_v547_vix_to_ovs fw2_v548_ovs_mrg fw2_v549_region_align fw2_v550_grp_tabs fw2_v551_sop_cockpit fw2_v552_sop_taborder fw2_v553_chain_data fw2_v554_sop_rename fw2_v556_market_split fw2_v557_sm_renamed fw2_v558_cbrates_fix fw2_v558a_cb_label fw2_v559_chain_dates fw2_v560_chain_verdict fw2_v561_curve_hold fw2_v562_hold_inline fw2_v563_alloc fw2_v564_lxlink fw2_v565_cal_lx fw2_v565_sub_lx fw2_v566_fund_move fw2_v567_fund_merge fw2_v568_lxlink_fix fw2_v569_manager_pool fw2_v570_manager_universe fw2_v571_mgr_east fw2_v574_mgr_subscore fw2_v575_mgr_merge fw2_v576_mgr_group fw2_v577_mgr_lxlink fw2_v578_mgr_lxreal fw2_v579_mgr_weight fw2_v581_fund_lxreal fw2_v582_mgr_min10 fw2_v583_mgr_noyear fw2_v584_mgr_career fw2_v585_mgr_srank */ + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
@@ -14692,6 +14692,80 @@ setTimeout(() => { renderResearchChips(); if (!state.news.items.length) loadNews
     h+='<details style="font-size:12px;margin:2px 10px"><summary style="cursor:pointer;color:var(--brand,#4D6BFE);font-weight:600">展开主题词与档位匹配</summary>'
       +'<div style="margin-top:6px;line-height:1.9"><b>主题词（命中优先判进攻/主题）：</b><br>'+esc((rules.themeWords&&rules.themeWords.words||[]).join(' / '))+'</div>'
       +'<div style="margin-top:6px;line-height:1.9"><b>档位匹配：</b>'+Object.keys(rules.roleMatch||{}).map(function(r){ return '<div>'+esc(r)+'：'+esc(rules.roleMatch[r].join(' / '))+'</div>'; }).join('')+'</div></details>';
+    /* fw2_v589_mgr_rules：基金经理筛选规则文档（用户 2026-10-18 指令「把基金经理的筛选规则写入到筛选规则子模块里面」）
+       数据层=edit_work/gen_manager_pool_v3.py（A 全市场清单 → A1 生涯年化详情 → B 风险 → C 穿透 → D 评分，断点续跑）；
+       本区块为静态说明，与脚本口径同源——改门槛/权重/口径必须两处同改。 */
+    h+=srSect('基金经理筛选规则 · 全市场 → 主动权益 50 + 债券 Top 10（v589 新增）');
+    h+='<div style="font-size:11px;color:var(--muted,#94a3b8);margin:2px 10px 6px;line-height:1.6">'
+      +'本页上方=基金筛选规则（四维加权制）；本区块=基金经理筛选规则（同一「筛选规则」入口）。'
+      +'经理池数据层=gen_manager_pool_v3.py：天天基金全市场清单 + 东财画像 + 天天/理杏仁同类排名，'
+      +'输出 manager-pool.json（主动权益 50 + 债券 Top 10，评分降序、分组展示）。'
+      +'<b style="color:var(--fg,#0f172a)">以下门槛/权重/口径与页面展示同源，调整请告知豆包同步脚本后重跑。</b></div>';
+    /* ---- 经理漏斗（fw2_v589_mgr_rules） ---- */
+    var mfunnel=[
+      ['① 全市场经理（约 4,360 名）','天天基金 FundDataPortfolio dt=14 全量清单（经理ID/姓名/公司/在管规模/代表基金）','约 4360'],
+      ['② 风格判定','代表基金类型：股票/混合/QDII → 主动权益池；债券 → 债券池；指数型跳过','硬性'],
+      ['③ 硬门槛（v582 起 ≥10年）','管理年限 ≥10 年 · 在管规模 ≥10 亿 · 代表年化 权益 ≥8% / 债 ≥5%','硬性'],
+      ['④ 业绩口径收严（v584 生涯年化）','生涯年化 = Σ(各基金任期年化×任职天数)÷Σ任职天数，重过门槛（候选权益 151→51、债 37→9+补1）','硬性'],
+      ['⑤ 评分收口 → Top 50 + Top 10','近3年夏普风险分 + 前十大持仓穿透 + 7 子分加权 → 主动权益 Top 50 + 债券 Top 10','配额'],
+    ];
+    var mfw=100;
+    mfunnel.forEach(function(f){
+      h+='<div style="width:'+mfw+'%;box-sizing:border-box;margin:0 auto 6px;background:#f8fafc;border:1px solid #e2e8f0;border-left:3px solid var(--brand,#4D6BFE);border-radius:8px;padding:7px 10px">'
+        +'<div style="font-size:12px;font-weight:600">'+f[0]+'</div>'
+        +'<div style="font-size:11px;color:var(--slate-600,#475569);margin-top:2px;line-height:1.5">'+f[1]+'</div></div>';
+      mfw-=9;
+    });
+    /* ---- 经理硬门槛表（fw2_v589_mgr_rules） ---- */
+    h+=srSect('经理硬门槛 · 不合格直接淘汰（v582 起 ≥10年）');
+    h+='<table style="width:100%;border-collapse:collapse;font-size:12px;margin-top:4px">'
+      +'<tr><th style="text-align:left;padding:6px 8px;background:var(--panel-3,#f1f5f9);border-bottom:1px solid var(--line,#e2e8f0);font-size:11px;color:var(--muted,#94a3b8);white-space:nowrap">规则</th>'
+      +'<th style="text-align:left;padding:6px 8px;background:var(--panel-3,#f1f5f9);border-bottom:1px solid var(--line,#e2e8f0);font-size:11px;color:var(--muted,#94a3b8)">说明</th>'
+      +'<th style="text-align:left;padding:6px 8px;background:var(--panel-3,#f1f5f9);border-bottom:1px solid var(--line,#e2e8f0);font-size:11px;color:var(--muted,#94a3b8);white-space:nowrap">状态</th></tr>';
+    var mHg=[
+      ['管理年限','≥10 年（v582 上调，原 ≥3 年）','硬性'],
+      ['在管规模','≥10 亿（在管基金总规模）','硬性'],
+      ['生涯年化门槛','权益 ≥8% · 债券 ≥5%（v584 起以生涯年化为准，比代表年化更严格）','硬性'],
+      ['类型判定','股票/混合/QDII → 主动权益池；债券 → 债券池；指数型跳过','硬性'],
+      ['同类排名（展示）','1/2/3 年=天天基金详情页阶段涨幅；5/10 年/成立来=理杏仁基金列表页（全日基金口径，名次/总数、分母随分类变化）','展示'],
+    ];
+    mHg.forEach(function(r){
+      h+='<tr><td style="padding:6px 8px;border-bottom:1px solid var(--line-2,#f1f5f9);white-space:nowrap;font-weight:600">'+esc(r[0])+'</td>'
+        +'<td style="padding:6px 8px;border-bottom:1px solid var(--line-2,#f1f5f9);font-size:11px;color:var(--muted,#94a3b8);line-height:1.5">'+esc(r[1])+'</td>'
+        +'<td style="padding:6px 8px;border-bottom:1px solid var(--line-2,#f1f5f9);white-space:nowrap">'+((r[2]==='硬性')?(stBadge(true,'')+' 硬性'):esc(r[2]))+'</td></tr>';
+    });
+    h+='</table>';
+    /* ---- 经理评分权重表（fw2_v589_mgr_rules） ---- */
+    h+=srSect('经理评分 · 7 子评分 × 两池权重（v574/v579/v583 演进）');
+    h+='<div style="font-size:11px;color:var(--muted,#94a3b8);margin:2px 10px 6px;line-height:1.6">'
+      +'总评分 = Σ(子分×权重) ÷ Σ权重（缺项自动重归一）；60=及格 / 80=优秀。'
+      +'<b style="color:var(--fg,#0f172a)">v583 起取消年限分</b>（管理年限已由 ≥10 年硬门槛保证，子评分列不再显示「年限」，管理年列保留展示）。'
+      +'v579 方案B：权益规模=200 亿适中最优倒U（100−|log2(规模/200)|×30，每翻倍/减半扣 30 分、下限 0）；债规模越大越高。</div>';
+    h+='<table style="width:100%;border-collapse:collapse;font-size:12px;margin-top:4px">'
+      +'<tr><th style="text-align:left;padding:6px 8px;background:var(--panel-3,#f1f5f9);border-bottom:1px solid var(--line,#e2e8f0);font-size:11px;color:var(--muted,#94a3b8)">子评分</th>'
+      +'<th style="text-align:left;padding:6px 8px;background:var(--panel-3,#f1f5f9);border-bottom:1px solid var(--line,#e2e8f0);font-size:11px;color:var(--muted,#94a3b8)">口径</th>'
+      +'<th style="text-align:center;padding:6px 8px;background:var(--panel-3,#f1f5f9);border-bottom:1px solid var(--line,#e2e8f0);font-size:11px;color:var(--muted,#94a3b8);white-space:nowrap">主动权益池</th>'
+      +'<th style="text-align:center;padding:6px 8px;background:var(--panel-3,#f1f5f9);border-bottom:1px solid var(--line,#e2e8f0);font-size:11px;color:var(--muted,#94a3b8);white-space:nowrap">债券池</th></tr>';
+    var mDim=[
+      ['业绩','生涯年化归一（v584 起评分/展示=生涯年化，原代表年化存底）','25%','20%'],
+      ['风险','近 3 年夏普映射（riskScore，日频净值自算）','25%','35%'],
+      ['规模','权益=200 亿适中最优倒U；债=越大越高','10%','10%'],
+      ['稳定','在管基金数适中（stabScore）','10%','10%'],
+      ['画像','季胜率/6月胜率/星级/踩雷（imgScore，踩雷 severe×0.7/career×0.85）','10%','15%'],
+      ['穿透','前十大持仓集中度 + 申万一级行业（concScore，债券池无穿透自动归一）','10%','—'],
+      ['年限','v583 取消（硬门槛保证，展示列保留）','—','—'],
+    ];
+    mDim.forEach(function(r){
+      h+='<tr><td style="padding:6px 8px;border-bottom:1px solid var(--line-2,#f1f5f9);white-space:nowrap;font-weight:600">'+esc(r[0])+'</td>'
+        +'<td style="padding:6px 8px;border-bottom:1px solid var(--line-2,#f1f5f9);font-size:11px;color:var(--muted,#94a3b8);line-height:1.5">'+esc(r[1])+'</td>'
+        +'<td style="padding:6px 8px;border-bottom:1px solid var(--line-2,#f1f5f9);text-align:center;white-space:nowrap">'+(r[2]==='—'?'—':'<b>'+r[2]+'</b>')+'</td>'
+        +'<td style="padding:6px 8px;border-bottom:1px solid var(--line-2,#f1f5f9);text-align:center;white-space:nowrap">'+(r[3]==='—'?'—':'<b>'+r[3]+'</b>')+'</td></tr>';
+    });
+    h+='<tr><td colspan="4" style="padding:6px 8px;font-size:11px;color:var(--muted,#94a3b8);line-height:1.6">'
+      +'权益 6 子分权重 25+25+10+10+10+10=90；债 5 子分 20+35+10+10+15=90（年限/穿透缺项自动重归一）。'
+      +'<b style="color:var(--fg,#0f172a)">当前池=manager-pool.json（主动权益 50 + 债券 Top 10，评分降序、分组展示）</b>；'
+      +'同类排名列（成立来/10/5/3/1 年）为展示项不计分。</td></tr>';
+    h+='</table>';
     h+=srSect('如何让调整生效');
     h+='<div style="font-size:12px;color:var(--muted,#94a3b8);padding:2px 10px;line-height:1.8">① 点「调整规则」改数值 → ② 「保存规则」自动存本地并复制新规则 JSON → ③ 把复制的 JSON 发给豆包，更新 screen-rules.json 后重跑筛选 → 筛选池按新标准刷新。<br>类型白名单 / 加分项权重 / 家族词表 / 主题词 等高级项只读（避免误改破坏结构），要改直接告诉豆包。</div>';
     return h;
