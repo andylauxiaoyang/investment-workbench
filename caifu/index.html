@@ -15134,14 +15134,15 @@ setTimeout(() => { renderResearchChips(); if (!state.news.items.length) loadNews
     var keys=Object.keys(buys);
     var trend=window.__SIG_FD_TREND__||{};
     var today=new Date();
-    var head='<div style="font-size:12px;color:var(--muted,#94a3b8);line-height:1.8;margin-bottom:8px">记录你在筛选池的每笔买入（localStorage 本机保存，清浏览器缓存会丢失）。持有收益 = 最新净值 ÷ 买入日净值 − 1（fund-daily 日净值，与收益曲线同源；买入日净值取 ≥ 买入日期的首个净值日）。数据日以 fund-daily asOf 为准。</div>';
+    var head='<div style="font-size:12px;color:var(--muted,#94a3b8);line-height:1.8;margin-bottom:8px">记录你在筛选池的每笔买入（localStorage 本机保存，清浏览器缓存会丢失）。持有收益 = 最新净值 ÷ 买入日净值 − 1（fund-daily 日净值，与收益曲线同源；买入日净值取 ≤ 买入日期最近的已公布净值日——买入当日净值 T+1 才出）。数据日以 fund-daily asOf 为准。</div>';
     if(!keys.length){ openModal('买入跟踪（0 笔）', head+'<div style="color:var(--muted,#94a3b8);padding:16px 0">暂无买入记录——在筛选池任意基金行点「买入」即记录。</div>'); return; }
     var rows=keys.map(function(c){
       var b=buys[c]||{};
       var ys=trend[c]||[];
       var last=ys.length?ys[ys.length-1]:null;
       var buy=null;
-      for(var i=0;i<ys.length;i++){ if(ys[i].d>=b.buyDate){ buy=ys[i]; break; } }
+      for(var i=ys.length-1;i>=0;i--){ if(ys[i].d<=b.buyDate){ buy=ys[i]; break; } }
+      if(!buy&&ys.length){ buy=ys[0]; }
       var ret=null, dd='';
       if(last){ dd=last.d; }
       if(buy&&last&&last.y){ ret=last.y/buy.y-1; }
