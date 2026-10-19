@@ -15181,10 +15181,6 @@ setTimeout(() => { renderResearchChips(); if (!state.news.items.length) loadNews
       wrap.querySelectorAll('[data-top-hold]').forEach(function(a){
         a.addEventListener('click', function(){ openTopHoldings(a.dataset.topHold); });
       });
-      /* fw2_v598_mgr_hold：经理重仓明细弹层 */
-      wrap.querySelectorAll('[data-mgr-hold]').forEach(function(a){
-        a.addEventListener('click', function(){ openMgrHoldings(a.dataset.mgrHold); });
-      });
       });
     });
     }
@@ -15292,6 +15288,10 @@ setTimeout(() => { renderResearchChips(); if (!state.news.items.length) loadNews
           nameSub:function(row){ var m=row._meta.m; var s=[]; if(m.fundCnt!=null) s.push('工作台相关 '+m.fundCnt+' 只'); if(m.riskFund) s.push('风险样本 '+m.riskFund); return s.join(' · '); }
         });
         wrap.innerHTML=h;
+        /* fw2_v598_mgr_hold：经理重仓明细弹层（经理池 wrap 内绑定；holdTop 前十大） */
+        wrap.querySelectorAll('[data-mgr-hold]').forEach(function(a){
+          a.addEventListener('click', function(){ openMgrHoldings(a.dataset.mgrHold); });
+        });
       }
       renderPool('all');
     });
