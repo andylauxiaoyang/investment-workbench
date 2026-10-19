@@ -15163,7 +15163,7 @@ setTimeout(() => { renderResearchChips(); if (!state.news.items.length) loadNews
       +'<th style="text-align:right;padding:6px 8px;font-size:11px;color:var(--muted,#94a3b8);border-bottom:2px solid var(--line,#e2e8f0);background:var(--panel-3,#f1f5f9)">买入至今</th>'
       +'<th style="text-align:right;padding:6px 8px;font-size:11px;color:var(--muted,#94a3b8);border-bottom:2px solid var(--line,#e2e8f0);background:var(--panel-3,#f1f5f9)">数据日</th>'
       +'</tr></thead><tbody>'+rows+'</tbody></table></div>'
-      +'<div style="margin-top:10px;font-size:11px;color:var(--muted,#94a3b8)">未显示收益 = 该基金无日净值（QDII/次新）或净值序列未覆盖买入日。</div>'
+      +'<div style="margin-top:10px;font-size:11px;color:var(--muted,#94a3b8)">'+((function(){ var no=0; keys.forEach(function(c){ var ys=trend[c]||[], last=ys.length?ys[ys.length-1]:null; if(!last||!last.y) no++; }); return no?('未显示收益 '+no+' 笔：该基金无日净值（QDII/次新）或净值序列未覆盖买入日。'):('买入至今按 fund-daily 最新净值 ÷ 买入日最近净值日计算；买入当日净值 T+1 确认，故买入当天收益自 +0.00% 起。'); })())+'</div>'
       +'<div style="margin-top:8px;text-align:right"><button class="btn-mini" id="btnBuyTrackClear" style="color:var(--warn,#d97706)">清空全部记录</button></div>';
     openModal('买入跟踪（'+keys.length+' 笔）', html);
     var cl=document.getElementById('btnBuyTrackClear');
