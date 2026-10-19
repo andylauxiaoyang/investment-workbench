@@ -10422,16 +10422,53 @@ function pxFetchQuotes(codes) {
 }
 function pxFetchKline(code, n) {
   /* fw2_v438：n 默认 1300（≈5年交易日），趋势图按窗口切片复用一次请求 */
+  /* fw2_v602_kline_page：腾讯 fqkline 硬上限 ~640 根（实测 n=1300 实得 640、n≥3000 返空，start 被忽略、以 end 为锚向前取）——
+     改 newfqkline 按 end 日倒推分页 + 去重拼接（口径对齐 bt_data._fetch_tencent），历史分位/distHi/全窗口极值恢复至
+     真实 n 根窗口（此前 1300 根请求实际仅 640 根≈2.6 年）；美股 usfqkline 实测无此上限（usINX n=1300 全量），保持原端点 */
   n = n || 1300;
   var isUS = code.indexOf('us') === 0;
-  var url = isUS
-    ? 'https://web.ifzq.gtimg.cn/appstock/app/usfqkline/get?param=' + code + ',day,,,' + n + ',qfq'
-    : 'https://web.ifzq.gtimg.cn/appstock/app/fqkline/get?param=' + code + ',day,,,' + n + ',qfq';
-  return fetch(url).then(function (r) { return r.json(); }).then(function (j) {
-    var node = j && j.data && j.data[code];
-    var pts = node && (node.qfqday || node.day || []);
-    if (!pts || !pts.length) return [];
-    return pts.map(function (row) { return [row[0], parseFloat(row[2])]; });
+  if (isUS) {
+    var u0 = 'https://web.ifzq.gtimg.cn/appstock/app/usfqkline/get?param=' + code + ',day,,,' + n + ',qfq';
+    return fetch(u0).then(function (r) { return r.json(); }).then(function (j) {
+      var node = j && j.data && j.data[code];
+      var pts = node && (node.qfqday || node.day || []);
+      if (!pts || !pts.length) return [];
+      return pts.map(function (row) { return [row[0], parseFloat(row[2])]; });
+    }).catch(function () { return []; });
+  }
+  var PAGE = 640, rows = [], seen = {}, guard = 0;
+  var pad = function (x) { return x < 10 ? '0' + x : '' + x; };
+  var nextEnd = function (dmin) {
+    var d = new Date(dmin + 'T00:00:00'); d.setDate(d.getDate() - 1);
+    return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
+  };
+  var step = function (endStr) {
+    var u = 'https://web.ifzq.gtimg.cn/appstock/app/newfqkline/get?param=' + code + ',day,1990-01-01,' + (endStr || '') + ',' + PAGE + ',qfq';
+    return fetch(u).then(function (r) { return r.json(); }).then(function (j) {
+      var node = j && j.data && j.data[code];
+      var pts = node && (node.qfqday || node.day || []);
+      if (!pts || !pts.length) return { added: 0, short: true, dmin: null };
+      var added = 0, dmin = null;
+      pts.forEach(function (row) {
+        var d = row[0];
+        if (seen[d]) return;
+        seen[d] = 1; rows.push([d, parseFloat(row[2])]); added++;
+        if (!dmin || d < dmin) dmin = d;
+      });
+      return { added: added, short: pts.length < PAGE, dmin: dmin };
+    });
+  };
+  var loop = function (r) {
+    if (rows.length >= n || r.short || r.added === 0 || ++guard >= 4) return rows;
+    var ne = nextEnd(r.dmin);
+    return step(ne).then(function (r2) { return loop(r2); });
+  };
+  return step('').then(function (r1) {
+    if (r1.added === 0) return [];
+    return loop(r1);
+  }).then(function (all) {
+    all.sort(function (a, b) { return a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0; });
+    return all.slice(0, n);
   }).catch(function () { return []; });
 }
 function pxStats(pts, latest, lastN) {
@@ -12585,7 +12622,7 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
        留待与用户确认重设计方案后再动（本轮不做）。
      ★诚实限定：erpCard/peCard/mrgCard/vixCard 定义及其 erpSpark/peSpark/mrgSpark/vixSpark 函数已于 **v529（fw2_v529_smux P3）一并清理**（连同 erpLv/peLv/vixLv/rzyeLv 与顶部 erp/pe/margin/vix 局部变量，mi 页判读走 mcCalcCommon 不受影响）。
        数据/口径零改动，纯前端结构层；描述串「sm 去重 · 删重复估值流动性卡」入 verify_sync 标记组 */
-  if (vc) vc.textContent = 'v601 · 自选' /* fw2_v516_a500lk fw2_v517_4otc fw2_v518_hspos fw2_v519_sm_merge fw2_v520_chgflat fw2_v521_magnet fw2_v522_overview fw2_v523_sm_dedup fw2_v524_geo_fsi fw2_v525_geo_filter fw2_v526_geo_filter_removed fw2_v527_verdict fw2_v529_smux fw2_v530_datamgmt fw2_v531_sm_dmgmt fw2_v532_all_dm fw2_v533_px_long fw2_v533d_dm_scroll fw2_v534_dm_module fw2_v535_dm_auto fw2_v539_hold_realpnl fw2_v539a_seed_sync fw2_v539a_seed_order fw2_v540_hold_path fw2_v542_pf_mirror_first fw2_v542_mv_settled fw2_v542_mv_account fw2_v543_dm_holdings_note fw2_v544_ledger_mirror_guard fw2_v545_hold_total_row fw2_v546_navdate_all fw2_v547_vix_to_ovs fw2_v548_ovs_mrg fw2_v549_region_align fw2_v550_grp_tabs fw2_v551_sop_cockpit fw2_v552_sop_taborder fw2_v553_chain_data fw2_v554_sop_rename fw2_v556_market_split fw2_v557_sm_renamed fw2_v558_cbrates_fix fw2_v558a_cb_label fw2_v559_chain_dates fw2_v560_chain_verdict fw2_v561_curve_hold fw2_v562_hold_inline fw2_v563_alloc fw2_v564_lxlink fw2_v565_cal_lx fw2_v565_sub_lx fw2_v566_fund_move fw2_v567_fund_merge fw2_v568_lxlink_fix fw2_v569_manager_pool fw2_v570_manager_universe fw2_v571_mgr_east fw2_v574_mgr_subscore fw2_v575_mgr_merge fw2_v576_mgr_group fw2_v577_mgr_lxlink fw2_v578_mgr_lxreal fw2_v579_mgr_weight fw2_v581_fund_lxreal fw2_v582_mgr_min10 fw2_v583_mgr_noyear fw2_v584_mgr_career fw2_v585_mgr_srank fw2_v586_mgr_srank fw2_v587_mgr_since fw2_v588_mgr_lxfull fw2_v589_mgr_rules fw2_v590_mgr_scores fw2_v591_mgr_ladder fw2_v592_mgr_cols fw2_v593_mgr_score fw2_anti_halluc_p0 fw2_v595_alpha_attrib fw2_v596_sig_hist fw2_v597_fund_overlap fw2_v598_mgr_hold fw2_v599_time_decay fw2_v599_corr_pen fw2_v600_buytrack fw2_v601_backtest */ + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
+  if (vc) vc.textContent = 'v602 · 自选' /* fw2_v516_a500lk fw2_v517_4otc fw2_v518_hspos fw2_v519_sm_merge fw2_v520_chgflat fw2_v521_magnet fw2_v522_overview fw2_v523_sm_dedup fw2_v524_geo_fsi fw2_v525_geo_filter fw2_v526_geo_filter_removed fw2_v527_verdict fw2_v529_smux fw2_v530_datamgmt fw2_v531_sm_dmgmt fw2_v532_all_dm fw2_v533_px_long fw2_v533d_dm_scroll fw2_v534_dm_module fw2_v535_dm_auto fw2_v539_hold_realpnl fw2_v539a_seed_sync fw2_v539a_seed_order fw2_v540_hold_path fw2_v542_pf_mirror_first fw2_v542_mv_settled fw2_v542_mv_account fw2_v543_dm_holdings_note fw2_v544_ledger_mirror_guard fw2_v545_hold_total_row fw2_v546_navdate_all fw2_v547_vix_to_ovs fw2_v548_ovs_mrg fw2_v549_region_align fw2_v550_grp_tabs fw2_v551_sop_cockpit fw2_v552_sop_taborder fw2_v553_chain_data fw2_v554_sop_rename fw2_v556_market_split fw2_v557_sm_renamed fw2_v558_cbrates_fix fw2_v558a_cb_label fw2_v559_chain_dates fw2_v560_chain_verdict fw2_v561_curve_hold fw2_v562_hold_inline fw2_v563_alloc fw2_v564_lxlink fw2_v565_cal_lx fw2_v565_sub_lx fw2_v566_fund_move fw2_v567_fund_merge fw2_v568_lxlink_fix fw2_v569_manager_pool fw2_v570_manager_universe fw2_v571_mgr_east fw2_v574_mgr_subscore fw2_v575_mgr_merge fw2_v576_mgr_group fw2_v577_mgr_lxlink fw2_v578_mgr_lxreal fw2_v579_mgr_weight fw2_v581_fund_lxreal fw2_v582_mgr_min10 fw2_v583_mgr_noyear fw2_v584_mgr_career fw2_v585_mgr_srank fw2_v586_mgr_srank fw2_v587_mgr_since fw2_v588_mgr_lxfull fw2_v589_mgr_rules fw2_v590_mgr_scores fw2_v591_mgr_ladder fw2_v592_mgr_cols fw2_v593_mgr_score fw2_anti_halluc_p0 fw2_v595_alpha_attrib fw2_v596_sig_hist fw2_v597_fund_overlap fw2_v598_mgr_hold fw2_v599_time_decay fw2_v599_corr_pen fw2_v600_buytrack fw2_v601_backtest fw2_v602_kline_page */ + (state.watchlist || []).length + '只' + (state._wlSrc ? '·' + ({ DB: '表', '种子': '种子', '内置': '快照' }[state._wlSrc] || state._wlSrc) : '');
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
