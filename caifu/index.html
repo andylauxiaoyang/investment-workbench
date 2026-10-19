@@ -10468,7 +10468,7 @@ function pxFetchKline(code, n) {
     return loop(r1);
   }).then(function (all) {
     all.sort(function (a, b) { return a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0; });
-    return all.slice(0, n);
+    return all.slice(Math.max(0, all.length - n));
   }).catch(function () { return []; });
 }
 function pxStats(pts, latest, lastN) {
