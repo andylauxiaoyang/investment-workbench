@@ -403,6 +403,38 @@
    "lagDays": 0,
    "lagStatus": "ok"
   },
+  "v11_signal_hist": {
+   "key": "v11_signal_hist",
+   "name": "V11 信号历史快照",
+   "module": "交易信号",
+   "file": "data/v11-signal-hist.json",
+   "freq": "日",
+   "track": "日轨",
+   "src": "读 gen_v11_signal.py 当日产物（每只 ETF 信号判定+数据日收盘价），按日期幂等 upsert",
+   "script": "gen_v11_signal_hist.py（refresh_all 日频组内）",
+   "verifier": "—",
+   "yellow": 3,
+   "red": 5,
+   "lastUpdate": "2026-10-19",
+   "lagDays": 0,
+   "lagStatus": "ok"
+  },
+  "v11_backtest": {
+   "key": "v11_backtest",
+   "name": "V11 信号回测统计",
+   "module": "交易信号",
+   "file": "data/v11-backtest.json",
+   "freq": "日",
+   "track": "日轨",
+   "src": "读 v11-signal-hist.json × data/index-daily.json（基准沪深300；防前视=数据日后首个数据日买入，持有 20 个数据日）",
+   "script": "gen_v11_backtest.py（refresh_all 日频组内）",
+   "verifier": "—",
+   "yellow": 3,
+   "red": 5,
+   "lastUpdate": "2026-10-19",
+   "lagDays": 0,
+   "lagStatus": "ok"
+  },
   "sm_ashare": {
    "key": "sm_ashare",
    "name": "国家队十大股东（A股）",
