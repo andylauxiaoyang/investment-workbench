@@ -3809,10 +3809,10 @@ window.HS_name = function (code) {
             rows.hold.push({
               code: 'T10', name: '杠铃档位（四档）', pool: 'hold', noLink: true,
               sig: 'T10 杠铃失衡 · ' + PILE_NAME[k], cur: act.toFixed(1) + '% / 目标 ' + tgt + '%',
-              curMain: act.toFixed(1) + '%', curSub: '目标 ' + tgt + '%', thrCond: '偏离 ≥' + band + 'pp', thrAct: '再平衡',
+              curMain: act.toFixed(1) + '%', curSub: '目标 ' + tgt + '% · ' + (dev > 0 ? '超配 ' : '低配 ') + (dev > 0 ? '+' : '') + dev.toFixed(1) + 'pp', thrCond: '偏离 ≥' + band + 'pp', thrAct: '再平衡',
               thr: '偏离 ≥' + band + 'pp → 再平衡',
               lvl: Math.abs(dev) >= band ? 'act' : Math.abs(dev) >= band - 2 ? 'near' : 'watch',
-              src: (dev > 0 ? '超配 ' : '低配 ') + (dev > 0 ? '+' : '') + dev.toFixed(1) + 'pp · 目标年化 8~10%',
+              dd: (state._pfAt || '').slice(0, 10), src: '持仓市值·barbell目标（目标年化8~10%）',
             });
           });
         }
@@ -3858,14 +3858,14 @@ window.HS_name = function (code) {
     const px = (k) => { const d = snap.idx && snap.idx[k]; return d && d.pos != null ? Math.round(d.pos * 100) : null; };
     const valLvl = (p) => p >= C.valHigh ? 'act' : p >= C.valHigh - 5 ? 'near' : p <= C.valLow ? 'act' : p <= C.valLow + 5 ? 'near' : 'watch';
     const d300 = (snap.idx || {})['000300'];
-    if (px('000300') != null) rows.push(mkRow('M1', 'M1 A股温度计（沪深300）', 'PE-TTM 10年分位', '分位 ' + px('000300') + '%' + (d300.pe != null ? ' · PE ' + d300.pe : ''), '≥' + C.valHigh + '% 偏贵 · ≤' + C.valLow + '% 便宜', valLvl(px('000300')), '理杏仁 ' + (d300.date || ''), {curMain: '分位 ' + px('000300') + '%', curSub: (d300.pe != null ? 'PE ' + d300.pe : ''), thrCond: '≥' + C.valHigh + '% 偏贵 · ≤' + C.valLow + '% 便宜'}));
+    if (px('000300') != null) rows.push(mkRow('M1', 'M1 A股温度计（沪深300）', 'PE-TTM 10年分位', '分位 ' + px('000300') + '%' + (d300.pe != null ? ' · PE ' + d300.pe : ''), '≥' + C.valHigh + '% 偏贵 · ≤' + C.valLow + '% 便宜', valLvl(px('000300')), '理杏仁', {dd: (d300.date || ''), curMain: '分位 ' + px('000300') + '%', curSub: (d300.pe != null ? 'PE ' + d300.pe : ''), thrCond: '≥' + C.valHigh + '% 偏贵 · ≤' + C.valLow + '% 便宜'}));
     const hsi = px('HSI'), htx = px('HSTECH');
     if (hsi != null || htx != null) {
       const hotter = Math.max(hsi != null ? hsi : -1, htx != null ? htx : -1); /* 两条独立展示，档位取更贵者提示 */
-      rows.push(mkRow('M2', 'M2 港股温度计（恒生+恒科）', 'PE-TTM 10年分位 · 两条独立分位', '恒生 ' + (hsi != null ? hsi + '%' : '—') + ' · 恒科 ' + (htx != null ? htx + '%' : '—'), '同 M1（档位取更贵者）', valLvl(hotter), '理杏仁 ' + (((snap.idx || {}).HSI || {}).date || ''), {curMain: '恒生 ' + (hsi != null ? hsi + '%' : '—'), curSub: '恒科 ' + (htx != null ? htx + '%' : '—'), thrCond: '同 M1（档位取更贵者）'}));
+      rows.push(mkRow('M2', 'M2 港股温度计（恒生+恒科）', 'PE-TTM 10年分位 · 两条独立分位', '恒生 ' + (hsi != null ? hsi + '%' : '—') + ' · 恒科 ' + (htx != null ? htx + '%' : '—'), '同 M1（档位取更贵者）', valLvl(hotter), '理杏仁', {dd: (((snap.idx || {}).HSI || {}).date || ''), curMain: '恒生 ' + (hsi != null ? hsi + '%' : '—'), curSub: '恒科 ' + (htx != null ? htx + '%' : '—'), thrCond: '同 M1（档位取更贵者）'}));
     }
     const dinx = (snap.idx || {})['.INX'];
-    if (px('.INX') != null) rows.push(mkRow('M3', 'M3 美股温度计（标普500）', 'PE-TTM 10年分位', '分位 ' + px('.INX') + '%' + (dinx.pe != null ? ' · PE ' + dinx.pe : ''), '同 M1', valLvl(px('.INX')), '理杏仁 ' + (dinx.date || ''), {curMain: '分位 ' + px('.INX') + '%', curSub: (dinx.pe != null ? 'PE ' + dinx.pe : ''), thrCond: '同 M1'}));
+    if (px('.INX') != null) rows.push(mkRow('M3', 'M3 美股温度计（标普500）', 'PE-TTM 10年分位', '分位 ' + px('.INX') + '%' + (dinx.pe != null ? ' · PE ' + dinx.pe : ''), '同 M1', valLvl(px('.INX')), '理杏仁', {dd: (dinx.date || ''), curMain: '分位 ' + px('.INX') + '%', curSub: (dinx.pe != null ? 'PE ' + dinx.pe : ''), thrCond: '同 M1'}));
     /* --- M4~M6 趋势（沪深300 日K） --- */
     try {
       const ks = await tencentKline('sh000300', 101, 320);
@@ -3874,12 +3874,12 @@ window.HS_name = function (code) {
         const ma = (n) => { let a = 0; for (let i = ys.length - n; i < ys.length; i++) a += ys[i]; return a / n; };
         const ma20 = ma(20), ma60 = ma(60), ma250 = ma(250);
         const bull = last > ma20 && last > ma60 && ma20 > ma60;
-        rows.push(mkRow('M4', 'M4 均线排列（沪深300）', '收盘 vs MA20/MA60', (last > ma20 ? 'MA20上' : 'MA20下') + ' / ' + (last > ma60 ? 'MA60上' : 'MA60下'), '多头=右侧确认 · 空头=左侧网格/定投区', bull ? 'near' : 'watch', '腾讯日K ' + (ks[ks.length - 1] || {}).date, {curMain: (last > ma20 ? 'MA20上' : 'MA20下') + ' / ' + (last > ma60 ? 'MA60上' : 'MA60下'), thrCond: '多头 · 空头', thrAct: '右侧确认 · 左侧网格/定投区'}));
+        rows.push(mkRow('M4', 'M4 均线排列（沪深300）', '收盘 vs MA20/MA60', (last > ma20 ? 'MA20上' : 'MA20下') + ' / ' + (last > ma60 ? 'MA60上' : 'MA60下'), '多头=右侧确认 · 空头=左侧网格/定投区', bull ? 'near' : 'watch', '腾讯日K', {dd: ((ks[ks.length - 1] || {}).date || ''), curMain: (last > ma20 ? 'MA20上' : 'MA20下') + ' / ' + (last > ma60 ? 'MA60上' : 'MA60下'), thrCond: '多头 · 空头', thrAct: '右侧确认 · 左侧网格/定投区'}));
         const vsY = (last / ma250 - 1) * 100;
-        rows.push(mkRow('M5', 'M5 年线牛熊（沪深300 vs MA250）', '年线上下=牛熊分界', (last >= ma250 ? '年线上 ' : '年线下 ') + (vsY > 0 ? '+' : '') + vsY.toFixed(1) + '%', '跌破年线=左侧区间（弹药纪律）', last >= ma250 ? 'watch' : 'near', '腾讯日K ' + (ks[ks.length - 1] || {}).date, {curMain: (last >= ma250 ? '年线上 ' : '年线下 ') + (vsY > 0 ? '+' : '') + vsY.toFixed(1) + '%', thrCond: '跌破年线', thrAct: '左侧区间（弹药纪律）'}));
+        rows.push(mkRow('M5', 'M5 年线牛熊（沪深300 vs MA250）', '年线上下=牛熊分界', (last >= ma250 ? '年线上 ' : '年线下 ') + (vsY > 0 ? '+' : '') + vsY.toFixed(1) + '%', '跌破年线=左侧区间（弹药纪律）', last >= ma250 ? 'watch' : 'near', '腾讯日K', {dd: ((ks[ks.length - 1] || {}).date || ''), curMain: (last >= ma250 ? '年线上 ' : '年线下 ') + (vsY > 0 ? '+' : '') + vsY.toFixed(1) + '%', thrCond: '跌破年线', thrAct: '左侧区间（弹药纪律）'}));
         const peak250 = Math.max.apply(null, ys.slice(-250));
         const dd = (last / peak250 - 1) * 100;
-        rows.push(mkRow('M6', 'M6 深度回撤（沪深300 距250日高点）', '回撤幅度', (dd > 0 ? '+' : '') + dd.toFixed(1) + '%', '≥15% 接近 · ≥20% 分批补仓区', dd <= -20 ? 'act' : dd <= -15 ? 'near' : 'watch', '腾讯日K ' + (ks[ks.length - 1] || {}).date, {curMain: (dd > 0 ? '+' : '') + dd.toFixed(1) + '%', thrCond: '≥15% · ≥20%', thrAct: '接近 · 分批补仓区'}));
+        rows.push(mkRow('M6', 'M6 深度回撤（沪深300 距250日高点）', '回撤幅度', (dd > 0 ? '+' : '') + dd.toFixed(1) + '%', '≥15% 接近 · ≥20% 分批补仓区', dd <= -20 ? 'act' : dd <= -15 ? 'near' : 'watch', '腾讯日K', {dd: ((ks[ks.length - 1] || {}).date || ''), curMain: (dd > 0 ? '+' : '') + dd.toFixed(1) + '%', thrCond: '≥15% · ≥20%', thrAct: '接近 · 分批补仓区'}));
       }
     } catch (e) { /* K线失败跳过趋势行 */ }
     /* --- M7~M8 资金面（固定取最近已完成交易日全天成交额；全A=沪深京三所，京=北证50口径实证≈全所）--- */ /* fw2_m7_scope_v33 */ /* fw2_m7_fullday_v33 */ /* fw2_m7_chain_v34 */
@@ -3940,22 +3940,22 @@ window.HS_name = function (code) {
       envHot = tw >= 3 || (pct8e != null && pct8e >= 1);
       envCold = tw < 1.5 || (pct8e != null && pct8e < 0.3);
       envNote = envHot ? '过热·自选买入降档' : envCold ? '低迷·自选买入升档' : '中性';
-      rows.push(mkRow('M7', 'M7 全A成交额（沪深京）', '全日成交金额', amtYi.toFixed(0) + ' 亿（' + amtDay + (amtRoll ? ' 昨全日' : '') + '）', '<1.5万亿 网格定投 · 1.5~2万亿 关注入场 · ≥3万亿 分批卖', tw >= 3 ? 'act' : tw >= 2 ? 'watch' : tw >= 1.5 ? 'near' : 'act', (amtSrc === '·amtD快照' ? 'amtD·多源校验（与近30日卡同源）' : '东财日线·京=北证50口径' + amtSrc) + (amtRoll ? '·盘中回退' : ''), {curMain: amtYi.toFixed(0) + ' 亿', curSub: amtDay + (amtRoll ? '（昨全日）' : ''), thrCond: '<1.5万亿 · 1.5~2万亿 · ≥3万亿', thrAct: '网格定投 · 关注入场 · 分批卖'}));      if (m2v) {
+      rows.push(mkRow('M7', 'M7 全A成交额（沪深京）', '全日成交金额', amtYi.toFixed(0) + ' 亿（' + amtDay + (amtRoll ? ' 昨全日' : '') + '）', '<1.5万亿 网格定投 · 1.5~2万亿 关注入场 · ≥3万亿 分批卖', tw >= 3 ? 'act' : tw >= 2 ? 'watch' : tw >= 1.5 ? 'near' : 'act', (amtSrc === '·amtD快照' ? 'amtD·多源校验（与近30日卡同源）' : '东财日线·京=北证50口径' + amtSrc) + (amtRoll ? '·盘中回退' : ''), {dd: amtDay, curMain: amtYi.toFixed(0) + ' 亿', curSub: amtDay + (amtRoll ? '（昨全日）' : ''), thrCond: '<1.5万亿 · 1.5~2万亿 · ≥3万亿', thrAct: '网格定投 · 关注入场 · 分批卖'}));      if (m2v) {
         const pct8 = (tw / m2v) * 100;
         const tag8 = pct8 >= 1.5 ? '疯狂·清仓提示(D8)' : pct8 >= 1 ? '过热·分批卖' : pct8 <= 0.3 ? '低迷·机会区' : '中性';
-        rows.push(mkRow('M8', 'M8 资金系数（成交额/M2）', '短期资金面指标', pct8.toFixed(2) + '% · ' + tag8, '<0.3% 机会 · 1%~1.5% 过热 · ≥1.5% 清仓', pct8 >= 1.5 ? 'act' : pct8 >= 1 ? 'near' : pct8 <= 0.3 ? 'act' : 'watch', 'M2 ' + m2v + '万亿(' + snap.m2Ref.asOf + ')', {curMain: pct8.toFixed(2) + '%', curSub: tag8, thrCond: '<0.3% · 1%~1.5% · ≥1.5%', thrAct: '机会 · 过热 · 清仓'}));
+        rows.push(mkRow('M8', 'M8 资金系数（成交额/M2）', '短期资金面指标', pct8.toFixed(2) + '% · ' + tag8, '<0.3% 机会 · 1%~1.5% 过热 · ≥1.5% 清仓', pct8 >= 1.5 ? 'act' : pct8 >= 1 ? 'near' : pct8 <= 0.3 ? 'act' : 'watch', 'M2 ' + m2v + '万亿·央行月末值', {dd: (snap.m2Ref.asOf || ''), curMain: pct8.toFixed(2) + '%', curSub: tag8, thrCond: '<0.3% · 1%~1.5% · ≥1.5%', thrAct: '机会 · 过热 · 清仓'}));
       }
       /* v53b fw2_v53b_m9m10：宏观指向信号（数据源 MACRO_SNAP，缺失则跳过不占行） */
       const mc9 = window.MACRO_SNAP || {};
       if (mc9.erp && mc9.erp.erpPct != null) {
         const ep9 = mc9.erp.erpPct;
         const lvl9 = ep9 >= 75 ? 'act' : ep9 >= 50 ? 'near' : ep9 >= 25 ? 'watch' : 'near';
-        rows.push(mkRow('M9', 'M9 股债性价比 ERP（沪深300）', 'E/P−10Y国债 · 10年分位', 'ERP ' + (mc9.erp.cur && mc9.erp.cur.erp != null ? fmtNum(mc9.erp.cur.erp, 2) + '%' : '—') + ' · 分位 ' + ep9 + '%', '≥75% 增配股至70-80% · <25% 减股至20-30%', lvl9, '理杏仁 ' + (mc9.updatedAt || ''), {curMain: '分位 ' + ep9 + '%', curSub: 'ERP ' + (mc9.erp.cur && mc9.erp.cur.erp != null ? fmtNum(mc9.erp.cur.erp, 2) + '%' : '—'), thrCond: '≥75% · <25%', thrAct: '增配股至70-80% · 减股至20-30%'}));
+        rows.push(mkRow('M9', 'M9 股债性价比 ERP（沪深300）', 'E/P−10Y国债 · 10年分位', 'ERP ' + (mc9.erp.cur && mc9.erp.cur.erp != null ? fmtNum(mc9.erp.cur.erp, 2) + '%' : '—') + ' · 分位 ' + ep9 + '%', '≥75% 增配股至70-80% · <25% 减股至20-30%', lvl9, '理杏仁', {dd: (mc9.updatedAt || ''), curMain: '分位 ' + ep9 + '%', curSub: 'ERP ' + (mc9.erp.cur && mc9.erp.cur.erp != null ? fmtNum(mc9.erp.cur.erp, 2) + '%' : '—'), thrCond: '≥75% · <25%', thrAct: '增配股至70-80% · 减股至20-30%'}));
       }
       if (mc9.credit && mc9.credit.cur && mc9.credit.cur.gap != null) {
         const g10 = mc9.credit.cur.gap;
         const lvl10 = g10 >= 0 ? 'act' : g10 >= -2 ? 'watch' : 'near';
-        rows.push(mkRow('M10', 'M10 信用脉冲（M1−M2 剪刀差）', '月度同比差 · 定仓位中枢', '剪刀差 ' + fmtNum(g10, 1) + 'pct（M1 ' + fmtNum(mc9.credit.cur.m1, 1) + '% / M2 ' + fmtNum(mc9.credit.cur.m2, 1) + '%）', '≥0 顺风 · -2~0 拐点 · <-2 逆风（领先约6月）', lvl10, '理杏仁 ' + (mc9.updatedAt || '') + (mc9.meta && mc9.meta.creditYoYSelfCalc ? ' · 同比自算' : ''), {curMain: '剪刀差 ' + fmtNum(g10, 1) + 'pct', curSub: 'M1 ' + fmtNum(mc9.credit.cur.m1, 1) + '% / M2 ' + fmtNum(mc9.credit.cur.m2, 1) + '%', thrCond: '≥0 · -2~0 · <-2', thrAct: '顺风 · 拐点 · 逆风（领先约6月）'}));
+        rows.push(mkRow('M10', 'M10 信用脉冲（M1−M2 剪刀差）', '月度同比差 · 定仓位中枢', '剪刀差 ' + fmtNum(g10, 1) + 'pct（M1 ' + fmtNum(mc9.credit.cur.m1, 1) + '% / M2 ' + fmtNum(mc9.credit.cur.m2, 1) + '%）', '≥0 顺风 · -2~0 拐点 · <-2 逆风（领先约6月）', lvl10, '理杏仁' + (mc9.meta && mc9.meta.creditYoYSelfCalc ? ' · 同比自算' : ''), {dd: (mc9.updatedAt || ''), curMain: '剪刀差 ' + fmtNum(g10, 1) + 'pct', curSub: 'M1 ' + fmtNum(mc9.credit.cur.m1, 1) + '% / M2 ' + fmtNum(mc9.credit.cur.m2, 1) + '%', thrCond: '≥0 · -2~0 · <-2', thrAct: '顺风 · 拐点 · 逆风（领先约6月）'}));
       }
       if (mc9.fx && mc9.fx.points && mc9.fx.points.length > 6) { /* v54 fw2_v54_macroext M11 外围红绿灯 */
         const fxp = mc9.fx.points, FL = fxp[fxp.length - 1], FP = fxp[fxp.length - 7];
@@ -3963,7 +3963,7 @@ window.HS_name = function (code) {
         const uchg = FL[2] != null && FP[2] != null && FP[2] ? (FL[2] / FP[2] - 1) * 100 : null;
         const bad11 = (fchg != null && fchg > 2 ? 1 : 0) + (FL[3] != null && FL[3] >= 4.5 ? 1 : 0) + (uchg != null && uchg > 3 ? 1 : 0);
         const lvl11 = bad11 >= 2 ? 'near' : bad11 === 1 ? 'watch' : 'act';
-        rows.push(mkRow('M11', 'M11 外围红绿灯（美元/美债/人民币）', '近6个月变化 · 外资流向开关', 'USDCNH ' + (FL[1] != null ? fmtNum(FL[1], 3) : '—') + ' · 美元指数 ' + (FL[2] != null ? fmtNum(FL[2], 1) : '—') + ' · 美债 ' + (FL[3] != null ? fmtNum(FL[3], 2) + '%' : '—') + ' · 中美利差 ' + ((FL[3] != null && mc9.erp && mc9.erp.cur && mc9.erp.cur.y10 != null) ? fmtNum(FL[3] - mc9.erp.cur.y10, 2) + '%' : '—'), '美元↑+美债≥4.5%+人民币贬>2% 三占其二=逆风防御；≤1项=顺风/半档', lvl11, '理杏仁 ' + (mc9.updatedAt || ''), {curMain: '美债 ' + (FL[3] != null ? fmtNum(FL[3], 2) + '%' : '—'), curSub: 'USDCNH ' + (FL[1] != null ? fmtNum(FL[1], 3) : '—') + ' · 美元 ' + (FL[2] != null ? fmtNum(FL[2], 1) : '—') + ' · 利差 ' + ((FL[3] != null && mc9.erp && mc9.erp.cur && mc9.erp.cur.y10 != null) ? fmtNum(FL[3] - mc9.erp.cur.y10, 2) + '%' : '—'), thrCond: '美元↑+美债≥4.5%+人民币贬>2% 三占其二 / ≤1项', thrAct: '逆风防御 / 顺风半档'}));
+        rows.push(mkRow('M11', 'M11 外围红绿灯（美元/美债/人民币）', '近6个月变化 · 外资流向开关', 'USDCNH ' + (FL[1] != null ? fmtNum(FL[1], 3) : '—') + ' · 美元指数 ' + (FL[2] != null ? fmtNum(FL[2], 1) : '—') + ' · 美债 ' + (FL[3] != null ? fmtNum(FL[3], 2) + '%' : '—') + ' · 中美利差 ' + ((FL[3] != null && mc9.erp && mc9.erp.cur && mc9.erp.cur.y10 != null) ? fmtNum(FL[3] - mc9.erp.cur.y10, 2) + '%' : '—'), '美元↑+美债≥4.5%+人民币贬>2% 三占其二=逆风防御；≤1项=顺风/半档', lvl11, '理杏仁', {dd: (mc9.updatedAt || ''), curMain: '美债 ' + (FL[3] != null ? fmtNum(FL[3], 2) + '%' : '—'), curSub: 'USDCNH ' + (FL[1] != null ? fmtNum(FL[1], 3) : '—') + ' · 美元 ' + (FL[2] != null ? fmtNum(FL[2], 1) : '—') + ' · 利差 ' + ((FL[3] != null && mc9.erp && mc9.erp.cur && mc9.erp.cur.y10 != null) ? fmtNum(FL[3] - mc9.erp.cur.y10, 2) + '%' : '—'), thrCond: '美元↑+美债≥4.5%+人民币贬>2% 三占其二 / ≤1项', thrAct: '逆风防御 / 顺风半档'}));
       }
       /* fw2_v429 M12 全球金融压力 FSI（CBOE VIX + 美债利差/美元/金油比/铜金比/美股估值分位 等权合成）
          fw2_v429 修复：MACRO_SNAP 为 index.html 内嵌旧快照（无 fsi 键），M12 此前永不渲染；
@@ -3973,7 +3973,7 @@ window.HS_name = function (code) {
         const fs12 = fsiLive;
         const lvl12 = fs12.score >= 70 ? 'act' : fs12.score >= 50 ? 'act' : fs12.score >= 30 ? 'near' : 'watch';
         const tag12 = fs12.score >= 70 ? '危机级 · 全面防御（暂停进攻开仓/清杠杆仓）' : fs12.score >= 50 ? '警戒级 · 防御（暂停进攻开仓，控仓位）' : fs12.score >= 30 ? '关注级 · 半档（控新仓，盯持仓）' : '正常 · 无全球压力警示';
-        rows.push(mkRow('M12', 'M12 全球金融压力 FSI', '0-100 · 近10年分位 · 四级预警', 'FSI ' + fmtNum(fs12.score, 1) + ' · ' + (fs12.levelName || '—') + '级 · 分位 ' + (fs12.percentile != null ? fmtNum(fs12.percentile, 1) + '%' : '—'), '<30 正常 / 30-50 关注 / 50-70 警戒 / ≥70 危机', lvl12, 'CBOE VIX + 美债利差/美元/金油比/铜金比/美股估值分位 · ' + (mc9.updatedAt || ''), {curMain: 'FSI ' + fmtNum(fs12.score, 1), curSub: (fs12.levelName || '—') + '级 · 分位 ' + (fs12.percentile != null ? fmtNum(fs12.percentile, 1) + '%' : '—'), thrCond: '<30 · 30-50 · 50-70 · ≥70', thrAct: '正常 · 关注 · 警戒 · 危机'}));
+        rows.push(mkRow('M12', 'M12 全球金融压力 FSI', '0-100 · 近10年分位 · 四级预警', 'FSI ' + fmtNum(fs12.score, 1) + ' · ' + (fs12.levelName || '—') + '级 · 分位 ' + (fs12.percentile != null ? fmtNum(fs12.percentile, 1) + '%' : '—'), '<30 正常 / 30-50 关注 / 50-70 警戒 / ≥70 危机', lvl12, 'CBOE VIX+美债利差/美元/金油比/铜金比/美股估值分位', {dd: (mc9.updatedAt || ''), curMain: 'FSI ' + fmtNum(fs12.score, 1), curSub: (fs12.levelName || '—') + '级 · 分位 ' + (fs12.percentile != null ? fmtNum(fs12.percentile, 1) + '%' : '—'), thrCond: '<30 · 30-50 · 50-70 · ≥70', thrAct: '正常 · 关注 · 警戒 · 危机'}));
       }
     }
     /* --- fw2_v624 M13-M17 大盘估值/杠杆/汇率补充指标（在线 state.macro 优先，内嵌 MACRO_SNAP 兜底，缺失跳过） --- */
@@ -3983,13 +3983,15 @@ window.HS_name = function (code) {
     const _mgn = _lm.margin || _snapM.margin || {};
     const _erp = _lm.erp || _snapM.erp || {};
     const _fxm = _lm.fx || _snapM.fx || {};
+    /* fw2_v627_data_date：在线 macro 对象多无 updatedAt/asOf，数据日回退 updatedAt→asOf→points 末点[0]，杜绝市场信号数据日留白 */
+    const _pdate = (o) => (o && (o.updatedAt || o.asOf || (Array.isArray(o.points) && o.points.length ? o.points[o.points.length - 1][0] : ''))) || '';
     /* M13 证券化率/巴菲特指数 = 全A总市值/名义GDP */
     const _sec = _sent.secRatio;
     if (_sec && _sec.value != null) {
       const sr = +_sec.value;
       const lvl13 = sr >= 100 ? 'act' : sr <= 60 ? 'act' : 'watch';
       const tag13 = sr >= 100 ? '偏高·分批卖出' : sr <= 60 ? '低位·陆续建仓' : '中性持有';
-      rows.push(mkRow('M13', 'M13 证券化率/巴菲特指数（全A市值/GDP）', '全A总市值/名义GDP', '证券化率 ' + sr.toFixed(1) + '% · ' + tag13, '≤60% 建仓 · 60~100% 持有 · ≥100% 分批卖', lvl13, '东财全市场/GDP全年现价 · ' + (_sec.asOf || ''), {curMain: sr.toFixed(1) + '%', curSub: tag13, thrCond: '≤60% · 60~100% · ≥100%', thrAct: '建仓 · 持有 · 分批卖'}));
+      rows.push(mkRow('M13', 'M13 证券化率/巴菲特指数（全A市值/GDP）', '全A总市值/名义GDP', '证券化率 ' + sr.toFixed(1) + '% · ' + tag13, '≤60% 建仓 · 60~100% 持有 · ≥100% 分批卖', lvl13, '东财全市场/GDP全年现价', {dd: _pdate(_sec), curMain: sr.toFixed(1) + '%', curSub: tag13, thrCond: '≤60% · 60~100% · ≥100%', thrAct: '建仓 · 持有 · 分批卖'}));
     }
     /* M14 融资余额占比 = 融资余额/流通市值 */
     const _mcur = (_mgn && _mgn.cur) || {};
@@ -3997,7 +3999,7 @@ window.HS_name = function (code) {
       const zb = +_mcur.zb;
       const lvl14 = zb > 4.0 ? 'act' : zb >= 3.0 ? 'near' : zb >= 2.5 ? 'near' : zb < 2.0 ? 'act' : 'watch';
       const tag14 = zb > 4.0 ? '清仓高杠杆·防守' : zb >= 3.0 ? '大幅降仓·规避高β小票' : zb >= 2.5 ? '止盈高位题材·控仓' : zb < 2.0 ? '分批布局·性价比高' : '中性';
-      rows.push(mkRow('M14', 'M14 融资余额占比（融资余额/流通市值）', '杠杆水位', zb.toFixed(2) + '% · ' + tag14, '<2.0% 布局 · 2.5~3.0% 止盈 · 3.0~4.0% 降仓 · >4.0% 清仓', lvl14, '东财RZYEZB · ' + (_mgn.updatedAt || _mgn.asOf || ''), {curMain: zb.toFixed(2) + '%', curSub: tag14, thrCond: '<2.0% · 2.5~3.0% · 3.0~4.0% · >4.0%', thrAct: '布局 · 止盈控仓 · 大幅降仓 · 清仓高杠杆'}));
+      rows.push(mkRow('M14', 'M14 融资余额占比（融资余额/流通市值）', '杠杆水位', zb.toFixed(2) + '% · ' + tag14, '<2.0% 布局 · 2.5~3.0% 止盈 · 3.0~4.0% 降仓 · >4.0% 清仓', lvl14, '东财RZYEZB', {dd: _pdate(_mgn), curMain: zb.toFixed(2) + '%', curSub: tag14, thrCond: '<2.0% · 2.5~3.0% · 3.0~4.0% · >4.0%', thrAct: '布局 · 止盈控仓 · 大幅降仓 · 清仓高杠杆'}));
     }
     /* M15 盈利收益率 E/P（沪深300） */
     const _ecur = (_erp && _erp.cur) || {};
@@ -4005,14 +4007,14 @@ window.HS_name = function (code) {
       const ep = +_ecur.ep;
       const lvl15 = ep >= 9 ? 'act' : ep <= 6.67 ? 'act' : 'watch';
       const tag15 = ep >= 9 ? '入场区（PE≤11.1）' : ep <= 6.67 ? '卖出区（PE≥15）' : '持有/观察';
-      rows.push(mkRow('M15', 'M15 盈利收益率 E/P（沪深300）', '绝对收益率阈值', 'E/P ' + ep.toFixed(2) + '% · ' + tag15, '≥9% 入场(PE11) · 6.67~9% 持有 · ≤6.67% 卖出(PE15)', lvl15, '蛋卷/理杏仁估值 · ' + (_erp.updatedAt || ''), {curMain: ep.toFixed(2) + '%', curSub: tag15, thrCond: '≥9% · 6.67~9% · ≤6.67%', thrAct: '入场 · 持有 · 卖出'}));
+      rows.push(mkRow('M15', 'M15 盈利收益率 E/P（沪深300）', '绝对收益率阈值', 'E/P ' + ep.toFixed(2) + '% · ' + tag15, '≥9% 入场(PE11) · 6.67~9% 持有 · ≤6.67% 卖出(PE15)', lvl15, '蛋卷/理杏仁估值', {dd: _pdate(_erp), curMain: ep.toFixed(2) + '%', curSub: tag15, thrCond: '≥9% · 6.67~9% · ≤6.67%', thrAct: '入场 · 持有 · 卖出'}));
     }
     /* M16 格雷厄姆股债比 = (E/P − 10Y国债)/10Y国债（真实y10） */
     if (_ecur.ep != null && _ecur.y10 != null && +_ecur.y10 > 0) {
       const g = (+_ecur.ep - +_ecur.y10) / +_ecur.y10;
       const lvl16 = g > 2 ? 'act' : g < 1 ? 'act' : 'watch';
       const tag16 = g > 2 ? '估值低·低配债股' : g < 1 ? '估值高·高配债' : '中性';
-      rows.push(mkRow('M16', 'M16 格雷厄姆股债比（(E/P−10Y)/10Y）', '真实10Y国债', g.toFixed(2) + ' · ' + tag16, '>2 全配股 · 1~2 中性 · <1 全配债', lvl16, 'E/P ' + _ecur.ep + '% / 10Y ' + (+_ecur.y10).toFixed(2) + '% · ' + (_erp.updatedAt || ''), {curMain: g.toFixed(2), curSub: tag16, thrCond: '>2 · 1~2 · <1', thrAct: '低配债股 · 中性 · 高配债'}));
+      rows.push(mkRow('M16', 'M16 格雷厄姆股债比（(E/P−10Y)/10Y）', '真实10Y国债', g.toFixed(2) + ' · ' + tag16, '>2 全配股 · 1~2 中性 · <1 全配债', lvl16, 'E/P·10Y国债（同M15源）', {dd: _pdate(_erp), curMain: g.toFixed(2), curSub: tag16 + ' · E/P ' + _ecur.ep + '% / 10Y ' + (+_ecur.y10).toFixed(2) + '%', thrCond: '>2 · 1~2 · <1', thrAct: '低配债股 · 中性 · 高配债'}));
     }
     /* M17 汇率绝对水平（离岸USDCNH） */
     const _fcur = (_fxm && _fxm.cur) || {};
@@ -4020,7 +4022,7 @@ window.HS_name = function (code) {
       const fxv = +_fcur.usdcnh;
       const lvl17 = fxv <= 6.5 ? 'act' : fxv > 7.0 ? 'near' : 'watch';
       const tag17 = fxv <= 6.5 ? '低值·资金进入' : fxv > 7.0 ? '偏高·避险出逃承压' : '中性';
-      rows.push(mkRow('M17', 'M17 汇率绝对水平（离岸USDCNY）', '人民币强弱', fxv.toFixed(3) + ' · ' + tag17, '≤6.5 资金进入 · 6.5~7.0 中性 · >7.0 承压出逃', lvl17, '离岸USDCNH · ' + (_fxm.updatedAt || ''), {curMain: fxv.toFixed(3), curSub: tag17, thrCond: '≤6.5 · 6.5~7.0 · >7.0', thrAct: '资金进入 · 中性 · 承压出逃'}));
+      rows.push(mkRow('M17', 'M17 汇率绝对水平（离岸USDCNY）', '人民币强弱', fxv.toFixed(3) + ' · ' + tag17, '≤6.5 资金进入 · 6.5~7.0 中性 · >7.0 承压出逃', lvl17, '离岸USDCNH', {dd: _pdate(_fxm), curMain: fxv.toFixed(3), curSub: tag17, thrCond: '≤6.5 · 6.5~7.0 · >7.0', thrAct: '资金进入 · 中性 · 承压出逃'}));
     }
     /* 换手率（全A）：源失效旧快照红标占位，套五档但标注滞后 */
     const _to = _sent.turnover;
@@ -4028,7 +4030,7 @@ window.HS_name = function (code) {
       const tv = +_to.value;
       const lvlT = tv < 1 ? 'act' : tv > 15 ? 'act' : 'watch';
       const tagT = tv < 1 ? '极度低迷' : tv < 3 ? '温和正常' : tv < 7 ? '活跃·关注度升' : tv < 15 ? '高度活跃' : '异常火爆';
-      rows.push(mkRow('M18', 'M18 换手率（全A·旧快照红标）', '成交活跃程度', tv.toFixed(2) + '% · ' + tagT + '（源失效·滞后）', '<1% 低迷 · 1~3% 温和 · 3~7% 活跃 · 7~15% 高度活跃 · >15% 火爆', lvlT, '理杏仁下线旧快照 · ' + (_to.asOf || '') + ' · 待新源', {curMain: tv.toFixed(2) + '%', curSub: tagT + ' · 旧快照滞后红标', thrCond: '<1% · 1~3% · 3~7% · 7~15% · >15%', thrAct: '低迷 · 温和 · 活跃 · 高度活跃 · 火爆'}));
+      rows.push(mkRow('M18', 'M18 换手率（全A·旧快照红标）', '成交活跃程度', tv.toFixed(2) + '% · ' + tagT + '（源失效·滞后）', '<1% 低迷 · 1~3% 温和 · 3~7% 活跃 · 7~15% 高度活跃 · >15% 火爆', lvlT, '理杏仁下线旧快照·待新源', {dd: (_to.asOf || ''), curMain: tv.toFixed(2) + '%', curSub: tagT + ' · 旧快照滞后红标', thrCond: '<1% · 1~3% · 3~7% · 7~15% · >15%', thrAct: '低迷 · 温和 · 活跃 · 高度活跃 · 火爆'}));
     }
     /* --- 横幅两行 --- */
     const tempTag = (p) => p >= 80 ? '偏贵' : p >= 60 ? '中性偏暖' : p >= 40 ? '中性' : p >= 20 ? '中性偏冷' : '便宜';
@@ -12885,7 +12887,7 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
        留待与用户确认重设计方案后再动（本轮不做）。
      ★诚实限定：erpCard/peCard/mrgCard/vixCard 定义及其 erpSpark/peSpark/mrgSpark/vixSpark 函数已于 **v529（fw2_v529_smux P3）一并清理**（连同 erpLv/peLv/vixLv/rzyeLv 与顶部 erp/pe/margin/vix 局部变量，mi 页判读走 mcCalcCommon 不受影响）。
        数据/口径零改动，纯前端结构层；描述串「sm 去重 · 删重复估值流动性卡」入 verify_sync 标记组 */
-  if (vc) vc.textContent = 'v626 · 信号口径校正' /* fw2_v516_a500lk fw2_v517_4otc fw2_v518_hspos fw2_v519_sm_merge fw2_v520_chgflat fw2_v521_magnet fw2_v522_overview fw2_v523_sm_dedup fw2_v524_geo_fsi fw2_v525_geo_filter fw2_v526_geo_filter_removed fw2_v527_verdict fw2_v529_smux fw2_v530_datamgmt fw2_v531_sm_dmgmt fw2_v532_all_dm fw2_v533_px_long fw2_v533d_dm_scroll fw2_v534_dm_module fw2_v535_dm_auto fw2_v539_hold_realpnl fw2_v539a_seed_sync fw2_v539a_seed_order fw2_v540_hold_path fw2_v542_pf_mirror_first fw2_v542_mv_settled fw2_v542_mv_account fw2_v543_dm_holdings_note fw2_v544_ledger_mirror_guard fw2_v545_hold_total_row fw2_v546_navdate_all fw2_v547_vix_to_ovs fw2_v548_ovs_mrg fw2_v549_region_align fw2_v550_grp_tabs fw2_v551_sop_cockpit fw2_v552_sop_taborder fw2_v553_chain_data fw2_v554_sop_rename fw2_v556_market_split fw2_v557_sm_renamed fw2_v558_cbrates_fix fw2_v558a_cb_label fw2_v559_chain_dates fw2_v560_chain_verdict fw2_v561_curve_hold fw2_v562_hold_inline fw2_v563_alloc fw2_v564_lxlink fw2_v565_cal_lx fw2_v565_sub_lx fw2_v566_fund_move fw2_v567_fund_merge fw2_v568_lxlink_fix fw2_v569_manager_pool fw2_v570_manager_universe fw2_v571_mgr_east fw2_v574_mgr_subscore fw2_v575_mgr_merge fw2_v576_mgr_group fw2_v577_mgr_lxlink fw2_v578_mgr_lxreal fw2_v579_mgr_weight fw2_v581_fund_lxreal fw2_v582_mgr_min10 fw2_v583_mgr_noyear fw2_v584_mgr_career fw2_v585_mgr_srank fw2_v586_mgr_srank fw2_v587_mgr_since fw2_v588_mgr_lxfull fw2_v589_mgr_rules fw2_v590_mgr_scores fw2_v591_mgr_ladder fw2_v592_mgr_cols fw2_v593_mgr_score fw2_anti_halluc_p0 fw2_v595_alpha_attrib fw2_v596_sig_hist fw2_v597_fund_overlap fw2_v598_mgr_hold fw2_v599_time_decay fw2_v599_corr_pen fw2_v600_buytrack fw2_v601_backtest fw2_v602_kline_page fw2_v603_old_debts fw2_v604_xirr fw2_v605_holdings_global fw2_v606_v11_signal fw2_v607_v11_bt fw2_v608_lx_audit fw2_v609_sig_table fw2_v610_sig_merge fw2_v611_grp_line fw2_v612_index_lxreal fw2_v613_near_blue fw2_v615_sig_grp fw2_v616_sig_hdstyle fw2_v617_sig_vline fw2_v618_sig_lcr fw2_v619_curthr fw2_v620_curthr_all fw2_v621_ret_hpr fw2_v621_t13_lastbuy fw2_v622_lastbuy_auto fw2_v623_firstbuy_roll fw2_v623_alloc_watch fw2_v624_m13_m17 fw2_v626_sig_cost_guard fw2_v626_watch_pe_exempt */ + (window.getAllocWatchCodes ? window.getAllocWatchCodes().length : 0) + '只';
+  if (vc) vc.textContent = 'v627 · 信号表行动方案' /* fw2_v516_a500lk fw2_v517_4otc fw2_v518_hspos fw2_v519_sm_merge fw2_v520_chgflat fw2_v521_magnet fw2_v522_overview fw2_v523_sm_dedup fw2_v524_geo_fsi fw2_v525_geo_filter fw2_v526_geo_filter_removed fw2_v527_verdict fw2_v529_smux fw2_v530_datamgmt fw2_v531_sm_dmgmt fw2_v532_all_dm fw2_v533_px_long fw2_v533d_dm_scroll fw2_v534_dm_module fw2_v535_dm_auto fw2_v539_hold_realpnl fw2_v539a_seed_sync fw2_v539a_seed_order fw2_v540_hold_path fw2_v542_pf_mirror_first fw2_v542_mv_settled fw2_v542_mv_account fw2_v543_dm_holdings_note fw2_v544_ledger_mirror_guard fw2_v545_hold_total_row fw2_v546_navdate_all fw2_v547_vix_to_ovs fw2_v548_ovs_mrg fw2_v549_region_align fw2_v550_grp_tabs fw2_v551_sop_cockpit fw2_v552_sop_taborder fw2_v553_chain_data fw2_v554_sop_rename fw2_v556_market_split fw2_v557_sm_renamed fw2_v558_cbrates_fix fw2_v558a_cb_label fw2_v559_chain_dates fw2_v560_chain_verdict fw2_v561_curve_hold fw2_v562_hold_inline fw2_v563_alloc fw2_v564_lxlink fw2_v565_cal_lx fw2_v565_sub_lx fw2_v566_fund_move fw2_v567_fund_merge fw2_v568_lxlink_fix fw2_v569_manager_pool fw2_v570_manager_universe fw2_v571_mgr_east fw2_v574_mgr_subscore fw2_v575_mgr_merge fw2_v576_mgr_group fw2_v577_mgr_lxlink fw2_v578_mgr_lxreal fw2_v579_mgr_weight fw2_v581_fund_lxreal fw2_v582_mgr_min10 fw2_v583_mgr_noyear fw2_v584_mgr_career fw2_v585_mgr_srank fw2_v586_mgr_srank fw2_v587_mgr_since fw2_v588_mgr_lxfull fw2_v589_mgr_rules fw2_v590_mgr_scores fw2_v591_mgr_ladder fw2_v592_mgr_cols fw2_v593_mgr_score fw2_anti_halluc_p0 fw2_v595_alpha_attrib fw2_v596_sig_hist fw2_v597_fund_overlap fw2_v598_mgr_hold fw2_v599_time_decay fw2_v599_corr_pen fw2_v600_buytrack fw2_v601_backtest fw2_v602_kline_page fw2_v603_old_debts fw2_v604_xirr fw2_v605_holdings_global fw2_v606_v11_signal fw2_v607_v11_bt fw2_v608_lx_audit fw2_v609_sig_table fw2_v610_sig_merge fw2_v611_grp_line fw2_v612_index_lxreal fw2_v613_near_blue fw2_v615_sig_grp fw2_v616_sig_hdstyle fw2_v617_sig_vline fw2_v618_sig_lcr fw2_v619_curthr fw2_v620_curthr_all fw2_v621_ret_hpr fw2_v621_t13_lastbuy fw2_v622_lastbuy_auto fw2_v623_firstbuy_roll fw2_v623_alloc_watch fw2_v624_m13_m17 fw2_v626_sig_cost_guard fw2_v626_watch_pe_exempt fw2_v627_colorder fw2_v627_action_plan fw2_v627_data_date */ + (window.getAllocWatchCodes ? window.getAllocWatchCodes().length : 0) + '只';
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
@@ -13253,6 +13255,15 @@ function renderSignalDash() {
       const dim = sigAcked(key, r.lvl === 'act' ? 7 : 1) ? ' style="opacity:.42"' : '';
       const L = LVL[r.lvl] || LVL.watch;
       const curColor = r.lvl === 'act' ? 'var(--up)' : r.lvl === 'near' ? 'var(--warn)' : 'var(--text)';
+      /* fw2_v627_action_plan：行动方案列——行动档写具体动作(thrAct)，接近档继续观察备行动，观察档持有观望暂不操作；
+         阈值格对比判定：已触发 / 接近阈值 / 未达（由 lvl 机械映射，与状态徽章同源，不臆造距离） */
+      const actPlan = r.lvl === 'act' ? (r.thrAct || '执行既定动作')
+        : r.lvl === 'near' ? '继续观察，接近阈值时准备行动'
+        : '持有观望 · 暂不操作';
+      const cmpTxt = r.lvl === 'act' ? '已触发' : r.lvl === 'near' ? '接近阈值' : '未达';
+      const cmpColor = r.lvl === 'act' ? '#A32D2D' : r.lvl === 'near' ? '#2563EB' : '#94a3b8';
+      const planColor = r.lvl === 'act' ? '#A32D2D' : r.lvl === 'near' ? '#2563EB' : '#64748b';
+      const planBold = r.lvl === 'act' ? 'font-weight:600;' : '';
       const nm = r.name || (opts && opts.name) || String(r.code);
       const pileTag = (opts && opts.pile) ? '<span style="display:inline-block;font-size:10px;padding:0 5px;border-radius:5px;background:' + opts.pile[1] + ';color:' + opts.pile[2] + ';white-space:nowrap;margin-left:4px">' + opts.pile[0] + '</span>' : '';
       const nameHtml = r.noLink ? '<span style="opacity:.9">' + esc(nm) + '</span>' : '<b class="lk-rs" data-rscode="' + esc(r.code) + '" style="cursor:pointer">' + esc(nm) + '</b>' + LXMAP.ic(LXMAP.fund(r.code), '理杏仁基金') + pileTag;
@@ -13269,12 +13280,19 @@ function renderSignalDash() {
       const _tdM = _mg > 0 ? '<td rowspan="' + _mg + '" style="padding:4px 8px;white-space:nowrap;vertical-align:middle">' + _nmWrap + '</td>'
         : _mg === 0 ? ''
         : '<td style="padding:4px 8px;white-space:nowrap;vertical-align:middle">' + _nmWrap + '</td>';
+      /* fw2_v627_colorder：列序 标的|信号|当前值|阈值|状态|行动方案|数据日|来源|操作——先看当前值→对比阈值(含对比判定)→再看状态徽章→行动方案 */
+      const cmpLine = '<div style="font-size:10px;font-weight:600;margin-bottom:1px;color:' + cmpColor + '">对比：' + cmpTxt + '</div>';
+      const thrCell = r.thrCond !== undefined
+        ? '<td class="num" style="padding:4px 8px;white-space:nowrap">' + cmpLine + '<div style="font-size:11px;opacity:.85">' + esc(r.thrCond) + '</div>' + (r.thrAct ? '<div style="font-size:10.5px;color:#2563EB;margin-top:1px">→ ' + esc(r.thrAct) + '</div>' : '') + '</td>' /* fw2_v619_curthr：阈值条件+应对两行式（→ 蓝字=行动方式）；v627 顶部加对比判定 */
+        : '<td class="num" style="padding:4px 8px;white-space:nowrap">' + cmpLine + '<div style="font-size:11px;opacity:.85">' + esc(r.thr) + '</div></td>';
+      const planCell = '<td style="padding:4px 8px;font-size:11px;white-space:nowrap;color:' + planColor + ';' + planBold + '">' + esc(actPlan) + '</td>';
       return '<tr' + dim + _wt + '>'
         + _tdM
         + '<td style="padding:4px 8px;font-size:11.5px;opacity:.9;white-space:nowrap">' + esc(r.sig) + '</td>'
-        + '<td style="padding:4px 8px;white-space:nowrap"><span style="display:inline-block;padding:1px 7px;border-radius:9px;background:' + L[2] + ';color:' + L[3] + ';font-size:10.5px;font-weight:600">' + L[0] + '</span></td>'
         + (r.curMain !== undefined ? '<td class="num" style="padding:4px 8px;white-space:nowrap"><div style="font-size:12.5px;font-weight:700;color:' + curColor + '">' + esc(r.curMain) + '</div>' + (r.curSub ? '<div style="font-size:10.5px;opacity:.6;margin-top:1px">' + esc(r.curSub) + '</div>' : '') + '</td>' /* fw2_v619_curthr：当前值主值+辅助两行式（触发判定读数为主） */ : '<td class="num" style="padding:4px 8px;font-size:12px;white-space:nowrap;color:' + curColor + '">' + esc(r.cur) + '</td>')
-        + (r.thrCond !== undefined ? '<td class="num" style="padding:4px 8px;white-space:nowrap"><div style="font-size:11px;opacity:.85">' + esc(r.thrCond) + '</div>' + (r.thrAct ? '<div style="font-size:10.5px;color:#2563EB;margin-top:1px">→ ' + esc(r.thrAct) + '</div>' : '') + '</td>' /* fw2_v619_curthr：阈值条件+应对两行式（→ 蓝字=行动方式） */ : '<td class="num" style="padding:4px 8px;font-size:11px;opacity:.85;white-space:nowrap">' + esc(r.thr) + '</td>')
+        + thrCell
+        + '<td style="padding:4px 8px;white-space:nowrap"><span style="display:inline-block;padding:1px 7px;border-radius:9px;background:' + L[2] + ';color:' + L[3] + ';font-size:10.5px;font-weight:600">' + L[0] + '</span></td>'
+        + planCell
         + '<td style="padding:4px 8px;font-size:11px;color:var(--muted);white-space:nowrap">' + (r.dd ? esc(r.dd) : '—') + '</td>'
         + '<td style="padding:4px 8px;font-size:11px;opacity:.72;white-space:nowrap">' + esc(r.src) + '</td>'
         + '<td style="padding:4px 8px;white-space:nowrap;text-align:right">' + ackBtn + '</td>'
@@ -13306,12 +13324,14 @@ function renderSignalDash() {
         });
       }
       const bar = watchN ? '<div class="sig-wt-bar" style="margin:6px 0 4px;text-align:right"><button type="button" class="btn btn-sm sig-wt-btn" data-wt-grp="' + esc(grpKey) + '" style="font-size:11px">' + (showWatch ? '\u25be 收起观察 ' + watchN + ' 条' : '\u25b8 显示观察 ' + watchN + ' 条') + '</button></div>' : '';
-      const emptyRow = '<tr><td colspan="8" style="padding:8px;font-size:12px;opacity:.6">暂无标的</td></tr>';
-      return '<div class="sig-wt-area">' + bar + '<div class="table-wrap"><table class="tb sig-tbl" style="min-width:940px"><thead><tr style="color:var(--muted);font-size:10.5px">'
+      const emptyRow = '<tr><td colspan="9" style="padding:8px;font-size:12px;opacity:.6">暂无标的</td></tr>';
+      /* fw2_v627_colorder：表头 9 列——标的|信号|当前值|阈值|状态|行动方案|数据日|来源|操作 */
+      return '<div class="sig-wt-area">' + bar + '<div class="table-wrap"><table class="tb sig-tbl" style="min-width:1120px"><thead><tr style="color:var(--muted);font-size:10.5px">'
         + '<th style="padding:4px 8px;text-align:center">标的</th><th style="padding:4px 8px;text-align:center">信号</th>'
-        + '<th style="padding:4px 8px;text-align:center">状态</th><th style="padding:4px 8px;text-align:center">当前值</th>'
-        + '<th style="padding:4px 8px;text-align:center">阈值</th><th style="padding:4px 8px;text-align:center">数据日</th>'
-        + '<th style="padding:4px 8px;text-align:center">来源</th><th style="padding:4px 8px;text-align:center">操作</th>'
+        + '<th style="padding:4px 8px;text-align:center">当前值</th><th style="padding:4px 8px;text-align:center">阈值</th>'
+        + '<th style="padding:4px 8px;text-align:center">状态</th><th style="padding:4px 8px;text-align:center">行动方案</th>'
+        + '<th style="padding:4px 8px;text-align:center">数据日</th><th style="padding:4px 8px;text-align:center">来源</th>'
+        + '<th style="padding:4px 8px;text-align:center">操作</th>'
         + '</tr></thead><tbody>' + (rowObjs.length ? tds : emptyRow) + '</tbody></table></div></div>';
     };
     const GRP_COLOR = { '持仓信号': '#4D6BFE', '自选信号': '#BA7517', '筛选信号': '#7C3AED', '市场信号': '#888780' };
