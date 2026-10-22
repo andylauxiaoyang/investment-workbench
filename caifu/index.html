@@ -1318,8 +1318,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
           <!-- v93 fw2_v93_drop_dc_head：删除本分块标题+副标题（#dcTitle/#dcSub，基金/宏观共用） -->
           <div class="vh-r dc-tabs v-tabs" id="dcTabs">
             <button class="dc-tab v-tab active" data-dc="overview">资产配置</button>
-            <!-- v643 fw2_v643_mtbl_tier：补回 v353 遗漏的「自选基金」tab 按钮——v353 注释称新增 pool-watch/pool-screen 两 Tab，但 DOM 里只有筛选基金，#dcPoolWatchWrap pane 与点击分发(L16140)都在却无按钮可达，自选池实质不可见；本按钮补于资产配置与筛选基金之间 -->
-            <button class="dc-tab v-tab" data-dc="pool-watch">自选基金</button>
+            <!-- v644 fw2_v644_revert_watch_tab：撤回 v643 误加的「自选基金」tab 按钮，恢复 v563 fw2_v563_alloc 设计——v563 明确「删除「自选基金」tab（pool-watch 入口移除，renderPoolWatch 等函数保留为死代码）」，自选内容并入「资产配置」池（实际持仓 + 配置目标未买入，池内「全部/已持仓/未持仓」三段筛选，状态列三态：已持仓/未持仓/已自选）；v643 误判为 v353 遗漏而复活入口，本次回退；renderPoolWatch 与 watchlist-data.json 按 v563 同款处置保留为死代码/遗留存档 -->
             <!-- v353 fw2_v353_pool_tabs：基金数据三池重构——「基金列表」更名「持仓基金」（data-dc="overview" 路由键/契约不动），新增「自选基金」(pool-watch)「筛选基金」(pool-screen) 两 Tab；自选池=watchlist-data.json+筛选池加入，筛选池=screen-pool.json（40 只候选） -->
             <button class="dc-tab v-tab" data-dc="pool-screen">筛选基金</button>
             <!-- v570 fw2_v570_manager_universe fw2_v570_lx_index_fix：基金经理升全市场筛选——两池（主动权益=主动/混合/QDII 并池 + 债券池，各按各自收益逻辑评分），业绩门槛=代表年化权益≥8% / 债≥5%（用户确认），管理年限≥3年+规模≥10亿，风险维度进评分（近3年夏普/卡玛/回撤自算），每池 Top50；评分下沉数据层（m.score 只读）。fw2_v570_lx_index_fix：理杏仁 equity/index+fund 详情模块 2026-10-16 实测 403「此页面已暂时关闭，会员用户请登录访问数据」（含收录子页）、/profile 404 → A股 6 指数改腾讯 gu.qq.com/{sh|sz}{code}/zs、基金改天天基金 fund.eastmoney.com/{code}.html（均实测 HTTP 200 无需登录） -->
@@ -12984,7 +12983,7 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
        留待与用户确认重设计方案后再动（本轮不做）。
      ★诚实限定：erpCard/peCard/mrgCard/vixCard 定义及其 erpSpark/peSpark/mrgSpark/vixSpark 函数已于 **v529（fw2_v529_smux P3）一并清理**（连同 erpLv/peLv/vixLv/rzyeLv 与顶部 erp/pe/margin/vix 局部变量，mi 页判读走 mcCalcCommon 不受影响）。
        数据/口径零改动，纯前端结构层；描述串「sm 去重 · 删重复估值流动性卡」入 verify_sync 标记组 */
-  if (vc) vc.textContent = 'v643 · 月度表版式与三池排序统一' /* fw2_v643_mtbl_tier fw2_v642_a500_enh fw2_v641_peak_dd fw2_v640_buy_pct fw2_v639_del_decisionfw2_v516_a500lk fw2_v517_4otc fw2_v518_hspos fw2_v519_sm_merge fw2_v520_chgflat fw2_v521_magnet fw2_v522_overview fw2_v523_sm_dedup fw2_v524_geo_fsi fw2_v525_geo_filter fw2_v526_geo_filter_removed fw2_v527_verdict fw2_v529_smux fw2_v530_datamgmt fw2_v531_sm_dmgmt fw2_v532_all_dm fw2_v533_px_long fw2_v533d_dm_scroll fw2_v534_dm_module fw2_v535_dm_auto fw2_v539_hold_realpnl fw2_v539a_seed_sync fw2_v539a_seed_order fw2_v540_hold_path fw2_v542_pf_mirror_first fw2_v542_mv_settled fw2_v542_mv_account fw2_v543_dm_holdings_note fw2_v544_ledger_mirror_guard fw2_v545_hold_total_row fw2_v546_navdate_all fw2_v547_vix_to_ovs fw2_v548_ovs_mrg fw2_v549_region_align fw2_v550_grp_tabs fw2_v551_sop_cockpit fw2_v552_sop_taborder fw2_v553_chain_data fw2_v554_sop_rename fw2_v556_market_split fw2_v557_sm_renamed fw2_v558_cbrates_fix fw2_v558a_cb_label fw2_v559_chain_dates fw2_v560_chain_verdict fw2_v561_curve_hold fw2_v562_hold_inline fw2_v563_alloc fw2_v564_lxlink fw2_v565_cal_lx fw2_v565_sub_lx fw2_v566_fund_move fw2_v567_fund_merge fw2_v568_lxlink_fix fw2_v569_manager_pool fw2_v570_manager_universe fw2_v571_mgr_east fw2_v574_mgr_subscore fw2_v575_mgr_merge fw2_v576_mgr_group fw2_v577_mgr_lxlink fw2_v578_mgr_lxreal fw2_v579_mgr_weight fw2_v581_fund_lxreal fw2_v582_mgr_min10 fw2_v583_mgr_noyear fw2_v584_mgr_career fw2_v585_mgr_srank fw2_v586_mgr_srank fw2_v587_mgr_since fw2_v588_mgr_lxfull fw2_v589_mgr_rules fw2_v590_mgr_scores fw2_v591_mgr_ladder fw2_v592_mgr_cols fw2_v593_mgr_score fw2_anti_halluc_p0 fw2_v595_alpha_attrib fw2_v596_sig_hist fw2_v597_fund_overlap fw2_v598_mgr_hold fw2_v599_time_decay fw2_v599_corr_pen fw2_v600_buytrack fw2_v601_backtest fw2_v602_kline_page fw2_v603_old_debts fw2_v604_xirr fw2_v605_holdings_global fw2_v606_v11_signal fw2_v607_v11_bt fw2_v608_lx_audit fw2_v609_sig_table fw2_v610_sig_merge fw2_v611_grp_line fw2_v612_index_lxreal fw2_v613_near_blue fw2_v615_sig_grp fw2_v616_sig_hdstyle fw2_v617_sig_vline fw2_v618_sig_lcr fw2_v619_curthr fw2_v620_curthr_all fw2_v621_ret_hpr fw2_v621_t13_lastbuy fw2_v622_lastbuy_auto fw2_v623_firstbuy_roll fw2_v623_alloc_watch fw2_v624_m13_m17 fw2_v626_sig_cost_guard fw2_v626_watch_pe_exempt fw2_v627_colorder fw2_v627_action_plan fw2_v627_data_date fw2_v628_fixed_cols fw2_v629_pool_pile_guard fw2_v629_t9_pfdate fw2_v630_missing_cost fw2_v631_pool_held_live fw2_v632_held_off fw2_v633_ledger_tx_sync fw2_v634_plan_dir fw2_v635_capbal_fix fw2_v636_capbal_converge fw2_v637_mv_consist fw2_v638_mv_unify */ + (window.getAllocWatchCodes ? window.getAllocWatchCodes().length : 0) + '只';
+  if (vc) vc.textContent = 'v644 · 自选池入口回退' /* fw2_v644_revert_watch_tab fw2_v643_mtbl_tier fw2_v642_a500_enh fw2_v641_peak_dd fw2_v640_buy_pct fw2_v639_del_decisionfw2_v516_a500lk fw2_v517_4otc fw2_v518_hspos fw2_v519_sm_merge fw2_v520_chgflat fw2_v521_magnet fw2_v522_overview fw2_v523_sm_dedup fw2_v524_geo_fsi fw2_v525_geo_filter fw2_v526_geo_filter_removed fw2_v527_verdict fw2_v529_smux fw2_v530_datamgmt fw2_v531_sm_dmgmt fw2_v532_all_dm fw2_v533_px_long fw2_v533d_dm_scroll fw2_v534_dm_module fw2_v535_dm_auto fw2_v539_hold_realpnl fw2_v539a_seed_sync fw2_v539a_seed_order fw2_v540_hold_path fw2_v542_pf_mirror_first fw2_v542_mv_settled fw2_v542_mv_account fw2_v543_dm_holdings_note fw2_v544_ledger_mirror_guard fw2_v545_hold_total_row fw2_v546_navdate_all fw2_v547_vix_to_ovs fw2_v548_ovs_mrg fw2_v549_region_align fw2_v550_grp_tabs fw2_v551_sop_cockpit fw2_v552_sop_taborder fw2_v553_chain_data fw2_v554_sop_rename fw2_v556_market_split fw2_v557_sm_renamed fw2_v558_cbrates_fix fw2_v558a_cb_label fw2_v559_chain_dates fw2_v560_chain_verdict fw2_v561_curve_hold fw2_v562_hold_inline fw2_v563_alloc fw2_v564_lxlink fw2_v565_cal_lx fw2_v565_sub_lx fw2_v566_fund_move fw2_v567_fund_merge fw2_v568_lxlink_fix fw2_v569_manager_pool fw2_v570_manager_universe fw2_v571_mgr_east fw2_v574_mgr_subscore fw2_v575_mgr_merge fw2_v576_mgr_group fw2_v577_mgr_lxlink fw2_v578_mgr_lxreal fw2_v579_mgr_weight fw2_v581_fund_lxreal fw2_v582_mgr_min10 fw2_v583_mgr_noyear fw2_v584_mgr_career fw2_v585_mgr_srank fw2_v586_mgr_srank fw2_v587_mgr_since fw2_v588_mgr_lxfull fw2_v589_mgr_rules fw2_v590_mgr_scores fw2_v591_mgr_ladder fw2_v592_mgr_cols fw2_v593_mgr_score fw2_anti_halluc_p0 fw2_v595_alpha_attrib fw2_v596_sig_hist fw2_v597_fund_overlap fw2_v598_mgr_hold fw2_v599_time_decay fw2_v599_corr_pen fw2_v600_buytrack fw2_v601_backtest fw2_v602_kline_page fw2_v603_old_debts fw2_v604_xirr fw2_v605_holdings_global fw2_v606_v11_signal fw2_v607_v11_bt fw2_v608_lx_audit fw2_v609_sig_table fw2_v610_sig_merge fw2_v611_grp_line fw2_v612_index_lxreal fw2_v613_near_blue fw2_v615_sig_grp fw2_v616_sig_hdstyle fw2_v617_sig_vline fw2_v618_sig_lcr fw2_v619_curthr fw2_v620_curthr_all fw2_v621_ret_hpr fw2_v621_t13_lastbuy fw2_v622_lastbuy_auto fw2_v623_firstbuy_roll fw2_v623_alloc_watch fw2_v624_m13_m17 fw2_v626_sig_cost_guard fw2_v626_watch_pe_exempt fw2_v627_colorder fw2_v627_action_plan fw2_v627_data_date fw2_v628_fixed_cols fw2_v629_pool_pile_guard fw2_v629_t9_pfdate fw2_v630_missing_cost fw2_v631_pool_held_live fw2_v632_held_off fw2_v633_ledger_tx_sync fw2_v634_plan_dir fw2_v635_capbal_fix fw2_v636_capbal_converge fw2_v637_mv_consist fw2_v638_mv_unify */ + (window.getAllocWatchCodes ? window.getAllocWatchCodes().length : 0) + '只';
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
@@ -15692,7 +15691,7 @@ setTimeout(() => { renderResearchChips(); if (!state.news.items.length) loadNews
     var sp = window.SCREEN_POOL;
     return (sp && sp.funds && sp.funds[code]) || null;
   }
-  /* v643 fw2_v643_mtbl_tier：档位→家族分组排序——资产配置/自选/筛选三池共用同一口径（此前各池排序分叉：
+  /* v643 fw2_v643_mtbl_tier：档位→家族分组排序——资产配置/筛选两池共用同一口径（自选池 renderPoolWatch 为 v563 保留的死代码，入口 v644 已下线）（此前各池排序分叉：
      资产配置 tier、自选按名称拼音、筛选按 role 字符串+score，同家族基金被冲散）。档位序固定
      底仓/缓冲 < 进攻/主题 < 海外独立 < 安全垫 < 对冲，未归类沉底(9)；组内按家族名字符序，再按可选
      tie（默认代码升序）保证确定性。rf(row) 返回 {r:role, f:family}，并写回 row._r/_f 供列渲染复用。 */
@@ -15710,6 +15709,7 @@ setTimeout(() => { renderResearchChips(); if (!state.news.items.length) loadNews
   }
   /* fw2_v398_dimscore_bridge：暴露给研究模块（renderFundScore 在本 IIFE 之外，够不到 poolProfileE），供综合诊断取列表同源 scoreDim */
   try { window.__poolProfileE = poolProfileE; } catch (e) {}
+  /* v644 fw2_v644_revert_watch_tab：本函数自 v563 起为死代码（自选基金 tab 入口 v563 下线、v643 误加、v644 回退）；保留供将来复用，不删除 */
   function renderPoolWatch(){
     var wrap=$('dcPoolWatchWrap'); if(!wrap) return;
     var fbObj = (FB&&FB.funds)?FB.funds:{};   /* fw2_v361_fix：FB 为 IIFE 闭包变量，window.FB 恒 undefined → 画像恒空（存量 bug） */
@@ -15720,7 +15720,7 @@ setTimeout(() => { renderResearchChips(); if (!state.news.items.length) loadNews
     Object.keys(added).forEach(function(c){ rows.push({code:c, name:added[c].name||'', note:'从筛选池加入 '+esc(added[c].addedAt||''), watchAt:added[c].addedAt||'', source:'筛选池', f:poolFb(c,fbObj)}); });
     var seen={}, list=[];
     rows.forEach(function(r){ if(seen[r.code]) return; seen[r.code]=1; if(removed[r.code]) return; if(held[r.code]) return; list.push(r); });
-    /* v643 fw2_v643_mtbl_tier：自选池与资产配置/筛选池同口径——档位→家族分组（此前按名称拼音序，同家族被冲散）；
+    /* v643 fw2_v643_mtbl_tier：自选池（死代码·入口已下线）与资产配置/筛选池同口径——档位→家族分组（此前按名称拼音序，同家族被冲散）；
        无画像基金沉底（poolTierRank 未归类=9），组内按代码。画像异步到位后由 L15651 重渲，排序随即正确 */
     poolTierSort(list, function(r){ var e=poolProfileE(r.code)||{}; return {r:e.role||'', f:e.family||''}; });
     /* fw2_v357_pool_unify：自选池改为与持仓池同结构完整表（OVC 全列 + 操作列），画像优先 fund-basic.json；
@@ -15950,7 +15950,7 @@ setTimeout(() => { renderResearchChips(); if (!state.news.items.length) loadNews
       var held=poolHeldCodes(), added=poolWatchAdded(), removed=poolScreenRemoved();
       var fbObj=(FB&&FB.funds)?FB.funds:{};   /* fw2_v361_fix：FB 为 IIFE 闭包变量，window.FB 恒 undefined → 画像恒空（存量 bug） */
       var list=Object.keys(sp.funds).map(function(c){ return {code:c, e:sp.funds[c], f:poolFb(c,fbObj)}; }).filter(function(r){ return !removed[r.code]; });
-      /* v643 fw2_v643_mtbl_tier：筛选池与资产配置/自选池同口径——档位→家族分组（此前按 role 字符串序+score，
+      /* v643 fw2_v643_mtbl_tier：筛选池与资产配置池同口径——档位→家族分组（此前按 role 字符串序+score，
          role 值含「海外独立/灵活/待定」时字符串序错乱且同家族被评分冲散）；组内按评分降序、同分按代码 */
       poolTierSort(list, function(r){ var e=r.e||{}; return {r:e.role||'', f:e.family||''}; }, function(a,b){ return ((b.e&&b.e.score)||0)-((a.e&&a.e.score)||0); });
       /* fw2_v357_pool_unify：筛选池改为与持仓池同结构完整表（OVC 全列 + 操作列），画像优先 fund-basic.json；
