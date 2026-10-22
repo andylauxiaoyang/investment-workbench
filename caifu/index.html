@@ -13573,8 +13573,8 @@ function renderSignalDash() {
     var watchTot = (rows.hold.filter((r) => r.lvl === 'watch').length + watchRows.filter((r) => r.lvl === 'watch').length + (rows.screen || []).filter((r) => r.lvl === 'watch').length + ((mk && mk.rows) || []).filter((r) => r.lvl === 'watch').length);
     var vTone = actTot ? 't-hot' : (envTxt || '').indexOf('过热') >= 0 ? 't-hot' : (envTxt || '').indexOf('低迷') >= 0 ? 't-cold' : 't-neu';
     var vMain = '信号仪表盘 · 行动 ' + actTot + ' · 接近 ' + nearTot + ' · 观察 ' + watchTot;
-    /* fw2_v507b_dash：今日行动清单同口径计数缓存——决策总览指挥台聚合条直接复用本处口径（市场/持仓/自选/筛选四池合计），
-       避免二次计算与口径漂移；仅缓存计数不缓存行明细（明细由决策总览按自身六层数据生成） */
+    /* fw2_v507b_dash：信号计数缓存——交易信号/自选/筛选/持仓四池合计计数（与决策总览已删，此处仅供信号面板复用），
+       避免二次计算与口径漂移；仅缓存计数不缓存行明细 */
     window.__SIGCNT__ = { act: actTot, near: nearTot, watch: watchTot, ts: Date.now() };
     var vVid = bnAll.map(bnFmt).join('｜');
 
