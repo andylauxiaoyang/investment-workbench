@@ -1712,7 +1712,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
             <span class="v-tab" data-cbtab="rptBal">资产负债表</span>
             <span class="v-tab" data-cbtab="rptInc">利润表</span>
             <span class="v-tab" data-cbtab="rptCf">现金流量表</span>
-            <span class="v-tab" data-cbtab="data">备份与同步</span>
+            <!-- fw2_v652_data_tab_removed：「备份与同步」子模块整块删除，导出/导入/云端恢复/成交台账 四个入口并入工具栏 -->
           </div>
         </div>
         <div class="tools-r" style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
@@ -1721,6 +1721,13 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
           <button class="btn btn-sm" id="cbNavUpd">更新净值</button>
           <button class="btn btn-primary btn-sm" id="cbAddTx">＋ 新增交易</button>
           <button class="btn btn-sm" id="cbSetLiab">设置负债</button><!-- fw2_v498_cbtab：负债设置入口由资产负债表 tab 迁至工具栏 -->
+          <!-- fw2_v652_data_tab_removed：原「备份与同步」tab 的四个入口迁入工具栏（低频操作，与同步/更新净值并列） -->
+          <button class="btn btn-sm" id="cbLedgerToggle">成交台账</button>
+          <button class="btn btn-sm" id="cbExport">导出</button>
+          <button class="btn btn-sm" id="cbImport">导入</button>
+          <button class="btn btn-sm" id="cbCloudRestore">云端恢复</button>
+          <input type="file" id="cbImportFile" class="hidden" accept=".json,application/json">
+          <span class="muted" id="cbCloudInfo" style="font-size:11px"></span>
         </div>
       </div>
 
@@ -1743,7 +1750,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
         <div class="cb-panel"><div class="cb-panel-head"><h3>标的明细</h3><span class="muted" style="font-size:11px">份额/成本=台账流水口径 · 盈亏未含分红与费用</span></div><div class="cb-panel-body cb-flush" id="cbHoldingsTable"></div></div>
         <div class="cb-panel hidden" id="cbRecentBox"><div class="cb-panel-head"><h3>资金流水 · 分红/费用/转入转出</h3><span class="muted" style="font-size:11px">买卖成交见下方「交易台账」</span></div><div class="cb-panel-body cb-flush" id="cbRecentTrades"></div></div>
         <!-- fw2_v646_ledger_capbal：交易台账折叠块（原策略执行·交易台账 tab 迁入；录入/导入/备份/上限提醒全保留） -->
-        <details class="cb-panel" id="capbalLedgerBox" style="margin-top:12px"><summary style="cursor:pointer;user-select:none;padding:10px 13px;font-weight:600;font-size:13px">交易台账（录入 / 导入 / 备份）</summary><div style="padding:0 13px 12px" id="capbalLedgerMount"></div></details>
+        <details class="cb-panel hidden" id="capbalLedgerBox" style="margin-top:12px"><summary style="cursor:pointer;user-select:none;padding:10px 13px;font-weight:600;font-size:13px">交易台账（录入 / 导入 / 备份）</summary><div style="padding:0 13px 12px" id="capbalLedgerMount"></div></details>
       </div>
 
       <!-- fw2_v648_capbal_slim：三财报操作条合并为一份共享条 #cbRptBar（原三 pane 各一套；月份本就联动共享，出具/导出/导入操作的是同一份报告库 rptStore，data-rpt 属性为冗余已去除） -->
@@ -1768,16 +1775,8 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
         <p class="muted" style="font-size:11px;margin:8px 2px">口径：期初现金取自上月末重放快照；补记流水后需重新出具对应月份才会更新。</p>
       </div>
 
-      <div class="cb-pane hidden" id="cbPane-data">
-        <div class="cb-panel"><div class="cb-panel-head"><h3>账本概况</h3></div><div class="cb-panel-body"><div id="cbStats"></div></div></div>
-        <div class="cb-data-cards">
-          <div class="cb-data-card"><h4>本模块账本 · 导出 / 导入</h4><p>仅含本模块的标的、分红/费用/资金流水与月报。含台账逐笔成交的完整备份请到「总览 › 交易台账 › 导出完整快照」。</p><div class="cb-ops"><button class="btn btn-primary btn-sm" id="cbExport">导出 JSON</button><button class="btn btn-sm" id="cbImport">导入 JSON</button><input type="file" id="cbImportFile" class="hidden" accept=".json,application/json"></div></div>
-          <div class="cb-data-card"><h4>云端镜像</h4><p>从已发布的只读镜像恢复（换设备或清缓存后可用）。镜像由本地脚本同步生成，非实时。</p><div class="cb-ops"><button class="btn btn-sm" id="cbCloudRestore">从云端恢复</button></div><p class="muted" id="cbCloudInfo" style="font-size:11px;margin:6px 0 0"></p></div>
-          <div class="cb-data-card"><h4>加载示例数据</h4><p>载入一套演示数据（含在盘/清盘标的、买卖与分红流水）。示例非真实持仓。</p><div class="cb-ops"><button class="btn btn-sm" id="cbSample">加载示例</button></div></div>
-          <div class="cb-data-card"><h4>清空全部</h4><p>删除本机保存的全部标的与交易数据，回到空白状态。不可撤销。</p><div class="cb-ops"><button class="btn btn-sm" id="cbClear">清空全部数据</button></div></div>
-        </div>
-        <div class="cb-panel" style="margin-top:14px"><div class="cb-panel-head"><h3>与工作台持仓同步</h3><span class="muted" style="font-size:11px">标的自动跟随「我的持仓」</span></div><div class="cb-panel-body" id="cbSyncLog"></div></div>
-      </div>
+            <!-- fw2_v652_data_tab_removed：#cbPane-data 整块删除（账本概况 / 加载示例 / 清空全部 / 持仓同步日志）。
+           导出导入与云端恢复改由工具栏按钮触发；清空数据可用「导入」一份空账本 JSON 实现。 -->
       <div id="cbModalRoot"></div>
     </section>
     <section class="view" id="view-smartmoney">
@@ -13050,7 +13049,7 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
        （货币基金单位净值恒 1），同时 __ALLOC_NAV__ 补 nav=1（v650 fw2_v650_moneynav）。
      新增：曲线 markPoint 标峰值（万为单位）；副标题「逐笔重放」→「逐日重放（按净值日取点）」；
        cbNetOffList() 列出「已归档但账面仍有份额」的标的并在图下披露（#cbNetNote）——
-       现行口径与 calcSecurities 同源只计 status on，归档标的的历史市值不计入，不披露会被读成算错。 */  if (vc) vc.textContent = 'v651 · 流水/台账收口+录入统一' /* fw2_v651_recent_hide fw2_v651_ledger_slim fw2_v651_entry_unify fw2_v650_netseries_daily fw2_v650_moneynav fw2_v649_merge_holdings fw2_v648_capbal_slim fw2_v647_netseries_fix fw2_v646_ledger_capbal fw2_v644_revert_watch_tab fw2_v643_mtbl_tier fw2_v642_a500_enh fw2_v641_peak_dd fw2_v640_buy_pct fw2_v639_del_decisionfw2_v516_a500lk fw2_v517_4otc fw2_v518_hspos fw2_v519_sm_merge fw2_v520_chgflat fw2_v521_magnet fw2_v522_overview fw2_v523_sm_dedup fw2_v524_geo_fsi fw2_v525_geo_filter fw2_v526_geo_filter_removed fw2_v527_verdict fw2_v529_smux fw2_v530_datamgmt fw2_v531_sm_dmgmt fw2_v532_all_dm fw2_v533_px_long fw2_v533d_dm_scroll fw2_v534_dm_module fw2_v535_dm_auto fw2_v539_hold_realpnl fw2_v539a_seed_sync fw2_v539a_seed_order fw2_v540_hold_path fw2_v542_pf_mirror_first fw2_v542_mv_settled fw2_v542_mv_account fw2_v543_dm_holdings_note fw2_v544_ledger_mirror_guard fw2_v545_hold_total_row fw2_v546_navdate_all fw2_v547_vix_to_ovs fw2_v548_ovs_mrg fw2_v549_region_align fw2_v550_grp_tabs fw2_v551_sop_cockpit fw2_v552_sop_taborder fw2_v553_chain_data fw2_v554_sop_rename fw2_v556_market_split fw2_v557_sm_renamed fw2_v558_cbrates_fix fw2_v558a_cb_label fw2_v559_chain_dates fw2_v560_chain_verdict fw2_v561_curve_hold fw2_v562_hold_inline fw2_v563_alloc fw2_v564_lxlink fw2_v565_cal_lx fw2_v565_sub_lx fw2_v566_fund_move fw2_v567_fund_merge fw2_v568_lxlink_fix fw2_v569_manager_pool fw2_v570_manager_universe fw2_v571_mgr_east fw2_v574_mgr_subscore fw2_v575_mgr_merge fw2_v576_mgr_group fw2_v577_mgr_lxlink fw2_v578_mgr_lxreal fw2_v579_mgr_weight fw2_v581_fund_lxreal fw2_v582_mgr_min10 fw2_v583_mgr_noyear fw2_v584_mgr_career fw2_v585_mgr_srank fw2_v586_mgr_srank fw2_v587_mgr_since fw2_v588_mgr_lxfull fw2_v589_mgr_rules fw2_v590_mgr_scores fw2_v591_mgr_ladder fw2_v592_mgr_cols fw2_v593_mgr_score fw2_anti_halluc_p0 fw2_v595_alpha_attrib fw2_v596_sig_hist fw2_v597_fund_overlap fw2_v598_mgr_hold fw2_v599_time_decay fw2_v599_corr_pen fw2_v600_buytrack fw2_v601_backtest fw2_v602_kline_page fw2_v603_old_debts fw2_v604_xirr fw2_v605_holdings_global fw2_v606_v11_signal fw2_v607_v11_bt fw2_v608_lx_audit fw2_v609_sig_table fw2_v610_sig_merge fw2_v611_grp_line fw2_v612_index_lxreal fw2_v613_near_blue fw2_v615_sig_grp fw2_v616_sig_hdstyle fw2_v617_sig_vline fw2_v618_sig_lcr fw2_v619_curthr fw2_v620_curthr_all fw2_v621_ret_hpr fw2_v621_t13_lastbuy fw2_v622_lastbuy_auto fw2_v623_firstbuy_roll fw2_v623_alloc_watch fw2_v624_m13_m17 fw2_v626_sig_cost_guard fw2_v626_watch_pe_exempt fw2_v627_colorder fw2_v627_action_plan fw2_v627_data_date fw2_v628_fixed_cols fw2_v629_pool_pile_guard fw2_v629_t9_pfdate fw2_v630_missing_cost fw2_v631_pool_held_live fw2_v632_held_off fw2_v633_ledger_tx_sync fw2_v634_plan_dir fw2_v635_capbal_fix fw2_v636_capbal_converge fw2_v637_mv_consist fw2_v638_mv_unify */ + (window.getAllocWatchCodes ? window.getAllocWatchCodes().length : 0) + '只';
+       现行口径与 calcSecurities 同源只计 status on，归档标的的历史市值不计入，不披露会被读成算错。 */  if (vc) vc.textContent = 'v652 · 备份与同步收进工具栏' /* fw2_v652_data_tab_removed fw2_v651_recent_hide fw2_v651_ledger_slim fw2_v651_entry_unify fw2_v650_netseries_daily fw2_v650_moneynav fw2_v649_merge_holdings fw2_v648_capbal_slim fw2_v647_netseries_fix fw2_v646_ledger_capbal fw2_v644_revert_watch_tab fw2_v643_mtbl_tier fw2_v642_a500_enh fw2_v641_peak_dd fw2_v640_buy_pct fw2_v639_del_decisionfw2_v516_a500lk fw2_v517_4otc fw2_v518_hspos fw2_v519_sm_merge fw2_v520_chgflat fw2_v521_magnet fw2_v522_overview fw2_v523_sm_dedup fw2_v524_geo_fsi fw2_v525_geo_filter fw2_v526_geo_filter_removed fw2_v527_verdict fw2_v529_smux fw2_v530_datamgmt fw2_v531_sm_dmgmt fw2_v532_all_dm fw2_v533_px_long fw2_v533d_dm_scroll fw2_v534_dm_module fw2_v535_dm_auto fw2_v539_hold_realpnl fw2_v539a_seed_sync fw2_v539a_seed_order fw2_v540_hold_path fw2_v542_pf_mirror_first fw2_v542_mv_settled fw2_v542_mv_account fw2_v543_dm_holdings_note fw2_v544_ledger_mirror_guard fw2_v545_hold_total_row fw2_v546_navdate_all fw2_v547_vix_to_ovs fw2_v548_ovs_mrg fw2_v549_region_align fw2_v550_grp_tabs fw2_v551_sop_cockpit fw2_v552_sop_taborder fw2_v553_chain_data fw2_v554_sop_rename fw2_v556_market_split fw2_v557_sm_renamed fw2_v558_cbrates_fix fw2_v558a_cb_label fw2_v559_chain_dates fw2_v560_chain_verdict fw2_v561_curve_hold fw2_v562_hold_inline fw2_v563_alloc fw2_v564_lxlink fw2_v565_cal_lx fw2_v565_sub_lx fw2_v566_fund_move fw2_v567_fund_merge fw2_v568_lxlink_fix fw2_v569_manager_pool fw2_v570_manager_universe fw2_v571_mgr_east fw2_v574_mgr_subscore fw2_v575_mgr_merge fw2_v576_mgr_group fw2_v577_mgr_lxlink fw2_v578_mgr_lxreal fw2_v579_mgr_weight fw2_v581_fund_lxreal fw2_v582_mgr_min10 fw2_v583_mgr_noyear fw2_v584_mgr_career fw2_v585_mgr_srank fw2_v586_mgr_srank fw2_v587_mgr_since fw2_v588_mgr_lxfull fw2_v589_mgr_rules fw2_v590_mgr_scores fw2_v591_mgr_ladder fw2_v592_mgr_cols fw2_v593_mgr_score fw2_anti_halluc_p0 fw2_v595_alpha_attrib fw2_v596_sig_hist fw2_v597_fund_overlap fw2_v598_mgr_hold fw2_v599_time_decay fw2_v599_corr_pen fw2_v600_buytrack fw2_v601_backtest fw2_v602_kline_page fw2_v603_old_debts fw2_v604_xirr fw2_v605_holdings_global fw2_v606_v11_signal fw2_v607_v11_bt fw2_v608_lx_audit fw2_v609_sig_table fw2_v610_sig_merge fw2_v611_grp_line fw2_v612_index_lxreal fw2_v613_near_blue fw2_v615_sig_grp fw2_v616_sig_hdstyle fw2_v617_sig_vline fw2_v618_sig_lcr fw2_v619_curthr fw2_v620_curthr_all fw2_v621_ret_hpr fw2_v621_t13_lastbuy fw2_v622_lastbuy_auto fw2_v623_firstbuy_roll fw2_v623_alloc_watch fw2_v624_m13_m17 fw2_v626_sig_cost_guard fw2_v626_watch_pe_exempt fw2_v627_colorder fw2_v627_action_plan fw2_v627_data_date fw2_v628_fixed_cols fw2_v629_pool_pile_guard fw2_v629_t9_pfdate fw2_v630_missing_cost fw2_v631_pool_held_live fw2_v632_held_off fw2_v633_ledger_tx_sync fw2_v634_plan_dir fw2_v635_capbal_fix fw2_v636_capbal_converge fw2_v637_mv_consist fw2_v638_mv_unify */ + (window.getAllocWatchCodes ? window.getAllocWatchCodes().length : 0) + '只';
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
@@ -19611,7 +19610,7 @@ function openTxForm(id) {
       var mnt = document.getElementById("capbalLedgerMount");
       if (mnt && !mnt.innerHTML && typeof window.renderLedger === "function") window.renderLedger();
     } catch (eR) {}
-    if (box) { box.open = true; try { box.scrollIntoView({ behavior: "smooth", block: "start" }); } catch (eS) {} }
+    if (box) { box.classList.remove("hidden"); box.open = true; try { box.scrollIntoView({ behavior: "smooth", block: "start" }); } catch (eS) {} }
     var nb = document.querySelector('#capbalLedgerMount [data-lnew="1"]');
     if (nb) nb.click();
   };
@@ -19806,6 +19805,7 @@ function showTab(name) {
   if (name === "income" || name === "balance" || name === "cashflow") name = "overview"; /* fw2_v498_cbtab：旧 tab 链接回退总览 */
   if (name === "holdings") name = "overview"; /* fw2_v649_merge_holdings：标的明细已并入总览，旧链接回退总览 */
   if (name === "monthly") name = "rptInc"; /* fw2_v503_rpt3pane：旧「月度财报」链接回退利润表子模块 */
+  if (name === "data") name = "overview"; /* fw2_v652_data_tab_removed：「备份与同步」子模块已删，旧链接/书签回退总览（否则所有 pane 隐藏＝空白页） */
   curView = name;
   $qa("#view-capbal .cb-pane").forEach(function (p) { p.classList.add("hidden"); });
   /* fw2_v648_capbal_slim：三财报操作条已合并为一份共享条，仅在报表子模块可见 */
@@ -20292,6 +20292,21 @@ function bindEvents() {
   });
   b("cbImport", function () { const f = gid("cbImportFile"); if (f) f.click(); });
   b("cbCloudRestore", function () { restoreFromMirror(); });
+  /* fw2_v652_data_tab_removed：台账块默认隐藏，工具栏「成交台账」切换显示（渲染仍在 render() 的 overview 分支跑，云端恢复/持仓联动不受影响） */
+  b("cbLedgerToggle", function () {
+    var lb = gid("capbalLedgerBox");
+    if (!lb) return;
+    var show = lb.classList.contains("hidden");
+    lb.classList.toggle("hidden", !show);
+    if (show) {
+      try {
+        var mn = gid("capbalLedgerMount");
+        if (mn && !mn.innerHTML && typeof window.renderLedger === "function") window.renderLedger();
+      } catch (eL) {}
+      lb.open = true;
+      try { lb.scrollIntoView({ behavior: "smooth", block: "start" }); } catch (eL2) {}
+    }
+  });
   /* fw2_v503_rpt3pane：三财报子模块共用工具（月份联动/出具/导出/导入，三处各一套、操作同一份报告库） */
   const rptSels = $qa("#view-capbal .cb-rpt-month");
   rptSels.forEach(function (sel) {
