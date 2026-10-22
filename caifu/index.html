@@ -272,6 +272,15 @@ button, input, select, textarea { font-family: inherit; font-size: var(--fs-md);
 .tb .cd { font-size: var(--fs-2xs); color: var(--muted); font-family: var(--mono); }
 .tb .sub-line { font-size: var(--fs-2xs); color: var(--muted); font-family: var(--mono); }
 .tb .spark { width: 78px; height: 24px; display: block; }
+/* v643 fw2_v643_mtbl_tier：月度涨跌表（理杏仁样式）——淡色细网格线 + 表头淡影框 + 斑马纹，年份倒序（最新在上）。
+   仅作用 .mtbl，不碰 .tb（其余表格共用）。border-collapse:separate 让表头 box-shadow 淡影框生效。 */
+.mtbl { border-collapse: separate; border-spacing: 0; width: 100%; }
+.mtbl th, .mtbl td { border-right: 1px solid var(--line-2); border-bottom: 1px solid var(--line-2); padding: 7px 10px; text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.mtbl th:first-child, .mtbl td:first-child { border-left: 1px solid var(--line-2); text-align: left; }
+.mtbl thead tr th { border-top: 1px solid var(--line-2); background: linear-gradient(180deg, #fbfcfd, #f1f3f7); box-shadow: inset 0 -1px 0 var(--line), 0 1px 3px rgba(16, 24, 40, .07); font-weight: 600; color: var(--text-2); }
+.mtbl tbody tr:nth-child(even) { background: #fafbfc; }
+.mtbl tbody tr:hover { background: var(--brand-tint); }
+.mtbl tbody td:first-child { font-weight: 600; color: var(--text); }
 .empty { padding: 22px; text-align: center; color: var(--muted); font-size: var(--fs-sm); }
 
 /* 徽标 / 标签 */
@@ -1309,6 +1318,8 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
           <!-- v93 fw2_v93_drop_dc_head：删除本分块标题+副标题（#dcTitle/#dcSub，基金/宏观共用） -->
           <div class="vh-r dc-tabs v-tabs" id="dcTabs">
             <button class="dc-tab v-tab active" data-dc="overview">资产配置</button>
+            <!-- v643 fw2_v643_mtbl_tier：补回 v353 遗漏的「自选基金」tab 按钮——v353 注释称新增 pool-watch/pool-screen 两 Tab，但 DOM 里只有筛选基金，#dcPoolWatchWrap pane 与点击分发(L16140)都在却无按钮可达，自选池实质不可见；本按钮补于资产配置与筛选基金之间 -->
+            <button class="dc-tab v-tab" data-dc="pool-watch">自选基金</button>
             <!-- v353 fw2_v353_pool_tabs：基金数据三池重构——「基金列表」更名「持仓基金」（data-dc="overview" 路由键/契约不动），新增「自选基金」(pool-watch)「筛选基金」(pool-screen) 两 Tab；自选池=watchlist-data.json+筛选池加入，筛选池=screen-pool.json（40 只候选） -->
             <button class="dc-tab v-tab" data-dc="pool-screen">筛选基金</button>
             <!-- v570 fw2_v570_manager_universe fw2_v570_lx_index_fix：基金经理升全市场筛选——两池（主动权益=主动/混合/QDII 并池 + 债券池，各按各自收益逻辑评分），业绩门槛=代表年化权益≥8% / 债≥5%（用户确认），管理年限≥3年+规模≥10亿，风险维度进评分（近3年夏普/卡玛/回撤自算），每池 Top50；评分下沉数据层（m.score 只读）。fw2_v570_lx_index_fix：理杏仁 equity/index+fund 详情模块 2026-10-16 实测 403「此页面已暂时关闭，会员用户请登录访问数据」（含收录子页）、/profile 404 → A股 6 指数改腾讯 gu.qq.com/{sh|sz}{code}/zs、基金改天天基金 fund.eastmoney.com/{code}.html（均实测 HTTP 200 无需登录） -->
@@ -6631,14 +6642,16 @@ function renderFundPerf(rs) {
     const cell = (v) => v == null ? '<td class="num" style="color:var(--muted)">—</td>'
       : `<td class="num ${cls(v)}">${v > 0 ? '+' : ''}${fmtNum(v, 1)}%</td>`;
     const curYear = years[years.length - 1];
-    const rowsHtml = years.map((yr) => {
+    /* v643 fw2_v643_mtbl_tier：年份倒序渲染——最新年度在上、最远在下（理杏仁月度涨跌表样式）；
+       斑马纹/淡线条/表头淡影框由 .mtbl CSS 承担（L275 附近），本处只管数据与顺序 */
+    const rowsHtml = years.slice().reverse().map((yr) => {
       const tds = Array.from({ length: 12 }, (_, m) => cell(ret[yr + '-' + String(m + 1).padStart(2, '0')])).join('');
       const partial = yr === curYear && yLast[yr].d.slice(5, 7) !== '12' ? ' <span style="font-size:10px;color:var(--muted)">至今</span>' : '';
       return `<tr><td><b>${yr}</b>${partial}</td>${tds}${cell(yret[yr])}</tr>`;
     }).join('');
     return `<div class="card">
     <div class="card-h"><h3>月度涨跌</h3><span class="hint">月末净值环比 · 累计净值口径（含分红再投）· ${src.length} 个净值日</span></div>
-    <div class="table-wrap"><table class="table" style="width:100%;font-size:12px">
+    <div class="table-wrap"><table class="table mtbl" style="width:100%;font-size:12px">
       <thead><tr><th>年份</th>${Array.from({ length: 12 }, (_, m) => `<th class="num">${m + 1}月</th>`).join('')}<th class="num">年度涨跌</th></tr></thead>
       <tbody>${rowsHtml}</tbody>
     </table></div>
@@ -12971,7 +12984,7 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
        留待与用户确认重设计方案后再动（本轮不做）。
      ★诚实限定：erpCard/peCard/mrgCard/vixCard 定义及其 erpSpark/peSpark/mrgSpark/vixSpark 函数已于 **v529（fw2_v529_smux P3）一并清理**（连同 erpLv/peLv/vixLv/rzyeLv 与顶部 erp/pe/margin/vix 局部变量，mi 页判读走 mcCalcCommon 不受影响）。
        数据/口径零改动，纯前端结构层；描述串「sm 去重 · 删重复估值流动性卡」入 verify_sync 标记组 */
-  if (vc) vc.textContent = 'v642 · A500增强标的与档位家族排序' /* fw2_v642_a500_enh fw2_v641_peak_dd fw2_v640_buy_pct fw2_v639_del_decisionfw2_v516_a500lk fw2_v517_4otc fw2_v518_hspos fw2_v519_sm_merge fw2_v520_chgflat fw2_v521_magnet fw2_v522_overview fw2_v523_sm_dedup fw2_v524_geo_fsi fw2_v525_geo_filter fw2_v526_geo_filter_removed fw2_v527_verdict fw2_v529_smux fw2_v530_datamgmt fw2_v531_sm_dmgmt fw2_v532_all_dm fw2_v533_px_long fw2_v533d_dm_scroll fw2_v534_dm_module fw2_v535_dm_auto fw2_v539_hold_realpnl fw2_v539a_seed_sync fw2_v539a_seed_order fw2_v540_hold_path fw2_v542_pf_mirror_first fw2_v542_mv_settled fw2_v542_mv_account fw2_v543_dm_holdings_note fw2_v544_ledger_mirror_guard fw2_v545_hold_total_row fw2_v546_navdate_all fw2_v547_vix_to_ovs fw2_v548_ovs_mrg fw2_v549_region_align fw2_v550_grp_tabs fw2_v551_sop_cockpit fw2_v552_sop_taborder fw2_v553_chain_data fw2_v554_sop_rename fw2_v556_market_split fw2_v557_sm_renamed fw2_v558_cbrates_fix fw2_v558a_cb_label fw2_v559_chain_dates fw2_v560_chain_verdict fw2_v561_curve_hold fw2_v562_hold_inline fw2_v563_alloc fw2_v564_lxlink fw2_v565_cal_lx fw2_v565_sub_lx fw2_v566_fund_move fw2_v567_fund_merge fw2_v568_lxlink_fix fw2_v569_manager_pool fw2_v570_manager_universe fw2_v571_mgr_east fw2_v574_mgr_subscore fw2_v575_mgr_merge fw2_v576_mgr_group fw2_v577_mgr_lxlink fw2_v578_mgr_lxreal fw2_v579_mgr_weight fw2_v581_fund_lxreal fw2_v582_mgr_min10 fw2_v583_mgr_noyear fw2_v584_mgr_career fw2_v585_mgr_srank fw2_v586_mgr_srank fw2_v587_mgr_since fw2_v588_mgr_lxfull fw2_v589_mgr_rules fw2_v590_mgr_scores fw2_v591_mgr_ladder fw2_v592_mgr_cols fw2_v593_mgr_score fw2_anti_halluc_p0 fw2_v595_alpha_attrib fw2_v596_sig_hist fw2_v597_fund_overlap fw2_v598_mgr_hold fw2_v599_time_decay fw2_v599_corr_pen fw2_v600_buytrack fw2_v601_backtest fw2_v602_kline_page fw2_v603_old_debts fw2_v604_xirr fw2_v605_holdings_global fw2_v606_v11_signal fw2_v607_v11_bt fw2_v608_lx_audit fw2_v609_sig_table fw2_v610_sig_merge fw2_v611_grp_line fw2_v612_index_lxreal fw2_v613_near_blue fw2_v615_sig_grp fw2_v616_sig_hdstyle fw2_v617_sig_vline fw2_v618_sig_lcr fw2_v619_curthr fw2_v620_curthr_all fw2_v621_ret_hpr fw2_v621_t13_lastbuy fw2_v622_lastbuy_auto fw2_v623_firstbuy_roll fw2_v623_alloc_watch fw2_v624_m13_m17 fw2_v626_sig_cost_guard fw2_v626_watch_pe_exempt fw2_v627_colorder fw2_v627_action_plan fw2_v627_data_date fw2_v628_fixed_cols fw2_v629_pool_pile_guard fw2_v629_t9_pfdate fw2_v630_missing_cost fw2_v631_pool_held_live fw2_v632_held_off fw2_v633_ledger_tx_sync fw2_v634_plan_dir fw2_v635_capbal_fix fw2_v636_capbal_converge fw2_v637_mv_consist fw2_v638_mv_unify */ + (window.getAllocWatchCodes ? window.getAllocWatchCodes().length : 0) + '只';
+  if (vc) vc.textContent = 'v643 · 月度表版式与三池排序统一' /* fw2_v643_mtbl_tier fw2_v642_a500_enh fw2_v641_peak_dd fw2_v640_buy_pct fw2_v639_del_decisionfw2_v516_a500lk fw2_v517_4otc fw2_v518_hspos fw2_v519_sm_merge fw2_v520_chgflat fw2_v521_magnet fw2_v522_overview fw2_v523_sm_dedup fw2_v524_geo_fsi fw2_v525_geo_filter fw2_v526_geo_filter_removed fw2_v527_verdict fw2_v529_smux fw2_v530_datamgmt fw2_v531_sm_dmgmt fw2_v532_all_dm fw2_v533_px_long fw2_v533d_dm_scroll fw2_v534_dm_module fw2_v535_dm_auto fw2_v539_hold_realpnl fw2_v539a_seed_sync fw2_v539a_seed_order fw2_v540_hold_path fw2_v542_pf_mirror_first fw2_v542_mv_settled fw2_v542_mv_account fw2_v543_dm_holdings_note fw2_v544_ledger_mirror_guard fw2_v545_hold_total_row fw2_v546_navdate_all fw2_v547_vix_to_ovs fw2_v548_ovs_mrg fw2_v549_region_align fw2_v550_grp_tabs fw2_v551_sop_cockpit fw2_v552_sop_taborder fw2_v553_chain_data fw2_v554_sop_rename fw2_v556_market_split fw2_v557_sm_renamed fw2_v558_cbrates_fix fw2_v558a_cb_label fw2_v559_chain_dates fw2_v560_chain_verdict fw2_v561_curve_hold fw2_v562_hold_inline fw2_v563_alloc fw2_v564_lxlink fw2_v565_cal_lx fw2_v565_sub_lx fw2_v566_fund_move fw2_v567_fund_merge fw2_v568_lxlink_fix fw2_v569_manager_pool fw2_v570_manager_universe fw2_v571_mgr_east fw2_v574_mgr_subscore fw2_v575_mgr_merge fw2_v576_mgr_group fw2_v577_mgr_lxlink fw2_v578_mgr_lxreal fw2_v579_mgr_weight fw2_v581_fund_lxreal fw2_v582_mgr_min10 fw2_v583_mgr_noyear fw2_v584_mgr_career fw2_v585_mgr_srank fw2_v586_mgr_srank fw2_v587_mgr_since fw2_v588_mgr_lxfull fw2_v589_mgr_rules fw2_v590_mgr_scores fw2_v591_mgr_ladder fw2_v592_mgr_cols fw2_v593_mgr_score fw2_anti_halluc_p0 fw2_v595_alpha_attrib fw2_v596_sig_hist fw2_v597_fund_overlap fw2_v598_mgr_hold fw2_v599_time_decay fw2_v599_corr_pen fw2_v600_buytrack fw2_v601_backtest fw2_v602_kline_page fw2_v603_old_debts fw2_v604_xirr fw2_v605_holdings_global fw2_v606_v11_signal fw2_v607_v11_bt fw2_v608_lx_audit fw2_v609_sig_table fw2_v610_sig_merge fw2_v611_grp_line fw2_v612_index_lxreal fw2_v613_near_blue fw2_v615_sig_grp fw2_v616_sig_hdstyle fw2_v617_sig_vline fw2_v618_sig_lcr fw2_v619_curthr fw2_v620_curthr_all fw2_v621_ret_hpr fw2_v621_t13_lastbuy fw2_v622_lastbuy_auto fw2_v623_firstbuy_roll fw2_v623_alloc_watch fw2_v624_m13_m17 fw2_v626_sig_cost_guard fw2_v626_watch_pe_exempt fw2_v627_colorder fw2_v627_action_plan fw2_v627_data_date fw2_v628_fixed_cols fw2_v629_pool_pile_guard fw2_v629_t9_pfdate fw2_v630_missing_cost fw2_v631_pool_held_live fw2_v632_held_off fw2_v633_ledger_tx_sync fw2_v634_plan_dir fw2_v635_capbal_fix fw2_v636_capbal_converge fw2_v637_mv_consist fw2_v638_mv_unify */ + (window.getAllocWatchCodes ? window.getAllocWatchCodes().length : 0) + '只';
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
@@ -14716,17 +14729,11 @@ setTimeout(() => { renderResearchChips(); if (!state.news.items.length) loadNews
     var q = (dcUI.search||'').trim().toLowerCase();
     if(q) arr = arr.filter(function(r){ return (r.code+' '+(r.name||'')+' '+(r.ftype||'')).toLowerCase().indexOf(q)>=0; });
     var k = dcUI.ovSortKey || 'tier', dir = dcUI.ovSortDir || -1;
-    /* v642 fw2_v642_a500_enh：默认排序＝「档位(role)→家族(family)→代码」分组，同档位同家族相邻
-       （例：022438/022676 同 底仓/缓冲·A500 连排，022676 紧跟 022438 下方）；档位序 底仓/缓冲<进攻/主题<安全垫<对冲，未归类沉底 */
+    /* v643 fw2_v643_mtbl_tier：默认排序＝「档位(role)→家族(family)→代码」分组，同档位同家族相邻
+       （例：022438/022676 同 底仓/缓冲·A500 连排，022676 紧跟 022438 下方）；档位序见 poolTierRank，未归类沉底。
+       v643 起改调公共 poolTierSort，与自选/筛选池同一口径（原内联副本删除） */
     if(k === 'tier'){
-      var _ROLE_ORD = {'底仓/缓冲':0,'进攻/主题':1,'安全垫':2,'对冲':3};
-      arr.forEach(function(r){ var e=(typeof poolProfileE==='function')?(poolProfileE(r.code)||{}):{}; r._r=e.role||''; r._f=e.family||''; });
-      arr.sort(function(a,b){
-        var ra=(_ROLE_ORD[a._r]!=null?_ROLE_ORD[a._r]:9), rb=(_ROLE_ORD[b._r]!=null?_ROLE_ORD[b._r]:9);
-        if(ra!==rb) return ra-rb;
-        if(a._f!==b._f) return a._f<b._f?-1:1;
-        return a.code<b.code?-1:(a.code>b.code?1:0);
-      });
+      poolTierSort(arr, function(r){ var e=(typeof poolProfileE==='function')?(poolProfileE(r.code)||{}):{}; return {r:e.role||'', f:e.family||''}; });
       return arr;
     }
     /* fw2_v375_pool_cols_uni：列集换为 poolColsAll 后，get() 列（经理生涯年/在管/评级等）经 c.get 取值再排序 */
@@ -15685,6 +15692,22 @@ setTimeout(() => { renderResearchChips(); if (!state.news.items.length) loadNews
     var sp = window.SCREEN_POOL;
     return (sp && sp.funds && sp.funds[code]) || null;
   }
+  /* v643 fw2_v643_mtbl_tier：档位→家族分组排序——资产配置/自选/筛选三池共用同一口径（此前各池排序分叉：
+     资产配置 tier、自选按名称拼音、筛选按 role 字符串+score，同家族基金被冲散）。档位序固定
+     底仓/缓冲 < 进攻/主题 < 海外独立 < 安全垫 < 对冲，未归类沉底(9)；组内按家族名字符序，再按可选
+     tie（默认代码升序）保证确定性。rf(row) 返回 {r:role, f:family}，并写回 row._r/_f 供列渲染复用。 */
+  function poolTierRank(role){ var _ROLE_ORD={'底仓/缓冲':0,'进攻/主题':1,'海外独立':2,'安全垫':3,'对冲':4}; return _ROLE_ORD[role]!=null?_ROLE_ORD[role]:9; }
+  function poolTierSort(arr, rf, tie){
+    arr.forEach(function(r){ var o=rf(r)||{}; r._r=o.r||''; r._f=o.f||''; });
+    arr.sort(function(a,b){
+      var ra=poolTierRank(a._r), rb=poolTierRank(b._r);
+      if(ra!==rb) return ra-rb;
+      if(a._f!==b._f) return a._f<b._f?-1:1;
+      if(tie){ var t=tie(a,b); if(t) return t; }
+      return a.code<b.code?-1:(a.code>b.code?1:0);
+    });
+    return arr;
+  }
   /* fw2_v398_dimscore_bridge：暴露给研究模块（renderFundScore 在本 IIFE 之外，够不到 poolProfileE），供综合诊断取列表同源 scoreDim */
   try { window.__poolProfileE = poolProfileE; } catch (e) {}
   function renderPoolWatch(){
@@ -15697,7 +15720,9 @@ setTimeout(() => { renderResearchChips(); if (!state.news.items.length) loadNews
     Object.keys(added).forEach(function(c){ rows.push({code:c, name:added[c].name||'', note:'从筛选池加入 '+esc(added[c].addedAt||''), watchAt:added[c].addedAt||'', source:'筛选池', f:poolFb(c,fbObj)}); });
     var seen={}, list=[];
     rows.forEach(function(r){ if(seen[r.code]) return; seen[r.code]=1; if(removed[r.code]) return; if(held[r.code]) return; list.push(r); });
-    list.sort(function(a,b){ return (a.name||'').localeCompare(b.name||'','zh'); });
+    /* v643 fw2_v643_mtbl_tier：自选池与资产配置/筛选池同口径——档位→家族分组（此前按名称拼音序，同家族被冲散）；
+       无画像基金沉底（poolTierRank 未归类=9），组内按代码。画像异步到位后由 L15651 重渲，排序随即正确 */
+    poolTierSort(list, function(r){ var e=poolProfileE(r.code)||{}; return {r:e.role||'', f:e.family||''}; });
     /* fw2_v357_pool_unify：自选池改为与持仓池同结构完整表（OVC 全列 + 操作列），画像优先 fund-basic.json；
        无画像走占位行（口径同持仓池）。来源/关注日期/备注下沉到名称列小字。 */
     list.forEach(function(r){
@@ -15705,10 +15730,10 @@ setTimeout(() => { renderResearchChips(); if (!state.news.items.length) loadNews
       /* fw2_v376_pool_profiles：自选池 _meta.e 也走 poolProfileE（此前只存 name/source 无 e，画像列恒空） */
       r.row._meta = {e:poolProfileE(r.code), name:r.name, source:r.source, watchAt:r.watchAt, note:r.note, added:true};
     });
-    var note='自选基金池（'+list.length+' 只）：自选表 '+wl.length+' 只 + 筛选池加入 '+Object.keys(added).length+' 只；已持仓 / 已移除不在此池。点「已买入」标记持仓 → 归入持仓池；点「移除」从自选池删除。';
+    var note='自选基金池（'+list.length+' 只，默认按档位→家族分组、同档位同家族连排）：自选表 '+wl.length+' 只 + 筛选池加入 '+Object.keys(added).length+' 只；已持仓 / 已移除不在此池。点「已买入」标记持仓 → 归入持仓池；点「移除」从自选池删除。';
     var h=poolTableHtml(list.map(function(r){ return r.row; }), {
       note:note,
-      foot:'自选基金 '+list.length+' 只',
+      foot:'自选基金 '+list.length+' 只（按档位→家族分组）',
       /* fw2_v371_name_cols → fw2_v375_pool_cols_uni：来源/关注日期/备注作为附加列追在共享列集（与持仓/筛选完全一致）之后 */
       cols:poolColsAll().concat([
         {k:'src', t:'来源', get:function(row){ var m=row._meta||{}; return m.source||null; }},
@@ -15925,7 +15950,9 @@ setTimeout(() => { renderResearchChips(); if (!state.news.items.length) loadNews
       var held=poolHeldCodes(), added=poolWatchAdded(), removed=poolScreenRemoved();
       var fbObj=(FB&&FB.funds)?FB.funds:{};   /* fw2_v361_fix：FB 为 IIFE 闭包变量，window.FB 恒 undefined → 画像恒空（存量 bug） */
       var list=Object.keys(sp.funds).map(function(c){ return {code:c, e:sp.funds[c], f:poolFb(c,fbObj)}; }).filter(function(r){ return !removed[r.code]; });
-      list.sort(function(a,b){ var ra=a.e.role||'', rb=b.e.role||''; return ra<rb?-1:(ra>rb?1:(((b.e.score||0))-((a.e.score||0)))); });
+      /* v643 fw2_v643_mtbl_tier：筛选池与资产配置/自选池同口径——档位→家族分组（此前按 role 字符串序+score，
+         role 值含「海外独立/灵活/待定」时字符串序错乱且同家族被评分冲散）；组内按评分降序、同分按代码 */
+      poolTierSort(list, function(r){ var e=r.e||{}; return {r:e.role||'', f:e.family||''}; }, function(a,b){ return ((b.e&&b.e.score)||0)-((a.e&&a.e.score)||0); });
       /* fw2_v357_pool_unify：筛选池改为与持仓池同结构完整表（OVC 全列 + 操作列），画像优先 fund-basic.json；
          档位/家族/评分/申赎/区间收益等筛选字段下沉到名称列小字。 */
       list.forEach(function(r){
@@ -15938,7 +15965,7 @@ setTimeout(() => { renderResearchChips(); if (!state.news.items.length) loadNews
       var note='<div>筛选基金池（'+list.length+' 只，updatedAt '+esc(sp.updatedAt||'')+'）：全市场筛出的候选苗子。点「买入」→ 记入买入跟踪（本机保存，看持有表现）；点「加入自选」→ 自选池分析；点「删除」永久移除（重跑筛选不复活）。已持仓 / 已自选有角标。<span style="color:var(--warn,#d97706)">防幻觉批（fw2_anti_halluc_p0 + fw2_v599_time_decay + fw2_v599_corr_pen）：「任职覆盖」=现任经理任职期÷基金成立期，<3年 长周期业绩按任职期折算（防前任业绩算现任头上）；「规模季增%」>30% 与「拥挤」（近1年同类Top5%分位/限购）为拥挤警示——排名最好时恰恰最危险；v599 起：评分收益维「近3年」项改为时间衰减年化（近1年45%/2年20%/3年35% 加权，近期权重大，防远期辉煌撑分——过去好≠未来好），评分含同质化惩罚（与池内其他基金前十大重仓均重合度 ×0.35 降分、上限 15%，悬停评分看明细，重合>20% 者已在「池内重合%」列标黄）——高分基金常是同一批热门股票的高倍暴露，组合内优先错位配置。</span><div style="margin-top:6px"><button class="btn-mini" id="btnBuyTrack" style="color:var(--brand,#4D6BFE)">买入跟踪 ('+Object.keys(poolLsGet(POOL_LS.buys)||{}).length+' 笔) →</button></div></div>'+ruleLine;
       var h=poolTableHtml(list.map(function(r){ return r.row; }), {
         note:note,
-        foot:'筛选基金 '+list.length+' 只（按档位·评分排序）',
+        foot:'筛选基金 '+list.length+' 只（按档位→家族分组 · 组内评分降序）',
         cols:poolColsAll(),
         opLabel:'操作',
         opW:170,
