@@ -1728,7 +1728,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
         <div class="cb-kpis" id="cbKpiRow"></div>
         <div class="cb-grid-2">
           <div class="cb-panel"><div class="cb-panel-head"><h3>资产分布 · 按标的类别</h3><span class="muted" style="font-size:11px">市值口径</span></div><div class="cb-panel-body"><div class="cb-chart cb-ch-md" id="cbChartAlloc"></div></div></div>
-          <div class="cb-panel"><div class="cb-panel-head"><h3>净资产趋势</h3><span class="muted" style="font-size:11px">现金 + 持仓市值 · 逐笔重放</span></div><div class="cb-panel-body"><div class="cb-chart cb-ch-md" id="cbChartNet"></div></div></div>
+          <div class="cb-panel"><div class="cb-panel-head"><h3>净资产趋势</h3><span class="muted" style="font-size:11px">现金 + 持仓市值 · 逐日重放（按净值日取点）</span></div><div class="cb-panel-body"><div class="cb-chart cb-ch-md" id="cbChartNet"></div><div id="cbNetNote" class="muted" style="display:none;font-size:11px;margin-top:6px"></div></div></div>
         </div>
         <!-- fw2_v649_merge_holdings：标的明细并入总览（原独立子模块）。与上方「资产分布」图联动：点扇区/条形 或 点表内类别徽章 → 明细表按该类别过滤，再点取消 -->
         <div class="cb-filter-bar" style="margin-top:12px;margin-bottom:10px">
@@ -5720,14 +5720,29 @@ function renderHoldings() {
       if (i >= urls.length) return;
       fetch(urls[i], { cache: 'no-cache' }).then(function (r) { return r.ok ? r.json() : null; }).then(function (d) {
         if (d && d.rows) {
-          var map = {};
+                    var map = {};
           var ser = {}; /* v641 fw2_v641_peak_dd：完整日频净值序列（按 code 索引、日期升序），供买入峰值/最大回撤计算 */
+          var dts = {};      /* v650：只按 code 收集日期（不要求有 nav），供货币型补平序列 */
+          var money = {};    /* v650：货币型（fund-daily 只输出 ret 无 nav） */
+          (d.funds || []).forEach(function (f) { if (f && f.isMoney) { var m6 = String(f.code || '').replace(/\D/g, '').slice(-6); if (m6) money[m6] = 1; } });
           d.rows.forEach(function (row) {
-            if (!row || !row.code || row.nav == null) return;
+            if (!row || !row.code || !row.d) return;
             var c6 = String(row.code).replace(/\D/g, '').slice(-6);
+            if (!c6) return;
+            if (money[c6]) { if (!dts[c6]) dts[c6] = []; dts[c6].push(row.d); return; }
+            if (row.nav == null) return;
             if (!map[c6] || row.d > map[c6].d) map[c6] = { d: row.d, nav: row.nav };
             if (!ser[c6]) ser[c6] = [];
             ser[c6].push([row.d, row.nav]);
+          });
+          /* v650 fw2_v650_moneynav：货币型基金（如 007866 创金合信货币C）fund-daily 只输出
+             ret（当日万份收益/10000×100）没有 nav，而货币基金单位净值恒 1.0 → 补 [d,1.0] 序列，
+             否则 navOnDate 恒返回 null、货基在净资产曲线与买入峰值/回撤里市值恒 0。 */
+          Object.keys(money).forEach(function (c6) {
+            var ds = (dts[c6] || []).slice().sort();
+            if (!ds.length) return;
+            ser[c6] = ds.map(function (x) { return [x, 1]; });
+            map[c6] = { d: ds[ds.length - 1], nav: 1 };
           });
           Object.keys(ser).forEach(function (k) { ser[k].sort(function (a, b) { return a[0] < b[0] ? -1 : (a[0] > b[0] ? 1 : 0); }); });
           window.__NAV_SERIES__ = ser;
@@ -13018,7 +13033,24 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
        而行的类名是 cb-clickable（CSS 亦按 cb-clickable 写），该功能从未生效，已改选择器；
        b toggleSub 写入 class 为 sub-row，而收起检测查的是 tr.cb-sub-row，类名不一致导致
        再点一次无法收起且每点一次多插一行，已统一为 cb-sub-row。 */
-  if (vc) vc.textContent = 'v649 · 总览与标的明细合并' /* fw2_v649_merge_holdings fw2_v648_capbal_slim fw2_v647_netseries_fix fw2_v646_ledger_capbal fw2_v644_revert_watch_tab fw2_v643_mtbl_tier fw2_v642_a500_enh fw2_v641_peak_dd fw2_v640_buy_pct fw2_v639_del_decisionfw2_v516_a500lk fw2_v517_4otc fw2_v518_hspos fw2_v519_sm_merge fw2_v520_chgflat fw2_v521_magnet fw2_v522_overview fw2_v523_sm_dedup fw2_v524_geo_fsi fw2_v525_geo_filter fw2_v526_geo_filter_removed fw2_v527_verdict fw2_v529_smux fw2_v530_datamgmt fw2_v531_sm_dmgmt fw2_v532_all_dm fw2_v533_px_long fw2_v533d_dm_scroll fw2_v534_dm_module fw2_v535_dm_auto fw2_v539_hold_realpnl fw2_v539a_seed_sync fw2_v539a_seed_order fw2_v540_hold_path fw2_v542_pf_mirror_first fw2_v542_mv_settled fw2_v542_mv_account fw2_v543_dm_holdings_note fw2_v544_ledger_mirror_guard fw2_v545_hold_total_row fw2_v546_navdate_all fw2_v547_vix_to_ovs fw2_v548_ovs_mrg fw2_v549_region_align fw2_v550_grp_tabs fw2_v551_sop_cockpit fw2_v552_sop_taborder fw2_v553_chain_data fw2_v554_sop_rename fw2_v556_market_split fw2_v557_sm_renamed fw2_v558_cbrates_fix fw2_v558a_cb_label fw2_v559_chain_dates fw2_v560_chain_verdict fw2_v561_curve_hold fw2_v562_hold_inline fw2_v563_alloc fw2_v564_lxlink fw2_v565_cal_lx fw2_v565_sub_lx fw2_v566_fund_move fw2_v567_fund_merge fw2_v568_lxlink_fix fw2_v569_manager_pool fw2_v570_manager_universe fw2_v571_mgr_east fw2_v574_mgr_subscore fw2_v575_mgr_merge fw2_v576_mgr_group fw2_v577_mgr_lxlink fw2_v578_mgr_lxreal fw2_v579_mgr_weight fw2_v581_fund_lxreal fw2_v582_mgr_min10 fw2_v583_mgr_noyear fw2_v584_mgr_career fw2_v585_mgr_srank fw2_v586_mgr_srank fw2_v587_mgr_since fw2_v588_mgr_lxfull fw2_v589_mgr_rules fw2_v590_mgr_scores fw2_v591_mgr_ladder fw2_v592_mgr_cols fw2_v593_mgr_score fw2_anti_halluc_p0 fw2_v595_alpha_attrib fw2_v596_sig_hist fw2_v597_fund_overlap fw2_v598_mgr_hold fw2_v599_time_decay fw2_v599_corr_pen fw2_v600_buytrack fw2_v601_backtest fw2_v602_kline_page fw2_v603_old_debts fw2_v604_xirr fw2_v605_holdings_global fw2_v606_v11_signal fw2_v607_v11_bt fw2_v608_lx_audit fw2_v609_sig_table fw2_v610_sig_merge fw2_v611_grp_line fw2_v612_index_lxreal fw2_v613_near_blue fw2_v615_sig_grp fw2_v616_sig_hdstyle fw2_v617_sig_vline fw2_v618_sig_lcr fw2_v619_curthr fw2_v620_curthr_all fw2_v621_ret_hpr fw2_v621_t13_lastbuy fw2_v622_lastbuy_auto fw2_v623_firstbuy_roll fw2_v623_alloc_watch fw2_v624_m13_m17 fw2_v626_sig_cost_guard fw2_v626_watch_pe_exempt fw2_v627_colorder fw2_v627_action_plan fw2_v627_data_date fw2_v628_fixed_cols fw2_v629_pool_pile_guard fw2_v629_t9_pfdate fw2_v630_missing_cost fw2_v631_pool_held_live fw2_v632_held_off fw2_v633_ledger_tx_sync fw2_v634_plan_dir fw2_v635_capbal_fix fw2_v636_capbal_converge fw2_v637_mv_consist fw2_v638_mv_unify */ + (window.getAllocWatchCodes ? window.getAllocWatchCodes().length : 0) + '只';
+  /* v650 fw2_v650_netseries_daily（2026-10-23）：资金平衡·总览「净资产趋势」采样口径修复——
+     ★起因：用户实证「我记得我最多的时候有 26000 多的净资产」，而曲线峰值明显偏低。
+       独立对拍（_diag_net_peak.py：ledger-import.json 57 笔真实成交 + fund-daily.json 日频净值，
+       本脚本不读页面、纯离线重放）给出三口径硬数字：
+         真值·逐日重放   峰值 27,124.40 @ 2026-06-22 ｜末值 19,578.82（与 KPI 差 0.00）
+         现行·仅成交日   峰值 21,906.78            → 低估 5,217.62（−19.2%）
+         净值序列未加载   峰值 19,578.82（＝末值，单调上升，峰值完全不可见）
+     ★根因：v647 只在「有流水的日期」snap，而净资产每天的波动主要来自净值而非流水——
+       2026-06 下旬无成交，历史峰值被整段跳过。这不是精度问题，是采样缺失。
+     修复：采样日集合＝[首笔成交日, 今日] 区间内各在盘标的净值序列日期 ∪ 成交日 ∪ 今日，逐日 snap；
+       成交按日期分组，每个采样日先应用当日全部流水再 snap；点数 >600 时等间隔抽样且末日必留。
+     顺修（同轮发现）：货币型基金（如 007866 创金合信货币C）在 fund-daily.json 里只输出 ret
+       （当日万份收益/10000×100）没有 nav 字段 ⇒ navOnDate 恒返回 null、货基市值恒 0。
+       序列构建两处（renderHoldings / renderStrategyView）按 funds[].isMoney 补 [d, 1.0] 序列
+       （货币基金单位净值恒 1），同时 __ALLOC_NAV__ 补 nav=1（v650 fw2_v650_moneynav）。
+     新增：曲线 markPoint 标峰值（万为单位）；副标题「逐笔重放」→「逐日重放（按净值日取点）」；
+       cbNetOffList() 列出「已归档但账面仍有份额」的标的并在图下披露（#cbNetNote）——
+       现行口径与 calcSecurities 同源只计 status on，归档标的的历史市值不计入，不披露会被读成算错。 */  if (vc) vc.textContent = 'v650 · 净资产趋势逐日重放' /* fw2_v650_netseries_daily fw2_v650_moneynav fw2_v649_merge_holdings fw2_v648_capbal_slim fw2_v647_netseries_fix fw2_v646_ledger_capbal fw2_v644_revert_watch_tab fw2_v643_mtbl_tier fw2_v642_a500_enh fw2_v641_peak_dd fw2_v640_buy_pct fw2_v639_del_decisionfw2_v516_a500lk fw2_v517_4otc fw2_v518_hspos fw2_v519_sm_merge fw2_v520_chgflat fw2_v521_magnet fw2_v522_overview fw2_v523_sm_dedup fw2_v524_geo_fsi fw2_v525_geo_filter fw2_v526_geo_filter_removed fw2_v527_verdict fw2_v529_smux fw2_v530_datamgmt fw2_v531_sm_dmgmt fw2_v532_all_dm fw2_v533_px_long fw2_v533d_dm_scroll fw2_v534_dm_module fw2_v535_dm_auto fw2_v539_hold_realpnl fw2_v539a_seed_sync fw2_v539a_seed_order fw2_v540_hold_path fw2_v542_pf_mirror_first fw2_v542_mv_settled fw2_v542_mv_account fw2_v543_dm_holdings_note fw2_v544_ledger_mirror_guard fw2_v545_hold_total_row fw2_v546_navdate_all fw2_v547_vix_to_ovs fw2_v548_ovs_mrg fw2_v549_region_align fw2_v550_grp_tabs fw2_v551_sop_cockpit fw2_v552_sop_taborder fw2_v553_chain_data fw2_v554_sop_rename fw2_v556_market_split fw2_v557_sm_renamed fw2_v558_cbrates_fix fw2_v558a_cb_label fw2_v559_chain_dates fw2_v560_chain_verdict fw2_v561_curve_hold fw2_v562_hold_inline fw2_v563_alloc fw2_v564_lxlink fw2_v565_cal_lx fw2_v565_sub_lx fw2_v566_fund_move fw2_v567_fund_merge fw2_v568_lxlink_fix fw2_v569_manager_pool fw2_v570_manager_universe fw2_v571_mgr_east fw2_v574_mgr_subscore fw2_v575_mgr_merge fw2_v576_mgr_group fw2_v577_mgr_lxlink fw2_v578_mgr_lxreal fw2_v579_mgr_weight fw2_v581_fund_lxreal fw2_v582_mgr_min10 fw2_v583_mgr_noyear fw2_v584_mgr_career fw2_v585_mgr_srank fw2_v586_mgr_srank fw2_v587_mgr_since fw2_v588_mgr_lxfull fw2_v589_mgr_rules fw2_v590_mgr_scores fw2_v591_mgr_ladder fw2_v592_mgr_cols fw2_v593_mgr_score fw2_anti_halluc_p0 fw2_v595_alpha_attrib fw2_v596_sig_hist fw2_v597_fund_overlap fw2_v598_mgr_hold fw2_v599_time_decay fw2_v599_corr_pen fw2_v600_buytrack fw2_v601_backtest fw2_v602_kline_page fw2_v603_old_debts fw2_v604_xirr fw2_v605_holdings_global fw2_v606_v11_signal fw2_v607_v11_bt fw2_v608_lx_audit fw2_v609_sig_table fw2_v610_sig_merge fw2_v611_grp_line fw2_v612_index_lxreal fw2_v613_near_blue fw2_v615_sig_grp fw2_v616_sig_hdstyle fw2_v617_sig_vline fw2_v618_sig_lcr fw2_v619_curthr fw2_v620_curthr_all fw2_v621_ret_hpr fw2_v621_t13_lastbuy fw2_v622_lastbuy_auto fw2_v623_firstbuy_roll fw2_v623_alloc_watch fw2_v624_m13_m17 fw2_v626_sig_cost_guard fw2_v626_watch_pe_exempt fw2_v627_colorder fw2_v627_action_plan fw2_v627_data_date fw2_v628_fixed_cols fw2_v629_pool_pile_guard fw2_v629_t9_pfdate fw2_v630_missing_cost fw2_v631_pool_held_live fw2_v632_held_off fw2_v633_ledger_tx_sync fw2_v634_plan_dir fw2_v635_capbal_fix fw2_v636_capbal_converge fw2_v637_mv_consist fw2_v638_mv_unify */ + (window.getAllocWatchCodes ? window.getAllocWatchCodes().length : 0) + '只';
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
@@ -18129,14 +18161,29 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
         if (i >= urls.length) return;
         fetch(urls[i], { cache: 'no-cache' }).then(function (r) { return r.ok ? r.json() : null; }).then(function (d) {
           if (d && d.rows) {
-            var map = {};
+                        var map = {};
             var ser = {}; /* v641 fw2_v641_peak_dd：与 renderHoldings 同构——v240 与持仓共用 __ALLOC_NAV_TRY__ 守卫，谁先跑谁建序列，否则峰值/回撤列永久缺数据 */
+            var dts = {};      /* v650：只按 code 收集日期（不要求有 nav），供货币型补平序列 */
+            var money = {};    /* v650：货币型（fund-daily 只输出 ret 无 nav） */
+            (d.funds || []).forEach(function (f) { if (f && f.isMoney) { var m6 = String(f.code || '').replace(/\D/g, '').slice(-6); if (m6) money[m6] = 1; } });
             d.rows.forEach(function (row) {
-              if (!row || !row.code || row.nav == null) return;
+              if (!row || !row.code || !row.d) return;
               var c6 = String(row.code).replace(/\D/g, '').slice(-6);
+              if (!c6) return;
+              if (money[c6]) { if (!dts[c6]) dts[c6] = []; dts[c6].push(row.d); return; }
+              if (row.nav == null) return;
               if (!map[c6] || row.d > map[c6].d) map[c6] = { d: row.d, nav: row.nav };
               if (!ser[c6]) ser[c6] = [];
               ser[c6].push([row.d, row.nav]);
+            });
+            /* v650 fw2_v650_moneynav：货币型基金（如 007866 创金合信货币C）fund-daily 只输出
+               ret（当日万份收益/10000×100）没有 nav，而货币基金单位净值恒 1.0 → 补 [d,1.0] 序列，
+               否则 navOnDate 恒返回 null、货基在净资产曲线与买入峰值/回撤里市值恒 0。 */
+            Object.keys(money).forEach(function (c6) {
+              var ds = (dts[c6] || []).slice().sort();
+              if (!ds.length) return;
+              ser[c6] = ds.map(function (x) { return [x, 1]; });
+              map[c6] = { d: ds[ds.length - 1], nav: 1 };
             });
             Object.keys(ser).forEach(function (k) { ser[k].sort(function (a, b) { return a[0] < b[0] ? -1 : (a[0] > b[0] ? 1 : 0); }); });
             window.__NAV_SERIES__ = ser;
@@ -18706,6 +18753,28 @@ function netSeries() {
   const txs = (DB.tx || []).slice().sort(function (a, b) {
     return (String(a.date) + String(a.id)).localeCompare(String(b.date) + String(b.id));
   });
+  const NS = window.__NAV_SERIES__ || null;
+  const d1 = todayISO();
+  const d0 = txs.length ? String(txs[0].date) : d1;
+  /* v650：采样日集合＝区间内各在盘标的净值序列日期 ∪ 成交日 ∪ 今日（逐日取点） */
+  const dset = {};
+  txs.forEach(function (t) { dset[String(t.date)] = 1; });
+  (DB.targets || []).forEach(function (t) {
+    if (t.status !== 'on') return;
+    const s2 = (NS && code6Of(t.id)) ? NS[code6Of(t.id)] : null;
+    if (!s2 || !s2.length) return;
+    for (let i = 0; i < s2.length; i++) { const dd = s2[i][0]; if (dd >= d0 && dd <= d1) dset[dd] = 1; }
+  });
+  dset[d1] = 1;
+  let dates = Object.keys(dset).sort();
+  if (dates.length > 600) { /* 点数保护：等间隔抽样，末日必留 */
+    const step = Math.ceil(dates.length / 600), keep = [];
+    for (let i = 0; i < dates.length; i += step) keep.push(dates[i]);
+    if (keep[keep.length - 1] !== dates[dates.length - 1]) keep.push(dates[dates.length - 1]);
+    dates = keep;
+  }
+  const byDate = {};
+  txs.forEach(function (t) { (byDate[String(t.date)] = byDate[String(t.date)] || []).push(t); });
   let cash = 0 - liab;
   const shares = {};
   const pts = [];
@@ -18724,8 +18793,7 @@ function netSeries() {
     if (pts.length && pts[pts.length - 1].date === date) pts[pts.length - 1] = { date: date, net: net };
     else pts.push({ date: date, net: net });
   };
-  snap('期初', false);
-  txs.forEach(function (t) {
+  const applyTx = function (t) {
     const amt = Number(t.amt) || 0, sh = Number(t.shares) || 0;
     if (t.type === 'in') cash += amt;
     else if (t.type === 'out') cash -= amt;
@@ -18737,10 +18805,25 @@ function netSeries() {
       if (t.type === 'buy') shares[t.tid] = (shares[t.tid] || 0) + sh;
       else if (t.type === 'sell') shares[t.tid] = Math.max(0, (shares[t.tid] || 0) - sh);
     }
-    snap(t.date, false);
+  };
+  snap('期初', false);
+  dates.forEach(function (dt) {
+    const list = byDate[dt];
+    if (list) list.forEach(applyTx);
+    snap(dt, dt === d1); /* 末点＝今日，用标的当前净值，与 KPI 净资产同源 */
   });
-  snap(todayISO(), true); /* 末点＝今日，用标的当前净值，与 KPI 净资产同源 */
   return pts;
+}
+/* v650：已归档（status≠on）但账面仍有份额的标的——按 calcSecurities 口径不计入曲线，
+   末点也因此与 KPI 同源。清单用于图下披露，避免曲线「少一块」被读成算错。 */
+function cbNetOffList() {
+  const off = [];
+  (DB.targets || []).forEach(function (t) {
+    if (t.status === 'on') return;
+    const st = calcTargetStats(t.id);
+    if (st && st.shares > 0.005) off.push((t.name || t.code || '?') + ' ' + st.shares.toFixed(2) + ' 份');
+  });
+  return off;
 }
 /* fw2_v498_cbtab：现金流量表实时视图删除，calcCashFlow/cashDetailRows 同步移除（月度财报用 calcStateAt 重放，不依赖） */
 /* ================================================================
@@ -18830,9 +18913,19 @@ function renderOverview() {
     yAxis: { type: "value", axisLabel: { fontSize: 10, color: "#8b95a1", formatter: function (v) { return (v / 10000).toFixed(1) + "万"; } } },
     series: [{
       type: "line", data: vals, symbol: "circle", symbolSize: 4,
-      lineStyle: { width: 2 }, areaStyle: { opacity: 0.08 }
+      lineStyle: { width: 2 }, areaStyle: { opacity: 0.08 },
+      markPoint: { symbol: "pin", symbolSize: 40, itemStyle: { color: "#d9534f" },
+        label: { fontSize: 9, color: "#fff", formatter: function (p) { return (p.value / 10000).toFixed(2) + "万"; } },
+        data: [{ type: "max", name: "峰值" }] }
     }]
   });
+  /* v650：归档标的口径披露 */
+  const _nn = document.getElementById("cbNetNote");
+  if (_nn) {
+    const offL = cbNetOffList();
+    _nn.style.display = offL.length ? "" : "none";
+    _nn.innerHTML = offL.length ? ("口径提示：" + offL.length + " 只已归档标的（" + offL.join("、") + "）账面仍有份额，其历史市值未计入本曲线（末点与 KPI 同源 · 仅计在盘）") : "";
+  }
 
   /* 资金流水（fw2_v648_capbal_slim）：买卖成交已由下方「交易台账」承载，这里只列本模块独有的
      现金层流水——分红 / 费用 / 资金转入转出；台账自动入账配对的 in/out（id 前缀 led-）属台账产物，
