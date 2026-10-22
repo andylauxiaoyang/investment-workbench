@@ -1030,6 +1030,11 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 #view-capbal .cb-seg { display: inline-flex; background: var(--panel-2); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
 #view-capbal .cb-seg button { background: none; border: 0; padding: 4px 12px; font-size: 12px; color: var(--text-2); cursor: pointer; }
 #view-capbal .cb-seg button.active { background: var(--brand-tint); color: var(--brand); font-weight: 600; }
+/* fw2_v649_merge_holdings：类别筛选指示 chip + 可点击类别徽章（图→表联动） */
+#view-capbal .cb-cat-chip { display: inline-flex; align-items: center; gap: 4px; padding: 3px 9px; font-size: 11px; border: 1px solid var(--brand); border-radius: 999px; background: var(--brand-tint); color: var(--brand); cursor: pointer; }
+#view-capbal .cb-cat-chip:hover { text-decoration: line-through; }
+#view-capbal .cb-cat-click { cursor: pointer; }
+#view-capbal .cb-cat-click:hover { outline: 1px solid var(--brand); }
 
 #view-capbal .cb-sub-table { background: var(--panel-2); border-top: 1px solid var(--line); }
 #view-capbal .cb-sub-table .cb-tbl th { background: var(--panel-3); }
@@ -1702,8 +1707,8 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
         <div class="tools-l" style="max-width:100%">
           <div class="tab-bar" style="margin-bottom:0;flex-wrap:wrap;gap:8px"><!-- fw2_v466_vtab：资金平衡顶导航改挂 .v-tab 标杆胶囊 -->
             <span class="v-tab active" data-cbtab="overview">总览</span>
-            <span class="v-tab" data-cbtab="holdings">标的明细</span>
-            <!-- fw2_v503_rpt3pane：月度财报拆为三个独立子模块（资产负债表|利润表|现金流量表），与总览/标的明细并列，删除「月度财报」导航项 -->
+            <!-- fw2_v649_merge_holdings：原「标的明细」子模块整块并入总览（筛选条 + 9 列明细表 + 合计行 + 展开流水），导航 7→6；showTab 对 holdings 回退 overview -->
+            <!-- fw2_v503_rpt3pane：月度财报拆为三个独立子模块（资产负债表|利润表|现金流量表），与总览并列，删除「月度财报」导航项 -->
             <span class="v-tab" data-cbtab="rptBal">资产负债表</span>
             <span class="v-tab" data-cbtab="rptInc">利润表</span>
             <span class="v-tab" data-cbtab="rptCf">现金流量表</span>
@@ -1725,21 +1730,20 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
           <div class="cb-panel"><div class="cb-panel-head"><h3>资产分布 · 按标的类别</h3><span class="muted" style="font-size:11px">市值口径</span></div><div class="cb-panel-body"><div class="cb-chart cb-ch-md" id="cbChartAlloc"></div></div></div>
           <div class="cb-panel"><div class="cb-panel-head"><h3>净资产趋势</h3><span class="muted" style="font-size:11px">现金 + 持仓市值 · 逐笔重放</span></div><div class="cb-panel-body"><div class="cb-chart cb-ch-md" id="cbChartNet"></div></div></div>
         </div>
-        <div class="cb-panel"><div class="cb-panel-head"><h3>资金流水 · 分红/费用/转入转出</h3><span class="muted" style="font-size:11px">买卖成交见下方「交易台账」</span></div><div class="cb-panel-body cb-flush" id="cbRecentTrades"></div></div>
-        <!-- fw2_v646_ledger_capbal：交易台账折叠块（原策略执行·交易台账 tab 迁入；录入/导入/备份/上限提醒全保留） -->
-        <details class="cb-panel" id="capbalLedgerBox" style="margin-top:12px"><summary style="cursor:pointer;user-select:none;padding:10px 13px;font-weight:600;font-size:13px">交易台账（录入 / 导入 / 备份）</summary><div style="padding:0 13px 12px" id="capbalLedgerMount"></div></details>
-      </div>
-
-      <div class="cb-pane hidden" id="cbPane-holdings">
-        <div class="cb-filter-bar" style="margin-bottom:10px">
+        <!-- fw2_v649_merge_holdings：标的明细并入总览（原独立子模块）。与上方「资产分布」图联动：点扇区/条形 或 点表内类别徽章 → 明细表按该类别过滤，再点取消 -->
+        <div class="cb-filter-bar" style="margin-top:12px;margin-bottom:10px">
           <div class="cb-seg" id="cbSegStatus">
             <button data-f="all" class="active">全部</button>
             <button data-f="on">在盘</button>
             <button data-f="off">已清盘</button>
           </div>
+          <span class="cb-cat-chip hidden" id="cbCatChip"></span>
           <button class="btn btn-sm" id="cbAddTarget">＋ 新增标的</button>
         </div>
-        <div class="cb-panel"><div class="cb-panel-body cb-flush" id="cbHoldingsTable"></div></div>
+        <div class="cb-panel"><div class="cb-panel-head"><h3>标的明细</h3><span class="muted" style="font-size:11px">份额/成本=台账流水口径 · 盈亏未含分红与费用</span></div><div class="cb-panel-body cb-flush" id="cbHoldingsTable"></div></div>
+        <div class="cb-panel"><div class="cb-panel-head"><h3>资金流水 · 分红/费用/转入转出</h3><span class="muted" style="font-size:11px">买卖成交见下方「交易台账」</span></div><div class="cb-panel-body cb-flush" id="cbRecentTrades"></div></div>
+        <!-- fw2_v646_ledger_capbal：交易台账折叠块（原策略执行·交易台账 tab 迁入；录入/导入/备份/上限提醒全保留） -->
+        <details class="cb-panel" id="capbalLedgerBox" style="margin-top:12px"><summary style="cursor:pointer;user-select:none;padding:10px 13px;font-weight:600;font-size:13px">交易台账（录入 / 导入 / 备份）</summary><div style="padding:0 13px 12px" id="capbalLedgerMount"></div></details>
       </div>
 
       <!-- fw2_v648_capbal_slim：三财报操作条合并为一份共享条 #cbRptBar（原三 pane 各一套；月份本就联动共享，出具/导出/导入操作的是同一份报告库 rptStore，data-rpt 属性为冗余已去除） -->
@@ -12995,7 +12999,26 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
        （数据集新鲜度），同名易混；面板内「数据概况」同步改「账本概况」。
      ④ 备份入口收口：原「导出备份」「导入恢复」两张卡合并为一张「本模块账本 · 导出 / 导入」，
        并标注覆盖范围（仅标的/分红费用/资金流水/月报）+ 指引完整备份走
-       「总览 › 交易台账 › 导出完整快照」（台账卡由 5 张减为 4 张）。 */  if (vc) vc.textContent = 'v648 · 资金平衡界面收口' /* fw2_v648_capbal_slim fw2_v647_netseries_fix fw2_v646_ledger_capbal fw2_v644_revert_watch_tab fw2_v643_mtbl_tier fw2_v642_a500_enh fw2_v641_peak_dd fw2_v640_buy_pct fw2_v639_del_decisionfw2_v516_a500lk fw2_v517_4otc fw2_v518_hspos fw2_v519_sm_merge fw2_v520_chgflat fw2_v521_magnet fw2_v522_overview fw2_v523_sm_dedup fw2_v524_geo_fsi fw2_v525_geo_filter fw2_v526_geo_filter_removed fw2_v527_verdict fw2_v529_smux fw2_v530_datamgmt fw2_v531_sm_dmgmt fw2_v532_all_dm fw2_v533_px_long fw2_v533d_dm_scroll fw2_v534_dm_module fw2_v535_dm_auto fw2_v539_hold_realpnl fw2_v539a_seed_sync fw2_v539a_seed_order fw2_v540_hold_path fw2_v542_pf_mirror_first fw2_v542_mv_settled fw2_v542_mv_account fw2_v543_dm_holdings_note fw2_v544_ledger_mirror_guard fw2_v545_hold_total_row fw2_v546_navdate_all fw2_v547_vix_to_ovs fw2_v548_ovs_mrg fw2_v549_region_align fw2_v550_grp_tabs fw2_v551_sop_cockpit fw2_v552_sop_taborder fw2_v553_chain_data fw2_v554_sop_rename fw2_v556_market_split fw2_v557_sm_renamed fw2_v558_cbrates_fix fw2_v558a_cb_label fw2_v559_chain_dates fw2_v560_chain_verdict fw2_v561_curve_hold fw2_v562_hold_inline fw2_v563_alloc fw2_v564_lxlink fw2_v565_cal_lx fw2_v565_sub_lx fw2_v566_fund_move fw2_v567_fund_merge fw2_v568_lxlink_fix fw2_v569_manager_pool fw2_v570_manager_universe fw2_v571_mgr_east fw2_v574_mgr_subscore fw2_v575_mgr_merge fw2_v576_mgr_group fw2_v577_mgr_lxlink fw2_v578_mgr_lxreal fw2_v579_mgr_weight fw2_v581_fund_lxreal fw2_v582_mgr_min10 fw2_v583_mgr_noyear fw2_v584_mgr_career fw2_v585_mgr_srank fw2_v586_mgr_srank fw2_v587_mgr_since fw2_v588_mgr_lxfull fw2_v589_mgr_rules fw2_v590_mgr_scores fw2_v591_mgr_ladder fw2_v592_mgr_cols fw2_v593_mgr_score fw2_anti_halluc_p0 fw2_v595_alpha_attrib fw2_v596_sig_hist fw2_v597_fund_overlap fw2_v598_mgr_hold fw2_v599_time_decay fw2_v599_corr_pen fw2_v600_buytrack fw2_v601_backtest fw2_v602_kline_page fw2_v603_old_debts fw2_v604_xirr fw2_v605_holdings_global fw2_v606_v11_signal fw2_v607_v11_bt fw2_v608_lx_audit fw2_v609_sig_table fw2_v610_sig_merge fw2_v611_grp_line fw2_v612_index_lxreal fw2_v613_near_blue fw2_v615_sig_grp fw2_v616_sig_hdstyle fw2_v617_sig_vline fw2_v618_sig_lcr fw2_v619_curthr fw2_v620_curthr_all fw2_v621_ret_hpr fw2_v621_t13_lastbuy fw2_v622_lastbuy_auto fw2_v623_firstbuy_roll fw2_v623_alloc_watch fw2_v624_m13_m17 fw2_v626_sig_cost_guard fw2_v626_watch_pe_exempt fw2_v627_colorder fw2_v627_action_plan fw2_v627_data_date fw2_v628_fixed_cols fw2_v629_pool_pile_guard fw2_v629_t9_pfdate fw2_v630_missing_cost fw2_v631_pool_held_live fw2_v632_held_off fw2_v633_ledger_tx_sync fw2_v634_plan_dir fw2_v635_capbal_fix fw2_v636_capbal_converge fw2_v637_mv_consist fw2_v638_mv_unify */ + (window.getAllocWatchCodes ? window.getAllocWatchCodes().length : 0) + '只';
+       「总览 › 交易台账 › 导出完整快照」（台账卡由 5 张减为 4 张）。 */
+  /* v649 fw2_v649_merge_holdings（2026-10-23）：资金平衡「总览 + 标的明细合并」（方案 B，数据逻辑零改动）——
+     背景：用户要求合并总览与标的明细并保留标的明细。核查后确认两者并非重复内容，而是账户层与
+     标的层的父子关系，合并的真实收益在于少切一次 tab 并让图与表联动。四项改动：
+     ① 撤「标的明细」子模块（导航由 6 减为 5），整块（状态筛选条 + 9 列明细表 + 合计行 +
+       点行展开该标的流水）移入总览 pane，置于两图之后、资金流水之前；明细表补 panel-head
+       标注口径「份额/成本=台账流水口径 · 盈亏未含分红与费用」——明细合计盈亏不含分红与费用，
+       与 KPI「已实现+未实现」天然相差一个（分红 − 费用），并排展示必须标注，否则会被读成算错。
+     ② 数据截至去重：原总览 KPI 下与明细表上方各有一行，且两者不同源——KPI 侧是
+       state.snapshot.at（行情快照时刻），明细侧是 state._pfAt（ttskill 持仓同步时间）。
+       并非同一件事，故不是删一条而是分工：KPI 只留行情快照并指向下方；明细处保留持仓同步 +
+       净值口径 + 份额成本口径说明。
+     ③ 图至表联动：calcAlloc 按 t.cat 聚合市值，与明细表类别列同源。故点资产分布饼图扇区
+       （类别超过 6 时降级为横向条形图，params.name 同样为类别名）或点表内类别徽章，即按该
+       类别过滤明细表，再点取消；筛选态由 #cbCatChip 指示并可点击清除，合计行同步标注类别。
+     ④ 顺修两处既有 bug（均由本次合并暴露）：a 行点击展开流水的选择器写作 tr.clickable，
+       而行的类名是 cb-clickable（CSS 亦按 cb-clickable 写），该功能从未生效，已改选择器；
+       b toggleSub 写入 class 为 sub-row，而收起检测查的是 tr.cb-sub-row，类名不一致导致
+       再点一次无法收起且每点一次多插一行，已统一为 cb-sub-row。 */
+  if (vc) vc.textContent = 'v649 · 总览与标的明细合并' /* fw2_v649_merge_holdings fw2_v648_capbal_slim fw2_v647_netseries_fix fw2_v646_ledger_capbal fw2_v644_revert_watch_tab fw2_v643_mtbl_tier fw2_v642_a500_enh fw2_v641_peak_dd fw2_v640_buy_pct fw2_v639_del_decisionfw2_v516_a500lk fw2_v517_4otc fw2_v518_hspos fw2_v519_sm_merge fw2_v520_chgflat fw2_v521_magnet fw2_v522_overview fw2_v523_sm_dedup fw2_v524_geo_fsi fw2_v525_geo_filter fw2_v526_geo_filter_removed fw2_v527_verdict fw2_v529_smux fw2_v530_datamgmt fw2_v531_sm_dmgmt fw2_v532_all_dm fw2_v533_px_long fw2_v533d_dm_scroll fw2_v534_dm_module fw2_v535_dm_auto fw2_v539_hold_realpnl fw2_v539a_seed_sync fw2_v539a_seed_order fw2_v540_hold_path fw2_v542_pf_mirror_first fw2_v542_mv_settled fw2_v542_mv_account fw2_v543_dm_holdings_note fw2_v544_ledger_mirror_guard fw2_v545_hold_total_row fw2_v546_navdate_all fw2_v547_vix_to_ovs fw2_v548_ovs_mrg fw2_v549_region_align fw2_v550_grp_tabs fw2_v551_sop_cockpit fw2_v552_sop_taborder fw2_v553_chain_data fw2_v554_sop_rename fw2_v556_market_split fw2_v557_sm_renamed fw2_v558_cbrates_fix fw2_v558a_cb_label fw2_v559_chain_dates fw2_v560_chain_verdict fw2_v561_curve_hold fw2_v562_hold_inline fw2_v563_alloc fw2_v564_lxlink fw2_v565_cal_lx fw2_v565_sub_lx fw2_v566_fund_move fw2_v567_fund_merge fw2_v568_lxlink_fix fw2_v569_manager_pool fw2_v570_manager_universe fw2_v571_mgr_east fw2_v574_mgr_subscore fw2_v575_mgr_merge fw2_v576_mgr_group fw2_v577_mgr_lxlink fw2_v578_mgr_lxreal fw2_v579_mgr_weight fw2_v581_fund_lxreal fw2_v582_mgr_min10 fw2_v583_mgr_noyear fw2_v584_mgr_career fw2_v585_mgr_srank fw2_v586_mgr_srank fw2_v587_mgr_since fw2_v588_mgr_lxfull fw2_v589_mgr_rules fw2_v590_mgr_scores fw2_v591_mgr_ladder fw2_v592_mgr_cols fw2_v593_mgr_score fw2_anti_halluc_p0 fw2_v595_alpha_attrib fw2_v596_sig_hist fw2_v597_fund_overlap fw2_v598_mgr_hold fw2_v599_time_decay fw2_v599_corr_pen fw2_v600_buytrack fw2_v601_backtest fw2_v602_kline_page fw2_v603_old_debts fw2_v604_xirr fw2_v605_holdings_global fw2_v606_v11_signal fw2_v607_v11_bt fw2_v608_lx_audit fw2_v609_sig_table fw2_v610_sig_merge fw2_v611_grp_line fw2_v612_index_lxreal fw2_v613_near_blue fw2_v615_sig_grp fw2_v616_sig_hdstyle fw2_v617_sig_vline fw2_v618_sig_lcr fw2_v619_curthr fw2_v620_curthr_all fw2_v621_ret_hpr fw2_v621_t13_lastbuy fw2_v622_lastbuy_auto fw2_v623_firstbuy_roll fw2_v623_alloc_watch fw2_v624_m13_m17 fw2_v626_sig_cost_guard fw2_v626_watch_pe_exempt fw2_v627_colorder fw2_v627_action_plan fw2_v627_data_date fw2_v628_fixed_cols fw2_v629_pool_pile_guard fw2_v629_t9_pfdate fw2_v630_missing_cost fw2_v631_pool_held_live fw2_v632_held_off fw2_v633_ledger_tx_sync fw2_v634_plan_dir fw2_v635_capbal_fix fw2_v636_capbal_converge fw2_v637_mv_consist fw2_v638_mv_unify */ + (window.getAllocWatchCodes ? window.getAllocWatchCodes().length : 0) + '只';
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
@@ -18757,7 +18780,7 @@ function renderOverview() {
     kpiCard("已实现盈亏", (realizedNet >= 0 ? "+" : "") + fmt(realizedNet), "卖出 + 分红 − 费用", pnlCls(realizedNet)) +
     kpiCard("未实现盈亏", (unreal >= 0 ? "+" : "") + fmt(unreal), "市值 − 成本", pnlCls(unreal)) +
     kpiCard("现金余额 CASH", fmt(cash), "可用现金池", cash < 0 ? "down" : "")
-    + '<div class="asof" style="margin-top:2px">数据截至 <b>' + ((state.snapshot && state.snapshot.at) ? fmtClock(state.snapshot.at) : '未更新') + '</b>（行情快照）· 净值随 fund-daily 日更 · 交易/成本/份额为用户录入台账</div>';
+    + '<div class="asof" style="margin-top:2px">行情快照 <b>' + ((state.snapshot && state.snapshot.at) ? fmtClock(state.snapshot.at) : '未更新') + '</b> · 净值与持仓口径见下方「标的明细」</div>';
 
   /* 资产分布：类别 ≤6 用饼图，否则横向条形 */
   const alloc = calcAlloc();
@@ -18783,6 +18806,14 @@ function renderOverview() {
       series: [{ type: "bar", barWidth: 14, data: alloc.map(function (x) { return x.value; }) }]
     });
   }
+
+  /* fw2_v649_merge_holdings：资产分布图 → 标的明细联动。饼图与条形图的 params.name 均为类别名（calcAlloc 按 t.cat 聚合，与明细表类别列同源） */
+  (function () {
+    const _c = charts["cbChartAlloc"];
+    if (!_c || (typeof _c.isDisposed === "function" && _c.isDisposed())) return;
+    _c.off("click");
+    _c.on("click", function (p) { if (p && p.name) toggleCatFilter(p.name); });
+  })();
 
   /* 净资产趋势 */
   const pts = netSeries();
@@ -18861,21 +18892,28 @@ function renderTxTable(containerId, rows, short) {
 
 /* ---------- 标的明细 ---------- */
 let holdingsFilter = "all";
+let holdingsCatFilter = ""; /* fw2_v649_merge_holdings：类别筛选（由资产分布图/类别徽章点击设置，空=不过滤） */
 function renderHoldings() {
   const list = DB.targets.slice().filter(function (t) {
     if (holdingsFilter === "on") return t.status === "on";
     if (holdingsFilter === "off") return t.status === "off";
     return true;
+  }).filter(function (t) {
+    /* fw2_v649_merge_holdings：类别过滤（与资产分布图联动） */
+    return !holdingsCatFilter || String(t.cat || "") === holdingsCatFilter;
   });
   const el = document.getElementById("cbHoldingsTable");
+  renderCatChip();
   if (!list.length) {
-    el.innerHTML = '<div class="cb-empty"><div class="big">· · ·</div><div class="txt">暂无标的，点"新增标的"建立台账</div></div>';
+    el.innerHTML = '<div class="cb-empty"><div class="big">· · ·</div><div class="txt">' +
+      (holdingsCatFilter ? '当前筛选「' + esc(holdingsCatFilter) + '」无匹配标的，点上方 chip 清除筛选' :
+        '暂无标的，点"新增标的"建立台账') + '</div></div>';
     return;
   }
   /* v562 fw2_v562_hold_inline：标的明细顶部数据日期行（ttskill 持仓同步时间 + 口径说明） */
   const _pfAt2 = (typeof state !== "undefined" && state && state._pfAt) ? String(state._pfAt).slice(0, 16).replace("T", " ") : "";
   const _pfNote2 = _pfAt2
-    ? '持仓数据同步于 <b>' + _pfAt2 + '</b>（天天基金账户 · 每晚自动）· 份额/成本=台账流水口径，与账户不一致时以天天基金为准（发最新对账单可重建）'
+    ? '持仓同步于 <b>' + _pfAt2 + '</b>（天天基金账户 · 每晚自动）· 净值随 fund-daily 日更 · 份额/成本=台账流水口径，与账户不一致时以天天基金为准（发最新对账单可重建）'
     : '持仓镜像未同步 · 点右上「同步持仓」刷新';
   const _asofBar = '<div class="muted" style="font-size:11px;padding:4px 2px 6px;line-height:1.5">' + _pfNote2 + '</div>';
   const head = "<colgroup><col style='width:9%'><col style='width:20%'><col style='width:11%'><col style='width:10%'><col style='width:8%'><col style='width:10%'><col style='width:10%'><col style='width:10%'><col style='width:12%'></colgroup>" +
@@ -18901,7 +18939,7 @@ function renderHoldings() {
     return "<tr class='cb-clickable' data-target-id='" + t.id + "'>" +
       "<td class='num'>" + esc(t.code || "—") + "</td>" +
       "<td>" + esc(t.name) + "<br>" + sub + "</td>" +
-      '<td><span class="cb-badge cat">' + esc(t.cat) + "</span></td>" +
+      '<td><span class="cb-badge cat cb-cat-click" data-cat="' + esc(t.cat) + '" title="按该类别过滤">' + esc(t.cat) + "</span></td>" +
       "<td>" + esc(t.market || "—") + "</td>" +
       '<td><span class="cb-badge ' + (t.status === "on" ? "on" : "off") + '">' + (t.status === "on" ? "在盘" : "清盘") + "</span></td>" +
       "<td class='num'>" + fmt(st.costBasis) + "<br><span class='muted' style='font-size:10.5px'>份额 " + fmt(st.shares, 2) + "</span></td>" +
@@ -18913,7 +18951,8 @@ function renderHoldings() {
       '<button class="btn btn-sm cb-btn-danger" data-del-t="' + t.id + '">删除</button></td>' +
       "</tr>";
   }).join("");
-  const totalRow = "<tr class='total-row'><td colspan='5'>合计（在盘按市值 / 清盘按已实现）</td>" +
+  const _totLbl = holdingsCatFilter ? ('合计（类别 ' + holdingsCatFilter + ' · 在盘按市值 / 清盘按已实现）') : '合计（在盘按市值 / 清盘按已实现）';
+  const totalRow = "<tr class='total-row'><td colspan='5'>" + esc(_totLbl) + "</td>" +
     "<td class='num'>" + fmt(totalCost) + "</td>" +
     "<td class='num'>" + fmt(totalMv) + "</td>" +
     '<td class="num ' + pnlCls(totalPnl) + '">' + (totalPnl >= 0 ? "+" : "") + fmt(totalPnl) + "</td><td></td></tr>";
@@ -18921,12 +18960,33 @@ function renderHoldings() {
   el.querySelectorAll("[data-edit-t]").forEach(function (b) { b.onclick = function () { openTargetForm(b.dataset.editT); }; });
   el.querySelectorAll("[data-nav-t]").forEach(function (b) { b.onclick = function () { openNavForm(b.dataset.navT); }; });
   el.querySelectorAll("[data-del-t]").forEach(function (b) { b.onclick = function () { delTarget(b.dataset.delT); }; });
-  el.querySelectorAll("tr.clickable").forEach(function (tr) {
+  el.querySelectorAll(".cb-cat-click").forEach(function (b) {
+    b.onclick = function (e) {
+      e.stopPropagation();
+      toggleCatFilter(b.dataset.cat);
+    };
+  });
+  /* fw2_v649_merge_holdings：原选择器写作 "tr.clickable"，但行的类名是 cb-clickable（CSS 亦按 .cb-clickable 写），
+     导致「点行展开该标的流水」从未生效；此处修正为 tr.cb-clickable */
+  el.querySelectorAll("tr.cb-clickable").forEach(function (tr) {
     tr.onclick = function (e) {
       if (e.target.closest("button")) return;
       toggleSub(tr.dataset.targetId);
     };
   });
+}
+/* fw2_v649_merge_holdings：类别筛选 toggle（资产分布图 / 类别徽章 共用） */
+function toggleCatFilter(cat) {
+  holdingsCatFilter = (holdingsCatFilter === cat) ? "" : (cat || "");
+  renderHoldings();
+}
+function renderCatChip() {
+  const chip = gid("cbCatChip");
+  if (!chip) return;
+  if (!holdingsCatFilter) { chip.classList.add("hidden"); chip.innerHTML = ""; chip.onclick = null; return; }
+  chip.classList.remove("hidden");
+  chip.innerHTML = "类别筛选：<b>" + esc(holdingsCatFilter) + "</b> ✕ 清除";
+  chip.onclick = function () { holdingsCatFilter = ""; renderHoldings(); };
 }
 function toggleSub(tid) {
   const rows = document.querySelectorAll('tr[data-target-id="' + tid + '"]');
@@ -18946,7 +19006,9 @@ function toggleSub(tid) {
       "<td class='muted'>" + esc(t.note || "") + "</td></tr>";
   }).join("");
   const sub = document.createElement("tr");
-  sub.className = "sub-row";
+  /* fw2_v649_merge_holdings：原写入 class="sub-row"，而收起检测查的是 tr.cb-sub-row —— 类名不一致导致
+     「再点一次收起」永不命中，每点一次就多插一行。统一为 cb-sub-row 与查询选择器一致 */
+  sub.className = "cb-sub-row";
   sub.dataset.tid = tid;
   sub.innerHTML = '<td colspan="9" style="padding:0"><div class="cb-sub-table"><div class="cb-tbl-wrap"><table class="cb-tbl">' +
     "<colgroup><col style='width:14%'><col style='width:12%'><col style='width:16%'><col style='width:14%'><col style='width:14%'><col style='width:30%'></colgroup>" +
@@ -19631,6 +19693,7 @@ function sampleData() {
 let curView = "overview";
 function showTab(name) {
   if (name === "income" || name === "balance" || name === "cashflow") name = "overview"; /* fw2_v498_cbtab：旧 tab 链接回退总览 */
+  if (name === "holdings") name = "overview"; /* fw2_v649_merge_holdings：标的明细已并入总览，旧链接回退总览 */
   if (name === "monthly") name = "rptInc"; /* fw2_v503_rpt3pane：旧「月度财报」链接回退利润表子模块 */
   curView = name;
   $qa("#view-capbal .cb-pane").forEach(function (p) { p.classList.add("hidden"); });
@@ -19647,7 +19710,7 @@ function showTab(name) {
 function render() {
   maybeAutoSync();
   disposeCharts();
-  if (curView === "overview") { renderOverview(); window.__cbRenderBusy = true; try { renderLedger(); } catch (e) {} finally { window.__cbRenderBusy = false; } } /* fw2_v646_ledger_capbal：台账折叠块迁入 overview；__cbRenderBusy 防 render→renderLedger→notifyCapBal→render 死环 */
+  if (curView === "overview") { renderOverview(); renderHoldings(); window.__cbRenderBusy = true; try { renderLedger(); } catch (e) {} finally { window.__cbRenderBusy = false; } } /* fw2_v646_ledger_capbal：台账折叠块迁入 overview；__cbRenderBusy 防 render→renderLedger→notifyCapBal→render 死环 */
   else if (curView === "holdings") renderHoldings();
   /* fw2_v503_rpt3pane：三财报独立子模块（资产负债表|利润表|现金流量表）统一渲染月度报表 */
   else if (curView === "rptBal" || curView === "rptInc" || curView === "rptCf") renderMonthly();
