@@ -1741,7 +1741,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
           <button class="btn btn-sm" id="cbAddTarget">＋ 新增标的</button>
         </div>
         <div class="cb-panel"><div class="cb-panel-head"><h3>标的明细</h3><span class="muted" style="font-size:11px">份额/成本=台账流水口径 · 盈亏未含分红与费用</span></div><div class="cb-panel-body cb-flush" id="cbHoldingsTable"></div></div>
-        <div class="cb-panel"><div class="cb-panel-head"><h3>资金流水 · 分红/费用/转入转出</h3><span class="muted" style="font-size:11px">买卖成交见下方「交易台账」</span></div><div class="cb-panel-body cb-flush" id="cbRecentTrades"></div></div>
+        <div class="cb-panel hidden" id="cbRecentBox"><div class="cb-panel-head"><h3>资金流水 · 分红/费用/转入转出</h3><span class="muted" style="font-size:11px">买卖成交见下方「交易台账」</span></div><div class="cb-panel-body cb-flush" id="cbRecentTrades"></div></div>
         <!-- fw2_v646_ledger_capbal：交易台账折叠块（原策略执行·交易台账 tab 迁入；录入/导入/备份/上限提醒全保留） -->
         <details class="cb-panel" id="capbalLedgerBox" style="margin-top:12px"><summary style="cursor:pointer;user-select:none;padding:10px 13px;font-weight:600;font-size:13px">交易台账（录入 / 导入 / 备份）</summary><div style="padding:0 13px 12px" id="capbalLedgerMount"></div></details>
       </div>
@@ -13050,7 +13050,7 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
        （货币基金单位净值恒 1），同时 __ALLOC_NAV__ 补 nav=1（v650 fw2_v650_moneynav）。
      新增：曲线 markPoint 标峰值（万为单位）；副标题「逐笔重放」→「逐日重放（按净值日取点）」；
        cbNetOffList() 列出「已归档但账面仍有份额」的标的并在图下披露（#cbNetNote）——
-       现行口径与 calcSecurities 同源只计 status on，归档标的的历史市值不计入，不披露会被读成算错。 */  if (vc) vc.textContent = 'v650 · 净资产趋势逐日重放' /* fw2_v650_netseries_daily fw2_v650_moneynav fw2_v649_merge_holdings fw2_v648_capbal_slim fw2_v647_netseries_fix fw2_v646_ledger_capbal fw2_v644_revert_watch_tab fw2_v643_mtbl_tier fw2_v642_a500_enh fw2_v641_peak_dd fw2_v640_buy_pct fw2_v639_del_decisionfw2_v516_a500lk fw2_v517_4otc fw2_v518_hspos fw2_v519_sm_merge fw2_v520_chgflat fw2_v521_magnet fw2_v522_overview fw2_v523_sm_dedup fw2_v524_geo_fsi fw2_v525_geo_filter fw2_v526_geo_filter_removed fw2_v527_verdict fw2_v529_smux fw2_v530_datamgmt fw2_v531_sm_dmgmt fw2_v532_all_dm fw2_v533_px_long fw2_v533d_dm_scroll fw2_v534_dm_module fw2_v535_dm_auto fw2_v539_hold_realpnl fw2_v539a_seed_sync fw2_v539a_seed_order fw2_v540_hold_path fw2_v542_pf_mirror_first fw2_v542_mv_settled fw2_v542_mv_account fw2_v543_dm_holdings_note fw2_v544_ledger_mirror_guard fw2_v545_hold_total_row fw2_v546_navdate_all fw2_v547_vix_to_ovs fw2_v548_ovs_mrg fw2_v549_region_align fw2_v550_grp_tabs fw2_v551_sop_cockpit fw2_v552_sop_taborder fw2_v553_chain_data fw2_v554_sop_rename fw2_v556_market_split fw2_v557_sm_renamed fw2_v558_cbrates_fix fw2_v558a_cb_label fw2_v559_chain_dates fw2_v560_chain_verdict fw2_v561_curve_hold fw2_v562_hold_inline fw2_v563_alloc fw2_v564_lxlink fw2_v565_cal_lx fw2_v565_sub_lx fw2_v566_fund_move fw2_v567_fund_merge fw2_v568_lxlink_fix fw2_v569_manager_pool fw2_v570_manager_universe fw2_v571_mgr_east fw2_v574_mgr_subscore fw2_v575_mgr_merge fw2_v576_mgr_group fw2_v577_mgr_lxlink fw2_v578_mgr_lxreal fw2_v579_mgr_weight fw2_v581_fund_lxreal fw2_v582_mgr_min10 fw2_v583_mgr_noyear fw2_v584_mgr_career fw2_v585_mgr_srank fw2_v586_mgr_srank fw2_v587_mgr_since fw2_v588_mgr_lxfull fw2_v589_mgr_rules fw2_v590_mgr_scores fw2_v591_mgr_ladder fw2_v592_mgr_cols fw2_v593_mgr_score fw2_anti_halluc_p0 fw2_v595_alpha_attrib fw2_v596_sig_hist fw2_v597_fund_overlap fw2_v598_mgr_hold fw2_v599_time_decay fw2_v599_corr_pen fw2_v600_buytrack fw2_v601_backtest fw2_v602_kline_page fw2_v603_old_debts fw2_v604_xirr fw2_v605_holdings_global fw2_v606_v11_signal fw2_v607_v11_bt fw2_v608_lx_audit fw2_v609_sig_table fw2_v610_sig_merge fw2_v611_grp_line fw2_v612_index_lxreal fw2_v613_near_blue fw2_v615_sig_grp fw2_v616_sig_hdstyle fw2_v617_sig_vline fw2_v618_sig_lcr fw2_v619_curthr fw2_v620_curthr_all fw2_v621_ret_hpr fw2_v621_t13_lastbuy fw2_v622_lastbuy_auto fw2_v623_firstbuy_roll fw2_v623_alloc_watch fw2_v624_m13_m17 fw2_v626_sig_cost_guard fw2_v626_watch_pe_exempt fw2_v627_colorder fw2_v627_action_plan fw2_v627_data_date fw2_v628_fixed_cols fw2_v629_pool_pile_guard fw2_v629_t9_pfdate fw2_v630_missing_cost fw2_v631_pool_held_live fw2_v632_held_off fw2_v633_ledger_tx_sync fw2_v634_plan_dir fw2_v635_capbal_fix fw2_v636_capbal_converge fw2_v637_mv_consist fw2_v638_mv_unify */ + (window.getAllocWatchCodes ? window.getAllocWatchCodes().length : 0) + '只';
+       现行口径与 calcSecurities 同源只计 status on，归档标的的历史市值不计入，不披露会被读成算错。 */  if (vc) vc.textContent = 'v651 · 流水/台账收口+录入统一' /* fw2_v651_recent_hide fw2_v651_ledger_slim fw2_v651_entry_unify fw2_v650_netseries_daily fw2_v650_moneynav fw2_v649_merge_holdings fw2_v648_capbal_slim fw2_v647_netseries_fix fw2_v646_ledger_capbal fw2_v644_revert_watch_tab fw2_v643_mtbl_tier fw2_v642_a500_enh fw2_v641_peak_dd fw2_v640_buy_pct fw2_v639_del_decisionfw2_v516_a500lk fw2_v517_4otc fw2_v518_hspos fw2_v519_sm_merge fw2_v520_chgflat fw2_v521_magnet fw2_v522_overview fw2_v523_sm_dedup fw2_v524_geo_fsi fw2_v525_geo_filter fw2_v526_geo_filter_removed fw2_v527_verdict fw2_v529_smux fw2_v530_datamgmt fw2_v531_sm_dmgmt fw2_v532_all_dm fw2_v533_px_long fw2_v533d_dm_scroll fw2_v534_dm_module fw2_v535_dm_auto fw2_v539_hold_realpnl fw2_v539a_seed_sync fw2_v539a_seed_order fw2_v540_hold_path fw2_v542_pf_mirror_first fw2_v542_mv_settled fw2_v542_mv_account fw2_v543_dm_holdings_note fw2_v544_ledger_mirror_guard fw2_v545_hold_total_row fw2_v546_navdate_all fw2_v547_vix_to_ovs fw2_v548_ovs_mrg fw2_v549_region_align fw2_v550_grp_tabs fw2_v551_sop_cockpit fw2_v552_sop_taborder fw2_v553_chain_data fw2_v554_sop_rename fw2_v556_market_split fw2_v557_sm_renamed fw2_v558_cbrates_fix fw2_v558a_cb_label fw2_v559_chain_dates fw2_v560_chain_verdict fw2_v561_curve_hold fw2_v562_hold_inline fw2_v563_alloc fw2_v564_lxlink fw2_v565_cal_lx fw2_v565_sub_lx fw2_v566_fund_move fw2_v567_fund_merge fw2_v568_lxlink_fix fw2_v569_manager_pool fw2_v570_manager_universe fw2_v571_mgr_east fw2_v574_mgr_subscore fw2_v575_mgr_merge fw2_v576_mgr_group fw2_v577_mgr_lxlink fw2_v578_mgr_lxreal fw2_v579_mgr_weight fw2_v581_fund_lxreal fw2_v582_mgr_min10 fw2_v583_mgr_noyear fw2_v584_mgr_career fw2_v585_mgr_srank fw2_v586_mgr_srank fw2_v587_mgr_since fw2_v588_mgr_lxfull fw2_v589_mgr_rules fw2_v590_mgr_scores fw2_v591_mgr_ladder fw2_v592_mgr_cols fw2_v593_mgr_score fw2_anti_halluc_p0 fw2_v595_alpha_attrib fw2_v596_sig_hist fw2_v597_fund_overlap fw2_v598_mgr_hold fw2_v599_time_decay fw2_v599_corr_pen fw2_v600_buytrack fw2_v601_backtest fw2_v602_kline_page fw2_v603_old_debts fw2_v604_xirr fw2_v605_holdings_global fw2_v606_v11_signal fw2_v607_v11_bt fw2_v608_lx_audit fw2_v609_sig_table fw2_v610_sig_merge fw2_v611_grp_line fw2_v612_index_lxreal fw2_v613_near_blue fw2_v615_sig_grp fw2_v616_sig_hdstyle fw2_v617_sig_vline fw2_v618_sig_lcr fw2_v619_curthr fw2_v620_curthr_all fw2_v621_ret_hpr fw2_v621_t13_lastbuy fw2_v622_lastbuy_auto fw2_v623_firstbuy_roll fw2_v623_alloc_watch fw2_v624_m13_m17 fw2_v626_sig_cost_guard fw2_v626_watch_pe_exempt fw2_v627_colorder fw2_v627_action_plan fw2_v627_data_date fw2_v628_fixed_cols fw2_v629_pool_pile_guard fw2_v629_t9_pfdate fw2_v630_missing_cost fw2_v631_pool_held_live fw2_v632_held_off fw2_v633_ledger_tx_sync fw2_v634_plan_dir fw2_v635_capbal_fix fw2_v636_capbal_converge fw2_v637_mv_consist fw2_v638_mv_unify */ + (window.getAllocWatchCodes ? window.getAllocWatchCodes().length : 0) + '只';
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
@@ -17246,15 +17246,10 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
       + (window.rulesBannerHtml ? window.rulesBannerHtml() : '')
       + '<div class="st-card" style="display:none" id="ldgNew"></div>'
       + '<div class="st-card" style="display:none" id="ldgImp"></div>'
-      + '<div class="st-card"><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px">'
-      + '<div class="sh-cell"><div class="k">累计买入</div><div class="v">' + fmt(totalBuy) + '</div></div>'
-      + '<div class="sh-cell"><div class="k">累计卖出</div><div class="v">' + fmt(totalSell) + '</div></div>'
-      + '<div class="sh-cell"><div class="k">净投入</div><div class="v">' + fmt(netIn) + '</div></div>'
-      + '<div class="sh-cell"><div class="k">成交笔数</div><div class="v">' + t.length + '</div></div>'
-      + '</div></div>'
+      + '<div class="strat-note" style="margin:0 0 8px;padding:6px 10px">累计买入 <b>' + fmt(totalBuy) + '</b> · 累计卖出 <b>' + fmt(totalSell) + '</b> · 净投入 <b>' + fmt(netIn) + '</b> · 成交 <b>' + t.length + '</b> 笔</div>'
       + '<div class="st-card"><h4>成交明细</h4><div style="overflow-x:auto"><table class="st-tbl"><thead><tr><th>日期</th><th>基金</th><th>方向</th><th style="text-align:right">金额</th><th style="text-align:right">份额</th><th style="text-align:right">手续费</th><th style="text-align:right">净值</th><th>来源</th><th></th></tr></thead><tbody>' + rowsHtml + '</tbody></table></div></div>'
-      + '<div class="st-card"><h4>按基金聚合 <span class="hint" style="font-weight:400">净份额 / 净投入 / 加权成本（持仓权威增量来源，后续联动持仓与盈亏）</span></h4><div style="overflow-x:auto"><table class="st-tbl"><thead><tr><th>基金</th><th style="text-align:right">笔数</th><th style="text-align:right">买入总额</th><th style="text-align:right">卖出总额</th><th style="text-align:right">净投入</th><th style="text-align:right">净份额</th><th style="text-align:right">加权成本</th></tr></thead><tbody>' + aggHtml + '</tbody></table></div></div>'
-      + '<div class="strat-note">导入格式：①天天基金网页「交易查询」表格整表复制粘贴（自动识别表头与状态，撤单/失败自动跳过，分红/收益计份额不计金额）②CSV（日期,代码,名称,方向,金额,份额,净值）③JSON 数组备份。成交后点「导出 JSON」定期备份；台账数据仅存本浏览器 localStorage，换设备需导入备份。v347：台账为持仓权威增量来源——导入/新增/删除成交后自动联动持仓（净份额/加权成本）与资金平衡；「导出完整快照」下载 台账+持仓+资金平衡 合并备份。</div>';
+      + '<details class="st-card"><summary style="cursor:pointer;user-select:none;font-weight:600;font-size:13px">按基金聚合 <span class="hint" style="font-weight:400">净份额 / 净投入 / 加权成本</span></summary><div style="overflow-x:auto"><table class="st-tbl"><thead><tr><th>基金</th><th style="text-align:right">笔数</th><th style="text-align:right">买入总额</th><th style="text-align:right">卖出总额</th><th style="text-align:right">净投入</th><th style="text-align:right">净份额</th><th style="text-align:right">加权成本</th></tr></thead><tbody>' + aggHtml + '</tbody></table></div></details>'
+      + '<details style="margin-top:8px"><summary style="cursor:pointer;user-select:none;font-size:12px;opacity:.75">导入格式与备份说明</summary><div class="strat-note">导入格式：①天天基金网页「交易查询」表格整表复制粘贴（自动识别表头与状态，撤单/失败自动跳过，分红/收益计份额不计金额）②CSV（日期,代码,名称,方向,金额,份额,净值）③JSON 数组备份。成交后点「导出 JSON」定期备份；台账数据仅存本浏览器 localStorage，换设备需导入备份。v347：台账为持仓权威增量来源——导入/新增/删除成交后自动联动持仓（净份额/加权成本）与资金平衡；「导出完整快照」下载 台账+持仓+资金平衡 合并备份。</div></details>';
     var btn = function (sel, fn) { var b = el.querySelector(sel); if (b) b.addEventListener('click', fn); };
     btn('[data-lexp="1"]', function () {
       var blob = new Blob([JSON.stringify(ld, null, 1)], { type: 'application/json' });
@@ -18935,6 +18930,9 @@ function renderOverview() {
     return !(t.id && String(t.id).indexOf("led-") === 0);
   }).sort(function (a, b) { return b.date.localeCompare(a.date); });
   renderTxTable("cbRecentTrades", recent, false);
+  /* fw2_v651_recent_hide：无 分红/费用/转入转出 时不占版面（录入走工具栏「＋新增交易」，不依赖此面板） */
+  var _rb = document.getElementById("cbRecentBox");
+  if (_rb) _rb.classList.toggle("hidden", !recent.length);
 }
 
 /* ---------- 交易表格（通用） ---------- */
@@ -19566,14 +19564,21 @@ function targetOptions(sel, withBlank) {
 }
 function openTxForm(id) {
   const t = id ? DB.tx.find(function (x) { return x.id === id; }) : null;
-  const f = t || { date: new Date().toISOString().slice(0, 10), tid: "", type: "buy", amt: "", shares: "", price: "", note: "" };
+  const f = t || { date: new Date().toISOString().slice(0, 10), tid: "", type: "div", amt: "", shares: "", price: "", note: "" };
+  /* fw2_v651_entry_unify：买卖统一走台账（持仓份额与现金的权威源）。此处手工 buy/sell 的 id 由 uid() 生成、
+     不在 coverTid 内，会被 cbArchiveSnapshots 判定为「多余账本买入」归档 ⇒ 新增时禁用该两项（编辑既有记录保留）。 */
+  const _isNew = !t;
   const typeOpts = TX_TYPES.map(function (x) {
-    return '<option value="' + x.v + '"' + (f.type === x.v ? " selected" : "") + ">" + x.label + "</option>";
+    const lock = _isNew && (x.v === "buy" || x.v === "sell");
+    return '<option value="' + x.v + '"' + (f.type === x.v ? " selected" : "") + (lock ? " disabled" : "") + ">"
+      + x.label + (lock ? "（请到台账录入）" : "") + "</option>";
   }).join("");
   const isCashType = function (v) { return v === "in" || v === "out"; };
   const noTarget = isCashType(f.type);
   openModal(
     '<div class="cb-frm">' +
+    (!t ? '<div class="cb-fld full" style="font-size:12px;opacity:.8;line-height:1.7">买卖成交请到下方「交易台账 · ＋新增一笔」录入 —— 台账是持仓份额与现金的权威源，此处录入的买入/卖出会被归档清理。' +
+          '<button class="btn btn-sm" id="t_goLedger" type="button" style="margin-left:6px">去台账录入</button></div>' : '') +
     '<div class="cb-fld"><label>日期 *</label><input id="t_date" type="date" value="' + esc(f.date) + '"></div>' +
     '<div class="cb-fld"><label>类型 *</label><select id="t_type">' + typeOpts + "</select></div>" +
     '<div class="cb-fld" id="t_targetWrap"><label>标的 *</label><select id="t_target">' + targetOptions(f.tid, false) + "</select></div>" +
@@ -19597,6 +19602,19 @@ function openTxForm(id) {
     prWrap.classList.toggle("hidden", noSh);
   }
   typeSel.onchange = syncType; syncType();
+  /* fw2_v651_entry_unify：跳台账 —— 展开折叠块、滚动定位、打开「新增一笔」表单 */
+  var _gl = document.getElementById("t_goLedger");
+  if (_gl) _gl.onclick = function () {
+    closeModal();
+    var box = document.getElementById("capbalLedgerBox");
+    try {
+      var mnt = document.getElementById("capbalLedgerMount");
+      if (mnt && !mnt.innerHTML && typeof window.renderLedger === "function") window.renderLedger();
+    } catch (eR) {}
+    if (box) { box.open = true; try { box.scrollIntoView({ behavior: "smooth", block: "start" }); } catch (eS) {} }
+    var nb = document.querySelector('#capbalLedgerMount [data-lnew="1"]');
+    if (nb) nb.click();
+  };
   document.getElementById("modalOk").onclick = function () {
     const date = document.getElementById("t_date").value;
     const type = typeSel.value;
