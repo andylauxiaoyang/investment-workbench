@@ -3722,7 +3722,7 @@ window.HS_name = function (code) {
       if (!window.SCREEN_POOL) {
         await new Promise((_res) => {
           var _u = ['./screen-pool.json', 'https://raw.githubusercontent.com/andylauxiaoyang/investment-workbench/master/caifu/screen-pool.json'], _i = 0;
-          (function _n() { if (_i >= _u.length) { _res(); return; } fetch(_u[_i], { cache: 'no-cache' }).then(function (r) { return r.ok ? r.json() : null; }).then(function (j) { if (j && j.funds) { window.SCREEN_POOL = j; _res(); } else { _i++; _n(); } }).catch(function () { _i++; _n(); }); })();
+          (function _n() { if (_i >= _u.length) { _res(); return; } fetch(_u[_i], { cache: 'no-cache' }).then(function (r) { return r.ok ? r.json() : null; }).then(function (j) { if (j && j.funds) { window.SCREEN_POOL = j; _res(); if (typeof fillRsPick === 'function') { try { fillRsPick(); } catch (e) {} } /* fw2_v646b_pick_nowatch：筛选池晚到补刷标的分析下拉 */ } else { _i++; _n(); } }).catch(function () { _i++; _n(); }); })();
         });
       }
       var _sp = (window.SCREEN_POOL && window.SCREEN_POOL.funds) || null;
@@ -11840,14 +11840,13 @@ function fillRsPick() {
   const sel = $('#rsPick'); if (!sel) return;
   const nm = (code) => (state.snapshot.quotes[code] && state.snapshot.quotes[code].name) || shortCode(code);
   const held = state.portfolio.filter((h) => (h.assetType || '') !== 'cash').map((h) => ({ code: toResearchCode(h.code, h.assetType), name: h.name || ((state.watchMeta || {})[shortCode(h.code)] || {}).name || nm(h.code) }));   /* fw2_v382_pick_name：持仓项优先取持仓记录自身名称（quotes 无基金代码 → 旧版显示「代码 代码」） */
-  const watch = state.watchlist.filter((c) => !state.portfolio.find((h) => shortCode(h.code) === c)).map((c) => ({ code: toResearchCode(c, 'fund'), name: (state.watchMeta && state.watchMeta[c] && state.watchMeta[c].name) || nm(c) || c }));
-  /* fw2_v406_pick_screen：把筛选池基金也加进「选择」下拉（去重掉已在持仓/自选的），可直接在基金透视里分析候选基 */
-  const _inPool = {}; held.forEach((o) => { _inPool[shortCode(o.code)] = 1; }); watch.forEach((o) => { _inPool[shortCode(o.code)] = 1; });
+  /* fw2_v406_pick_screen：把筛选池基金也加进「选择」下拉（去重掉已在持仓的），可直接在基金透视里分析候选基；
+     fw2_v646b_pick_nowatch：自选组已删（v644 自选基金 tab 移除后下拉不再显示自选分组），筛选池去重只对持仓，与自选重合的筛选池基金仍留在筛选组 */
+  const _inPool = {}; held.forEach((o) => { _inPool[shortCode(o.code)] = 1; });
   const sp = (window.SCREEN_POOL && window.SCREEN_POOL.funds) || {};
   const screen = Object.keys(sp).filter((c) => !_inPool[c]).map((c) => ({ code: toResearchCode(c, 'fund'), name: (sp[c] && sp[c].name) || nm(c) || c }));
-  sel.innerHTML = '<option value="">持仓 / 自选 / 筛选…</option>'
+  sel.innerHTML = '<option value="">持仓 / 筛选…</option>'
     + (held.length ? `<optgroup label="持仓中">${held.map((o) => `<option value="${o.code}">${esc(o.name)} ${shortCode(o.code)}</option>`).join('')}</optgroup>` : '')
-    + (watch.length ? `<optgroup label="自选">${watch.map((o) => `<option value="${o.code}">${esc(o.name)} ${shortCode(o.code)}</option>`).join('')}</optgroup>` : '')
     + (screen.length ? `<optgroup label="筛选">${screen.map((o) => `<option value="${o.code}">${esc(o.name)} ${shortCode(o.code)}</option>`).join('')}</optgroup>` : '');
   /* v81 fw2_v81_src_gate：角标自报版本+自选条数+数据来源；v81 新增口径卡「数据来源渠道登记 + 校验戳记」
      v82 fw2_v82_navbreak：净值断裂检测（份额折算/转型不当作收益），断裂月 monthRet 置空 + navReset 标记
@@ -15767,7 +15766,7 @@ setTimeout(() => { renderResearchChips(); if (!state.news.items.length) loadNews
     var done=function(){ window.__SP_LOADING=false; if(!window.__OV_LOADED){ window.__OV_LOADED=true; var ovUrls=['./data/fund-overlap.json','https://raw.githubusercontent.com/andylauxiaoyang/investment-workbench/master/caifu/data/fund-overlap.json']; var k=0; (function ovNext(){ if(k>=ovUrls.length){ window.FUND_OVERLAP=null; finish(); return; } fetch(ovUrls[k],{cache:'no-store'}).then(function(r){ if(!r.ok) throw 0; return r.json(); }).then(function(j){ window.FUND_OVERLAP=j||null; finish(); }).catch(function(){ k++; ovNext(); }); })(); } else finish(); function finish(){ (window.__SP_WAIT||[]).forEach(function(f){f();}); window.__SP_WAIT=null; if(cb)cb(); } };
     (function next(){
       if(i>=urls.length){ done(); return; }
-      fetch(urls[i],{cache:'no-store'}).then(function(r){ if(!r.ok) throw 0; return r.json(); }).then(function(j){ window.SCREEN_POOL=j; done(); }).catch(function(){ i++; next(); });
+      fetch(urls[i],{cache:'no-store'}).then(function(r){ if(!r.ok) throw 0; return r.json(); }).then(function(j){ window.SCREEN_POOL=j; done(); if(typeof fillRsPick==='function'){ try{ fillRsPick(); }catch(e){} } /* fw2_v646b_pick_nowatch：筛选池晚到补刷标的分析下拉 */ }).catch(function(){ i++; next(); });
     })();
   }
   /* fw2_anti_halluc_p0：#13 持仓重合矩阵——FUND_OVERLAP 独立加载（幂等，与 SCREEN_POOL 解耦；缺失时 null 不阻塞表格） */
