@@ -1297,7 +1297,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 
 
       
-      <section class="view" id="view-strategy"><!-- fw2_v120_strategy --><div class="card" id="stratCycleCard"></div><div class="card strat-hero" id="stratHero"></div><div class="strat-tabs v-tabs" id="stratTabs"><button class="st-tab v-tab active" data-st="alloc">资产配置</button><button class="st-tab v-tab" data-st="rules">策略规则</button><button class="st-tab v-tab" data-st="bt">组合回测</button><button class="st-tab v-tab" data-st="cards">逐标的执行卡</button><button class="st-tab v-tab" data-st="ledger">交易台账</button><button class="st-tab v-tab" data-st="plan">定投执行</button><button class="st-tab v-tab" data-st="review">季度复盘</button></div><div class="st-pane" id="stp-alloc"></div><div class="st-pane" id="stp-rules" style="display:none"></div><div class="st-pane" id="stp-bt" style="display:none"></div><div class="st-pane" id="stp-cal" style="display:none"></div><div class="st-pane" id="stp-cards" style="display:none"></div><!-- v167 fw2_v167_xmap_scope：场内外对照自共享层下移至「逐标的执行卡」tab 底部，默认折叠 --><div class="card" id="xmapCard" style="display:none"></div><div class="st-pane" id="stp-ledger" style="display:none"></div><div class="st-pane" id="stp-plan" style="display:none"></div><div class="st-pane" id="stp-review" style="display:none"></div><!-- v167：场内外对照已下移至 #stp-cards 之后（原共享层位置摘除）--></section>
+      <section class="view" id="view-strategy"><!-- fw2_v120_strategy --><div class="card strat-hero" id="stratHero"></div><div class="strat-tabs v-tabs" id="stratTabs"><button class="st-tab v-tab active" data-st="alloc">资产配置</button><button class="st-tab v-tab" data-st="rules">策略规则</button><button class="st-tab v-tab" data-st="bt">组合回测</button><button class="st-tab v-tab" data-st="ledger">交易台账</button><button class="st-tab v-tab" data-st="plan">定投执行</button><button class="st-tab v-tab" data-st="review">季度复盘</button></div><div class="st-pane" id="stp-alloc"></div><div class="st-pane" id="stp-rules" style="display:none"></div><div class="st-pane" id="stp-bt" style="display:none"></div><div class="st-pane" id="stp-ledger" style="display:none"></div><div class="st-pane" id="stp-plan" style="display:none"></div><div class="st-pane" id="stp-review" style="display:none"></div><!-- v167：场内外对照已下移至 #stp-cards 之后（原共享层位置摘除）--></section>
       <!-- v91 fw2_v91_macro_merge：宏观·情绪 独立页曾并入 数据中心 → 宏观数据 分块（v135 已反向拆分，见下） -->
       <!-- fw2_v135_macro_view：宏观数据由「数据中心」分块迁出为独立模块（用户 2026-09-18「宏观数据单独作为一个模块放在数据中心上面」）；#view-data 改名「基金数据」并删除 dcBlocks 切换行（基金数据直接进入内容区，默认总览 Tab） -->
       <section class="view" id="view-macro">
@@ -1581,7 +1581,6 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
       #view-macro .rp-tbl td b{font-weight:600}
       #view-macro .rp-tbl .v-up{color:var(--up,#ef4444);font-weight:600}
       #view-macro .rp-tbl .v-down{color:var(--down,#22c55e);font-weight:600}
-      #view-strategy #stratCycleCard{background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--accent,#4D6BFE);border-radius:var(--radius);padding:12px 16px;margin-bottom:12px}
       /* v177 fw2_v177_stale_warn：全站快照新鲜度警示（死规则②延伸：超阈值要显眼） */
       .stale-warn{color:var(--warn);margin-left:4px}
       #view-macro .mc-pbar.mc-pbar-lg{width:120px;height:8px}
@@ -7475,7 +7474,7 @@ function renderCurrentView() {
     else if (state.view === 'signal') { renderSignalDash(); } /* v36 */
     else if (state.view === 'news') renderNews();
     else if (state.view === 'macro') { loadMacroData(); }
-    else if (state.view === 'strategy') { renderStrategyView(); renderXMap(); } /* fw2_v120_strategy · v132 杠铃/场内外对照迁入 */
+    else if (state.view === 'strategy') { renderStrategyView(); } /* fw2_v120_strategy · v132 杠铃/场内外对照迁入 */
     else if (state.view === 'capbal') { if (window.CAPBAL) window.CAPBAL.render(); } /* fw2_capbal_merge */
     else if (state.view === 'smartmoney') {
       /* fw2_v507d_smnav：内部重渲保持当前子视图（不重置回看板）。
@@ -12983,7 +12982,7 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
        留待与用户确认重设计方案后再动（本轮不做）。
      ★诚实限定：erpCard/peCard/mrgCard/vixCard 定义及其 erpSpark/peSpark/mrgSpark/vixSpark 函数已于 **v529（fw2_v529_smux P3）一并清理**（连同 erpLv/peLv/vixLv/rzyeLv 与顶部 erp/pe/margin/vix 局部变量，mi 页判读走 mcCalcCommon 不受影响）。
        数据/口径零改动，纯前端结构层；描述串「sm 去重 · 删重复估值流动性卡」入 verify_sync 标记组 */
-  if (vc) vc.textContent = 'v644 · 自选池入口回退' /* fw2_v644_revert_watch_tab fw2_v643_mtbl_tier fw2_v642_a500_enh fw2_v641_peak_dd fw2_v640_buy_pct fw2_v639_del_decisionfw2_v516_a500lk fw2_v517_4otc fw2_v518_hspos fw2_v519_sm_merge fw2_v520_chgflat fw2_v521_magnet fw2_v522_overview fw2_v523_sm_dedup fw2_v524_geo_fsi fw2_v525_geo_filter fw2_v526_geo_filter_removed fw2_v527_verdict fw2_v529_smux fw2_v530_datamgmt fw2_v531_sm_dmgmt fw2_v532_all_dm fw2_v533_px_long fw2_v533d_dm_scroll fw2_v534_dm_module fw2_v535_dm_auto fw2_v539_hold_realpnl fw2_v539a_seed_sync fw2_v539a_seed_order fw2_v540_hold_path fw2_v542_pf_mirror_first fw2_v542_mv_settled fw2_v542_mv_account fw2_v543_dm_holdings_note fw2_v544_ledger_mirror_guard fw2_v545_hold_total_row fw2_v546_navdate_all fw2_v547_vix_to_ovs fw2_v548_ovs_mrg fw2_v549_region_align fw2_v550_grp_tabs fw2_v551_sop_cockpit fw2_v552_sop_taborder fw2_v553_chain_data fw2_v554_sop_rename fw2_v556_market_split fw2_v557_sm_renamed fw2_v558_cbrates_fix fw2_v558a_cb_label fw2_v559_chain_dates fw2_v560_chain_verdict fw2_v561_curve_hold fw2_v562_hold_inline fw2_v563_alloc fw2_v564_lxlink fw2_v565_cal_lx fw2_v565_sub_lx fw2_v566_fund_move fw2_v567_fund_merge fw2_v568_lxlink_fix fw2_v569_manager_pool fw2_v570_manager_universe fw2_v571_mgr_east fw2_v574_mgr_subscore fw2_v575_mgr_merge fw2_v576_mgr_group fw2_v577_mgr_lxlink fw2_v578_mgr_lxreal fw2_v579_mgr_weight fw2_v581_fund_lxreal fw2_v582_mgr_min10 fw2_v583_mgr_noyear fw2_v584_mgr_career fw2_v585_mgr_srank fw2_v586_mgr_srank fw2_v587_mgr_since fw2_v588_mgr_lxfull fw2_v589_mgr_rules fw2_v590_mgr_scores fw2_v591_mgr_ladder fw2_v592_mgr_cols fw2_v593_mgr_score fw2_anti_halluc_p0 fw2_v595_alpha_attrib fw2_v596_sig_hist fw2_v597_fund_overlap fw2_v598_mgr_hold fw2_v599_time_decay fw2_v599_corr_pen fw2_v600_buytrack fw2_v601_backtest fw2_v602_kline_page fw2_v603_old_debts fw2_v604_xirr fw2_v605_holdings_global fw2_v606_v11_signal fw2_v607_v11_bt fw2_v608_lx_audit fw2_v609_sig_table fw2_v610_sig_merge fw2_v611_grp_line fw2_v612_index_lxreal fw2_v613_near_blue fw2_v615_sig_grp fw2_v616_sig_hdstyle fw2_v617_sig_vline fw2_v618_sig_lcr fw2_v619_curthr fw2_v620_curthr_all fw2_v621_ret_hpr fw2_v621_t13_lastbuy fw2_v622_lastbuy_auto fw2_v623_firstbuy_roll fw2_v623_alloc_watch fw2_v624_m13_m17 fw2_v626_sig_cost_guard fw2_v626_watch_pe_exempt fw2_v627_colorder fw2_v627_action_plan fw2_v627_data_date fw2_v628_fixed_cols fw2_v629_pool_pile_guard fw2_v629_t9_pfdate fw2_v630_missing_cost fw2_v631_pool_held_live fw2_v632_held_off fw2_v633_ledger_tx_sync fw2_v634_plan_dir fw2_v635_capbal_fix fw2_v636_capbal_converge fw2_v637_mv_consist fw2_v638_mv_unify */ + (window.getAllocWatchCodes ? window.getAllocWatchCodes().length : 0) + '只';
+  if (vc) vc.textContent = 'v645 · 策略执行瘦身 · 配置自选' /* fw2_v644_revert_watch_tab fw2_v643_mtbl_tier fw2_v642_a500_enh fw2_v641_peak_dd fw2_v640_buy_pct fw2_v639_del_decisionfw2_v516_a500lk fw2_v517_4otc fw2_v518_hspos fw2_v519_sm_merge fw2_v520_chgflat fw2_v521_magnet fw2_v522_overview fw2_v523_sm_dedup fw2_v524_geo_fsi fw2_v525_geo_filter fw2_v526_geo_filter_removed fw2_v527_verdict fw2_v529_smux fw2_v530_datamgmt fw2_v531_sm_dmgmt fw2_v532_all_dm fw2_v533_px_long fw2_v533d_dm_scroll fw2_v534_dm_module fw2_v535_dm_auto fw2_v539_hold_realpnl fw2_v539a_seed_sync fw2_v539a_seed_order fw2_v540_hold_path fw2_v542_pf_mirror_first fw2_v542_mv_settled fw2_v542_mv_account fw2_v543_dm_holdings_note fw2_v544_ledger_mirror_guard fw2_v545_hold_total_row fw2_v546_navdate_all fw2_v547_vix_to_ovs fw2_v548_ovs_mrg fw2_v549_region_align fw2_v550_grp_tabs fw2_v551_sop_cockpit fw2_v552_sop_taborder fw2_v553_chain_data fw2_v554_sop_rename fw2_v556_market_split fw2_v557_sm_renamed fw2_v558_cbrates_fix fw2_v558a_cb_label fw2_v559_chain_dates fw2_v560_chain_verdict fw2_v561_curve_hold fw2_v562_hold_inline fw2_v563_alloc fw2_v564_lxlink fw2_v565_cal_lx fw2_v565_sub_lx fw2_v566_fund_move fw2_v567_fund_merge fw2_v568_lxlink_fix fw2_v569_manager_pool fw2_v570_manager_universe fw2_v571_mgr_east fw2_v574_mgr_subscore fw2_v575_mgr_merge fw2_v576_mgr_group fw2_v577_mgr_lxlink fw2_v578_mgr_lxreal fw2_v579_mgr_weight fw2_v581_fund_lxreal fw2_v582_mgr_min10 fw2_v583_mgr_noyear fw2_v584_mgr_career fw2_v585_mgr_srank fw2_v586_mgr_srank fw2_v587_mgr_since fw2_v588_mgr_lxfull fw2_v589_mgr_rules fw2_v590_mgr_scores fw2_v591_mgr_ladder fw2_v592_mgr_cols fw2_v593_mgr_score fw2_anti_halluc_p0 fw2_v595_alpha_attrib fw2_v596_sig_hist fw2_v597_fund_overlap fw2_v598_mgr_hold fw2_v599_time_decay fw2_v599_corr_pen fw2_v600_buytrack fw2_v601_backtest fw2_v602_kline_page fw2_v603_old_debts fw2_v604_xirr fw2_v605_holdings_global fw2_v606_v11_signal fw2_v607_v11_bt fw2_v608_lx_audit fw2_v609_sig_table fw2_v610_sig_merge fw2_v611_grp_line fw2_v612_index_lxreal fw2_v613_near_blue fw2_v615_sig_grp fw2_v616_sig_hdstyle fw2_v617_sig_vline fw2_v618_sig_lcr fw2_v619_curthr fw2_v620_curthr_all fw2_v621_ret_hpr fw2_v621_t13_lastbuy fw2_v622_lastbuy_auto fw2_v623_firstbuy_roll fw2_v623_alloc_watch fw2_v624_m13_m17 fw2_v626_sig_cost_guard fw2_v626_watch_pe_exempt fw2_v627_colorder fw2_v627_action_plan fw2_v627_data_date fw2_v628_fixed_cols fw2_v629_pool_pile_guard fw2_v629_t9_pfdate fw2_v630_missing_cost fw2_v631_pool_held_live fw2_v632_held_off fw2_v633_ledger_tx_sync fw2_v634_plan_dir fw2_v635_capbal_fix fw2_v636_capbal_converge fw2_v637_mv_consist fw2_v638_mv_unify */ + (window.getAllocWatchCodes ? window.getAllocWatchCodes().length : 0) + '只';
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
@@ -16909,36 +16908,10 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
       monthlyOf: function (code) { return alloc[code] || 0; } };
   }
   /* ---- 主渲染 ---- */
-  function renderStratCycle() {
-    /* v198 fw2_v198_cycle_replay：宏观周期→策略执行自动联动（数据驱动，无宏观数据时占位） */
-    var el = document.getElementById('stratCycleCard'); if (!el) return;
-    var d = (window.state && state.macro) || null;
-    if (!d) { el.innerHTML = '<div class="card-h"><h3>周期联动</h3><span class="hint">宏观数据加载后自动联动</span></div><div class="rv-line"><span class="tag tag-data">状态</span><span>等待宏观快照…</span></div>'; return; }
-    var cyc = (window.cycleEngine) ? cycleEngine(d) : null;
-    if (!cyc) { el.innerHTML = '<div class="card-h"><h3>周期联动</h3><span class="hint">引擎未就绪</span></div>'; return; }
-    var t = cyc.layers.temp, l1 = cyc.layers.l1.phase.s, l3 = cyc.layers.l3.phase.s;
-    var it = cyc.indTilt || null;
-    var rows = [];
-    if (t != null && t < 30) rows.push('加倍档可触发（温度 ' + t + ' &lt;30 → 建仓×2 规则生效）');
-    else if (t != null && t <= 59) rows.push('中性区（温度 ' + t + '）：常态定投，不加倍不停买');
-    else if (t != null && t <= 74) rows.push('偏暖（温度 ' + t + '）：控制新仓，逼近停买线（&gt;70）');
-    else if (t != null) rows.push('过热（温度 ' + t + '）：停买警戒（分位 &gt;70 规则）');
-    if (l1.indexOf('滞胀') >= 0) rows.push('滞胀定位：短融/黄金/红利优先，A股簇维持常态');
-    else if (l1 === '衰退') rows.push('衰退定位：安全垫优先，A股簇放缓');
-    else if (l1 === '复苏') rows.push('复苏定位：A股簇正常推进，成长弹性可期待');
-    else if (l1 === '过热') rows.push('过热定位：商品/资源占优，A股簇注意止盈');
-    if (l3.indexOf('补库') >= 0) rows.push('补库确认：中游/上游倾向，A股簇正常推进');
-    else if (l3 === '主动去库') rows.push('主动去库：出清期，现金等待');
-    if (it && it.grp1) rows.push('行业倾向：' + it.why + ' → ' + it.grp1 + (it.grp2 ? '/' + it.grp2 : '') + '优先');
-    el.innerHTML = '<div class="card-h"><h3>周期联动</h3><span class="hint">宏观周期 → 策略执行 · 自动联动（' + (d.updatedAt || '') + '）</span></div>'
-      + '<div class="rv-line"><span class="tag tag-ai">建议</span><span>' + rows.join(' · ') + '</span></div>'
-      + '<div class="rv-line"><span class="tag tag-data">口径</span><span>由宏观周期引擎实时计算（与宏观周期模块同口径）；加倍/停买档位与 STRATEGY_SNAP 五步规则对齐；不构成投资建议</span></div>';
-  }
+  /* fw2_v645_strat_slim：策略执行瘦身（Tab 7→6）——摘 renderStratCycle（周期联动卡，与交易信号 M 组重叠）/
+     renderStratCal（执行日历打卡）/ renderStratCards（逐标的执行卡，交易信号页持仓信号已覆盖）；函数保留死代码 */
   function renderStrategyView() {
-    try { renderStratCycle(); } catch (e) {}
     try { renderStratHero(); } catch (e) {}
-    try { renderStratCal(); } catch (e) {}
-    try { renderStratCards(); } catch (e) {}
     try { renderLedger(); } catch (e) {}
     try { renderRules(); } catch (e) {}   /* v348 阶段②：策略规则（可投资金 + 档位规则表 + 纳指同族上限引擎） */
     try { renderBacktest(); } catch (e) {} /* v350 阶段③：组合模拟回测（杠铃策略历史组合模拟） */
@@ -17833,106 +17806,6 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
     return null;
   }
 
-  function calCells() {
-    /* fw2_v485_cal_rem：剩余月改「以本月为锚、与 hero monthsLeft() 同口径」——
-       本月 = monthsLeft()，往后逐月 −1，buildEnd 月 = 结束（非定投月），本月之前 = 已过。
-       修原 `monthsLeft() − 格子序号`（把已过月也算进去 → 本月显示 9 而 hero 显示 10，末两格挤成 1）。 */
-    var src = (S.calendar && S.calendar.length)
-      ? S.calendar.map(function (c) { return { ym: c.ym, drip: c.drip, note: c.note || [] }; })
-      : (function () {
-          var notes = { '2026-09': ['首投预检 5 项', '保存分位快照'], '2026-12': ['季度复盘 Q4', 'C-07 半年重跑'], '2027-03': ['季度复盘 Q1'], '2027-06': ['季度复盘 Q2', 'C-07 半年重跑'], '2027-08': ['建仓期结束核对'] };
-          var out = [], t = new Date(S.start + 'T00:00:00');
-          for (var k = 0; k < 12; k++) {
-            var d = new Date(t.getFullYear(), t.getMonth() + k, 28), last = new Date(d.getFullYear(), d.getMonth() + 1, 0);
-            var ym = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
-            var ds = last.getFullYear() + '-' + String(last.getMonth() + 1).padStart(2, '0') + '-' + String(last.getDate()).padStart(2, '0');
-            out.push({ ym: ym, drip: ds, note: notes[ym] || [] });
-          }
-          return out;
-        })();
-    var curYm = todayStr().slice(0, 7), ml = monthsLeft(), curIdx = -1;
-    src.forEach(function (c, i) { if (c.ym === curYm) curIdx = i; });
-    return src.map(function (c, i) {
-      var past = c.ym < curYm, rem, end = false;
-      if (curIdx >= 0) { rem = ml - (i - curIdx); }
-      else { rem = past ? ml + 1 : ml; }
-      if (!past && rem <= 0) { end = true; }
-      return { ym: c.ym, drip: c.drip, note: c.note, rem: rem, past: past, end: end, cur: c.ym === curYm };
-    });
-  }
-  /* fw2_v481_strat_p1：执行日历改造——点月份展开当月执行单，逐只确认「未投/部分/已投 + 实际金额」，
-     存 STRAT_LS_EXEC；计划额=实时差额÷该月剩余月；汇总欠投/超额并提示对后续月的影响。确认仅作纪律跟踪，
-     不改 gapOf（实际持仓以「我的持仓/台账」为准，避免与 mv 双计）。 */
-  var STRAT_LS_EXEC = 'fw2_strat_exec';
-  var _stratCalSel = null;
-  function execGet() { try { return JSON.parse(localStorage.getItem(STRAT_LS_EXEC) || '{}') || {}; } catch (e) { return {}; } }
-  function execSet(o) { try { localStorage.setItem(STRAT_LS_EXEC, JSON.stringify(o)); } catch (e) {} }
-  function monthPlan(ym) {
-    var cells = calCells(), idx = -1;
-    cells.forEach(function (c, i) { if (c.ym === ym) idx = i; });
-    var rem = idx >= 0 ? cells[idx].rem : monthsLeft();
-    var eng = stratCompute();   // fw2_v482：本月应投统一取 stratCompute（与月度定投表同口径）
-    var list = S.assets.map(function (a) {
-      if (_DAILY_LIMIT[a.code]) return { code: a.code, name: a.name, plan: 0, note: _DAILY_LIMIT[a.code] };
-      var g = gapOf(a.code);
-      return { code: a.code, name: a.name, plan: eng.monthlyOf(a.code), gap: g ? g.gap : 0 };
-    });
-    return { rem: rem, list: list };
-  }
-  function calDetailHtml(ym) {
-    var mp = monthPlan(ym), ex = execGet(), rec = ex[ym] || {};
-    var rows = mp.list.map(function (r) {
-      var e = rec[r.code] || { st: 'todo', amt: '' };
-      return '<tr><td><b>' + esc(r.name) + '</b> <span class="muted" style="font-size:11px">' + r.code + '</span></td>'
-        + '<td class="qty">' + (r.note ? r.note : fmt(r.plan)) + '</td>'
-        + '<td><select data-ec="' + r.code + '">'
-          + '<option value="todo"' + (e.st === 'todo' ? ' selected' : '') + '>未投</option>'
-          + '<option value="part"' + (e.st === 'part' ? ' selected' : '') + '>部分</option>'
-          + '<option value="done"' + (e.st === 'done' ? ' selected' : '') + '>已投</option>'
-        + '</select></td>'
-        + '<td><input data-ea="' + r.code + '" type="number" min="0" placeholder="实际金额" value="' + (e.amt || '') + '" style="width:96px;padding:3px 6px;border:1px solid var(--line-mid,#d8dee6);border-radius:6px"></td></tr>';
-    }).join('');
-    var planSum = mp.list.reduce(function (a, r) { return a + (r.plan || 0); }, 0);
-    var actSum = mp.list.reduce(function (a, r) { var e = rec[r.code]; return a + ((e && e.amt) ? +e.amt : 0); }, 0);
-    var delta = actSum - planSum;
-    var imp = delta < -1 ? '<b style="color:var(--up,#dc2626)">欠投 ¥' + fmt(-delta) + '</b>：未计入持仓，若确已买入请到「我的持仓/台账」同步；否则并入后续月，每月约 +¥' + fmt(mp.rem > 1 ? Math.round(-delta / mp.rem) : Math.round(-delta)) + '。'
-      : delta > 1 ? '<b style="color:var(--green,#16a34a)">超额 ¥' + fmt(delta) + '</b>：提前建仓，后续月自动下调。'
-      : (actSum > 0 ? '<b style="color:var(--green,#16a34a)">本月已按计划完成</b>' : '尚未确认执行');
-    return '<div class="st-card" style="margin-top:10px"><h4>' + ym + ' 执行单（剩 ' + mp.rem + ' 月）</h4>'
-      + '<div class="strat-note">计划合计 ¥' + fmt(planSum) + ' · 实际投入 ¥' + fmt(actSum) + ' · ' + imp + '</div>'
-      + '<div class="tbl-scroll"><table class="st-tbl"><colgroup><col style="width:38%"><col style="width:18%"><col style="width:16%"><col style="width:28%"></colgroup><thead><tr><th>标的</th><th>本月应投</th><th>状态</th><th>实际金额</th></tr></thead><tbody>' + rows + '</tbody></table></div>'
-      + '<div style="margin-top:8px"><button class="btn btn-sm btn-primary" id="stExecSave">保存本月确认</button> <button class="btn btn-sm" id="stExecClose">收起</button></div></div>';
-  }
-  function renderStratCal() {
-    var el = document.getElementById('stp-cal');
-    if (!el) return;
-    var today = todayStr(), ex = execGet();
-    var html = '<div class="strat-note">定投日 = 每月最后一个交易日。<b>点任意月份可展开当月执行单</b>，逐只确认「未投/部分/已投 + 实际金额」并保存；计划额 = 目标 ÷ 总定投月数（固定分期，不随已持/现金变）。确认用于纪律跟踪与欠投/超额提示，实际持仓以「我的持仓/台账」为准。</div><div class="sc-grid">';
-    calCells().forEach(function (c) {
-      var rec = ex[c.ym] || {}, hasRec = Object.keys(rec).length > 0, isCur = today.slice(0, 7) === c.ym, isSel = _stratCalSel === c.ym;
-      html += '<div class="sc-cell' + (c.past ? ' past' : '') + (isCur ? ' cur' : '') + (isSel ? ' sel' : '') + '" data-ym="' + c.ym + '" style="cursor:pointer">' +
-        '<div class="m">' + c.ym + ' <span style="color:var(--muted);font-weight:400;font-size:10px">' + (c.past ? '已过' : c.end ? '结束核对' : '剩 ' + c.rem + ' 月') + '</span></div>' +
-        '<div class="d">定投 ' + c.drip + '</div>' +
-        (isCur ? '<div class="x" style="color:var(--brand);font-weight:600">本月</div>' : '') +
-        c.note.map(function (n) { return '<span class="bdg' + (n.indexOf('复盘') >= 0 || n.indexOf('C-07') >= 0 ? (n.indexOf('C-07') >= 0 ? ' c07' : '') : '') + '">' + n + '</span>'; }).join('') +
-        (hasRec ? '<span class="bdg done">✓ 有记录</span>' : '') +
-        '</div>';
-    });
-    html += '</div>';
-    if (_stratCalSel) html += calDetailHtml(_stratCalSel);
-    el.innerHTML = html;
-    Array.prototype.forEach.call(el.querySelectorAll('.sc-cell'), function (cell) {
-      cell.onclick = function () { _stratCalSel = (_stratCalSel === cell.dataset.ym ? null : cell.dataset.ym); renderStratCal(); };
-    });
-    var save = document.getElementById('stExecSave');
-    if (save) save.onclick = function () {
-      var ex2 = execGet(), rec = ex2[_stratCalSel] || {};
-      Array.prototype.forEach.call(el.querySelectorAll('[data-ec]'), function (s) { var c = s.dataset.ec; rec[c] = rec[c] || {}; rec[c].st = s.value; });
-      Array.prototype.forEach.call(el.querySelectorAll('[data-ea]'), function (inp) { var c = inp.dataset.ea; rec[c] = rec[c] || {}; rec[c].amt = inp.value ? +inp.value : 0; });
-      ex2[_stratCalSel] = rec; execSet(ex2); renderStratCal();
-    };
-    var close = document.getElementById('stExecClose'); if (close) close.onclick = function () { _stratCalSel = null; renderStratCal(); };
-  }
   function doneMonths() {
     var recs = lsGet(STRAT_LS_REC, []), out = {};
     recs.forEach(function (r) { if (r && r.date) out[String(r.date).slice(0, 7)] = 1; });
@@ -18180,7 +18053,7 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
       themeStrip += '<div class="theme-chip ' + tcls + '"><b>' + esc(t.name) + '</b>' + (t.n > 1 ? '<em>×' + t.n + '</em>' : '') + '<span>目标 ' + amt(t.tgt) + '</span><span>实际 ' + amt(t.mv) + '</span><span class="t-pct">占比 ' + tPct.toFixed(1) + '%</span><span class="t-off">' + (off > 0 ? '+' : '') + off.toFixed(1) + '%</span></div>';
     });
     themeStrip += '</div>';
-    html += '<div class="st-card"><h4>资产配置（5 万计划 · 目标 11 只' + (_extraPlanCount ? ' · 计划外 ' + _extraPlanCount + ' 只' : '') + '）<span style="font-weight:400;font-size:11px;color:var(--slate-400,#94a3b8)"> · 策略配置截至 ' + esc(S.updatedAt || '') + ' · 实际市值截至 ' + ((state.snapshot && state.snapshot.at) ? fmtClock(state.snapshot.at) : '未更新') + '（净值随 fund-daily）</span></h4><div class="strat-note">目标 = 计划配置；实际 = 持仓市值（份额 × 最新净值/行情估值）；调仓金额 = 目标 − 实际（+需买入 / −需卖出）；目标偏移 = 调仓金额 ÷ 目标。未建仓标的暂不显示差额偏移，执行按「差额 ÷ 剩余月」逐月推进。001015 300增强已恢复建仓（宽基内让出）。计划外持仓 = 存量标的未纳入配置目标（含现金），相对目标 0 完全超配，建议按纪律调整。口径：表格按档位分组（底仓/缓冲、进攻/主题、安全垫、对冲、计划外），档位列合并显示档位平衡目标%（见上方「档位再平衡」卡）；「标的占比」= 持仓市值 ÷ 总目标（未建仓 0.00%，合计 = 各行之和）；第 5 列「主题」= 底层指数/资产本质，同本质资产同组相邻（如 纳指100 = 南方纳指100 + 万家纳斯达克100）；「目标占比」= 各标的目标金额 ÷ 总目标（合计 100.00%）；「标的占比」= 持仓市值 ÷ 总目标（未建仓 0.00%，合计 = 各行之和）；同主题 ≥2 只时输出主题小计行（如 纳指100 = 016452+019441，未来同类自动小计）；纳指类存量已按资产属性并入「进攻/主题」组，其目标仍为 0（调仓 = 清仓口径）；货币基金类存量（007866 活期宝）并入「安全垫」组（档位目标合计不变，仍 10%），目标 0、实际按持仓市值计入档位（511360 短融建仓后安全垫实际占比随之上升），未来其他货币基金自动同主题「现金」汇总小计。主题敞口「占比」= 实际市值 ÷ 总目标（5 万），与档位卡/资产配置表同口径（现金 007866 = 2.0%）；现金目标 0 = v258 拍板清仓口径（不设建仓目标、安全垫 10% 目标由短融承担），「-100%」表示相对 0 目标的超配，并非强制清仓指令——货基实际占比看「占比」列。</div>' +
+    html += '<div class="st-card"><h4>资产配置（5 万计划 · 目标 11 只' + (_extraPlanCount ? ' · 计划外 ' + _extraPlanCount + ' 只' : '') + '）<span style="font-weight:400;font-size:11px;color:var(--slate-400,#94a3b8)"> · 策略配置截至 ' + esc(S.updatedAt || '') + ' · 实际市值截至 ' + ((state.snapshot && state.snapshot.at) ? fmtClock(state.snapshot.at) : '未更新') + '（净值随 fund-daily）</span></h4><div class="strat-note">目标 = 计划配置；实际 = 持仓市值（份额 × 最新净值）；调仓金额 = 目标 − 实际；未建仓标的按「差额 ÷ 剩余月」逐月推进；计划外持仓 = 存量未纳入目标（相对目标 0 超配）。口径详见行内分组与「策略规则」tab。</div>' +
       (themeList.length ? '<div class="theme-head">主题敞口 · 同本质资产合并（含计划外）</div>' + themeStrip : '') +
       '<div class="tbl-scroll"><table class="st-tbl alloc-tbl">' +
       '<colgroup><col style="width:8%"><col style="width:8%"><col style="width:7%"><col style="width:16%"><col style="width:8%"><col style="width:9%"><col style="width:7%"><col style="width:9%"><col style="width:7%"><col style="width:9%"><col style="width:12%"></colgroup>' +
@@ -18383,7 +18256,7 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
     (S.events || []).forEach(function (e) { var st = evState(e); if (st.key === 'act' || st.key === 'near') items.push({ t: e.cond + ' → ' + e.act, c: st.key }); });
     var badge = { cal: '#4D6BFE', note: '#7c3aed', rev: '#0891b2', act: '#dc2626', near: '#d97706' };
     return '<div class="st-card"><h4>当月待办清单（' + ym + ' · 自动生成）</h4>' +
-      '<div class="strat-note">由日历轨（定投/复盘）+ 事件轨（已触发/临界）实时汇总。</div>' +
+      '<div class="strat-note">由定投/复盘日程 + 事件状态（已触发/临界）实时汇总。</div>' +
       '<div style="display:flex;flex-direction:column;gap:6px">' +
       (items.length ? items.map(function (it) { return '<div style="display:flex;align-items:flex-start;gap:8px;font-size:12px"><span style="flex:0 0 auto;width:8px;height:8px;border-radius:50%;margin-top:5px;background:' + badge[it.c] + '"></span><span>' + esc(it.t) + '</span></div>'; }).join('') : '<div style="color:var(--muted);font-size: 12px">本月无待办 · 保持定投节奏</div>') +
       '</div></div>';
@@ -18412,7 +18285,7 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
         at: new Date().toISOString()
       });
       lsSet(STRAT_LS_REC, recs);
-      renderRecList(); renderStratCal();
+      renderRecList();
     });
     var cp = document.getElementById('recCopyMd');
     if (cp) cp.addEventListener('click', function () {
@@ -18438,7 +18311,7 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
         var recs = lsGet(STRAT_LS_REC, []);
         recs.splice(+b.dataset.i, 1);
         lsSet(STRAT_LS_REC, recs);
-        renderRecList(); renderStratCal();
+        renderRecList();
       });
     });
   }
@@ -18449,7 +18322,7 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
     var q = (el.dataset.q) || '2026-12-31';
     var html = '<div class="rev-q"><select id="revQuarter">' +
       S.reviews.map(function (r) { return '<option value="' + r[0] + '"' + (r[0] === q ? ' selected' : '') + '>' + r[0] + ' · ' + r[1] + '</option>'; }).join('') +
-      '</select><span class="strat-note" style="margin:0">每季末定投日当天执行（3/6/9/12 月末）· 数据自动带出，核对后勾选</span>' +
+      '</select><span class="strat-note" style="margin:0">每季末定投日当天执行（3/6/9/12 月末）· 逐项人工核对后勾选（fw2_v645_strat_slim：执行日历打卡已删）</span>' +
       '<span class="rev-prog" id="revProg"></span></div><div id="revList"></div>';
     el.innerHTML = html;
     var sel = document.getElementById('revQuarter');
@@ -18460,37 +18333,9 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
     var all = lsGet(STRAT_LS_REV, {});
     return all[q] || { items: {} };
   }
-  /* fw2_v483_strat_p3：季度复盘自动汇总「执行日历」的逐月确认（STRAT_LS_EXEC）——本季各月 计划vs实际、欠投/超额，回链 reviewItem#7。 */
-  function quarterMonths(q) {
-    var y = +q.slice(0, 4), mo = +q.slice(5, 7);
-    var out = [];
-    for (var k = 2; k >= 0; k--) { var m = mo - k, yy = y; if (m <= 0) { m += 12; yy -= 1; } out.push(yy + '-' + String(m).padStart(2, '0')); }
-    return out;
-  }
-  function reviewExecSummary(q) {
-    var ex = execGet(), eng = stratCompute();
-    var rows = '', planT = 0, actT = 0, anyRec = false;
-    quarterMonths(q).forEach(function (ym) {
-      var rec = ex[ym] || {}; var has = Object.keys(rec).length > 0; if (has) anyRec = true;
-      var mp = monthPlan(ym);
-      var plan = mp.list.reduce(function (a, r) { return a + (r.plan || 0); }, 0);
-      var act = mp.list.reduce(function (a, r) { var e = rec[r.code]; return a + ((e && e.amt) ? +e.amt : 0); }, 0);
-      planT += plan; actT += act;
-      var d = act - plan;
-      var tag = !has ? '<span class="muted">未确认</span>' : (d < -1 ? '<b style="color:var(--up,#dc2626)">欠投 ' + fmt(-d) + '</b>' : d > 1 ? '<b style="color:var(--green,#16a34a)">超额 ' + fmt(d) + '</b>' : '<b style="color:var(--green,#16a34a)">达成</b>');
-      rows += '<tr><td>' + ym + '</td><td class="qty">' + fmt(plan) + '</td><td class="qty">' + (has ? fmt(act) : '—') + '</td><td>' + tag + '</td></tr>';
-    });
-    var qd = actT - planT;
-    var qtag = !anyRec ? '<span class="muted">本季尚未录入执行确认</span>' : qd < -1 ? '<b style="color:var(--up,#dc2626)">本季累计欠投 ¥' + fmt(-qd) + '</b>，按当前剩余月（' + eng.ml + '）后续每月约需 +¥' + fmt(Math.round(-qd / Math.max(1, eng.ml))) + ' 追回' : qd > 1 ? '<b style="color:var(--green,#16a34a)">本季累计超额 ¥' + fmt(qd) + '</b>，后续月自动下调' : '<b style="color:var(--green,#16a34a)">本季按计划完成</b>';
-    return '<div class="st-card" style="margin-bottom:10px"><h4>本季执行汇总（自动带出·日历确认）</h4>'
-      + '<div class="strat-note">' + qtag + '</div>'
-      + '<div class="tbl-scroll"><table class="st-tbl"><colgroup><col style="width:22%"><col style="width:26%"><col style="width:26%"><col style="width:26%"></colgroup><thead><tr><th>月份</th><th>计划合计</th><th>实际投入</th><th>结果</th></tr></thead><tbody>' + rows
-      + '<tr class="st-total" style="font-weight:700;border-top:2px solid var(--line-mid)"><td>季度合计</td><td class="qty">' + fmt(planT) + '</td><td class="qty">' + fmt(actT) + '</td><td></td></tr>'
-      + '</tbody></table></div></div>';
-  }
   function renderRevItems(q) {
     var data = loadRev(q);
-    var html = reviewExecSummary(q), okCount = 0;
+    var html = '', okCount = 0; /* fw2_v645_strat_slim：原 reviewExecSummary(q)（执行日历打卡自动汇总）随打卡删除；#7 本为 manual 手动核对项 */
     S.reviewItems.forEach(function (it) {
       var st = data.items[String(it.id)] || { ok: false, note: '' };
       if (st.ok) okCount++;
@@ -18619,10 +18464,7 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
   /* ---- tab 切换 ---- */
   function switchStratTab(name) {
     Array.prototype.forEach.call(document.querySelectorAll('#view-strategy .st-tab'), function (b) { b.classList.toggle('active', b.dataset.st === name); });
-    Array.prototype.forEach.call(document.querySelectorAll('#view-strategy .st-pane'), function (p) { p.style.display = (p.id === 'stp-' + name || (name === 'plan' && p.id === 'stp-cal')) ? '' : 'none'; });
-    /* v167 fw2_v167_xmap_scope：场内外对照只随「逐标的执行卡」tab 显隐 */
-    var xm = document.getElementById('xmapCard');
-    if (xm) xm.style.display = name === 'cards' ? '' : 'none';
+    Array.prototype.forEach.call(document.querySelectorAll('#view-strategy .st-pane'), function (p) { p.style.display = p.id === 'stp-' + name ? '' : 'none'; }); /* fw2_v645_strat_slim */
     /* v234：事件触发表已整体删除（用户 2026-09-26 要求不再显示） */
     /* v350：组合回测 pane 兜底渲染（init 竞态下确保内容存在）+ 净值曲线 resize（隐藏容器 init 尺寸异常修复） */
     if (name === 'bt') {
