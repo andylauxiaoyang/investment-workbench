@@ -1222,6 +1222,8 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
                   <th data-page-node-id="KEEnVp3Z4MzPXgVVbYRqDy" class="num"><!--pnid:y3JVQIVbKc3VqkTPodnSfO-->现价</th>
                   <th data-page-node-id="hwtHtXS8e0ZOxbvIb9bC5L" class="num" title="当日涨跌幅（镜像 chg，与净值同源）"><!--pnid:qC1iMaNcfWnTIiWXjUdvEd-->日涨跌幅</th>
                   <th class="num" title="本轮首笔买入净值 → 最新净值的累计涨跌幅（单位净值口径，分红未再投）；下方为第一笔买入日期">买入涨跌幅</th>
+                  <th class="num" title="首笔买入以来净值最高点相对买入价的涨幅（≥0，0%＝买入后从未回本）；下方为峰值日期">买入峰值</th>
+                  <th class="num" title="首笔买入以来自运行峰值的最深跌幅（≤0，以买入价为初始运行峰值）；下方为谷底日期">最大回撤</th>
                   <th data-page-node-id="5vzcfXhFqnVtDseFKEFhPZ" class="num"><!--pnid:WPnPJouPTGARkLZ5GCQEew-->权重</th>
                   <th data-page-node-id="h63mgk7xzawgdmcZ0XtqSm" class="num"><!--pnid:ypZ8J8h0wgiNdPXqacA0hG-->30日</th>
                   <th data-page-node-id="dyerTZf37ttPziAXVQE0pu"><!--pnid:0TDUP1T8iToEbiCO9jgiFJ-->市场</th>
@@ -4860,6 +4862,29 @@ function buildRows() {
     var _hprR = isFinite(_hprRaw) ? _hprRaw : null;
     if (_dpR != null) dayLocal = _dpR / (fx || 1);
     if (_hpR != null) totLocal = _hpR / (fx || 1);
+    /* v641 fw2_v641_peak_dd：买入峰值/最大回撤——锚定 firstBuyNav。
+       峰值＝首笔买入以来 nav/firstBuyNav−1 的最大值（≥0，含买入日 0 锚：0%=从未回本），副行峰值日期；
+       回撤＝自运行峰值（初始＝买入价）的最深跌幅（≤0），副行谷底日期。
+       日频序列来自 fund-daily.json（renderHoldings 拉取时同步存 window.__NAV_SERIES__）；
+       序列未加载/货基无数据 → null 显「—」，加载后重渲染自动补齐（与 __ALLOC_NAV__ 同机制）。 */
+    var _pk6 = String(h.code || '').replace(/\D/g, '').slice(-6);
+    var _fbnV = (h.firstBuyNav != null && isFinite(Number(h.firstBuyNav)) && Number(h.firstBuyNav) > 0) ? Number(h.firstBuyNav) : null;
+    var _pkPct = null, _pkD = '', _mddV = null, _mddD = '', _mddTop = '';
+    if (h.assetType !== 'cash' && _fbnV != null && h.firstBuyDate && window.__NAV_SERIES__ && window.__NAV_SERIES__[_pk6]) {
+      _pkPct = 0; _pkD = h.firstBuyDate; /* 买入日锚：峰值≥0 */
+      var _runPk = _fbnV; _mddTop = h.firstBuyDate;
+      var _seg = window.__NAV_SERIES__[_pk6];
+      for (var _si = 0; _si < _seg.length; _si++) {
+        var _sd = _seg[_si][0], _sn = _seg[_si][1];
+        if (_sd < h.firstBuyDate || !(_sn > 0)) continue;
+        if (_sn > _runPk) { _runPk = _sn; _mddTop = _sd; }
+        var _dd = _sn / _runPk - 1;
+        if (_mddV == null || _dd < _mddV) { _mddV = _dd; _mddD = _sd; }
+        var _pp = _sn / _fbnV - 1;
+        if (_pp > _pkPct) { _pkPct = _pp; _pkD = _sd; }
+      }
+      _pkPct = _pkPct * 100; _mddV = (_mddV != null ? _mddV : 0) * 100;
+    }
     return {
       code: h.code, name: (quote && quote.name) || h.name || shortCode(h.code),
       market, marketLabel: marketLabelOf(atKey, market, h.name), cur: CUR_SYMBOL[market],
@@ -4881,6 +4906,7 @@ function buildRows() {
       firstBuyNav: (h.firstBuyNav != null && isFinite(Number(h.firstBuyNav)) && Number(h.firstBuyNav) > 0) ? Number(h.firstBuyNav) : null,
       firstBuyDate: h.firstBuyDate || '',
       buyPct: (h.assetType !== 'cash' && price != null && price > 0 && h.firstBuyNav != null && isFinite(Number(h.firstBuyNav)) && Number(h.firstBuyNav) > 0) ? (price / Number(h.firstBuyNav) - 1) * 100 : null,
+      peakPct: _pkPct, peakDate: _pkD, mdd: _mddV, mddDate: _mddD,
       quoteTime: quote ? quote.time : '',
     };
   });
@@ -5695,11 +5721,16 @@ function renderHoldings() {
       fetch(urls[i], { cache: 'no-cache' }).then(function (r) { return r.ok ? r.json() : null; }).then(function (d) {
         if (d && d.rows) {
           var map = {};
+          var ser = {}; /* v641 fw2_v641_peak_dd：完整日频净值序列（按 code 索引、日期升序），供买入峰值/最大回撤计算 */
           d.rows.forEach(function (row) {
             if (!row || !row.code || row.nav == null) return;
             var c6 = String(row.code).replace(/\D/g, '').slice(-6);
             if (!map[c6] || row.d > map[c6].d) map[c6] = { d: row.d, nav: row.nav };
+            if (!ser[c6]) ser[c6] = [];
+            ser[c6].push([row.d, row.nav]);
           });
+          Object.keys(ser).forEach(function (k) { ser[k].sort(function (a, b) { return a[0] < b[0] ? -1 : (a[0] > b[0] ? 1 : 0); }); });
+          window.__NAV_SERIES__ = ser;
           window.__ALLOC_NAV__ = map;
           if (typeof renderHoldings === 'function') renderHoldings();
         } else if (i + 1 < urls.length) { tryLoad(i + 1); }
@@ -5746,7 +5777,7 @@ function renderHoldings() {
   renderDiscipline(all);
   const tbody = $('#hdTable tbody');
   if (!sorted.length) {
-    tbody.innerHTML = '<tr><td colspan="17" class="empty">暂无持仓，点击「＋ 新增持仓」添加</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="19" class="empty">暂无持仓，点击「＋ 新增持仓」添加</td></tr>';
   } else {
     tbody.innerHTML = sorted.map((r) => {
       const mv = cny ? r.mvCny : r.mvLocal;
@@ -5774,6 +5805,8 @@ function renderHoldings() {
         <td class="num ${cls(r.pct)}">${r.price == null ? '—' : fmtNum(r.price, r.price < 10 ? 3 : 2)}<div class="sub-line" style="font-size:10.5px;color:var(--muted)">${r.navDate ? esc(r.navDate.slice(5)) : '—'}</div></td>
         <td class="num ${cls(r.pct)}">${fmtPct(r.pct)}</td>
         <td class="num ${r.buyPct != null ? cls(r.buyPct) : ''}">${r.buyPct == null ? '—' : fmtPct(r.buyPct)}<div class="sub-line" style="font-size:10.5px;color:var(--muted)" title="第一笔买入日期">${r.firstBuyDate ? esc(r.firstBuyDate.slice(0, 10)) : '—'}</div></td>
+        <td class="num ${r.peakPct != null && r.peakPct > 0 ? 'up' : ''}">${r.peakPct == null ? '—' : fmtPct(r.peakPct)}<div class="sub-line" style="font-size:10.5px;color:var(--muted)" title="峰值日期（0%＝从未回本，日期为买入日）">${r.peakPct == null ? '—' : esc(r.peakDate.slice(0, 10))}</div></td>
+        <td class="num ${r.mdd != null && r.mdd < 0 ? 'down' : ''}">${r.mdd == null ? '—' : fmtPct(r.mdd)}<div class="sub-line" style="font-size:10.5px;color:var(--muted)" title="谷底日期">${r.mdd == null ? '—' : esc(r.mddDate.slice(0, 10))}</div></td>
         <td class="num">${r.weight.toFixed(2)}%</td>
         <td class="num"><canvas class="spark" width="78" height="24" data-code="${r.code}"></canvas></td>
         <td><span class="tag tag-${AT_MARKET_LABEL[r.assetType] ? 'fund' : r.market.toLowerCase()}">${r.marketLabel}</span></td>
@@ -5795,6 +5828,8 @@ function renderHoldings() {
           <div class="sub-line ${cls(totals.total)}">${fmtPct(totals.totalPct)}</div></td>
         <td class="num ${cls(totals.day)}"><b>${totCur('day', true)}</b>
           <div class="sub-line ${cls(totals.day)}">${fmtPct(totals.dayPct)}</div></td>
+        <td class="num">—</td>
+        <td class="num">—</td>
         <td class="num">—</td>
         <td class="num">—</td>
         <td class="num">—</td>
@@ -6568,10 +6603,50 @@ function renderFundPerf(rs) {
     const sub = p.avg != null ? ` · 同类平均 ${fmtPct(p.avg)}` : '';
     return `<div class="metric"><div class="k">${labelOf(t)}</div><div class="v ${cls(p.syl)}">${fmtPct(p.syl)}</div><div class="sub-line" style="font-size:10px;color:var(--slate-600,#475569)">${pctRank}${sub}</div></div>`;
   };
+  /* v641 fw2_v641_peak_dd：月度涨跌表（理杏仁「月度回撤」样式）——行=年份、列=1~12月+年度涨跌，
+     单元格＝月末净值环比（上月末→本月末），口径=累计净值（含分红再投，与上方业绩口径注记一致；160422 折算型也因此算得准）。
+     数据源=本模块已有全量累计净值 _acAll（rs.fund.ac 兜底 ft），不发新请求；首月为成立日至月末的 partial 区间（与理杏仁一致）。 */
+  const _mTbl = (() => {
+    const src = _acAll;
+    if (!src || src.length < 25) return '';
+    const mLast = {}, yLast = {};
+    src.forEach((p) => {
+      const d = p.d || '';
+      if (d.length < 7 || !(p.y > 0)) return;
+      const ym = d.slice(0, 7), yr = d.slice(0, 4);
+      if (!mLast[ym] || d >= mLast[ym].d) mLast[ym] = { d, y: p.y };
+      if (!yLast[yr] || d >= yLast[yr].d) yLast[yr] = { d, y: p.y };
+    });
+    const yms = Object.keys(mLast).sort();
+    const years = Object.keys(yLast).sort();
+    if (!yms.length || years.length < 1) return '';
+    const ret = {};
+    let prev = null;
+    yms.forEach((ym) => { if (prev && prev.y > 0) ret[ym] = (mLast[ym].y / prev.y - 1) * 100; prev = mLast[ym]; });
+    const yret = {};
+    let py = null;
+    years.forEach((yr) => { if (py && py.y > 0) yret[yr] = (yLast[yr].y / py.y - 1) * 100; py = yLast[yr]; });
+    const cell = (v) => v == null ? '<td class="num" style="color:var(--muted)">—</td>'
+      : `<td class="num ${cls(v)}">${v > 0 ? '+' : ''}${fmtNum(v, 1)}%</td>`;
+    const curYear = years[years.length - 1];
+    const rowsHtml = years.map((yr) => {
+      const tds = Array.from({ length: 12 }, (_, m) => cell(ret[yr + '-' + String(m + 1).padStart(2, '0')])).join('');
+      const partial = yr === curYear && yLast[yr].d.slice(5, 7) !== '12' ? ' <span style="font-size:10px;color:var(--muted)">至今</span>' : '';
+      return `<tr><td><b>${yr}</b>${partial}</td>${tds}${cell(yret[yr])}</tr>`;
+    }).join('');
+    return `<div class="card">
+    <div class="card-h"><h3>月度涨跌</h3><span class="hint">月末净值环比 · 累计净值口径（含分红再投）· ${src.length} 个净值日</span></div>
+    <div class="table-wrap"><table class="table" style="width:100%;font-size:12px">
+      <thead><tr><th>年份</th>${Array.from({ length: 12 }, (_, m) => `<th class="num">${m + 1}月</th>`).join('')}<th class="num">年度涨跌</th></tr></thead>
+      <tbody>${rowsHtml}</tbody>
+    </table></div>
+  </div>`;
+  })();
   let html = `<div class="card">
     <div class="card-h"><h3>净值走势</h3><span class="hint">${ft.length} 个净值日 · 天天基金</span></div>
     <div class="chart chart-lg" id="rsNavChart"></div>
   </div>
+  ${_mTbl}
   <div class="card">
     <div class="card-h"><h3>阶段收益与同类排名</h3><span class="hint">M5：各期均进同类前 20% 为佳（多轮筛选）</span></div>
     <div class="metric-grid">
@@ -12894,7 +12969,7 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
        留待与用户确认重设计方案后再动（本轮不做）。
      ★诚实限定：erpCard/peCard/mrgCard/vixCard 定义及其 erpSpark/peSpark/mrgSpark/vixSpark 函数已于 **v529（fw2_v529_smux P3）一并清理**（连同 erpLv/peLv/vixLv/rzyeLv 与顶部 erp/pe/margin/vix 局部变量，mi 页判读走 mcCalcCommon 不受影响）。
        数据/口径零改动，纯前端结构层；描述串「sm 去重 · 删重复估值流动性卡」入 verify_sync 标记组 */
-  if (vc) vc.textContent = 'v640 · 买入涨跌幅列' /* fw2_v640_buy_pct fw2_v639_del_decisionfw2_v516_a500lk fw2_v517_4otc fw2_v518_hspos fw2_v519_sm_merge fw2_v520_chgflat fw2_v521_magnet fw2_v522_overview fw2_v523_sm_dedup fw2_v524_geo_fsi fw2_v525_geo_filter fw2_v526_geo_filter_removed fw2_v527_verdict fw2_v529_smux fw2_v530_datamgmt fw2_v531_sm_dmgmt fw2_v532_all_dm fw2_v533_px_long fw2_v533d_dm_scroll fw2_v534_dm_module fw2_v535_dm_auto fw2_v539_hold_realpnl fw2_v539a_seed_sync fw2_v539a_seed_order fw2_v540_hold_path fw2_v542_pf_mirror_first fw2_v542_mv_settled fw2_v542_mv_account fw2_v543_dm_holdings_note fw2_v544_ledger_mirror_guard fw2_v545_hold_total_row fw2_v546_navdate_all fw2_v547_vix_to_ovs fw2_v548_ovs_mrg fw2_v549_region_align fw2_v550_grp_tabs fw2_v551_sop_cockpit fw2_v552_sop_taborder fw2_v553_chain_data fw2_v554_sop_rename fw2_v556_market_split fw2_v557_sm_renamed fw2_v558_cbrates_fix fw2_v558a_cb_label fw2_v559_chain_dates fw2_v560_chain_verdict fw2_v561_curve_hold fw2_v562_hold_inline fw2_v563_alloc fw2_v564_lxlink fw2_v565_cal_lx fw2_v565_sub_lx fw2_v566_fund_move fw2_v567_fund_merge fw2_v568_lxlink_fix fw2_v569_manager_pool fw2_v570_manager_universe fw2_v571_mgr_east fw2_v574_mgr_subscore fw2_v575_mgr_merge fw2_v576_mgr_group fw2_v577_mgr_lxlink fw2_v578_mgr_lxreal fw2_v579_mgr_weight fw2_v581_fund_lxreal fw2_v582_mgr_min10 fw2_v583_mgr_noyear fw2_v584_mgr_career fw2_v585_mgr_srank fw2_v586_mgr_srank fw2_v587_mgr_since fw2_v588_mgr_lxfull fw2_v589_mgr_rules fw2_v590_mgr_scores fw2_v591_mgr_ladder fw2_v592_mgr_cols fw2_v593_mgr_score fw2_anti_halluc_p0 fw2_v595_alpha_attrib fw2_v596_sig_hist fw2_v597_fund_overlap fw2_v598_mgr_hold fw2_v599_time_decay fw2_v599_corr_pen fw2_v600_buytrack fw2_v601_backtest fw2_v602_kline_page fw2_v603_old_debts fw2_v604_xirr fw2_v605_holdings_global fw2_v606_v11_signal fw2_v607_v11_bt fw2_v608_lx_audit fw2_v609_sig_table fw2_v610_sig_merge fw2_v611_grp_line fw2_v612_index_lxreal fw2_v613_near_blue fw2_v615_sig_grp fw2_v616_sig_hdstyle fw2_v617_sig_vline fw2_v618_sig_lcr fw2_v619_curthr fw2_v620_curthr_all fw2_v621_ret_hpr fw2_v621_t13_lastbuy fw2_v622_lastbuy_auto fw2_v623_firstbuy_roll fw2_v623_alloc_watch fw2_v624_m13_m17 fw2_v626_sig_cost_guard fw2_v626_watch_pe_exempt fw2_v627_colorder fw2_v627_action_plan fw2_v627_data_date fw2_v628_fixed_cols fw2_v629_pool_pile_guard fw2_v629_t9_pfdate fw2_v630_missing_cost fw2_v631_pool_held_live fw2_v632_held_off fw2_v633_ledger_tx_sync fw2_v634_plan_dir fw2_v635_capbal_fix fw2_v636_capbal_converge fw2_v637_mv_consist fw2_v638_mv_unify */ + (window.getAllocWatchCodes ? window.getAllocWatchCodes().length : 0) + '只';
+  if (vc) vc.textContent = 'v641 · 峰值回撤月度涨跌' /* fw2_v641_peak_dd fw2_v640_buy_pct fw2_v639_del_decisionfw2_v516_a500lk fw2_v517_4otc fw2_v518_hspos fw2_v519_sm_merge fw2_v520_chgflat fw2_v521_magnet fw2_v522_overview fw2_v523_sm_dedup fw2_v524_geo_fsi fw2_v525_geo_filter fw2_v526_geo_filter_removed fw2_v527_verdict fw2_v529_smux fw2_v530_datamgmt fw2_v531_sm_dmgmt fw2_v532_all_dm fw2_v533_px_long fw2_v533d_dm_scroll fw2_v534_dm_module fw2_v535_dm_auto fw2_v539_hold_realpnl fw2_v539a_seed_sync fw2_v539a_seed_order fw2_v540_hold_path fw2_v542_pf_mirror_first fw2_v542_mv_settled fw2_v542_mv_account fw2_v543_dm_holdings_note fw2_v544_ledger_mirror_guard fw2_v545_hold_total_row fw2_v546_navdate_all fw2_v547_vix_to_ovs fw2_v548_ovs_mrg fw2_v549_region_align fw2_v550_grp_tabs fw2_v551_sop_cockpit fw2_v552_sop_taborder fw2_v553_chain_data fw2_v554_sop_rename fw2_v556_market_split fw2_v557_sm_renamed fw2_v558_cbrates_fix fw2_v558a_cb_label fw2_v559_chain_dates fw2_v560_chain_verdict fw2_v561_curve_hold fw2_v562_hold_inline fw2_v563_alloc fw2_v564_lxlink fw2_v565_cal_lx fw2_v565_sub_lx fw2_v566_fund_move fw2_v567_fund_merge fw2_v568_lxlink_fix fw2_v569_manager_pool fw2_v570_manager_universe fw2_v571_mgr_east fw2_v574_mgr_subscore fw2_v575_mgr_merge fw2_v576_mgr_group fw2_v577_mgr_lxlink fw2_v578_mgr_lxreal fw2_v579_mgr_weight fw2_v581_fund_lxreal fw2_v582_mgr_min10 fw2_v583_mgr_noyear fw2_v584_mgr_career fw2_v585_mgr_srank fw2_v586_mgr_srank fw2_v587_mgr_since fw2_v588_mgr_lxfull fw2_v589_mgr_rules fw2_v590_mgr_scores fw2_v591_mgr_ladder fw2_v592_mgr_cols fw2_v593_mgr_score fw2_anti_halluc_p0 fw2_v595_alpha_attrib fw2_v596_sig_hist fw2_v597_fund_overlap fw2_v598_mgr_hold fw2_v599_time_decay fw2_v599_corr_pen fw2_v600_buytrack fw2_v601_backtest fw2_v602_kline_page fw2_v603_old_debts fw2_v604_xirr fw2_v605_holdings_global fw2_v606_v11_signal fw2_v607_v11_bt fw2_v608_lx_audit fw2_v609_sig_table fw2_v610_sig_merge fw2_v611_grp_line fw2_v612_index_lxreal fw2_v613_near_blue fw2_v615_sig_grp fw2_v616_sig_hdstyle fw2_v617_sig_vline fw2_v618_sig_lcr fw2_v619_curthr fw2_v620_curthr_all fw2_v621_ret_hpr fw2_v621_t13_lastbuy fw2_v622_lastbuy_auto fw2_v623_firstbuy_roll fw2_v623_alloc_watch fw2_v624_m13_m17 fw2_v626_sig_cost_guard fw2_v626_watch_pe_exempt fw2_v627_colorder fw2_v627_action_plan fw2_v627_data_date fw2_v628_fixed_cols fw2_v629_pool_pile_guard fw2_v629_t9_pfdate fw2_v630_missing_cost fw2_v631_pool_held_live fw2_v632_held_off fw2_v633_ledger_tx_sync fw2_v634_plan_dir fw2_v635_capbal_fix fw2_v636_capbal_converge fw2_v637_mv_consist fw2_v638_mv_unify */ + (window.getAllocWatchCodes ? window.getAllocWatchCodes().length : 0) + '只';
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
@@ -18196,11 +18271,16 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
         fetch(urls[i], { cache: 'no-cache' }).then(function (r) { return r.ok ? r.json() : null; }).then(function (d) {
           if (d && d.rows) {
             var map = {};
+            var ser = {}; /* v641 fw2_v641_peak_dd：与 renderHoldings 同构——v240 与持仓共用 __ALLOC_NAV_TRY__ 守卫，谁先跑谁建序列，否则峰值/回撤列永久缺数据 */
             d.rows.forEach(function (row) {
               if (!row || !row.code || row.nav == null) return;
               var c6 = String(row.code).replace(/\D/g, '').slice(-6);
               if (!map[c6] || row.d > map[c6].d) map[c6] = { d: row.d, nav: row.nav };
+              if (!ser[c6]) ser[c6] = [];
+              ser[c6].push([row.d, row.nav]);
             });
+            Object.keys(ser).forEach(function (k) { ser[k].sort(function (a, b) { return a[0] < b[0] ? -1 : (a[0] > b[0] ? 1 : 0); }); });
+            window.__NAV_SERIES__ = ser;
             window.__ALLOC_NAV__ = map;
             renderStrategyView();
           } else if (i + 1 < urls.length) { tryLoad(i + 1); }
