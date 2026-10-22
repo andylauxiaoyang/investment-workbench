@@ -16911,7 +16911,7 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
   /* ---- 主渲染 ---- */
   /* fw2_v645_strat_slim：策略执行瘦身（Tab 7→6）——摘 renderStratCycle（周期联动卡，与交易信号 M 组重叠）/
      renderStratCal（执行日历打卡）/ renderStratCards（逐标的执行卡，交易信号页持仓信号已覆盖）；函数保留死代码 */
-  /* fw2_v646_ledger_capbal：交易台账 tab 删→迁资金平衡·总览折叠块 capbalLedgerMount（v354 云端恢复/持仓联动/导入导出全保留，capbal overview 渲染时挂载）；策略规则 tab 删→可投资金迁策略 hero 第 5 格（档位规则表+纳指展示随 renderRules 整删；rulesEngine/rulesBannerHtml/rulesBudget/rulesSaveBudget 引擎保留，banner 消费点=交易信号页持仓信号组+台账卡） */
+  /* fw2_v646_ledger_capbal：交易台账 tab 删→迁资金平衡·总览折叠块 capbalLedgerMount（v354 云端恢复/持仓联动/导入导出全保留，capbal overview 渲染时挂载）；策略规则 tab 删→可投资金迁策略 hero 第 5 格（档位规则表+纳指展示随 renderRules 整删；rulesEngine/rulesBannerHtml/rulesBudget/rulesSaveBudget 引擎保留，banner 消费点=交易信号页持仓信号组+台账卡；fw2_v646c_alloc_tiles_cut：资产配置页「档位再平衡」磁贴卡与「主题敞口」chips 删（与下方表格分组行/主题小计行同源重复；PILE/act/mvMap/PILE_COLOR 保留，资金平衡页 renderBarbell 磁贴不受影响） */
   function renderStrategyView() {
     try { renderStratHero(); } catch (e) {}
     try { renderBacktest(); } catch (e) {} /* v350 阶段③：组合模拟回测（杠铃策略历史组合模拟） */
@@ -17957,54 +17957,10 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
     ];
     var act = (typeof barbellActual === 'function') ? barbellActual() : null;
     var tot = act && act.tot > 0 ? act.tot : 0;
-    var tiles = PILE.map(function (p) {
-      var tgt = act ? act.cfg.target[p.k] : { base: 40, off: 35, bond: 10, hedge: 15 }[p.k];
-      /* v262 fw2_v262_tgt_denom：实际占比分母 = 总目标（5 万计划），与「资产配置」表标的占比口径一致 */
-      var cur = (window.STRATEGY_SNAP && window.STRATEGY_SNAP.totalTarget > 0) ? act.pileMv[p.k] / window.STRATEGY_SNAP.totalTarget * 100 : null;
-      var dev = cur == null ? null : cur - tgt;
-      var band = (act && act.cfg.band) || 5;
-      var warn = dev != null && Math.abs(dev) >= band;
-      return '<div class="bb-tile" style="--bc:' + p.color + '">'
-        + '<div class="bt-top"><b class="bt-name">' + p.name + '</b>'
-        + (dev != null ? '<span class="bt-dev ' + (warn ? 'd-warn' : 'd-ok') + '">' + (dev > 0 ? '+' : '') + dev.toFixed(1) + 'pp</span>' : '')
-        + '</div>'
-        + '<div class="bt-nums">目标 <b>' + tgt + '%</b>'
-        + (cur == null ? '' : '<span>· 实际</span><b class="bt-now' + (warn ? ' bt-warn' : '') + '">' + cur.toFixed(1) + '%</b>')
-        + '</div></div>';
-    }).join('');
-    var html = '<div class="st-card"><h4>档位再平衡（实盘四档 · 目标年化 8~10%）<span style="font-weight:400;font-size:11px;color:var(--slate-400,#94a3b8)"> · 策略配置截至 ' + esc(S.updatedAt || '') + ' · 实际权重截至 ' + ((state.snapshot && state.snapshot.at) ? fmtClock(state.snapshot.at) : '未更新') + '</span></h4><div class="strat-note">档位权重 = 实盘持仓快照 ÷ 总目标（5 万计划），与表格「标的占比」同口径；偏离目标 ≥ ±' + ((act && act.cfg.band) || 5) + 'pp 标红提示再平衡。</div><div class="bb-tiles">' + tiles + '</div></div>';
+    var html = ''; /* fw2_v646c_alloc_tiles_cut：档位再平衡磁贴卡已删（目标/实际与表格分组行同源重复） */
     var PILE_COLOR = { '底仓/缓冲': '#4D6BFE', '进攻/主题': '#d98c00', '安全垫': '#059669', '对冲': '#b45309' };
-    /* v244 fw2_v244_theme_agg：主题敞口——跨档位同本质资产合并（含计划外），纳指100 = 016452 + 019441 */
-    var themeAgg = {};
-    ALLOC_DEF.forEach(function (g) { g.meta.forEach(function (m) {
-      var th = m[1];
-      if (!themeAgg[th]) themeAgg[th] = { tgt: 0, mv: 0, n: 0 };
-      themeAgg[th].tgt += (assetOf(m[0]) || { target: 0 }).target || 0;
-      themeAgg[th].mv += mvMap[m[0]] || 0;
-      themeAgg[th].n++;
-    }); });
-    extra.forEach(function (x) {
-      if (!themeAgg[x.theme]) themeAgg[x.theme] = { tgt: 0, mv: 0, n: 0 };
-      themeAgg[x.theme].mv += x.mv;
-      themeAgg[x.theme].n++;
-    });
-    var themeList = [];
-    for (var tk in themeAgg) themeList.push({ name: tk, tgt: themeAgg[tk].tgt, mv: themeAgg[tk].mv, n: themeAgg[tk].n });
-    themeList.sort(function (a, b) {
-      var ap = a.tgt > 0 ? 1 : 0, bp = b.tgt > 0 ? 1 : 0;
-      return bp - ap || b.tgt - a.tgt;
-    });
-    var themeStrip = '<div class="theme-strip">';
-    themeList.forEach(function (t) {
-      var off = t.tgt > 0 ? (t.tgt - t.mv) / t.tgt * 100 : (t.mv > 0 ? -100 : 0);
-      var tcls = off > 0.5 ? 't-up' : off < -0.5 ? 't-down' : 't-ok';
-      /* v263 fw2_v263_theme_pct：chips 增加「占比」= 实际市值 ÷ 总目标（5 万），与档位卡/资产配置表标的占比同口径（现金 007866 = 2.0%） */
-      var tPct = (window.STRATEGY_SNAP && window.STRATEGY_SNAP.totalTarget > 0) ? (t.mv / window.STRATEGY_SNAP.totalTarget * 100) : 0;
-      themeStrip += '<div class="theme-chip ' + tcls + '"><b>' + esc(t.name) + '</b>' + (t.n > 1 ? '<em>×' + t.n + '</em>' : '') + '<span>目标 ' + amt(t.tgt) + '</span><span>实际 ' + amt(t.mv) + '</span><span class="t-pct">占比 ' + tPct.toFixed(1) + '%</span><span class="t-off">' + (off > 0 ? '+' : '') + off.toFixed(1) + '%</span></div>';
-    });
-    themeStrip += '</div>';
-    html += '<div class="st-card"><h4>资产配置（5 万计划 · 目标 11 只' + (_extraPlanCount ? ' · 计划外 ' + _extraPlanCount + ' 只' : '') + '）<span style="font-weight:400;font-size:11px;color:var(--slate-400,#94a3b8)"> · 策略配置截至 ' + esc(S.updatedAt || '') + ' · 实际市值截至 ' + ((state.snapshot && state.snapshot.at) ? fmtClock(state.snapshot.at) : '未更新') + '（净值随 fund-daily）</span></h4><div class="strat-note">目标 = 计划配置；实际 = 持仓市值（份额 × 最新净值）；调仓金额 = 目标 − 实际；未建仓标的按「差额 ÷ 剩余月」逐月推进；计划外持仓 = 存量未纳入目标（相对目标 0 超配）。口径详见行内分组与「策略规则」tab。</div>' +
-      (themeList.length ? '<div class="theme-head">主题敞口 · 同本质资产合并（含计划外）</div>' + themeStrip : '') +
+    html += '<div class="st-card"><h4>资产配置（5 万计划 · 目标 11 只' + (_extraPlanCount ? ' · 计划外 ' + _extraPlanCount + ' 只' : '') + '）<span style="font-weight:400;font-size:11px;color:var(--slate-400,#94a3b8)"> · 策略配置截至 ' + esc(S.updatedAt || '') + ' · 实际市值截至 ' + ((state.snapshot && state.snapshot.at) ? fmtClock(state.snapshot.at) : '未更新') + '（净值随 fund-daily）</span></h4><div class="strat-note">目标 = 计划配置；实际 = 持仓市值（份额 × 最新净值）；调仓金额 = 目标 − 实际；未建仓标的按「差额 ÷ 剩余月」逐月推进；计划外持仓 = 存量未纳入目标（相对目标 0 超配）。口径详见行内分组。</div>' +
+      /* fw2_v646c_alloc_tiles_cut：主题敞口 chips 已删（表格行+v249 同主题小计行已覆盖同主题聚合） */
       '<div class="tbl-scroll"><table class="st-tbl alloc-tbl">' +
       '<colgroup><col style="width:8%"><col style="width:8%"><col style="width:7%"><col style="width:16%"><col style="width:8%"><col style="width:9%"><col style="width:7%"><col style="width:9%"><col style="width:7%"><col style="width:9%"><col style="width:12%"></colgroup>' +
       '<thead><tr><th>档位</th><th>档位目标</th><th>代码</th><th>资产名称</th><th>主题</th><th>目标金额</th><th>目标占比</th><th>实际金额</th><th>标的占比</th><th>调仓金额</th><th>目标偏移</th></tr></thead><tbody>'; /* v248 fw2_v248_cols：目标占比独立列（目标金额后），标的占比移至实际金额后 */
