@@ -3562,7 +3562,12 @@ window.HS_name = function (code) {
           const armed = maxRet >= C.tpPeakArm;
           rows.hold.push(Object.assign({}, base, { sig: 'T2 峰值回撤止盈', cur: (armed ? '已激活·' : '未激活·') + fmtRet(holdDD), curMain: fmtRet(holdDD), curSub: (armed ? '已激活' : '未激活'), thrCond: '峰涨≥' + C.tpPeakArm + '%后 回撤≥' + C.tpPeakDD + '%', thrAct: '减半', thr: '峰涨≥' + C.tpPeakArm + '%后 回撤≥' + C.tpPeakDD + '% → 减半', lvl: armed && holdDD <= -C.tpPeakDD ? 'act' : armed && holdDD <= -(C.tpPeakDD - C.nearBand) ? 'near' : 'watch', src: 'D7/grid G' }));
         }
-        rows.hold.push(Object.assign({}, base, { sig: 'T7 回撤补仓', cur: fmtRet(ddPeak), curMain: fmtRet(ddPeak), thrCond: C.addDD1 + '% / ' + C.addDD2 + '% 分档', thrAct: '补仓', thr: C.addDD1 + '% / ' + C.addDD2 + '% 分档', lvl: ddPeak <= C.addDD2 ? 'act' : ddPeak <= C.addDD1 ? 'near' : ddPeak <= C.addDD1 + C.nearBand ? 'near' : 'watch', src: '补仓双机制' }));
+        /* fw2_v671_t7mutex：T7 与 T1/T2 止盈互斥——止盈区同触时补仓降 near「（止盈区·待决）」不自动 act
+          （复盘对照只认 act 自动排除）；9 月追溯案例 012920 同日 T1+T2+T7 同时 act 暴露的规则冲突。 */
+        var _t1ActM = ret != null && ret >= C.tpStep;
+        var _t2ActM = maxRet != null && h._ucKnown !== false && maxRet >= C.tpPeakArm && (last / (peakEver || last) - 1) * 100 <= -C.tpPeakDD;
+        var _t7Mutex = _t1ActM || _t2ActM, _t7ActRaw = ddPeak <= C.addDD2;
+        rows.hold.push(Object.assign({}, base, { sig: 'T7 回撤补仓' + (_t7Mutex && _t7ActRaw ? '（止盈区·待决）' : ''), cur: fmtRet(ddPeak), curMain: fmtRet(ddPeak), thrCond: C.addDD1 + '% / ' + C.addDD2 + '% 分档', thrAct: '补仓', thr: C.addDD1 + '% / ' + C.addDD2 + '% 分档' + (_t7Mutex ? '；⚠T1/T2 止盈同触→互斥降档待人工判断（fw2_v671）' : ''), lvl: _t7ActRaw ? (_t7Mutex ? 'near' : 'act') : ddPeak <= C.addDD1 ? 'near' : ddPeak <= C.addDD1 + C.nearBand ? 'near' : 'watch', src: '补仓双机制' }));
         /* v313 fw2_v313_lowdist：距 5Y/10Y 最低净值还需跌多少（按点位·非估值分位） */
         var _minN = function (_n) { var _a = ys.slice(-_n); return _a.length ? Math.min.apply(null, _a) : null; };
         var _m5 = _minN(1250), _m10 = _minN(2500);
@@ -13106,6 +13111,12 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
        实证（CDP+独立脚本双验）：2026-06 净利润 +4,375.68（012920 净值 4.4136→5.2809×5045.18 份）；
        04/05/07=+4,274.28/+3,958.45/−8,300.83 与 fund-monthly 净值序列机械一致（07 月 QDII 净值 5.28→3.64，
        012920 divEvents=[] 无分红除权，忠实反映数据源）。
+     v671（fw2_v671_sep_replay + fw2_v671_t7mutex）：9 月信号追溯固化 + T7 止盈互斥——①用户拍板方案 A：REPLAY_SEP
+        常量（离线重放：净值逐日截断+台账重放持仓，口径同 execAuto，执行率 0/4、纪律外 5 笔建仓、模拟 +4.08 vs 实际
+        +61.75）注入 execAuto 无快照分支，2026-09 复盘表3 显示 4 条重放信号+「追溯重放」徽章（表3 标题/表1 执行率判语），
+        信号列加触发数据小字（detail），tfoot 改追溯口径注记；②9 月追溯暴露 012920 同日 T1+T2+T7 同时 act 的规则冲突
+        （止盈与补仓打架）——T7 与 T1/T2 互斥：止盈区同触时 T7 act 降 near「（止盈区·待决）」，前端 signalEvalAll +
+        gen_signals_hist.py 双端同源改，复盘对照只认 act 自动排除互斥降档条目。
      v670（fw2_v670_review_style）：复盘四表样式重制（用户反馈「表格格式太难看」，只修样式不动结构）——每表包
         圆角白卡容器（--panel+--line+--shadow，与全站卡片语言统一）；表头浅灰底+首尾圆角、tbody 斑马纹、行高
         压紧（td 7px/1.55、vertical-middle）；num 列 width:1% 收缩治全宽拉伸空白；末列（判语/备注/结论/建议）
@@ -13183,7 +13194,7 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
        ①删 cbExport/cbImport/cbCloudRestore 三按钮 + #cbImportFile + #cbCloudInfo 灰字（HTML+三段绑定）；
        ②成交台账(cbLedgerToggle)/设置负债等其余工具栏按钮不动；③renderCloudInfo（自带 !el 守卫）/
        cbImportFile onchange/restoreFromMirror 保留死代码，恢复入口只需还原 HTML+绑定。
-       注意：全量 DB 备份入口随之消失，台账流水仍可经总览·交易台账折叠块备份。 */  if (vc) vc.textContent = 'v670 · 复盘表样式' /* fw2_v669_review_tables fw2_v668_review_monthly fw2_v667_review_insight fw2_v666_tiles_bigger fw2_v665_review_tiles fw2_v664_review_rebuild fw2_v663_hero_retire fw2_v661_filter_compact fw2_v660_ui_simplify fw2_v659_backup_btns_del fw2_v658_rpt_monthnav fw2_v657_rptbar_del fw2_v656_rpt_6m fw2_v655_rpt_kpi fw2_v654_held_pf_authority fw2_v653_alloc_pile_assign fw2_v652_data_tab_removed fw2_v651_recent_hide fw2_v651_ledger_slim fw2_v651_entry_unify fw2_v650_netseries_daily fw2_v650_moneynav fw2_v649_merge_holdings fw2_v648_capbal_slim fw2_v647_netseries_fix fw2_v646_ledger_capbal fw2_v644_revert_watch_tab fw2_v643_mtbl_tier fw2_v642_a500_enh fw2_v641_peak_dd fw2_v640_buy_pct fw2_v639_del_decisionfw2_v516_a500lk fw2_v517_4otc fw2_v518_hspos fw2_v519_sm_merge fw2_v520_chgflat fw2_v521_magnet fw2_v522_overview fw2_v523_sm_dedup fw2_v524_geo_fsi fw2_v525_geo_filter fw2_v526_geo_filter_removed fw2_v527_verdict fw2_v529_smux fw2_v530_datamgmt fw2_v531_sm_dmgmt fw2_v532_all_dm fw2_v533_px_long fw2_v533d_dm_scroll fw2_v534_dm_module fw2_v535_dm_auto fw2_v539_hold_realpnl fw2_v539a_seed_sync fw2_v539a_seed_order fw2_v540_hold_path fw2_v542_pf_mirror_first fw2_v542_mv_settled fw2_v542_mv_account fw2_v543_dm_holdings_note fw2_v544_ledger_mirror_guard fw2_v545_hold_total_row fw2_v546_navdate_all fw2_v547_vix_to_ovs fw2_v548_ovs_mrg fw2_v549_region_align fw2_v550_grp_tabs fw2_v551_sop_cockpit fw2_v552_sop_taborder fw2_v553_chain_data fw2_v554_sop_rename fw2_v556_market_split fw2_v557_sm_renamed fw2_v558_cbrates_fix fw2_v558a_cb_label fw2_v559_chain_dates fw2_v560_chain_verdict fw2_v561_curve_hold fw2_v562_hold_inline fw2_v563_alloc fw2_v564_lxlink fw2_v565_cal_lx fw2_v565_sub_lx fw2_v566_fund_move fw2_v567_fund_merge fw2_v568_lxlink_fix fw2_v569_manager_pool fw2_v570_manager_universe fw2_v571_mgr_east fw2_v574_mgr_subscore fw2_v575_mgr_merge fw2_v576_mgr_group fw2_v577_mgr_lxlink fw2_v578_mgr_lxreal fw2_v579_mgr_weight fw2_v581_fund_lxreal fw2_v582_mgr_min10 fw2_v583_mgr_noyear fw2_v584_mgr_career fw2_v585_mgr_srank fw2_v586_mgr_srank fw2_v587_mgr_since fw2_v588_mgr_lxfull fw2_v589_mgr_rules fw2_v590_mgr_scores fw2_v591_mgr_ladder fw2_v592_mgr_cols fw2_v593_mgr_score fw2_anti_halluc_p0 fw2_v595_alpha_attrib fw2_v596_sig_hist fw2_v597_fund_overlap fw2_v598_mgr_hold fw2_v599_time_decay fw2_v599_corr_pen fw2_v600_buytrack fw2_v601_backtest fw2_v602_kline_page fw2_v603_old_debts fw2_v604_xirr fw2_v605_holdings_global fw2_v606_v11_signal fw2_v607_v11_bt fw2_v608_lx_audit fw2_v609_sig_table fw2_v610_sig_merge fw2_v611_grp_line fw2_v612_index_lxreal fw2_v613_near_blue fw2_v615_sig_grp fw2_v616_sig_hdstyle fw2_v617_sig_vline fw2_v618_sig_lcr fw2_v619_curthr fw2_v620_curthr_all fw2_v621_ret_hpr fw2_v621_t13_lastbuy fw2_v622_lastbuy_auto fw2_v623_firstbuy_roll fw2_v623_alloc_watch fw2_v624_m13_m17 fw2_v626_sig_cost_guard fw2_v626_watch_pe_exempt fw2_v627_colorder fw2_v627_action_plan fw2_v627_data_date fw2_v628_fixed_cols fw2_v629_pool_pile_guard fw2_v629_t9_pfdate fw2_v630_missing_cost fw2_v631_pool_held_live fw2_v632_held_off fw2_v633_ledger_tx_sync fw2_v634_plan_dir fw2_v635_capbal_fix fw2_v636_capbal_converge fw2_v637_mv_consist fw2_v638_mv_unify */ + (window.getAllocWatchCodes ? window.getAllocWatchCodes().length : 0) + '只';
+       注意：全量 DB 备份入口随之消失，台账流水仍可经总览·交易台账折叠块备份。 */  if (vc) vc.textContent = 'v671 · 九月追溯互斥' /* fw2_v669_review_tables fw2_v668_review_monthly fw2_v667_review_insight fw2_v666_tiles_bigger fw2_v665_review_tiles fw2_v664_review_rebuild fw2_v663_hero_retire fw2_v661_filter_compact fw2_v660_ui_simplify fw2_v659_backup_btns_del fw2_v658_rpt_monthnav fw2_v657_rptbar_del fw2_v656_rpt_6m fw2_v655_rpt_kpi fw2_v654_held_pf_authority fw2_v653_alloc_pile_assign fw2_v652_data_tab_removed fw2_v651_recent_hide fw2_v651_ledger_slim fw2_v651_entry_unify fw2_v650_netseries_daily fw2_v650_moneynav fw2_v649_merge_holdings fw2_v648_capbal_slim fw2_v647_netseries_fix fw2_v646_ledger_capbal fw2_v644_revert_watch_tab fw2_v643_mtbl_tier fw2_v642_a500_enh fw2_v641_peak_dd fw2_v640_buy_pct fw2_v639_del_decisionfw2_v516_a500lk fw2_v517_4otc fw2_v518_hspos fw2_v519_sm_merge fw2_v520_chgflat fw2_v521_magnet fw2_v522_overview fw2_v523_sm_dedup fw2_v524_geo_fsi fw2_v525_geo_filter fw2_v526_geo_filter_removed fw2_v527_verdict fw2_v529_smux fw2_v530_datamgmt fw2_v531_sm_dmgmt fw2_v532_all_dm fw2_v533_px_long fw2_v533d_dm_scroll fw2_v534_dm_module fw2_v535_dm_auto fw2_v539_hold_realpnl fw2_v539a_seed_sync fw2_v539a_seed_order fw2_v540_hold_path fw2_v542_pf_mirror_first fw2_v542_mv_settled fw2_v542_mv_account fw2_v543_dm_holdings_note fw2_v544_ledger_mirror_guard fw2_v545_hold_total_row fw2_v546_navdate_all fw2_v547_vix_to_ovs fw2_v548_ovs_mrg fw2_v549_region_align fw2_v550_grp_tabs fw2_v551_sop_cockpit fw2_v552_sop_taborder fw2_v553_chain_data fw2_v554_sop_rename fw2_v556_market_split fw2_v557_sm_renamed fw2_v558_cbrates_fix fw2_v558a_cb_label fw2_v559_chain_dates fw2_v560_chain_verdict fw2_v561_curve_hold fw2_v562_hold_inline fw2_v563_alloc fw2_v564_lxlink fw2_v565_cal_lx fw2_v565_sub_lx fw2_v566_fund_move fw2_v567_fund_merge fw2_v568_lxlink_fix fw2_v569_manager_pool fw2_v570_manager_universe fw2_v571_mgr_east fw2_v574_mgr_subscore fw2_v575_mgr_merge fw2_v576_mgr_group fw2_v577_mgr_lxlink fw2_v578_mgr_lxreal fw2_v579_mgr_weight fw2_v581_fund_lxreal fw2_v582_mgr_min10 fw2_v583_mgr_noyear fw2_v584_mgr_career fw2_v585_mgr_srank fw2_v586_mgr_srank fw2_v587_mgr_since fw2_v588_mgr_lxfull fw2_v589_mgr_rules fw2_v590_mgr_scores fw2_v591_mgr_ladder fw2_v592_mgr_cols fw2_v593_mgr_score fw2_anti_halluc_p0 fw2_v595_alpha_attrib fw2_v596_sig_hist fw2_v597_fund_overlap fw2_v598_mgr_hold fw2_v599_time_decay fw2_v599_corr_pen fw2_v600_buytrack fw2_v601_backtest fw2_v602_kline_page fw2_v603_old_debts fw2_v604_xirr fw2_v605_holdings_global fw2_v606_v11_signal fw2_v607_v11_bt fw2_v608_lx_audit fw2_v609_sig_table fw2_v610_sig_merge fw2_v611_grp_line fw2_v612_index_lxreal fw2_v613_near_blue fw2_v615_sig_grp fw2_v616_sig_hdstyle fw2_v617_sig_vline fw2_v618_sig_lcr fw2_v619_curthr fw2_v620_curthr_all fw2_v621_ret_hpr fw2_v621_t13_lastbuy fw2_v622_lastbuy_auto fw2_v623_firstbuy_roll fw2_v623_alloc_watch fw2_v624_m13_m17 fw2_v626_sig_cost_guard fw2_v626_watch_pe_exempt fw2_v627_colorder fw2_v627_action_plan fw2_v627_data_date fw2_v628_fixed_cols fw2_v629_pool_pile_guard fw2_v629_t9_pfdate fw2_v630_missing_cost fw2_v631_pool_held_live fw2_v632_held_off fw2_v633_ledger_tx_sync fw2_v634_plan_dir fw2_v635_capbal_fix fw2_v636_capbal_converge fw2_v637_mv_consist fw2_v638_mv_unify */ + (window.getAllocWatchCodes ? window.getAllocWatchCodes().length : 0) + '只';
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
@@ -18530,12 +18541,34 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
     return dirs[0];
   }
   function dPlus(ds, n) { var t = new Date(ds + 'T00:00:00'); t.setDate(t.getDate() + n); return t.toISOString().slice(0, 10); }
+  /* fw2_v671_sep_replay：2026-09 信号快照盲区的一次性离线重放（edit_work/_replay_sep_signals.py：
+     净值序列逐日截断+台账重放持仓，口径同 execAuto；执行率 0/4，14 笔 amt=0 货基结转已滤除） */
+  var REPLAY_SEP = {
+    month: '2026-09', ready: true, replay: true, rate: 0, done: 0, total: 4, cover: 21,
+    sim: 4.08, simN: 2, actProfit: 61.75,
+    list: [
+      { code: '012920', name: '易方达全球成长精选混合(QDII)A', sig: 'T1 阶梯止盈', dir: 'sell', day: '2026-09-01', done: false, after: 3.2, detail: '浮盈 +40.1%（净值 3.6651 ÷ 成本 2.6164）≥ +10%' },
+      { code: '012920', name: '易方达全球成长精选混合(QDII)A', sig: 'T2 峰值回撤止盈', dir: 'sell', day: '2026-09-01', done: false, after: 3.2, detail: '峰涨 +105.5% 后回撤 -31.8% ≥ 8%' },
+      { code: '012920', name: '易方达全球成长精选混合(QDII)A', sig: 'T7 回撤补仓', dir: 'buy', day: '2026-09-01', done: false, after: 3.2, detail: '距 250 日峰 -31.8% ≤ -30%（与 T1/T2 止盈同触·v671 起互斥待决）' },
+      { code: '001015', name: '华夏沪深300指数增强A', sig: 'T13 网格跟踪', dir: 'buy', day: '2026-09-11', done: false, after: -2.8, detail: '较成本 -3.5% ≤ -3%' }
+    ],
+    extra: [
+      { name: '创金合信货币C', type: 'buy', amt: 1000, date: '2026-09-09' },
+      { name: '招商行业精选股票基金', type: 'buy', amt: 100, date: '2026-09-15' },
+      { name: '万家纳斯达克100指数发起式(QDII)A', type: 'buy', amt: 100, date: '2026-09-16' },
+      { name: '南方纳斯达克100指数发起(QDII)A', type: 'buy', amt: 10, date: '2026-09-16' },
+      { name: '华安三菱日联日经225ETF发起式联接(QDII)A', type: 'buy', amt: 10, date: '2026-09-30' }
+    ],
+    note: '离线重放（一次性历史分析）：口径同实时对照；T3/T8 估值信号与信澳先导智能C/万家瑞隆混合（无台账记录）无法回放。'
+  };
   function execAuto(m) {
     var NIL = function (msg) { return { ready: false, rate: null, done: 0, total: 0, msg: msg }; }; /* fw2_v669_review_tables：渲染移交四表，只回结构化 */
     if (!window.__NAV_SERIES__) return NIL('净值序列未就绪——打开策略页其他 tab 后回到本页重试。');
     if (!SIG_HIST) return NIL('信号历史加载中……首次打开稍等几秒，就绪后自动刷新。');
     var hist = (SIG_HIST.hist || []).filter(function (d) { return d.date && d.date.slice(0, 7) === m; });
     if (!hist.length) {
+      /* fw2_v671_sep_replay：9 月盲区→离线重放数据兜底（历史分析，非实时快照） */
+      if (m === '2026-09' && REPLAY_SEP) return REPLAY_SEP;
       var fd = (SIG_HIST.meta && SIG_HIST.meta.firstDate) || '—';
       return NIL(m + ' 无信号快照——信号历史自 ' + fd + ' 起由每晚管线自动积累，此后月份复盘自动出执行对照。');
     }
@@ -18641,6 +18674,7 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
     var exJ = ex.ready
       ? '已执行 ' + ex.done + '/' + ex.total + ' · ' + (ex.rate == null ? '—' : (ex.rate >= 100 ? '<span class="rev-ok">纪律满分</span>' : ex.rate >= 60 ? '<span class="rev-warn">打折执行</span>' : '<span class="rev-warn">纪律形同虚设</span>'))
       : strip(ex.msg);
+    if (ex.replay) exJ += ' <span class="bdg bdg-info">追溯重放</span>';
     var t1 = '<div class="rev-sec"><div class="rev-sec-t">① 本月概览 · ' + tag + '</div>' +
       '<table class="rev-tbl"><thead><tr><th>指标</th><th class="num">本月</th><th class="num">上月</th><th class="num">变化</th><th>判语</th></tr></thead><tbody>' +
       '<tr><td>月末净资产</td><td class="num">' + (k.netEnd == null ? '—' : '¥' + fmt(k.netEnd)) + '</td><td class="num">' + (k.netBeg == null ? '—' : '¥' + fmt(k.netBeg)) + '</td><td class="num">' + numd(k.netEnd != null && k.netBeg != null ? k.netEnd - k.netBeg : null) + '</td><td>' + tag + ' 末 · 同源月报</td></tr>' +
@@ -18671,7 +18705,7 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
     }
     t2 += '</div>';
     /* ③ 信号执行对照：每条信号一行（信号日/标的/信号/方向/状态/事后走势/结论） */
-    var t3 = '<div class="rev-sec"><div class="rev-sec-t">③ 信号执行对照 · 我按纪律做了吗</div>';
+    var t3 = '<div class="rev-sec"><div class="rev-sec-t">③ 信号执行对照 · 我按纪律做了吗' + (ex.replay ? ' <span class="bdg bdg-info">追溯重放</span>' : '') + '</div>';
     if (!ex.ready) {
       t3 += '<div class="rev-note2">' + ex.msg + '</div>';
     } else {
@@ -18684,9 +18718,9 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
       };
       t3 += '<table class="rev-tbl"><thead><tr><th>信号日</th><th>标的</th><th>信号</th><th>方向</th><th>状态</th><th class="num">事后走势</th><th>结论</th></tr></thead><tbody>' +
         ex.list.map(function (s) {
-          return '<tr><td class="mut">' + s.day + '</td><td>' + esc(s.name) + '</td><td class="mut">' + esc(s.sig) + '</td><td>' + (s.dir === 'buy' ? '买入' : '卖出') + '</td><td>' + (s.done ? '✓ 已执行' : '✗ 未执行') + '</td><td class="num">' + (s.after == null ? '—' : (s.after > 0 ? '+' : '') + s.after.toFixed(1) + '%') + '</td><td>' + concl(s) + '</td></tr>';
+          return '<tr><td class="mut">' + s.day + '</td><td>' + esc(s.name) + '</td><td class="mut">' + esc(s.sig) + (s.detail ? '<div style="font-size:10px;opacity:.72;margin-top:2px">' + esc(s.detail) + '</div>' : '') + '</td><td>' + (s.dir === 'buy' ? '买入' : '卖出') + '</td><td>' + (s.done ? '✓ 已执行' : '✗ 未执行') + '</td><td class="num">' + (s.after == null ? '—' : (s.after > 0 ? '+' : '') + s.after.toFixed(1) + '%') + '</td><td>' + concl(s) + '</td></tr>';
         }).join('') + '</tbody></table>';
-      t3 += '<div class="rev-tfoot">覆盖 ' + ex.cover + ' 个快照日' + (ex.firstDate ? ' · 信号历史自 ' + ex.firstDate + ' 起积累' : '') + ' · 口径：T 系行动档信号，触发后 7 日内台账同向交易=已执行 · 事后走势=信号日次净值→月末</div>';
+      t3 += '<div class="rev-tfoot">' + (ex.replay ? '追溯重放 ' + ex.cover + ' 个净值日（信号快照自 2026-10-19 起积累，9 月为离线回放） · ' + ex.note : '覆盖 ' + ex.cover + ' 个快照日' + (ex.firstDate ? ' · 信号历史自 ' + ex.firstDate + ' 起积累' : '')) + ' · 口径：T 系行动档信号，触发后 7 日内台账同向交易=已执行 · 事后走势=信号日次净值→月末</div>';
       t3 += ex.extra.length
         ? '<div class="rev-tfoot">纪律外交易 <b>' + ex.extra.length + '</b> 笔 · 合计 ¥' + fmt(ex.extra.reduce(function (a, x) { return a + x.amt; }, 0)) + '（±7 日窗内无同向行动信号）：' + ex.extra.map(function (x) { return esc(x.name) + ' ' + (x.type === 'buy' ? '买入' : '卖出') + ' ¥' + fmt(x.amt); }).join(' · ') + '</div>'
         : '<div class="rev-tfoot">纪律外交易 0 笔 ✓</div>';
