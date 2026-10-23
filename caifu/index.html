@@ -1314,7 +1314,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 
 
       
-      <section class="view" id="view-strategy"><!-- fw2_v120_strategy --><div class="card strat-hero" id="stratHero"></div><div class="strat-tabs v-tabs" id="stratTabs"><button class="st-tab v-tab active" data-st="alloc">资产配置</button><button class="st-tab v-tab" data-st="bt">组合回测</button><button class="st-tab v-tab" data-st="plan">定投执行</button><button class="st-tab v-tab" data-st="review">季度复盘</button></div><div class="st-pane" id="stp-alloc"></div><div class="st-pane" id="stp-bt" style="display:none"></div><div class="st-pane" id="stp-plan" style="display:none"></div><div class="st-pane" id="stp-review" style="display:none"></div><!-- v167：场内外对照已下移至 #stp-cards 之后（原共享层位置摘除）--></section>
+      <section class="view" id="view-strategy"><!-- fw2_v120_strategy --><!-- fw2_v663_hero_retire：建仓 hero 整块退役（当前市值/完成度→资产配置表、定投月数/下次定投→定投执行 tab 同源重复；可投资金输入框经用户拍板一并删，rulesBudget 引擎按 localStorage fw2_capital_budget_v1 现值继续） --><div class="strat-tabs v-tabs" id="stratTabs"><button class="st-tab v-tab active" data-st="alloc">资产配置</button><button class="st-tab v-tab" data-st="bt">组合回测</button><button class="st-tab v-tab" data-st="plan">定投执行</button><button class="st-tab v-tab" data-st="review">季度复盘</button></div><div class="st-pane" id="stp-alloc"></div><div class="st-pane" id="stp-bt" style="display:none"></div><div class="st-pane" id="stp-plan" style="display:none"></div><div class="st-pane" id="stp-review" style="display:none"></div><!-- v167：场内外对照已下移至 #stp-cards 之后（原共享层位置摘除）--></section>
       <!-- v91 fw2_v91_macro_merge：宏观·情绪 独立页曾并入 数据中心 → 宏观数据 分块（v135 已反向拆分，见下） -->
       <!-- fw2_v135_macro_view：宏观数据由「数据中心」分块迁出为独立模块（用户 2026-09-18「宏观数据单独作为一个模块放在数据中心上面」）；#view-data 改名「基金数据」并删除 dcBlocks 切换行（基金数据直接进入内容区，默认总览 Tab） -->
       <section class="view" id="view-macro">
@@ -13106,6 +13106,13 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
        实证（CDP+独立脚本双验）：2026-06 净利润 +4,375.68（012920 净值 4.4136→5.2809×5045.18 份）；
        04/05/07=+4,274.28/+3,958.45/−8,300.83 与 fund-monthly 净值序列机械一致（07 月 QDII 净值 5.28→3.64，
        012920 divEvents=[] 无分红除权，忠实反映数据源）。
+     v663（fw2_v663_hero_retire）：策略执行页建仓 hero 整块退役（用户截图红框：内容与子模块全部重复）——
+       当前市值/完成度→资产配置明细表同源、定投月数/每月定投/下次定投→定投执行 tab 同源；
+       「可投资金（月）」输入框经 AskUserQuestion 拍板「一并删除（彻底减法）」（v646 自规则 tab 迁来的唯一
+       引擎预算入口，删后 rulesBudget() 读值保留、rulesEngine/rulesBannerHtml 按 localStorage
+       fw2_capital_budget_v1 现值 50000 继续运行，改预算需恢复入口）；renderStratHero/nextDrip/
+       rulesSaveBudget 三函数删（nextDrip 仅 hero 使用），调用点与 #stratHero 容器删。
+       v662（fw2_v662_hero_5col 5 列并行）因 hero 直接退役作废未落地。
      v661（fw2_v661_filter_compact）：持仓工具栏右侧「盈亏折人民币 + 排序下拉」并入 #hdFilter 筛选行，
        随资产类型 chips 紧凑排列（用户截图指令「把右边红框内容放在下列并行后面的位置，保持紧凑」）；
        持仓工具栏 .toolbar 整块退役（v660 后 tools-l 已空）；hdCny/hdSort 随 innerHTML 重绘重建 →
@@ -13126,7 +13133,7 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
        ①删 cbExport/cbImport/cbCloudRestore 三按钮 + #cbImportFile + #cbCloudInfo 灰字（HTML+三段绑定）；
        ②成交台账(cbLedgerToggle)/设置负债等其余工具栏按钮不动；③renderCloudInfo（自带 !el 守卫）/
        cbImportFile onchange/restoreFromMirror 保留死代码，恢复入口只需还原 HTML+绑定。
-       注意：全量 DB 备份入口随之消失，台账流水仍可经总览·交易台账折叠块备份。 */  if (vc) vc.textContent = 'v661 · 筛选行并入' /* fw2_v661_filter_compact fw2_v660_ui_simplify fw2_v659_backup_btns_del fw2_v658_rpt_monthnav fw2_v657_rptbar_del fw2_v656_rpt_6m fw2_v655_rpt_kpi fw2_v654_held_pf_authority fw2_v653_alloc_pile_assign fw2_v652_data_tab_removed fw2_v651_recent_hide fw2_v651_ledger_slim fw2_v651_entry_unify fw2_v650_netseries_daily fw2_v650_moneynav fw2_v649_merge_holdings fw2_v648_capbal_slim fw2_v647_netseries_fix fw2_v646_ledger_capbal fw2_v644_revert_watch_tab fw2_v643_mtbl_tier fw2_v642_a500_enh fw2_v641_peak_dd fw2_v640_buy_pct fw2_v639_del_decisionfw2_v516_a500lk fw2_v517_4otc fw2_v518_hspos fw2_v519_sm_merge fw2_v520_chgflat fw2_v521_magnet fw2_v522_overview fw2_v523_sm_dedup fw2_v524_geo_fsi fw2_v525_geo_filter fw2_v526_geo_filter_removed fw2_v527_verdict fw2_v529_smux fw2_v530_datamgmt fw2_v531_sm_dmgmt fw2_v532_all_dm fw2_v533_px_long fw2_v533d_dm_scroll fw2_v534_dm_module fw2_v535_dm_auto fw2_v539_hold_realpnl fw2_v539a_seed_sync fw2_v539a_seed_order fw2_v540_hold_path fw2_v542_pf_mirror_first fw2_v542_mv_settled fw2_v542_mv_account fw2_v543_dm_holdings_note fw2_v544_ledger_mirror_guard fw2_v545_hold_total_row fw2_v546_navdate_all fw2_v547_vix_to_ovs fw2_v548_ovs_mrg fw2_v549_region_align fw2_v550_grp_tabs fw2_v551_sop_cockpit fw2_v552_sop_taborder fw2_v553_chain_data fw2_v554_sop_rename fw2_v556_market_split fw2_v557_sm_renamed fw2_v558_cbrates_fix fw2_v558a_cb_label fw2_v559_chain_dates fw2_v560_chain_verdict fw2_v561_curve_hold fw2_v562_hold_inline fw2_v563_alloc fw2_v564_lxlink fw2_v565_cal_lx fw2_v565_sub_lx fw2_v566_fund_move fw2_v567_fund_merge fw2_v568_lxlink_fix fw2_v569_manager_pool fw2_v570_manager_universe fw2_v571_mgr_east fw2_v574_mgr_subscore fw2_v575_mgr_merge fw2_v576_mgr_group fw2_v577_mgr_lxlink fw2_v578_mgr_lxreal fw2_v579_mgr_weight fw2_v581_fund_lxreal fw2_v582_mgr_min10 fw2_v583_mgr_noyear fw2_v584_mgr_career fw2_v585_mgr_srank fw2_v586_mgr_srank fw2_v587_mgr_since fw2_v588_mgr_lxfull fw2_v589_mgr_rules fw2_v590_mgr_scores fw2_v591_mgr_ladder fw2_v592_mgr_cols fw2_v593_mgr_score fw2_anti_halluc_p0 fw2_v595_alpha_attrib fw2_v596_sig_hist fw2_v597_fund_overlap fw2_v598_mgr_hold fw2_v599_time_decay fw2_v599_corr_pen fw2_v600_buytrack fw2_v601_backtest fw2_v602_kline_page fw2_v603_old_debts fw2_v604_xirr fw2_v605_holdings_global fw2_v606_v11_signal fw2_v607_v11_bt fw2_v608_lx_audit fw2_v609_sig_table fw2_v610_sig_merge fw2_v611_grp_line fw2_v612_index_lxreal fw2_v613_near_blue fw2_v615_sig_grp fw2_v616_sig_hdstyle fw2_v617_sig_vline fw2_v618_sig_lcr fw2_v619_curthr fw2_v620_curthr_all fw2_v621_ret_hpr fw2_v621_t13_lastbuy fw2_v622_lastbuy_auto fw2_v623_firstbuy_roll fw2_v623_alloc_watch fw2_v624_m13_m17 fw2_v626_sig_cost_guard fw2_v626_watch_pe_exempt fw2_v627_colorder fw2_v627_action_plan fw2_v627_data_date fw2_v628_fixed_cols fw2_v629_pool_pile_guard fw2_v629_t9_pfdate fw2_v630_missing_cost fw2_v631_pool_held_live fw2_v632_held_off fw2_v633_ledger_tx_sync fw2_v634_plan_dir fw2_v635_capbal_fix fw2_v636_capbal_converge fw2_v637_mv_consist fw2_v638_mv_unify */ + (window.getAllocWatchCodes ? window.getAllocWatchCodes().length : 0) + '只';
+       注意：全量 DB 备份入口随之消失，台账流水仍可经总览·交易台账折叠块备份。 */  if (vc) vc.textContent = 'v663 · hero退役' /* fw2_v663_hero_retire fw2_v661_filter_compact fw2_v660_ui_simplify fw2_v659_backup_btns_del fw2_v658_rpt_monthnav fw2_v657_rptbar_del fw2_v656_rpt_6m fw2_v655_rpt_kpi fw2_v654_held_pf_authority fw2_v653_alloc_pile_assign fw2_v652_data_tab_removed fw2_v651_recent_hide fw2_v651_ledger_slim fw2_v651_entry_unify fw2_v650_netseries_daily fw2_v650_moneynav fw2_v649_merge_holdings fw2_v648_capbal_slim fw2_v647_netseries_fix fw2_v646_ledger_capbal fw2_v644_revert_watch_tab fw2_v643_mtbl_tier fw2_v642_a500_enh fw2_v641_peak_dd fw2_v640_buy_pct fw2_v639_del_decisionfw2_v516_a500lk fw2_v517_4otc fw2_v518_hspos fw2_v519_sm_merge fw2_v520_chgflat fw2_v521_magnet fw2_v522_overview fw2_v523_sm_dedup fw2_v524_geo_fsi fw2_v525_geo_filter fw2_v526_geo_filter_removed fw2_v527_verdict fw2_v529_smux fw2_v530_datamgmt fw2_v531_sm_dmgmt fw2_v532_all_dm fw2_v533_px_long fw2_v533d_dm_scroll fw2_v534_dm_module fw2_v535_dm_auto fw2_v539_hold_realpnl fw2_v539a_seed_sync fw2_v539a_seed_order fw2_v540_hold_path fw2_v542_pf_mirror_first fw2_v542_mv_settled fw2_v542_mv_account fw2_v543_dm_holdings_note fw2_v544_ledger_mirror_guard fw2_v545_hold_total_row fw2_v546_navdate_all fw2_v547_vix_to_ovs fw2_v548_ovs_mrg fw2_v549_region_align fw2_v550_grp_tabs fw2_v551_sop_cockpit fw2_v552_sop_taborder fw2_v553_chain_data fw2_v554_sop_rename fw2_v556_market_split fw2_v557_sm_renamed fw2_v558_cbrates_fix fw2_v558a_cb_label fw2_v559_chain_dates fw2_v560_chain_verdict fw2_v561_curve_hold fw2_v562_hold_inline fw2_v563_alloc fw2_v564_lxlink fw2_v565_cal_lx fw2_v565_sub_lx fw2_v566_fund_move fw2_v567_fund_merge fw2_v568_lxlink_fix fw2_v569_manager_pool fw2_v570_manager_universe fw2_v571_mgr_east fw2_v574_mgr_subscore fw2_v575_mgr_merge fw2_v576_mgr_group fw2_v577_mgr_lxlink fw2_v578_mgr_lxreal fw2_v579_mgr_weight fw2_v581_fund_lxreal fw2_v582_mgr_min10 fw2_v583_mgr_noyear fw2_v584_mgr_career fw2_v585_mgr_srank fw2_v586_mgr_srank fw2_v587_mgr_since fw2_v588_mgr_lxfull fw2_v589_mgr_rules fw2_v590_mgr_scores fw2_v591_mgr_ladder fw2_v592_mgr_cols fw2_v593_mgr_score fw2_anti_halluc_p0 fw2_v595_alpha_attrib fw2_v596_sig_hist fw2_v597_fund_overlap fw2_v598_mgr_hold fw2_v599_time_decay fw2_v599_corr_pen fw2_v600_buytrack fw2_v601_backtest fw2_v602_kline_page fw2_v603_old_debts fw2_v604_xirr fw2_v605_holdings_global fw2_v606_v11_signal fw2_v607_v11_bt fw2_v608_lx_audit fw2_v609_sig_table fw2_v610_sig_merge fw2_v611_grp_line fw2_v612_index_lxreal fw2_v613_near_blue fw2_v615_sig_grp fw2_v616_sig_hdstyle fw2_v617_sig_vline fw2_v618_sig_lcr fw2_v619_curthr fw2_v620_curthr_all fw2_v621_ret_hpr fw2_v621_t13_lastbuy fw2_v622_lastbuy_auto fw2_v623_firstbuy_roll fw2_v623_alloc_watch fw2_v624_m13_m17 fw2_v626_sig_cost_guard fw2_v626_watch_pe_exempt fw2_v627_colorder fw2_v627_action_plan fw2_v627_data_date fw2_v628_fixed_cols fw2_v629_pool_pile_guard fw2_v629_t9_pfdate fw2_v630_missing_cost fw2_v631_pool_held_live fw2_v632_held_off fw2_v633_ledger_tx_sync fw2_v634_plan_dir fw2_v635_capbal_fix fw2_v636_capbal_converge fw2_v637_mv_consist fw2_v638_mv_unify */ + (window.getAllocWatchCodes ? window.getAllocWatchCodes().length : 0) + '只';
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
@@ -17080,7 +17087,7 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
      renderStratCal（执行日历打卡）/ renderStratCards（逐标的执行卡，交易信号页持仓信号已覆盖）；函数保留死代码 */
   /* fw2_v646_ledger_capbal：交易台账 tab 删→迁资金平衡·总览折叠块 capbalLedgerMount（v354 云端恢复/持仓联动/导入导出全保留，capbal overview 渲染时挂载）；策略规则 tab 删→可投资金迁策略 hero 第 5 格（档位规则表+纳指展示随 renderRules 整删；rulesEngine/rulesBannerHtml/rulesBudget/rulesSaveBudget 引擎保留，banner 消费点=交易信号页持仓信号组+台账卡；fw2_v646c_alloc_tiles_cut：资产配置页「档位再平衡」磁贴卡与「主题敞口」chips 删（与下方表格分组行/主题小计行同源重复；PILE/act/mvMap/PILE_COLOR 保留，资金平衡页 renderBarbell 磁贴不受影响） */
   function renderStrategyView() {
-    try { renderStratHero(); } catch (e) {}
+    /* fw2_v663_hero_retire：renderStratHero 调用点随 hero 退役删除 */
     try { renderBacktest(); } catch (e) {} /* v350 阶段③：组合模拟回测（杠铃策略历史组合模拟） */
     try { renderStratPlan(); } catch (e) {}
     try { renderStratAlloc(); } catch (e) {}
@@ -17444,9 +17451,7 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
     try { var v = parseFloat(localStorage.getItem(RULES_KEY)); if (v > 0) return v; } catch (e) {}
     return 50000;
   }
-  function rulesSaveBudget(v) {
-    try { localStorage.setItem(RULES_KEY, String(Math.max(0, Math.round(+v || 0)))); } catch (e) {}
-  }
+  /* fw2_v663_hero_retire：rulesSaveBudget 随 hero 可投资金输入框退役（rulesBudget 读值保留，引擎消费 localStorage 现值） */
   function rulesPileOf(code, name) {
     var bb = (window.SIGNALS_CFG || {}).barbell;
     var f = ((bb && bb.funds) || []).find(function (x) { return String(x.code) === String(code); });
@@ -17887,37 +17892,7 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
   }
   window.renderBacktest = renderBacktest;
 
-  function renderStratHero() {
-    var el = document.getElementById('stratHero');
-    if (!el) return;
-    var mv = totalMv(), pct = Math.min(100, mv / S.totalTarget * 100);
-    var ml = monthsLeft(), tm = totalMonths(), per = stratCompute().budget;   /* fw2_v488_hero_fixed：每月定投=固定分期合计(目标÷总月数)，与执行卡/日历/定投表同口径，不再用动态「差额÷剩余月」 */
-    var next = nextDrip();
-    el.innerHTML =
-      '<div class="sh-main"><div class="sh-k">建仓进度 · 半杠铃 2.0（v1.9）</div>' +
-      '<div class="sh-v">¥' + fmt(mv) + ' / ' + fmt(S.totalTarget) + '</div>' +
-      '<div class="sh-bar"><i style="width:' + pct.toFixed(1) + '%"></i></div>' +
-      '<div class="sh-sub">每月定投 <b>¥' + fmt(per) + '</b>（目标 ÷ ' + tm + ' 月 · 固定分期）· 已投 ¥' + fmt(mv) + '（' + pct.toFixed(1) + '%）· 剩余 ' + ml + ' 月</div></div>' +
-      '<div class="sh-grid">' +
-      '<div class="sh-cell"><div class="k">当前市值</div><div class="v">¥' + fmt(mv) + '</div></div>' +
-      '<div class="sh-cell"><div class="k">完成度</div><div class="v">' + pct.toFixed(1) + '%</div></div>' +
-      '<div class="sh-cell"><div class="k">定投月数</div><div class="v">剩 ' + ml + ' / 共 ' + tm + '</div></div>' +
-      '<div class="sh-cell"><div class="k">下次定投</div><div class="v">' + (next || '—') + '</div></div>' +
-      '<div class="sh-cell" style="grid-column:1/-1"><div class="k">可投资金（月）· 杠铃上限引擎预算</div><input id="rulesBudget" type="number" min="0" step="1000" value="' + rulesBudget() + '" style="width:130px;padding:4px 8px;border:1px solid var(--line,#e3e7ee);border-radius:6px;font-family:var(--mono);font-size:13px;margin-top:4px"></div>' +
-      '</div>';
-    var _bInp = document.getElementById('rulesBudget');
-    if (_bInp) { _bInp.onchange = function () { rulesSaveBudget(_bInp.value); }; }
-  }
-  function nextDrip() {
-    var today = new Date(), y = today.getFullYear(), mo = today.getMonth();
-    for (var k = 0; k < 14; k++) {
-      var t = new Date(y, mo + k, 28), d = new Date(t.getFullYear(), t.getMonth() + 1, 0);
-      var s = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
-      if (s >= todayStr()) return s;
-    }
-    return null;
-  }
-
+  /* fw2_v663_hero_retire：renderStratHero（含可投资金 rulesBudget 输入格与绑定）与仅其使用的 nextDrip 随建仓 hero 退役整段删除 */
   function doneMonths() {
     var recs = lsGet(STRAT_LS_REC, []), out = {};
     recs.forEach(function (r) { if (r && r.date) out[String(r.date).slice(0, 7)] = 1; });
