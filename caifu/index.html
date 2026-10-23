@@ -1218,21 +1218,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
     <div data-page-node-id="fXLk6Ijr5MqgohZMVFijQs" class="scroll-area">
       <!--pnid:RXbe4srWCV9YnzHWIR5GFK--><!-- ---------- 持仓 ---------- -->
       <section data-page-node-id="iCKRXKF70AWkKJ2trSJ6H9" class="view active" id="view-holdings">
-        <div data-page-node-id="opFtCfZoMEAzFOjW8Xbd1m" class="toolbar">
-          <div data-page-node-id="0NXwo1pNXLfeIoIQa6TRyo" class="tools-l">
-            <!-- fw2_v660_ui_simplify：「＋新增持仓/清空持仓」退役——真源=天天基金账户只读镜像，手工改动下一轮同步即被覆盖/拉回（原 hdClear 确认弹窗自证） -->
-          </div>
-          <div data-page-node-id="pOiJ7jjUhkMirnL6jfSEl7" class="tools-r">
-            <label data-page-node-id="TQy2bYodvhe7duGQ8eP070" class="chk"><input data-page-node-id="vtKYQaqUCgJZIzRgeqKzEf" checked id="hdCny" type="checkbox"><!--pnid:a5kBTiaswgNLCpnDy4kjZm--> 盈亏折人民币</label>
-            <select data-page-node-id="EgRyxIdL6mBLdscoEsKEX5" class="sel-sm" id="hdSort">
-              <option data-page-node-id="7gr3ossG0eikpxGVMYYj9b" value="mv"><!--pnid:gr1yPHDpcC20vkJean8uwt-->按市值排序</option>
-              <option data-page-node-id="YCaEI6pAiNUceIfQQFSYzV" value="day"><!--pnid:PwYDKKMGftlxzF7iMKI346-->按当日盈亏</option>
-              <option data-page-node-id="zOhNcJKYLtPWYanfv9NYwL" value="total"><!--pnid:aWZuKQvOwvFuWWLTvGufkR-->按总盈亏</option>
-              <option data-page-node-id="CX6YnQ2dcBCCu5ut6btikB" value="pct"><!--pnid:6pvd01iTinBx8N48xRmIXZ-->按日涨跌幅</option>
-              <option data-page-node-id="T1fIkBMKhABZniQrxYluS4" value="weight"><!--pnid:AwiUBsVuZlgJXwtGGHuvh9-->按权重</option>
-            </select>
-          </div>
-        </div>
+        <!-- fw2_v661_filter_compact：持仓工具栏整体退役——「盈亏折人民币 + 排序下拉」并入下方 #hdFilter 筛选行，随资产类型 chips 紧凑排列 -->
         <div data-page-node-id="H0p80UORDRlXGXbbpRWhFq" class="filter-row" id="hdFilter"></div>
 
         <div id="pfSrcNote" style="margin:0 0 8px;font-size:11px;color:var(--muted)"></div>
@@ -5559,7 +5545,15 @@ function renderHdFilter() {
   box.innerHTML = `<span class="flbl">资产类型</span>` + opts.map(([k, lbl, n]) => {
     const on = (state.hdAssetFilter || 'all') === k;
     return `<button class="chip ${on ? 'on' : ''} at-${k}" data-filter="${k}">${lbl}<i>${n}</i></button>`;
-  }).join('');
+  }).join('')
+    /* fw2_v661_filter_compact：原持仓工具栏右侧「盈亏折人民币 + 排序下拉」并入筛选行，随 chips 紧凑排列；
+       元素随 innerHTML 每轮重绘重建，事件改走 #hdFilter 的 change 委托（见绑定区） */
+    + `<span style="display:inline-flex;align-items:center;gap:8px;margin-left:10px">`
+    + `<label class="chk"><input id="hdCny" type="checkbox" ${state.settings.cnyView !== false ? 'checked' : ''}> 盈亏折人民币</label>`
+    + `<select class="sel-sm" id="hdSort">`
+    + [['mv', '按市值排序'], ['day', '按当日盈亏'], ['total', '按总盈亏'], ['pct', '按日涨跌幅'], ['weight', '按权重']]
+        .map(([v, l]) => `<option value="${v}" ${state.hdSort === v ? 'selected' : ''}>${l}</option>`).join('')
+    + `</select></span>`;
 }
 /* v113 fw2_v113_risk_cfg：风险与机会扫描 / 单票健康度 / 涨跌停判定的**唯一阈值源**（UI 与 Markdown 导出共用）。
    ★与 window.SIGNALS_CFG 的分工：SIGNALS_CFG 管「交易动作」（补仓/止盈/止损/失衡，T1~T10）；
@@ -11781,8 +11775,11 @@ $('#modal').onclick = (e) => { if (e.target.id === 'modal') closeModal(); };
 
 /* 持仓页 */
 /* fw2_v660_ui_simplify：hdAdd/hdClear 绑定随按钮退役删除（openHoldingEditor 仍供表格行「编辑」使用） */
-$('#hdCny').onchange = (e) => { state.settings.cnyView = e.target.checked; saveStore(); renderHoldings(); };
-$('#hdSort').onchange = (e) => { state.hdSort = e.target.value; renderHoldings(); };
+/* fw2_v661_filter_compact：hdCny/hdSort 并入 #hdFilter 后随 innerHTML 重建，直接绑定会失效 → change 事件委托 */
+$('#hdFilter').onchange = (e) => {
+  if (e.target.id === 'hdCny') { state.settings.cnyView = e.target.checked; saveStore(); renderHoldings(); }
+  if (e.target.id === 'hdSort') { state.hdSort = e.target.value; renderHoldings(); }
+};
 $('#hdFilter').onclick = (e) => {
   const b = e.target.closest('[data-filter]'); if (!b) return;
   state.hdAssetFilter = b.dataset.filter;
@@ -13109,6 +13106,11 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
        实证（CDP+独立脚本双验）：2026-06 净利润 +4,375.68（012920 净值 4.4136→5.2809×5045.18 份）；
        04/05/07=+4,274.28/+3,958.45/−8,300.83 与 fund-monthly 净值序列机械一致（07 月 QDII 净值 5.28→3.64，
        012920 divEvents=[] 无分红除权，忠实反映数据源）。
+     v661（fw2_v661_filter_compact）：持仓工具栏右侧「盈亏折人民币 + 排序下拉」并入 #hdFilter 筛选行，
+       随资产类型 chips 紧凑排列（用户截图指令「把右边红框内容放在下列并行后面的位置，保持紧凑」）；
+       持仓工具栏 .toolbar 整块退役（v660 后 tools-l 已空）；hdCny/hdSort 随 innerHTML 重绘重建 →
+       直接绑定改 #hdFilter change 事件委托；init 期 #hdCny.checked 直设行删除（renderHdFilter 按
+       state.settings.cnyView / state.hdSort 自水合 checked/selected）。
      v660（fw2_v660_ui_simplify）：界面减字——用户要求全面清理无用小字与小按钮，经清单确认「全按建议执行」。
        ①持仓页「＋新增持仓/清空持仓」两按钮+绑定退役（真源=天天基金账户只读镜像，手工改动下一轮同步即被覆盖/拉回；
          openHoldingEditor 保留供表格行「编辑」）；②pfSrcNote「持仓来源…」正常态（镜像/旁挂快照）整行隐藏，
@@ -13124,7 +13126,7 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
        ①删 cbExport/cbImport/cbCloudRestore 三按钮 + #cbImportFile + #cbCloudInfo 灰字（HTML+三段绑定）；
        ②成交台账(cbLedgerToggle)/设置负债等其余工具栏按钮不动；③renderCloudInfo（自带 !el 守卫）/
        cbImportFile onchange/restoreFromMirror 保留死代码，恢复入口只需还原 HTML+绑定。
-       注意：全量 DB 备份入口随之消失，台账流水仍可经总览·交易台账折叠块备份。 */  if (vc) vc.textContent = 'v660 · 界面减字' /* fw2_v660_ui_simplify fw2_v659_backup_btns_del fw2_v658_rpt_monthnav fw2_v657_rptbar_del fw2_v656_rpt_6m fw2_v655_rpt_kpi fw2_v654_held_pf_authority fw2_v653_alloc_pile_assign fw2_v652_data_tab_removed fw2_v651_recent_hide fw2_v651_ledger_slim fw2_v651_entry_unify fw2_v650_netseries_daily fw2_v650_moneynav fw2_v649_merge_holdings fw2_v648_capbal_slim fw2_v647_netseries_fix fw2_v646_ledger_capbal fw2_v644_revert_watch_tab fw2_v643_mtbl_tier fw2_v642_a500_enh fw2_v641_peak_dd fw2_v640_buy_pct fw2_v639_del_decisionfw2_v516_a500lk fw2_v517_4otc fw2_v518_hspos fw2_v519_sm_merge fw2_v520_chgflat fw2_v521_magnet fw2_v522_overview fw2_v523_sm_dedup fw2_v524_geo_fsi fw2_v525_geo_filter fw2_v526_geo_filter_removed fw2_v527_verdict fw2_v529_smux fw2_v530_datamgmt fw2_v531_sm_dmgmt fw2_v532_all_dm fw2_v533_px_long fw2_v533d_dm_scroll fw2_v534_dm_module fw2_v535_dm_auto fw2_v539_hold_realpnl fw2_v539a_seed_sync fw2_v539a_seed_order fw2_v540_hold_path fw2_v542_pf_mirror_first fw2_v542_mv_settled fw2_v542_mv_account fw2_v543_dm_holdings_note fw2_v544_ledger_mirror_guard fw2_v545_hold_total_row fw2_v546_navdate_all fw2_v547_vix_to_ovs fw2_v548_ovs_mrg fw2_v549_region_align fw2_v550_grp_tabs fw2_v551_sop_cockpit fw2_v552_sop_taborder fw2_v553_chain_data fw2_v554_sop_rename fw2_v556_market_split fw2_v557_sm_renamed fw2_v558_cbrates_fix fw2_v558a_cb_label fw2_v559_chain_dates fw2_v560_chain_verdict fw2_v561_curve_hold fw2_v562_hold_inline fw2_v563_alloc fw2_v564_lxlink fw2_v565_cal_lx fw2_v565_sub_lx fw2_v566_fund_move fw2_v567_fund_merge fw2_v568_lxlink_fix fw2_v569_manager_pool fw2_v570_manager_universe fw2_v571_mgr_east fw2_v574_mgr_subscore fw2_v575_mgr_merge fw2_v576_mgr_group fw2_v577_mgr_lxlink fw2_v578_mgr_lxreal fw2_v579_mgr_weight fw2_v581_fund_lxreal fw2_v582_mgr_min10 fw2_v583_mgr_noyear fw2_v584_mgr_career fw2_v585_mgr_srank fw2_v586_mgr_srank fw2_v587_mgr_since fw2_v588_mgr_lxfull fw2_v589_mgr_rules fw2_v590_mgr_scores fw2_v591_mgr_ladder fw2_v592_mgr_cols fw2_v593_mgr_score fw2_anti_halluc_p0 fw2_v595_alpha_attrib fw2_v596_sig_hist fw2_v597_fund_overlap fw2_v598_mgr_hold fw2_v599_time_decay fw2_v599_corr_pen fw2_v600_buytrack fw2_v601_backtest fw2_v602_kline_page fw2_v603_old_debts fw2_v604_xirr fw2_v605_holdings_global fw2_v606_v11_signal fw2_v607_v11_bt fw2_v608_lx_audit fw2_v609_sig_table fw2_v610_sig_merge fw2_v611_grp_line fw2_v612_index_lxreal fw2_v613_near_blue fw2_v615_sig_grp fw2_v616_sig_hdstyle fw2_v617_sig_vline fw2_v618_sig_lcr fw2_v619_curthr fw2_v620_curthr_all fw2_v621_ret_hpr fw2_v621_t13_lastbuy fw2_v622_lastbuy_auto fw2_v623_firstbuy_roll fw2_v623_alloc_watch fw2_v624_m13_m17 fw2_v626_sig_cost_guard fw2_v626_watch_pe_exempt fw2_v627_colorder fw2_v627_action_plan fw2_v627_data_date fw2_v628_fixed_cols fw2_v629_pool_pile_guard fw2_v629_t9_pfdate fw2_v630_missing_cost fw2_v631_pool_held_live fw2_v632_held_off fw2_v633_ledger_tx_sync fw2_v634_plan_dir fw2_v635_capbal_fix fw2_v636_capbal_converge fw2_v637_mv_consist fw2_v638_mv_unify */ + (window.getAllocWatchCodes ? window.getAllocWatchCodes().length : 0) + '只';
+       注意：全量 DB 备份入口随之消失，台账流水仍可经总览·交易台账折叠块备份。 */  if (vc) vc.textContent = 'v661 · 筛选行并入' /* fw2_v661_filter_compact fw2_v660_ui_simplify fw2_v659_backup_btns_del fw2_v658_rpt_monthnav fw2_v657_rptbar_del fw2_v656_rpt_6m fw2_v655_rpt_kpi fw2_v654_held_pf_authority fw2_v653_alloc_pile_assign fw2_v652_data_tab_removed fw2_v651_recent_hide fw2_v651_ledger_slim fw2_v651_entry_unify fw2_v650_netseries_daily fw2_v650_moneynav fw2_v649_merge_holdings fw2_v648_capbal_slim fw2_v647_netseries_fix fw2_v646_ledger_capbal fw2_v644_revert_watch_tab fw2_v643_mtbl_tier fw2_v642_a500_enh fw2_v641_peak_dd fw2_v640_buy_pct fw2_v639_del_decisionfw2_v516_a500lk fw2_v517_4otc fw2_v518_hspos fw2_v519_sm_merge fw2_v520_chgflat fw2_v521_magnet fw2_v522_overview fw2_v523_sm_dedup fw2_v524_geo_fsi fw2_v525_geo_filter fw2_v526_geo_filter_removed fw2_v527_verdict fw2_v529_smux fw2_v530_datamgmt fw2_v531_sm_dmgmt fw2_v532_all_dm fw2_v533_px_long fw2_v533d_dm_scroll fw2_v534_dm_module fw2_v535_dm_auto fw2_v539_hold_realpnl fw2_v539a_seed_sync fw2_v539a_seed_order fw2_v540_hold_path fw2_v542_pf_mirror_first fw2_v542_mv_settled fw2_v542_mv_account fw2_v543_dm_holdings_note fw2_v544_ledger_mirror_guard fw2_v545_hold_total_row fw2_v546_navdate_all fw2_v547_vix_to_ovs fw2_v548_ovs_mrg fw2_v549_region_align fw2_v550_grp_tabs fw2_v551_sop_cockpit fw2_v552_sop_taborder fw2_v553_chain_data fw2_v554_sop_rename fw2_v556_market_split fw2_v557_sm_renamed fw2_v558_cbrates_fix fw2_v558a_cb_label fw2_v559_chain_dates fw2_v560_chain_verdict fw2_v561_curve_hold fw2_v562_hold_inline fw2_v563_alloc fw2_v564_lxlink fw2_v565_cal_lx fw2_v565_sub_lx fw2_v566_fund_move fw2_v567_fund_merge fw2_v568_lxlink_fix fw2_v569_manager_pool fw2_v570_manager_universe fw2_v571_mgr_east fw2_v574_mgr_subscore fw2_v575_mgr_merge fw2_v576_mgr_group fw2_v577_mgr_lxlink fw2_v578_mgr_lxreal fw2_v579_mgr_weight fw2_v581_fund_lxreal fw2_v582_mgr_min10 fw2_v583_mgr_noyear fw2_v584_mgr_career fw2_v585_mgr_srank fw2_v586_mgr_srank fw2_v587_mgr_since fw2_v588_mgr_lxfull fw2_v589_mgr_rules fw2_v590_mgr_scores fw2_v591_mgr_ladder fw2_v592_mgr_cols fw2_v593_mgr_score fw2_anti_halluc_p0 fw2_v595_alpha_attrib fw2_v596_sig_hist fw2_v597_fund_overlap fw2_v598_mgr_hold fw2_v599_time_decay fw2_v599_corr_pen fw2_v600_buytrack fw2_v601_backtest fw2_v602_kline_page fw2_v603_old_debts fw2_v604_xirr fw2_v605_holdings_global fw2_v606_v11_signal fw2_v607_v11_bt fw2_v608_lx_audit fw2_v609_sig_table fw2_v610_sig_merge fw2_v611_grp_line fw2_v612_index_lxreal fw2_v613_near_blue fw2_v615_sig_grp fw2_v616_sig_hdstyle fw2_v617_sig_vline fw2_v618_sig_lcr fw2_v619_curthr fw2_v620_curthr_all fw2_v621_ret_hpr fw2_v621_t13_lastbuy fw2_v622_lastbuy_auto fw2_v623_firstbuy_roll fw2_v623_alloc_watch fw2_v624_m13_m17 fw2_v626_sig_cost_guard fw2_v626_watch_pe_exempt fw2_v627_colorder fw2_v627_action_plan fw2_v627_data_date fw2_v628_fixed_cols fw2_v629_pool_pile_guard fw2_v629_t9_pfdate fw2_v630_missing_cost fw2_v631_pool_held_live fw2_v632_held_off fw2_v633_ledger_tx_sync fw2_v634_plan_dir fw2_v635_capbal_fix fw2_v636_capbal_converge fw2_v637_mv_consist fw2_v638_mv_unify */ + (window.getAllocWatchCodes ? window.getAllocWatchCodes().length : 0) + '只';
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
@@ -14015,8 +14017,7 @@ function sigAcked(key, days) {
 loadStore();
 loadPortfolioFromDB();
 loadWatchlistFromDB();
-$('#hdCny').checked = state.settings.cnyView !== false;
-renderNewsSourceChips();
+renderNewsSourceChips(); /* fw2_v661_filter_compact：hdCny checked 初始化随元素并入 renderHdFilter 自水合而删除 */
 showView(new URLSearchParams(location.search).get('view') || 'holdings'); /* fw2_capbal_merge：支持 ?view= 直达 */ /* v639：默认首页改为我的持仓（决策总览模块已删除） */
 startLoop();
 setTimeout(() => { renderResearchChips(); if (!state.news.items.length) loadNews(); }, 800);
