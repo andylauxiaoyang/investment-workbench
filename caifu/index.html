@@ -13111,6 +13111,13 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
        实证（CDP+独立脚本双验）：2026-06 净利润 +4,375.68（012920 净值 4.4136→5.2809×5045.18 份）；
        04/05/07=+4,274.28/+3,958.45/−8,300.83 与 fund-monthly 净值序列机械一致（07 月 QDII 净值 5.28→3.64，
        012920 divEvents=[] 无分红除权，忠实反映数据源）。
+     v673（fw2_v673_rev_union + fw2_v673_sig_retrace）：复盘表2 归因补全+合计行、表3 信号日回溯首触（用户截图三问：
+        「这个信号应该在10.1就已经存在了」「盈亏归因还有基金没算，比如易方达全球，本月有的基金都应该算入」「净盈亏下面
+        要汇总」）——①表2 月报 perTarget 之外把「本月已持有」基金全部纳入（持仓 qty>0 且本轮首笔≤月末，name/tid→code
+        双匹配防重）：推算行 pnl=份额×(月末−上月末净值)+「推算」徽章，缺净值显 — 不硬凑，导出 Md 同步；②表2 尾加
+        合计行（Σ净盈亏+与月报净利润差额构成）；③表3 act 信号按净值序列逐日回溯条件首触日（T1/T2/T4/T5/T7/T13，
+        成本/lastBuyNav 当前值近似），早于快照日则重定信号日+「回溯」徽章+detail 注记，已执行±7日窗/事后走势/全执行
+        模拟随首触日重算，T7 首触与 T1/T2 同触补「（止盈区·待决）」互斥标注，tfoot 披露回溯口径。
      v672（fw2_v672_pnl_color）：复盘表净盈亏红涨绿跌纠偏 + 事后走势着色（用户：「净盈亏，盈利红色，亏损绿色。
         事后走势也按照这个弄」）——v669 引入 .rev-tbl .good{var(--down) 绿}/.bad{#C0483D 红} 与全站 v79 涨红跌绿
         （--up 红/--down 绿）相反：.good 改 var(--up) 红（盈利）、.bad 改 var(--down) 绿（亏损），统一覆盖表1 收益行/
@@ -13198,7 +13205,7 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
        ①删 cbExport/cbImport/cbCloudRestore 三按钮 + #cbImportFile + #cbCloudInfo 灰字（HTML+三段绑定）；
        ②成交台账(cbLedgerToggle)/设置负债等其余工具栏按钮不动；③renderCloudInfo（自带 !el 守卫）/
        cbImportFile onchange/restoreFromMirror 保留死代码，恢复入口只需还原 HTML+绑定。
-       注意：全量 DB 备份入口随之消失，台账流水仍可经总览·交易台账折叠块备份。 */  if (vc) vc.textContent = 'v672 · 盈亏红涨绿跌' /* fw2_v669_review_tables fw2_v668_review_monthly fw2_v667_review_insight fw2_v666_tiles_bigger fw2_v665_review_tiles fw2_v664_review_rebuild fw2_v663_hero_retire fw2_v661_filter_compact fw2_v660_ui_simplify fw2_v659_backup_btns_del fw2_v658_rpt_monthnav fw2_v657_rptbar_del fw2_v656_rpt_6m fw2_v655_rpt_kpi fw2_v654_held_pf_authority fw2_v653_alloc_pile_assign fw2_v652_data_tab_removed fw2_v651_recent_hide fw2_v651_ledger_slim fw2_v651_entry_unify fw2_v650_netseries_daily fw2_v650_moneynav fw2_v649_merge_holdings fw2_v648_capbal_slim fw2_v647_netseries_fix fw2_v646_ledger_capbal fw2_v644_revert_watch_tab fw2_v643_mtbl_tier fw2_v642_a500_enh fw2_v641_peak_dd fw2_v640_buy_pct fw2_v639_del_decisionfw2_v516_a500lk fw2_v517_4otc fw2_v518_hspos fw2_v519_sm_merge fw2_v520_chgflat fw2_v521_magnet fw2_v522_overview fw2_v523_sm_dedup fw2_v524_geo_fsi fw2_v525_geo_filter fw2_v526_geo_filter_removed fw2_v527_verdict fw2_v529_smux fw2_v530_datamgmt fw2_v531_sm_dmgmt fw2_v532_all_dm fw2_v533_px_long fw2_v533d_dm_scroll fw2_v534_dm_module fw2_v535_dm_auto fw2_v539_hold_realpnl fw2_v539a_seed_sync fw2_v539a_seed_order fw2_v540_hold_path fw2_v542_pf_mirror_first fw2_v542_mv_settled fw2_v542_mv_account fw2_v543_dm_holdings_note fw2_v544_ledger_mirror_guard fw2_v545_hold_total_row fw2_v546_navdate_all fw2_v547_vix_to_ovs fw2_v548_ovs_mrg fw2_v549_region_align fw2_v550_grp_tabs fw2_v551_sop_cockpit fw2_v552_sop_taborder fw2_v553_chain_data fw2_v554_sop_rename fw2_v556_market_split fw2_v557_sm_renamed fw2_v558_cbrates_fix fw2_v558a_cb_label fw2_v559_chain_dates fw2_v560_chain_verdict fw2_v561_curve_hold fw2_v562_hold_inline fw2_v563_alloc fw2_v564_lxlink fw2_v565_cal_lx fw2_v565_sub_lx fw2_v566_fund_move fw2_v567_fund_merge fw2_v568_lxlink_fix fw2_v569_manager_pool fw2_v570_manager_universe fw2_v571_mgr_east fw2_v574_mgr_subscore fw2_v575_mgr_merge fw2_v576_mgr_group fw2_v577_mgr_lxlink fw2_v578_mgr_lxreal fw2_v579_mgr_weight fw2_v581_fund_lxreal fw2_v582_mgr_min10 fw2_v583_mgr_noyear fw2_v584_mgr_career fw2_v585_mgr_srank fw2_v586_mgr_srank fw2_v587_mgr_since fw2_v588_mgr_lxfull fw2_v589_mgr_rules fw2_v590_mgr_scores fw2_v591_mgr_ladder fw2_v592_mgr_cols fw2_v593_mgr_score fw2_anti_halluc_p0 fw2_v595_alpha_attrib fw2_v596_sig_hist fw2_v597_fund_overlap fw2_v598_mgr_hold fw2_v599_time_decay fw2_v599_corr_pen fw2_v600_buytrack fw2_v601_backtest fw2_v602_kline_page fw2_v603_old_debts fw2_v604_xirr fw2_v605_holdings_global fw2_v606_v11_signal fw2_v607_v11_bt fw2_v608_lx_audit fw2_v609_sig_table fw2_v610_sig_merge fw2_v611_grp_line fw2_v612_index_lxreal fw2_v613_near_blue fw2_v615_sig_grp fw2_v616_sig_hdstyle fw2_v617_sig_vline fw2_v618_sig_lcr fw2_v619_curthr fw2_v620_curthr_all fw2_v621_ret_hpr fw2_v621_t13_lastbuy fw2_v622_lastbuy_auto fw2_v623_firstbuy_roll fw2_v623_alloc_watch fw2_v624_m13_m17 fw2_v626_sig_cost_guard fw2_v626_watch_pe_exempt fw2_v627_colorder fw2_v627_action_plan fw2_v627_data_date fw2_v628_fixed_cols fw2_v629_pool_pile_guard fw2_v629_t9_pfdate fw2_v630_missing_cost fw2_v631_pool_held_live fw2_v632_held_off fw2_v633_ledger_tx_sync fw2_v634_plan_dir fw2_v635_capbal_fix fw2_v636_capbal_converge fw2_v637_mv_consist fw2_v638_mv_unify */ + (window.getAllocWatchCodes ? window.getAllocWatchCodes().length : 0) + '只';
+       注意：全量 DB 备份入口随之消失，台账流水仍可经总览·交易台账折叠块备份。 */  if (vc) vc.textContent = 'v673 · 归因补全+信号回溯' /* fw2_v673_rev_union fw2_v673_sig_retrace fw2_v669_review_tables fw2_v668_review_monthly fw2_v667_review_insight fw2_v666_tiles_bigger fw2_v665_review_tiles fw2_v664_review_rebuild fw2_v663_hero_retire fw2_v661_filter_compact fw2_v660_ui_simplify fw2_v659_backup_btns_del fw2_v658_rpt_monthnav fw2_v657_rptbar_del fw2_v656_rpt_6m fw2_v655_rpt_kpi fw2_v654_held_pf_authority fw2_v653_alloc_pile_assign fw2_v652_data_tab_removed fw2_v651_recent_hide fw2_v651_ledger_slim fw2_v651_entry_unify fw2_v650_netseries_daily fw2_v650_moneynav fw2_v649_merge_holdings fw2_v648_capbal_slim fw2_v647_netseries_fix fw2_v646_ledger_capbal fw2_v644_revert_watch_tab fw2_v643_mtbl_tier fw2_v642_a500_enh fw2_v641_peak_dd fw2_v640_buy_pct fw2_v639_del_decisionfw2_v516_a500lk fw2_v517_4otc fw2_v518_hspos fw2_v519_sm_merge fw2_v520_chgflat fw2_v521_magnet fw2_v522_overview fw2_v523_sm_dedup fw2_v524_geo_fsi fw2_v525_geo_filter fw2_v526_geo_filter_removed fw2_v527_verdict fw2_v529_smux fw2_v530_datamgmt fw2_v531_sm_dmgmt fw2_v532_all_dm fw2_v533_px_long fw2_v533d_dm_scroll fw2_v534_dm_module fw2_v535_dm_auto fw2_v539_hold_realpnl fw2_v539a_seed_sync fw2_v539a_seed_order fw2_v540_hold_path fw2_v542_pf_mirror_first fw2_v542_mv_settled fw2_v542_mv_account fw2_v543_dm_holdings_note fw2_v544_ledger_mirror_guard fw2_v545_hold_total_row fw2_v546_navdate_all fw2_v547_vix_to_ovs fw2_v548_ovs_mrg fw2_v549_region_align fw2_v550_grp_tabs fw2_v551_sop_cockpit fw2_v552_sop_taborder fw2_v553_chain_data fw2_v554_sop_rename fw2_v556_market_split fw2_v557_sm_renamed fw2_v558_cbrates_fix fw2_v558a_cb_label fw2_v559_chain_dates fw2_v560_chain_verdict fw2_v561_curve_hold fw2_v562_hold_inline fw2_v563_alloc fw2_v564_lxlink fw2_v565_cal_lx fw2_v565_sub_lx fw2_v566_fund_move fw2_v567_fund_merge fw2_v568_lxlink_fix fw2_v569_manager_pool fw2_v570_manager_universe fw2_v571_mgr_east fw2_v574_mgr_subscore fw2_v575_mgr_merge fw2_v576_mgr_group fw2_v577_mgr_lxlink fw2_v578_mgr_lxreal fw2_v579_mgr_weight fw2_v581_fund_lxreal fw2_v582_mgr_min10 fw2_v583_mgr_noyear fw2_v584_mgr_career fw2_v585_mgr_srank fw2_v586_mgr_srank fw2_v587_mgr_since fw2_v588_mgr_lxfull fw2_v589_mgr_rules fw2_v590_mgr_scores fw2_v591_mgr_ladder fw2_v592_mgr_cols fw2_v593_mgr_score fw2_anti_halluc_p0 fw2_v595_alpha_attrib fw2_v596_sig_hist fw2_v597_fund_overlap fw2_v598_mgr_hold fw2_v599_time_decay fw2_v599_corr_pen fw2_v600_buytrack fw2_v601_backtest fw2_v602_kline_page fw2_v603_old_debts fw2_v604_xirr fw2_v605_holdings_global fw2_v606_v11_signal fw2_v607_v11_bt fw2_v608_lx_audit fw2_v609_sig_table fw2_v610_sig_merge fw2_v611_grp_line fw2_v612_index_lxreal fw2_v613_near_blue fw2_v615_sig_grp fw2_v616_sig_hdstyle fw2_v617_sig_vline fw2_v618_sig_lcr fw2_v619_curthr fw2_v620_curthr_all fw2_v621_ret_hpr fw2_v621_t13_lastbuy fw2_v622_lastbuy_auto fw2_v623_firstbuy_roll fw2_v623_alloc_watch fw2_v624_m13_m17 fw2_v626_sig_cost_guard fw2_v626_watch_pe_exempt fw2_v627_colorder fw2_v627_action_plan fw2_v627_data_date fw2_v628_fixed_cols fw2_v629_pool_pile_guard fw2_v629_t9_pfdate fw2_v630_missing_cost fw2_v631_pool_held_live fw2_v632_held_off fw2_v633_ledger_tx_sync fw2_v634_plan_dir fw2_v635_capbal_fix fw2_v636_capbal_converge fw2_v637_mv_consist fw2_v638_mv_unify */ + (window.getAllocWatchCodes ? window.getAllocWatchCodes().length : 0) + '只';
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
@@ -18479,10 +18486,32 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
     var buyTot = (r && r.cashflow) ? (r.cashflow.investOut || 0) : 0;
     var sellTot = (r && r.cashflow) ? (r.cashflow.investIn || 0) : 0;
     /* fw2_v668_review_monthly：分标的归因（单月 perTarget 直读）+ 本月新建仓（tx 首笔在该月判定） */
+    /* fw2_v673_rev_union：归因补全——月报 perTarget 之外，「本月已持有」基金全部纳入（用户：本月有的基金都应算入）。
+       持仓 qty>0 且本轮首笔/建仓日 ≤ 月末、未在 perTarget（name 或 tid→code 双匹配防重）→ 推算行：
+       pnl=份额×(月末净值−上月末净值)，缺净值显 — 不硬凑。 */
     var attr = (r && r.income && r.income.perTarget ? r.income.perTarget : [])
       .filter(function (p) { return Math.abs(p.netProfit || 0) > 0.005; })
-      .map(function (p) { return { name: p.name, pnl: p.netProfit || 0 }; })
-      .sort(function (a, b) { return b.pnl - a.pnl; });
+      .map(function (p) { return { name: p.name, pnl: p.netProfit || 0, est: false }; });
+    try {
+      var dbU = null; try { dbU = JSON.parse(localStorage.getItem('capital_balance_v1') || 'null'); } catch (e0) {}
+      var repCodes = {}, codeOfU = {};
+      (dbU && dbU.targets || []).forEach(function (t) { codeOfU[t.id] = String(t.code || '').replace(/\D/g, '').slice(-6); });
+      (r && r.income && r.income.perTarget || []).forEach(function (p) { var c6 = codeOfU[p.id]; if (c6) repCodes[c6] = 1; });
+      var repNames = {}; attr.forEach(function (x) { repNames[x.name] = 1; });
+      var meU = m + '-31', peU = revPrevMonth(m) + '-31';
+      var PFU = (typeof state !== 'undefined' && state && Array.isArray(state.portfolio)) ? state.portfolio : [];
+      PFU.forEach(function (h) {
+        var c6 = String(h.code || '').replace(/\D/g, '').slice(-6);
+        if (!c6 || repCodes[c6] || repNames[h.name]) return;
+        var bdU = h.firstBuyDate || h.buyDate;
+        if (bdU && String(bdU).slice(0, 10) > meU) return; /* 月末后才建仓→非本月标的 */
+        if (!(+h.qty > 0)) return;
+        var n1 = navAt(c6, meU), n0 = navAt(c6, peU);
+        attr.push({ name: h.name, pnl: (n1 != null && n0 != null) ? (+h.qty) * (n1 - n0) : null, est: true,
+          estNote: (n1 == null || n0 == null) ? '月报未含 · 缺净值序列未推算' : '月报未含 · 净值口径推算（份额×月末月初净值差）' });
+      });
+    } catch (eU) {}
+    attr.sort(function (a, b) { return (b.pnl == null ? -1e12 : b.pnl) - (a.pnl == null ? -1e12 : a.pnl); });
     var newPos = [];
     try {
       var db = JSON.parse(localStorage.getItem('capital_balance_v1') || 'null');
@@ -18593,6 +18622,67 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
       });
     });
     var list = Object.keys(sigs).map(function (k) { return sigs[k]; }).sort(function (a, b) { return a.day < b.day ? -1 : 1; });
+    /* fw2_v673_sig_retrace：信号日回溯首触——快照自 2026-10-19 起积累，快照日≠条件首触日（用户：这个信号应该在
+       10.1 就已经存在了）。按净值序列逐日回溯 T1/T2/T4/T5/T7/T13 条件首触日（成本/lastBuyNav 当前值近似），
+       早于快照日则重定信号日+回溯徽章；done±7日窗/事后走势/全执行模拟随首触日重算。 */
+    (function () {
+      var PF = (typeof state !== 'undefined' && state && Array.isArray(state.portfolio)) ? state.portfolio : [];
+      var C0 = window.SIGNALS_CFG || {};
+      var TP = C0.tpStep != null ? C0.tpStep : 10, SL = C0.slHard != null ? C0.slHard : -8;
+      var ARM = C0.tpPeakArm != null ? C0.tpPeakArm : 20, PDD = C0.tpPeakDD != null ? C0.tpPeakDD : 8;
+      var AD2 = C0.addDD2 != null ? C0.addDD2 : -30, GS = (C0.grid && C0.grid.step) || 3, T5M = (C0.t5 && C0.t5.months) || 6;
+      var cache = {};
+      var pfOf = function (c6) { for (var i = 0; i < PF.length; i++) { var cc = String(PF[i].code || '').replace(/\D/g, '').slice(-6); if (cc === c6) return PF[i]; } return null; };
+      var retr = function (code6, tid, untilD) {
+        var key = code6 + '|' + tid;
+        if (cache[key] !== undefined) return cache[key];
+        cache[key] = null;
+        var ser = (window.__NAV_SERIES__ || {})[code6]; if (!ser || !ser.length) return null;
+        var h = pfOf(code6); if (!h) return null;
+        var cost = +h.cost || 0, ucKnown = h._ucKnown !== false;
+        var base13 = (+h.lastBuyNav > 0) ? +h.lastBuyNav : cost;
+        var t5s = h.firstBuyDate || h.buyDate || '';
+        var t0 = t5s ? new Date(t5s + 'T00:00:00') : null;
+        var pkEver = 0, win = [], out = null;
+        for (var i = 0; i < ser.length; i++) {
+          var d = ser[i][0]; if (d > untilD) break;
+          var v = ser[i][1]; if (!(v > 0)) continue;
+          win.push(v); if (win.length > 250) win.shift();
+          var pk250 = Math.max.apply(null, win);
+          if (v > pkEver) pkEver = v;
+          var hit = false, mtx = false;
+          if (tid === 1 && cost > 0) hit = (v / cost - 1) * 100 >= TP;
+          else if (tid === 4 && cost > 0) hit = (v / cost - 1) * 100 <= SL;
+          else if (tid === 2 && cost > 0 && ucKnown) hit = (pkEver / cost - 1) * 100 >= ARM && (v / pkEver - 1) * 100 <= -PDD;
+          else if (tid === 7) {
+            hit = (v / pk250 - 1) * 100 <= AD2;
+            if (hit) {
+              var m1 = cost > 0 && (v / cost - 1) * 100 >= TP;
+              var m2 = cost > 0 && ucKnown && (pkEver / cost - 1) * 100 >= ARM && (v / pkEver - 1) * 100 <= -PDD;
+              mtx = !!(m1 || m2);
+            }
+          }
+          else if (tid === 13 && base13 > 0) hit = (v / base13 - 1) * 100 <= -GS;
+          else if (tid === 5 && t0 && !isNaN(t0.getTime()) && cost > 0) {
+            var hm = (new Date(d + 'T00:00:00') - t0) / 86400000 / 30.44;
+            hit = hm >= T5M && (v / cost - 1) * 100 < 0;
+          }
+          if (hit) { out = { day: d, mutex: mtx }; break; }
+        }
+        cache[key] = out; return out;
+      };
+      list.forEach(function (s) {
+        var mt = /^T(\d+)/.exec(String(s.sig || '')); if (!mt) return;
+        var tid = +mt[1];
+        if ([1, 2, 4, 5, 7, 13].indexOf(tid) < 0) return;
+        var r2 = retr(s.code, tid, s.day);
+        if (r2 && r2.day && r2.day < s.day) {
+          s.dayPrev = s.day; s.day = r2.day; s.retraced = true;
+          if (tid === 7 && r2.mutex) { s.mutex = true; if (s.sig.indexOf('止盈区') < 0) s.sig = s.sig + '（止盈区·待决）'; }
+          s.detail = (s.detail ? s.detail + ' · ' : '') + '条件首触 ' + r2.day + '（快照首见 ' + s.dayPrev + ' · 历史按当前成本近似）';
+        }
+      });
+    })();
     list.forEach(function (s) {
       s.name = codeName[s.code] || s.code;
       s.done = txs.some(function (t) {
@@ -18694,16 +18784,20 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
     Object.keys(roleCodes || {}).forEach(function (rk) { (roleCodes[rk] || []).forEach(function (c) { codeRole[c] = rk; }); });
     var t2 = '<div class="rev-sec"><div class="rev-sec-t">② 盈亏归因 · 本月盈亏从哪来（净利润口径）</div>';
     if (k.attr.length) {
-      var newPosMap = {};
+      /* fw2_v673_rev_union：推算徽章 + 合计行（用户：净盈亏下面要汇总） */
+      var newPosMap = {}, pnlSum = 0, estSum = 0, hasEst = false;
       k.newPos.forEach(function (p) { newPosMap[p.name] = p; });
       t2 += '<table class="rev-tbl"><thead><tr><th>标的</th><th class="num">净盈亏</th><th class="num">占本月收益</th><th>仓型</th><th>备注</th></tr></thead><tbody>' +
         k.attr.map(function (x) {
           var code = nameCode[x.name], role = (code && codeRole[code]) || '—';
           var np = newPosMap[x.name];
-          var pct = k.profit ? (Math.abs(x.pnl / k.profit * 100)).toFixed(1) + '%' : '—';
-          return '<tr><td>' + esc(x.name) + '</td><td class="num ' + (x.pnl > 0 ? 'good' : 'bad') + '">' + (x.pnl > 0 ? '+' : '') + fmt(x.pnl) + '</td><td class="num">' + pct + '</td><td>' + role + '</td><td class="mut" style="font-family:var(--sans)">' + (np ? '本月新建仓 · 投入 ¥' + fmt(np.buy) + '（' + np.n + ' 笔）' : '—') + '</td></tr>';
-        }).join('') + '</tbody></table>' +
-        '<div class="rev-tfoot">按净盈亏降序 · 数据同源月报 perTarget · 占比=分标的净利润 ÷ 本月总净利润</div>';
+          var pct = (x.pnl != null && k.profit) ? (Math.abs(x.pnl / k.profit * 100)).toFixed(1) + '%' : '—';
+          if (x.pnl != null) { pnlSum += x.pnl; if (x.est) { estSum += x.pnl; hasEst = true; } }
+          return '<tr><td>' + esc(x.name) + (x.est ? ' <span class="bdg bdg-info">推算</span>' : '') + '</td><td class="num ' + (x.pnl == null ? '' : x.pnl > 0 ? 'good' : 'bad') + '">' + (x.pnl == null ? '—' : (x.pnl > 0 ? '+' : '') + fmt(x.pnl)) + '</td><td class="num">' + pct + '</td><td>' + role + '</td><td class="mut" style="font-family:var(--sans)">' + (x.est ? esc(x.estNote || '推算') : (np ? '本月新建仓 · 投入 ¥' + fmt(np.buy) + '（' + np.n + ' 笔）' : '—')) + '</td></tr>';
+        }).join('') +
+        '<tr><td><b>合计</b></td><td class="num ' + (pnlSum > 0 ? 'good' : pnlSum < 0 ? 'bad' : '') + '"><b>' + (pnlSum > 0 ? '+' : '') + fmt(pnlSum) + '</b></td><td class="num">—</td><td>—</td><td class="mut" style="font-family:var(--sans)">月报净利润 ¥' + fmt(k.profit) + ' · 差 ¥' + fmt(pnlSum - k.profit) + (hasEst ? ' · 其中推算补齐 ' + (estSum > 0 ? '+' : '') + fmt(estSum) : '') + '（差额=分红费用入现金/零值舍入/推算近似）</td></tr>' +
+        '</tbody></table>' +
+        '<div class="rev-tfoot">按净盈亏降序 · 月报 perTarget + 持仓推算补齐（推算=份额×月末月初净值差） · 占比=分标的净利润 ÷ 本月总净利润</div>';
     } else {
       t2 += '<div class="rev-note2">' + (k.miss.length ? '月报未出具，出具后自动补齐。' : '月报无分标的明细——资金平衡页月报口径刷新后自动补齐。') + '</div>';
     }
@@ -18722,9 +18816,9 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
       };
       t3 += '<table class="rev-tbl"><thead><tr><th>信号日</th><th>标的</th><th>信号</th><th>方向</th><th>状态</th><th class="num">事后走势</th><th>结论</th></tr></thead><tbody>' +
         ex.list.map(function (s) {
-          return '<tr><td class="mut">' + s.day + '</td><td>' + esc(s.name) + '</td><td class="mut">' + esc(s.sig) + (s.detail ? '<div style="font-size:10px;opacity:.72;margin-top:2px">' + esc(s.detail) + '</div>' : '') + '</td><td>' + (s.dir === 'buy' ? '买入' : '卖出') + '</td><td>' + (s.done ? '✓ 已执行' : '✗ 未执行') + '</td><td class="num ' + (s.after > 0 ? 'good' : s.after < 0 ? 'bad' : '') + '">' + (s.after == null ? '—' : (s.after > 0 ? '+' : '') + s.after.toFixed(1) + '%') + '</td><td>' + concl(s) + '</td></tr>'; /* fw2_v672_pnl_color：事后走势正红负绿 */
+          return '<tr><td class="mut">' + s.day + (s.retraced ? ' <span class="bdg bdg-info">回溯</span>' : '') + '</td><td>' + esc(s.name) + '</td><td class="mut">' + esc(s.sig) + (s.detail ? '<div style="font-size:10px;opacity:.72;margin-top:2px">' + esc(s.detail) + '</div>' : '') + '</td><td>' + (s.dir === 'buy' ? '买入' : '卖出') + '</td><td>' + (s.done ? '✓ 已执行' : '✗ 未执行') + '</td><td class="num ' + (s.after > 0 ? 'good' : s.after < 0 ? 'bad' : '') + '">' + (s.after == null ? '—' : (s.after > 0 ? '+' : '') + s.after.toFixed(1) + '%') + '</td><td>' + concl(s) + '</td></tr>'; /* fw2_v672_pnl_color：事后走势正红负绿 */
         }).join('') + '</tbody></table>';
-      t3 += '<div class="rev-tfoot">' + (ex.replay ? '追溯重放 ' + ex.cover + ' 个净值日（信号快照自 2026-10-19 起积累，9 月为离线回放） · ' + ex.note : '覆盖 ' + ex.cover + ' 个快照日' + (ex.firstDate ? ' · 信号历史自 ' + ex.firstDate + ' 起积累' : '')) + ' · 口径：T 系行动档信号，触发后 7 日内台账同向交易=已执行 · 事后走势=信号日次净值→月末</div>';
+      t3 += '<div class="rev-tfoot">' + (ex.replay ? '追溯重放 ' + ex.cover + ' 个净值日（信号快照自 2026-10-19 起积累，9 月为离线回放） · ' + ex.note : '覆盖 ' + ex.cover + ' 个快照日' + (ex.firstDate ? ' · 信号历史自 ' + ex.firstDate + ' 起积累' : '')) + (ex.list.some(function (s) { return s.retraced; }) ? ' · 信号日=条件回溯首触日（快照仅自 ' + (ex.firstDate || '—') + ' 起积累 · 历史按当前成本近似）' : '') + ' · 口径：T 系行动档信号，触发后 7 日内台账同向交易=已执行 · 事后走势=信号日次净值→月末</div>';
       t3 += ex.extra.length
         ? '<div class="rev-tfoot">纪律外交易 <b>' + ex.extra.length + '</b> 笔 · 合计 ¥' + fmt(ex.extra.reduce(function (a, x) { return a + x.amt; }, 0)) + '（±7 日窗内无同向行动信号）：' + ex.extra.map(function (x) { return esc(x.name) + ' ' + (x.type === 'buy' ? '买入' : '卖出') + ' ¥' + fmt(x.amt); }).join(' · ') + '</div>'
         : '<div class="rev-tfoot">纪律外交易 0 笔 ✓</div>';
@@ -18774,11 +18868,15 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
     L.push('台账动作：买入 ¥' + fmt(k.buyTot) + ' · 卖出回笼 ¥' + fmt(k.sellTot) + ' · 分红 ¥' + fmt(k.divTot) + ' · 费用 ¥' + fmt(k.feeTot) + ' · 净利润 ¥' + fmt(k.profit));
     if (k.miss.length) L.push('数据缺口：' + k.miss.join('、') + ' 月报未出具');
     if (k.attr.length) {
+      /* fw2_v673_rev_union：推算标记 + 合计行 */
+      var mdSum = 0, mdEst = 0;
       L.push(''); L.push('## ② 盈亏归因'); L.push('');
       L.push(mdrow(['标的', '净盈亏', '占本月收益', '备注'])); L.push(mdrow(['---', '---', '---', '---']));
       k.attr.forEach(function (x) {
-        L.push(mdrow([x.name, (x.pnl > 0 ? '+' : '') + fmt(x.pnl), k.profit ? (Math.abs(x.pnl / k.profit * 100)).toFixed(1) + '%' : '—', k.newPos.some(function (p) { return p.name === x.name; }) ? '本月新建仓' : '—']));
+        if (x.pnl != null) { mdSum += x.pnl; if (x.est) mdEst += x.pnl; }
+        L.push(mdrow([x.name + (x.est ? '（推算）' : ''), x.pnl == null ? '—' : (x.pnl > 0 ? '+' : '') + fmt(x.pnl), (x.pnl != null && k.profit) ? (Math.abs(x.pnl / k.profit * 100)).toFixed(1) + '%' : '—', x.est ? '月报未含·净值口径推算' : (k.newPos.some(function (p) { return p.name === x.name; }) ? '本月新建仓' : '—')]));
       });
+      L.push(mdrow(['合计', (mdSum > 0 ? '+' : '') + fmt(mdSum), '—', '月报净利润 ¥' + fmt(k.profit) + (mdEst ? ' · 推算补齐 ' + (mdEst > 0 ? '+' : '') + fmt(mdEst) : '')]));
     }
     L.push(''); L.push('## ③ 信号执行对照'); L.push('');
     if (ex.ready) {
