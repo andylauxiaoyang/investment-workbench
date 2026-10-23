@@ -1060,7 +1060,8 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 #view-capbal .cb-rpt-line.head .val { font-weight: 600; }
 /* fw2_v505k_rpttable：三张月度财报改标准 <table> 报表格式——完整网格边框（行线+列线=正常表格）、表头 thead 2px 底线、合计行 2px 顶线、跨列组标题行、金额右对齐千分位、正红负绿、备注归项目列下、无底色；表格宽=内容宽（width:max-content），横竖线只画在字段与数据显示区域内、右侧空白无线（fw2_v505h_rptreport → fw2_v505i_noline → fw2_v505j_linescope 的每行 div grid 方案废弃——悬浮行无框感即「乱七八糟」根因，历史 marker 文本保留供版本门禁） */
 /* fw2_v505n_rptclean：三张月度财报「极简报表风」重设计（用户参考图 c56409dc：三列项目|本期金额|上期金额、上期全 —、行高舒展、组标题加粗分节、合计加粗、无任何底色/装饰色——v505m thead 浅底/g-title 分区色条/emph 品牌蓝/badge/hover 全撤，遵循 v505b 教训「把颜色取消，太丑了」；保留完整字段区网格线 1px #e7e9ee、表头 2px 底线 #cbd2db、合计/关键行 2px 顶线 #cbd2db、正红负绿仅盈亏 sign 行、零值灰、上期 — 居中、备注归项目列下 .sub、明细行不缩进（参考图组标题与明细同列）；历史 marker 文本保留供版本门禁：fw2_v505h_rptreport → fw2_v505i_noline → fw2_v505j_linescope → fw2_v505k_rpttable → fw2_v505m_rptcard → fw2_v505m_rpttable） */
-#view-capbal .cb-rpt-table { border-collapse: collapse; width: max-content; min-width: 520px; font-size: 13px; }
+/* fw2_v655_rpt_kpi：三财报重设计（方案A·v505n 极简修正版）——表格撑满 pane 宽（解决 520px 左贴 60% 空白） */
+#view-capbal .cb-rpt-table { border-collapse: collapse; width: 100%; font-size: 13px; }
 #view-capbal .cb-rpt-table th, #view-capbal .cb-rpt-table td { border: 1px solid #e7e9ee; padding: 12px 16px; vertical-align: middle; }
 #view-capbal .cb-rpt-table thead th { border-bottom: 2px solid #cbd2db; font-size: 10.5px; letter-spacing: .5px; color: #98a2b3; font-weight: 700; text-transform: uppercase; padding-top: 10px; padding-bottom: 10px; }
 #view-capbal .cb-rpt-table th.lab, #view-capbal .cb-rpt-table td.lab { text-align: left; min-width: 170px; font-weight: 400; color: var(--text-2); }
@@ -1076,6 +1077,23 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 /* 盈亏着色：盈利(正/up)红、亏损(负/down)绿——rptLine2 经 pnlCls 输出 .up/.down（v505n 重写时曾写成 .pos/.neg 与 pnlCls 输出不匹配致盈亏数字全黑，已修正；余额类无色） */
 #view-capbal .cb-rpt-table td.val.up { color: var(--up); }
 #view-capbal .cb-rpt-table td.val.down { color: var(--down); }
+/* fw2_v655_rpt_kpi：KPI 磁贴行（等宽4格·白底细边克制配色·值20px mono·盈亏红绿语义） */
+#view-capbal .cb-rpt-kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin: 2px 0 14px; }
+#view-capbal .cb-kpi { background: #fff; border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px 11px; min-width: 0; }
+#view-capbal .cb-kpi.emph { border-color: #b8c2cf; }
+#view-capbal .cb-kpi .k-lab { font-size: 11px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#view-capbal .cb-kpi .k-val { font-family: var(--mono); font-size: 20px; font-weight: 700; color: var(--text); margin-top: 5px; white-space: nowrap; }
+#view-capbal .cb-kpi .k-val.up { color: var(--up); }
+#view-capbal .cb-kpi .k-val.down { color: var(--down); }
+#view-capbal .cb-kpi .k-sub { font-size: 10.5px; color: var(--muted); margin-top: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+@media (max-width: 1279px) { #view-capbal .cb-rpt-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+/* fw2_v655_rpt_kpi：组标题行节奏 + emph/total/head 关键行 2px 顶线加粗 + 上期对比小字 + 全零标的披露 */
+#view-capbal .cb-rpt-table tr.g-title td { padding-top: 18px; font-weight: 700; color: var(--text); letter-spacing: .3px; }
+#view-capbal .cb-rpt-table tr.total td, #view-capbal .cb-rpt-table tr.head td { border-top: 2px solid #cbd2db; }
+#view-capbal .cb-rpt-table tr.emph td.lab { font-weight: 700; color: var(--text); }
+#view-capbal .cb-rpt-table tr.emph td.val { font-weight: 700; font-size: 14px; }
+#view-capbal .cb-rpt-table td.val .cmp { display: block; font-size: 10.5px; color: var(--muted); font-weight: 400; margin-top: 3px; font-family: var(--sans); }
+#view-capbal .cb-rpt-note { font-size: 11px; color: var(--muted); margin: 8px 2px 0; }
 /* 汇总行（head/total）：2px 顶线 + 加粗（无底色），与明细行形成层级 */
 #view-capbal .cb-rpt-table tr.total td { font-weight: 700; border-top: 2px solid #cbd2db; }
 #view-capbal .cb-rpt-table tr.total td.val { font-size: 13.5px; }
@@ -13049,7 +13067,17 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
        （货币基金单位净值恒 1），同时 __ALLOC_NAV__ 补 nav=1（v650 fw2_v650_moneynav）。
      新增：曲线 markPoint 标峰值（万为单位）；副标题「逐笔重放」→「逐日重放（按净值日取点）」；
        cbNetOffList() 列出「已归档但账面仍有份额」的标的并在图下披露（#cbNetNote）——
-       现行口径与 calcSecurities 同源只计 status on，归档标的的历史市值不计入，不披露会被读成算错。 */  if (vc) vc.textContent = 'v654 · 账户权威持仓联动' /* fw2_v654_held_pf_authority fw2_v653_alloc_pile_assign fw2_v652_data_tab_removed fw2_v651_recent_hide fw2_v651_ledger_slim fw2_v651_entry_unify fw2_v650_netseries_daily fw2_v650_moneynav fw2_v649_merge_holdings fw2_v648_capbal_slim fw2_v647_netseries_fix fw2_v646_ledger_capbal fw2_v644_revert_watch_tab fw2_v643_mtbl_tier fw2_v642_a500_enh fw2_v641_peak_dd fw2_v640_buy_pct fw2_v639_del_decisionfw2_v516_a500lk fw2_v517_4otc fw2_v518_hspos fw2_v519_sm_merge fw2_v520_chgflat fw2_v521_magnet fw2_v522_overview fw2_v523_sm_dedup fw2_v524_geo_fsi fw2_v525_geo_filter fw2_v526_geo_filter_removed fw2_v527_verdict fw2_v529_smux fw2_v530_datamgmt fw2_v531_sm_dmgmt fw2_v532_all_dm fw2_v533_px_long fw2_v533d_dm_scroll fw2_v534_dm_module fw2_v535_dm_auto fw2_v539_hold_realpnl fw2_v539a_seed_sync fw2_v539a_seed_order fw2_v540_hold_path fw2_v542_pf_mirror_first fw2_v542_mv_settled fw2_v542_mv_account fw2_v543_dm_holdings_note fw2_v544_ledger_mirror_guard fw2_v545_hold_total_row fw2_v546_navdate_all fw2_v547_vix_to_ovs fw2_v548_ovs_mrg fw2_v549_region_align fw2_v550_grp_tabs fw2_v551_sop_cockpit fw2_v552_sop_taborder fw2_v553_chain_data fw2_v554_sop_rename fw2_v556_market_split fw2_v557_sm_renamed fw2_v558_cbrates_fix fw2_v558a_cb_label fw2_v559_chain_dates fw2_v560_chain_verdict fw2_v561_curve_hold fw2_v562_hold_inline fw2_v563_alloc fw2_v564_lxlink fw2_v565_cal_lx fw2_v565_sub_lx fw2_v566_fund_move fw2_v567_fund_merge fw2_v568_lxlink_fix fw2_v569_manager_pool fw2_v570_manager_universe fw2_v571_mgr_east fw2_v574_mgr_subscore fw2_v575_mgr_merge fw2_v576_mgr_group fw2_v577_mgr_lxlink fw2_v578_mgr_lxreal fw2_v579_mgr_weight fw2_v581_fund_lxreal fw2_v582_mgr_min10 fw2_v583_mgr_noyear fw2_v584_mgr_career fw2_v585_mgr_srank fw2_v586_mgr_srank fw2_v587_mgr_since fw2_v588_mgr_lxfull fw2_v589_mgr_rules fw2_v590_mgr_scores fw2_v591_mgr_ladder fw2_v592_mgr_cols fw2_v593_mgr_score fw2_anti_halluc_p0 fw2_v595_alpha_attrib fw2_v596_sig_hist fw2_v597_fund_overlap fw2_v598_mgr_hold fw2_v599_time_decay fw2_v599_corr_pen fw2_v600_buytrack fw2_v601_backtest fw2_v602_kline_page fw2_v603_old_debts fw2_v604_xirr fw2_v605_holdings_global fw2_v606_v11_signal fw2_v607_v11_bt fw2_v608_lx_audit fw2_v609_sig_table fw2_v610_sig_merge fw2_v611_grp_line fw2_v612_index_lxreal fw2_v613_near_blue fw2_v615_sig_grp fw2_v616_sig_hdstyle fw2_v617_sig_vline fw2_v618_sig_lcr fw2_v619_curthr fw2_v620_curthr_all fw2_v621_ret_hpr fw2_v621_t13_lastbuy fw2_v622_lastbuy_auto fw2_v623_firstbuy_roll fw2_v623_alloc_watch fw2_v624_m13_m17 fw2_v626_sig_cost_guard fw2_v626_watch_pe_exempt fw2_v627_colorder fw2_v627_action_plan fw2_v627_data_date fw2_v628_fixed_cols fw2_v629_pool_pile_guard fw2_v629_t9_pfdate fw2_v630_missing_cost fw2_v631_pool_held_live fw2_v632_held_off fw2_v633_ledger_tx_sync fw2_v634_plan_dir fw2_v635_capbal_fix fw2_v636_capbal_converge fw2_v637_mv_consist fw2_v638_mv_unify */ + (window.getAllocWatchCodes ? window.getAllocWatchCodes().length : 0) + '只';
+       现行口径与 calcSecurities 同源只计 status on，归档标的的历史市值不计入，不披露会被读成算错。
+     v655（fw2_v655_rpt_kpi）：资金平衡·三张月度财报重设计（方案A 全套卡片化·v505n 极简修正版）——
+       ①每表顶部 KPI 磁贴行（.cb-rpt-kpis 等宽4格·白底细边·值20px mono·盈亏红绿）：
+         资产负债表=净资产/资产合计/累计收益率/资金加权IRR；利润表=本期净利润/已实现净利/未实现变动/资金净投入；
+         现金流量表=期末现金/投资净流/筹资净流/本期净变动；IRR/空值显示 —（cbKpi helper）。
+       ②表格撑满 pane 宽（width:100%，解决 520px 左贴 60% 空白）；组标题行 padding-top 加大、
+         emph/total/head 行 2px 顶线+加粗。
+       ③利润表列瘦身：本期全 0 标的列自动隐藏（表尾 .cb-rpt-note 披露），「上期」独立列删除、
+         并入本期格下方 .cmp 小字（10 列→8 内不再横向滚动；rptLine2 colspan 3+M→2+M、
+         RPT2_HEAD/rptHead2 去 prev th）。
+       ④保留 v505n 极简基调：完整网格线、无装饰底色/色条/badge（v505b 教训「把颜色取消，太丑了」）。 */  if (vc) vc.textContent = 'v655 · 三财报KPI重设计' /* fw2_v655_rpt_kpi fw2_v654_held_pf_authority fw2_v653_alloc_pile_assign fw2_v652_data_tab_removed fw2_v651_recent_hide fw2_v651_ledger_slim fw2_v651_entry_unify fw2_v650_netseries_daily fw2_v650_moneynav fw2_v649_merge_holdings fw2_v648_capbal_slim fw2_v647_netseries_fix fw2_v646_ledger_capbal fw2_v644_revert_watch_tab fw2_v643_mtbl_tier fw2_v642_a500_enh fw2_v641_peak_dd fw2_v640_buy_pct fw2_v639_del_decisionfw2_v516_a500lk fw2_v517_4otc fw2_v518_hspos fw2_v519_sm_merge fw2_v520_chgflat fw2_v521_magnet fw2_v522_overview fw2_v523_sm_dedup fw2_v524_geo_fsi fw2_v525_geo_filter fw2_v526_geo_filter_removed fw2_v527_verdict fw2_v529_smux fw2_v530_datamgmt fw2_v531_sm_dmgmt fw2_v532_all_dm fw2_v533_px_long fw2_v533d_dm_scroll fw2_v534_dm_module fw2_v535_dm_auto fw2_v539_hold_realpnl fw2_v539a_seed_sync fw2_v539a_seed_order fw2_v540_hold_path fw2_v542_pf_mirror_first fw2_v542_mv_settled fw2_v542_mv_account fw2_v543_dm_holdings_note fw2_v544_ledger_mirror_guard fw2_v545_hold_total_row fw2_v546_navdate_all fw2_v547_vix_to_ovs fw2_v548_ovs_mrg fw2_v549_region_align fw2_v550_grp_tabs fw2_v551_sop_cockpit fw2_v552_sop_taborder fw2_v553_chain_data fw2_v554_sop_rename fw2_v556_market_split fw2_v557_sm_renamed fw2_v558_cbrates_fix fw2_v558a_cb_label fw2_v559_chain_dates fw2_v560_chain_verdict fw2_v561_curve_hold fw2_v562_hold_inline fw2_v563_alloc fw2_v564_lxlink fw2_v565_cal_lx fw2_v565_sub_lx fw2_v566_fund_move fw2_v567_fund_merge fw2_v568_lxlink_fix fw2_v569_manager_pool fw2_v570_manager_universe fw2_v571_mgr_east fw2_v574_mgr_subscore fw2_v575_mgr_merge fw2_v576_mgr_group fw2_v577_mgr_lxlink fw2_v578_mgr_lxreal fw2_v579_mgr_weight fw2_v581_fund_lxreal fw2_v582_mgr_min10 fw2_v583_mgr_noyear fw2_v584_mgr_career fw2_v585_mgr_srank fw2_v586_mgr_srank fw2_v587_mgr_since fw2_v588_mgr_lxfull fw2_v589_mgr_rules fw2_v590_mgr_scores fw2_v591_mgr_ladder fw2_v592_mgr_cols fw2_v593_mgr_score fw2_anti_halluc_p0 fw2_v595_alpha_attrib fw2_v596_sig_hist fw2_v597_fund_overlap fw2_v598_mgr_hold fw2_v599_time_decay fw2_v599_corr_pen fw2_v600_buytrack fw2_v601_backtest fw2_v602_kline_page fw2_v603_old_debts fw2_v604_xirr fw2_v605_holdings_global fw2_v606_v11_signal fw2_v607_v11_bt fw2_v608_lx_audit fw2_v609_sig_table fw2_v610_sig_merge fw2_v611_grp_line fw2_v612_index_lxreal fw2_v613_near_blue fw2_v615_sig_grp fw2_v616_sig_hdstyle fw2_v617_sig_vline fw2_v618_sig_lcr fw2_v619_curthr fw2_v620_curthr_all fw2_v621_ret_hpr fw2_v621_t13_lastbuy fw2_v622_lastbuy_auto fw2_v623_firstbuy_roll fw2_v623_alloc_watch fw2_v624_m13_m17 fw2_v626_sig_cost_guard fw2_v626_watch_pe_exempt fw2_v627_colorder fw2_v627_action_plan fw2_v627_data_date fw2_v628_fixed_cols fw2_v629_pool_pile_guard fw2_v629_t9_pfdate fw2_v630_missing_cost fw2_v631_pool_held_live fw2_v632_held_off fw2_v633_ledger_tx_sync fw2_v634_plan_dir fw2_v635_capbal_fix fw2_v636_capbal_converge fw2_v637_mv_consist fw2_v638_mv_unify */ + (window.getAllocWatchCodes ? window.getAllocWatchCodes().length : 0) + '只';
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
@@ -19279,6 +19307,13 @@ function autoGenReports() {
 }
 /* fw2_v505k_rpttable：三表改标准 <table> 报表行（thead 表头 + tbody：跨列组标题行 / 明细行 / 合计行），金额右对齐千分位、正红负绿、备注归项目列下 .lab .sub、无底色；opt.title=true 为纯组标题（跨列 colspan 无金额，如「资产」「一、已实现收益」——原组标题行金额与对应合计行重复，改纯标题更符合标准报表分节） */
 /* fw2_v505m_rpttable：rptLine2 增 opt.emph（关键汇总行→tr.emph 品牌蓝 lab+左色条）与零值灰（cur===0 时本期金额 td 加 .zero，¥0.00 不再喧宾夺主） */
+/* fw2_v655_rpt_kpi：三财报 KPI 磁贴——pct=百分比（比例输入）、sign=盈亏红绿、emph=主磁贴、v==null 显示 — */
+function cbKpi(lab, v, opt) {
+  opt = opt || {};
+  const cls = opt.cls || (opt.sign ? pnlCls(v) : "");
+  const txt = v == null ? "—" : (opt.pct ? ((opt.sign && v > 0 ? "+" : "") + (v * 100).toFixed(1) + "%") : ((opt.sign && v > 0 ? "+" : "") + fmt(v)));
+  return '<div class="cb-kpi' + (opt.emph ? " emph" : "") + '"><div class="k-lab">' + lab + '</div><div class="k-val ' + cls + '">' + txt + "</div>" + (opt.sub ? '<div class="k-sub">' + opt.sub + "</div>" : "") + "</div>";
+}
 function rptLine2(lab, cur, prev, opt) {
   opt = opt || {};
   const cls = opt.cls || (opt.sign ? pnlCls(cur) : "");
@@ -19290,12 +19325,12 @@ function rptLine2(lab, cur, prev, opt) {
   const gLast = opt.gLast ? " g-last" : "";
   const sub = opt.sub ? '<span class="sub">' + opt.sub + "</span>" : "";
   if (opt.title) {
-    const span = 3 + (opt.cols ? opt.cols.length : (opt.placeholders || 0));
+    const span = 2 + (opt.cols ? opt.cols.length : (opt.placeholders || 0)); /* fw2_v655_rpt_kpi：上期列并入本期格 .cmp，thead 少 1 列 */
     return '<tr class="cb-rpt-row g-title' + grp + gFirst + gLast + '"><td class="lab" colspan="' + span + '">' + lab + "</td></tr>";
   }
   const zero = cur === 0 ? " zero" : "";
   const curTxt = (opt.sign && cur > 0 ? "+" : "") + fmt(cur);
-  const prevTxt = (prev == null || isNaN(prev)) ? '<td class="val prev na">—</td>' : '<td class="val prev">' + (opt.sign && prev > 0 ? "+" : "") + fmt(prev) + "</td>";
+  const prevTxt = (prev == null || isNaN(prev)) ? "" : '<span class="cmp">上期 ' + (opt.sign && prev > 0 ? "+" : "") + fmt(prev) + "</span>"; /* fw2_v655_rpt_kpi：上期并入本期格下方小字 */
   let colsHtml = "";
   if (opt.cols) {
     colsHtml = opt.cols.map(function (v) {
@@ -19306,7 +19341,7 @@ function rptLine2(lab, cur, prev, opt) {
     colsHtml = new Array(opt.placeholders).fill('<td class="val tgt"></td>').join("");
   }
   return '<tr class="cb-rpt-row' + total + head + emph + grp + gFirst + gLast + '"><td class="lab">' + lab + sub + "</td>" +
-    colsHtml + '<td class="val ' + cls + zero + '">' + curTxt + "</td>" + prevTxt + "</tr>";
+    colsHtml + '<td class="val ' + cls + zero + '">' + curTxt + prevTxt + "</td></tr>";
 }
 /* fw2_v604_xirr：资金加权年化收益（IRR）——复刻 bt_metrics._xirr 口径：cfs=[{d:"YYYY-MM-DD",v}] 外部净现金流（负=投入、正=取回），endValue=期末清算价值（作为末日正现金流单独末笔追加）；npv(r)=Σv/(1+r)^τ、τ=(日差)/365.25；二分 [-0.9999,20] 300 次；无现金流/无时间跨度(单点)/极端亏损(f_lo<0) 返回 null（IRR 无定义，拒绝垃圾解） */
 function xirrAnnualized(cfs, endValue) {
@@ -19327,10 +19362,10 @@ function xirrAnnualized(cfs, endValue) {
   }
   return (lo + hi) / 2;
 }
-const RPT2_HEAD = '<thead><tr><th class="lab">项目</th><th class="val">本期金额</th><th class="val prev">上期金额</th></tr></thead>';
+const RPT2_HEAD = '<thead><tr><th class="lab">项目</th><th class="val">本期金额</th></tr></thead>'; /* fw2_v655_rpt_kpi：上期列并入本期格 .cmp */
 /* fw2_v505k_rpttable：动态表头（项目 | 标的列×N | 本期金额 | 上期金额）为 thead th */
 function rptHead2(colsTpl, tgtHeads) {
-  return '<thead><tr><th class="lab">项目</th>' + (tgtHeads || "") + '<th class="val">本期金额</th><th class="val prev">上期金额</th></tr></thead>';
+  return '<thead><tr><th class="lab">项目</th>' + (tgtHeads || "") + '<th class="val">本期金额</th></tr></thead>'; /* fw2_v655_rpt_kpi：上期列并入本期格 .cmp */
 }
 /* fw2_v503_rpt3pane：三财报独立子模块（资产负债表|利润表|现金流量表 与总览/标的明细并列），v502 的 pane 内 tab 切换（cbRptTab/cbApplyRptTab/cbShowRptTab）已移除，由导航级 v-tab 承担 */
 function renderMonthly() {
@@ -19369,7 +19404,8 @@ function renderMonthly() {
   const C = function (k) { return prevRep && prevRep.cashflow ? prevRep.cashflow[k] : null; };
   const inc = rep.income, bal = rep.balance, cf = rep.cashflow;
   /* fw2_v500_tgtcols：利润表横向标的列（项目 | 标的列×N | 本期金额 | 上期金额），Σ标的列=合计列 */
-  const perT = inc.perTarget || [];
+  const perTAll = inc.perTarget || [];
+  const perT = perTAll.filter(function (x) { return ["realized", "div", "fee", "unrealEnd", "chg", "netProfit", "totalPnl"].some(function (k) { return (x[k] || 0) !== 0; }); }); /* fw2_v655_rpt_kpi：本期全 0 标的列自动隐藏（货基等噪音列），表尾披露 */
   const N = perT.length;
   const tgtHeads = perT.map(function (x) {
     const short = x.name.length > 7 ? x.name.slice(0, 7) + "…" : x.name;
@@ -19377,7 +19413,13 @@ function renderMonthly() {
   }).join("");
   const R = function (lab, cur, prev, opt) { opt = opt || {}; if (N > 0 && (!opt.cols || !opt.cols.length)) opt.placeholders = N; return rptLine2(lab, cur, prev, opt); };
   const T = function (k) { return perT.map(function (x) { return x[k]; }); };
-  gid("cbMIncomeSheet").innerHTML = '<table class="cb-rpt-table">' + rptHead2("", tgtHeads) + "<tbody>" +
+  const hiddenT = perTAll.filter(function (x) { return perT.indexOf(x) < 0; });
+  const kpiInc = '<div class="cb-rpt-kpis">' +
+    cbKpi("本期净利润", inc.netProfit, { sign: true, emph: true, sub: "已实现 " + fmt(inc.realizedNet) + " · 未实现变动 " + fmt(inc.unrealChg) }) +
+    cbKpi("已实现净利润", inc.realizedNet, { sign: true, sub: "卖出盈亏+分红−费用" }) +
+    cbKpi("未实现盈亏变动", inc.unrealChg, { sign: true, sub: "期末市值−成本（较期初）" }) +
+    cbKpi("本月资金净投入", inc.investedIn, { sign: true, sub: "转入−转出" }) + "</div>"; /* fw2_v655_rpt_kpi：利润表 KPI 磁贴 */
+  gid("cbMIncomeSheet").innerHTML = kpiInc + '<table class="cb-rpt-table">' + rptHead2("", tgtHeads) + "<tbody>" +
     R("一、已实现收益", null, null, { title: true, grp: "income", gFirst: true }) +
     R("卖出已实现盈亏", inc.realized, P("realized"), { sign: true, noCls: true, cols: T("realized"), grp: "income" }) +
     R("分红收入", inc.div, P("div"), { sign: true, noCls: true, cols: T("div"), grp: "income" }) +
@@ -19389,7 +19431,7 @@ function renderMonthly() {
     R("三、本期净利润", inc.netProfit, P("netProfit"), { head: true, total: true, sign: true, cls: pnlCls(inc.netProfit), cols: T("netProfit"), grp: "profit", gFirst: true, gLast: true, emph: true }) +
     R("本月资金净投入", inc.investedIn, P("investedIn"), { sign: true, noCls: true, grp: "extra", sub: "转入−转出" }) +
     R("期末累计总收益", inc.totalPnlEnd, P("totalPnlEnd"), { sign: true, noCls: true, cols: T("totalPnlEnd"), grp: "extra", gLast: true, sub: "已实现+未实现" }) +
-    "</tbody></table>";
+    "</tbody></table>" + (hiddenT.length ? '<p class="cb-rpt-note">另有 ' + hiddenT.length + " 只标的本期各项均为 0，未单列：" + hiddenT.map(function (x) { return esc(x.name); }).join("、") + "</p>" : ""); /* fw2_v655_rpt_kpi：全零标的列披露 */
   /* fw2_v604_xirr：资金加权年化（IRR）——外部现金流=in(负投入)/out(正取回)逐笔（截止期末日，负=投入/正=取回），期末清算价值=净资产(证券市值+现金−负债)作为末日正现金流单独末笔；无现金流/单点无跨度/极端亏损 → null（不展示） */
   let balIrr = null;
   const balEndD = monthEndDate(p);
@@ -19397,7 +19439,12 @@ function renderMonthly() {
     .map(function (t) { return { d: t.date.slice(0, 10), v: t.type === "in" ? -(Number(t.amt) || 0) : (Number(t.amt) || 0) }; })
     .sort(function (a, b) { return a.d.localeCompare(b.d); });
   if (balCfs.length && bal.invested > 0) balIrr = xirrAnnualized(balCfs, bal.securities + bal.cash - bal.liability);
-  gid("cbMBalanceSheet").innerHTML = '<table class="cb-rpt-table">' + RPT2_HEAD + "<tbody>" +
+  const kpiBal = '<div class="cb-rpt-kpis">' +
+    cbKpi("净资产", bal.net, { emph: true, sub: "资产 − 负债" }) +
+    cbKpi("资产合计", bal.securities + bal.cash, { sub: "证券 " + fmt(bal.securities) + " · 现金 " + fmt(bal.cash) }) +
+    cbKpi("累计收益率", bal.invested > 0 ? bal.totalPnl / bal.invested : null, { pct: true, cls: pnlCls(bal.totalPnl), sub: "累计收益 " + fmt(bal.totalPnl) }) +
+    cbKpi("资金加权年化 IRR", balIrr, { pct: true, sub: balIrr == null ? "现金流不足，暂无法计算" : "外部现金流+期末清算口径" }) + "</div>"; /* fw2_v655_rpt_kpi：资产负债表 KPI 磁贴 */
+  gid("cbMBalanceSheet").innerHTML = kpiBal + '<table class="cb-rpt-table">' + RPT2_HEAD + "<tbody>" +
     rptLine2("资产", null, null, { title: true, grp: "asset", gFirst: true }) +
     rptLine2("证券市值（月末份额×最新净值）", bal.securities, B("securities"), { noCls: true, grp: "asset" }) +
     rptLine2("现金余额", bal.cash, B("cash"), { noCls: true, grp: "asset" }) +
@@ -19409,7 +19456,12 @@ function renderMonthly() {
     rptLine2("累计投入", bal.invested, B("invested"), { noCls: true, grp: "equity" }) +
     rptLine2("净资产相对累计投入变动", bal.totalPnl, B("totalPnl"), { sign: true, cls: pnlCls(bal.totalPnl), grp: "equity", gLast: true, sub: bal.invested > 0 ? "累计收益率 " + (bal.totalPnl * 100 / bal.invested).toFixed(1) + "%" + (balIrr != null ? " · 资金加权(IRR) " + (balIrr * 100).toFixed(1) + "%" : "") : "" }) +
     "</tbody></table>";
-  gid("cbMCashSheet").innerHTML = '<table class="cb-rpt-table">' + RPT2_HEAD + "<tbody>" +
+  const kpiCf = '<div class="cb-rpt-kpis">' +
+    cbKpi("期末现金", cf.end, { emph: true, sub: "期初 " + fmt(cf.begin) }) +
+    cbKpi("投资活动净流", cf.investNet, { sign: true, sub: "卖出+分红−买入−费用" }) +
+    cbKpi("筹资活动净流", cf.finNet, { sign: true, sub: "转入−转出" }) +
+    cbKpi("本期现金净变动", (Number(cf.end) || 0) - (Number(cf.begin) || 0), { sign: true, sub: "投资+筹资净流合计" }) + "</div>"; /* fw2_v655_rpt_kpi：现金流量表 KPI 磁贴 */
+  gid("cbMCashSheet").innerHTML = kpiCf + '<table class="cb-rpt-table">' + RPT2_HEAD + "<tbody>" +
     rptLine2("期初现金", cf.begin, C("begin"), { head: true, noCls: true, grp: "open", gFirst: true, gLast: true }) +
     rptLine2("投资活动现金流", null, null, { title: true, grp: "invest", gFirst: true }) +
     rptLine2("卖出证券流入", cf.investIn, C("investIn"), { sign: true, noCls: true, grp: "invest" }) +
