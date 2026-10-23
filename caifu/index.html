@@ -1205,7 +1205,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
     <header data-page-node-id="LTmXZMx9u9SSUCdmIULsWP" class="topbar">
       <div data-page-node-id="OCbO4qj8OGWrlL8O9vSOGV" class="tb-l">
         <h1 data-page-node-id="u7eGr0dqjmdKvmtYBvU1Y3" id="viewTitle"><!--pnid:6dUpg8sqnP30yHbd9NFeMS-->我的持仓</h1>
-        <span data-page-node-id="kQSNjMTlENeJHiUv77QZ0m" class="sub" id="viewSub"><!--pnid:t4TM4hkGyv1skzQ3lVNMa9-->在线持仓数据表 · 支持新增 / 修改 / 删除 · 未登录时改动存本机草稿</span>
+        <span data-page-node-id="kQSNjMTlENeJHiUv77QZ0m" class="sub" id="viewSub"><!--pnid:t4TM4hkGyv1skzQ3lVNMa9-->天天基金账户镜像 · 每晚自动同步</span>
       </div>
       <div data-page-node-id="h9l3ThyKY61ZHbgFixPybo" class="tb-r">
         <span data-page-node-id="GGckQBXGtWLzpFgjpCXVfh" class="muted" id="lastUpdate"><!--pnid:4KP7VrkcUl81sP6lzQ3cwF-->未更新</span>
@@ -1220,8 +1220,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
       <section data-page-node-id="iCKRXKF70AWkKJ2trSJ6H9" class="view active" id="view-holdings">
         <div data-page-node-id="opFtCfZoMEAzFOjW8Xbd1m" class="toolbar">
           <div data-page-node-id="0NXwo1pNXLfeIoIQa6TRyo" class="tools-l">
-            <button data-page-node-id="WJXtkuUOYMWSAbFTounNGu" class="btn btn-primary btn-sm" id="hdAdd"><!--pnid:eqJzktbPhtSkADckyoWdnv-->＋ 新增持仓</button>
-                        <button data-page-node-id="02WbsySvOxLafKTFUXvw45" class="btn btn-sm" id="hdClear"><!--pnid:0cFwWwTDQCy5DRaxtqN6oN-->清空持仓</button>
+            <!-- fw2_v660_ui_simplify：「＋新增持仓/清空持仓」退役——真源=天天基金账户只读镜像，手工改动下一轮同步即被覆盖/拉回（原 hdClear 确认弹窗自证） -->
           </div>
           <div data-page-node-id="pOiJ7jjUhkMirnL6jfSEl7" class="tools-r">
             <label data-page-node-id="TQy2bYodvhe7duGQ8eP070" class="chk"><input data-page-node-id="vtKYQaqUCgJZIzRgeqKzEf" checked id="hdCny" type="checkbox"><!--pnid:a5kBTiaswgNLCpnDy4kjZm--> 盈亏折人民币</label>
@@ -1759,8 +1758,8 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
       <div class="cb-pane" id="cbPane-overview">
         <div class="cb-kpis" id="cbKpiRow"></div>
         <div class="cb-grid-2">
-          <div class="cb-panel"><div class="cb-panel-head"><h3>资产分布 · 按标的类别</h3><span class="muted" style="font-size:11px">市值口径</span></div><div class="cb-panel-body"><div class="cb-chart cb-ch-md" id="cbChartAlloc"></div></div></div>
-          <div class="cb-panel"><div class="cb-panel-head"><h3>净资产趋势</h3><span class="muted" style="font-size:11px">现金 + 持仓市值 · 逐日重放（按净值日取点）</span></div><div class="cb-panel-body"><div class="cb-chart cb-ch-md" id="cbChartNet"></div><div id="cbNetNote" class="muted" style="display:none;font-size:11px;margin-top:6px"></div></div></div>
+          <div class="cb-panel"><div class="cb-panel-head"><h3>资产分布 · 按标的类别</h3></div><div class="cb-panel-body"><div class="cb-chart cb-ch-md" id="cbChartAlloc"></div></div></div>
+          <div class="cb-panel"><div class="cb-panel-head"><h3>净资产趋势</h3><span class="muted" style="font-size:11px">现金 + 持仓市值</span></div><div class="cb-panel-body"><div class="cb-chart cb-ch-md" id="cbChartNet"></div><div id="cbNetNote" class="muted" style="display:none;font-size:11px;margin-top:6px"></div></div></div>
         </div>
         <!-- fw2_v649_merge_holdings：标的明细并入总览（原独立子模块）。与上方「资产分布」图联动：点扇区/条形 或 点表内类别徽章 → 明细表按该类别过滤，再点取消 -->
         <div class="cb-filter-bar" style="margin-top:12px;margin-bottom:10px">
@@ -1772,8 +1771,8 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
           <span class="cb-cat-chip hidden" id="cbCatChip"></span>
           <button class="btn btn-sm" id="cbAddTarget">＋ 新增标的</button>
         </div>
-        <div class="cb-panel"><div class="cb-panel-head"><h3>标的明细</h3><span class="muted" style="font-size:11px">份额/成本=台账流水口径 · 盈亏未含分红与费用</span></div><div class="cb-panel-body cb-flush" id="cbHoldingsTable"></div></div>
-        <div class="cb-panel hidden" id="cbRecentBox"><div class="cb-panel-head"><h3>资金流水 · 分红/费用/转入转出</h3><span class="muted" style="font-size:11px">买卖成交见下方「交易台账」</span></div><div class="cb-panel-body cb-flush" id="cbRecentTrades"></div></div>
+        <div class="cb-panel"><div class="cb-panel-head"><h3>标的明细</h3><span class="muted" style="font-size:11px">盈亏未含分红费用</span></div><div class="cb-panel-body cb-flush" id="cbHoldingsTable"></div></div>
+        <div class="cb-panel hidden" id="cbRecentBox"><div class="cb-panel-head"><h3>资金流水 · 分红/费用/转入转出</h3></div><div class="cb-panel-body cb-flush" id="cbRecentTrades"></div></div>
         <!-- fw2_v646_ledger_capbal：交易台账折叠块（原策略执行·交易台账 tab 迁入；录入/导入/备份/上限提醒全保留） -->
         <details class="cb-panel hidden" id="capbalLedgerBox" style="margin-top:12px"><summary style="cursor:pointer;user-select:none;padding:10px 13px;font-weight:600;font-size:13px">交易台账（录入 / 导入 / 备份）</summary><div style="padding:0 13px 12px" id="capbalLedgerMount"></div></details>
       </div>
@@ -1782,15 +1781,15 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
            导出月报/导入月报/已出具期数 全删；v656 缺月即时推算后三表自举，出具动作仍由
            「检测到完整月份流水后自动出具」承担，月报快照 JSON 可继续经台账「导出/导入」整体备份 -->      <div class="cb-pane hidden" id="cbPane-rptBal"><!-- 资产负债表 · 月末 -->
         <div class="cb-rpt"><div class="cb-rpt-head"><h3>资产负债表 · 月末</h3><span class="cb-rpt-period" id="cbMBalPeriod"></span></div><div class="cb-rpt-body" id="cbMBalanceSheet"></div></div>
-        <p class="muted" style="font-size:11px;margin:8px 2px">口径：证券市值按报告期月末净值 × 月末份额估值（fw2_v658_rpt_monthnav）；表格展示最近 6 个月（左端为最新报告期），缺月即时推算补列（不早于首笔流水月）；补记流水后表格自动重算（fw2_v657_rptbar_del）。</p>
+        <p class="muted" style="font-size:11px;margin:8px 2px">口径：月末净值估值 · 最近 6 个月 · 左端为最新报告期</p>
       </div>
       <div class="cb-pane hidden" id="cbPane-rptInc"><!-- 利润表 · 月度 -->
         <div class="cb-rpt"><div class="cb-rpt-head"><h3>利润表 · 月度</h3><span class="cb-rpt-period" id="cbMIncPeriod"></span></div><div class="cb-rpt-body" id="cbMIncomeSheet"></div></div>
-        <p class="muted" style="font-size:11px;margin:8px 2px">口径：利润表各列为该月发生额合计（fw2_v656_rpt_6m：不再按标的拆列，单标的归因见总览·标的明细与资金流水）；表格展示最近 6 个月（左端为最新报告期），缺月即时推算补列（不早于首笔流水月）；补记流水后表格自动重算（fw2_v657_rptbar_del）。</p>
+        <p class="muted" style="font-size:11px;margin:8px 2px">口径：当月发生额合计 · 最近 6 个月 · 左端为最新报告期</p>
       </div>
       <div class="cb-pane hidden" id="cbPane-rptCf"><!-- 现金流量表 · 月度 -->
         <div class="cb-rpt"><div class="cb-rpt-head"><h3>现金流量表 · 月度</h3><span class="cb-rpt-period" id="cbMCfPeriod"></span></div><div class="cb-rpt-body" id="cbMCashSheet"></div></div>
-        <p class="muted" style="font-size:11px;margin:8px 2px">口径：期初现金取自上月末重放快照；表格展示最近 6 个月（左端为最新报告期），缺月即时推算补列（不早于首笔流水月）；补记流水后表格自动重算（fw2_v657_rptbar_del）。</p>
+        <p class="muted" style="font-size:11px;margin:8px 2px">口径：当月收付合计 · 最近 6 个月 · 左端为最新报告期</p>
       </div>
 
             <!-- fw2_v652_data_tab_removed：#cbPane-data 整块删除（账本概况 / 加载示例 / 清空全部 / 持仓同步日志）。
@@ -4358,10 +4357,17 @@ function renderPfSrcNote() {
     'empty': '未取到持仓数据',
   };
   var label = map[state._pfSrc] || '未取到持仓数据';
+  /* fw2_v660_ui_simplify：正常态（内置镜像/旁挂快照）整行隐藏，仅异常态（停用/草稿/取数失败）显示 */
+  if (state._pfSrc === 'seed-inline' || state._pfSrc === 'seed-file') {
+    el.style.display = 'none';
+    el.textContent = '';
+    return;
+  }
   var at = state._pfAt ? ' · 同步于 ' + state._pfAt.slice(0, 16).replace('T', ' ') : '';
   var tip = (state._pfSrc === 'DB') ? '' : '（只读：改持仓请发最新对账单）';
+  el.style.display = '';
   el.textContent = '持仓来源：' + label + at + tip;
-  el.style.color = (state._pfSrc === 'DB') ? 'var(--muted)' : '#b45309';
+  el.style.color = '#b45309';
 }
 async function loadPortfolioFromDB() {
   if (state._pfSrc !== 'local') { state._pfSrc = ''; state._pfAt = ''; } /* v177 fw2_v177_pf_draft：本地草稿在 DB 命中前不被种子冲掉 */
@@ -5324,7 +5330,7 @@ async function drawPortCurve(chartId, noteId) { /* v122 fw2_v122_del_overview：
     const pS = port.slice(i0).map((v) => (v == null ? null : +((v / p0 - 1) * 100).toFixed(2)));
     const bS = bench.slice(i0).map((v) => (v == null ? null : +((v / b0 - 1) * 100).toFixed(2)));
     const lastP = pS[pS.length - 1] || 0, lastB = bS[bS.length - 1] || 0;
-    if (note) note.textContent = `近 1 年（${axis[0]} ~ ${axis[axis.length - 1]}，${axis.length} 个交易日，自然日365天口径）· 组合 ${fmtPct(lastP)} vs 沪深300 ${fmtPct(lastB)} · 超额 ${fmtPct(lastP - lastB)}`;
+    if (note) note.textContent = `近 1 年（${axis[0]} ~ ${axis[axis.length - 1]}，${axis.length} 个交易日）· 组合 ${fmtPct(lastP)} vs 沪深300 ${fmtPct(lastB)} · 超额 ${fmtPct(lastP - lastB)}`;
     if (c) c.setOption({
       tooltip: {
         trigger: 'axis', backgroundColor: '#ffffff', borderColor: '#d8dee6', textStyle: { color: '#0f172a', fontSize: 12 },
@@ -5802,14 +5808,14 @@ function renderHoldings() {
     <!-- fw2_v114_kpi_order: 持仓市值 > 持仓成本 > 总盈亏 > 当日盈亏 -->
     <!-- fw2_v475_hold_date：持仓 KPI 区补数据截至（行情快照时间+净值日更+成本用户录入，死规则②审计） -->
     <!-- v562 fw2_v562_hold_inline：数据截至改以 ttskill 持仓同步时间为准（syncedAt），净值日期见净值列 -->
-    <div class="asof" style="margin-top:2px">持仓同步于 <b>${(state._pfAt || '').slice(0, 16).replace('T', ' ') || '未同步'}</b>（天天基金账户 · 每晚自动）· 行情快照 ${((state.snapshot && state.snapshot.at) ? fmtClock(state.snapshot.at) : '未更新')} · 成本/份额=账户口径</div>
+    <div class="asof" style="margin-top:2px">数据截至 <b>${(state._pfAt || '').slice(0, 16).replace('T', ' ') || '未同步'}</b> · 行情快照 ${((state.snapshot && state.snapshot.at) ? fmtClock(state.snapshot.at) : '未更新')}</div>
     `;
 
 
   renderDiscipline(all);
   const tbody = $('#hdTable tbody');
   if (!sorted.length) {
-    tbody.innerHTML = '<tr><td colspan="19" class="empty">暂无持仓，点击「＋ 新增持仓」添加</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="19" class="empty">暂无持仓 · 账户同步后自动显示</td></tr>'; /* fw2_v660_ui_simplify */
   } else {
     tbody.innerHTML = sorted.map((r) => {
       const mv = cny ? r.mvCny : r.mvLocal;
@@ -7454,7 +7460,7 @@ function collectToNote(item) {
  *  路由与事件
  * ========================================================== */
 const VIEW_META = {
-  holdings: ['我的持仓', '在线持仓数据表 · 支持新增 / 修改 / 删除 · 未登录时改动存本机草稿'],
+  holdings: ['我的持仓', '天天基金账户镜像 · 每晚自动同步'], /* fw2_v660_ui_simplify：原「支持新增/修改/删除」与只读镜像现实矛盾 */
   signal: ['交易信号', '信号仪表盘 · 杠铃失衡 · 持仓/自选/市场信号'],
   news: ['财经资讯', '五源聚合 · 去重 · 持仓相关性标记'],
   macro: ['宏观周期', '四周期嵌套 · 共振合成 · 14 项指标明细'], /* fw2_v201_wave_cycle */
@@ -9355,7 +9361,7 @@ function renderMacroSop(d, C) {
     return '<span style="cursor:pointer;padding:4px 10px;border-radius:8px;border:1px solid var(--line-mid,#d8dee6);background:var(--panel-3,#f1f5f9);color:var(--slate-600,#475569);font-size:12px;font-weight:600" onclick="window.__mcGo(\'' + s[1] + '\')">' + s[0] + '</span>';
   }).join('<span style="color:#9ca3af;flex:none">→</span>') + '</div>';
   return '<div class="dc-us-wrap">'
-    + '<div class="card"><div class="card-h"><h3>研读驾驶舱</h3><span class="hint">指引直接带现状结果 + 判断 + 链原始数据 · 判断词与各明细 tab 100% 同源（mcCalcCommon/mcVerdict/mcMagnet 同一判读口径） · 数据截至 ' + esc((d && d.updatedAt) || '—') + ' · 不构成投资建议</span></div>'
+    + '<div class="card"><div class="card-h"><h3>研读驾驶舱</h3><span class="hint">数据截至 ' + esc((d && d.updatedAt) || '—') + ' · 不构成投资建议</span></div>' /* fw2_v660_ui_simplify：机制说明删除 */
     + '<div style="margin-bottom:10px">' + seqHtml + '</div>'
     + '<div style="font-size:12px;color:var(--slate-500,#64748b);line-height:1.7">研读顺序：<b>定调与方法</b>（研读驾驶舱本页一体）→ <b>中国决策</b>（中国周期→估值→盈利→温度）→ <b>海外约束</b>（美国→全球→顺逆风）→ <b>结果验证</b>（资产价格→情绪全景）。点步骤条直达各 tab。</div>'
     + '</div>'
@@ -11774,11 +11780,7 @@ $('#modalClose').onclick = closeModal;
 $('#modal').onclick = (e) => { if (e.target.id === 'modal') closeModal(); };
 
 /* 持仓页 */
-$('#hdAdd').onclick = () => openHoldingEditor('');
-$('#hdClear').onclick = async () => {
-  if (!(await appConfirm('确认清空全部持仓？页面持仓为真源只读镜像，清空只影响本机显示（不会改动天天基金账户），下一轮同步会重新拉回。'))) return;
-  state.portfolio = []; saveStore(); toast('已清空'); renderCurrentView();
-};
+/* fw2_v660_ui_simplify：hdAdd/hdClear 绑定随按钮退役删除（openHoldingEditor 仍供表格行「编辑」使用） */
 $('#hdCny').onchange = (e) => { state.settings.cnyView = e.target.checked; saveStore(); renderHoldings(); };
 $('#hdSort').onchange = (e) => { state.hdSort = e.target.value; renderHoldings(); };
 $('#hdFilter').onclick = (e) => {
@@ -13107,12 +13109,22 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
        实证（CDP+独立脚本双验）：2026-06 净利润 +4,375.68（012920 净值 4.4136→5.2809×5045.18 份）；
        04/05/07=+4,274.28/+3,958.45/−8,300.83 与 fund-monthly 净值序列机械一致（07 月 QDII 净值 5.28→3.64，
        012920 divEvents=[] 无分红除权，忠实反映数据源）。
+     v660（fw2_v660_ui_simplify）：界面减字——用户要求全面清理无用小字与小按钮，经清单确认「全按建议执行」。
+       ①持仓页「＋新增持仓/清空持仓」两按钮+绑定退役（真源=天天基金账户只读镜像，手工改动下一轮同步即被覆盖/拉回；
+         openHoldingEditor 保留供表格行「编辑」）；②pfSrcNote「持仓来源…」正常态（镜像/旁挂快照）整行隐藏，
+         仅异常态显示；③cbSyncInfo 状态串只报异常：常规段（新增X只/净值刷新X只/持仓同步日期/台账入账X笔）退役，
+         市值差解释缩「待核销」，无异常整行 display:none；④三财报口径注记×3 各缩一句（月末净值估值/当月发生额合计/
+         当月收付合计 · 最近6个月 · 左端最新），不再暴露 fw2 内部标记名；⑤持仓副标题改「天天基金账户镜像 ·
+         每晚自动同步」（原文案「支持新增/修改/删除」与只读现实矛盾）；⑥持仓 KPI asof 与资金平衡标的明细顶部
+         同步行改「数据截至…」；⑦标的明细头留「盈亏未含分红费用」、资金流水头指路小字删、资产分布「市值口径」删、
+         净资产趋势注缩短、研读驾驶舱机制说明删、收益曲线「自然日365天口径」括注删、空仓提示改「账户同步后自动显示」。
+       功能零改动；verify_sync v562/v649/v650 三组标记联动收缩。
      v659（fw2_v659_backup_btns_del）：工具栏备份/恢复入口退役——用户截图圈「导出/导入/云端恢复/
        云端镜像 2026-09-23…」行问「有啥用吗？能不显示吗」，说明各自作用后 AskUserQuestion 拍板「四个全删」。
        ①删 cbExport/cbImport/cbCloudRestore 三按钮 + #cbImportFile + #cbCloudInfo 灰字（HTML+三段绑定）；
        ②成交台账(cbLedgerToggle)/设置负债等其余工具栏按钮不动；③renderCloudInfo（自带 !el 守卫）/
        cbImportFile onchange/restoreFromMirror 保留死代码，恢复入口只需还原 HTML+绑定。
-       注意：全量 DB 备份入口随之消失，台账流水仍可经总览·交易台账折叠块备份。 */  if (vc) vc.textContent = 'v659 · 备份入口退役' /* fw2_v659_backup_btns_del fw2_v658_rpt_monthnav fw2_v657_rptbar_del fw2_v656_rpt_6m fw2_v655_rpt_kpi fw2_v654_held_pf_authority fw2_v653_alloc_pile_assign fw2_v652_data_tab_removed fw2_v651_recent_hide fw2_v651_ledger_slim fw2_v651_entry_unify fw2_v650_netseries_daily fw2_v650_moneynav fw2_v649_merge_holdings fw2_v648_capbal_slim fw2_v647_netseries_fix fw2_v646_ledger_capbal fw2_v644_revert_watch_tab fw2_v643_mtbl_tier fw2_v642_a500_enh fw2_v641_peak_dd fw2_v640_buy_pct fw2_v639_del_decisionfw2_v516_a500lk fw2_v517_4otc fw2_v518_hspos fw2_v519_sm_merge fw2_v520_chgflat fw2_v521_magnet fw2_v522_overview fw2_v523_sm_dedup fw2_v524_geo_fsi fw2_v525_geo_filter fw2_v526_geo_filter_removed fw2_v527_verdict fw2_v529_smux fw2_v530_datamgmt fw2_v531_sm_dmgmt fw2_v532_all_dm fw2_v533_px_long fw2_v533d_dm_scroll fw2_v534_dm_module fw2_v535_dm_auto fw2_v539_hold_realpnl fw2_v539a_seed_sync fw2_v539a_seed_order fw2_v540_hold_path fw2_v542_pf_mirror_first fw2_v542_mv_settled fw2_v542_mv_account fw2_v543_dm_holdings_note fw2_v544_ledger_mirror_guard fw2_v545_hold_total_row fw2_v546_navdate_all fw2_v547_vix_to_ovs fw2_v548_ovs_mrg fw2_v549_region_align fw2_v550_grp_tabs fw2_v551_sop_cockpit fw2_v552_sop_taborder fw2_v553_chain_data fw2_v554_sop_rename fw2_v556_market_split fw2_v557_sm_renamed fw2_v558_cbrates_fix fw2_v558a_cb_label fw2_v559_chain_dates fw2_v560_chain_verdict fw2_v561_curve_hold fw2_v562_hold_inline fw2_v563_alloc fw2_v564_lxlink fw2_v565_cal_lx fw2_v565_sub_lx fw2_v566_fund_move fw2_v567_fund_merge fw2_v568_lxlink_fix fw2_v569_manager_pool fw2_v570_manager_universe fw2_v571_mgr_east fw2_v574_mgr_subscore fw2_v575_mgr_merge fw2_v576_mgr_group fw2_v577_mgr_lxlink fw2_v578_mgr_lxreal fw2_v579_mgr_weight fw2_v581_fund_lxreal fw2_v582_mgr_min10 fw2_v583_mgr_noyear fw2_v584_mgr_career fw2_v585_mgr_srank fw2_v586_mgr_srank fw2_v587_mgr_since fw2_v588_mgr_lxfull fw2_v589_mgr_rules fw2_v590_mgr_scores fw2_v591_mgr_ladder fw2_v592_mgr_cols fw2_v593_mgr_score fw2_anti_halluc_p0 fw2_v595_alpha_attrib fw2_v596_sig_hist fw2_v597_fund_overlap fw2_v598_mgr_hold fw2_v599_time_decay fw2_v599_corr_pen fw2_v600_buytrack fw2_v601_backtest fw2_v602_kline_page fw2_v603_old_debts fw2_v604_xirr fw2_v605_holdings_global fw2_v606_v11_signal fw2_v607_v11_bt fw2_v608_lx_audit fw2_v609_sig_table fw2_v610_sig_merge fw2_v611_grp_line fw2_v612_index_lxreal fw2_v613_near_blue fw2_v615_sig_grp fw2_v616_sig_hdstyle fw2_v617_sig_vline fw2_v618_sig_lcr fw2_v619_curthr fw2_v620_curthr_all fw2_v621_ret_hpr fw2_v621_t13_lastbuy fw2_v622_lastbuy_auto fw2_v623_firstbuy_roll fw2_v623_alloc_watch fw2_v624_m13_m17 fw2_v626_sig_cost_guard fw2_v626_watch_pe_exempt fw2_v627_colorder fw2_v627_action_plan fw2_v627_data_date fw2_v628_fixed_cols fw2_v629_pool_pile_guard fw2_v629_t9_pfdate fw2_v630_missing_cost fw2_v631_pool_held_live fw2_v632_held_off fw2_v633_ledger_tx_sync fw2_v634_plan_dir fw2_v635_capbal_fix fw2_v636_capbal_converge fw2_v637_mv_consist fw2_v638_mv_unify */ + (window.getAllocWatchCodes ? window.getAllocWatchCodes().length : 0) + '只';
+       注意：全量 DB 备份入口随之消失，台账流水仍可经总览·交易台账折叠块备份。 */  if (vc) vc.textContent = 'v660 · 界面减字' /* fw2_v660_ui_simplify fw2_v659_backup_btns_del fw2_v658_rpt_monthnav fw2_v657_rptbar_del fw2_v656_rpt_6m fw2_v655_rpt_kpi fw2_v654_held_pf_authority fw2_v653_alloc_pile_assign fw2_v652_data_tab_removed fw2_v651_recent_hide fw2_v651_ledger_slim fw2_v651_entry_unify fw2_v650_netseries_daily fw2_v650_moneynav fw2_v649_merge_holdings fw2_v648_capbal_slim fw2_v647_netseries_fix fw2_v646_ledger_capbal fw2_v644_revert_watch_tab fw2_v643_mtbl_tier fw2_v642_a500_enh fw2_v641_peak_dd fw2_v640_buy_pct fw2_v639_del_decisionfw2_v516_a500lk fw2_v517_4otc fw2_v518_hspos fw2_v519_sm_merge fw2_v520_chgflat fw2_v521_magnet fw2_v522_overview fw2_v523_sm_dedup fw2_v524_geo_fsi fw2_v525_geo_filter fw2_v526_geo_filter_removed fw2_v527_verdict fw2_v529_smux fw2_v530_datamgmt fw2_v531_sm_dmgmt fw2_v532_all_dm fw2_v533_px_long fw2_v533d_dm_scroll fw2_v534_dm_module fw2_v535_dm_auto fw2_v539_hold_realpnl fw2_v539a_seed_sync fw2_v539a_seed_order fw2_v540_hold_path fw2_v542_pf_mirror_first fw2_v542_mv_settled fw2_v542_mv_account fw2_v543_dm_holdings_note fw2_v544_ledger_mirror_guard fw2_v545_hold_total_row fw2_v546_navdate_all fw2_v547_vix_to_ovs fw2_v548_ovs_mrg fw2_v549_region_align fw2_v550_grp_tabs fw2_v551_sop_cockpit fw2_v552_sop_taborder fw2_v553_chain_data fw2_v554_sop_rename fw2_v556_market_split fw2_v557_sm_renamed fw2_v558_cbrates_fix fw2_v558a_cb_label fw2_v559_chain_dates fw2_v560_chain_verdict fw2_v561_curve_hold fw2_v562_hold_inline fw2_v563_alloc fw2_v564_lxlink fw2_v565_cal_lx fw2_v565_sub_lx fw2_v566_fund_move fw2_v567_fund_merge fw2_v568_lxlink_fix fw2_v569_manager_pool fw2_v570_manager_universe fw2_v571_mgr_east fw2_v574_mgr_subscore fw2_v575_mgr_merge fw2_v576_mgr_group fw2_v577_mgr_lxlink fw2_v578_mgr_lxreal fw2_v579_mgr_weight fw2_v581_fund_lxreal fw2_v582_mgr_min10 fw2_v583_mgr_noyear fw2_v584_mgr_career fw2_v585_mgr_srank fw2_v586_mgr_srank fw2_v587_mgr_since fw2_v588_mgr_lxfull fw2_v589_mgr_rules fw2_v590_mgr_scores fw2_v591_mgr_ladder fw2_v592_mgr_cols fw2_v593_mgr_score fw2_anti_halluc_p0 fw2_v595_alpha_attrib fw2_v596_sig_hist fw2_v597_fund_overlap fw2_v598_mgr_hold fw2_v599_time_decay fw2_v599_corr_pen fw2_v600_buytrack fw2_v601_backtest fw2_v602_kline_page fw2_v603_old_debts fw2_v604_xirr fw2_v605_holdings_global fw2_v606_v11_signal fw2_v607_v11_bt fw2_v608_lx_audit fw2_v609_sig_table fw2_v610_sig_merge fw2_v611_grp_line fw2_v612_index_lxreal fw2_v613_near_blue fw2_v615_sig_grp fw2_v616_sig_hdstyle fw2_v617_sig_vline fw2_v618_sig_lcr fw2_v619_curthr fw2_v620_curthr_all fw2_v621_ret_hpr fw2_v621_t13_lastbuy fw2_v622_lastbuy_auto fw2_v623_firstbuy_roll fw2_v623_alloc_watch fw2_v624_m13_m17 fw2_v626_sig_cost_guard fw2_v626_watch_pe_exempt fw2_v627_colorder fw2_v627_action_plan fw2_v627_data_date fw2_v628_fixed_cols fw2_v629_pool_pile_guard fw2_v629_t9_pfdate fw2_v630_missing_cost fw2_v631_pool_held_live fw2_v632_held_off fw2_v633_ledger_tx_sync fw2_v634_plan_dir fw2_v635_capbal_fix fw2_v636_capbal_converge fw2_v637_mv_consist fw2_v638_mv_unify */ + (window.getAllocWatchCodes ? window.getAllocWatchCodes().length : 0) + '只';
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
@@ -19091,7 +19103,7 @@ function renderHoldings() {
   /* v562 fw2_v562_hold_inline：标的明细顶部数据日期行（ttskill 持仓同步时间 + 口径说明） */
   const _pfAt2 = (typeof state !== "undefined" && state && state._pfAt) ? String(state._pfAt).slice(0, 16).replace("T", " ") : "";
   const _pfNote2 = _pfAt2
-    ? '持仓同步于 <b>' + _pfAt2 + '</b>（天天基金账户 · 每晚自动）· 净值随 fund-daily 日更 · 份额/成本=台账流水口径，与账户不一致时以天天基金为准（发最新对账单可重建）'
+    ? '数据截至 <b>' + _pfAt2 + '</b> · 以天天基金账户为准' /* fw2_v660_ui_simplify：口径括注删除 */
     : '持仓镜像未同步 · 点右上「同步持仓」刷新';
   const _asofBar = '<div class="muted" style="font-size:11px;padding:4px 2px 6px;line-height:1.5">' + _pfNote2 + '</div>';
   const head = "<colgroup><col style='width:9%'><col style='width:20%'><col style='width:11%'><col style='width:10%'><col style='width:8%'><col style='width:10%'><col style='width:10%'><col style='width:10%'><col style='width:12%'></colgroup>" +
@@ -20266,14 +20278,12 @@ function maybeAutoSync() {
   const r2 = syncFromWorkbench(false);
   if (r2 && (r2.added || r2.filled)) saveDB();
   const syncInfo2 = gid("cbSyncInfo");
+  const _siParts = []; /* fw2_v660_ui_simplify：状态串只报异常——常规段（新增/净值刷新/持仓同步日期）退役 */
   if (syncInfo2) {
     const mine2 = {};
     DB.targets.forEach(function (t) { mine2[normCode(t.code)] = 1; });
     const missing2 = wb.filter(function (h) { return !mine2[normCode(h.code)]; }).length;
-    syncInfo2.textContent = "已自动同步：新增 " + (r2 ? (r2.added || 0) : 0) + " 只 · 净值刷新 "
-      + (r2 ? (r2.filled || 0) : 0) + " 只（收盘价口径）"
-      + (missing2 ? " · 仍有 " + missing2 + " 只未入账" : "")
-      + ((typeof state !== "undefined" && state && state._pfAt) ? " · 持仓同步 " + String(state._pfAt).slice(0, 10) : ""); /* v562 fw2_v562_hold_inline：同步状态行补数据日期 */
+    if (missing2) _siParts.push("仍有 " + missing2 + " 只未入账");
   }
   /* fw2_v633_ledger_tx_sync：归档旧快照账目 + 台账全量入账（份额/投入/三表台账驱动，
      与镜像持仓同源）；漂移>0.02 显 ⚠ 对账提示，不硬改账。 */
@@ -20285,13 +20295,14 @@ function maybeAutoSync() {
   /* fw2_v635_reconcile：对账恒定披露（台账有无都跑） */
   const _rc = cbReconcile();
   const si3 = gid("cbSyncInfo");
-  if (si3) {
-    if (r3 && r3.imported) si3.textContent += " · 台账入账 " + r3.imported + " 笔（份额/投入/三表已联动）";
-    if (_rep.fixed) si3.textContent += " · 已按账户权威校正 " + _rep.fixed + " 只（" + _rep.detail + "）";
-    if (_rc.zeroShares && _rc.zeroShares.length) si3.textContent += " · ⚠账面无流水：" + _rc.zeroShares.join("、");
-    if (_rc.drift && _rc.drift.length) si3.textContent += " · ⚠份额对账漂移：" + _rc.drift.join("；");
-    if (Math.abs(_rc.mvDiff) > 1) si3.textContent += " · 市值差 " + Math.abs(_rc.mvDiff).toFixed(2) + " 元（在途份额未确认/旧快照口径，份额×净值 vs 账户市值，待对账单核销）";
-    if (_capbalAuditNote) si3.textContent += " · " + _capbalAuditNote;
+  if (si3) { /* fw2_v660_ui_simplify：常规段（台账入账笔数）退役；市值差解释缩短；无异常整行隐藏 */
+    if (_rep.fixed) _siParts.push("已按账户权威校正 " + _rep.fixed + " 只（" + _rep.detail + "）");
+    if (_rc.zeroShares && _rc.zeroShares.length) _siParts.push("⚠账面无流水：" + _rc.zeroShares.join("、"));
+    if (_rc.drift && _rc.drift.length) _siParts.push("⚠份额对账漂移：" + _rc.drift.join("；"));
+    if (Math.abs(_rc.mvDiff) > 1) _siParts.push("市值差 " + Math.abs(_rc.mvDiff).toFixed(2) + " 元（待核销）");
+    if (_capbalAuditNote) _siParts.push(_capbalAuditNote);
+    si3.textContent = _siParts.join(" · ");
+    si3.style.display = _siParts.length ? "" : "none";
   }
   /* fw2_v636_ledger_audit：本地台账闭合审计——对账基准＝Σ台账qty=镜像shares（AI 对账单重建的云端
      台账与账户精确闭合）。本地任一已覆盖代码净份额≠镜像 ⇒ 本地台账损坏/过期（v603 只比 updatedAt，
