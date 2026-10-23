@@ -13111,6 +13111,16 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
        实证（CDP+独立脚本双验）：2026-06 净利润 +4,375.68（012920 净值 4.4136→5.2809×5045.18 份）；
        04/05/07=+4,274.28/+3,958.45/−8,300.83 与 fund-monthly 净值序列机械一致（07 月 QDII 净值 5.28→3.64，
        012920 divEvents=[] 无分红除权，忠实反映数据源）。
+     v676（fw2_v676_attr_monthnav + fw2_v676_attr_zero）：复盘归因口径修正（用户 2026-09 截图：「9月基金不全。
+        排查下需要信息全面」）——排查：9 月表2 仅 5 只（合计 -2.68 与五行加和自洽），缺 001015 华夏沪深300
+        （首笔 2026-08-10）/012920 易方达全球（首笔 2025-11-05）两只无 9 月交易的持仓。病根两层：
+        ①引擎 perTarget eU/bU 同用「当前」净值——份额/成本不变目标 netProfit 恒 0，被复盘展示过滤
+        （|netProfit|>0.005）滤掉后又因 repCodes 过滤前构建挡掉 v673 推算行→整行消失；
+        ②同口径下有交易标的只反映「9 月买入部分浮盈」不反映持有期涨跌（南方纳指定投月净盈亏仅 +0.03），
+        合计差额被撑大到 -18.43。修法：①perTarget eU/bU 改按月末/月初 NAV_MONTH 净值（与 secValuation/
+        income.unrealChg 同口径，缺月回退当前净值），navBasis 升 month-end-v2+迁移条件同步改，存量月报
+        DC 就绪后自动重放覆盖（v658 同款幂等自愈）；②复盘 repCodes 改从过滤后 perTU 构建，零值目标不再
+        挡推算行（货币类净值持平月推算行照显 0 值，信息全面）。
      v675（fw2_v675_num_col_widen）：复盘表数字列加宽（用户强刷 v674 后圈表1「上月」「变化」列头：「标红的列宽不能
         拉大点吗，整体适配屏幕」）——病根=v670 治空白把 .num 列 width:1% 压到贴内容宽（约80px），本月/上月/变化
         三个数字列挤成一团、空白全让给两侧文字列（「挤」的真正病根，v674 行距放松只治了一半）。纯 CSS 改值：
@@ -13214,7 +13224,7 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
        ①删 cbExport/cbImport/cbCloudRestore 三按钮 + #cbImportFile + #cbCloudInfo 灰字（HTML+三段绑定）；
        ②成交台账(cbLedgerToggle)/设置负债等其余工具栏按钮不动；③renderCloudInfo（自带 !el 守卫）/
        cbImportFile onchange/restoreFromMirror 保留死代码，恢复入口只需还原 HTML+绑定。
-       注意：全量 DB 备份入口随之消失，台账流水仍可经总览·交易台账折叠块备份。 */  if (vc) vc.textContent = 'v675 · 数字列加宽' /* fw2_v675_num_col_widen fw2_v674_rev_breathe fw2_v673_rev_union fw2_v673_sig_retrace fw2_v669_review_tables fw2_v668_review_monthly fw2_v667_review_insight fw2_v666_tiles_bigger fw2_v665_review_tiles fw2_v664_review_rebuild fw2_v663_hero_retire fw2_v661_filter_compact fw2_v660_ui_simplify fw2_v659_backup_btns_del fw2_v658_rpt_monthnav fw2_v657_rptbar_del fw2_v656_rpt_6m fw2_v655_rpt_kpi fw2_v654_held_pf_authority fw2_v653_alloc_pile_assign fw2_v652_data_tab_removed fw2_v651_recent_hide fw2_v651_ledger_slim fw2_v651_entry_unify fw2_v650_netseries_daily fw2_v650_moneynav fw2_v649_merge_holdings fw2_v648_capbal_slim fw2_v647_netseries_fix fw2_v646_ledger_capbal fw2_v644_revert_watch_tab fw2_v643_mtbl_tier fw2_v642_a500_enh fw2_v641_peak_dd fw2_v640_buy_pct fw2_v639_del_decisionfw2_v516_a500lk fw2_v517_4otc fw2_v518_hspos fw2_v519_sm_merge fw2_v520_chgflat fw2_v521_magnet fw2_v522_overview fw2_v523_sm_dedup fw2_v524_geo_fsi fw2_v525_geo_filter fw2_v526_geo_filter_removed fw2_v527_verdict fw2_v529_smux fw2_v530_datamgmt fw2_v531_sm_dmgmt fw2_v532_all_dm fw2_v533_px_long fw2_v533d_dm_scroll fw2_v534_dm_module fw2_v535_dm_auto fw2_v539_hold_realpnl fw2_v539a_seed_sync fw2_v539a_seed_order fw2_v540_hold_path fw2_v542_pf_mirror_first fw2_v542_mv_settled fw2_v542_mv_account fw2_v543_dm_holdings_note fw2_v544_ledger_mirror_guard fw2_v545_hold_total_row fw2_v546_navdate_all fw2_v547_vix_to_ovs fw2_v548_ovs_mrg fw2_v549_region_align fw2_v550_grp_tabs fw2_v551_sop_cockpit fw2_v552_sop_taborder fw2_v553_chain_data fw2_v554_sop_rename fw2_v556_market_split fw2_v557_sm_renamed fw2_v558_cbrates_fix fw2_v558a_cb_label fw2_v559_chain_dates fw2_v560_chain_verdict fw2_v561_curve_hold fw2_v562_hold_inline fw2_v563_alloc fw2_v564_lxlink fw2_v565_cal_lx fw2_v565_sub_lx fw2_v566_fund_move fw2_v567_fund_merge fw2_v568_lxlink_fix fw2_v569_manager_pool fw2_v570_manager_universe fw2_v571_mgr_east fw2_v574_mgr_subscore fw2_v575_mgr_merge fw2_v576_mgr_group fw2_v577_mgr_lxlink fw2_v578_mgr_lxreal fw2_v579_mgr_weight fw2_v581_fund_lxreal fw2_v582_mgr_min10 fw2_v583_mgr_noyear fw2_v584_mgr_career fw2_v585_mgr_srank fw2_v586_mgr_srank fw2_v587_mgr_since fw2_v588_mgr_lxfull fw2_v589_mgr_rules fw2_v590_mgr_scores fw2_v591_mgr_ladder fw2_v592_mgr_cols fw2_v593_mgr_score fw2_anti_halluc_p0 fw2_v595_alpha_attrib fw2_v596_sig_hist fw2_v597_fund_overlap fw2_v598_mgr_hold fw2_v599_time_decay fw2_v599_corr_pen fw2_v600_buytrack fw2_v601_backtest fw2_v602_kline_page fw2_v603_old_debts fw2_v604_xirr fw2_v605_holdings_global fw2_v606_v11_signal fw2_v607_v11_bt fw2_v608_lx_audit fw2_v609_sig_table fw2_v610_sig_merge fw2_v611_grp_line fw2_v612_index_lxreal fw2_v613_near_blue fw2_v615_sig_grp fw2_v616_sig_hdstyle fw2_v617_sig_vline fw2_v618_sig_lcr fw2_v619_curthr fw2_v620_curthr_all fw2_v621_ret_hpr fw2_v621_t13_lastbuy fw2_v622_lastbuy_auto fw2_v623_firstbuy_roll fw2_v623_alloc_watch fw2_v624_m13_m17 fw2_v626_sig_cost_guard fw2_v626_watch_pe_exempt fw2_v627_colorder fw2_v627_action_plan fw2_v627_data_date fw2_v628_fixed_cols fw2_v629_pool_pile_guard fw2_v629_t9_pfdate fw2_v630_missing_cost fw2_v631_pool_held_live fw2_v632_held_off fw2_v633_ledger_tx_sync fw2_v634_plan_dir fw2_v635_capbal_fix fw2_v636_capbal_converge fw2_v637_mv_consist fw2_v638_mv_unify */ + (window.getAllocWatchCodes ? window.getAllocWatchCodes().length : 0) + '只';
+       注意：全量 DB 备份入口随之消失，台账流水仍可经总览·交易台账折叠块备份。 */  if (vc) vc.textContent = 'v676 · 归因口径修正' /* fw2_v676_attr_monthnav fw2_v676_attr_zero fw2_v675_num_col_widen fw2_v674_rev_breathe fw2_v673_rev_union fw2_v673_sig_retrace fw2_v669_review_tables fw2_v668_review_monthly fw2_v667_review_insight fw2_v666_tiles_bigger fw2_v665_review_tiles fw2_v664_review_rebuild fw2_v663_hero_retire fw2_v661_filter_compact fw2_v660_ui_simplify fw2_v659_backup_btns_del fw2_v658_rpt_monthnav fw2_v657_rptbar_del fw2_v656_rpt_6m fw2_v655_rpt_kpi fw2_v654_held_pf_authority fw2_v653_alloc_pile_assign fw2_v652_data_tab_removed fw2_v651_recent_hide fw2_v651_ledger_slim fw2_v651_entry_unify fw2_v650_netseries_daily fw2_v650_moneynav fw2_v649_merge_holdings fw2_v648_capbal_slim fw2_v647_netseries_fix fw2_v646_ledger_capbal fw2_v644_revert_watch_tab fw2_v643_mtbl_tier fw2_v642_a500_enh fw2_v641_peak_dd fw2_v640_buy_pct fw2_v639_del_decisionfw2_v516_a500lk fw2_v517_4otc fw2_v518_hspos fw2_v519_sm_merge fw2_v520_chgflat fw2_v521_magnet fw2_v522_overview fw2_v523_sm_dedup fw2_v524_geo_fsi fw2_v525_geo_filter fw2_v526_geo_filter_removed fw2_v527_verdict fw2_v529_smux fw2_v530_datamgmt fw2_v531_sm_dmgmt fw2_v532_all_dm fw2_v533_px_long fw2_v533d_dm_scroll fw2_v534_dm_module fw2_v535_dm_auto fw2_v539_hold_realpnl fw2_v539a_seed_sync fw2_v539a_seed_order fw2_v540_hold_path fw2_v542_pf_mirror_first fw2_v542_mv_settled fw2_v542_mv_account fw2_v543_dm_holdings_note fw2_v544_ledger_mirror_guard fw2_v545_hold_total_row fw2_v546_navdate_all fw2_v547_vix_to_ovs fw2_v548_ovs_mrg fw2_v549_region_align fw2_v550_grp_tabs fw2_v551_sop_cockpit fw2_v552_sop_taborder fw2_v553_chain_data fw2_v554_sop_rename fw2_v556_market_split fw2_v557_sm_renamed fw2_v558_cbrates_fix fw2_v558a_cb_label fw2_v559_chain_dates fw2_v560_chain_verdict fw2_v561_curve_hold fw2_v562_hold_inline fw2_v563_alloc fw2_v564_lxlink fw2_v565_cal_lx fw2_v565_sub_lx fw2_v566_fund_move fw2_v567_fund_merge fw2_v568_lxlink_fix fw2_v569_manager_pool fw2_v570_manager_universe fw2_v571_mgr_east fw2_v574_mgr_subscore fw2_v575_mgr_merge fw2_v576_mgr_group fw2_v577_mgr_lxlink fw2_v578_mgr_lxreal fw2_v579_mgr_weight fw2_v581_fund_lxreal fw2_v582_mgr_min10 fw2_v583_mgr_noyear fw2_v584_mgr_career fw2_v585_mgr_srank fw2_v586_mgr_srank fw2_v587_mgr_since fw2_v588_mgr_lxfull fw2_v589_mgr_rules fw2_v590_mgr_scores fw2_v591_mgr_ladder fw2_v592_mgr_cols fw2_v593_mgr_score fw2_anti_halluc_p0 fw2_v595_alpha_attrib fw2_v596_sig_hist fw2_v597_fund_overlap fw2_v598_mgr_hold fw2_v599_time_decay fw2_v599_corr_pen fw2_v600_buytrack fw2_v601_backtest fw2_v602_kline_page fw2_v603_old_debts fw2_v604_xirr fw2_v605_holdings_global fw2_v606_v11_signal fw2_v607_v11_bt fw2_v608_lx_audit fw2_v609_sig_table fw2_v610_sig_merge fw2_v611_grp_line fw2_v612_index_lxreal fw2_v613_near_blue fw2_v615_sig_grp fw2_v616_sig_hdstyle fw2_v617_sig_vline fw2_v618_sig_lcr fw2_v619_curthr fw2_v620_curthr_all fw2_v621_ret_hpr fw2_v621_t13_lastbuy fw2_v622_lastbuy_auto fw2_v623_firstbuy_roll fw2_v623_alloc_watch fw2_v624_m13_m17 fw2_v626_sig_cost_guard fw2_v626_watch_pe_exempt fw2_v627_colorder fw2_v627_action_plan fw2_v627_data_date fw2_v628_fixed_cols fw2_v629_pool_pile_guard fw2_v629_t9_pfdate fw2_v630_missing_cost fw2_v631_pool_held_live fw2_v632_held_off fw2_v633_ledger_tx_sync fw2_v634_plan_dir fw2_v635_capbal_fix fw2_v636_capbal_converge fw2_v637_mv_consist fw2_v638_mv_unify */ + (window.getAllocWatchCodes ? window.getAllocWatchCodes().length : 0) + '只';
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
@@ -18498,14 +18508,17 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
     /* fw2_v673_rev_union：归因补全——月报 perTarget 之外，「本月已持有」基金全部纳入（用户：本月有的基金都应算入）。
        持仓 qty>0 且本轮首笔/建仓日 ≤ 月末、未在 perTarget（name 或 tid→code 双匹配防重）→ 推算行：
        pnl=份额×(月末净值−上月末净值)，缺净值显 — 不硬凑。 */
-    var attr = (r && r.income && r.income.perTarget ? r.income.perTarget : [])
-      .filter(function (p) { return Math.abs(p.netProfit || 0) > 0.005; })
-      .map(function (p) { return { name: p.name, pnl: p.netProfit || 0, est: false }; });
+    /* fw2_v676_attr_zero：先滤出「净盈亏非零进表」的 perTarget（perTU），repCodes 只认这批——
+       份额/成本不变目标旧口径 netProfit 恒 0（v676 引擎已修）、货币类净值可能持平，
+       若提前计入 repCodes 会挡掉 v673 推算行→基金整行消失（2026-09 001015/012920 案例，用户：「9月基金不全」） */
+    var perTU = (r && r.income && r.income.perTarget ? r.income.perTarget : [])
+      .filter(function (p) { return Math.abs(p.netProfit || 0) > 0.005; });
+    var attr = perTU.map(function (p) { return { name: p.name, pnl: p.netProfit || 0, est: false }; });
     try {
       var dbU = null; try { dbU = JSON.parse(localStorage.getItem('capital_balance_v1') || 'null'); } catch (e0) {}
       var repCodes = {}, codeOfU = {};
       (dbU && dbU.targets || []).forEach(function (t) { codeOfU[t.id] = String(t.code || '').replace(/\D/g, '').slice(-6); });
-      (r && r.income && r.income.perTarget || []).forEach(function (p) { var c6 = codeOfU[p.id]; if (c6) repCodes[c6] = 1; });
+      perTU.forEach(function (p) { var c6 = codeOfU[p.id]; if (c6) repCodes[c6] = 1; }); /* fw2_v676_attr_zero：过滤后 perTU 构建，零值目标不再挡推算行 */
       var repNames = {}; attr.forEach(function (x) { repNames[x.name] = 1; });
       var meU = m + '-31', peU = revPrevMonth(m) + '-31';
       var PFU = (typeof state !== 'undefined' && state && Array.isArray(state.portfolio)) ? state.portfolio : [];
@@ -19812,7 +19825,7 @@ function genMonthlyReport(period) {
   const div = end.div - begin.div;
   const fee = end.fee - begin.fee;
   const income = {
-    navBasis: (window.__NAV_MONTH__ && window.__NAV_MONTH__._dcReady) ? "month-end" : "latest-fallback", /* fw2_v658_rpt_monthnav：口径标记——DC 未就绪时为 latest-fallback（最新净值回退），就绪后迁移重算自愈 */
+    navBasis: (window.__NAV_MONTH__ && window.__NAV_MONTH__._dcReady) ? "month-end-v2" : "latest-fallback", /* fw2_v658_rpt_monthnav+fw2_v676_attr_monthnav：口径标记（v676 升 month-end-v2=perTarget 未实现变动同按月末净值）——DC 未就绪时为 latest-fallback（最新净值回退），就绪后迁移重算自愈 */
     realized: realized, div: div, fee: fee,
     realizedNet: realized + div - fee,
     unrealChg: vEnd.unreal - vBegin.unreal,
@@ -19833,9 +19846,14 @@ function genMonthlyReport(period) {
     const e = end.tids[t.id], b = begin.tids[t.id];
     if (!e && !b) return;
     if (!(e && e.shares > 0) && !(b && b.shares > 0) && !divM[t.id] && !feeM[t.id]) return;
+    /* fw2_v676_attr_monthnav：perTarget 未实现变动改按月末/月初 NAV_MONTH 净值（与 secValuation/income.unrealChg
+       同口径；缺月回退当前净值，latest-fallback 语义不变）——旧口径 eU/bU 同用当前净值，份额不变目标 netProfit
+       恒 0（2026-09 001015/012920 整行消失）、定投月只反映买入浮盈不反映持有期涨跌（南方纳指定投月仅 +0.03） */
     const nav = Number(t.nav) || 0;
-    const eU = e ? e.shares * nav - e.costBasis : 0;
-    const bU = b ? b.shares * nav - b.costBasis : 0;
+    const nmEV = (period && window.__NAV_MONTH__) ? window.__NAV_MONTH__.get(t.code, period) : null;
+    const nmBV = (pp && window.__NAV_MONTH__) ? window.__NAV_MONTH__.get(t.code, pp) : null;
+    const eU = e ? e.shares * (nmEV != null ? nmEV : nav) - e.costBasis : 0;
+    const bU = b ? b.shares * (nmBV != null ? nmBV : nav) - b.costBasis : 0;
     const realized = (e ? (e.realized || 0) : 0) - (b ? (b.realized || 0) : 0);
     const div = divM[t.id] || 0, fee = feeM[t.id] || 0;
     const totalPnlEnd = (e ? (e.realized || 0) + (e.divTotal || 0) - (e.feeTotal || 0) : 0) + eU;
@@ -19894,7 +19912,7 @@ function autoGenReports() {
        检测到旧结构（income 存在但无 perTarget）时用当前引擎重放出具覆盖（纯派生重放、幂等安全，perTarget
        生成后即为 [] 或完整列，下次不再迁移）；不影响资产负债表/现金流量表（genMonthlyReport 整份重建） */
     else if (ex.income && window.__NAV_MONTH__ && window.__NAV_MONTH__._dcReady &&
-             (!ex.income.perTarget || ex.income.navBasis !== "month-end")) {
+             (!ex.income.perTarget || ex.income.navBasis !== "month-end-v2")) { /* fw2_v676_attr_monthnav：v676 前 month-end 存量月报自动重放一次（幂等） */
       /* fw2_v658_rpt_monthnav：旧口径报表（无 perTarget，或最新净值差分口径）在 DC 就绪后按月末净值引擎重放覆盖（幂等）；
          DC 未就绪时不迁移——模块级首跑（页面 init，DC 懒加载前）若直接重算会以「最新净值回退」口径错标 month-end */
       rptStore.reports[p] = genMonthlyReport(p);
