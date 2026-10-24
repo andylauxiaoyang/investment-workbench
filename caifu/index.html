@@ -7564,6 +7564,14 @@ const DMCONFIG = [
       全域原指令不含低频四链；各轨末尾裸 push_gh_v39.py 不带 SKIP_GATE 会被 fund_monthly 环境红拒推；
    ③ 修订：全域/月轨指令补 fetch_pe_val+market_screen+_gen_profiles+gen_index_bench(+extra)+_mgr_excess；cmd 改 PowerShell 5.1 可复制形态（; 分隔 + $env:SKIP_GATE='1' 前缀）；
       daily 的 etf_shares 从游离前缀改入 --only 组列表；--gate 从指令移除（数据更新默认跳闸门，审计形态写进 note）。 */
+/* v696 fw2_v696_hold_core：持仓基础数据（份额/净值/市值/成本）跨模块单一真源。
+   根因：原两套口径零同步——镜阵营 state.portfolio（树图/健康诊断/策略执行）与
+   账阵营 DB.targets + DB.tx（明细表/资金平衡 KPI/概览净资产）；applySeed 只写前者、从不写后者，
+   叠加「账户新增基金无台账流水」与「v693 反推份额未同步台账」，
+   离线对拍（_xmod_replay_v696.py）实测跨模块差 1114.09 元。
+   现状：5 个入口统一经 holdRows/holdRowOf（镜像优先、台账兜底，遍历两者并集）；
+   明细表顶部实时披露「口径一致 · 与账户差 X」；
+   发布前由 gate.py 数据集 hold_consistency 强制校验，refresh_all.py 亦在持仓刷新后立即校验，FAIL 阻断发布。 */
 const DMTRACKS = [
   { key:'all', name:'全域更新', freq:'全部 · 按需', need:'需发指令（对话说「全域更新」或复制命令）',
     cmd:'python fetch_pe_val.py; python market_screen.py; python _gen_profiles.py; python gen_index_bench.py; python gen_index_bench_extra.py; python _mgr_excess.py; python refresh_all.py; python _make_bundle.py; python _gen_data_mgmt.py; $env:SKIP_GATE=\'1\'; python push_gh_v39.py',
@@ -13247,7 +13255,7 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
        ①删 cbExport/cbImport/cbCloudRestore 三按钮 + #cbImportFile + #cbCloudInfo 灰字（HTML+三段绑定）；
        ②成交台账(cbLedgerToggle)/设置负债等其余工具栏按钮不动；③renderCloudInfo（自带 !el 守卫）/
        cbImportFile onchange/restoreFromMirror 保留死代码，恢复入口只需还原 HTML+绑定。
-       注意：全量 DB 备份入口随之消失，台账流水仍可经总览·交易台账折叠块备份。 */  if (vc) vc.textContent = 'v695 · SW 缓存失效机制' /* fw2_v695_sw_cache_bust fw2_v694_dm_instr_fix fw2_v687_action_loop fw2_v687_next_plan fw2_v686_drip_pollute fw2_v686_review_role_grp fw2_v685_review_pct_netbeg fw2_v684_review_conclusion fw2_v680_review_refstyle fw2_v681_review_t2_gap fw2_v682_review_t2_rightalign fw2_v683_t2_align_t1 fw2_v678_tbl_col_harmony fw2_v677_role_col_del fw2_v676_attr_monthnav fw2_v676_attr_zero fw2_v675_num_col_widen fw2_v674_rev_breathe fw2_v673_rev_union fw2_v673_sig_retrace fw2_v669_review_tables fw2_v668_review_monthly fw2_v667_review_insight fw2_v666_tiles_bigger fw2_v665_review_tiles fw2_v664_review_rebuild fw2_v663_hero_retire fw2_v661_filter_compact fw2_v660_ui_simplify fw2_v659_backup_btns_del fw2_v658_rpt_monthnav fw2_v657_rptbar_del fw2_v656_rpt_6m fw2_v655_rpt_kpi fw2_v654_held_pf_authority fw2_v653_alloc_pile_assign fw2_v652_data_tab_removed fw2_v651_recent_hide fw2_v651_ledger_slim fw2_v651_entry_unify fw2_v650_netseries_daily fw2_v650_moneynav fw2_v649_merge_holdings fw2_v648_capbal_slim fw2_v647_netseries_fix fw2_v646_ledger_capbal fw2_v644_revert_watch_tab fw2_v643_mtbl_tier fw2_v642_a500_enh fw2_v641_peak_dd fw2_v640_buy_pct fw2_v639_del_decisionfw2_v516_a500lk fw2_v517_4otc fw2_v518_hspos fw2_v519_sm_merge fw2_v520_chgflat fw2_v521_magnet fw2_v522_overview fw2_v523_sm_dedup fw2_v524_geo_fsi fw2_v525_geo_filter fw2_v526_geo_filter_removed fw2_v527_verdict fw2_v529_smux fw2_v530_datamgmt fw2_v531_sm_dmgmt fw2_v532_all_dm fw2_v533_px_long fw2_v533d_dm_scroll fw2_v534_dm_module fw2_v535_dm_auto fw2_v539_hold_realpnl fw2_v539a_seed_sync fw2_v539a_seed_order fw2_v540_hold_path fw2_v542_pf_mirror_first fw2_v542_mv_settled fw2_v542_mv_account fw2_v543_dm_holdings_note fw2_v544_ledger_mirror_guard fw2_v545_hold_total_row fw2_v546_navdate_all fw2_v547_vix_to_ovs fw2_v548_ovs_mrg fw2_v549_region_align fw2_v550_grp_tabs fw2_v551_sop_cockpit fw2_v552_sop_taborder fw2_v553_chain_data fw2_v554_sop_rename fw2_v556_market_split fw2_v557_sm_renamed fw2_v558_cbrates_fix fw2_v558a_cb_label fw2_v559_chain_dates fw2_v560_chain_verdict fw2_v561_curve_hold fw2_v562_hold_inline fw2_v563_alloc fw2_v564_lxlink fw2_v565_cal_lx fw2_v565_sub_lx fw2_v566_fund_move fw2_v567_fund_merge fw2_v568_lxlink_fix fw2_v569_manager_pool fw2_v570_manager_universe fw2_v571_mgr_east fw2_v574_mgr_subscore fw2_v575_mgr_merge fw2_v576_mgr_group fw2_v577_mgr_lxlink fw2_v578_mgr_lxreal fw2_v579_mgr_weight fw2_v581_fund_lxreal fw2_v582_mgr_min10 fw2_v583_mgr_noyear fw2_v584_mgr_career fw2_v585_mgr_srank fw2_v586_mgr_srank fw2_v587_mgr_since fw2_v588_mgr_lxfull fw2_v589_mgr_rules fw2_v590_mgr_scores fw2_v591_mgr_ladder fw2_v592_mgr_cols fw2_v593_mgr_score fw2_anti_halluc_p0 fw2_v595_alpha_attrib fw2_v596_sig_hist fw2_v597_fund_overlap fw2_v598_mgr_hold fw2_v599_time_decay fw2_v599_corr_pen fw2_v600_buytrack fw2_v601_backtest fw2_v602_kline_page fw2_v603_old_debts fw2_v604_xirr fw2_v605_holdings_global fw2_v606_v11_signal fw2_v607_v11_bt fw2_v608_lx_audit fw2_v609_sig_table fw2_v610_sig_merge fw2_v611_grp_line fw2_v612_index_lxreal fw2_v613_near_blue fw2_v615_sig_grp fw2_v616_sig_hdstyle fw2_v617_sig_vline fw2_v618_sig_lcr fw2_v619_curthr fw2_v620_curthr_all fw2_v621_ret_hpr fw2_v621_t13_lastbuy fw2_v622_lastbuy_auto fw2_v623_firstbuy_roll fw2_v623_alloc_watch fw2_v624_m13_m17 fw2_v626_sig_cost_guard fw2_v626_watch_pe_exempt fw2_v627_colorder fw2_v627_action_plan fw2_v627_data_date fw2_v628_fixed_cols fw2_v629_pool_pile_guard fw2_v629_t9_pfdate fw2_v630_missing_cost fw2_v631_pool_held_live fw2_v632_held_off fw2_v633_ledger_tx_sync fw2_v634_plan_dir fw2_v635_capbal_fix fw2_v636_capbal_converge fw2_v637_mv_consist fw2_v638_mv_unify */ + (window.getAllocWatchCodes ? window.getAllocWatchCodes().length : 0) + '只';
+       注意：全量 DB 备份入口随之消失，台账流水仍可经总览·交易台账折叠块备份。 */  if (vc) vc.textContent = 'v696 · 持仓单一真源' /* fw2_v695_sw_cache_bust fw2_v694_dm_instr_fix fw2_v687_action_loop fw2_v687_next_plan fw2_v686_drip_pollute fw2_v686_review_role_grp fw2_v685_review_pct_netbeg fw2_v684_review_conclusion fw2_v680_review_refstyle fw2_v681_review_t2_gap fw2_v682_review_t2_rightalign fw2_v683_t2_align_t1 fw2_v678_tbl_col_harmony fw2_v677_role_col_del fw2_v676_attr_monthnav fw2_v676_attr_zero fw2_v675_num_col_widen fw2_v674_rev_breathe fw2_v673_rev_union fw2_v673_sig_retrace fw2_v669_review_tables fw2_v668_review_monthly fw2_v667_review_insight fw2_v666_tiles_bigger fw2_v665_review_tiles fw2_v664_review_rebuild fw2_v663_hero_retire fw2_v661_filter_compact fw2_v660_ui_simplify fw2_v659_backup_btns_del fw2_v658_rpt_monthnav fw2_v657_rptbar_del fw2_v656_rpt_6m fw2_v655_rpt_kpi fw2_v654_held_pf_authority fw2_v653_alloc_pile_assign fw2_v652_data_tab_removed fw2_v651_recent_hide fw2_v651_ledger_slim fw2_v651_entry_unify fw2_v650_netseries_daily fw2_v650_moneynav fw2_v649_merge_holdings fw2_v648_capbal_slim fw2_v647_netseries_fix fw2_v646_ledger_capbal fw2_v644_revert_watch_tab fw2_v643_mtbl_tier fw2_v642_a500_enh fw2_v641_peak_dd fw2_v640_buy_pct fw2_v639_del_decisionfw2_v516_a500lk fw2_v517_4otc fw2_v518_hspos fw2_v519_sm_merge fw2_v520_chgflat fw2_v521_magnet fw2_v522_overview fw2_v523_sm_dedup fw2_v524_geo_fsi fw2_v525_geo_filter fw2_v526_geo_filter_removed fw2_v527_verdict fw2_v529_smux fw2_v530_datamgmt fw2_v531_sm_dmgmt fw2_v532_all_dm fw2_v533_px_long fw2_v533d_dm_scroll fw2_v534_dm_module fw2_v535_dm_auto fw2_v539_hold_realpnl fw2_v539a_seed_sync fw2_v539a_seed_order fw2_v540_hold_path fw2_v542_pf_mirror_first fw2_v542_mv_settled fw2_v542_mv_account fw2_v543_dm_holdings_note fw2_v544_ledger_mirror_guard fw2_v545_hold_total_row fw2_v546_navdate_all fw2_v547_vix_to_ovs fw2_v548_ovs_mrg fw2_v549_region_align fw2_v550_grp_tabs fw2_v551_sop_cockpit fw2_v552_sop_taborder fw2_v553_chain_data fw2_v554_sop_rename fw2_v556_market_split fw2_v557_sm_renamed fw2_v558_cbrates_fix fw2_v558a_cb_label fw2_v559_chain_dates fw2_v560_chain_verdict fw2_v561_curve_hold fw2_v562_hold_inline fw2_v563_alloc fw2_v564_lxlink fw2_v565_cal_lx fw2_v565_sub_lx fw2_v566_fund_move fw2_v567_fund_merge fw2_v568_lxlink_fix fw2_v569_manager_pool fw2_v570_manager_universe fw2_v571_mgr_east fw2_v574_mgr_subscore fw2_v575_mgr_merge fw2_v576_mgr_group fw2_v577_mgr_lxlink fw2_v578_mgr_lxreal fw2_v579_mgr_weight fw2_v581_fund_lxreal fw2_v582_mgr_min10 fw2_v583_mgr_noyear fw2_v584_mgr_career fw2_v585_mgr_srank fw2_v586_mgr_srank fw2_v587_mgr_since fw2_v588_mgr_lxfull fw2_v589_mgr_rules fw2_v590_mgr_scores fw2_v591_mgr_ladder fw2_v592_mgr_cols fw2_v593_mgr_score fw2_anti_halluc_p0 fw2_v595_alpha_attrib fw2_v596_sig_hist fw2_v597_fund_overlap fw2_v598_mgr_hold fw2_v599_time_decay fw2_v599_corr_pen fw2_v600_buytrack fw2_v601_backtest fw2_v602_kline_page fw2_v603_old_debts fw2_v604_xirr fw2_v605_holdings_global fw2_v606_v11_signal fw2_v607_v11_bt fw2_v608_lx_audit fw2_v609_sig_table fw2_v610_sig_merge fw2_v611_grp_line fw2_v612_index_lxreal fw2_v613_near_blue fw2_v615_sig_grp fw2_v616_sig_hdstyle fw2_v617_sig_vline fw2_v618_sig_lcr fw2_v619_curthr fw2_v620_curthr_all fw2_v621_ret_hpr fw2_v621_t13_lastbuy fw2_v622_lastbuy_auto fw2_v623_firstbuy_roll fw2_v623_alloc_watch fw2_v624_m13_m17 fw2_v626_sig_cost_guard fw2_v626_watch_pe_exempt fw2_v627_colorder fw2_v627_action_plan fw2_v627_data_date fw2_v628_fixed_cols fw2_v629_pool_pile_guard fw2_v629_t9_pfdate fw2_v630_missing_cost fw2_v631_pool_held_live fw2_v632_held_off fw2_v633_ledger_tx_sync fw2_v634_plan_dir fw2_v635_capbal_fix fw2_v636_capbal_converge fw2_v637_mv_consist fw2_v638_mv_unify */ + (window.getAllocWatchCodes ? window.getAllocWatchCodes().length : 0) + '只';
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
@@ -17207,7 +17215,9 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
     var tm = totalMonths(), alloc = {};
     S.assets.forEach(function (a) { alloc[a.code] = liveMonthly(a.code); });
     var budget = Object.keys(alloc).reduce(function (s, c) { return s + (alloc[c] || 0); }, 0);
-    var totalMv = 0; (state.portfolio || []).forEach(function (h) { var m = mvOf(h); if (m != null) totalMv += m; });
+    /* v696 fw2_v696_hold_core：策略执行的证券市值改走 holdRows（原 mvOf ＝ 行情快照 preclose × 份额，
+       是第三种口径，与「我的持仓」明细表、资金平衡 KPI 三方对不上）。 */
+    var totalMv = 0; holdRows().forEach(function (r) { if (r.status !== 'off') totalMv += (r.mv || 0); });
     return { tm: tm, ml: monthsLeft(), budget: budget, assigned: budget, totalMv: totalMv, totalTarget: S.totalTarget, alloc: alloc,
       monthlyOf: function (code) { return alloc[code] || 0; } };
   }
@@ -19653,6 +19663,133 @@ function calcTargetStats(tid) {
   return s;
 }
 /* 现金余额 = Σ转入 − Σ转出 − Σ买入 + Σ卖出 + Σ分红 − Σ费用（跨全部标的） */
+
+/* ================= v696 fw2_v696_hold_core：持仓基础数据唯一真源 =================
+   ★根因（2026-10-25 离线对拍实证，脚本 _xmod_replay_v696.py）：
+     历史上两套口径并存且**零同步**——
+       ①镜阵营 state.portfolio：buildRows → drawHoldingsTreemap/健康诊断/鸟瞰；totalMv → 再平衡
+       ②账阵营 DB.targets+DB.tx：renderHoldings 明细表 / calcSecurities / calcNet / 概览 KPI
+     applySeed 只写 state.portfolio、从不写 DB.targets 与 DB.tx。叠加两类漂移：
+       · 账户新增基金无台账流水 → 000307/012761/022676/023917 明细表 mv 恒 0（差 796.77）
+       · v693 按账户金额反推份额的 3 只只改了镜像、未同步台账 → 016452/020712/160422（差 317.32）
+     ⇒ 明细表 Σmv 19175.01 vs 树图/策略 20289.10，跨模块差 1114.09（＝用户报的「三模块不一样」）。
+   修法：本段作为「基础持仓数据」唯一出口。份额/净值/市值/成本统一「账户镜像优先、台账兜底」，
+     遍历集合取 DB.targets ∪ state.portfolio 并集（账户新增基金不再静默丢弃，v693 已确立）。
+     下行模块全部改调 holdRows/holdRowOf，跨模块天然同源。
+   ★边界：DB.tx 流水仍是现金流 / IRR / 已实现盈亏的固有基础（那是时间序列属性，
+     不应由静态镜像决定），故 realized/divTotal/feeTotal 继续由 calcTargetStats 提供。 */
+function pfMirMap() {
+  const m = {};
+  try {
+    (typeof state !== "undefined" && state && Array.isArray(state.portfolio) ? state.portfolio : [])
+      .forEach(function (h) { if (h && h.code) { const k = normCode(h.code); if (k) m[k] = h; } });
+  } catch (e) {}
+  return m;
+}
+/* 净值三级优先：①镜像已结算 nav（ttskill 账户权威）②fund-daily __ALLOC_NAV__ ③台账 t.nav */
+function holdNav(code6, t, h) {
+  if (h && h.nav != null && isFinite(Number(h.nav)) && Number(h.nav) > 0) {
+    return { nav: Number(h.nav), date: String(h.navDate || ""), src: "mirror" };
+  }
+  const an = (window.__ALLOC_NAV__ && window.__ALLOC_NAV__[code6]) || null;
+  if (an && Number(an.nav) > 0) {
+    return { nav: Number(an.nav), date: String(an.date || an.navDate || ""), src: "alloc" };
+  }
+  if (t && Number(t.nav) > 0) return { nav: Number(t.nav), date: String(t.navDate || ""), src: "ledger" };
+  return { nav: null, date: "", src: null };
+}
+/* 份额二级优先：①镜像 qty（账户权威，含待入账）②台账流水累加（镜像缺失时兜底） */
+function holdShares(code6, t, h) {
+  if (h && Number(h.qty) > 0) return { shares: Number(h.qty), src: "mirror" };
+  if (t) { const st = calcTargetStats(t.id); if (st && st.shares > 0) return { shares: st.shares, src: "ledger" }; }
+  return { shares: 0, src: h ? "mirror0" : null };
+}
+/* 成本二级优先：①台账 costBasis（有流水＝真实持仓成本）②镜像 cost（无流水的新基金） */
+function holdCost(code6, t, h) {
+  if (t) {
+    const st = calcTargetStats(t.id);
+    /* v696 fw2_v696_hold_core：份额漂移时台账成本不可信——台账只记录了部分仓位
+       （如 v693 按账户金额反推份额的 016452/020712/160422），
+       此时“台账成本 × 镜像份额”会严重低估成本、虚高收益率。 */
+    const _mq = h ? (Number(h.qty) || 0) : 0;
+    const _consistent = !h || _mq <= 0 || Math.abs(st.shares - _mq) <= 0.02;
+    if (st && st.costBasis > 0 && _consistent) return { cost: st.costBasis, src: "ledger" };
+  }
+  if (h) {
+    let c = (h.cost != null && isFinite(Number(h.cost))) ? Number(h.cost) : 0;
+    if (!(c > 0) && Number(h.unitCost) > 0) c = Number(h.unitCost) * (Number(h.qty) || 0);
+    if (c > 0) return { cost: c, src: "mirror" };
+  }
+  return { cost: 0, src: null };
+}
+/* 单条：把「台账标的 t」与「镜像行 h」合并为一行基础数据 */
+function holdRowOf(t, h) {
+  const code6 = t ? normCode(t.code) : (h ? normCode(h.code) : "");
+  const st = t ? calcTargetStats(t.id) : null;
+  const sh = holdShares(code6, t, h), nv = holdNav(code6, t, h), cs = holdCost(code6, t, h);
+  const mv = (sh.shares > 0 && nv.nav) ? sh.shares * nv.nav : 0;
+  if (t) return {
+    id: t.id, code6: code6, code: t.code, name: t.name,
+    cat: t.cat || ((h && h.sector) || "其他"), market: t.market || "",
+    status: t.status || "on", offDate: t.offDate || "", note: t.note || "",
+    shares: sh.shares, sharesSrc: sh.src, nav: nv.nav, navDate: nv.date, navSrc: nv.src,
+    mv: mv, cost: cs.cost, costSrc: cs.src,
+    realized: st ? st.realized : 0, ledgerShares: st ? st.shares : 0, _t: t, _h: h || null
+  };
+  /* 仅账户有、台账无 → 合成虚拟行（禁止静默丢弃，v693 已确立） */
+  return {
+    id: null, code6: code6, code: h.code, name: h.name || h.code,
+    cat: (h.sector || "其他"), market: "", status: "on", offDate: "", note: "账户持仓（台账无流水）",
+    shares: sh.shares, sharesSrc: sh.src, nav: nv.nav, navDate: nv.date, navSrc: nv.src,
+    mv: mv, cost: cs.cost, costSrc: cs.src,
+    realized: 0, ledgerShares: 0, _t: null, _h: h, _onlyAcct: true
+  };
+}
+/* 并集：DB.targets ∪ state.portfolio（台账补元信息，账户补缺失标的） */
+function holdRows() {
+  const mir = pfMirMap(), seen = {}, out = [];
+  (DB.targets || []).forEach(function (t) {
+    const k = normCode(t.code); if (!k) return;
+    seen[k] = 1; out.push(holdRowOf(t, mir[k] || null));
+  });
+  Object.keys(mir).forEach(function (k) { if (!seen[k]) out.push(holdRowOf(null, mir[k])); });
+  return out;
+}
+/* v696 口径一致性披露（每次渲染“我的持仓”明细表时显示）——
+   将 holdCore 合计与天天基金账户权威总额对账；差异常源于台账独占标的
+   （手工建档的股票 / 不在账户内的资产），属正常范畴但必须显式告知，
+   避免“看似不一致”却无从归因。 */
+function holdAuditLine() {
+  try {
+    const _t = holdTotals();
+    const _acct = (window.HOLDINGS_SEED && window.HOLDINGS_SEED.total != null)
+      ? Number(window.HOLDINGS_SEED.total) : null;
+    if (_acct == null || !isFinite(_acct)) return "";
+    const d = Math.round((_t.mv - _acct) * 100) / 100;
+    return (Math.abs(d) <= 0.5
+      ? ' \u00b7 <span title="\u4efd\u989d/\u51c0\u503c/\u5e02\u503c\u5747\u540c\u6e90\u4e8e\u8d26\u6237\u955c\u50cf\uff08holdCore\uff09">\u53e3\u5f84\u4e00\u81f4 \u00b7 \u4e0e\u8d26\u6237\u5dee '
+        + (d >= 0 ? "+" : "") + fmt(d) + '</span>'
+      : ' \u00b7 <b style="color:#A32D2D">\u26a0\u4e0e\u8d26\u6237\u603b\u989d\u5dee ' + fmt(d) + '</b>');
+  } catch (e) { return ""; }
+}
+/* 一致性自检用：返回单一真源口径合计，及「纯流水口径」「纯镜像口径」参照值（drift 应≈0） */
+function holdTotals() {
+  let mv = 0, cost = 0, pnl = 0, mvLedger = 0, mvPf = 0, n = 0;
+  holdRows().forEach(function (r) {
+    if (r.status === "off") return;
+    mv += (r.mv || 0);
+    cost += (r.cost || 0);
+    pnl += (r.mv || 0) - (r.cost || 0);
+    mvLedger += (r.ledgerShares || 0) * (r.nav || 0);
+    n++;
+  });
+  try {
+    (typeof state !== "undefined" && state && Array.isArray(state.portfolio) ? state.portfolio : [])
+      .forEach(function (h) { mvPf += (Number(h.nav) || 0) * (Number(h.qty) || 0); });
+  } catch (e) {}
+  return { mv: mv, cost: cost, pnl: pnl, mvLedger: mvLedger, mvPf: mvPf,
+           driftLedger: mv - mvLedger, driftPf: mv - mvPf, n: n };
+}
 function calcCash() {
   let cash = 0;
   DB.tx.forEach(function (t) {
@@ -19668,25 +19805,21 @@ function calcCash() {
 }
 /* 证券市值 = Σ 在盘标的(份额 × 最新净值) */
 function calcSecurities() {
+  /* v696 fw2_v696_hold_core：改走 holdRows（份额/净值/覆盖集合与「我的持仓」明细表同源）。
+     原「流水份额 × t.nav」口径退役——它是跨模块分叉的源头（实测差 1114.09）。 */
   let mv = 0;
-  DB.targets.forEach(function (t) {
-    if (t.status !== "on") return;
-    const st = calcTargetStats(t.id);
-    const nav = Number(t.nav) || 0;
-    mv += st.shares * nav;
-  });
+  holdRows().forEach(function (r) { if (r.status !== "off") mv += (r.mv || 0); });
   return mv;
 }
 /* 资产分布：按标的类别聚合市值 */
 function calcAlloc() {
   const map = {};
-  DB.targets.forEach(function (t) {
-    if (t.status !== "on") return;
-    const st = calcTargetStats(t.id);
-    const nav = Number(t.nav) || 0;
-    const v = st.shares * nav;
+  /* v696：同 calcSecurities，资产分布改走 holdRows 唯一真源 */
+  holdRows().forEach(function (r) {
+    if (r.status !== "off") return;
+    const v = r.mv || 0;
     if (v <= 0) return;
-    map[t.cat] = (map[t.cat] || 0) + v;
+    map[r.cat] = (map[r.cat] || 0) + v;
   });
   return Object.keys(map).map(function (k) { return { name: k, value: Math.round(map[k] * 100) / 100 }; })
     .sort(function (a, b) { return b.value - a.value; });
@@ -19706,12 +19839,11 @@ function calcInvested() {
 }
 /* 未实现盈亏 = Σ 在盘标的(市值 − 成本) */
 function calcUnrealized() {
+  /* v696：未实现盈亏同样改走 holdRows，与 KPI「证券市值」同源 */
   let u = 0;
-  DB.targets.forEach(function (t) {
-    if (t.status !== "on") return;
-    const st = calcTargetStats(t.id);
-    const nav = Number(t.nav) || 0;
-    u += st.shares * nav - st.costBasis;
+  holdRows().forEach(function (r) {
+    if (r.status !== "off") return;
+    u += (r.mv || 0) - (r.cost || 0);
   });
   return u;
 }
@@ -20018,24 +20150,28 @@ function renderHoldings() {
   const _pfNote2 = _pfAt2
     ? '数据截至 <b>' + _pfAt2 + '</b> · 以天天基金账户为准' /* fw2_v660_ui_simplify：口径括注删除 */
     : '持仓镜像未同步 · 点右上「同步持仓」刷新';
-  const _asofBar = '<div class="muted" style="font-size:11px;padding:4px 2px 6px;line-height:1.5">' + _pfNote2 + '</div>';
+  const _asofBar = '<div class="muted" style="font-size:11px;padding:4px 2px 6px;line-height:1.5">' + _pfNote2 + holdAuditLine() + '</div>';
   const head = "<colgroup><col style='width:9%'><col style='width:20%'><col style='width:11%'><col style='width:10%'><col style='width:8%'><col style='width:10%'><col style='width:10%'><col style='width:10%'><col style='width:12%'></colgroup>" +
     "<tr><th>代码</th><th>名称</th><th>类别</th><th>市场</th><th>状态</th><th>成本</th><th>市值</th><th>盈亏</th><th>操作</th></tr>";
   /* fw2_v635_zero_note：零份额行显式标注原因（账户份额待入账），避免用户看到 0 以为"数据错" */
   const _pfMir2 = {};
   try { (typeof state !== "undefined" && state && Array.isArray(state.portfolio) ? state.portfolio : []).forEach(function (h) { if (h && h.code) _pfMir2[normCode(h.code)] = h; }); } catch (e) {}
+  const _hm696 = pfMirMap();
   let totalCost = 0, totalMv = 0, totalPnl = 0;
   const body = list.map(function (t) {
+    /* v696 fw2_v696_hold_core：份额/净值/成本/市值全部取 holdRowOf 唯一真源，
+       与资金平衡 KPI、资产分布、树图、策略执行同源。原「流水份额 × t.nav」退役。 */
+    const r = holdRowOf(t, _hm696[normCode(t.code)] || null);
     const st = calcTargetStats(t.id);
-    const nav = Number(t.nav) || 0;
-    const mv = t.status === "on" ? st.shares * nav : 0;
-    const pnl = t.status === "on" ? mv - st.costBasis : st.realized;
-    const pnlRt = t.status === "on" && st.costBasis > 0 ? pnl / st.costBasis : 0;
-    totalCost += st.costBasis; totalMv += mv; totalPnl += pnl;
-    const _m2 = _pfMir2[normCode(t.code)];
-    const _zeroNote = (t.status !== "off" && st.shares <= 0)
-      ? ' · <b style="color:#A32D2D">⚠账面无流水（账户 ' + (_m2 ? fmt(Number(_m2.qty) || 0, 2) : '—') + ' 份待入账）</b>'
-      : '';
+    const nav = (r.nav != null) ? r.nav : 0;
+    const mv = t.status === "on" ? r.mv : 0;
+    const pnl = t.status === "on" ? mv - r.cost : st.realized;
+    const pnlRt = t.status === "on" && r.cost > 0 ? pnl / r.cost : 0;
+    totalCost += r.cost; totalMv += mv; totalPnl += pnl;
+    const _zeroNote = (t.status !== "off" && r.shares > 0 && st.shares <= 0)
+      ? ' · <b style="color:#A32D2D">台账无流水 · 已按账户份额 ' + fmt(r.shares, 2) + ' 份计市值</b>'
+      : ((t.status !== "off" && r.shares <= 0)
+        ? ' · <b style="color:#A32D2D">⚠账户与台账均无份额</b>' : '');
     const sub = t.status === "off"
       ? '<span class="muted" style="font-size:10.5px">清盘 ' + esc(t.offDate || "") + "</span>"
       : '<span class="muted" style="font-size:10.5px">净值 ' + fmt(nav, 3) + (_pfAt2 ? " · 同步 " + _pfAt2.slice(5, 10) : "") + _zeroNote + "</span>";
@@ -20045,7 +20181,7 @@ function renderHoldings() {
       '<td><span class="cb-badge cat cb-cat-click" data-cat="' + esc(t.cat) + '" title="按该类别过滤">' + esc(t.cat) + "</span></td>" +
       "<td>" + esc(t.market || "—") + "</td>" +
       '<td><span class="cb-badge ' + (t.status === "on" ? "on" : "off") + '">' + (t.status === "on" ? "在盘" : "清盘") + "</span></td>" +
-      "<td class='num'>" + fmt(st.costBasis) + "<br><span class='muted' style='font-size:10.5px'>份额 " + fmt(st.shares, 2) + "</span></td>" +
+      "<td class='num'>" + fmt(r.cost) + "<br><span class='muted' style='font-size:10.5px'>份额 " + fmt(r.shares, 2) + "</span></td>" +
       "<td class='num'>" + fmt(mv) + "</td>" +
       '<td class="num ' + pnlCls(pnl) + '">' + (pnl >= 0 ? "+" : "") + fmt(pnl) +
         "<br><span class='muted' style='font-size:10.5px'>" + (pnlRt >= 0 ? "+" : "") + fmtPct(pnlRt) + "</span></td>" +
