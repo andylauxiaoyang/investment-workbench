@@ -1318,6 +1318,8 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
       <!-- v91 fw2_v91_macro_merge：宏观·情绪 独立页曾并入 数据中心 → 宏观数据 分块（v135 已反向拆分，见下） -->
       <!-- fw2_v135_macro_view：宏观数据由「数据中心」分块迁出为独立模块（用户 2026-09-18「宏观数据单独作为一个模块放在数据中心上面」）；#view-data 改名「基金数据」并删除 dcBlocks 切换行（基金数据直接进入内容区，默认总览 Tab） -->
       <section class="view" id="view-macro">
+        <!-- v697n 我的决策条：固定顶部，4个核心指标一眼看到结论 -->
+        <div id="myMacroBar" style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;padding:16px 20px 0;max-width:1400px;margin:0 auto"></div>
         <div id="dcMacroWrap" class="dc-pane"><!-- fw2_v76_interval_macro fw2_v91_macro_merge -->
           <div class="dc-mc-layout">
             <!-- fw2_v430b：模块级 tab（中国周期/美国/全球周期）置顶——静态容器位于 dcMcNav 之前，fillMacroTabs() 填充 -->
@@ -9400,6 +9402,34 @@ function renderMacro() {
   const body = $('#macroBody'); if (!body) return;
   const d = state.macro;
   if (!d) { body.innerHTML = '<div class="card"><div class="empty st st-empty">宏观数据加载中…</div></div>'; return; }
+  // v697n 我的决策条：4个核心指标
+  (function(){
+    var bar = document.getElementById('myMacroBar'); if (!bar) return;
+    var cards = [];
+    // 1. 股债性价比
+    var erp = d.erp || d.erpValue;
+    var erpV = erp && erp.value != null ? erp.value : null;
+    var erpCol = erpV != null ? (erpV > 2 ? '#16a34a' : erpV > 1 ? '#d98c00' : '#dc2626') : '#94a3b8';
+    var erpTxt = erpV != null ? (erpV > 2 ? '全仓股' : erpV > 1 ? '股债平衡' : '多配债') : '—';
+    cards.push('<div style="background:var(--panel,#fff);border:1px solid var(--line-2,#e2e8f0);border-radius:10px;padding:14px;text-align:center"><div style="font-size:11px;color:var(--muted);margin-bottom:4px">📊 股债性价比</div><div style="font-size:20px;font-weight:700;color:'+erpCol+'">'+(erpV!=null?erpV.toFixed(2):'—')+'</div><div style="font-size:11px;color:'+erpCol+';margin-top:2px">'+erpTxt+'</div></div>');
+    // 2. 巴菲特指数
+    var sec = d.secRatio || d.sec;
+    var secV = sec && sec.value != null ? sec.value : null;
+    var secCol = secV != null ? (secV > 100 ? '#dc2626' : secV > 80 ? '#d98c00' : '#16a34a') : '#94a3b8';
+    var secTxt = secV != null ? (secV > 100 ? '高估·分批卖' : secV > 80 ? '偏高' : '<60%低估·建仓') : '—';
+    cards.push('<div style="background:var(--panel,#fff);border:1px solid var(--line-2,#e2e8f0);border-radius:10px;padding:14px;text-align:center"><div style="font-size:11px;color:var(--muted);margin-bottom:4px">🇨🇳 巴菲特指数</div><div style="font-size:20px;font-weight:700;color:'+secCol+'">'+(secV!=null?secV.toFixed(0)+'%':'—')+'</div><div style="font-size:11px;color:'+secCol+';margin-top:2px">'+secTxt+'</div></div>');
+    // 3. 美股恐贪
+    var cnn = d.cnnFG || d.cnn;
+    var cnnV = cnn && cnn.value != null ? cnn.value : null;
+    var cnnCol = cnnV != null ? (cnnV > 75 ? '#dc2626' : cnnV > 55 ? '#d98c00' : cnnV > 45 ? '#475569' : '#16a34a') : '#94a3b8';
+    var cnnTxt = cnnV != null ? (cnnV > 75 ? '极度贪婪·谨慎' : cnnV > 55 ? '贪婪' : cnnV > 45 ? '中性' : '恐惧·机会') : '—';
+    cards.push('<div style="background:var(--panel,#fff);border:1px solid var(--line-2,#e2e8f0);border-radius:10px;padding:14px;text-align:center"><div style="font-size:11px;color:var(--muted);margin-bottom:4px">🇺🇸 美股恐贪</div><div style="font-size:20px;font-weight:700;color:'+cnnCol+'">'+(cnnV!=null?cnnV.toFixed(0):'—')+'</div><div style="font-size:11px;color:'+cnnCol+';margin-top:2px">'+cnnTxt+'</div></div>');
+    // 4. 黄金
+    var xau = d.xau || d.gold;
+    var xauV = xau && xau.value != null ? xau.value : null;
+    cards.push('<div style="background:var(--panel,#fff);border:1px solid var(--line-2,#e2e8f0);border-radius:10px;padding:14px;text-align:center"><div style="font-size:11px;color:var(--muted);margin-bottom:4px">🥇 黄金(美元/盎司)</div><div style="font-size:20px;font-weight:700;color:#d98c00">'+(xauV!=null?xauV.toFixed(0):'—')+'</div><div style="font-size:11px;color:var(--muted);margin-top:2px">对冲资产</div></div>');
+    bar.innerHTML = cards.join('');
+  })();
   const C = mcCalcCommon(d);
   const { ushf, ushfIC, ushfUR, ushfRet, ushfPce, ushfDur, ushfLei, ushfFF, ushfBE, ushfFis, ushfCc, ushfCli,
     altUs, ismMfg, ismSvc, cbRates, cbRatesArr, N, cyc, indList, erp, pe, cr, eCur, ePct, cCur, peLast,
