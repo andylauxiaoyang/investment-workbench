@@ -1318,8 +1318,17 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
       <!-- v91 fw2_v91_macro_merge：宏观·情绪 独立页曾并入 数据中心 → 宏观数据 分块（v135 已反向拆分，见下） -->
       <!-- fw2_v135_macro_view：宏观数据由「数据中心」分块迁出为独立模块（用户 2026-09-18「宏观数据单独作为一个模块放在数据中心上面」）；#view-data 改名「基金数据」并删除 dcBlocks 切换行（基金数据直接进入内容区，默认总览 Tab） -->
       <section class="view" id="view-macro">
-        <!-- v697n 宏观周期简化：3张决策卡，砍康波/行业轮动/FSI等对基金定投无直接价值的内容 -->
-        <div id="macroSimple" style="padding:16px 20px;max-width:1200px;margin:0 auto"></div>
+        <div id="dcMacroWrap" class="dc-pane"><!-- fw2_v76_interval_macro fw2_v91_macro_merge -->
+          <div class="dc-mc-layout">
+            <!-- fw2_v430b：模块级 tab（中国周期/美国/全球周期）置顶——静态容器位于 dcMcNav 之前，fillMacroTabs() 填充 -->
+            <div id="macroRegion" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px"></div>
+            <div class="dc-mc-nav v-tabs v-tabs--soft" id="dcMcNav"></div>
+            <div class="dc-mc-main">
+              <!-- fw2_v430：窗口选择工具条随 renderMacro 中国分支渲染（归属中国周期内容） -->
+              <div id="macroBody"></div>
+            </div>
+          </div>
+        </div>
       </section>
       <section class="view" id="view-data"><!-- fw2_v71_datacenter --><!-- fw2_v91_macro_merge --><!-- fw2_v135_macro_view：dcBlocks 已删，基金数据直接显示（默认总览 Tab） -->
         <div class="v-head">
@@ -7462,7 +7471,7 @@ function renderCurrentView() {
     if (state.view === 'holdings') renderHoldings();
     else if (state.view === 'signal') { renderSignalDash(); } /* v36 */
     else if (state.view === 'news') renderNews();
-    else if (state.view === 'macro') { renderMacroSimple(); }
+    else if (state.view === 'macro') { loadMacroData(); }
     else if (state.view === 'strategy') { renderStrategyView(); } /* fw2_v120_strategy · v132 杠铃/场内外对照迁入 */
     else if (state.view === 'capbal') { if (window.CAPBAL) window.CAPBAL.render(); } /* fw2_capbal_merge */
     else if (state.view === 'smartmoney') {
@@ -23331,52 +23340,6 @@ function renderXOverview() {
   }
 }
 if (document.getElementById('smXOverview') && window.renderEtfFlows) renderEtfFlows();
-
-/* v697n 宏观周期简化：3张决策卡——股债性价比/我的6方向哪个便宜/国家队动向 */
-function renderMacroSimple() {
-  var box = document.getElementById('macroSimple'); if (!box) return;
-  box.innerHTML = '<div style="padding:40px;color:var(--muted,#94a3b8)">加载宏观数据…</div>';
-  // 读宏观快照
-  fetch('data/macro-snap.json', { cache: 'no-cache' }).then(function(r){return r.ok?r.json():null;}).then(function(m){
-    // 读交易信号数据（股债性价比等）
-    fetch('data/signal-data.json', { cache: 'no-cache' }).then(function(r){return r.ok?r.json():null;}).then(function(sd){
-      var S = (sd && sd.sentiment) || {};
-      var secR = S.secRatio; // 巴菲特指数
-      var peR = S.profitYield; // 沪深300盈利收益率
-      var grR = S.graham; // 股债性价比
-      // 卡1：股债性价比
-      var card1 = '<div style="background:var(--panel,#fff);border:1px solid var(--line-2,#e2e8f0);border-radius:12px;padding:20px;margin-bottom:16px">'
-        + '<div style="font-size:15px;font-weight:600;margin-bottom:12px">💰 现在该股还是该债？</div>'
-        + '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px">'
-        + '<div style="text-align:center;padding:12px;background:var(--panel-2,#f8fafc);border-radius:8px"><div style="font-size:11px;color:var(--muted);margin-bottom:4px">巴菲特指数(证券化率)</div><div style="font-size:22px;font-weight:700;color:'+(secR&&secR.value>80?'#dc2626':(secR&&secR.value>50?'#d98c00':'#16a34a'))+'">'+(secR&&secR.value?secR.value.toFixed(0)+'%':'—')+'</div><div style="font-size:11px;color:var(--muted)">'+(secR&&secR.value?(secR.value>100?'高估·分批卖':secR.value>80?'偏高':'<60%低估·建仓'):'—')+'</div></div>'
-        + '<div style="text-align:center;padding:12px;background:var(--panel-2,#f8fafc);border-radius:8px"><div style="font-size:11px;color:var(--muted);margin-bottom:4px">股债性价比(格雷厄姆)</div><div style="font-size:22px;font-weight:700;color:'+(grR&&grR.value>2?'#16a34a':(grR&&grR.value<1?'#dc2626':'#d98c00'))+'">'+(grR&&grR.value?grR.value.toFixed(2):'—')+'</div><div style="font-size:11px;color:var(--muted)">'+(grR&&grR.value?(grR.value>2?'全仓股':grR.value>1?'股债平衡':'多配债'):'—')+'</div></div>'
-        + '<div style="text-align:center;padding:12px;background:var(--panel-2,#f8fafc);border-radius:8px"><div style="font-size:11px;color:var(--muted);margin-bottom:4px">沪深300盈利收益率</div><div style="font-size:22px;font-weight:700;color:'+(peR&&peR.value>9?'#16a34a':(peR&&peR.value<6.67?'#dc2626':'#d98c00'))+'">'+(peR&&peR.value?peR.value.toFixed(1)+'%':'—')+'</div><div style="font-size:11px;color:var(--muted)">'+(peR&&peR.value?(peR.value>9?'PE<11·可入场':peR.value<6.67?'PE>15·止盈':'合理区间'):'—')+'</div></div>'
-        + '</div></div>';
-      // 卡2：我的6方向哪个便宜
-      var dirs = [
-        {name:'A股宽基(沪深300)', note:'你的A500/沪深300增强', pe: peR? (100/peR.value).toFixed(1) : '—', pct:'待补', cheap: peR&&peR.value>9},
-        {name:'创业板50', note:'你的华安创业板50联接', pe:'—', pct:'待补', cheap:false},
-        {name:'纳指100', note:'你的南方/万家纳指QDII', pe:'—', pct:'待补', cheap:false},
-        {name:'日经225', note:'你的华安三菱日经QDII', pe:'—', pct:'待补', cheap:false},
-        {name:'黄金', note:'你的易方达黄金联接', pe:'—', pct:'避险资产', cheap:false},
-        {name:'债券(短融/国债)', note:'你的安全垫', pe:'—', pct:'利率敏感', cheap:false}
-      ];
-      var dirRows = dirs.map(function(d){
-        var c = d.cheap ? '#16a34a' : '#475569';
-        return '<tr><td style="padding:8px"><b>'+d.name+'</b><div style="font-size:11px;color:var(--muted)">'+d.note+'</div></td><td class="num" style="padding:8px">'+d.pe+'</td><td style="padding:8px;color:'+c+'">'+d.pct+'</td></tr>';
-      }).join('');
-      var card2 = '<div style="background:var(--panel,#fff);border:1px solid var(--line-2,#e2e8f0);border-radius:12px;padding:20px;margin-bottom:16px">'
-        + '<div style="font-size:15px;font-weight:600;margin-bottom:12px">🎯 我的6个方向现在哪个便宜？</div>'
-        + '<table class="tb" style="width:100%;font-size:13px"><thead><tr><th>方向</th><th class="num">PE</th><th>估值分位</th></tr></thead><tbody>'+dirRows+'</tbody></table>'
-        + '<div style="font-size:11px;color:var(--muted);margin-top:8px">估值分位<20%=便宜可加仓 · 20-50%=合理 · >50%=偏贵</div></div>';
-      // 卡3：提示
-      var card3 = '<div style="background:var(--panel,#fff);border:1px solid var(--line-2,#e2e8f0);border-radius:12px;padding:20px;margin-bottom:16px">'
-        + '<div style="font-size:15px;font-weight:600;margin-bottom:8px">🏛️ 国家队动向</div>'
-        + '<div style="font-size:13px;color:var(--muted)">宽基ETF份额异动已在「聪明的钱」模块展示（我的持仓ETF动向 + 国家队宽基ETF动向），这里不重复。</div></div>';
-      box.innerHTML = '<div style="max-width:900px;margin:0 auto;padding:20px">'+card1+card2+card3+'</div>';
-    });
-  });
-}
 
 
 </script>
