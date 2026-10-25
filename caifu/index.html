@@ -22649,12 +22649,14 @@ function renderEtfFlows() {
       }
       rows.push({ m: m, last: last, c1: c1, c3: c3, c10: c10, c15: c15, c20: c20, c30: c30, streak: streak, dir: dir });
     });
-    // v697m 表头动态日期：取第一只有数据的ETF交易日序列
+    // v697m 表头动态日期：取最新日期最新的ETF交易日序列
     var anyH = [];
     for (var fi = 0; fi < ETF_FLOW_MAP.length; fi++) {
       var et = ETF_FLOW_MAP[fi].etf;
       var b2 = codes[et];
-      if (b2 && b2.hist && b2.hist.length > 30) { anyH = b2.hist; break; }
+      if (b2 && b2.hist && b2.hist.length > 30) {
+        if (anyH.length === 0 || b2.hist[b2.hist.length-1].d > anyH[anyH.length-1].d) anyH = b2.hist;
+      }
     }
     function fD(s){ return s ? s.slice(5) : '—'; }
     var L = anyH.length;
