@@ -22627,21 +22627,33 @@ function renderEtfFlows() {
   fetch('data/etf-shares.json', { cache: 'no-cache' }).then(function (r) { return r.ok ? r.json() : null; }).then(function (data) {
     if (!data || !data.codes) { box.innerHTML = '<div style="padding:20px;color:var(--warn,#d97706)">ETF份额数据加载失败</div>'; return; }
     var codes = data.codes, upd = data.updatedAt || '';
+    // 通用：算N日变化%（取hist末尾往前第N条，间隔>7天视为断档返回null）
+    function chgN(hist, n) {
+      if (hist.length < n + 1) return null;
+      var last = hist[hist.length - 1];
+      var prev = hist[hist.length - 1 - n];
+      var gap = (new Date(last.d) - new Date(prev.d)) / 86400000;
+      if (gap > n * 2 + 5) return null; // 间隔远超n天=断档
+      return prev.shares > 0 ? (last.shares / prev.shares - 1) * 100 : null;
+    }
+    function chgStr(v) {
+      if (v == null) return '—';
+      return (v > 0 ? '+' : '') + v.toFixed(1) + '%';
+    }
+    function chgColor(v) {
+      if (v == null) return 'inherit';
+      return v > 3 ? 'var(--up,#dc2626)' : (v < -3 ? 'var(--down,#16a34a)' : 'inherit');
+    }
     var rows = [];
     ETF_FLOW_MAP.forEach(function (m) {
       var c = codes[m.etf]; if (!c) { rows.push({ m: m, empty: true }); return; }
-      var hist = c.hist || [];
-      // 过滤脏数据（份额<=0 或 异常值）
-      hist = hist.filter(function (h) { return h && h.shares > 0 && h.shares < 1e12; });
+      var hist = (c.hist || []).filter(function (h) { return h && h.shares > 0 && h.shares < 1e12; });
       if (hist.length < 2) { rows.push({ m: m, hist: hist, growing: true }); return; }
       hist.sort(function (a, b) { return a.d < b.d ? -1 : 1; });
       var last = hist[hist.length - 1];
-      var prev5 = hist[Math.max(0, hist.length - 6)];
-      var prev20 = hist[Math.max(0, hist.length - 21)];
-      var chg5 = prev5.shares > 0 ? (last.shares / prev5.shares - 1) * 100 : null;
-      var chg20 = prev20.shares > 0 && prev20 !== prev5 ? (last.shares / prev20.shares - 1) * 100 : null;
-      // 连续申赎天数（从末尾往前数，连续同方向）
-      var streak = 0, dir = 0; // 1=申购(份额增), -1=赎回(份额减)
+      var c1 = chgN(hist, 1), c3 = chgN(hist, 3), c10 = chgN(hist, 10), c15 = chgN(hist, 15), c20 = chgN(hist, 20), c30 = chgN(hist, 30);
+      // 连续申赎天数
+      var streak = 0, dir = 0;
       for (var i = hist.length - 1; i > 0; i--) {
         var d = hist[i].shares - hist[i - 1].shares;
         if (Math.abs(d) < 1) continue;
@@ -22649,40 +22661,46 @@ function renderEtfFlows() {
         if (dir === 0) dir = sdir;
         if (sdir === dir) streak++; else break;
       }
-      rows.push({ m: m, hist: hist, last: last, chg5: chg5, chg20: chg20, streak: streak, dir: dir });
+      rows.push({ m: m, last: last, c1: c1, c3: c3, c10: c10, c15: c15, c20: c20, c30: c30, streak: streak, dir: dir });
     });
     // 渲染
     var html = '<div style="padding:16px 20px">'
       + '<div style="font-size:12px;color:var(--muted,#94a3b8);margin-bottom:10px">数据日 ' + upd + ' · 东财push2×腾讯qt日频 · 份额变化=机构申赎方向参考（非交易信号，定投仍按计划）</div>'
-      + '<div class="table-wrap"><table class="tb" style="width:100%"><colgroup>'
-      + '<col style="width:30%"><col style="width:15%"><col style="width:12%"><col style="width:12%"><col style="width:31%"></colgroup>'
-      + '<thead><tr><th>我的基金 → ETF</th><th class="num">最新份额(亿份)</th><th class="num">近5日变化</th><th>连续申赎</th><th>行动参考</th></tr></thead><tbody>';
+      + '<div class="table-wrap"><table class="tb" style="width:100%;font-size:12px"><colgroup>'
+      + '<col style="width:20%"><col style="width:9%"><col style="width:9%"><col style="width:6%"><col style="width:6%"><col style="width:6%"><col style="width:6%"><col style="width:6%"><col style="width:6%"><col style="width:9%"><col style="width:17%"></colgroup>'
+      + '<thead><tr><th>我的基金 → ETF</th><th class="num">份额(亿份)</th><th class="num">规模(亿元)</th><th class="num">1日</th><th class="num">3日</th><th class="num">10日</th><th class="num">15日</th><th class="num">20日</th><th class="num">30日</th><th>连续申赎</th><th>行动参考</th></tr></thead><tbody>';
     rows.forEach(function (r) {
       var m = r.m;
       if (r.empty) {
-        html += '<tr><td>' + esc(m.myName) + ' → ' + m.etf + '</td><td colspan="4" style="color:var(--muted)">无数据</td></tr>';
+        html += '<tr><td>' + esc(m.myName) + ' → ' + m.etf + '</td><td colspan="10" style="color:var(--muted)">无数据</td></tr>';
         return;
       }
       if (r.growing) {
         html += '<tr><td>' + esc(m.myName) + ' → ' + m.etf + '</td>'
           + '<td class="num">' + (r.hist.length ? (r.hist[r.hist.length-1].shares/1e8).toFixed(2) : '—') + '</td>'
-          + '<td colspan="3" style="color:var(--muted)">历史积累中（已采' + r.hist.length + '天），约需1个月可见趋势</td></tr>';
+          + '<td colspan="9" style="color:var(--muted)">历史积累中（已采' + r.hist.length + '天）</td></tr>';
         return;
       }
-      var sharesYi = (r.last.shares / 1e8).toFixed(2);
-      var chg5Str = r.chg5 == null ? '—' : ((r.chg5 > 0 ? '+' : '') + r.chg5.toFixed(1) + '%');
-      var chg5Color = r.chg5 > 3 ? 'var(--up,#dc2626)' : (r.chg5 < -3 ? 'var(--down,#16a34a)' : 'inherit');
+      var sharesYi = (r.last.shares / 1e8).toFixed(1);
+      var mvYi = r.last.mv > 0 ? (r.last.mv / 1e8).toFixed(0) : '—';
       var streakStr = r.streak > 0 ? (r.dir > 0 ? r.streak + '日申购' : r.streak + '日赎回') : '—';
       var streakColor = r.streak >= 5 ? (r.dir > 0 ? 'var(--up,#dc2626)' : 'var(--down,#16a34a)') : 'inherit';
-      // 行动信号
+      // 行动信号：用10日变化判断
       var action, actionColor;
-      if (r.streak >= 5 && r.dir > 0 && r.chg5 > 3) { action = '机构连续加仓·按计划定投'; actionColor = 'var(--up,#dc2626)'; }
-      else if (r.streak >= 5 && r.dir < 0 && r.chg5 < -3) { action = '机构连续撤离·暂停加仓观察'; actionColor = 'var(--down,#16a34a)'; }
+      var trend10 = r.c10;
+      if (r.streak >= 5 && r.dir > 0 && trend10 != null && trend10 > 3) { action = '机构连续加仓·按计划定投'; actionColor = 'var(--up,#dc2626)'; }
+      else if (r.streak >= 5 && r.dir < 0 && trend10 != null && trend10 < -3) { action = '机构连续撤离·暂停加仓观察'; actionColor = 'var(--down,#16a34a)'; }
       else { action = '中性·按定投计划执行'; actionColor = 'var(--muted,#94a3b8)'; }
       html += '<tr>'
-        + '<td><b>' + esc(m.myName) + '</b><div style="font-size:11px;color:var(--muted)">→ ' + esc(codes[m.etf].name || m.etf) + '</div></td>'
+        + '<td><b>' + esc(m.myName) + '</b><div style="font-size:10px;color:var(--muted)">→ ' + esc(codes[m.etf].name || m.etf) + '</div></td>'
         + '<td class="num">' + sharesYi + '</td>'
-        + '<td class="num" style="color:' + chg5Color + ';font-weight:600">' + chg5Str + '</td>'
+        + '<td class="num">' + mvYi + '</td>'
+        + '<td class="num" style="color:' + chgColor(r.c1) + '">' + chgStr(r.c1) + '</td>'
+        + '<td class="num" style="color:' + chgColor(r.c3) + '">' + chgStr(r.c3) + '</td>'
+        + '<td class="num" style="color:' + chgColor(r.c10) + ';font-weight:600">' + chgStr(r.c10) + '</td>'
+        + '<td class="num" style="color:' + chgColor(r.c15) + '">' + chgStr(r.c15) + '</td>'
+        + '<td class="num" style="color:' + chgColor(r.c20) + '">' + chgStr(r.c20) + '</td>'
+        + '<td class="num" style="color:' + chgColor(r.c30) + '">' + chgStr(r.c30) + '</td>'
         + '<td style="color:' + streakColor + ';font-weight:600">' + streakStr + '</td>'
         + '<td style="color:' + actionColor + ';font-weight:600">' + action + '</td>'
         + '</tr>';
@@ -22698,39 +22716,38 @@ function renderEtfFlows() {
       if (hist.length < 6) return;
       hist.sort(function (a, b) { return a.d < b.d ? -1 : 1; });
       var last = hist[hist.length - 1];
-      var prev1 = hist[hist.length - 2];
-      var prev5 = hist[Math.max(0, hist.length - 6)];
-      // 日期间隔>7天算断档，不算单日
-      var gap1 = prev1 ? (new Date(last.d) - new Date(prev1.d)) / 86400000 : 999;
-      var chg1 = (prev1 && gap1 <= 7 && prev1.shares > 0) ? (last.shares / prev1.shares - 1) * 100 : null;
-      var chg5 = prev5.shares > 0 ? (last.shares / prev5.shares - 1) * 100 : null;
-      // 单日暴增>2% 或 5日累计>5% = 疑似国家队
+      var c1 = chgN(hist, 1), c3 = chgN(hist, 3), c10 = chgN(hist, 10), c15 = chgN(hist, 15), c20 = chgN(hist, 20), c30 = chgN(hist, 30);
+      // 信号：10日变化>5% = 疑似国家队
       var flag = '';
-      if (chg1 != null && chg1 > 2) flag = '⚡单日暴增' + chg1.toFixed(1) + '%';
-      else if (chg5 > 5) flag = '⚡5日累计+' + chg5.toFixed(1) + '%';
-      else if (chg1 != null && chg1 < -2) flag = '⚠️单日大减' + chg1.toFixed(1) + '%';
-      else if (chg5 < -5) flag = '⚠️5日累计' + chg5.toFixed(1) + '%';
-      nhbRows.push({ code: code, name: c.name || code, shares: last.shares, chg1: chg1, chg5: chg5, flag: flag, date: last.d });
+      if (c10 != null && c10 > 10) flag = '⚡10日+' + c10.toFixed(0) + '%';
+      else if (c10 != null && c10 > 5) flag = '⚡10日+' + c10.toFixed(1) + '%';
+      else if (c10 != null && c10 < -10) flag = '⚠️10日' + c10.toFixed(0) + '%';
+      else if (c10 != null && c10 < -5) flag = '⚠️10日' + c10.toFixed(1) + '%';
+      nhbRows.push({ code: code, name: c.name || code, shares: last.shares, mv: last.mv, c1: c1, c3: c3, c10: c10, c15: c15, c20: c20, c30: c30, flag: flag });
     });
     if (nhbRows.length) {
       html += '<div style="margin-top:18px;font-size:13px;font-weight:600;color:var(--txt,#1f2937)">🏛️ 国家队宽基ETF动向<span style="font-size:11px;font-weight:400;color:var(--muted,#94a3b8)">（中央汇金重仓操作工具·份额异动=疑似大资金申赎）</span></div>'
-        + '<div class="table-wrap" style="margin-top:6px"><table class="tb" style="width:100%"><colgroup>'
-        + '<col style="width:30%"><col style="width:15%"><col style="width:12%"><col style="width:12%"><col style="width:31%"></colgroup>'
-        + '<thead><tr><th>宽基ETF</th><th class="num">最新份额(亿份)</th><th class="num">近5日变化</th><th>信号</th><th>行动参考</th></tr></thead><tbody>';
+        + '<div class="table-wrap" style="margin-top:6px"><table class="tb" style="width:100%;font-size:12px"><colgroup>'
+        + '<col style="width:20%"><col style="width:9%"><col style="width:9%"><col style="width:6%"><col style="width:6%"><col style="width:6%"><col style="width:6%"><col style="width:6%"><col style="width:6%"><col style="width:9%"><col style="width:17%"></colgroup>'
+        + '<thead><tr><th>宽基ETF</th><th class="num">份额(亿份)</th><th class="num">规模(亿元)</th><th class="num">1日</th><th class="num">3日</th><th class="num">10日</th><th class="num">15日</th><th class="num">20日</th><th class="num">30日</th><th>信号</th><th>行动参考</th></tr></thead><tbody>';
       nhbRows.forEach(function (r) {
-        var c5c = r.chg5 > 5 ? 'var(--up,#dc2626)' : (r.chg5 < -5 ? 'var(--down,#16a34a)' : 'inherit');
         var fc = r.flag.indexOf('⚡') >= 0 ? 'var(--up,#dc2626)' : (r.flag.indexOf('⚠️') >= 0 ? 'var(--down,#16a34a)' : 'var(--muted,#94a3b8)');
-        // 行动参考
         var act, actC;
-        if (r.chg1 != null && r.chg1 > 5) { act = '国家队大额入场·可跟随加仓'; actC = 'var(--up,#dc2626)'; }
-        else if (r.chg1 != null && r.chg1 > 2 || r.chg5 > 5) { act = '国家队持续买入·按计划定投'; actC = 'var(--up,#dc2626)'; }
-        else if (r.chg1 != null && r.chg1 < -5) { act = '国家队大额撤退·暂停加仓'; actC = 'var(--down,#16a34a)'; }
-        else if (r.chg1 != null && r.chg1 < -2 || r.chg5 < -5) { act = '资金流出·观察'; actC = 'var(--down,#16a34a)'; }
+        if (r.c10 != null && r.c10 > 10) { act = '国家队大额入场·可跟随加仓'; actC = 'var(--up,#dc2626)'; }
+        else if (r.c10 != null && r.c10 > 5) { act = '国家队持续买入·按计划定投'; actC = 'var(--up,#dc2626)'; }
+        else if (r.c10 != null && r.c10 < -10) { act = '国家队大额撤退·暂停加仓'; actC = 'var(--down,#16a34a)'; }
+        else if (r.c10 != null && r.c10 < -5) { act = '资金流出·观察'; actC = 'var(--down,#16a34a)'; }
         else { act = '中性·按计划执行'; actC = 'var(--muted,#94a3b8)'; }
         html += '<tr>'
           + '<td><b>' + esc(r.name) + '</b><div style="font-size:10px;color:var(--muted)">' + r.code + '</div></td>'
           + '<td class="num">' + (r.shares/1e8).toFixed(1) + '</td>'
-          + '<td class="num" style="color:' + c5c + ';font-weight:600">' + (r.chg5 > 0 ? '+' : '') + r.chg5.toFixed(1) + '%</td>'
+          + '<td class="num">' + (r.mv > 0 ? (r.mv/1e8).toFixed(0) : '—') + '</td>'
+          + '<td class="num" style="color:' + chgColor(r.c1) + '">' + chgStr(r.c1) + '</td>'
+          + '<td class="num" style="color:' + chgColor(r.c3) + '">' + chgStr(r.c3) + '</td>'
+          + '<td class="num" style="color:' + chgColor(r.c10) + ';font-weight:600">' + chgStr(r.c10) + '</td>'
+          + '<td class="num" style="color:' + chgColor(r.c15) + '">' + chgStr(r.c15) + '</td>'
+          + '<td class="num" style="color:' + chgColor(r.c20) + '">' + chgStr(r.c20) + '</td>'
+          + '<td class="num" style="color:' + chgColor(r.c30) + '">' + chgStr(r.c30) + '</td>'
           + '<td style="color:' + fc + ';font-weight:600">' + (r.flag || '平稳') + '</td>'
           + '<td style="color:' + actC + ';font-weight:600">' + act + '</td>'
           + '</tr>';
