@@ -22683,11 +22683,11 @@ function renderEtfFlows() {
       var mvYi = r.last.mv > 0 ? (r.last.mv / 1e8).toFixed(0) : '—';
       var streakStr = r.streak > 0 ? (r.dir > 0 ? r.streak + '日申购' : r.streak + '日赎回') : '—';
       var streakColor = r.streak >= 5 ? (r.dir > 0 ? 'var(--up,#dc2626)' : 'var(--down,#16a34a)') : 'inherit';
-      // 行动信号：用10日变化判断
+      // 行动信号：用最近3日连续变化判断（避免跨断档误判）
       var action, actionColor;
-      var trend10 = r.c10;
-      if (r.streak >= 5 && r.dir > 0 && trend10 != null && trend10 > 3) { action = '机构连续加仓·按计划定投'; actionColor = 'var(--up,#dc2626)'; }
-      else if (r.streak >= 5 && r.dir < 0 && trend10 != null && trend10 < -3) { action = '机构连续撤离·暂停加仓观察'; actionColor = 'var(--down,#16a34a)'; }
+      var recentTrend = r.c3 != null ? r.c3 : r.c10;
+      if (r.streak >= 5 && r.dir > 0 && recentTrend != null && recentTrend > 3) { action = '机构连续加仓·按计划定投'; actionColor = 'var(--up,#dc2626)'; }
+      else if (r.streak >= 5 && r.dir < 0 && recentTrend != null && recentTrend < -3) { action = '机构连续撤离·暂停加仓观察'; actionColor = 'var(--down,#16a34a)'; }
       else { action = '中性·按定投计划执行'; actionColor = 'var(--muted,#94a3b8)'; }
       html += '<tr>'
         + '<td><b>' + esc(m.myName) + '</b><div style="font-size:10px;color:var(--muted)">→ ' + esc(codes[m.etf].name || m.etf) + '</div></td>'
@@ -22730,11 +22730,13 @@ function renderEtfFlows() {
         + '<thead><tr><th>宽基ETF</th><th class="num">份额(亿份)</th><th class="num">规模(亿元)</th><th class="num">1日</th><th class="num">3日</th><th class="num">10日</th><th class="num">15日</th><th class="num">20日</th><th class="num">30日</th><th>信号</th><th>行动参考</th></tr></thead><tbody>';
       nhbRows.forEach(function (r) {
         var fc = r.flag.indexOf('⚡') >= 0 ? 'var(--up,#dc2626)' : (r.flag.indexOf('⚠️') >= 0 ? 'var(--down,#16a34a)' : 'var(--muted,#94a3b8)');
+        // 行动参考：优先看最近1日/3日连续变化（避免跨断档误判）
         var act, actC;
-        if (r.c10 != null && r.c10 > 10) { act = '国家队大额入场·可跟随加仓'; actC = 'var(--up,#dc2626)'; }
-        else if (r.c10 != null && r.c10 > 5) { act = '国家队持续买入·按计划定投'; actC = 'var(--up,#dc2626)'; }
-        else if (r.c10 != null && r.c10 < -10) { act = '国家队大额撤退·暂停加仓'; actC = 'var(--down,#16a34a)'; }
-        else if (r.c10 != null && r.c10 < -5) { act = '资金流出·观察'; actC = 'var(--down,#16a34a)'; }
+        var recent = r.c3 != null ? r.c3 : r.c1; // 优先3日，其次1日
+        if (recent != null && recent > 10) { act = '国家队大额入场·可跟随加仓'; actC = 'var(--up,#dc2626)'; }
+        else if (recent != null && recent > 3) { act = '国家队持续买入·按计划定投'; actC = 'var(--up,#dc2626)'; }
+        else if (recent != null && recent < -10) { act = '国家队大额撤退·暂停加仓'; actC = 'var(--down,#16a34a)'; }
+        else if (recent != null && recent < -3) { act = '资金流出·观察'; actC = 'var(--down,#16a34a)'; }
         else { act = '中性·按计划执行'; actC = 'var(--muted,#94a3b8)'; }
         html += '<tr>'
           + '<td><b>' + esc(r.name) + '</b><div style="font-size:10px;color:var(--muted)">' + r.code + '</div></td>'
