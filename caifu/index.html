@@ -1780,32 +1780,13 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
       <!-- fw2_v194_sm_merge：聪明的钱 = A股/美股 分区（市场条 + 跨市场速览卡常驻）
            fw2_v507d_smnav：主壳改挂全站模块级顶导航标杆 .v-tab（对齐资金平衡/宏观 mi 页），
            删除 13F 子应用 iframe 嵌入链路（sm-panel-a/解码链），独立版保留页脚链接。 -->
+      <!-- v697m 聪明的钱重构：砍13F/国家队/反查/雷达（个股层面、季度滞后90天+），
+           改为基金定投导向——持仓ETF日频份额申赎趋势+一句话行动信号。 -->
       <div class="v-tabs" id="smMarketBar" style="margin:2px 0 12px">
-        <button type="button" class="v-tab active" data-sm-m="dash">看板</button>
-        <button type="button" class="v-tab" data-sm-m="radar">雷达</button>
-        <button type="button" class="v-tab" data-sm-m="nhb">国家队</button>
-        <button type="button" class="v-tab" data-sm-m="look">机构反查</button>
-        <button type="button" class="v-tab" data-sm-m="fast">更快信号</button>
+        <button type="button" class="v-tab active" data-sm-m="dash">ETF资金流向</button>
       </div>
       <div class="card sm-xov" id="smXOverview" hidden></div>
-      <div class="card sm-xov" id="smRadarview" hidden></div>
-      <div class="card sm-xov" id="smNhbview" hidden></div>
-      <!-- v282：数据抽屉拉平，机构反查/更快信号直挂主容器 -->
-      <div class="modal sm13f-scope" id="sm13f-modal"><div class="sheet" id="sm13f-sheet"></div></div>
-      <div class="sm-conview" id="smConview" hidden>
-        <div class="sm13f-scope" id="smConA"></div>
-        <div class="sm-sec-hd">美股 · 13F 共识</div>
-        <div class="sm13f-scope" id="sm13f-con-consensus"></div>
-        <div class="sm13f-scope" id="sm13f-con-detail"></div>
-      </div>
-      <div class="sm-fastview" id="smFastview" hidden><div class="sm13f-scope" id="sm13f-fast-root"></div></div>
-      <div class="sm-lookview" id="smLookview" hidden>
-        <div class="sm13f-scope" id="smLookA"></div>
-        <div class="sm-sec-hd">美股 · 13F 机构名单</div>
-        <div class="sm13f-scope" id="sm13f-look-inst"></div>
-        <div class="sm-sec-hd">美股 · 股票 / CUSIP 反查</div>
-        <div class="sm13f-scope" id="sm13f-look-lookup"></div>
-      </div>
+      <!-- v697m 旧13F/机构反查/更快信号容器全删（个股层面、季度滞后90天+，对基金定投无指导意义） -->
       <!-- fw2_v179_smartmoney：独立的「聪明的钱」模块（数据由父页直接渲染）。
            fw2_v507d_smnav：13F 独立版子应用不再内嵌（删除 706KB base64 解码链）。
            fw2_v519_sm_merge：页脚独立版外链（sm-extlink/smOpenTab）亦删除——独立版
@@ -22607,23 +22588,15 @@ function renderSmartMoney() {
   setSMMarket(m, true);
 }
 function setSMMarket(m, silent) {
-  /* v282：5 个主入口 看板/雷达/国家队/机构反查/更快信号（数据抽屉拉平） */
-  var dash = document.getElementById('smXOverview'), radar = document.getElementById('smRadarview'),
-      nhb = document.getElementById('smNhbview'), look = document.getElementById('smLookview'),
-      fast = document.getElementById('smFastview');
-  if (!dash || !radar || !nhb || !look || !fast) return;
-  if (m === 'con' || m === 'drawer') m = 'look'; /* 旧 localStorage 兼容 */
-  dash.hidden = (m !== 'dash'); radar.hidden = (m !== 'radar'); nhb.hidden = (m !== 'nhb');
-  look.hidden = (m !== 'look'); fast.hidden = (m !== 'fast');
+  /* v697m 重构：砍4个旧tab，只留"ETF资金流向"看板 */
+  var dash = document.getElementById('smXOverview');
+  if (!dash) return;
+  dash.hidden = false;
   document.querySelectorAll('#smMarketBar .v-tab').forEach(function (b) {
-    b.classList.toggle('active', b.getAttribute('data-sm-m') === m);
+    b.classList.toggle('active', b.getAttribute('data-sm-m') === 'dash');
   });
-  try { if (localStorage) localStorage.setItem('smMarket', m); } catch (e) {}
-  if (m === 'dash') { if (window.renderXOverview) renderXOverview(); }
-  else if (m === 'radar') { if (window.renderRadarView) renderRadarView(); }
-  else if (m === 'nhb') { if (window.renderNhbView) renderNhbView(); }
-  else if (m === 'look') { if (window.initSmLook) initSmLook(); }
-  else if (m === 'fast') { if (window.initSmFast) initSmFast(); }
+  try { if (localStorage) localStorage.setItem('smMarket', 'dash'); } catch (e) {}
+  if (window.renderEtfFlows) renderEtfFlows();
 }
 (function () {
   var bar = document.getElementById('smMarketBar'); if (!bar) return;
@@ -22633,6 +22606,96 @@ function setSMMarket(m, silent) {
     if (b) { setSMMarket(b.getAttribute('data-sm-m')); if (sc) sc.scrollTop = 0; }
   });
 })();
+
+/* v697m 聪明的钱重构：持仓ETF日频份额申赎趋势 + 一句话行动信号
+   数据：data/etf-shares.json（fetch_etf_shares.py 日频拉东财push2×腾讯qt）
+   映射：我的联接基金 → 场内ETF（联接基金跟踪同一指数，份额趋势同步反映机构态度） */
+var ETF_FLOW_MAP = [
+  { etf: '563360', myFund: '022438', myName: '华泰柏瑞A500联接', note: '底仓/缓冲' },
+  { etf: '510880', myFund: '012761', myName: '华泰柏瑞红利联接', note: '底仓/缓冲' },
+  { etf: '159949', myFund: '160422', myName: '华安创业板50联接', note: '进攻/主题' },
+  { etf: '518880', myFund: '000307', myName: '易方达黄金联接', note: '对冲' },
+  { etf: '511360', myFund: '511360', myName: '短融ETF(本身)', note: '安全垫' },
+  { etf: '511260', myFund: '511260', myName: '10年国债ETF(本身)', note: '安全垫' },
+  { etf: '510330', myFund: '001015', myName: '华夏沪深300增强', note: '底仓/缓冲(参考)' },
+];
+function renderEtfFlows() {
+  var box = document.getElementById('smXOverview'); if (!box) return;
+  box.innerHTML = '<div style="padding:20px;color:var(--muted,#94a3b8)">加载ETF份额数据…</div>';
+  fetch('data/etf-shares.json', { cache: 'no-cache' }).then(function (r) { return r.ok ? r.json() : null; }).then(function (data) {
+    if (!data || !data.codes) { box.innerHTML = '<div style="padding:20px;color:var(--warn,#d97706)">ETF份额数据加载失败</div>'; return; }
+    var codes = data.codes, upd = data.updatedAt || '';
+    var rows = [];
+    ETF_FLOW_MAP.forEach(function (m) {
+      var c = codes[m.etf]; if (!c) { rows.push({ m: m, empty: true }); return; }
+      var hist = c.hist || [];
+      // 过滤脏数据（份额<=0 或 异常值）
+      hist = hist.filter(function (h) { return h && h.shares > 0 && h.shares < 1e12; });
+      if (hist.length < 2) { rows.push({ m: m, hist: hist, growing: true }); return; }
+      hist.sort(function (a, b) { return a.d < b.d ? -1 : 1; });
+      var last = hist[hist.length - 1];
+      var prev5 = hist[Math.max(0, hist.length - 6)];
+      var prev20 = hist[Math.max(0, hist.length - 21)];
+      var chg5 = prev5.shares > 0 ? (last.shares / prev5.shares - 1) * 100 : null;
+      var chg20 = prev20.shares > 0 && prev20 !== prev5 ? (last.shares / prev20.shares - 1) * 100 : null;
+      // 连续申赎天数（从末尾往前数，连续同方向）
+      var streak = 0, dir = 0; // 1=申购(份额增), -1=赎回(份额减)
+      for (var i = hist.length - 1; i > 0; i--) {
+        var d = hist[i].shares - hist[i - 1].shares;
+        if (Math.abs(d) < 1) continue;
+        var sdir = d > 0 ? 1 : -1;
+        if (dir === 0) dir = sdir;
+        if (sdir === dir) streak++; else break;
+      }
+      rows.push({ m: m, hist: hist, last: last, chg5: chg5, chg20: chg20, streak: streak, dir: dir });
+    });
+    // 渲染
+    var html = '<div style="padding:16px 20px"><h3 style="margin:0 0 4px;font-size:16px">持仓ETF资金流向</h3>'
+      + '<div style="font-size:12px;color:var(--muted,#94a3b8);margin-bottom:14px">数据日 ' + upd + ' · 东财push2×腾讯qt日频 · 份额变化=机构申赎方向参考（非交易信号，定投仍按计划）</div>'
+      + '<div class="tbl-scroll"><table class="st-tbl"><colgroup>'
+      + '<col style="width:22%"><col style="width:18%"><col style="width:11%"><col style="width:11%"><col style="width:11%"><col style="width:27%"></colgroup>'
+      + '<thead><tr><th>我的基金 → ETF</th><th>档位</th><th>最新份额(亿份)</th><th>近5日变化</th><th>连续申赎</th><th>行动参考</th></tr></thead><tbody>';
+    rows.forEach(function (r) {
+      var m = r.m;
+      if (r.empty) {
+        html += '<tr><td>' + esc(m.myName) + ' → ' + m.etf + '</td><td>' + esc(m.note) + '</td><td colspan="4" style="color:var(--muted)">无数据</td></tr>';
+        return;
+      }
+      if (r.growing) {
+        html += '<tr><td>' + esc(m.myName) + ' → ' + m.etf + '</td><td>' + esc(m.note) + '</td>'
+          + '<td>' + (r.hist.length ? (r.hist[r.hist.length-1].shares/1e8).toFixed(2) : '—') + '</td>'
+          + '<td colspan="3" style="color:var(--muted)">历史积累中（已采' + r.hist.length + '天），约需1个月可见趋势</td></tr>';
+        return;
+      }
+      var sharesYi = (r.last.shares / 1e8).toFixed(2);
+      var chg5Str = r.chg5 == null ? '—' : ((r.chg5 > 0 ? '+' : '') + r.chg5.toFixed(1) + '%');
+      var chg5Color = r.chg5 > 3 ? 'var(--up,#dc2626)' : (r.chg5 < -3 ? 'var(--down,#16a34a)' : 'inherit');
+      var streakStr = r.streak > 0 ? (r.dir > 0 ? r.streak + '日申购' : r.streak + '日赎回') : '—';
+      var streakColor = r.streak >= 5 ? (r.dir > 0 ? 'var(--up,#dc2626)' : 'var(--down,#16a34a)') : 'inherit';
+      // 行动信号
+      var action, actionColor;
+      if (r.streak >= 5 && r.dir > 0 && r.chg5 > 3) { action = '机构连续加仓·按计划定投'; actionColor = 'var(--up,#dc2626)'; }
+      else if (r.streak >= 5 && r.dir < 0 && r.chg5 < -3) { action = '机构连续撤离·暂停加仓观察'; actionColor = 'var(--down,#16a34a)'; }
+      else { action = '中性·按定投计划执行'; actionColor = 'var(--muted,#94a3b8)'; }
+      html += '<tr>'
+        + '<td><b>' + esc(m.myName) + '</b><div style="font-size:11px;color:var(--muted)">→ ' + esc(codes[m.etf].name || m.etf) + '</div></td>'
+        + '<td>' + esc(m.note) + '</td>'
+        + '<td>' + sharesYi + '</td>'
+        + '<td style="color:' + chg5Color + ';font-weight:600">' + chg5Str + '</td>'
+        + '<td style="color:' + streakColor + ';font-weight:600">' + streakStr + '</td>'
+        + '<td style="color:' + actionColor + ';font-weight:600">' + action + '</td>'
+        + '</tr>';
+    });
+    html += '</tbody></table></div>'
+      + '<div style="margin-top:14px;font-size:11px;color:var(--muted,#94a3b8);line-height:1.6">'
+      + '说明：ETF份额增加=净申购（机构/散户在买），减少=净赎回（在卖）。连续5日同方向且幅度>3%才提示，避免日内噪音。'
+      + '此为辅助参考，不替代定投纪律；QDII/主动基金（纳指/日经/全球成长/招商行业精选）无对应场内ETF，不展示。'
+      + '</div></div>';
+    box.innerHTML = html;
+  }).catch(function (e) {
+    box.innerHTML = '<div style="padding:20px;color:var(--warn,#d97706)">ETF份额数据加载异常: ' + esc(e.message || e) + '</div>';
+  });
+}
 
 
 /* fw2_v194_sm_xov：跨市场速览卡「你的持仓 × 聪明钱」渲染 */
@@ -23193,7 +23256,7 @@ function renderXOverview() {
     });
   }
 }
-if (document.getElementById('smXOverview')) renderXOverview();
+if (document.getElementById('smXOverview') && window.renderEtfFlows) renderEtfFlows();
 
 
 </script>
