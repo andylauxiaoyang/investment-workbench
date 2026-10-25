@@ -22627,13 +22627,11 @@ function renderEtfFlows() {
   fetch('data/etf-shares.json', { cache: 'no-cache' }).then(function (r) { return r.ok ? r.json() : null; }).then(function (data) {
     if (!data || !data.codes) { box.innerHTML = '<div style="padding:20px;color:var(--warn,#d97706)">ETF份额数据加载失败</div>'; return; }
     var codes = data.codes, upd = data.updatedAt || '';
-    // 通用：算N日变化%（取hist末尾往前第N条，间隔>7天视为断档返回null）
+    // 通用：算N日变化%（取hist末尾往前第N条，不管中间是否断档）
     function chgN(hist, n) {
       if (hist.length < n + 1) return null;
       var last = hist[hist.length - 1];
       var prev = hist[hist.length - 1 - n];
-      var gap = (new Date(last.d) - new Date(prev.d)) / 86400000;
-      if (gap > n * 2 + 5) return null; // 间隔远超n天=断档
       return prev.shares > 0 ? (last.shares / prev.shares - 1) * 100 : null;
     }
     function chgStr(v) {
