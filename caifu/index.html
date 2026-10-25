@@ -22654,9 +22654,9 @@ function renderEtfFlows() {
     // 渲染
     var html = '<div style="padding:16px 20px">'
       + '<div style="font-size:12px;color:var(--muted,#94a3b8);margin-bottom:10px">数据日 ' + upd + ' · 东财push2×腾讯qt日频 · 份额变化=机构申赎方向参考（非交易信号，定投仍按计划）</div>'
-      + '<div class="tbl-scroll"><table class="st-tbl" style="width:100%"><colgroup>'
+      + '<div class="table-wrap"><table class="tb" style="width:100%"><colgroup>'
       + '<col style="width:30%"><col style="width:15%"><col style="width:12%"><col style="width:12%"><col style="width:31%"></colgroup>'
-      + '<thead><tr><th>我的基金 → ETF</th><th style="text-align:right">最新份额(亿份)</th><th style="text-align:right">近5日变化</th><th>连续申赎</th><th>行动参考</th></tr></thead><tbody>';
+      + '<thead><tr><th>我的基金 → ETF</th><th class="num">最新份额(亿份)</th><th class="num">近5日变化</th><th>连续申赎</th><th>行动参考</th></tr></thead><tbody>';
     rows.forEach(function (r) {
       var m = r.m;
       if (r.empty) {
@@ -22665,7 +22665,7 @@ function renderEtfFlows() {
       }
       if (r.growing) {
         html += '<tr><td>' + esc(m.myName) + ' → ' + m.etf + '</td>'
-          + '<td style="text-align:right">' + (r.hist.length ? (r.hist[r.hist.length-1].shares/1e8).toFixed(2) : '—') + '</td>'
+          + '<td class="num">' + (r.hist.length ? (r.hist[r.hist.length-1].shares/1e8).toFixed(2) : '—') + '</td>'
           + '<td colspan="3" style="color:var(--muted)">历史积累中（已采' + r.hist.length + '天），约需1个月可见趋势</td></tr>';
         return;
       }
@@ -22681,8 +22681,8 @@ function renderEtfFlows() {
       else { action = '中性·按定投计划执行'; actionColor = 'var(--muted,#94a3b8)'; }
       html += '<tr>'
         + '<td><b>' + esc(m.myName) + '</b><div style="font-size:11px;color:var(--muted)">→ ' + esc(codes[m.etf].name || m.etf) + '</div></td>'
-        + '<td style="text-align:right;font-weight:600">' + sharesYi + '</td>'
-        + '<td style="text-align:right;color:' + chg5Color + ';font-weight:600">' + chg5Str + '</td>'
+        + '<td class="num">' + sharesYi + '</td>'
+        + '<td class="num" style="color:' + chg5Color + ';font-weight:600">' + chg5Str + '</td>'
         + '<td style="color:' + streakColor + ';font-weight:600">' + streakStr + '</td>'
         + '<td style="color:' + actionColor + ';font-weight:600">' + action + '</td>'
         + '</tr>';
@@ -22714,9 +22714,9 @@ function renderEtfFlows() {
     });
     if (nhbRows.length) {
       html += '<div style="margin-top:18px;font-size:13px;font-weight:600;color:var(--txt,#1f2937)">🏛️ 国家队宽基ETF动向<span style="font-size:11px;font-weight:400;color:var(--muted,#94a3b8)">（中央汇金重仓操作工具·份额异动=疑似大资金申赎）</span></div>'
-        + '<div class="tbl-scroll" style="margin-top:6px"><table class="st-tbl" style="width:100%"><colgroup>'
+        + '<div class="table-wrap" style="margin-top:6px"><table class="tb" style="width:100%"><colgroup>'
         + '<col style="width:30%"><col style="width:15%"><col style="width:12%"><col style="width:12%"><col style="width:31%"></colgroup>'
-        + '<thead><tr><th>宽基ETF</th><th style="text-align:right">最新份额(亿份)</th><th style="text-align:right">近5日变化</th><th>信号</th><th>行动参考</th></tr></thead><tbody>';
+        + '<thead><tr><th>宽基ETF</th><th class="num">最新份额(亿份)</th><th class="num">近5日变化</th><th>信号</th><th>行动参考</th></tr></thead><tbody>';
       nhbRows.forEach(function (r) {
         var c5c = r.chg5 > 5 ? 'var(--up,#dc2626)' : (r.chg5 < -5 ? 'var(--down,#16a34a)' : 'inherit');
         var fc = r.flag.indexOf('⚡') >= 0 ? 'var(--up,#dc2626)' : (r.flag.indexOf('⚠️') >= 0 ? 'var(--down,#16a34a)' : 'var(--muted,#94a3b8)');
@@ -22729,8 +22729,8 @@ function renderEtfFlows() {
         else { act = '中性·按计划执行'; actC = 'var(--muted,#94a3b8)'; }
         html += '<tr>'
           + '<td><b>' + esc(r.name) + '</b><div style="font-size:10px;color:var(--muted)">' + r.code + '</div></td>'
-          + '<td style="text-align:right;font-weight:600">' + (r.shares/1e8).toFixed(1) + '</td>'
-          + '<td style="text-align:right;color:' + c5c + ';font-weight:600">' + (r.chg5 > 0 ? '+' : '') + r.chg5.toFixed(1) + '%</td>'
+          + '<td class="num">' + (r.shares/1e8).toFixed(1) + '</td>'
+          + '<td class="num" style="color:' + c5c + ';font-weight:600">' + (r.chg5 > 0 ? '+' : '') + r.chg5.toFixed(1) + '%</td>'
           + '<td style="color:' + fc + ';font-weight:600">' + (r.flag || '平稳') + '</td>'
           + '<td style="color:' + actC + ';font-weight:600">' + act + '</td>'
           + '</tr>';
