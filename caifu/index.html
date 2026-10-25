@@ -22652,11 +22652,11 @@ function renderEtfFlows() {
       rows.push({ m: m, hist: hist, last: last, chg5: chg5, chg20: chg20, streak: streak, dir: dir });
     });
     // 渲染
-    var html = '<div style="padding:16px 20px"><h3 style="margin:0 0 4px;font-size:16px">持仓ETF资金流向</h3>'
-      + '<div style="font-size:12px;color:var(--muted,#94a3b8);margin-bottom:14px">数据日 ' + upd + ' · 东财push2×腾讯qt日频 · 份额变化=机构申赎方向参考（非交易信号，定投仍按计划）</div>'
-      + '<div class="tbl-scroll"><table class="st-tbl"><colgroup>'
-      + '<col style="width:22%"><col style="width:18%"><col style="width:11%"><col style="width:11%"><col style="width:11%"><col style="width:27%"></colgroup>'
-      + '<thead><tr><th>我的基金 → ETF</th><th>档位</th><th>最新份额(亿份)</th><th>近5日变化</th><th>连续申赎</th><th>行动参考</th></tr></thead><tbody>';
+    var html = '<div style="padding:16px 20px">'
+      + '<div style="font-size:12px;color:var(--muted,#94a3b8);margin-bottom:10px">数据日 ' + upd + ' · 东财push2×腾讯qt日频 · 份额变化=机构申赎方向参考（非交易信号，定投仍按计划）</div>'
+      + '<div class="tbl-scroll"><table class="st-tbl" style="width:100%"><colgroup>'
+      + '<col style="width:26%"><col style="width:14%"><col style="width:13%"><col style="width:11%"><col style="width:11%"><col style="width:25%"></colgroup>'
+      + '<thead><tr><th>我的基金 → ETF</th><th>档位</th><th style="text-align:right">最新份额(亿份)</th><th style="text-align:right">近5日变化</th><th>连续申赎</th><th>行动参考</th></tr></thead><tbody>';
     rows.forEach(function (r) {
       var m = r.m;
       if (r.empty) {
@@ -22681,9 +22681,9 @@ function renderEtfFlows() {
       else { action = '中性·按定投计划执行'; actionColor = 'var(--muted,#94a3b8)'; }
       html += '<tr>'
         + '<td><b>' + esc(m.myName) + '</b><div style="font-size:11px;color:var(--muted)">→ ' + esc(codes[m.etf].name || m.etf) + '</div></td>'
-        + '<td>' + esc(m.note) + '</td>'
-        + '<td>' + sharesYi + '</td>'
-        + '<td style="color:' + chg5Color + ';font-weight:600">' + chg5Str + '</td>'
+        + '<td><span style="font-size:11px;padding:2px 8px;border-radius:4px;background:#f1f5f9;color:#64748b">' + esc(m.note) + '</span></td>'
+        + '<td style="text-align:right;font-weight:600">' + sharesYi + '</td>'
+        + '<td style="text-align:right;color:' + chg5Color + ';font-weight:600">' + chg5Str + '</td>'
         + '<td style="color:' + streakColor + ';font-weight:600">' + streakStr + '</td>'
         + '<td style="color:' + actionColor + ';font-weight:600">' + action + '</td>'
         + '</tr>';
@@ -22715,9 +22715,9 @@ function renderEtfFlows() {
     });
     if (nhbRows.length) {
       html += '<div style="margin-top:18px;font-size:13px;font-weight:600;color:var(--txt,#1f2937)">🏛️ 国家队宽基ETF动向<span style="font-size:11px;font-weight:400;color:var(--muted,#94a3b8)">（中央汇金重仓操作工具·份额异动=疑似大资金申赎）</span></div>'
-        + '<div class="tbl-scroll" style="margin-top:6px"><table class="st-tbl"><colgroup>'
-        + '<col style="width:24%"><col style="width:13%"><col style="width:13%"><col style="width:11%"><col style="width:14%"><col style="width:25%"></colgroup>'
-        + '<thead><tr><th>宽基ETF</th><th>最新份额(亿份)</th><th>最近一期变化</th><th>5日变化</th><th>信号</th><th>行动参考</th></tr></thead><tbody>';
+        + '<div class="tbl-scroll" style="margin-top:6px"><table class="st-tbl" style="width:100%"><colgroup>'
+        + '<col style="width:22%"><col style="width:13%"><col style="width:13%"><col style="width:11%"><col style="width:14%"><col style="width:27%"></colgroup>'
+        + '<thead><tr><th>宽基ETF</th><th style="text-align:right">最新份额(亿份)</th><th style="text-align:right">最近一期变化</th><th style="text-align:right">5日变化</th><th>信号</th><th>行动参考</th></tr></thead><tbody>';
       nhbRows.forEach(function (r) {
         var c1c = r.chg1 != null && r.chg1 > 2 ? 'var(--up,#dc2626)' : (r.chg1 != null && r.chg1 < -2 ? 'var(--down,#16a34a)' : 'inherit');
         var c5c = r.chg5 > 5 ? 'var(--up,#dc2626)' : (r.chg5 < -5 ? 'var(--down,#16a34a)' : 'inherit');
@@ -22730,10 +22730,10 @@ function renderEtfFlows() {
         else if (r.chg1 != null && r.chg1 < -2 || r.chg5 < -5) { act = '资金流出·观察'; actC = 'var(--down,#16a34a)'; }
         else { act = '中性·按计划执行'; actC = 'var(--muted,#94a3b8)'; }
         html += '<tr>'
-          + '<td>' + esc(r.name) + '<div style="font-size:10px;color:var(--muted)">' + r.code + '</div></td>'
-          + '<td>' + (r.shares/1e8).toFixed(1) + '</td>'
-          + '<td style="color:' + c1c + '">' + (r.chg1 == null ? '断档' : (r.chg1 > 0 ? '+' : '') + r.chg1.toFixed(1) + '%') + '</td>'
-          + '<td style="color:' + c5c + '">' + (r.chg5 > 0 ? '+' : '') + r.chg5.toFixed(1) + '%</td>'
+          + '<td><b>' + esc(r.name) + '</b><div style="font-size:10px;color:var(--muted)">' + r.code + '</div></td>'
+          + '<td style="text-align:right;font-weight:600">' + (r.shares/1e8).toFixed(1) + '</td>'
+          + '<td style="text-align:right;color:' + c1c + ';font-weight:600">' + (r.chg1 == null ? '断档' : (r.chg1 > 0 ? '+' : '') + r.chg1.toFixed(1) + '%') + '</td>'
+          + '<td style="text-align:right;color:' + c5c + ';font-weight:600">' + (r.chg5 > 0 ? '+' : '') + r.chg5.toFixed(1) + '%</td>'
           + '<td style="color:' + fc + ';font-weight:600">' + (r.flag || '平稳') + '</td>'
           + '<td style="color:' + actC + ';font-weight:600">' + act + '</td>'
           + '</tr>';
