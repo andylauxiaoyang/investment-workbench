@@ -1318,17 +1318,8 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
       <!-- v91 fw2_v91_macro_merge：宏观·情绪 独立页曾并入 数据中心 → 宏观数据 分块（v135 已反向拆分，见下） -->
       <!-- fw2_v135_macro_view：宏观数据由「数据中心」分块迁出为独立模块（用户 2026-09-18「宏观数据单独作为一个模块放在数据中心上面」）；#view-data 改名「基金数据」并删除 dcBlocks 切换行（基金数据直接进入内容区，默认总览 Tab） -->
       <section class="view" id="view-macro">
-        <div id="dcMacroWrap" class="dc-pane"><!-- fw2_v76_interval_macro fw2_v91_macro_merge -->
-          <div class="dc-mc-layout">
-            <!-- fw2_v430b：模块级 tab（中国周期/美国/全球周期）置顶——静态容器位于 dcMcNav 之前，fillMacroTabs() 填充 -->
-            <div id="macroRegion" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px"></div>
-            <div class="dc-mc-nav v-tabs v-tabs--soft" id="dcMcNav"></div>
-            <div class="dc-mc-main">
-              <!-- fw2_v430：窗口选择工具条随 renderMacro 中国分支渲染（归属中国周期内容） -->
-              <div id="macroBody"></div>
-            </div>
-          </div>
-        </div>
+        <!-- v697n 宏观周期简化：3张决策卡，砍康波/行业轮动/FSI等对基金定投无直接价值的内容 -->
+        <div id="macroSimple" style="padding:16px 20px;max-width:1200px;margin:0 auto"></div>
       </section>
       <section class="view" id="view-data"><!-- fw2_v71_datacenter --><!-- fw2_v91_macro_merge --><!-- fw2_v135_macro_view：dcBlocks 已删，基金数据直接显示（默认总览 Tab） -->
         <div class="v-head">
@@ -22662,7 +22653,7 @@ function renderEtfFlows() {
     var anyH = [];
     for (var mf in ETF_FLOW_MAP) {
       var et = ETF_FLOW_MAP[mf];
-      var b2 = etfShares.codes[et];
+      var b2 = codes[et];
       if (b2 && b2.hist && b2.hist.length > 30) { anyH = b2.hist; break; }
     }
     function fD(s){ return s ? s.slice(5) : '—'; }
