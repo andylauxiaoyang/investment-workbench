@@ -9265,6 +9265,158 @@ function renderMacroSop(d, C) {
       _spxA = _spxLast ? _spxLast[0] : null;
   var _snapAt = state.snapshot && state.snapshot.at;
   var _snapA = _snapAt ? (_snapAt.getFullYear() + '-' + ('0' + (_snapAt.getMonth() + 1)).slice(-2) + '-' + ('0' + _snapAt.getDate()).slice(-2)) : null;
+
+  /* ① 定调：综合读数 + 六磁铁计数 */
+  var _mx = (typeof mcMatrix === 'function') ? mcMatrix(C) : { scores: {}, cards: {} };
+  var vdCn = (typeof mcVerdict === 'function') ? mcVerdict(C, _mx.scores, 'cn') : '';
+  var vdOvs = (typeof mcVerdict === 'function') ? mcVerdict(C, _mx.scores, 'ovs') : '';
+  /* fw2_v556_market_split：中国/全球分栏——磁铁按 geo 分（val/cred/mood=中国，ovs/us/gbl=全球），矩阵按市场取 2 卡 */
+  var _gi2 = window.MI_GROUPS || [];
+  var _magCn = _gi2.slice(0, 3).map(function (g, i) { return window.mcMagnet(g, i); }).join('');
+  var _magOvs = _gi2.slice(3, 6).map(function (g, i) { return window.mcMagnet(g, i + 3); }).join('');
+  var _mxCards = (_mx && _mx.cards) || {};
+  var _mxCn = (_mxCards.odds || '') + (_mxCards.earn || '');
+  var _mxOvs = (_mxCards.risk || '') + (_mxCards.ovs || '');
+  var magnetLine = 'A股估值 ' + mVal.p + '正' + mVal.n + '负 · 信用 ' + mCre.p + '正' + mCre.n + '负 · 情绪 ' + mMoo.p + '正' + mMoo.n + '负 · 海外 ' + mOvs.p + '正' + mOvs.n + '负 · 美国 ' + mUs.p + '正' + mUs.n + '负 · 全球 ' + mGbl.p + '正' + mGbl.n + '负 · 合计 ' + tP + ' 正 / ' + tN + ' 负';
+  /* 研读顺序条 */
+  var seq = [['方法', 'sop'], ['中国周期', 'cn'], ['估值', 'val'], ['信用', 'cred'], ['情绪温度', 'mood'], ['美国周期', 'us'], ['海外景气', 'gbl'], ['海外约束', 'ovs'], ['资产价格', 'px'], ['情绪全景', 'sm']];   /* fw2_v555_ov_merge：删『定调』节点（定调并入驾驶舱本页），研读顺序条 10 节点 */
+  var seqHtml = '<div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center">' + seq.map(function (s) {
+    return '<span style="cursor:pointer;padding:4px 10px;border-radius:8px;border:1px solid var(--line-mid,#d8dee6);background:var(--panel-3,#f1f5f9);color:var(--slate-600,#475569);font-size:12px;font-weight:600" onclick="window.__mcGo(\'' + s[1] + '\')">' + s[0] + '</span>';
+  }).join('<span style="color:#9ca3af;flex:none">→</span>') + '</div>';
+  return '<div class="dc-us-wrap">'
+    + '<div class="card"><div class="card-h"><h3>研读驾驶舱</h3><span class="hint">数据截至 ' + esc((d && d.updatedAt) || '—') + ' · 不构成投资建议</span></div>' /* fw2_v660_ui_simplify：机制说明删除 */
+    + '<div style="margin-bottom:10px">' + seqHtml + '</div>'
+    + '<div style="font-size:12px;color:var(--slate-500,#64748b);line-height:1.7">研读顺序：<b>定调与方法</b>（研读驾驶舱本页一体）→ <b>中国决策</b>（中国周期→估值→盈利→温度）→ <b>海外约束</b>（美国→全球→顺逆风）→ <b>结果验证</b>（资产价格→情绪全景）。点步骤条直达各 tab。</div>'
+    + '</div>'
+    + '<div class="card"><div class="card-h"><h3>① 定调 · 周期位置</h3><span class="hint">中国 / 全球分栏 · 各市场独立读数与联动矩阵（fw2_v556_market_split：两个不同市场零融合）</span></div>'
+    + '<div class="mc-mkt"><div class="mc-mkt-h"><b>中国 · 周期位置</b><span class="mc-mkt-geo">中国指标</span><span class="mc-mkt-d">估值 → 信用 → 情绪（val/cred/mood 同源判读）</span></div>'
+    + vdCn
+    + '<div class="mc-ov-grid">' + _magCn + '</div>'
+    + '<div class="mc-ov-grid mc-ov-mx">' + _mxCn + '</div>'
+    + '</div>'
+    + '<div class="mc-mkt"><div class="mc-mkt-h"><b>全球 · 周期位置</b><span class="mc-mkt-geo">海外指标</span><span class="mc-mkt-d">海外约束 → 美国 → 全球景气（ovs/us/gbl 同源判读）</span></div>'
+    + vdOvs
+    + '<div class="mc-ov-grid">' + _magOvs + '</div>'
+    + '<div class="mc-ov-grid mc-ov-mx">' + _mxOvs + '</div>'
+    + '</div>'
+    + '</div>'
+    + '<div class="card"><div class="card-h"><h3>② 中国决策</h3><span class="hint">估值 → 盈利 → 温度（val/cred/mood tab 同源判读）</span></div>'
+    + row('估值', 'ERP 分位 ' + pctv(ePct) + ' · 沪深300 PE 分位 ' + pctv(peL2), vErp + ' · ' + vPe, (ePct >= 75 || peL2 < 20) ? 'pos' : ((ePct < 25 || peL2 >= 80) ? 'neg' : 'div'), 'val')
+    + row('盈利', 'M1−M2 剪刀差 ' + f(gap) + 'pct · 制造业 PMI ' + f(mk), vGap + ' · ' + vPmi, (gap >= 0 || mk >= 50) ? 'pos' : ((gap < -2 || mk < 49) ? 'neg' : 'div'), 'cred')
+    + row('情绪温度', '两融占比分位 ' + pctv(zbPct) + ' · 成交额分位 ' + pctv(aPct) + ' · 全A成交 ' + (C.amtDtxt || '—'), vMoo, ((zbPct != null && zbPct < 10) || (aPct != null && aPct < 10)) ? 'pos' : (((zbPct != null && zbPct > 90) || (aPct != null && aPct > 90)) ? 'neg' : 'div'), 'mood')
+    + '</div>'
+    + '<div class="card"><div class="card-h"><h3>③ 海外约束</h3><span class="hint">美国基本盘 → 全球动能 → 顺逆风开关（us/gbl/ovs tab 同源判读）</span></div>'
+    + row('美国', '核心PCE ' + f(pce) + '% · ISM 制造 ' + f(ism) + ' · 初请4周 ' + (ics != null ? f(ics / 1000, 1) + ' 万' : '—'), vPce + ' · ' + vIsm, (pce < 2 || ism >= 50) ? 'pos' : ((pce > 2.5 || ism < 50) ? 'neg' : 'div'), 'us')
+    + row('全球', '韩国出口同比 ' + (_us.yoy != null ? f(_us.yoy) + '%' : '—'), vKr, (_us.yoy >= 5) ? 'pos' : ((_us.yoy <= -5) ? 'neg' : 'div'), 'gbl')
+    + row('约束', 'VIX ' + f(vL, 2) + ' · 外围红绿灯 ' + fxGate + '（' + badCnt + '/3） · 标普 PE 分位 ' + pctv(spxPct), vFx, fxGate === '顺风' ? 'pos' : (fxGate.indexOf('逆风') >= 0 ? 'neg' : 'div'), 'ovs')
+    + '</div>'
+    + '<div class="card"><div class="card-h"><h3>④ 结果验证</h3><span class="hint">资产位置与情绪映射（px/sm 页同源）</span></div>'
+    + row('资产', '上证指数 ' + (sziTxt || '—') + ' · 10年收益 ' + (szi10 != null ? f(szi10) + '%' : '—'), null, null, 'px')
+    + row('情绪全景', '市场宽度（上涨占比）' + (upPctW != null ? f(upPctW) + '%' : '数据未加载'), vBrd, upPctW == null ? null : (upPctW >= 50 ? 'pos' : 'neg'), 'sm')
+    + '<div class="rv-line"><span class="tag tag-ai">动作</span><span style="cursor:pointer;color:var(--nav-blue,#2f6bff);font-weight:600" onclick="window.showView(\'strategy\')">→ 汇成动作：策略执行（资产配置 / 定投 / 执行卡）</span></div>'
+    + '</div>'
+    + '</div>';
+}
+/* fw2_v697_chain_tab：传导链从研读驾驶舱抽出为独立子模块（tab），排在情绪全景(sm)之后。
+   原 chains 构建（派生变量 + 7 条链 + 链结论）整段迁入 renderChainBody，作为唯一真源；
+   renderMacroSop 不再内联构建（见 fw2_v697 删除点），研读驾驶舱与传导链 tab 共用本函数，杜绝双份漂移。 */
+function renderChainBody(d) {
+  var C = (typeof mcCalcCommon === 'function') ? (mcCalcCommon(d) || {}) : {};
+  var cCur = C.cCur || {}, cnM = (d && d.cnMacro) || {}, _us = (C.ushf && C.ushf.krExport) || {};
+  var ePct = C.ePct, peL2 = (C.peLast && C.peLast[2] != null) ? C.peLast[2] : null;
+  var gap = cCur.gap, m2y = cCur.m2, mk = C.mk;
+  var pce = (C.ushfPce && C.ushfPce.corePceYoy != null) ? C.ushfPce.corePceYoy : null;
+  var ics = (C.ushfIC && C.ushfIC.avg4w != null) ? C.ushfIC.avg4w : null;
+  var ur = (C.ushfUR && C.ushfUR.cur != null) ? C.ushfUR.cur : null;
+  var usRet = (C.ushfRet && C.ushfRet.cur != null) ? C.ushfRet.cur : null;
+  var vL = C.vL, spxPct = C.spxPct;
+  var fL = C.fL, uL = C.uL, tL = C.tL, fChg = C.fChg, uChg = C.uChg;
+  var crPts = C.cr || [], crLast = crPts.length ? crPts[crPts.length - 1] : null;
+  var f = function (v, n) { return v == null ? '—' : fmtNum(v, (n == null ? 1 : n)); };
+  var pctv = function (v) { return v == null ? '—' : f(v, 1) + '%'; };
+  var cnV = function (k) { var v = cnM[k]; if (!v || v.value == null) return null; if (v.pct) return (v.value * v.scale).toFixed(1) + '%'; return (v.value * v.scale).toFixed(1); };
+  function trendRev(points, back) { var p = points && points.slice(); if (!p) return null; p.reverse(); return trend(p, back); }
+  function trendRevDelta(points, back) {
+    var p = points && points.slice(); if (!p) return null; p.reverse();
+    var n = p.length; if (n < 3) return null;
+    var p0 = p[Math.max(0, n - 1 - (back || 6))][1], p1 = p[n - 1][1];
+    if (p0 == null || p1 == null) return null;
+    var dd = (p1 - p0) * 100;
+    return dd > 0.05 ? '较6期前 ↑ ' + f(dd, 1) + 'pct' : dd < -0.05 ? '较6期前 ↓ ' + f(Math.abs(dd), 1) + 'pct' : '较6期前 → 持平';
+  }
+  var ce = (d && d.chainExtra) || {};
+  var ceTxt = function (k) { var o = ce[k]; if (!o || o.price == null) return null; return o.name + ' ' + f(o.price, 2) + (o.chgPct != null ? '（' + f(o.chgPct, 1) + '%）' : ''); };
+  var kcSnap = (state.snapshot && state.snapshot.quotes) || {};
+  var kc = kcSnap['sh000688'] || {};
+  var kcTxt = (kc.price != null) ? '科创50 ' + f(kc.price, 2) + ((kc.pct != null) ? '（' + f(kc.pct, 2) + '%）' : '') : null;
+  var plKc = (d.pxLong && d.pxLong.items && d.pxLong.items.kc50 && d.pxLong.items.kc50.points) || [];
+  var kcTrend = plKc.length > 8 ? trend(plKc, 6) : null;
+  var fxPts = (C.fx && C.fx.points) || [];
+  var us10Pts = []; for (var _i = 0; _i < fxPts.length; _i++) { if (fxPts[_i] && fxPts[_i][3] != null) us10Pts.push([fxPts[_i][0], fxPts[_i][3]]); }
+  var us10Trend = trend(us10Pts, 6);
+  var cn10b = (d.erp && d.erp.cur && d.erp.cur.y10 != null) ? d.erp.cur.y10 : null;
+  var spread = (tL != null && cn10b != null) ? (tL - cn10b) : null;
+  var spreadTxt = spread == null ? null : '利差 ' + f(spread, 2) + 'pct（美债10Y ' + f(tL, 2) + '% − 中债10Y ' + f(cn10b, 2) + '%）';
+  var spreadV = spread == null ? null : (spread > 0.5 ? '正利差·美元资产吸金' : spread < -0.5 ? '负利差·人民币资产吸金' : '利差中性');
+  function trend(points, back) {
+    if (!points || points.length < 3) return null;
+    var n = points.length, p0 = points[Math.max(0, n - 1 - (back || 6))][1], p1 = points[n - 1][1];
+    if (p0 == null || p1 == null || p0 === 0) return null;
+    var dd = (p1 / p0 - 1) * 100;
+    return dd > 0.5 ? '↑ ' + f(dd, 1) + '%' : dd < -0.5 ? '↓ ' + f(dd, 1) + '%' : '→ 持平';
+  }
+  var cn10v = (d.erp && d.erp.cur && d.erp.cur.y10 != null) ? d.erp.cur.y10 : null;
+  function node(name, o) {
+    var wait = o.tag === 'wait';
+    var bg = wait ? '#fff7ed' : '#f0fdf4', bd = wait ? '#fcd9a8' : '#bbe7c8', tc = wait ? '#b45309' : '#0d9f4d';
+    return '<div style="background:' + bg + ';border:1px solid ' + bd + ';border-radius:8px;padding:7px 9px;min-width:128px;max-width:196px;flex:1 1 128px;font-size:11px;line-height:1.55">'
+      + '<div style="font-weight:700;color:var(--ink,#0f172a);font-size:12px">' + esc(name) + LXMAP.ic(LXMAP.index(name) || LXMAP.macro(name), '理杏仁/数据源') + ' <span style="font-size:10px;color:' + tc + ';font-weight:600">●' + (wait ? '待接' : '数据') + '</span></div>'
+      + '<div style="color:#374151;margin-top:3px"><b>现状</b> ' + (o.now == null ? '—' : esc(o.now)) + '</div>'
+      + '<div style="color:#374151"><b>过去</b> ' + (o.past == null ? '—' : esc(o.past)) + '</div>'
+      + '<div style="color:#374151"><b>未来</b> ' + (o.future == null ? '—' : esc(o.future)) + '</div>'
+      + (o.asOf ? '<div style="margin-top:2px;color:#64748b;font-size:10px;font-weight:600">数据截至 ' + esc(o.asOf) + '</div>' : '')
+      + (o.link ? '<div style="margin-top:3px"><span style="cursor:pointer;color:var(--nav-blue,#2f6bff);font-weight:600" onclick="window.__mcGo(\'' + o.link + '\')">↗ 原始数据</span></div>' : '<div style="margin-top:3px;color:#9ca3af">传导：' + esc(o.flow || '—') + '</div>')
+      + '</div>';
+  }
+  function arr() { return '<div style="align-self:center;color:#9ca3af;font-weight:700;flex:none;padding:0 1px">→</div>'; }
+  function chain(title, inner) {
+    return '<div style="background:#fff;border:1px solid #e3e8ef;border-radius:10px;padding:10px 12px;margin-bottom:10px">'
+      + '<div style="font-size:13px;font-weight:700;color:var(--slate-700,#334155);margin-bottom:8px">' + esc(title) + '</div>'
+      + '<div style="display:flex;flex-wrap:wrap;align-items:stretch;gap:5px">' + inner + '</div></div>';
+  }
+  function vd(dir, txt, macro, ev) {
+    var col = dir > 0 ? '#0d9f4d' : dir < 0 ? '#dc2626' : '#b45309';
+    var bg = dir > 0 ? '#f0fdf4' : dir < 0 ? '#fef2f2' : '#fffbeb';
+    var bd = dir > 0 ? '#bbe7c8' : dir < 0 ? '#fecaca' : '#fde68a';
+    var lbl = dir > 0 ? '扩张 / 偏多' : dir < 0 ? '收缩 / 偏空' : '中性 / 僵持';
+    return '<div style="background:' + bg + ';border:1px solid ' + bd + ';border-radius:8px;padding:8px 10px;margin:-4px 0 10px;font-size:12px;line-height:1.65">'
+      + '<div style="font-weight:700;color:var(--ink,#0f172a)">链结论 <span style="font-size:11px;color:' + col + ';font-weight:700">' + lbl + '</span></div>'
+      + '<div style="color:#374151;margin-top:2px">' + esc(txt) + '</div>'
+      + '<div style="color:#475569;margin-top:3px"><b>对宏观：</b>' + esc(macro) + '</div>'
+      + '<div style="color:#94a3b8;margin-top:3px;font-size:11px">依据 ' + esc(ev) + '</div>'
+      + '</div>';
+  }
+  var crDir = crLast ? (crLast[1] >= 0 ? '扩张' : '收缩') : '—';
+  var _sl = function (s) { return s ? String(s).slice(0, 10) : null; };
+  var _m2A = _sl(cnM.m2 && cnM.m2.asOf), _sfA = _sl(cnM.sf && cnM.sf.asOf),
+      _faiA = _sl(cnM.fai && cnM.fai.asOf), _retA = _sl(cnM.retail && cnM.retail.asOf),
+      _expA = _sl(cnM.export && cnM.export.asOf),
+      _erpA = (C.erp && C.erp.length) ? C.erp[C.erp.length - 1][0] : null,
+      _peA = (C.peLast && C.peLast.length) ? C.peLast[0] : null,
+      _pmA = (C.pmLast && C.pmLast[0]) || null,
+      _pceA = _sl(C.ushfPce && (C.ushfPce.updatedAt || C.ushfPce.corePceDate)),
+      _icA = _sl(C.ushfIC && (C.ushfIC.updatedAt || C.ushfIC.curDate)), _urA = _sl(C.ushfUR && (C.ushfUR.updatedAt || C.ushfUR.curDate)),
+      _urtA = _sl(C.ushfRet && (C.ushfRet.updatedAt || C.ushfRet.curDate)),
+      _fxA = (C.fx && C.fx.length) ? C.fx[C.fx.length - 1][0] : null,
+      _prA = (C.price && C.price.length) ? C.price[C.price.length - 1][0] : null,
+      _viA = (C.vix && C.vix.length) ? C.vix[C.vix.length - 1][0] : null,
+      _cbA = _sl(C.cbRates && C.cbRates.updatedAt),
+      _soA = _sl(ce.soxx && ce.soxx.asOf), _tsA = _sl(ce.tsm && ce.tsm.asOf),
+      _ucA = _sl(ce.usCapu && ce.usCapu.asOf), _krA = _sl(_us && _us.asOf),
+      _spxLast = (C.spxPts && C.spxPts.length) ? C.spxPts[C.spxPts.length - 1] : null,
+      _spxA = _spxLast ? _spxLast[0] : null;
+  var _snapAt = state.snapshot && state.snapshot.at;
+  var _snapA = _snapAt ? (_snapAt.getFullYear() + '-' + ('0' + (_snapAt.getMonth() + 1)).slice(-2) + '-' + ('0' + _snapAt.getDate()).slice(-2)) : null;
   var chains =
     chain('链1 · 信用周期（M2/社融 → 银行信贷 → 地产/基建/制造 → 资产价格 → 财富效应 → 消费）',
       node('M2/社融', { now: 'M2 同比 ' + f(m2y) + '% · 剪刀差 ' + f(gap) + 'pct', past: '信用脉冲 ' + (trend(crPts, 6) || '—'), future: '信用脉冲 3 月变化 ' + (crLast ? f(crLast[1]) + 'pct' : '—') + '（领先社融）', asOf: _m2A, link: 'cred' })
@@ -9333,61 +9485,16 @@ function renderMacroSop(d, C) {
       '利差与汇率约束国内货币政策空间：正利差下热钱流出压制 A股估值与债市收益率；利差收窄则压力缓解，人民币资产吸引力回升。',
       '利差 ' + f(spread, 2) + 'pct · USD/CNH ' + (fL != null ? f(fL, 4) : '—') + ' · VIX ' + f(vL, 2))
     ;
-  /* ① 定调：综合读数 + 六磁铁计数 */
-  var _mx = (typeof mcMatrix === 'function') ? mcMatrix(C) : { scores: {}, cards: {} };
-  var vdCn = (typeof mcVerdict === 'function') ? mcVerdict(C, _mx.scores, 'cn') : '';
-  var vdOvs = (typeof mcVerdict === 'function') ? mcVerdict(C, _mx.scores, 'ovs') : '';
-  /* fw2_v556_market_split：中国/全球分栏——磁铁按 geo 分（val/cred/mood=中国，ovs/us/gbl=全球），矩阵按市场取 2 卡 */
-  var _gi2 = window.MI_GROUPS || [];
-  var _magCn = _gi2.slice(0, 3).map(function (g, i) { return window.mcMagnet(g, i); }).join('');
-  var _magOvs = _gi2.slice(3, 6).map(function (g, i) { return window.mcMagnet(g, i + 3); }).join('');
-  var _mxCards = (_mx && _mx.cards) || {};
-  var _mxCn = (_mxCards.odds || '') + (_mxCards.earn || '');
-  var _mxOvs = (_mxCards.risk || '') + (_mxCards.ovs || '');
-  var magnetLine = 'A股估值 ' + mVal.p + '正' + mVal.n + '负 · 信用 ' + mCre.p + '正' + mCre.n + '负 · 情绪 ' + mMoo.p + '正' + mMoo.n + '负 · 海外 ' + mOvs.p + '正' + mOvs.n + '负 · 美国 ' + mUs.p + '正' + mUs.n + '负 · 全球 ' + mGbl.p + '正' + mGbl.n + '负 · 合计 ' + tP + ' 正 / ' + tN + ' 负';
-  /* 研读顺序条 */
-  var seq = [['方法', 'sop'], ['中国周期', 'cn'], ['估值', 'val'], ['信用', 'cred'], ['情绪温度', 'mood'], ['美国周期', 'us'], ['海外景气', 'gbl'], ['海外约束', 'ovs'], ['资产价格', 'px'], ['情绪全景', 'sm']];   /* fw2_v555_ov_merge：删『定调』节点（定调并入驾驶舱本页），研读顺序条 10 节点 */
-  var seqHtml = '<div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center">' + seq.map(function (s) {
-    return '<span style="cursor:pointer;padding:4px 10px;border-radius:8px;border:1px solid var(--line-mid,#d8dee6);background:var(--panel-3,#f1f5f9);color:var(--slate-600,#475569);font-size:12px;font-weight:600" onclick="window.__mcGo(\'' + s[1] + '\')">' + s[0] + '</span>';
-  }).join('<span style="color:#9ca3af;flex:none">→</span>') + '</div>';
-  return '<div class="dc-us-wrap">'
-    + '<div class="card"><div class="card-h"><h3>研读驾驶舱</h3><span class="hint">数据截至 ' + esc((d && d.updatedAt) || '—') + ' · 不构成投资建议</span></div>' /* fw2_v660_ui_simplify：机制说明删除 */
-    + '<div style="margin-bottom:10px">' + seqHtml + '</div>'
-    + '<div style="font-size:12px;color:var(--slate-500,#64748b);line-height:1.7">研读顺序：<b>定调与方法</b>（研读驾驶舱本页一体）→ <b>中国决策</b>（中国周期→估值→盈利→温度）→ <b>海外约束</b>（美国→全球→顺逆风）→ <b>结果验证</b>（资产价格→情绪全景）。点步骤条直达各 tab。</div>'
-    + '</div>'
-    + '<div class="card"><div class="card-h"><h3>① 定调 · 周期位置</h3><span class="hint">中国 / 全球分栏 · 各市场独立读数与联动矩阵（fw2_v556_market_split：两个不同市场零融合）</span></div>'
-    + '<div class="mc-mkt"><div class="mc-mkt-h"><b>中国 · 周期位置</b><span class="mc-mkt-geo">中国指标</span><span class="mc-mkt-d">估值 → 信用 → 情绪（val/cred/mood 同源判读）</span></div>'
-    + vdCn
-    + '<div class="mc-ov-grid">' + _magCn + '</div>'
-    + '<div class="mc-ov-grid mc-ov-mx">' + _mxCn + '</div>'
-    + '</div>'
-    + '<div class="mc-mkt"><div class="mc-mkt-h"><b>全球 · 周期位置</b><span class="mc-mkt-geo">海外指标</span><span class="mc-mkt-d">海外约束 → 美国 → 全球景气（ovs/us/gbl 同源判读）</span></div>'
-    + vdOvs
-    + '<div class="mc-ov-grid">' + _magOvs + '</div>'
-    + '<div class="mc-ov-grid mc-ov-mx">' + _mxOvs + '</div>'
-    + '</div>'
-    + '</div>'
-    + '<div class="card"><div class="card-h"><h3>② 中国决策</h3><span class="hint">估值 → 盈利 → 温度（val/cred/mood tab 同源判读）</span></div>'
-    + row('估值', 'ERP 分位 ' + pctv(ePct) + ' · 沪深300 PE 分位 ' + pctv(peL2), vErp + ' · ' + vPe, (ePct >= 75 || peL2 < 20) ? 'pos' : ((ePct < 25 || peL2 >= 80) ? 'neg' : 'div'), 'val')
-    + row('盈利', 'M1−M2 剪刀差 ' + f(gap) + 'pct · 制造业 PMI ' + f(mk), vGap + ' · ' + vPmi, (gap >= 0 || mk >= 50) ? 'pos' : ((gap < -2 || mk < 49) ? 'neg' : 'div'), 'cred')
-    + row('情绪温度', '两融占比分位 ' + pctv(zbPct) + ' · 成交额分位 ' + pctv(aPct) + ' · 全A成交 ' + (C.amtDtxt || '—'), vMoo, ((zbPct != null && zbPct < 10) || (aPct != null && aPct < 10)) ? 'pos' : (((zbPct != null && zbPct > 90) || (aPct != null && aPct > 90)) ? 'neg' : 'div'), 'mood')
-    + '</div>'
-    + '<div class="card"><div class="card-h"><h3>③ 海外约束</h3><span class="hint">美国基本盘 → 全球动能 → 顺逆风开关（us/gbl/ovs tab 同源判读）</span></div>'
-    + row('美国', '核心PCE ' + f(pce) + '% · ISM 制造 ' + f(ism) + ' · 初请4周 ' + (ics != null ? f(ics / 1000, 1) + ' 万' : '—'), vPce + ' · ' + vIsm, (pce < 2 || ism >= 50) ? 'pos' : ((pce > 2.5 || ism < 50) ? 'neg' : 'div'), 'us')
-    + row('全球', '韩国出口同比 ' + (_us.yoy != null ? f(_us.yoy) + '%' : '—'), vKr, (_us.yoy >= 5) ? 'pos' : ((_us.yoy <= -5) ? 'neg' : 'div'), 'gbl')
-    + row('约束', 'VIX ' + f(vL, 2) + ' · 外围红绿灯 ' + fxGate + '（' + badCnt + '/3） · 标普 PE 分位 ' + pctv(spxPct), vFx, fxGate === '顺风' ? 'pos' : (fxGate.indexOf('逆风') >= 0 ? 'neg' : 'div'), 'ovs')
-    + '</div>'
-    + '<div class="card"><div class="card-h"><h3>④ 结果验证</h3><span class="hint">资产位置与情绪映射（px/sm 页同源）</span></div>'
-    + row('资产', '上证指数 ' + (sziTxt || '—') + ' · 10年收益 ' + (szi10 != null ? f(szi10) + '%' : '—'), null, null, 'px')
-    + row('情绪全景', '市场宽度（上涨占比）' + (upPctW != null ? f(upPctW) + '%' : '数据未加载'), vBrd, upPctW == null ? null : (upPctW >= 50 ? 'pos' : 'neg'), 'sm')
-    + '<div class="rv-line"><span class="tag tag-ai">动作</span><span style="cursor:pointer;color:var(--nav-blue,#2f6bff);font-weight:600" onclick="window.showView(\'strategy\')">→ 汇成动作：策略执行（资产配置 / 定投 / 执行卡）</span></div>'
-    + '</div>'
-    + '<div class="card"><div class="card-h"><h3>传导链 · 现状 → 判断 → 原始数据</h3><span class="hint">7 条传导链直接展开 · 每节点三态（现状=最新读数 / 过去=近6期趋势 / 未来=领先指标方向，无前瞻数据标「—」不臆造）· 每节点标注<b>数据截至日期</b>（数据日期，滞后一目了然）· <b>每条链末尾带「链结论」</b>（传导结果方向 + 对宏观的影响，由链上读数动态判、可复算）· 代理口径已标注 · 无数据节点标「待接」只给传导关系</span></div>'
-    + chains
-    + '</div>'
-    + '<p class="foot-note">三态口径：现状=最新读数；过去=序列近 6 期趋势（代码现算，↑/↓/→）；未来=领先指标方向（信用脉冲领先社融、韩国出口领先电子、费半/台积电领先 A股电子），无前瞻数据标「—」。所有判断词与 mcRegisterEvidence/mcVerdict/mcMagnet 同一判读口径（100% 同源，可与各 tab 对拍）；待接节点为当前无合规数据源，不臆造读数。费半=SOXX ETF、台积电=ADR 行情（腾讯，代理口径：指数/官网源被反爬或不可达）；科创50、中美利差为工作台已有数据。数据不构成投资建议。</p>'
-    + '</div>';
+  return chains;
 }
+function renderChain(d) {
+  if (!d) return '<div class="card"><div class="empty st st-empty">宏观数据加载中…</div></div>';
+  var chains = (typeof renderChainBody === 'function') ? renderChainBody(d) : '';
+  return '<div class="card"><div class="card-h"><h3>传导链 · 现状 → 判断 → 原始数据</h3><span class="hint">7 条传导链直接展开 · 每节点三态（现状=最新读数 / 过去=近6期趋势 / 未来=领先指标方向，无前瞻数据标「—」不臆造）· 每节点标注<b>数据截至日期</b>（数据日期，滞后一目了然）· <b>每条链末尾带「链结论」</b>（传导结果方向 + 对宏观的影响，由链上读数动态判、可复算）· 代理口径已标注 · 无数据节点标「待接」只给传导关系</span></div>'
+    + chains
+    + '<p class="foot-note">三态口径：现状=最新读数；过去=序列近 6 期趋势（代码现算，↑/↓/→）；未来=领先指标方向（信用脉冲领先社融、韩国出口领先电子、费半/台积电领先 A股电子），无前瞻数据标「—」。所有判断词与 mcRegisterEvidence/mcVerdict/mcMagnet 同一判读口径（100% 同源，可与各 tab 对拍）；待接节点为当前无合规数据源，不臆造读数。费半=SOXX ETF、台积电=ADR 行情（腾讯，代理口径：指数/官网源被反爬或不可达）；科创50、中美利差为工作台已有数据。数据不构成投资建议。</p>';
+}
+
 window.__mcGo = function (region, group) {
   state.macroRegion = region;
   if (group != null) {
@@ -9421,6 +9528,7 @@ function renderMacro() {
   if (_region === 'sm') { body.innerHTML = renderMacroSentiment(d);
     pxDrawFundCharts({ rzye: { mfPts: (d.margin && d.margin.points) || [] }, amt: { mfPts: (d.amtD && d.amtD.points) || [] } });   /* fw2_v566_fund_move：资金面双图数据源=d.margin/d.amtD（与 px 同源，不重复抓取） */
     return; }
+  if (_region === 'chain') { if (typeof mcRegisterEvidence === 'function') mcRegisterEvidence(mcCalcCommon(d)); body.innerHTML = renderChain(d); return; }
   /* fw2_v432 资产价格监控：19 项全景 · 磁贴+分区表+弹层走势 · 周期/持仓/信号三联动 */
   if (_region === 'px') { renderPriceMon(d); return; }
   /* fw2_v551_sop_cockpit：⑦判读SOP 升级为研读驾驶舱（指引+现状+判断+链接）——直接渲染 renderMacroSop，不再走大模板三步法静态卡（旧静态卡无显示路径）；证据注册先于渲染（①定调需 __MC_EV 磁铁计数） */
@@ -10424,6 +10532,7 @@ function fillMacroTabs() {
     ['ovs', '海外约束'],  /* fw2_v552_sop_taborder：研读顺序第9位·④海外约束；fw2_v550_grp_tabs：原 mi 页④海外约束组（全球利率汇率/美股估值/政策利率/VIX），模块名去序号 */
     ['px', '资产价格监控'],
     ['sm', '情绪全景'] /* fw2_v557_sm_renamed：市场情绪→情绪全景（广度/资金/海外风险偏好全图，去同义误导） */
+    ['chain', '传导链'] /* fw2_v697_chain_tab：传导链独立子模块，排在情绪全景(sm)之后 */
   ];
   host.innerHTML = items.map((it) => '<button data-r="' + it[0] + '" type="button" style="' + (reg === it[0] ? tAct : tBase) + '">' + it[1] + '</button>').join('');
 }
