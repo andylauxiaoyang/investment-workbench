@@ -8731,39 +8731,9 @@ var FUND_LX_RAW = {"000216":"jj/000216/216","000218":"jj/000218/218","000307":"j
     }).catch(function () { k++; nxt(); });
   })();
 })();
-/* fw2_v697q_cockpit：研读驾驶舱以"周期总览卡"形式接回 v-cycle 顶部（替代原独立 sop 页）。
-   仅保留独特价值——①定调矩阵 + 六磁铁 + 联动矩阵（一眼看全周期位置）+ 研读顺序导航条；
-   逐条判读行（②中国决策 / ③海外约束 / ④结果验证）已被 5 视图覆盖，省略以免重复。
-   不在此注册证据——主路径 renderMacro 已先 mcRegisterEvidence（磁铁读 __MC_EV 即可），重复注册会翻倍。 */
-function renderMacroCockpit(C) {
-  C = C || {};
-  var _mx = (typeof mcMatrix === 'function') ? mcMatrix(C) : { scores: {}, cards: {} };
-  var vdCn = (typeof mcVerdict === 'function') ? mcVerdict(C, _mx.scores, 'cn') : '';
-  var vdOvs = (typeof mcVerdict === 'function') ? mcVerdict(C, _mx.scores, 'ovs') : '';
-  var _gi2 = window.MI_GROUPS || [];
-  var _magCn = _gi2.slice(0, 3).map(function (g, i) { return window.mcMagnet(g, i); }).join('');
-  var _magOvs = _gi2.slice(3, 6).map(function (g, i) { return window.mcMagnet(g, i + 3); }).join('');
-  var _mxCards = (_mx && _mx.cards) || {};
-  var _mxCn = (_mxCards.odds || '') + (_mxCards.earn || '');
-  var _mxOvs = (_mxCards.risk || '') + (_mxCards.ovs || '');
-  var seq = [['中国周期','cn'],['估值','val'],['信用','cred'],['情绪温度','mood'],['美国周期','us'],['海外景气','gbl'],['海外约束','ovs'],['资产价格','px'],['情绪全景','sm']];
-  var seqHtml = '<div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center">' + seq.map(function (s) {
-    return '<span style="cursor:pointer;padding:4px 10px;border-radius:8px;border:1px solid var(--line-mid,#d8dee6);background:var(--panel-3,#f1f5f9);color:var(--slate-600,#475569);font-size:12px;font-weight:600" onclick="window.__mcGo(\'' + s[1] + '\')">' + s[0] + '</span>';
-  }).join('<span style="color:#9ca3af;flex:none">→</span>') + '</div>';
-  return '<div class="card"><div class="card-h"><h3>周期总览 · 定调矩阵</h3><span class="hint">中国 / 全球分栏 · 各市场独立读数与联动矩阵 · 不构成投资建议</span></div>'
-    + '<div class="mc-mkt"><div class="mc-mkt-h"><b>中国 · 周期位置</b><span class="mc-mkt-geo">中国指标</span><span class="mc-mkt-d">估值 → 信用 → 情绪（val/cred/mood 同源判读）</span></div>'
-    + vdCn
-    + '<div class="mc-ov-grid">' + _magCn + '</div>'
-    + '<div class="mc-ov-grid mc-ov-mx">' + _mxCn + '</div>'
-    + '</div>'
-    + '<div class="mc-mkt"><div class="mc-mkt-h"><b>全球 · 周期位置</b><span class="mc-mkt-geo">海外指标</span><span class="mc-mkt-d">海外约束 → 美国 → 全球景气（ovs/us/gbl 同源判读）</span></div>'
-    + vdOvs
-    + '<div class="mc-ov-grid">' + _magOvs + '</div>'
-    + '<div class="mc-ov-grid mc-ov-mx">' + _mxOvs + '</div>'
-    + '</div>'
-    + '<div style="margin-top:10px"><div style="font-size:12px;color:var(--slate-500,#64748b);margin-bottom:6px">研读顺序（点步骤直达各视图）</div>' + seqHtml + '</div>'
-    + '</div>';
-}
+/* fw2_v700c_del_cockpit：renderMacroCockpit（周期总览·定调矩阵卡，v697q 接回）整函数删除——用户 2026-10-26 截图红框指定。
+   消费点仅 renderMacro v-cycle 前置一处（同删）；定调矩阵/六磁铁/联动矩阵/研读顺序条内容与 5 决策视图重复。
+   mcVerdict 包装层保留（v698 拆分设计的一部分，mcVerdictCore 为合成条与对拍共用真源）。 */
 /* fw2_v697_chain_tab：传导链从研读驾驶舱抽出为独立子模块（tab），排在情绪全景(sm)之后。
    原 chains 构建（派生变量 + 7 条链 + 链结论）整段迁入 renderChainBody，作为唯一真源；
    renderMacroSop 不再内联构建（见 fw2_v697 删除点），研读驾驶舱与传导链 tab 共用本函数，杜绝双份漂移。 */
@@ -9649,11 +9619,9 @@ body.innerHTML = ((_region === 'cn' || _region === 'v-cycle') ? renderMacroTools
     if (typeof renderMacroUSCharts === 'function') renderMacroUSCharts();
     if (typeof renderMacroGblCharts === 'function') renderMacroGblCharts();
   }
-  /* fw2_v697q：v-cycle 顶部追加"周期总览卡"（研读驾驶舱回归），前置到母模板最前 */
-  if (_region === 'v-cycle' || _region === 'cn') {
-    var _cp = (typeof renderMacroCockpit === 'function') ? renderMacroCockpit(C) : '';
-    if (_cp) body.innerHTML = _cp + body.innerHTML;
-  }
+  /* fw2_v700c_del_cockpit：删 v-cycle 顶部「周期总览 · 定调矩阵」驾驶舱卡（v697q 接回，用户 2026-10-26 截图红框指定删除）。
+     renderMacroCockpit 函数定义已同删；其内容（定调矩阵/磁铁/联动矩阵/研读顺序条）与 5 视图重复，无独立信息量。
+     mcRegisterEvidence 主路径注册不变，各视图证据两栏不受影响。 */
   if (window.__mcApply) window.__mcApply();
 }
 (function bindMacroWin() {
