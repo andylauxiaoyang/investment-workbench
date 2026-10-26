@@ -9518,11 +9518,16 @@ function renderMacro() {
      中国周期=9 张周期卡平铺（四周期嵌套/周期定位/历史相似阶段回放/层1/层2/信用脉冲/层3/层4/行业周期）；
      美国/全球周期=FSI+美国资产温度+美国四周期+美元/黄金/大宗全球资产信号（fw2_v436 并入）；
      宏观指标=13 张指标卡平铺（股债性价比/PE/信用脉冲/CPI-PPI/美元利差/VIX/PMI/两融成交/成交额/宽基估值/全球利率/美股估值/日经225）。 */
-  const _region = state.macroRegion || 'sop';   /* fw2_v555_ov_merge：周期总览并入研读驾驶舱，默认落点改驾驶舱 */
+  const _region = state.macroRegion || 'v-cycle';   /* fw2_v697p：默认落点改「周期定位」视图 */
+  /* fw2_v697p：11→5 决策视图映射——旧 region(cn/val/cred/mood/ovs/us/gbl/ovs/sm/chain/px/sop) 仍兼容，仅 tab 栏不再暴露；
+     v-* 视图复用现有渲染器拼接，不动 700 行母模板；高亮用原始 _region，模板过滤用翻译后的 reg */
+  const VIEW_REG = { 'v-cycle':'cn', 'v-val':'val', 'v-mood':'mood', 'v-global':'ovs', 'v-px':'px' };
+  const reg = VIEW_REG[_region] || _region;
   const _navEl = document.getElementById('dcMcNav');
   /* fw2_v431：静态导航恒隐藏（显示规则由 __mcApply 按 region 统一执行） */
   if (_navEl) _navEl.style.display = 'none';
-  fillMacroTabs();
+  fillMacroTabs();   /* 高亮比较原始 _region（v-*），tab 按钮 data-r 即 v-* */
+  state.macroRegion = reg;   /* 模板过滤 / __mcApply 用翻译后的 reg（cn/val/mood/ovs/px） */
   if (_region === 'us') { mcRegisterEvidence(mcCalcCommon(d)); body.innerHTML = renderMacroUS(d); renderMacroUSCharts(); return; }   /* fw2_v549_region_align：美国周期页＝康波+FSI+非农+⑤组9项硬指标全集（实体卡从 mi ⑤组迁入，mi 页⑤组改引用卡）；证据注册先于渲染（磁铁需 __MC_EV） */
   if (_region === 'gbl') { mcRegisterEvidence(mcCalcCommon(d)); body.innerHTML = renderMacroGbl(d); renderMacroGblCharts(); return; }  /* fw2_v549_region_align：海外景气页＝⑥全球景气非美实体卡（韩国出口/OECD/BDI日银/PMI合成，mi 页⑥组改引用卡） */
   if (_region === 'sm') { body.innerHTML = renderMacroSentiment(d);
@@ -9530,7 +9535,7 @@ function renderMacro() {
     return; }
   if (_region === 'chain') { if (typeof mcRegisterEvidence === 'function') mcRegisterEvidence(mcCalcCommon(d)); body.innerHTML = renderChain(d); return; }
   /* fw2_v432 资产价格监控：19 项全景 · 磁贴+分区表+弹层走势 · 周期/持仓/信号三联动 */
-  if (_region === 'px') { renderPriceMon(d); return; }
+  if (_region === 'px' || _region === 'v-px') { renderPriceMon(d); return; }
   /* fw2_v551_sop_cockpit：⑦判读SOP 升级为研读驾驶舱（指引+现状+判断+链接）——直接渲染 renderMacroSop，不再走大模板三步法静态卡（旧静态卡无显示路径）；证据注册先于渲染（①定调需 __MC_EV 磁铁计数） */
   if (_region === 'sop' || _region === 'ov') { mcRegisterEvidence(C); body.innerHTML = renderMacroSop(d, C); return; }   /* fw2_v555_ov_merge：ov 残留兼容（旧 localStorage 值落驾驶舱） */
   /* fw2_v463_growth：mh「宏观硬指标」独立 tab 已删（并入 mi 的「实体景气」区，见 renderMacroGrowth） */
@@ -9582,7 +9587,7 @@ function renderMacro() {
      注册顺序：本块（主模板 19 项）→ renderMacroGrowth（实体景气 1 项，mcActOk 同判据）→ wrapMcMods → renderMcMagnets。
      仅①-⑥组有证据；⑦SOP 磁铁为静态三步摘要（mcSopMagnet）。缺源卡无数据不臆造方向。 */
   mcRegisterEvidence(C);
-body.innerHTML = (_region === 'cn' ? renderMacroToolsHtml() : (_region === 'mi' ? renderMacroGroupCaps() : '')) + `
+body.innerHTML = ((_region === 'cn' || _region === 'v-cycle') ? renderMacroToolsHtml() : (_region === 'mi' ? renderMacroGroupCaps() : '')) + `
   <!-- ===== v201 涛动周期：四周期嵌套定位 + 共振合成（周金涛框架） ===== -->
   <div class="card dc-cyc">
     <div class="card-h"><h3>四周期嵌套 · 涛动周期定位</h3><span class="hint">康波60年 ⊃ 库兹涅茨20年 ⊃ 朱格拉10年 ⊃ 基钦3-4年 · 理论+数据驱动 · 不构成投资建议</span></div>
@@ -10167,6 +10172,17 @@ body.innerHTML = (_region === 'cn' ? renderMacroToolsHtml() : (_region === 'mi' 
       cCli.resize();
     }
   }
+  /* fw2_v697p_merge_views：合并视图在模板+图表初始化后、__mcApply 前追加自包含渲染器（复用现有函数，不动 700 行母模板）。
+     body/_region/d 均在本 IIFE 闭包作用域内；追加块无 .mc-mod 包裹，__mcApply 不会隐藏它。 */
+  if (_region === 'v-mood') {
+    body.innerHTML += renderMacroSentiment(d);
+    pxDrawFundCharts({ rzye: { mfPts: (d.margin && d.margin.points) || [] }, amt: { mfPts: (d.amtD && d.amtD.points) || [] } });
+  }
+  if (_region === 'v-global') {
+    body.innerHTML += renderMacroUS(d) + renderMacroGbl(d) + renderChain(d);
+    if (typeof renderMacroUSCharts === 'function') renderMacroUSCharts();
+    if (typeof renderMacroGblCharts === 'function') renderMacroGblCharts();
+  }
   if (window.__mcApply) window.__mcApply();
 }
 (function bindMacroWin() {
@@ -10518,21 +10534,18 @@ function fillMacroTabs() {
      填充到静态容器 #macroRegion（位于 dcMcNav 之前，页面最上方）。
      只填按钮（静态容器本身已是 #macroRegion，不能嵌套外层 div 造成重复 id） */
   const host = $('#macroRegion'); if (!host) return;
-  const reg = state.macroRegion || 'sop';   /* fw2_v555_ov_merge：默认落点改研读驾驶舱 */
+  const reg = state.macroRegion || 'v-cycle';   /* fw2_v697p：默认落点改「周期定位」决策视图 */
   const tBase = 'padding:8px 22px;border-radius:10px;border:1px solid var(--line-mid,#d8dee6);background:var(--panel-3,#f1f5f9);color:var(--slate-600,#475569);font-size:13px;font-weight:600;cursor:pointer';
   const tAct = 'padding:8px 22px;border-radius:10px;border:1px solid var(--nav-blue,#2f6bff);background:var(--nav-blue,#2f6bff);color:#fff;font-size:13px;font-weight:600;cursor:pointer';
+  /* fw2_v697p：11→5 决策视图收敛——旧 11 个 tab（sop/cn/val/cred/mood/us/gbl/ovs/px/sm/chain）
+     收敛为 5 个按「决策问题」命名的视图；旧 region 仍由 renderMacro 的 VIEW_REG 兼容路由，tab 栏不再暴露。
+     v-cycle=周期定位(cn) · v-val=估值赔率(val) · v-mood=流动情绪(mood+sm) · v-global=海外与传导(us+gbl+ovs+chain) · v-px=资产价格(px) */
   const items = [
-    ['sop', '研读驾驶舱'],   /* fw2_v555_ov_merge：周期总览并入后 sop 升第1位（10 tab）；fw2_v554_sop_rename：判读SOP→研读驾驶舱；原 fw2_v552_sop_taborder 研读顺序第2位，模块名去序号 */
-    ['cn', '中国周期'],   /* fw2_v552_sop_taborder：研读顺序第3位（中国决策起点） */
-    ['val', 'A股估值'],   /* fw2_v552_sop_taborder：研读顺序第4位·①中国决策-估值；fw2_v550_grp_tabs：原 mi 页①A股估值组（ERP/PE/宽基），模块名去序号 */
-    ['cred', '信用与增长'], /* fw2_v552_sop_taborder：研读顺序第5位·②中国决策-信用；fw2_v550_grp_tabs：原 mi 页②信用与增长组，模块名去序号 */
-    ['mood', '情绪温度'], /* fw2_v557_sm_renamed：情绪与流动性→情绪温度（中国拥挤度，去同义误导）；fw2_v552_sop_taborder：研读顺序第6位·③中国决策-情绪；fw2_v550_grp_tabs：原 mi 页③情绪与流动性组，模块名去序号 */
-    ['us', '美国周期'],   /* fw2_v552_sop_taborder：研读顺序第7位·海外-美国；fw2_v549_region_align：tab「海外全景」→「美国周期」（用户拍板方案B′区域平级：中国周期/美国周期/海外景气三域 tab 并列，消除「海外全景≈美国」名实不符；data-r 路由键 us 不动；原 fw2_v467_us_tab_rename / fw2_v548_ovs_mrg 改名记录） */
-    ['gbl', '海外景气'],  /* fw2_v552_sop_taborder：研读顺序第8位·海外-全球；fw2_v549_region_align：新增「海外景气」tab（⑥全球景气非美内容上移为独立域：韩国出口/OECD/BDI日银/PMI合成；data-r 路由键 gbl） */
-    ['ovs', '海外约束'],  /* fw2_v552_sop_taborder：研读顺序第9位·④海外约束；fw2_v550_grp_tabs：原 mi 页④海外约束组（全球利率汇率/美股估值/政策利率/VIX），模块名去序号 */
-    ['px', '资产价格监控'],
-    ['sm', '情绪全景'], /* fw2_v557_sm_renamed：市场情绪→情绪全景（广度/资金/海外风险偏好全图，去同义误导） */
-    ['chain', '传导链'] /* fw2_v697_chain_tab：传导链独立子模块，排在情绪全景(sm)之后 */
+    ['v-cycle', '周期定位'],     /* 合并 原 cn 周期卡 */
+    ['v-val', '估值赔率'],      /* 合并 原 val(A股估值) */
+    ['v-mood', '流动情绪'],     /* 合并 原 mood + sm(情绪全景) */
+    ['v-global', '海外与传导'], /* 合并 原 us + gbl + ovs + chain(传导链降为合成视图) */
+    ['v-px', '资产价格'],       /* 原 px(资产价格监控) */
   ];
   host.innerHTML = items.map((it) => '<button data-r="' + it[0] + '" type="button" style="' + (reg === it[0] ? tAct : tBase) + '">' + it[1] + '</button>').join('');
 }
@@ -13336,7 +13349,7 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
        ①删 cbExport/cbImport/cbCloudRestore 三按钮 + #cbImportFile + #cbCloudInfo 灰字（HTML+三段绑定）；
        ②成交台账(cbLedgerToggle)/设置负债等其余工具栏按钮不动；③renderCloudInfo（自带 !el 守卫）/
        cbImportFile onchange/restoreFromMirror 保留死代码，恢复入口只需还原 HTML+绑定。
-       注意：全量 DB 备份入口随之消失，台账流水仍可经总览·交易台账折叠块备份。 */  if (vc) vc.textContent = 'v697k · 删执行记录卡' /* fw2_v695_sw_cache_bust fw2_v694_dm_instr_fix fw2_v687_action_loop fw2_v687_next_plan fw2_v686_drip_pollute fw2_v686_review_role_grp fw2_v685_review_pct_netbeg fw2_v684_review_conclusion fw2_v680_review_refstyle fw2_v681_review_t2_gap fw2_v682_review_t2_rightalign fw2_v683_t2_align_t1 fw2_v678_tbl_col_harmony fw2_v677_role_col_del fw2_v676_attr_monthnav fw2_v676_attr_zero fw2_v675_num_col_widen fw2_v674_rev_breathe fw2_v673_rev_union fw2_v673_sig_retrace fw2_v669_review_tables fw2_v668_review_monthly fw2_v667_review_insight fw2_v666_tiles_bigger fw2_v665_review_tiles fw2_v664_review_rebuild fw2_v663_hero_retire fw2_v661_filter_compact fw2_v660_ui_simplify fw2_v659_backup_btns_del fw2_v658_rpt_monthnav fw2_v657_rptbar_del fw2_v656_rpt_6m fw2_v655_rpt_kpi fw2_v654_held_pf_authority fw2_v653_alloc_pile_assign fw2_v652_data_tab_removed fw2_v651_recent_hide fw2_v651_ledger_slim fw2_v651_entry_unify fw2_v650_netseries_daily fw2_v650_moneynav fw2_v649_merge_holdings fw2_v648_capbal_slim fw2_v647_netseries_fix fw2_v646_ledger_capbal fw2_v644_revert_watch_tab fw2_v643_mtbl_tier fw2_v642_a500_enh fw2_v641_peak_dd fw2_v640_buy_pct fw2_v639_del_decisionfw2_v516_a500lk fw2_v517_4otc fw2_v518_hspos fw2_v519_sm_merge fw2_v520_chgflat fw2_v521_magnet fw2_v522_overview fw2_v523_sm_dedup fw2_v524_geo_fsi fw2_v525_geo_filter fw2_v526_geo_filter_removed fw2_v527_verdict fw2_v529_smux fw2_v530_datamgmt fw2_v531_sm_dmgmt fw2_v532_all_dm fw2_v533_px_long fw2_v533d_dm_scroll fw2_v534_dm_module fw2_v535_dm_auto fw2_v539_hold_realpnl fw2_v539a_seed_sync fw2_v539a_seed_order fw2_v540_hold_path fw2_v542_pf_mirror_first fw2_v542_mv_settled fw2_v542_mv_account fw2_v543_dm_holdings_note fw2_v544_ledger_mirror_guard fw2_v545_hold_total_row fw2_v546_navdate_all fw2_v547_vix_to_ovs fw2_v548_ovs_mrg fw2_v549_region_align fw2_v550_grp_tabs fw2_v551_sop_cockpit fw2_v552_sop_taborder fw2_v553_chain_data fw2_v554_sop_rename fw2_v556_market_split fw2_v557_sm_renamed fw2_v558_cbrates_fix fw2_v558a_cb_label fw2_v559_chain_dates fw2_v560_chain_verdict fw2_v561_curve_hold fw2_v562_hold_inline fw2_v563_alloc fw2_v564_lxlink fw2_v565_cal_lx fw2_v565_sub_lx fw2_v566_fund_move fw2_v567_fund_merge fw2_v568_lxlink_fix fw2_v569_manager_pool fw2_v570_manager_universe fw2_v571_mgr_east fw2_v574_mgr_subscore fw2_v575_mgr_merge fw2_v576_mgr_group fw2_v577_mgr_lxlink fw2_v578_mgr_lxreal fw2_v579_mgr_weight fw2_v581_fund_lxreal fw2_v582_mgr_min10 fw2_v583_mgr_noyear fw2_v584_mgr_career fw2_v585_mgr_srank fw2_v586_mgr_srank fw2_v587_mgr_since fw2_v588_mgr_lxfull fw2_v589_mgr_rules fw2_v590_mgr_scores fw2_v591_mgr_ladder fw2_v592_mgr_cols fw2_v593_mgr_score fw2_anti_halluc_p0 fw2_v595_alpha_attrib fw2_v596_sig_hist fw2_v597_fund_overlap fw2_v598_mgr_hold fw2_v599_time_decay fw2_v599_corr_pen fw2_v600_buytrack fw2_v601_backtest fw2_v602_kline_page fw2_v603_old_debts fw2_v604_xirr fw2_v605_holdings_global fw2_v606_v11_signal fw2_v607_v11_bt fw2_v608_lx_audit fw2_v609_sig_table fw2_v610_sig_merge fw2_v611_grp_line fw2_v612_index_lxreal fw2_v613_near_blue fw2_v615_sig_grp fw2_v616_sig_hdstyle fw2_v617_sig_vline fw2_v618_sig_lcr fw2_v619_curthr fw2_v620_curthr_all fw2_v621_ret_hpr fw2_v621_t13_lastbuy fw2_v622_lastbuy_auto fw2_v623_firstbuy_roll fw2_v623_alloc_watch fw2_v624_m13_m17 fw2_v626_sig_cost_guard fw2_v626_watch_pe_exempt fw2_v627_colorder fw2_v627_action_plan fw2_v627_data_date fw2_v628_fixed_cols fw2_v629_pool_pile_guard fw2_v629_t9_pfdate fw2_v630_missing_cost fw2_v631_pool_held_live fw2_v632_held_off fw2_v633_ledger_tx_sync fw2_v634_plan_dir fw2_v635_capbal_fix fw2_v636_capbal_converge fw2_v637_mv_consist fw2_v638_mv_unify */ + (window.getAllocWatchCodes ? window.getAllocWatchCodes().length : 0) + '只';
+       注意：全量 DB 备份入口随之消失，台账流水仍可经总览·交易台账折叠块备份。 */  if (vc) vc.textContent = 'v697p · 宏观11→5视图收敛' /* fw2_v697p_macro_11to5 fw2_v695_sw_cache_bust fw2_v694_dm_instr_fix fw2_v687_action_loop fw2_v687_next_plan fw2_v686_drip_pollute fw2_v686_review_role_grp fw2_v685_review_pct_netbeg fw2_v684_review_conclusion fw2_v680_review_refstyle fw2_v681_review_t2_gap fw2_v682_review_t2_rightalign fw2_v683_t2_align_t1 fw2_v678_tbl_col_harmony fw2_v677_role_col_del fw2_v676_attr_monthnav fw2_v676_attr_zero fw2_v675_num_col_widen fw2_v674_rev_breathe fw2_v673_rev_union fw2_v673_sig_retrace fw2_v669_review_tables fw2_v668_review_monthly fw2_v667_review_insight fw2_v666_tiles_bigger fw2_v665_review_tiles fw2_v664_review_rebuild fw2_v663_hero_retire fw2_v661_filter_compact fw2_v660_ui_simplify fw2_v659_backup_btns_del fw2_v658_rpt_monthnav fw2_v657_rptbar_del fw2_v656_rpt_6m fw2_v655_rpt_kpi fw2_v654_held_pf_authority fw2_v653_alloc_pile_assign fw2_v652_data_tab_removed fw2_v651_recent_hide fw2_v651_ledger_slim fw2_v651_entry_unify fw2_v650_netseries_daily fw2_v650_moneynav fw2_v649_merge_holdings fw2_v648_capbal_slim fw2_v647_netseries_fix fw2_v646_ledger_capbal fw2_v644_revert_watch_tab fw2_v643_mtbl_tier fw2_v642_a500_enh fw2_v641_peak_dd fw2_v640_buy_pct fw2_v639_del_decisionfw2_v516_a500lk fw2_v517_4otc fw2_v518_hspos fw2_v519_sm_merge fw2_v520_chgflat fw2_v521_magnet fw2_v522_overview fw2_v523_sm_dedup fw2_v524_geo_fsi fw2_v525_geo_filter fw2_v526_geo_filter_removed fw2_v527_verdict fw2_v529_smux fw2_v530_datamgmt fw2_v531_sm_dmgmt fw2_v532_all_dm fw2_v533_px_long fw2_v533d_dm_scroll fw2_v534_dm_module fw2_v535_dm_auto fw2_v539_hold_realpnl fw2_v539a_seed_sync fw2_v539a_seed_order fw2_v540_hold_path fw2_v542_pf_mirror_first fw2_v542_mv_settled fw2_v542_mv_account fw2_v543_dm_holdings_note fw2_v544_ledger_mirror_guard fw2_v545_hold_total_row fw2_v546_navdate_all fw2_v547_vix_to_ovs fw2_v548_ovs_mrg fw2_v549_region_align fw2_v550_grp_tabs fw2_v551_sop_cockpit fw2_v552_sop_taborder fw2_v553_chain_data fw2_v554_sop_rename fw2_v556_market_split fw2_v557_sm_renamed fw2_v558_cbrates_fix fw2_v558a_cb_label fw2_v559_chain_dates fw2_v560_chain_verdict fw2_v561_curve_hold fw2_v562_hold_inline fw2_v563_alloc fw2_v564_lxlink fw2_v565_cal_lx fw2_v565_sub_lx fw2_v566_fund_move fw2_v567_fund_merge fw2_v568_lxlink_fix fw2_v569_manager_pool fw2_v570_manager_universe fw2_v571_mgr_east fw2_v574_mgr_subscore fw2_v575_mgr_merge fw2_v576_mgr_group fw2_v577_mgr_lxlink fw2_v578_mgr_lxreal fw2_v579_mgr_weight fw2_v581_fund_lxreal fw2_v582_mgr_min10 fw2_v583_mgr_noyear fw2_v584_mgr_career fw2_v585_mgr_srank fw2_v586_mgr_srank fw2_v587_mgr_since fw2_v588_mgr_lxfull fw2_v589_mgr_rules fw2_v590_mgr_scores fw2_v591_mgr_ladder fw2_v592_mgr_cols fw2_v593_mgr_score fw2_anti_halluc_p0 fw2_v595_alpha_attrib fw2_v596_sig_hist fw2_v597_fund_overlap fw2_v598_mgr_hold fw2_v599_time_decay fw2_v599_corr_pen fw2_v600_buytrack fw2_v601_backtest fw2_v602_kline_page fw2_v603_old_debts fw2_v604_xirr fw2_v605_holdings_global fw2_v606_v11_signal fw2_v607_v11_bt fw2_v608_lx_audit fw2_v609_sig_table fw2_v610_sig_merge fw2_v611_grp_line fw2_v612_index_lxreal fw2_v613_near_blue fw2_v615_sig_grp fw2_v616_sig_hdstyle fw2_v617_sig_vline fw2_v618_sig_lcr fw2_v619_curthr fw2_v620_curthr_all fw2_v621_ret_hpr fw2_v621_t13_lastbuy fw2_v622_lastbuy_auto fw2_v623_firstbuy_roll fw2_v623_alloc_watch fw2_v624_m13_m17 fw2_v626_sig_cost_guard fw2_v626_watch_pe_exempt fw2_v627_colorder fw2_v627_action_plan fw2_v627_data_date fw2_v628_fixed_cols fw2_v629_pool_pile_guard fw2_v629_t9_pfdate fw2_v630_missing_cost fw2_v631_pool_held_live fw2_v632_held_off fw2_v633_ledger_tx_sync fw2_v634_plan_dir fw2_v635_capbal_fix fw2_v636_capbal_converge fw2_v637_mv_consist fw2_v638_mv_unify fw2_v697p_macro_11to5 */ + (window.getAllocWatchCodes ? window.getAllocWatchCodes().length : 0) + '只';
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
