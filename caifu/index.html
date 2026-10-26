@@ -4204,6 +4204,7 @@ let state = {
   notesFilter: { kw: '', tag: '' },
 };
 const charts = {};
+const chartsOpt = {};   /* fw2_v700e_chartfix：chartOf 每图最近一次 setOption 快照（0 宽楔死实例重建重放用） */
 
 /* 在指定容器挂载 ECharts 实例（自动复用 / 释放旧实例，避免内存泄漏） */
 function mountChart(id, option) {
@@ -5204,6 +5205,12 @@ function chartOf(id) {
   if (old && !old.isDisposed() && old.getDom() === el) return old;
   if (old && !old.isDisposed()) old.dispose();
   charts[id] = echarts.init(el);
+  /* fw2_v700e_chartfix：记录每图最近一次 setOption——隐藏态 init 的 0 宽楔死实例无法用 resize 治愈
+     （实测显式宽高 resize 后 zrender 画层仍 0），唯一疗法=dispose+重新 init+重放 option（见 __mcApply 尾部 sweep） */
+  try {
+    const _so = charts[id].setOption.bind(charts[id]);
+    charts[id].setOption = function (opt, notMerge) { chartsOpt[id] = opt; return _so(opt, notMerge); };
+  } catch (e) { /* 包装失败不影响正常路径 */ }
   return charts[id];
 }
 const PIE_COLORS = ['#4D6BFE', '#ef9f27', '#0a9e6b', '#e02e24', '#7a3fd4', '#13a3b5', '#d9822b', '#5b8cff'];
@@ -14170,7 +14177,20 @@ setTimeout(() => { renderResearchChips(); if (!state.news.items.length) loadNews
     if (window.echarts && window.echarts.getInstanceByDom){
       vis.forEach(function(m){
         Array.prototype.forEach.call(m.querySelectorAll('.chart'), function(el){
-          var inst = window.echarts.getInstanceByDom(el); if(inst) inst.resize();
+          if (!el.clientWidth) return;   /* 不可见容器跳过 */
+          var inst = window.echarts.getInstanceByDom(el); if (!inst) return;
+          var cv = el.querySelector('canvas');
+          /* fw2_v700e_chartfix：隐藏态 init 的 0 宽楔死实例（.mc-mod display:none 期间 chartOf init 所致）
+             无法用 resize 治愈（实测显式宽高 resize 后画层仍 0）——dispose+重新 init+重放 option。
+             仅对有 option 快照的 chartOf 图表重建；无快照（mountChart 等其他路径）不碰，保持原状 */
+          if (chartsOpt[el.id] && (inst.getWidth() === 0 || (cv && cv.width === 0))) {
+            try {
+              var oid = el.id;
+              inst.dispose();
+              var fresh = (typeof chartOf === 'function') ? chartOf(oid) : null;
+              if (fresh) fresh.setOption(chartsOpt[oid], true);
+            } catch (e) { /* 重建失败保留原状，不影响其他卡 */ }
+          } else inst.resize();
         });
       });
     }
