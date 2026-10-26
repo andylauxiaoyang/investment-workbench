@@ -9079,216 +9079,26 @@ var FUND_LX_RAW = {"000216":"jj/000216/216","000218":"jj/000218/218","000307":"j
     }).catch(function () { k++; nxt(); });
   })();
 })();
-function renderMacroOverview(d) {
-  var C = mcCalcCommon(d);
-  mcRegisterEvidence(C);
-  /* fw2_v522_overview：实体景气证据在此单独注册（与 mi 页 renderMacroGrowth 的注册同判据同时序，
-     ov 与 mi 两侧②组证据数/顺序/方向完全一致 ⇒ 同源；不放进 mcRegisterEvidence 以免 mi 双注册） */
-  var _g = mcActOk(C.d);
-  window.mcEv('cred', _g.dir, '实体 5 项同比为正 ' + _g.ok + '/5（' + _g.txt + '）');
-  var gi = window.MI_GROUPS || [];
-  var magnets = gi.slice(0, 6).map(function (g, i) { return window.mcMagnet(g, i); }).join('');
-  var _mx = mcMatrix(C);
-  var mx = _mx.html, _SC = _mx.scores;
-  /* fw2_v527_verdict：综合读数卡置于磁铁之上（先给结论，再看证据；与 mi 页磁铁/明细同逻辑）。 */
-  var vd = mcVerdict(C, _SC);
-  var _as = mcOvAsOf(d);
-  var sopSteps = [
-    ['① 总览定位', 'ov', null, '六磁铁 + 联动矩阵 ⇒ 周期位置'],
-    ['② 中国 · 赔率与盈利', 'val', null, '估值 / 信用 / 流动性'],
-    ['③ 海外 · 顺逆风', 'ovs', null, '约束 / 美国 / 全球'],
-    ['④ 资产与情绪', 'px', null, '价格全景 + 情绪极值'],
-    /* fw2_v527b_step5：第⑤步原为 ['ov', null] 自指跳转（点了回到周期总览自己、无产出）；
-       改为跨 view 跳「策略执行」——周期判断汇成动作的正确落点（资产配置/执行卡/定投/复盘）。 */
-    ['⑤ 汇成动作', 'STRAT', null, '策略执行 · 资产配置 / 定投 / 执行卡'],
-  ];
-  var sop = '<div class="mc-ov-sop"><b>五步阅读法</b>' + sopSteps.map(function (st, i) {
-    /* 跨 view 哨兵 'STRAT' → showView('strategy')；其余仍走 __mcGo(region[, group])。 */
-    if (st[1] === 'STRAT') {
-      return '<span class="mc-ov-step" onclick="window.showView(\'strategy\')"><i>' + st[0] + '</i><em>' + esc(st[3]) + '</em></span>';
-    }
-    return '<span class="mc-ov-step' + (i === 0 ? ' on' : '') + '" onclick="window.__mcGo(\'' + st[1] + '\'' + (st[2] != null ? ',' + st[2] : '') + ')"><i>' + st[0] + '</i><em>' + esc(st[3]) + '</em></span>';
-  }).join('') + '</div>';
-  return '<div class="card"><div class="card-h"><h3>周期总览 · 六磁铁与联动矩阵</h3>'
-    + '<span class="hint">fw2_v522_overview：L1 总览层——磁铁与各明细页 100% 同源（mcRegisterEvidence 同一函数注册）；矩阵卡＝跨组组合指标。数据截至 ' + esc((d && d.updatedAt) || '—') + ' · 点步骤条可跳转明细</span></div>'
-    + sop
-    + vd
-    + '<div class="mc-ov-grid">' + magnets + '</div>'
-    + '<div class="mc-ov-grid mc-ov-mx">' + mx + '</div>'
-    + '</div>';
-}
-/* fw2_v551_sop_cockpit：⑦判读SOP 升级为「研读驾驶舱」——指引直接带现状结果+判断+链接原始数据。
-   纯前端结构改动、零新增数据源：所有判断词复用 mcCalcCommon/mcVerdict/mcMagnet 既有判读口径（100% 同源，数字与明细页一致）；
-   无数据节点如实标「待接」不臆造读数；未来=领先指标方向（信用脉冲领先社融、韩国出口领先电子），无前瞻数据标「—」。
-   研读顺序＝用户确认版：定调(ov)→方法(sop)→中国周期(cn)→①估值→②信用→③情绪→美国周期→海外景气→④海外约束→资产价格→市场情绪。 */
-function renderMacroSop(d, C) {
+/* fw2_v697q_cockpit：研读驾驶舱以"周期总览卡"形式接回 v-cycle 顶部（替代原独立 sop 页）。
+   仅保留独特价值——①定调矩阵 + 六磁铁 + 联动矩阵（一眼看全周期位置）+ 研读顺序导航条；
+   逐条判读行（②中国决策 / ③海外约束 / ④结果验证）已被 5 视图覆盖，省略以免重复。
+   不在此注册证据——主路径 renderMacro 已先 mcRegisterEvidence（磁铁读 __MC_EV 即可），重复注册会翻倍。 */
+function renderMacroCockpit(C) {
   C = C || {};
-  if (typeof mcRegisterEvidence === 'function') mcRegisterEvidence(C);
-  /* fw2_v555_ov_merge：①段六磁铁含 cred 组——补注册实体景气证据（原 ov 页 renderMacroOverview 单独注册，同判据同时序） */
-  if (typeof mcActOk === 'function') { var _gEnt = mcActOk(C.d); if (_gEnt && _gEnt.ok != null) window.mcEv('cred', _gEnt.dir, '实体 5 项同比为正 ' + _gEnt.ok + '/5（' + _gEnt.txt + '）'); }
-  var cCur = C.cCur || {}, cnM = (d && d.cnMacro) || {}, _us = (C.ushf && C.ushf.krExport) || {};
-  var ePct = C.ePct, peL2 = (C.peLast && C.peLast[2] != null) ? C.peLast[2] : null;
-  var gap = cCur.gap, m2y = cCur.m2, mk = C.mk;
-  var zbPct = C.zbPct, aPct = C.aPct;
-  var pce = (C.ushfPce && C.ushfPce.corePceYoy != null) ? C.ushfPce.corePceYoy : null;
-  var ism = (C.ismMfg && C.ismMfg.value != null) ? C.ismMfg.value : null;
-  var ics = (C.ushfIC && C.ushfIC.avg4w != null) ? C.ushfIC.avg4w : null;
-  var ur = (C.ushfUR && C.ushfUR.cur != null) ? C.ushfUR.cur : null;
-  var usRet = (C.ushfRet && C.ushfRet.cur != null) ? C.ushfRet.cur : null;
-  var vL = C.vL, fxGate = C.fxGate || '—', badCnt = C.badCnt, spxPct = C.spxPct;
-  var fL = C.fL, uL = C.uL, tL = C.tL, fChg = C.fChg, uChg = C.uChg;
-  var crPts = C.cr || [], crLast = crPts.length ? crPts[crPts.length - 1] : null;
-  var f = function (v, n) { return v == null ? '—' : fmtNum(v, (n == null ? 1 : n)); };
-  var pctv = function (v) { return v == null ? '—' : f(v, 1) + '%'; };
-  var cnV = function (k) { var v = cnM[k]; if (!v || v.value == null) return null; if (v.pct) return (v.value * v.scale).toFixed(1) + '%'; return (v.value * v.scale).toFixed(1); };
-  function trendRev(points, back) { var p = points && points.slice(); if (!p) return null; p.reverse(); return trend(p, back); }
-  /* 同比类序列（fai/retail/export 为同比百分数）不能套比率 trend，改用「较6期前 ±X pct」点差 */
-  function trendRevDelta(points, back) {
-    var p = points && points.slice(); if (!p) return null; p.reverse();
-    var n = p.length; if (n < 3) return null;
-    var p0 = p[Math.max(0, n - 1 - (back || 6))][1], p1 = p[n - 1][1];
-    if (p0 == null || p1 == null) return null;
-    var dd = (p1 - p0) * 100;
-    return dd > 0.05 ? '较6期前 ↑ ' + f(dd, 1) + 'pct' : dd < -0.05 ? '较6期前 ↓ ' + f(Math.abs(dd), 1) + 'pct' : '较6期前 → 持平';
-  }
-  /* 传导链补强：费半/台积电(ADR) 腾讯行情 + 科创50 快照/长序列 + 中美利差（工作台已有数据） */
-  var ce = (d && d.chainExtra) || {};
-  var ceTxt = function (k) { var o = ce[k]; if (!o || o.price == null) return null; return o.name + ' ' + f(o.price, 2) + (o.chgPct != null ? '（' + f(o.chgPct, 1) + '%）' : ''); };
-  var kcSnap = (state.snapshot && state.snapshot.quotes) || {};
-  var kc = kcSnap['sh000688'] || {};
-  var kcTxt = (kc.price != null) ? '科创50 ' + f(kc.price, 2) + ((kc.pct != null) ? '（' + f(kc.pct, 2) + '%）' : '') : null;
-  var plKc = (d.pxLong && d.pxLong.items && d.pxLong.items.kc50 && d.pxLong.items.kc50.points) || [];
-  var kcTrend = plKc.length > 8 ? trend(plKc, 6) : null;
-  var fxPts = (C.fx && C.fx.points) || [];
-  var us10Pts = []; for (var _i = 0; _i < fxPts.length; _i++) { if (fxPts[_i] && fxPts[_i][3] != null) us10Pts.push([fxPts[_i][0], fxPts[_i][3]]); }
-  var us10Trend = trend(us10Pts, 6);
-  var cn10b = (d.erp && d.erp.cur && d.erp.cur.y10 != null) ? d.erp.cur.y10 : null;
-  var spread = (tL != null && cn10b != null) ? (tL - cn10b) : null;
-  var spreadTxt = spread == null ? null : '利差 ' + f(spread, 2) + 'pct（美债10Y ' + f(tL, 2) + '% − 中债10Y ' + f(cn10b, 2) + '%）';
-  var spreadV = spread == null ? null : (spread > 0.5 ? '正利差·美元资产吸金' : spread < -0.5 ? '负利差·人民币资产吸金' : '利差中性');
-  /* 趋势 helper：末点 vs 前 N 期（序列 points 取 [1] 列） */
-  function trend(points, back) {
-    if (!points || points.length < 3) return null;
-    var n = points.length, p0 = points[Math.max(0, n - 1 - (back || 6))][1], p1 = points[n - 1][1];
-    if (p0 == null || p1 == null || p0 === 0) return null;
-    var dd = (p1 / p0 - 1) * 100;
-    return dd > 0.5 ? '↑ ' + f(dd, 1) + '%' : dd < -0.5 ? '↓ ' + f(dd, 1) + '%' : '→ 持平';
-  }
-  /* 上证快照 + 10 年收益 + 市场宽度（与 px/sm 页同源） */
-  var q = (state.snapshot && state.snapshot.quotes) || {};
-  var sq = q['sh000001'] || {};
-  var sziTxt = (sq.price != null) ? f(sq.price, 2) + ((sq.pct != null) ? '（' + f(sq.pct, 2) + '%）' : '') : null;
-  var szi10 = null;
-  var plSzi = (d.pxLong && d.pxLong.items && d.pxLong.items.szi && d.pxLong.items.szi.points) || [];
-  if (plSzi.length > 120) { var _a = plSzi[plSzi.length - 121][1], _b = plSzi[plSzi.length - 1][1]; if (_a) szi10 = (_b / _a - 1) * 100; }
-  var mkb = (state.snapshot && state.snapshot.market) || {};
-  var upPctW = (mkb.up + mkb.down) ? mkb.up / (mkb.up + mkb.down) * 100 : null;
-  var cn10v = (d.erp && d.erp.cur && d.erp.cur.y10 != null) ? d.erp.cur.y10 : null;
-  /* 六磁铁方向计数（__MC_EV 同源） */
-  function mgc(id) { var ev = (window.__MC_EV && window.__MC_EV[id]) || []; var p = 0, n = 0, i; for (i = 0; i < ev.length; i++) { if (ev[i].dir > 0) p++; else if (ev[i].dir < 0) n++; } return { p: p, n: n }; }
-  var mVal = mgc('val'), mCre = mgc('cred'), mMoo = mgc('mood'), mOvs = mgc('ovs'), mUs = mgc('us'), mGbl = mgc('gbl');
-  var tP = mVal.p + mCre.p + mMoo.p + mOvs.p + mUs.p + mGbl.p, tN = mVal.n + mCre.n + mMoo.n + mOvs.n + mUs.n + mGbl.n;
-  /* 判断词（与 mcRegisterEvidence/mcCalcCommon 同判据的简化词，不新造口径） */
-  var vErp = ePct == null ? '—' : (ePct >= 75 ? '偏便宜·增配' : ePct >= 50 ? '均衡偏股' : ePct >= 25 ? '均衡偏债' : '偏贵·减配');
-  var vPe = peL2 == null ? '—' : (peL2 >= 80 ? '偏贵' : peL2 >= 60 ? '中性偏暖' : peL2 >= 40 ? '中性' : peL2 >= 20 ? '中性偏冷' : '便宜');
-  var vGap = gap == null ? '—' : (gap >= 0 ? '扩张·顺风' : gap >= -2 ? '收敛观察' : '收缩·逆风');
-  var vPmi = mk == null ? '—' : (mk >= 50 ? '扩张（≥50）' : mk < 49 ? '收缩（<49）' : '荣枯线附近');
-  var vMoo = ((zbPct != null && zbPct > 90) || (aPct != null && aPct > 90)) ? '过热·防御' : ((zbPct != null && zbPct < 10) || (aPct != null && aPct < 10)) ? '冰点·逆向关注' : '中性·正常节奏';
-  var vPce = pce == null ? '—' : (pce > 2.5 ? '通胀偏热·逆风' : pce < 2 ? '通胀温和' : '2-2.5 区间');
-  var vIsm = ism == null ? '—' : (ism < 50 ? 'ISM 收缩' : 'ISM 扩张');
-  var vKr = _us.yoy == null ? '—' : (_us.yoy >= 5 ? '扩张（>5%）' : _us.yoy <= -5 ? '收缩（<-5%）' : '中性（-5~5%）');
-  var vFx = fxGate === '顺风' ? '顺风' : fxGate === '警惕·半档' ? '警惕' : '逆风·防御';
-  var vBrd = upPctW == null ? '—' : (upPctW >= 50 ? '偏多' : '偏空');
-  /* 组件 */
-  function row(label, read, verdict, vcls, region) {
-    var vc = vcls === 'pos' ? '#0d9f4d' : vcls === 'neg' ? '#dc2626' : (verdict && verdict !== '—' ? '#b45309' : '#475569');
-    return '<div class="rv-line" style="display:flex;flex-wrap:wrap;align-items:baseline;gap:6px">'
-      + '<span class="tag tag-data">' + esc(label) + '</span>'
-      + '<span style="font-weight:600;color:var(--ink,#0f172a)">' + (read == null || read === '—' ? '—' : esc(read)) + '</span>'
-      + (verdict && verdict !== '—' ? '<span style="font-size:12px;color:' + vc + ';font-weight:600">' + esc(verdict) + '</span>' : '')
-      + (region ? '<span style="cursor:pointer;color:var(--nav-blue,#2f6bff);font-size:12px;font-weight:600" onclick="window.__mcGo(\'' + region + '\')">↗ ' + region + '</span>' : '')
-      + '</div>';
-  }
-  function node(name, o) {
-    var wait = o.tag === 'wait';
-    var bg = wait ? '#fff7ed' : '#f0fdf4', bd = wait ? '#fcd9a8' : '#bbe7c8', tc = wait ? '#b45309' : '#0d9f4d';
-    return '<div style="background:' + bg + ';border:1px solid ' + bd + ';border-radius:8px;padding:7px 9px;min-width:128px;max-width:196px;flex:1 1 128px;font-size:11px;line-height:1.55">'
-      + '<div style="font-weight:700;color:var(--ink,#0f172a);font-size:12px">' + esc(name) + LXMAP.ic(LXMAP.index(name) || LXMAP.macro(name), '理杏仁/数据源') + ' <span style="font-size:10px;color:' + tc + ';font-weight:600">●' + (wait ? '待接' : '数据') + '</span></div>'
-      + '<div style="color:#374151;margin-top:3px"><b>现状</b> ' + (o.now == null ? '—' : esc(o.now)) + '</div>'
-      + '<div style="color:#374151"><b>过去</b> ' + (o.past == null ? '—' : esc(o.past)) + '</div>'
-      + '<div style="color:#374151"><b>未来</b> ' + (o.future == null ? '—' : esc(o.future)) + '</div>'
-      + (o.asOf ? '<div style="margin-top:2px;color:#64748b;font-size:10px;font-weight:600">数据截至 ' + esc(o.asOf) + '</div>' : '')
-      + (o.link ? '<div style="margin-top:3px"><span style="cursor:pointer;color:var(--nav-blue,#2f6bff);font-weight:600" onclick="window.__mcGo(\'' + o.link + '\')">↗ 原始数据</span></div>' : '<div style="margin-top:3px;color:#9ca3af">传导：' + esc(o.flow || '—') + '</div>')
-      + '</div>';
-  }
-  function arr() { return '<div style="align-self:center;color:#9ca3af;font-weight:700;flex:none;padding:0 1px">→</div>'; }
-  function chain(title, inner) {
-    return '<div style="background:#fff;border:1px solid #e3e8ef;border-radius:10px;padding:10px 12px;margin-bottom:10px">'
-      + '<div style="font-size:13px;font-weight:700;color:var(--slate-700,#334155);margin-bottom:8px">' + esc(title) + '</div>'
-      + '<div style="display:flex;flex-wrap:wrap;align-items:stretch;gap:5px">' + inner + '</div></div>';
-  }
-  /* fw2_v560_chain_verdict：每条传导链末尾的「链结论」卡——传导结果方向（由链上关键读数动态判，可复算）
-      + 对宏观经济的影响 + 依据读数；与各明细 tab 同源（引用同一组 cnV/趋势/读数变量，不新造口径）。 */
-  function vd(dir, txt, macro, ev) {
-    var col = dir > 0 ? '#0d9f4d' : dir < 0 ? '#dc2626' : '#b45309';
-    var bg = dir > 0 ? '#f0fdf4' : dir < 0 ? '#fef2f2' : '#fffbeb';
-    var bd = dir > 0 ? '#bbe7c8' : dir < 0 ? '#fecaca' : '#fde68a';
-    var lbl = dir > 0 ? '扩张 / 偏多' : dir < 0 ? '收缩 / 偏空' : '中性 / 僵持';
-    return '<div style="background:' + bg + ';border:1px solid ' + bd + ';border-radius:8px;padding:8px 10px;margin:-4px 0 10px;font-size:12px;line-height:1.65">'
-      + '<div style="font-weight:700;color:var(--ink,#0f172a)">链结论 <span style="font-size:11px;color:' + col + ';font-weight:700">' + lbl + '</span></div>'
-      + '<div style="color:#374151;margin-top:2px">' + esc(txt) + '</div>'
-      + '<div style="color:#475569;margin-top:3px"><b>对宏观：</b>' + esc(macro) + '</div>'
-      + '<div style="color:#94a3b8;margin-top:3px;font-size:11px">依据 ' + esc(ev) + '</div>'
-      + '</div>';
-  }
-  /* 传导链数据（现状=最新读数；过去=序列近6期趋势；未来=领先指标方向，无前瞻标「—」；无数据节点标待接不臆造；
-     ★fw2_v559_chain_dates：每节点标注「数据截至」日期（数据日期），滞后一目了然；银行信贷/韩国设备材料/产能利用率
-     转数据（代理口径明确标注），东南亚组装/订单回流保持待接并更新探源说明） */
-  var crDir = crLast ? (crLast[1] >= 0 ? '扩张' : '收缩') : '—';
-  var _sl = function (s) { return s ? String(s).slice(0, 10) : null; };
-  var _m2A = _sl(cnM.m2 && cnM.m2.asOf), _sfA = _sl(cnM.sf && cnM.sf.asOf),
-      _faiA = _sl(cnM.fai && cnM.fai.asOf), _retA = _sl(cnM.retail && cnM.retail.asOf),
-      _expA = _sl(cnM.export && cnM.export.asOf),
-      _erpA = (C.erp && C.erp.length) ? C.erp[C.erp.length - 1][0] : null,
-      _peA = (C.peLast && C.peLast.length) ? C.peLast[0] : null,
-      _pmA = (C.pmLast && C.pmLast[0]) || null,
-      _pceA = _sl(C.ushfPce && (C.ushfPce.updatedAt || C.ushfPce.corePceDate)),
-      _icA = _sl(C.ushfIC && (C.ushfIC.updatedAt || C.ushfIC.curDate)), _urA = _sl(C.ushfUR && (C.ushfUR.updatedAt || C.ushfUR.curDate)),
-      _urtA = _sl(C.ushfRet && (C.ushfRet.updatedAt || C.ushfRet.curDate)),
-      _fxA = (C.fx && C.fx.length) ? C.fx[C.fx.length - 1][0] : null,
-      _prA = (C.price && C.price.length) ? C.price[C.price.length - 1][0] : null,
-      _viA = (C.vix && C.vix.length) ? C.vix[C.vix.length - 1][0] : null,
-      _cbA = _sl(C.cbRates && C.cbRates.updatedAt),
-      _soA = _sl(ce.soxx && ce.soxx.asOf), _tsA = _sl(ce.tsm && ce.tsm.asOf),
-      _ucA = _sl(ce.usCapu && ce.usCapu.asOf), _krA = _sl(_us && _us.asOf),
-      _spxLast = (C.spxPts && C.spxPts.length) ? C.spxPts[C.spxPts.length - 1] : null,
-      _spxA = _spxLast ? _spxLast[0] : null;
-  var _snapAt = state.snapshot && state.snapshot.at;
-  var _snapA = _snapAt ? (_snapAt.getFullYear() + '-' + ('0' + (_snapAt.getMonth() + 1)).slice(-2) + '-' + ('0' + _snapAt.getDate()).slice(-2)) : null;
-
-  /* ① 定调：综合读数 + 六磁铁计数 */
   var _mx = (typeof mcMatrix === 'function') ? mcMatrix(C) : { scores: {}, cards: {} };
   var vdCn = (typeof mcVerdict === 'function') ? mcVerdict(C, _mx.scores, 'cn') : '';
   var vdOvs = (typeof mcVerdict === 'function') ? mcVerdict(C, _mx.scores, 'ovs') : '';
-  /* fw2_v556_market_split：中国/全球分栏——磁铁按 geo 分（val/cred/mood=中国，ovs/us/gbl=全球），矩阵按市场取 2 卡 */
   var _gi2 = window.MI_GROUPS || [];
   var _magCn = _gi2.slice(0, 3).map(function (g, i) { return window.mcMagnet(g, i); }).join('');
   var _magOvs = _gi2.slice(3, 6).map(function (g, i) { return window.mcMagnet(g, i + 3); }).join('');
   var _mxCards = (_mx && _mx.cards) || {};
   var _mxCn = (_mxCards.odds || '') + (_mxCards.earn || '');
   var _mxOvs = (_mxCards.risk || '') + (_mxCards.ovs || '');
-  var magnetLine = 'A股估值 ' + mVal.p + '正' + mVal.n + '负 · 信用 ' + mCre.p + '正' + mCre.n + '负 · 情绪 ' + mMoo.p + '正' + mMoo.n + '负 · 海外 ' + mOvs.p + '正' + mOvs.n + '负 · 美国 ' + mUs.p + '正' + mUs.n + '负 · 全球 ' + mGbl.p + '正' + mGbl.n + '负 · 合计 ' + tP + ' 正 / ' + tN + ' 负';
-  /* 研读顺序条 */
-  var seq = [['方法', 'sop'], ['中国周期', 'cn'], ['估值', 'val'], ['信用', 'cred'], ['情绪温度', 'mood'], ['美国周期', 'us'], ['海外景气', 'gbl'], ['海外约束', 'ovs'], ['资产价格', 'px'], ['情绪全景', 'sm']];   /* fw2_v555_ov_merge：删『定调』节点（定调并入驾驶舱本页），研读顺序条 10 节点 */
+  var seq = [['中国周期','cn'],['估值','val'],['信用','cred'],['情绪温度','mood'],['美国周期','us'],['海外景气','gbl'],['海外约束','ovs'],['资产价格','px'],['情绪全景','sm']];
   var seqHtml = '<div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center">' + seq.map(function (s) {
     return '<span style="cursor:pointer;padding:4px 10px;border-radius:8px;border:1px solid var(--line-mid,#d8dee6);background:var(--panel-3,#f1f5f9);color:var(--slate-600,#475569);font-size:12px;font-weight:600" onclick="window.__mcGo(\'' + s[1] + '\')">' + s[0] + '</span>';
   }).join('<span style="color:#9ca3af;flex:none">→</span>') + '</div>';
-  return '<div class="dc-us-wrap">'
-    + '<div class="card"><div class="card-h"><h3>研读驾驶舱</h3><span class="hint">数据截至 ' + esc((d && d.updatedAt) || '—') + ' · 不构成投资建议</span></div>' /* fw2_v660_ui_simplify：机制说明删除 */
-    + '<div style="margin-bottom:10px">' + seqHtml + '</div>'
-    + '<div style="font-size:12px;color:var(--slate-500,#64748b);line-height:1.7">研读顺序：<b>定调与方法</b>（研读驾驶舱本页一体）→ <b>中国决策</b>（中国周期→估值→盈利→温度）→ <b>海外约束</b>（美国→全球→顺逆风）→ <b>结果验证</b>（资产价格→情绪全景）。点步骤条直达各 tab。</div>'
-    + '</div>'
-    + '<div class="card"><div class="card-h"><h3>① 定调 · 周期位置</h3><span class="hint">中国 / 全球分栏 · 各市场独立读数与联动矩阵（fw2_v556_market_split：两个不同市场零融合）</span></div>'
+  return '<div class="card"><div class="card-h"><h3>周期总览 · 定调矩阵</h3><span class="hint">中国 / 全球分栏 · 各市场独立读数与联动矩阵 · 不构成投资建议</span></div>'
     + '<div class="mc-mkt"><div class="mc-mkt-h"><b>中国 · 周期位置</b><span class="mc-mkt-geo">中国指标</span><span class="mc-mkt-d">估值 → 信用 → 情绪（val/cred/mood 同源判读）</span></div>'
     + vdCn
     + '<div class="mc-ov-grid">' + _magCn + '</div>'
@@ -9299,22 +9109,7 @@ function renderMacroSop(d, C) {
     + '<div class="mc-ov-grid">' + _magOvs + '</div>'
     + '<div class="mc-ov-grid mc-ov-mx">' + _mxOvs + '</div>'
     + '</div>'
-    + '</div>'
-    + '<div class="card"><div class="card-h"><h3>② 中国决策</h3><span class="hint">估值 → 盈利 → 温度（val/cred/mood tab 同源判读）</span></div>'
-    + row('估值', 'ERP 分位 ' + pctv(ePct) + ' · 沪深300 PE 分位 ' + pctv(peL2), vErp + ' · ' + vPe, (ePct >= 75 || peL2 < 20) ? 'pos' : ((ePct < 25 || peL2 >= 80) ? 'neg' : 'div'), 'val')
-    + row('盈利', 'M1−M2 剪刀差 ' + f(gap) + 'pct · 制造业 PMI ' + f(mk), vGap + ' · ' + vPmi, (gap >= 0 || mk >= 50) ? 'pos' : ((gap < -2 || mk < 49) ? 'neg' : 'div'), 'cred')
-    + row('情绪温度', '两融占比分位 ' + pctv(zbPct) + ' · 成交额分位 ' + pctv(aPct) + ' · 全A成交 ' + (C.amtDtxt || '—'), vMoo, ((zbPct != null && zbPct < 10) || (aPct != null && aPct < 10)) ? 'pos' : (((zbPct != null && zbPct > 90) || (aPct != null && aPct > 90)) ? 'neg' : 'div'), 'mood')
-    + '</div>'
-    + '<div class="card"><div class="card-h"><h3>③ 海外约束</h3><span class="hint">美国基本盘 → 全球动能 → 顺逆风开关（us/gbl/ovs tab 同源判读）</span></div>'
-    + row('美国', '核心PCE ' + f(pce) + '% · ISM 制造 ' + f(ism) + ' · 初请4周 ' + (ics != null ? f(ics / 1000, 1) + ' 万' : '—'), vPce + ' · ' + vIsm, (pce < 2 || ism >= 50) ? 'pos' : ((pce > 2.5 || ism < 50) ? 'neg' : 'div'), 'us')
-    + row('全球', '韩国出口同比 ' + (_us.yoy != null ? f(_us.yoy) + '%' : '—'), vKr, (_us.yoy >= 5) ? 'pos' : ((_us.yoy <= -5) ? 'neg' : 'div'), 'gbl')
-    + row('约束', 'VIX ' + f(vL, 2) + ' · 外围红绿灯 ' + fxGate + '（' + badCnt + '/3） · 标普 PE 分位 ' + pctv(spxPct), vFx, fxGate === '顺风' ? 'pos' : (fxGate.indexOf('逆风') >= 0 ? 'neg' : 'div'), 'ovs')
-    + '</div>'
-    + '<div class="card"><div class="card-h"><h3>④ 结果验证</h3><span class="hint">资产位置与情绪映射（px/sm 页同源）</span></div>'
-    + row('资产', '上证指数 ' + (sziTxt || '—') + ' · 10年收益 ' + (szi10 != null ? f(szi10) + '%' : '—'), null, null, 'px')
-    + row('情绪全景', '市场宽度（上涨占比）' + (upPctW != null ? f(upPctW) + '%' : '数据未加载'), vBrd, upPctW == null ? null : (upPctW >= 50 ? 'pos' : 'neg'), 'sm')
-    + '<div class="rv-line"><span class="tag tag-ai">动作</span><span style="cursor:pointer;color:var(--nav-blue,#2f6bff);font-weight:600" onclick="window.showView(\'strategy\')">→ 汇成动作：策略执行（资产配置 / 定投 / 执行卡）</span></div>'
-    + '</div>'
+    + '<div style="margin-top:10px"><div style="font-size:12px;color:var(--slate-500,#64748b);margin-bottom:6px">研读顺序（点步骤直达各视图）</div>' + seqHtml + '</div>'
     + '</div>';
 }
 /* fw2_v697_chain_tab：传导链从研读驾驶舱抽出为独立子模块（tab），排在情绪全景(sm)之后。
@@ -9536,8 +9331,7 @@ function renderMacro() {
   if (_region === 'chain') { if (typeof mcRegisterEvidence === 'function') mcRegisterEvidence(mcCalcCommon(d)); body.innerHTML = renderChain(d); return; }
   /* fw2_v432 资产价格监控：19 项全景 · 磁贴+分区表+弹层走势 · 周期/持仓/信号三联动 */
   if (_region === 'px' || _region === 'v-px') { renderPriceMon(d); return; }
-  /* fw2_v551_sop_cockpit：⑦判读SOP 升级为研读驾驶舱（指引+现状+判断+链接）——直接渲染 renderMacroSop，不再走大模板三步法静态卡（旧静态卡无显示路径）；证据注册先于渲染（①定调需 __MC_EV 磁铁计数） */
-  if (_region === 'sop' || _region === 'ov') { mcRegisterEvidence(C); body.innerHTML = renderMacroSop(d, C); return; }   /* fw2_v555_ov_merge：ov 残留兼容（旧 localStorage 值落驾驶舱） */
+  /* fw2_v697q：sop/ov 分支随 renderMacroSop 删除一并清理（函数已删，且 v697p 后 _region 恒为 v-*，该分支本就不可达）；研读驾驶舱以"周期总览卡"形式接回 v-cycle（见 renderMacroCockpit） */
   /* fw2_v463_growth：mh「宏观硬指标」独立 tab 已删（并入 mi 的「实体景气」区，见 renderMacroGrowth） */
   const nkyVal = nky && nky.val != null ? nky.val : null;
   const nkyChg = nky && nky.chgPct != null ? nky.chgPct : null;
@@ -10183,6 +9977,11 @@ body.innerHTML = ((_region === 'cn' || _region === 'v-cycle') ? renderMacroTools
     if (typeof renderMacroUSCharts === 'function') renderMacroUSCharts();
     if (typeof renderMacroGblCharts === 'function') renderMacroGblCharts();
   }
+  /* fw2_v697q：v-cycle 顶部追加"周期总览卡"（研读驾驶舱回归），前置到母模板最前 */
+  if (_region === 'v-cycle' || _region === 'cn') {
+    var _cp = (typeof renderMacroCockpit === 'function') ? renderMacroCockpit(C) : '';
+    if (_cp) body.innerHTML = _cp + body.innerHTML;
+  }
   if (window.__mcApply) window.__mcApply();
 }
 (function bindMacroWin() {
@@ -10465,64 +10264,6 @@ function renderMacroGrowth(d) {
     + '<div style="display:flex;flex-wrap:wrap">' + cards + '</div>'
     + '<div class="rv-line"><span class="tag tag-ai">指向</span><span><b>' + growthLvl + '</b> · 5 项同比为正 <b>' + _actOk + '/5</b>（' + _actTxt + '）</span></div>'
     + '<div class="rv-line"><span class="tag tag-data">阈值</span><span>判据＝五项同比为正的项数：<b>≥4</b> 偏强 · <b>2–3</b> 分化 · <b>≤1</b> 偏弱（累计同比口径，滞后约 1 个月；70城房价为价格背景不计入）</span></div></div>';
-}
-function renderMacroHard(d) {
-  /* fw2_v462_pmi：宏观硬指标接统计局官方制造业/非制造业PMI（东财 RPT_ECONOMY_PMI，gen_macro_em.py get_pmi → macroEm.pmiMfg/pmiSvc），替代商业授权的财新PMI；失业率维持留白（统计局WAF+东财无镜像）。
-     fw2_v461_nbs：宏观硬指标 v461——「其他源补充」区扩到双源：腾讯自选股(westock) 工业增加值/核心PCE/ISM制造业+非制造业PMI(macroAlt) + 东方财富(东财T2转发统计局) 70城房价(macroEm)。
-     原理杏仁未授权 ip 灰显卡不再渲染。
-     ★源状态按 2026-10-12 复核分三类（勿再把已接通的源写成"无源"，注释错了会误导后续判断）：
-       (A)【已接通】FRED 官方 CSV 端点 fredgraph.csv?id=SERIES_ID——2026-10-12 复测 UMCSENT 返回 200 且可用（curl --noproxy 直取）；已接入全球周期页「消费者信心」卡。旧注「FRED 已下架 404」为过期断言，即日作废。同端点实测谘商会 CCSENT 返回 404 反爬 HTML，仍缺源。
-       (B)【复测确认缺源，卡片已由「待通」改标「缺源」并写明证据，不编造】BDI 波罗的海干散货：stooq 返回 JS 浏览器挑战页 · FRED BALTICDRY 返回反爬 HTML（该序列不存在）· 东财 push2 无此标的 · 东财数据中心无对应报表。日银短观 Tankan：BOJ 官网 tk/ 与 tankan/ 路径均 404（站点结构与旧文档不符）、stat-search 仅返检索表单页（需会话参数、无公开机读接口）。
-       (C)【本轮未复测，沿用既有结论】财新PMI（商业授权）· 失业率（统计局 WAF + 东财无镜像）· 北向资金。待接入清单保留。
-     每卡标注 asOf(数据截至) + 来源；自算/自乘口径在 src 已注。 */
-  const cn = (d && d.cnMacro) || {};
-  const us = (d && d.usMacro) || {};
-  const alt = (d && d.macroAlt) || {};
-  const em = (d && d.macroEm) || {};
-  const fmt = function (v) {
-    if (!v || v.value == null) return '—';
-    if (v.pct) return (v.value * v.scale).toFixed(2) + '%';
-    if (v.unit) return (v.value * v.scale).toFixed(2) + ' ' + v.unit;
-    return (v.value * v.scale).toFixed(2);
-  };
-  const card = function (k, v) {
-    if (!v) return '';
-    const dis = v.available ? '' : 'opacity:.5;border-style:dashed;';
-    return '<div style="display:inline-block;vertical-align:top;width:180px;margin:5px;padding:14px 14px 12px;border:1px solid #e3e8ef;border-radius:12px;background:#fff;box-shadow:0 1px 3px rgba(20,40,80,.05);' + dis + '">'
-      + '<div style="font-size:12px;color:var(--slate-500,#64748b);min-height:32px;line-height:1.35">' + esc(v.label) + LXMAP.ic(LXMAP.macro(v.label) || LXMAP.index(v.label), '理杏仁/数据源') + '</div>'
-      + '<div style="font-size:23px;font-weight:700;color:var(--slate-800,#1e293b);margin-top:6px;font-variant-numeric:tabular-nums">' + fmt(v) + '</div>'
-      + '<div class="asof" style="margin-top:9px;line-height:1.45;display:flex;flex-direction:column;align-items:flex-start">数据截至 <b>' + (v.asOf || '—') + '</b><span>' + esc(v.src) + '</span></div>'
-      + '</div>';
-  };
-  const cnOrder = ['gdp', 'retail', 'fai', 'export', 'cpi', 'coreCpi', 'ppi', 'pmi', 'm2', 'sf', 'rrr', 'fxRes'];
-  const usOrder = ['cpi', 'ppi', 'gdp', 'unemp'];
-  const altOrder = ['ip', 'corePce', 'ismMfg', 'ismSvc'];
-  const emOrder = ['pmiMfg', 'pmiSvc', 'house70'];
-  let cnCards = '', usCards = '', altCards = '', emCards = '';
-  cnOrder.forEach(function (k) { cnCards += card(k, cn[k]); });
-  usOrder.forEach(function (k) { usCards += card(k, us[k]); });
-  altOrder.forEach(function (k) { altCards += card(k, alt[k]); });
-  emOrder.forEach(function (k) { emCards += card(k, em[k]); });
-  const todo = [
-    '中国城镇调查失业率 / 16-24岁青年失业率（统计局站 WAF 拦截本环境无法直取；东财无对应 reportName）→ 留白',
-    '财新PMI（财新·Markit 商业授权，非统计局序列）→ 已用统计局官方制造业/非制造业PMI替代（东财 RPT_ECONOMY_PMI，见下）',
-    '北向资金净流入（交易所2024起停更日度净买入；westock 仅持股持仓）',
-    'BDI干散货运价（无合规机读源）',
-    '日银短观(Tankan)（外部通道冻结）',
-    'FRED 宏微观数据通道：★2026-10-12 复测已解冻——fredgraph.csv 官方端点可 curl --noproxy 直取，已接入 UMCSENT 密歇根消费者信心（见全球周期页）；谘商会 CCSENT 实测 404（返回反爬 HTML）仍缺源'
-  ];
-  let h = '<div style="max-width:980px">';
-  h += '<div style="margin:4px 0 14px"><h3 style="margin:0 0 4px;font-size:16px;color:var(--slate-800,#1e293b)">宏观硬指标 · 理杏仁 + 腾讯自选股 + 东方财富</h3>'
-     + '<span class="hint" style="font-size:11px;color:var(--slate-400,#94a3b8)">来源：理杏仁开放平台 macro 接口（中国13项/美国4项）+ 腾讯自选股 westock CLI（工业增加值/核心PCE/ISM制造业·非制造业PMI）+ 东方财富数据中心（统计局官方制造业/非制造业PMI、70城房价，转发国家统计局）· 自算/自乘口径见各卡片来源标注 · 每卡独立标注数据截至与来源 · 离线刷新随「更新数据」全量重算</span></div>';
-  h += '<div style="font-size:13px;font-weight:700;color:var(--slate-700,#334155);margin:14px 0 8px">中国宏观</div><div style="display:flex;flex-wrap:wrap">' + cnCards + '</div>';
-  h += '<div style="font-size:13px;font-weight:700;color:var(--slate-700,#334155);margin:18px 0 8px">美国宏观（通胀 / 增长）</div><div style="display:flex;flex-wrap:wrap">' + usCards + '</div>';
-  h += '<div style="font-size:13px;font-weight:700;color:var(--slate-700,#334155);margin:18px 0 8px">其他源补充 · 腾讯自选股(westock) / 东方财富(东财)</div><div style="display:flex;flex-wrap:wrap">' + altCards + emCards + '</div>';
-  h += '<div style="margin-top:20px;padding:12px 14px;border:1px dashed #d8dee6;border-radius:12px;background:#f8fafc">'
-     + '<div style="font-size:13px;font-weight:700;color:var(--slate-500,#64748b);margin-bottom:6px">待接入 / 数据源缺口</div>'
-     + '<ul style="margin:0;padding-left:18px;font-size:12px;color:var(--slate-500,#64748b);line-height:1.7">' + todo.map(function (t) { return '<li>' + esc(t) + '</li>'; }).join('') + '</ul>'
-     + '<span class="hint" style="font-size:11px;color:var(--slate-400,#94a3b8)">以上暂未接入：国家统计局官网对本环境 WAF 拦截(403 UrlACL)无法直取；理杏仁/西财/腾讯自选股均无合规机读序列；财新PMI 属财新·Markit 商业授权非统计局序列；FRED 通道冻结。已从「待接入」移出并接入：工业增加值、美国核心PCE、ISM制造业PMI、ISM非制造业PMI(腾讯自选股) + 70城房价(东方财富)。</span></div>';
-  h += '</div>';
-  return h;
 }
 /* fw2_v550_grp_tabs：方案B 全平铺——宏观指标 7 组升 tab（val/cred/mood/ovs/sop 为组索引路由；us=⑤/gbl=⑥ 已是 tab；
    mi 键保留兼容残留 state（tab 删除后不可达）；__mcApply 按 region→组索引过滤卡片与磁铁 */
@@ -13349,7 +13090,7 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
        ①删 cbExport/cbImport/cbCloudRestore 三按钮 + #cbImportFile + #cbCloudInfo 灰字（HTML+三段绑定）；
        ②成交台账(cbLedgerToggle)/设置负债等其余工具栏按钮不动；③renderCloudInfo（自带 !el 守卫）/
        cbImportFile onchange/restoreFromMirror 保留死代码，恢复入口只需还原 HTML+绑定。
-       注意：全量 DB 备份入口随之消失，台账流水仍可经总览·交易台账折叠块备份。 */  if (vc) vc.textContent = 'v697p · 宏观11→5视图收敛' /* fw2_v697p_macro_11to5 fw2_v695_sw_cache_bust fw2_v694_dm_instr_fix fw2_v687_action_loop fw2_v687_next_plan fw2_v686_drip_pollute fw2_v686_review_role_grp fw2_v685_review_pct_netbeg fw2_v684_review_conclusion fw2_v680_review_refstyle fw2_v681_review_t2_gap fw2_v682_review_t2_rightalign fw2_v683_t2_align_t1 fw2_v678_tbl_col_harmony fw2_v677_role_col_del fw2_v676_attr_monthnav fw2_v676_attr_zero fw2_v675_num_col_widen fw2_v674_rev_breathe fw2_v673_rev_union fw2_v673_sig_retrace fw2_v669_review_tables fw2_v668_review_monthly fw2_v667_review_insight fw2_v666_tiles_bigger fw2_v665_review_tiles fw2_v664_review_rebuild fw2_v663_hero_retire fw2_v661_filter_compact fw2_v660_ui_simplify fw2_v659_backup_btns_del fw2_v658_rpt_monthnav fw2_v657_rptbar_del fw2_v656_rpt_6m fw2_v655_rpt_kpi fw2_v654_held_pf_authority fw2_v653_alloc_pile_assign fw2_v652_data_tab_removed fw2_v651_recent_hide fw2_v651_ledger_slim fw2_v651_entry_unify fw2_v650_netseries_daily fw2_v650_moneynav fw2_v649_merge_holdings fw2_v648_capbal_slim fw2_v647_netseries_fix fw2_v646_ledger_capbal fw2_v644_revert_watch_tab fw2_v643_mtbl_tier fw2_v642_a500_enh fw2_v641_peak_dd fw2_v640_buy_pct fw2_v639_del_decisionfw2_v516_a500lk fw2_v517_4otc fw2_v518_hspos fw2_v519_sm_merge fw2_v520_chgflat fw2_v521_magnet fw2_v522_overview fw2_v523_sm_dedup fw2_v524_geo_fsi fw2_v525_geo_filter fw2_v526_geo_filter_removed fw2_v527_verdict fw2_v529_smux fw2_v530_datamgmt fw2_v531_sm_dmgmt fw2_v532_all_dm fw2_v533_px_long fw2_v533d_dm_scroll fw2_v534_dm_module fw2_v535_dm_auto fw2_v539_hold_realpnl fw2_v539a_seed_sync fw2_v539a_seed_order fw2_v540_hold_path fw2_v542_pf_mirror_first fw2_v542_mv_settled fw2_v542_mv_account fw2_v543_dm_holdings_note fw2_v544_ledger_mirror_guard fw2_v545_hold_total_row fw2_v546_navdate_all fw2_v547_vix_to_ovs fw2_v548_ovs_mrg fw2_v549_region_align fw2_v550_grp_tabs fw2_v551_sop_cockpit fw2_v552_sop_taborder fw2_v553_chain_data fw2_v554_sop_rename fw2_v556_market_split fw2_v557_sm_renamed fw2_v558_cbrates_fix fw2_v558a_cb_label fw2_v559_chain_dates fw2_v560_chain_verdict fw2_v561_curve_hold fw2_v562_hold_inline fw2_v563_alloc fw2_v564_lxlink fw2_v565_cal_lx fw2_v565_sub_lx fw2_v566_fund_move fw2_v567_fund_merge fw2_v568_lxlink_fix fw2_v569_manager_pool fw2_v570_manager_universe fw2_v571_mgr_east fw2_v574_mgr_subscore fw2_v575_mgr_merge fw2_v576_mgr_group fw2_v577_mgr_lxlink fw2_v578_mgr_lxreal fw2_v579_mgr_weight fw2_v581_fund_lxreal fw2_v582_mgr_min10 fw2_v583_mgr_noyear fw2_v584_mgr_career fw2_v585_mgr_srank fw2_v586_mgr_srank fw2_v587_mgr_since fw2_v588_mgr_lxfull fw2_v589_mgr_rules fw2_v590_mgr_scores fw2_v591_mgr_ladder fw2_v592_mgr_cols fw2_v593_mgr_score fw2_anti_halluc_p0 fw2_v595_alpha_attrib fw2_v596_sig_hist fw2_v597_fund_overlap fw2_v598_mgr_hold fw2_v599_time_decay fw2_v599_corr_pen fw2_v600_buytrack fw2_v601_backtest fw2_v602_kline_page fw2_v603_old_debts fw2_v604_xirr fw2_v605_holdings_global fw2_v606_v11_signal fw2_v607_v11_bt fw2_v608_lx_audit fw2_v609_sig_table fw2_v610_sig_merge fw2_v611_grp_line fw2_v612_index_lxreal fw2_v613_near_blue fw2_v615_sig_grp fw2_v616_sig_hdstyle fw2_v617_sig_vline fw2_v618_sig_lcr fw2_v619_curthr fw2_v620_curthr_all fw2_v621_ret_hpr fw2_v621_t13_lastbuy fw2_v622_lastbuy_auto fw2_v623_firstbuy_roll fw2_v623_alloc_watch fw2_v624_m13_m17 fw2_v626_sig_cost_guard fw2_v626_watch_pe_exempt fw2_v627_colorder fw2_v627_action_plan fw2_v627_data_date fw2_v628_fixed_cols fw2_v629_pool_pile_guard fw2_v629_t9_pfdate fw2_v630_missing_cost fw2_v631_pool_held_live fw2_v632_held_off fw2_v633_ledger_tx_sync fw2_v634_plan_dir fw2_v635_capbal_fix fw2_v636_capbal_converge fw2_v637_mv_consist fw2_v638_mv_unify fw2_v697p_macro_11to5 */ + (window.getAllocWatchCodes ? window.getAllocWatchCodes().length : 0) + '只';
+       注意：全量 DB 备份入口随之消失，台账流水仍可经总览·交易台账折叠块备份。 */  if (vc) vc.textContent = 'v697q · 宏观总览卡回归删死代码' /* fw2_v697p_macro_11to5 fw2_v695_sw_cache_bust fw2_v694_dm_instr_fix fw2_v687_action_loop fw2_v687_next_plan fw2_v686_drip_pollute fw2_v686_review_role_grp fw2_v685_review_pct_netbeg fw2_v684_review_conclusion fw2_v680_review_refstyle fw2_v681_review_t2_gap fw2_v682_review_t2_rightalign fw2_v683_t2_align_t1 fw2_v678_tbl_col_harmony fw2_v677_role_col_del fw2_v676_attr_monthnav fw2_v676_attr_zero fw2_v675_num_col_widen fw2_v674_rev_breathe fw2_v673_rev_union fw2_v673_sig_retrace fw2_v669_review_tables fw2_v668_review_monthly fw2_v667_review_insight fw2_v666_tiles_bigger fw2_v665_review_tiles fw2_v664_review_rebuild fw2_v663_hero_retire fw2_v661_filter_compact fw2_v660_ui_simplify fw2_v659_backup_btns_del fw2_v658_rpt_monthnav fw2_v657_rptbar_del fw2_v656_rpt_6m fw2_v655_rpt_kpi fw2_v654_held_pf_authority fw2_v653_alloc_pile_assign fw2_v652_data_tab_removed fw2_v651_recent_hide fw2_v651_ledger_slim fw2_v651_entry_unify fw2_v650_netseries_daily fw2_v650_moneynav fw2_v649_merge_holdings fw2_v648_capbal_slim fw2_v647_netseries_fix fw2_v646_ledger_capbal fw2_v644_revert_watch_tab fw2_v643_mtbl_tier fw2_v642_a500_enh fw2_v641_peak_dd fw2_v640_buy_pct fw2_v639_del_decisionfw2_v516_a500lk fw2_v517_4otc fw2_v518_hspos fw2_v519_sm_merge fw2_v520_chgflat fw2_v521_magnet fw2_v522_overview fw2_v523_sm_dedup fw2_v524_geo_fsi fw2_v525_geo_filter fw2_v526_geo_filter_removed fw2_v527_verdict fw2_v529_smux fw2_v530_datamgmt fw2_v531_sm_dmgmt fw2_v532_all_dm fw2_v533_px_long fw2_v533d_dm_scroll fw2_v534_dm_module fw2_v535_dm_auto fw2_v539_hold_realpnl fw2_v539a_seed_sync fw2_v539a_seed_order fw2_v540_hold_path fw2_v542_pf_mirror_first fw2_v542_mv_settled fw2_v542_mv_account fw2_v543_dm_holdings_note fw2_v544_ledger_mirror_guard fw2_v545_hold_total_row fw2_v546_navdate_all fw2_v547_vix_to_ovs fw2_v548_ovs_mrg fw2_v549_region_align fw2_v550_grp_tabs fw2_v551_sop_cockpit fw2_v552_sop_taborder fw2_v553_chain_data fw2_v554_sop_rename fw2_v556_market_split fw2_v557_sm_renamed fw2_v558_cbrates_fix fw2_v558a_cb_label fw2_v559_chain_dates fw2_v560_chain_verdict fw2_v561_curve_hold fw2_v562_hold_inline fw2_v563_alloc fw2_v564_lxlink fw2_v565_cal_lx fw2_v565_sub_lx fw2_v566_fund_move fw2_v567_fund_merge fw2_v568_lxlink_fix fw2_v569_manager_pool fw2_v570_manager_universe fw2_v571_mgr_east fw2_v574_mgr_subscore fw2_v575_mgr_merge fw2_v576_mgr_group fw2_v577_mgr_lxlink fw2_v578_mgr_lxreal fw2_v579_mgr_weight fw2_v581_fund_lxreal fw2_v582_mgr_min10 fw2_v583_mgr_noyear fw2_v584_mgr_career fw2_v585_mgr_srank fw2_v586_mgr_srank fw2_v587_mgr_since fw2_v588_mgr_lxfull fw2_v589_mgr_rules fw2_v590_mgr_scores fw2_v591_mgr_ladder fw2_v592_mgr_cols fw2_v593_mgr_score fw2_anti_halluc_p0 fw2_v595_alpha_attrib fw2_v596_sig_hist fw2_v597_fund_overlap fw2_v598_mgr_hold fw2_v599_time_decay fw2_v599_corr_pen fw2_v600_buytrack fw2_v601_backtest fw2_v602_kline_page fw2_v603_old_debts fw2_v604_xirr fw2_v605_holdings_global fw2_v606_v11_signal fw2_v607_v11_bt fw2_v608_lx_audit fw2_v609_sig_table fw2_v610_sig_merge fw2_v611_grp_line fw2_v612_index_lxreal fw2_v613_near_blue fw2_v615_sig_grp fw2_v616_sig_hdstyle fw2_v617_sig_vline fw2_v618_sig_lcr fw2_v619_curthr fw2_v620_curthr_all fw2_v621_ret_hpr fw2_v621_t13_lastbuy fw2_v622_lastbuy_auto fw2_v623_firstbuy_roll fw2_v623_alloc_watch fw2_v624_m13_m17 fw2_v626_sig_cost_guard fw2_v626_watch_pe_exempt fw2_v627_colorder fw2_v627_action_plan fw2_v627_data_date fw2_v628_fixed_cols fw2_v629_pool_pile_guard fw2_v629_t9_pfdate fw2_v630_missing_cost fw2_v631_pool_held_live fw2_v632_held_off fw2_v633_ledger_tx_sync fw2_v634_plan_dir fw2_v635_capbal_fix fw2_v636_capbal_converge fw2_v637_mv_consist fw2_v638_mv_unify fw2_v697p_macro_11to5 fw2_v697q_cockpit_return */ + (window.getAllocWatchCodes ? window.getAllocWatchCodes().length : 0) + '只';
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
