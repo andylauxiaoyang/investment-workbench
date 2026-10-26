@@ -21463,6 +21463,18 @@ return {
     return out;
   }
 
+  /* v699b：数据不可用不再静默隐藏（v699 线上 index-daily.json 404 曾致卡片永远不出现、零报错难排查）——
+     显示卡片并写明缺哪份数据，用户可见、可报告。 */
+  function showUnavailable(missSer, missIdx) {
+    var card = gid("volCard"); if (!card) return;
+    card.style.display = "";
+    var need = [];
+    if (missSer) need.push("基金净值序列 fund-daily.json");
+    if (missIdx) need.push("沪深300日K index-daily.json");
+    var h = gid("volHint"), f = gid("volFoot");
+    if (h) h.innerHTML = "数据暂不可用";
+    if (f) f.innerHTML = "未能加载：" + esc(need.join("、")) + "（本地与 GitHub raw 均失败）。请检查网络后刷新，或报告维护者补发布数据文件。";
+  }
   function loadData(cb) {
     if (CACHE.ready) return cb(null);
     if (CACHE.busy) return;
@@ -21490,7 +21502,11 @@ return {
     };
     var needFund = !window.__NAV_SERIES__;
     var gotSer = !needFund, gotIdx = false, S = needFund ? null : window.__NAV_SERIES__, X = null;
-    var step = function () { if (gotSer && gotIdx) done(S, X); };
+    var step = function () {
+      if (!(gotSer && gotIdx)) return;
+      if (!S || !X) { CACHE.busy = false; showUnavailable(!S, !X); return; }  /* v699b：可见失败 */
+      done(S, X);
+    };
     if (needFund) {
       fetchJson(["data/fund-daily.json", "https://raw.githubusercontent.com/andylauxiaoyang/investment-workbench/master/caifu/data/fund-daily.json"], 0, function (fd) {
         S = fd ? buildNavSeries(fd) : (window.__NAV_SERIES__ || null); gotSer = true; step();
