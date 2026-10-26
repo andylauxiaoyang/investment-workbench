@@ -8955,7 +8955,7 @@ function renderMacro() {
   state.macroRegion = reg;   /* 模板过滤 / __mcApply 用翻译后的 reg（cn/val/mood/ovs/px） */
   if (_region === 'us') { mcRegisterEvidence(mcCalcCommon(d)); body.innerHTML = renderMacroUS(d); renderMacroUSCharts(); return; }   /* fw2_v549_region_align：美国周期页＝康波+FSI+非农+⑤组9项硬指标全集（实体卡从 mi ⑤组迁入，mi 页⑤组改引用卡）；证据注册先于渲染（磁铁需 __MC_EV） */
   if (_region === 'gbl') { mcRegisterEvidence(mcCalcCommon(d)); body.innerHTML = renderMacroGbl(d); renderMacroGblCharts(); return; }  /* fw2_v549_region_align：海外景气页＝⑥全球景气非美实体卡（韩国出口/OECD/BDI日银/PMI合成，mi 页⑥组改引用卡） */
-  if (_region === 'sm') { body.innerHTML = renderMacroSentiment(d); return; }   /* fw2_v701_mood_dedup：pxDrawFundCharts 调用随 v566 迁入卡删除移除（该分支 v697p 后不可达，保留兜底） */
+  if (_region === 'sm') { body.innerHTML = renderMacroSentiment(d); if (window.__smDrawCharts) window.__smDrawCharts(); return; }   /* fw2_v701_mood_dedup：pxDrawFundCharts 调用随 v566 迁入卡删除移除（该分支 v697p 后不可达，保留兜底）；fw2_v702_mood_bigcard：__smDrawCharts 大卡图表任务 */
   if (_region === 'chain' || _region === 'v-chain') { if (typeof mcRegisterEvidence === 'function') mcRegisterEvidence(mcCalcCommon(d)); body.innerHTML = renderChain(d); return; }
   /* fw2_v432 资产价格监控：19 项全景 · 磁贴+分区表+弹层走势 · 周期/持仓/信号三联动 */
   if (_region === 'px' || _region === 'v-px') { renderPriceMon(d); return; }
@@ -9617,6 +9617,7 @@ body.innerHTML = ((_region === 'cn' || _region === 'v-cycle') ? renderMacroTools
      body/_region/d 均在本 IIFE 闭包作用域内；追加块无 .mc-mod 包裹，__mcApply 不会隐藏它。 */
   if (_region === 'v-mood') {
     body.innerHTML += renderMacroSentiment(d);   /* fw2_v701_mood_dedup：pxDrawFundCharts 调用随两融/成交额重复卡删除移除 */
+    if (window.__smDrawCharts) window.__smDrawCharts();   /* fw2_v702_mood_bigcard：追加卡 140px 大图任务（chartOf+setOption 进 chartsOpt 快照，v700e sweep 兜底） */
   }
   if (_region === 'v-global') {
     body.innerHTML += renderMacroUS(d) + renderMacroGbl(d);
@@ -9690,43 +9691,74 @@ function renderMacroSentiment(d) {
     window.__smBrPull = true;
     try { refreshSnapshot(false).catch(function () {}); } catch (e) { console.warn('[smBrPull]', e); }
   }
-  function spark(arr, color) {
-    arr = (arr || []).slice(-36);
-    if (arr.length < 2) return '';
-    var mn = Math.min.apply(null, arr), mx = Math.max.apply(null, arr);
-    var rng = (mx - mn) || 1;
-    var pts = arr.map(function (v, i) { return (i / (arr.length - 1) * 100).toFixed(1) + ',' + (34 - (v - mn) / rng * 30).toFixed(1); }).join(' ');
-    return '<svg viewBox="0 0 100 36" preserveAspectRatio="none" style="width:100%;height:36px;display:block"><polyline points="' + pts + '" fill="none" stroke="' + color + '" stroke-width="1.5"/></svg>';
+  /* fw2_v702_mood_bigcard：追加卡统一母卡格式改造——删 spark/amtSpark/sSpark/sCard/card/局部 metric
+     （全部卡改用 bigCard：母卡同款 card-h+_mcMeta+metric-grid+rv-line+chart 结构，图表 140px echarts 进
+     chartsOpt 快照由 v700e sweep 兜底）；tag/pct/srcLine 保留（判读行与页脚仍用）。
+     bigCard(o)：o={h,hint,meta:[date,freq,cal,lagMax],tiles:[{k,v,cls}],rv:[{tt,tc,tx}],chart:id,noChart,note,src,date}
+     图表任务进 smTasks，函数末尾挂 window.__smDrawCharts 由 region 调用点在 innerHTML += 后同步执行 */
+  var smTasks = [];
+  function bigCard(o) {
+    var tiles = '<div class="metric-grid">' + o.tiles.map(function (t) { return metric(t.k, t.v, t.cls || ''); }).join('') + '</div>';
+    var rvs = (o.rv || []).map(function (r) { return '<div class="rv-line"><span class="tag ' + (r.tc || 'tag-ai') + '">' + r.tt + '</span><span>' + r.tx + '</span></div>'; }).join('');
+    var ptsN = o.ptsN || 0;
+    var chartHtml = o.chart
+      ? (ptsN >= 2 ? '<div class="chart" id="' + o.chart + '" style="height:140px"></div>'
+        : '<div style="font-size:11px;color:var(--slate-400,#94a3b8);padding:8px 0">序列积累中（当前 ' + ptsN + ' 点，满 2 点出图 · 不编造数据）</div>')
+      : '<div style="font-size:11px;color:var(--slate-400,#94a3b8);padding:8px 0">' + (o.noChart || '当日快照 · 无历史序列') + '</div>';
+    return '<div class="card"><div class="card-h"><h3>' + o.h + '</h3><span class="hint">' + o.hint + '</span></div>'
+      + _mcMeta(o.meta[0], o.meta[1], o.meta[2], o.meta[3]) + tiles + rvs + chartHtml + (o.note || '') + srcLine(o.src, o.date) + '</div>';
   }
-  /* fw2_v529_smux P3：v523 去重后的死代码清理——erpSpark/peSpark/vixSpark/mrgSpark 随 erpCard/peCard/vixCard/mrgCard 一并删除（仅 amtCard 仍用 amtSpark） */
-  function amtSpark() { return spark(amtAll.map(function (p) { return p[1]; }), '#7c3aed'); }
+  /* smLineOpt：追加卡统一图表 option（140px 紧凑轴，tooltip+hideOverlap；t={pts,col,type,unit,name}） */
+  function smLineOpt(t) {
+    var col = t.col || '#2f6bff';
+    return {
+      tooltip: { trigger: 'axis', valueFormatter: function (v) { return fmtNum(v, 2) + (t.unit || ''); } },
+      grid: { left: 54, right: 14, top: 14, bottom: 22 },
+      xAxis: { type: 'category', data: t.pts.map(function (p) { return p[0]; }), axisLabel: { fontSize: 9, color: '#94a3b8', hideOverlap: true } },
+      yAxis: { type: 'value', scale: true, axisLabel: { fontSize: 9, color: '#94a3b8' }, splitLine: { lineStyle: { color: '#eef2f7' } } },
+      series: [{ name: t.name || '', type: t.type || 'line', data: t.pts.map(function (p) { return p[1]; }), showSymbol: false, lineStyle: { width: 1.6, color: col }, itemStyle: { color: col }, areaStyle: t.type === 'bar' ? undefined : { opacity: .07, color: col }, barMaxWidth: 14 }]
+    };
+  }
   function pct(v) { return v == null ? '—' : fmtNum(v, 1) + '%'; }
   function tag(txt, col) { return '<span style="color:' + col + ';font-weight:600">' + txt + '</span>'; }
   /* fw2_v529_smux P3：erpLv/peLv/vixLv/rzyeLv 已随死卡删除（mi 页判读走 mcCalcCommon 的 erpLvl/peLvl/vixLvl，此处为 sm 页独立判读，无残留引用） */
   function fcLv(c) { return c == null ? '—' : c < 0.2 ? tag('低迷·机会', '#0d9f4d') : c < 0.8 ? tag('平稳', '#475569') : c < 1.5 ? tag('活跃', '#d98c00') : tag('过热·清仓', '#dc2626'); }
-  function card(h, hint, inner) {
-    return '<div class="card"><div class="card-h"><h3>' + h + '</h3><span class="hint">' + hint + '</span></div>' + inner + '</div>';
-  }
-  function metric(label, val, sub) {
-    return '<div style="display:flex;justify-content:space-between;align-items:baseline;padding:4px 0;border-bottom:1px dashed #eef2f7"><span style="font-size:12px;color:var(--slate-500,#64748b)">' + label + '</span><span style="font-size:13px;font-weight:600;color:var(--ink,#0f172a)">' + val + (sub ? ' <span style="font-size:11px;font-weight:400;color:var(--slate-400,#94a3b8)">' + sub + '</span>' : '') + '</span></div>';
-  }
+  /* fw2_v702_mood_bigcard：局部 card()/metric() 删除——bigCard 统一走全局 metric(k,v,cls)（母卡磁贴 markup）与 .card/.card-h/.metric-grid/.rv-line 母卡 CSS */
   /* fw2_v473_sm_src：上排 6 卡补「数据源 + 数据截至日」页脚（对齐下排卡 sSrc，死规则②）。源据 gen_macro_snap 实测：ERP/PE=理杏仁、两融=东财 RPTA_RZRQ_LSHJ、VIX=CBOE、成交额=新浪+westock、宽度=实时行情快照。日期取各自序列末点。 */
   function srcLine(src, date) { return '<div class="asof" style="margin-top:6px;display:flex">' + esc(src) + (date ? ' · 截至 <b>' + esc(date) + '</b>' : '') + '</div>'; }
   var amtDate = amtLast ? amtLast[0] : '';
   var brDate = (state.snapshot && state.snapshot.id) ? state.snapshot.id : '';
-  var amtCard = card('资金系数（成交/M2）', '沪深京 · 成交绝对值见「情绪温度」页近30日卡 · 资金系数=成交/M2',
-    metric('资金系数', fundCoef != null ? fmtNum(fundCoef, 2) + '%' : '—', ' · ' + fcLv(fundCoef)) +
-    '<div style="margin-top:8px">' + amtSpark() + '</div>' + srcLine('新浪+westock(沪深京)', amtDate));
+  /* 资金系数（成交/M2）：v702 大卡化——图=沪深京日成交额序列（bar，万亿元）；系数=M2 当期口径（M2 无历史序列，系数历史不可算，不编造） */
+  if (amtAll.length >= 2) smTasks.push({ id: 'smChAmt', pts: amtAll.slice(-40).map(function (p) { return [p[0], +(p[1] / 10000).toFixed(3)]; }), col: '#7c3aed', type: 'bar', unit: ' 万亿', name: '全A成交额' });
+  var amtCard = bigCard({
+    h: '资金系数（成交/M2）', hint: '成交绝对值见「情绪温度」页近30日卡 · 系数=成交/M2',
+    meta: [amtDate, '日频', '全A成交额 / 广义货币M2（当期） · 理杏仁+新浪westock', 10],
+    tiles: [
+      { k: '资金系数', v: fundCoef != null ? fmtNum(fundCoef, 2) + '%' : '—' },
+      { k: '当日成交', v: amtYi != null ? fmtNum(amtYi, 0) + ' 亿' : '—' }
+    ],
+    rv: [{ tt: '指向', tx: fcLv(fundCoef) }],
+    chart: 'smChAmt', ptsN: amtAll.length,
+    src: '新浪+westock(沪深京) · M2=cnMacro', date: amtDate
+  });
   smReg('资金系数(成交/M2)', fundCoef == null ? 0 : (fundCoef < 0.2 ? -1 : (fundCoef < 0.8 ? 0 : 1)));
-  var brCard = card('市场宽度 上涨占比', '全市场涨跌家数',
-    metric('上涨家数', up ? fmtNum(up, 0) : '—') +
-    metric('上涨占比', upPct != null ? fmtNum(upPct, 1) + '%' : '数据未加载', upPct != null ? (upPct >= 50 ? tag('多头', '#0d9f4d') : tag('空头', '#dc2626')) : '') +
-    (upPct == null ? '<div style="font-size:11px;color:var(--slate-400,#94a3b8);margin-top:6px">行情快照未加载（已自动拉取一次，稍候自动出现）</div>' : '') + srcLine('实时行情快照(腾讯/东财)', brDate));
+  var brCard = bigCard({
+    h: '市场宽度 上涨占比', hint: '全市场涨跌家数 · 实时快照',
+    meta: [brDate || '—', '实时', '上涨家数/全市场涨跌家数 · 腾讯/东财快照', 0],
+    tiles: [
+      { k: '上涨家数', v: up ? fmtNum(up, 0) : '—' },
+      { k: '下跌家数', v: down ? fmtNum(down, 0) : '—' },
+      { k: '上涨占比', v: upPct != null ? fmtNum(upPct, 1) + '%' : '未加载' }
+    ],
+    rv: upPct == null ? [{ tt: '说明', tx: '行情快照未加载（已自动拉取一次，稍候自动出现）' }] : [{ tt: '指向', tx: upPct >= 50 ? tag('多头', '#0d9f4d') : tag('空头', '#dc2626') }],
+    noChart: '实时快照 · 无历史序列（不编造历史数据）',
+    src: '实时行情快照(腾讯/东财)', date: brDate
+  });
   smReg('市场宽度(上涨占比)', upPct == null ? 0 : (upPct >= 50 ? 1 : -1));
   /* fw2_v529_smux P5：todoCard 可折叠——占整格，点击标题区折叠/展开内容（内联 onclick 切换 data-todo-body 显隐） */
   var todoCard = '<div class="card" style="cursor:pointer" onclick="var _b=this.querySelector(\'[data-todo-body]\');_b.style.display=_b.style.display===\'none\'?\'\':\'none\';var _a=this.querySelector(\'[data-todo-arrow]\');if(_a)_a.textContent=_b.style.display===\'none\'?\'▸\':\'▾\'"><div class="card-h"><h3>数据源状态（官方停更说明 · 手册有·工作台已通）</h3><span class="hint">缺源不渲染不编造，取数失败立即修复 · 点击<span data-todo-arrow style="font-weight:600">▾</span>折叠</span></div><div data-todo-body>' +
     '<div style="font-size:12px;color:var(--slate-600,#475569);line-height:1.9">· 中国波指 iVIX：<b>官方 2018-02-22 起暂停发布至今未恢复</b>（上交所仅剩期权风险指标 Delta/Gamma 类）→ 国内期权情绪已由「期权 PCR」替代<br>· 北向资金：<b>官方 2024-05-13 起取消日度净买入披露</b>（盘后仅公布买+卖成交额/十大活跃股）→ 已改「北向成交活跃度」探测中<br>· 财新PMI：商业授权非统计局序列 → 已用统计局官方 PMI 替代（宏观硬指标页）</div>' +
-    '<div style="font-size:11px;color:#0d9f4d;line-height:1.7;margin-top:8px">✓ 已接入：换手率、股息率 vs 10Y、市净率中位数、融资买入额、A股总市值、大小盘相对强弱、超额流动性、CNN 恐贪(美股)、证券化率/巴菲特指数、限售解禁(未来30日)、产业资本净增减持(近30日)、板块拥挤度(当日)、破净率(全A)、成交集中度(CR10)、行业情绪(上涨占比)、期指升贴水(IF/IH/IC/IM)、新发公募(发行中+待发行)、产业资本回购(公告数)<br><span style="color:var(--slate-500,#64748b)">◇ 探测中/缺源：期权 PCR（东财报表名不存在、期权行情接口限流，通道待换）；北向成交活跃度（官方 2024-05-13 停更日度净买入，接口仅剩占位数据，无合规机读源）</span></div></div>';
+    '<div style="font-size:11px;color:#0d9f4d;line-height:1.7;margin-top:8px">✓ 已接入：换手率、市净率中位数、融资买入额、A股总市值、大小盘相对强弱、超额流动性、CNN 恐贪(美股)、证券化率/巴菲特指数、限售解禁(未来30日)、产业资本净增减持(近30日)、板块拥挤度(当日)、破净率(全A)、成交集中度(CR10)、行业情绪(上涨占比)、期指升贴水(IF/IH/IC/IM)、新发公募(发行中+待发行)、产业资本回购(公告数)——fw2_v702_mood_bigcard 起全部统一母卡格式（数据截至+磁贴+指向+图表）<br><span style="color:var(--slate-500,#64748b)">◇ 探测中/缺源：期权 PCR（东财报表名不存在、期权行情接口限流，通道待换）；北向成交活跃度（官方 2024-05-13 停更日度净买入，接口仅剩占位数据，无合规机读源）</span></div></div>';
   /* fw2_v465_fsi_card：FSI 全球金融压力指数由整幅横幅改为与其它卡同款的卡片，置于网格首位（用户要求）。
      复用本模块 card()/metric()/spark() 助手，数据源同 d.fsi，不新增取数；renderMacroTop 横幅不再在此调用。 */
   var fsiSc = fsi.score, fsiPct = fsi.percentile;
@@ -9737,95 +9769,137 @@ function renderMacroSentiment(d) {
     var zc = it.z >= 1 ? '#dc2626' : it.z <= -1 ? '#2f6bff' : '#94a3b8';
     return '<span style="margin-right:10px" title="' + esc(it.name + '（z ' + fmtNum(it.z, 2) + '）' + (it.note ? ' · ' + it.note : '')) + '">' + esc(it.name) + ' <b style="color:' + zc + '">' + fmtNum(it.val, 2) + (it.unit || '') + '</b></span>';
   }).join('');
-  var fsiCard = card('全球金融压力指数 FSI', '6项资产/市场维度综合 · FRED口径',
-    metric('压力指数', '<span style="color:' + fsiLvC + '">' + (fsiSc == null ? '—' : fsiSc.toFixed(1)) + '</span>', ' · ' + fsiLvTxt + '级') +
-    metric('历史分位', fsiPct == null ? '—' : fsiPct.toFixed(1) + '%') +
-    '<div style="margin-top:8px">' + spark((fsi.series || []).map(function (p) { return p[1]; }), fsiLvC) + '</div>' +
-    '<div style="margin-top:8px;font-size:11px;color:var(--slate-500,#64748b);line-height:1.8">' + (fsiIndis || '<span style="color:var(--slate-400,#94a3b8)">指标组加载中…</span>') + '</div>' +
-    '<div style="font-size:10px;color:var(--slate-400,#94a3b8);margin-top:6px">' + esc(fsi.levelNote || '') + (fsi.meta && fsi.meta.limitNote ? ' · ' + esc(fsi.meta.limitNote) : '') + '</div>');
-  /* fw2_v468_sentiment：市场情绪「可接入项」落地——换手率/股息率vs10Y/市净率中位数/融资买入额/A股总市值/大小盘相对强弱/超额流动性/CNN恐贪(美股)。
-     数据源 d.sentiment（gen_macro_sent.py：理杏仁中证全指000985 + 指数收盘000300/000852 + CNN + cnMacro社融/M2）。每卡标数据截至+来源，缺源不渲染、不编造。 */
+  /* v702 FSI 大卡化：图=fsi.series（60点），indis 指标组行保留为 note，levelNote 进「指向」行 */
+  var fsiSerN = (fsi.series || []).length;
+  if (fsiSerN >= 2) smTasks.push({ id: 'smChFsi', pts: fsi.series.slice(-60), col: fsiLvC, unit: '', name: 'FSI' });
+  var fsiCard = bigCard({
+    h: '全球金融压力指数 FSI', hint: '6项资产/市场维度综合 · FRED口径',
+    meta: [(fsi.series && fsi.series.length ? fsi.series[fsi.series.length - 1][0] : '—'), '日频', '6 维度综合压力 0-100 · FRED', 10],
+    tiles: [
+      { k: '压力指数', v: '<span style="color:' + fsiLvC + '">' + (fsiSc == null ? '—' : fsiSc.toFixed(1)) + '</span>' },
+      { k: '历史分位', v: fsiPct == null ? '—' : fsiPct.toFixed(1) + '%' }
+    ],
+    rv: [{ tt: '指向', tx: tag(fsiLvTxt, fsiLvC) + (fsi.levelNote ? ' · ' + esc(fsi.levelNote) : '') + (fsi.meta && fsi.meta.limitNote ? ' · ' + esc(fsi.meta.limitNote) : '') }],
+    chart: 'smChFsi', ptsN: fsiSerN,
+    note: '<div style="margin-top:8px;font-size:11px;color:var(--slate-500,#64748b);line-height:1.8">' + (fsiIndis || '<span style="color:var(--slate-400,#94a3b8)">指标组加载中…</span>') + '</div>',
+    src: 'FRED', date: (fsi.series && fsi.series.length ? fsi.series[fsi.series.length - 1][0] : '')
+  });
+  /* fw2_v468_sentiment：市场情绪「可接入项」落地——换手率/市净率中位数/融资买入额/A股总市值/大小盘相对强弱/超额流动性/CNN恐贪(美股)。
+     数据源 d.sentiment（gen_macro_sent.py：理杏仁中证全指000985 + 指数收盘000300/000852 + CNN + cnMacro社融/M2）。每卡标数据截至+来源，缺源不渲染、不编造。
+     fw2_v702_mood_bigcard：sSpark/sSrc/sCard 删除——S 序列卡统一走 sBig（bigCard 化，40 点图任务进 smTasks） */
   var S = d.sentiment || {};
-  function sSpark(rec, col) { return spark((rec.points || []).map(function (p) { return p[1]; }), col || '#2f6bff'); }
-  function sSrc(rec) { return '<div class="asof" style="margin-top:6px;display:flex">' + esc(rec.src || '') + ' · 截至 <b>' + esc(rec.asOf || '—') + '</b></div>'; }
-  function sCard(rec, hint, rows, col) { if (!rec || !rec.available) return ''; return card(rec.label, hint, rows + '<div style="margin-top:8px">' + sSpark(rec, col) + '</div>' + sSrc(rec)); }
-  var sTurn = sCard(S.turnover, '日成交额/流通市值 · 理杏仁', metric('换手率', S.turnover && S.turnover.value != null ? fmtNum(S.turnover.value, 2) + '%' : '—'));
+  /* sBig(rec,o)：S 序列卡统一 bigCard 化。o={hint,unit,dec,col,chId,k0,tiles,rv,sign,freq,cal,note} */
+  function sBig(rec, o) {
+    if (!rec || !rec.available) return '';
+    var v = rec.value;
+    var tiles = [{ k: o.k0 || '最新值', v: v == null ? '—' : (o.sign && v >= 0 ? '+' : '') + fmtNum(v, o.dec != null ? o.dec : 2) + (o.unit || '') }].concat(o.tiles || []);
+    var pts = (rec.points || []);
+    if (o.chId && pts.length >= 2) smTasks.push({ id: o.chId, pts: pts.slice(-40), col: o.col || '#2f6bff', unit: o.unit || '', name: rec.label });
+    /* fw2_v702_src_guard：历史数据层曾把状态后缀重复追加进 src（换手率 302 字符重复串，生成器已修+存量已清），
+       此处截断兜底——未来未知脏串不再炸版面 */
+    var _src = rec.src || '';
+    if (_src.length > 120) _src = _src.slice(0, 120) + '…';
+    return bigCard({
+      h: rec.label, hint: o.hint, meta: [rec.asOf || '—', o.freq || '日频', o.cal || _src, 10],
+      tiles: tiles, rv: o.rv, note: o.note || '',
+      chart: o.chId, ptsN: pts.length, src: _src, date: rec.asOf || ''
+    });
+  }
+  var sTurn = sBig(S.turnover, { k0: '换手率', hint: '日成交额/流通市值 · 理杏仁', unit: '%', chId: 'smChTurn' });
   /* fw2_v557_sm_renamed：删「股息率 vs 10Y 国债」卡（股债性价比=val A股估值 ERP 已覆盖，v523 去重残留）＋其 smReg 注册（温度磁铁随之剔除估值性价比维度） */
-  var sPb = sCard(S.pbMedian, '全A市净率中位数 · 理杏仁', metric('PB 中位数', S.pbMedian && S.pbMedian.value != null ? fmtNum(S.pbMedian.value, 2) : '—'));
-  var sMbuy = sCard(S.marginBuy, '日度融资买入额 · 区别于「情绪温度」页两融余额（月频）· 理杏仁', metric('融资买入额', S.marginBuy && S.marginBuy.value != null ? fmtNum(S.marginBuy.value, 0) + ' 亿元' : '—'));
-  var sCap = sCard(S.mktcap, 'A股总市值 · 理杏仁', metric('总市值', S.mktcap && S.mktcap.value != null ? fmtNum(S.mktcap.value, 2) + ' 万亿元' : '—'));
-  var sSize = sCard(S.sizeRatio, '沪深300/中证1000 · 走低=小盘走强', metric('大小盘比值', S.sizeRatio && S.sizeRatio.value != null ? fmtNum(S.sizeRatio.value, 3) : '—'), '#7c3aed');
-  var sLiq = sCard(S.liqSpread, '社融增速−M2增速 · 理杏仁(自算)', metric('剪刀差', S.liqSpread && S.liqSpread.value != null ? (S.liqSpread.value >= 0 ? '+' : '') + fmtNum(S.liqSpread.value, 2) + ' pp' : '—'), '#0d9f4d');
+  var sPb = sBig(S.pbMedian, { k0: 'PB 中位数', hint: '全A市净率中位数 · 理杏仁', chId: 'smChPb' });
+  var sMbuy = sBig(S.marginBuy, { k0: '融资买入额', hint: '日度融资买入额 · 区别于「情绪温度」页两融余额（月频）· 理杏仁', unit: ' 亿元', dec: 0, chId: 'smChMbuy' });
+  var sCap = sBig(S.mktcap, { k0: '总市值', hint: 'A股总市值 · 理杏仁', unit: ' 万亿元', chId: 'smChCap' });
+  var sSize = sBig(S.sizeRatio, { k0: '大小盘比值', hint: '沪深300/中证1000 · 走低=小盘走强', dec: 3, col: '#7c3aed', chId: 'smChSize' });
+  var sLiq = sBig(S.liqSpread, { k0: '剪刀差', hint: '社融增速−M2增速 · 理杏仁(自算)', unit: ' pp', sign: true, col: '#0d9f4d', chId: 'smChLiq' });
   var cnnR = S.cnnFG;
   var cnnCol = (!cnnR || !cnnR.available) ? '#94a3b8' : (cnnR.value >= 75 ? '#0d9f4d' : cnnR.value >= 55 ? '#4aa3df' : cnnR.value >= 45 ? '#d98c00' : cnnR.value >= 25 ? '#e06a1b' : '#dc2626');
-  var sCnn = (cnnR && cnnR.available) ? card('恐惧贪婪指数(美股)', 'CNN Fear & Greed 0-100',
-    metric('指数', '<span style="color:' + cnnCol + '">' + fmtNum(cnnR.value, 1) + '</span>', ' · ' + tag(esc(cnnR.rating || ''), cnnCol)) +
-    '<div style="margin-top:8px">' + sSpark(cnnR, cnnCol) + '</div>' + sSrc(cnnR)) : '';
+  var sCnn = (cnnR && cnnR.available) ? sBig(cnnR, {
+    k0: '指数', hint: 'CNN Fear & Greed 0-100', dec: 1, col: cnnCol, chId: 'smChCnn',
+    tiles: [{ k: '情绪评级', v: tag(esc(cnnR.rating || ''), cnnCol) }]
+  }) : '';
   smReg('CNN 恐贪(美股)', (!cnnR || !cnnR.available || cnnR.value == null) ? 0 : (cnnR.value >= 55 ? 1 : (cnnR.value <= 45 ? -1 : 0)));
   /* fw2_v469_sent2：证券化率/巴菲特指数 + 限售解禁(未来30日) + 产业资本净增减持(近30日) */
   var secR = S.secRatio;
   var secLv = function (v) { return v == null ? '' : v >= 120 ? tag('显著高估', '#dc2626') : v >= 100 ? tag('高估', '#e06a1b') : v >= 80 ? tag('偏高', '#d98c00') : v >= 50 ? tag('合理', '#0d9f4d') : tag('低估', '#2f6bff'); };
-  var sSec = sCard(secR, 'A股总市值/名义GDP · 东财(自算)', metric('巴菲特指数', secR && secR.value != null ? fmtNum(secR.value, 1) + '%' : '—', secR && secR.value != null ? ' · ' + secLv(secR.value) : ''));
+  var sSec = sBig(secR, { k0: '巴菲特指数', hint: 'A股总市值/名义GDP · 东财(自算)', dec: 1, unit: '%', chId: 'smChSec', rv: secR && secR.value != null ? [{ tt: '指向', tx: secLv(secR.value) }] : [] });
   smReg('巴菲特指数(证券化率)', secR && secR.value == null ? 0 : (secR.value >= 80 ? 1 : (secR.value >= 50 ? 0 : -1)));
-  var sLift = sCard(S.lift, '未来30日待解禁市值 · 东财', metric('解禁市值', S.lift && S.lift.value != null ? fmtNum(S.lift.value, 0) + ' 亿元' : '—'), '#d98c00');
+  var sLift = sBig(S.lift, { k0: '解禁市值', hint: '未来30日待解禁市值 · 东财', unit: ' 亿元', dec: 0, col: '#d98c00', chId: 'smChLift' });
   var hR = S.holder;
-  var sHolder = (hR && hR.available) ? card(hR.label, '重要股东增减持净额 · 东财',
-    metric('近30日净增减持', '<span style="color:' + (hR.value >= 0 ? 'var(--green,#0d9f4d)' : 'var(--up,#dc2626)') + '">' + (hR.value >= 0 ? '+' : '') + fmtNum(hR.value, 2) + ' 亿元</span>', ' · ' + (hR.value >= 0 ? tag('净增持', '#0d9f4d') : tag('净减持', '#dc2626'))) +
-    '<div style="margin-top:8px">' + sSpark(hR, hR.value >= 0 ? '#0d9f4d' : '#dc2626') + '</div>' + sSrc(hR)) : '';
+  var sHolder = (hR && hR.available) ? sBig(hR, {
+    k0: '近30日净增减持', hint: '重要股东增减持净额 · 东财', unit: ' 亿元', dec: 2, sign: true,
+    col: hR.value >= 0 ? '#0d9f4d' : '#dc2626', chId: 'smChHolder',
+    tiles: [{ k: '方向', v: hR.value >= 0 ? tag('净增持', '#0d9f4d') : tag('净减持', '#dc2626') }]
+  }) : '';
   smReg('产业资本增减持', (!hR || !hR.available || hR.value == null) ? 0 : (hR.value >= 0 ? 1 : -1));
   /* fw2_v470_crowd：板块拥挤度（当日快照，最热单板块成交额/全A；东财板块含行业+概念重叠故只取最热单块、不做topN求和） */
   var sc = S.sectorCrowd;
-  var sCrowd = (sc && sc.available) ? card('板块拥挤度(当日)', '最热单板块成交额/全A · 东财快照',
-    metric('最热板块', '<b style="color:#d98c00">' + esc((sc.top && sc.top[0]) ? sc.top[0].name : '—') + '</b> ' + fmtNum(sc.value, 0) + ' 亿', amtYi ? ' · 占全A ' + fmtNum(sc.value / amtYi * 100, 1) + '%' : '') +
-    '<div style="margin-top:8px;font-size:11px;color:var(--slate-500,#64748b);line-height:1.9">' + (sc.top || []).map(function (t, i) { return (i + 1) + '. ' + esc(t.name) + ' ' + fmtNum(t.amt, 0) + '亿'; }).join('　') + '</div>' +
-    '<div class="asof" style="margin-top:6px;display:flex">' + esc(sc.src) + ' · 截至 <b>' + esc(sc.asOf) + '</b></div>') : '';
+  var sCrowd = (sc && sc.available) ? bigCard({
+    h: '板块拥挤度(当日)', hint: '最热单板块成交额/全A · 东财快照',
+    meta: [sc.asOf || '—', '当日快照', '最热单板块成交额/全A（东财板块含行业+概念重叠，只取最热单块）', 0],
+    tiles: [
+      { k: '最热板块', v: '<b style="color:#d98c00">' + esc((sc.top && sc.top[0]) ? sc.top[0].name : '—') + '</b> ' + fmtNum(sc.value, 0) + ' 亿' },
+      { k: '占全A成交', v: amtYi ? fmtNum(sc.value / amtYi * 100, 1) + '%' : '—' }
+    ],
+    rv: [{ tt: '分布', tc: 'tag-data', tx: (sc.top || []).map(function (t, i) { return (i + 1) + '. ' + esc(t.name) + ' ' + fmtNum(t.amt, 0) + '亿'; }).join('　') }],
+    noChart: '当日快照 · 无历史序列（不编造历史数据）',
+    src: sc.src || '', date: sc.asOf || ''
+  }) : '';
   /* fw2_v507e_sent3：市场情绪「待接入 5 项」落地——期指升贴水/破净率/成交集中度/行业情绪/新发公募/回购/期权PCR/北向成交活跃度。
      数据源 d.sentiment（gen_macro_sent.py v507e：东财 clist 全A截面 + 行业板块涨跌 + 中金所期货 + 腾讯指数 + 东财探测接口）。
      每卡标数据截至+来源，缺源不渲染不编造；「每日一点」新卡 points 由数据层累积。 */
   var bsR = S.basis;
-  var sBasis = (bsR && bsR.available) ? card('期指升贴水(近月vs现货)', 'IF/IH/IC/IM · 东财期货+腾讯指数',
-    (['IF', 'IH', 'IC', 'IM'].map(function (p) {
-      var v = (bsR.basis || {})[p];
-      return metric(p, v == null ? '—' : (v >= 0 ? '+' : '') + fmtNum(v, 2) + '%', v == null ? '' : (v >= 0 ? tag('升水', '#0d9f4d') : tag('贴水', '#dc2626')));
-    }).join('')) +
-    '<div style="margin-top:8px">' + sSpark(bsR, (bsR.value != null && bsR.value >= 0) ? '#0d9f4d' : '#dc2626') + '</div>' + sSrc(bsR)) : '';
+  var sBasis = (bsR && bsR.available) ? (function () {
+    var bpts = (bsR.points || []);
+    if (bpts.length >= 2) smTasks.push({ id: 'smChBasis', pts: bpts.slice(-40), col: (bsR.value != null && bsR.value >= 0) ? '#0d9f4d' : '#dc2626', unit: '%', name: '期指升贴水' });
+    return bigCard({
+      h: '期指升贴水(近月vs现货)', hint: 'IF/IH/IC/IM · 东财期货+腾讯指数',
+      meta: [bsR.asOf || '—', '日频', '近月期指相对现货升/贴水率 · 东财期货', 10],
+      tiles: ['IF', 'IH', 'IC', 'IM'].map(function (p) {
+        var v = (bsR.basis || {})[p];
+        return { k: p, v: v == null ? '—' : (v >= 0 ? '+' : '') + fmtNum(v, 2) + '%' };
+      }),
+      rv: [{ tt: '指向', tx: (bsR.value != null && bsR.value >= 0) ? tag('整体升水 · 期货多头偏强', '#0d9f4d') : (bsR.value != null ? tag('整体贴水 · 期货对冲偏重', '#dc2626') : '—') }],
+      chart: 'smChBasis', ptsN: bpts.length,
+      src: bsR.src || '', date: bsR.asOf || ''
+    });
+  })() : '';
   smReg('期指升贴水', (!bsR || !bsR.available || bsR.value == null) ? 0 : (bsR.value >= 0 ? 1 : -1));
   var bpR = S.brokenPct;
   var bpLv = function (v) { return v == null ? '' : v >= 12 ? tag('深度底部', '#0d9f4d') : v >= 8 ? tag('底部特征', '#2f6bff') : v >= 5 ? tag('偏低', '#d98c00') : tag('常态', '#475569'); };
-  var sBp = (bpR && bpR.available) ? card('破净率(全A)', '市净率<1 个股占比 · 东财全A截面',
-    metric('破净率', fmtNum(bpR.value, 2) + '%', bpR.detail ? ' · ' + esc(bpR.detail) : '') +
-    metric('信号', bpLv(bpR.value), '') +
-    '<div style="margin-top:8px">' + sSpark(bpR, '#2f6bff') + '</div>' + sSrc(bpR)) : '';
+  var sBp = (bpR && bpR.available) ? sBig(bpR, {
+    k0: '破净率', hint: '市净率<1 个股占比 · 东财全A截面', unit: '%', chId: 'smChBp',
+    tiles: [{ k: '信号', v: bpLv(bpR.value) }],
+    rv: bpR.detail ? [{ tt: '口径', tc: 'tag-data', tx: esc(bpR.detail) }] : []
+  }) : '';
   smReg('破净率(全A)', (!bpR || !bpR.available || bpR.value == null) ? 0 : (bpR.value >= 5 ? -1 : 0));
   var crR = S.cr10;
   var crLv = function (v) { return v == null ? '' : v >= 25 ? tag('极端抱团', '#dc2626') : v >= 18 ? tag('高集中', '#d98c00') : v >= 12 ? tag('正常', '#475569') : tag('分散', '#0d9f4d'); };
-  var sCr = (crR && crR.available) ? card('成交集中度(CR10)', '前10大个股成交额/全A · 东财截面',
-    metric('CR10', fmtNum(crR.value, 2) + '%', ' · ' + crLv(crR.value)) +
-    '<div style="margin-top:8px">' + sSpark(crR, '#7c3aed') + '</div>' + sSrc(crR)) : '';
+  var sCr = (crR && crR.available) ? sBig(crR, {
+    k0: 'CR10', hint: '前10大个股成交额/全A · 东财截面', unit: '%', col: '#7c3aed', chId: 'smChCr',
+    rv: [{ tt: '指向', tx: crLv(crR.value) }]
+  }) : '';
   smReg('成交集中度(CR10)', (!crR || !crR.available || crR.value == null) ? 0 : (crR.value >= 18 ? 1 : (crR.value >= 12 ? 0 : -1)));
   var suR = S.sectorUp;
-  var sSecUp = (suR && suR.available) ? card('行业情绪(上涨占比)', '行业板块涨跌分布 · 东财快照',
-    metric('上涨行业', fmtNum(suR.value, 1) + '%', ' · ' + (suR.value >= 60 ? tag('普涨·强', '#0d9f4d') : suR.value <= 40 ? tag('普跌·弱', '#dc2626') : tag('分化', '#475569'))) +
-    '<div style="margin-top:8px;font-size:11px;color:var(--slate-500,#64748b);line-height:1.9">强势 ' + (suR.top || []).map(function (t) { return esc(t.name) + ' ' + fmtNum(t.pct, 1) + '%'; }).join('　') + '<br>弱势 ' + (suR.bot || []).map(function (b) { return esc(b.name) + ' ' + fmtNum(b.pct, 1) + '%'; }).join('　') + '</div>' +
-    '<div style="margin-top:8px">' + sSpark(suR, suR.value >= 50 ? '#0d9f4d' : '#dc2626') + '</div>' + sSrc(suR)) : '';
+  var sSecUp = (suR && suR.available) ? sBig(suR, {
+    k0: '上涨行业占比', hint: '行业板块涨跌分布 · 东财快照', unit: '%', dec: 1,
+    col: suR.value >= 50 ? '#0d9f4d' : '#dc2626', chId: 'smChSecUp',
+    rv: [{ tt: '指向', tx: suR.value >= 60 ? tag('普涨·强', '#0d9f4d') : suR.value <= 40 ? tag('普跌·弱', '#dc2626') : tag('分化', '#475569') },
+      { tt: '强弱', tc: 'tag-data', tx: '强势 ' + (suR.top || []).map(function (t) { return esc(t.name) + ' ' + fmtNum(t.pct, 1) + '%'; }).join('　') + '<br>弱势 ' + (suR.bot || []).map(function (b) { return esc(b.name) + ' ' + fmtNum(b.pct, 1) + '%'; }).join('　') }]
+  }) : '';
   smReg('行业情绪(上涨占比)', (!suR || !suR.available || suR.value == null) ? 0 : (suR.value >= 60 ? 1 : (suR.value <= 40 ? -1 : 0)));
   var fiR = S.fundIssue;
-  var sFi = (fiR && fiR.available) ? card('新发公募(近30日)', '基金发行规模 · 东财探测',
-    metric('新发规模', fmtNum(fiR.value, 1) + ' 亿', fiR.detail ? ' · ' + esc(fiR.detail) : '') +
-    '<div style="margin-top:8px">' + sSpark(fiR, '#d98c00') + '</div>' + sSrc(fiR)) : '';
+  var sFi = (fiR && fiR.available) ? sBig(fiR, { k0: '新发规模', hint: '基金发行规模 · 东财探测', unit: ' 亿', dec: 1, col: '#d98c00', chId: 'smChFi', rv: fiR.detail ? [{ tt: '口径', tc: 'tag-data', tx: esc(fiR.detail) }] : [] }) : '';
   var rpR = S.repurchase;
-  var sRp = (rpR && rpR.available) ? card('产业资本回购(近30日)', '上市公司回购公告 · 东财探测',
-    metric('回购金额', fmtNum(rpR.value, 2) + ' 亿', rpR.detail ? ' · ' + esc(rpR.detail) : '') +
-    '<div style="margin-top:8px">' + sSpark(rpR, '#0d9f4d') + '</div>' + sSrc(rpR)) : '';
+  var sRp = (rpR && rpR.available) ? sBig(rpR, { k0: '回购金额', hint: '上市公司回购公告 · 东财探测', unit: ' 亿', dec: 2, col: '#0d9f4d', chId: 'smChRp', rv: rpR.detail ? [{ tt: '口径', tc: 'tag-data', tx: esc(rpR.detail) }] : [] }) : '';
   var opR = S.optionPcr;
   var opLv = function (v) { return v == null ? '' : v >= 1 ? tag('恐慌·看跌重', '#dc2626') : v >= 0.8 ? tag('偏谨慎', '#d98c00') : v >= 0.6 ? tag('中性', '#475569') : tag('乐观·看涨重', '#0d9f4d'); };
-  var sOp = (opR && opR.available) ? card('期权 PCR(认沽认购比)', '认沽/认购成交量比 · 东财探测',
-    metric('PCR', fmtNum(opR.value, 3), ' · ' + opLv(opR.value)) +
-    '<div style="margin-top:8px">' + sSpark(opR, '#2f6bff') + '</div>' + sSrc(opR)) : '';
+  var sOp = (opR && opR.available) ? sBig(opR, {
+    k0: 'PCR', hint: '认沽/认购成交量比 · 东财探测', dec: 3, chId: 'smChOp',
+    rv: [{ tt: '指向', tx: opLv(opR.value) }]
+  }) : '';
   var naR = S.northAmt;
-  var sNa = (naR && naR.available) ? card('北向成交活跃度(买+卖)', '官方2024停更净买入后盘后总额 · 探测',
-    metric('活跃度', fmtNum(naR.value, 1)) +
-    '<div style="margin-top:8px">' + sSpark(naR, '#7c3aed') + '</div>' + sSrc(naR)) : '';
+  var sNa = (naR && naR.available) ? sBig(naR, { k0: '活跃度', hint: '官方2024停更净买入后盘后总额 · 探测', dec: 1, col: '#7c3aed', chId: 'smChNa' }) : '';
   /* fw2_v523_sm_dedup：市场情绪页去重——核心估值/流动性(ERP/PE/VIX/两融/成交额)已在「宏观指标」mi 页统一呈现，
      本页删除其重复 spark 卡(erpCard/peCard/mrgCard/vixCard)，聚焦广度(涨跌家数/大小盘)+情绪+资金系数(M2)；
      FSI/非农/ISM 早已单源(见 v464/v465 注释)，不重复。erpCard/peCard/mrgCard/vixCard 定义已于 v529（fw2_v529_smux P3）清理。 */
@@ -9834,10 +9908,13 @@ function renderMacroSentiment(d) {
   smEv.forEach(function (e) { if (e.dir > 0) smHot++; else if (e.dir < 0) smCold++; else smNeu++; });
   var smTxt = (smHot === 0 && smCold === 0) ? '暂无方向证据' : (smHot > smCold ? '偏热' : smCold > smHot ? '偏冷' : '中性·信号张力');
   var smCol = (smHot === 0 && smCold === 0) ? '#64748b' : (smHot > smCold ? '#dc2626' : smCold > smHot ? '#2f6bff' : '#d98c00');
-  var smMagnet = '<div style="display:flex;align-items:center;gap:18px;padding:14px 18px;border:1px solid #e3e8ef;border-radius:14px;background:#fff;margin-top:10px;box-shadow:0 1px 3px rgba(20,40,80,.05)">'
+  /* fw2_v702_mood_merge：smMagnet 不再单独渲染——HTML 缓存到 window.__smMagnetHtml，
+     由 __mcApply 尾部与组2磁铁（母卡证据判）合并为置顶合并条（左右并列两判定） */
+  var smMagnet = '<div style="display:flex;align-items:center;gap:18px;padding:14px 18px;border:1px solid #e3e8ef;border-radius:14px;background:#fff;box-shadow:0 1px 3px rgba(20,40,80,.05)">'
     + '<div style="font-size:12px;color:var(--slate-500,#64748b);line-height:1.5;flex:none">情绪全景<br>温度</div>'
     + '<div style="font-size:26px;font-weight:700;color:' + smCol + ';flex:none">' + smTxt + '</div>'
     + '<div style="font-size:12px;color:var(--slate-500,#64748b);line-height:1.8">偏热 ' + smHot + ' · 偏冷 ' + smCold + ' · 中性 ' + smNeu + '<br><span style="color:var(--slate-400,#94a3b8)">由各卡自身判读方向汇总 · 同源不二次判断 · 相对分级未校准（缺源卡不计）</span></div></div>';
+  window.__smMagnetHtml = smMagnet;
   function smGroup(t, inner) {
     return '<div style="font-size:12px;font-weight:700;color:var(--slate-500,#64748b);margin:16px 0 2px;letter-spacing:.02em">' + t + '</div>'
       + '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px;margin-top:8px">' + inner + '</div>';
@@ -9846,16 +9923,21 @@ function renderMacroSentiment(d) {
      v697p 合并视图后与本 tab 母卡「情绪温度计：两融与成交」（d.margin 全量：余额+占比+分位+阈值）和
      「全A成交额（沪深京·近30日）」（d.amtD 全量：均值/区间/偏离+M7 阈值）同屏重复；v567 迁入时为独立情绪页、
      合并后撞车。相关性行（唯一增量）依赖 __pxPre 缓存多数场景不显示，随卡删除；pxDrawFundCharts 及其
-     v566/v-mood 两处调用、_fCorr/_fPre/_fReady 死变量块一并清理 */
+     v566/v-mood 两处调用、_fCorr/_fPre/_fReady 死变量块一并清理。
+     fw2_v702_mood_bigcard：6 组重排（情绪传导链：市况→量能→估值→风险偏好→资金供需→流动性）+ 全卡母卡格式化 */
+  window.__smDrawCharts = function () {
+    smTasks.forEach(function (t) {
+      try { var c = chartOf(t.id); if (c) c.setOption(smLineOpt(t), true); } catch (e) {}
+    });
+  };
   var smHtml =
-    '<div style="display:flex;justify-content:space-between;align-items:flex-start;font-size:12px;color:var(--slate-500,#64748b);margin-bottom:8px"><span>数据截至 ' + esc(d.updatedAt || '') + ' · 情绪全景 · 广度与情绪视图——核心估值/海外风险（ERP/PE/VIX）已在 A股估值 等明细 tab 统一呈现，两融余额/全A成交额见本页上方『情绪温度计』『全A成交额』母卡（fw2_v701_mood_dedup 后仅此一处），本页聚焦广度（涨跌家数 · 大小盘）+ 情绪 + 资金系数(M2)；换手率/股息率/市净率中位数/融资买入额/总市值/超额流动性＝理杏仁，恐贪＝CNN，FSI＝FRED</span><button onclick="__mcRefreshMacro(this)" style="flex:none;margin-left:12px;padding:5px 12px;border:1px solid #e3e8ef;border-radius:8px;background:#fff;font-size:12px;color:var(--ink,#0f172a);cursor:pointer">刷新数据</button></div>' +
-    smMagnet +
-    smGroup('风险偏好 · 海外', (fsi && fsi.score != null ? fsiCard : '') + sCnn + sOp) +
-    smGroup('估值与性价比', sBp + sPb + sSec) +
-
-    smGroup('资金与供给', amtCard + sMbuy + sFi + sRp + sLift + sHolder) +
-    smGroup('广度与结构', brCard + sSize + sCr + sSecUp + sCrowd + sTurn) +
-    smGroup('信号与补充', sBasis + sLiq + sCap + sNa) +
+    '<div style="display:flex;justify-content:space-between;align-items:flex-start;font-size:12px;color:var(--slate-500,#64748b);margin-bottom:8px"><span>数据截至 ' + esc(d.updatedAt || '') + ' · 情绪全景 · 广度与情绪视图——两融余额/全A成交额见本页上方『情绪温度计』『全A成交额』母卡（fw2_v701_mood_dedup 后仅此一处）；本页全部指标已统一母卡格式（数据截至+磁贴+指向+图表，fw2_v702_mood_bigcard），按情绪传导链排列：市况广度 → 量能杠杆 → 估值温度 → 风险偏好 → 资金供需 → 流动性补充；市场宽度/板块拥挤度为当日快照无历史序列，资金系数历史不可算（M2 无序列）——不编造缺失数据</span><button onclick="__mcRefreshMacro(this)" style="flex:none;margin-left:12px;padding:5px 12px;border:1px solid #e3e8ef;border-radius:8px;background:#fff;font-size:12px;color:var(--ink,#0f172a);cursor:pointer">刷新数据</button></div>' +
+    smGroup('市场广度与结构', brCard + sSecUp + sSize + sCr + sCrowd) +
+    smGroup('量能与杠杆', sTurn + amtCard + sMbuy) +
+    smGroup('估值温度', sBp + sPb + sSec + sCap) +
+    smGroup('风险偏好（海外+衍生品）', (fsi && fsi.score != null ? fsiCard : '') + sCnn + sBasis + sOp) +
+    smGroup('资金供需', sFi + sRp + sLift + sHolder) +
+    smGroup('流动性与补充', sLiq + sNa) +
     '<div style="margin-top:16px">' + todoCard + '</div>';
   return smHtml;
 }
@@ -14125,6 +14207,21 @@ setTimeout(() => { renderResearchChips(); if (!state.news.items.length) loadNews
     Array.prototype.forEach.call(body.querySelectorAll('p.foot-note'), function (p) {
       p.style.display = '';
     });
+    /* fw2_v702_mood_merge：合并条——组2磁铁（母卡证据判，__MC_GRP_REG.v-mood=2 在 mood region 显示）内部改为
+       左右并列：左=情绪全景温度磁铁（renderMacroSentiment 渲染时缓存 window.__smMagnetHtml），右=原母卡证据判。
+       两口径不同（左=22 卡方向汇总、右=两融+成交额母卡证据），并列呈现不硬合；显隐仍走 .mc-magnet data-mg=2
+       管线（mood 显示、其他 region 隐藏）；renderMacro 全量重建后 mm 为新节点（无 data-merged）→ 重新注入，幂等。
+       仅 mood region 注入——mi 页组2磁铁与情绪全景无关（__smMagnetHtml 缓存常驻，不得串页） */
+    if (reg === 'mood') try {
+      var _mm2 = body.querySelector('.mc-magnet[data-mg="2"]');
+      if (_mm2 && window.__smMagnetHtml && !_mm2.getAttribute('data-merged')) {
+        _mm2.setAttribute('data-merged', '1');
+        var _origMg = _mm2.innerHTML;
+        _mm2.innerHTML = '<div style="display:flex;gap:10px;align-items:stretch;flex-wrap:wrap">'
+          + '<div style="flex:1 1 300px;min-width:280px;display:flex">' + window.__smMagnetHtml + '</div>'
+          + '<div style="flex:1.5 1 400px;min-width:340px">' + _origMg + '</div></div>';
+      }
+    } catch (e) { /* 合并失败保留原磁铁 */ }
     if (window.echarts && window.echarts.getInstanceByDom){
       vis.forEach(function(m){
         Array.prototype.forEach.call(m.querySelectorAll('.chart'), function(el){
