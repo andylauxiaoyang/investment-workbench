@@ -8955,9 +8955,7 @@ function renderMacro() {
   state.macroRegion = reg;   /* 模板过滤 / __mcApply 用翻译后的 reg（cn/val/mood/ovs/px） */
   if (_region === 'us') { mcRegisterEvidence(mcCalcCommon(d)); body.innerHTML = renderMacroUS(d); renderMacroUSCharts(); return; }   /* fw2_v549_region_align：美国周期页＝康波+FSI+非农+⑤组9项硬指标全集（实体卡从 mi ⑤组迁入，mi 页⑤组改引用卡）；证据注册先于渲染（磁铁需 __MC_EV） */
   if (_region === 'gbl') { mcRegisterEvidence(mcCalcCommon(d)); body.innerHTML = renderMacroGbl(d); renderMacroGblCharts(); return; }  /* fw2_v549_region_align：海外景气页＝⑥全球景气非美实体卡（韩国出口/OECD/BDI日银/PMI合成，mi 页⑥组改引用卡） */
-  if (_region === 'sm') { body.innerHTML = renderMacroSentiment(d);
-    pxDrawFundCharts({ rzye: { mfPts: (d.margin && d.margin.points) || [] }, amt: { mfPts: (d.amtD && d.amtD.points) || [] } });   /* fw2_v566_fund_move：资金面双图数据源=d.margin/d.amtD（与 px 同源，不重复抓取） */
-    return; }
+  if (_region === 'sm') { body.innerHTML = renderMacroSentiment(d); return; }   /* fw2_v701_mood_dedup：pxDrawFundCharts 调用随 v566 迁入卡删除移除（该分支 v697p 后不可达，保留兜底） */
   if (_region === 'chain' || _region === 'v-chain') { if (typeof mcRegisterEvidence === 'function') mcRegisterEvidence(mcCalcCommon(d)); body.innerHTML = renderChain(d); return; }
   /* fw2_v432 资产价格监控：19 项全景 · 磁贴+分区表+弹层走势 · 周期/持仓/信号三联动 */
   if (_region === 'px' || _region === 'v-px') { renderPriceMon(d); return; }
@@ -9618,8 +9616,7 @@ body.innerHTML = ((_region === 'cn' || _region === 'v-cycle') ? renderMacroTools
   /* fw2_v697p_merge_views：合并视图在模板+图表初始化后、__mcApply 前追加自包含渲染器（复用现有函数，不动 700 行母模板）。
      body/_region/d 均在本 IIFE 闭包作用域内；追加块无 .mc-mod 包裹，__mcApply 不会隐藏它。 */
   if (_region === 'v-mood') {
-    body.innerHTML += renderMacroSentiment(d);
-    pxDrawFundCharts({ rzye: { mfPts: (d.margin && d.margin.points) || [] }, amt: { mfPts: (d.amtD && d.amtD.points) || [] } });
+    body.innerHTML += renderMacroSentiment(d);   /* fw2_v701_mood_dedup：pxDrawFundCharts 调用随两融/成交额重复卡删除移除 */
   }
   if (_region === 'v-global') {
     body.innerHTML += renderMacroUS(d) + renderMacroGbl(d);
@@ -9845,44 +9842,18 @@ function renderMacroSentiment(d) {
     return '<div style="font-size:12px;font-weight:700;color:var(--slate-500,#64748b);margin:16px 0 2px;letter-spacing:.02em">' + t + '</div>'
       + '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px;margin-top:8px">' + inner + '</div>';
   }
-  /* fw2_v567_fund_merge：v566 迁入的「资金面」双图大卡拆成两张与组内同构的标准卡（两融余额卡 + 全A成交额卡，card+metric+图+相关性+srcLine 页脚），删「资金面」独立组标题，并入「资金与供给」组首；数据=d.margin/d.amtD 同源；相关性复用 px 宽基价格缓存（先开资产价格页可见数值） */
-  var _fPre = window.__pxPre || {};
-  var _fReady = !!(_fPre.hs300 && _fPre.hs300.pts && _fPre.hs300.pts.length > 60);
-  var _rzyeTw = d.margin && d.margin.cur && d.margin.cur.rzye != null ? d.margin.cur.rzye / 1e4 : null;
-  var _amtTw = (d.amtD && d.amtD.cur && d.amtD.cur[1] != null) ? d.amtD.cur[1] / 1e4 : null;
-  var _rzyeTag = _rzyeTw == null ? '—' : _rzyeTw >= 3 ? '过热观察' : _rzyeTw >= 2 ? '正常' : '偏低';
-  var _amtTag = _amtTw == null ? '—' : _amtTw >= 3 ? '过热区' : _amtTw >= 2 ? '正常区' : _amtTw >= 1.5 ? '关注入场点' : '网格定投区';
-  var _rzyeCol = _rzyeTw == null ? '#64748b' : _rzyeTw >= 3 ? '#e02e24' : _rzyeTw >= 2 ? '#0d9f4d' : '#d98c00';
-  var _amtCol = _amtTw == null ? '#64748b' : _amtTw >= 3 ? '#e02e24' : _amtTw >= 2 ? '#0d9f4d' : _amtTw >= 1.5 ? '#d98c00' : '#0d9f4d';
-  var _fCorr = function (id) {
-    if (!_fReady) return '<span style="color:var(--slate-400,#94a3b8)">相关性需资产价格页行情 · 先打开资产价格监控后可见</span>';
-    var isAmt = id === 'amt';
-    return ['hs300', 'zz500', 'cyb'].map(function (ix) {
-      var aPts = _fPre[ix] && _fPre[ix].pts ? (isAmt ? _fPre[ix].pts : pxMonthEnds(_fPre[ix].pts)) : [];
-      var bPts = _fPre[id] && _fPre[id].mfPts ? _fPre[id].mfPts : [];
-      var cv = pxCorrOf(aPts, bPts, isAmt ? 12 : 6);
-      return esc(pxLabelShort(ix)) + ' ' + (cv ? '<b>' + cv.r.toFixed(2) + '</b>' : '·');
-    }).join(' · ');
-  };
-  var _rzyeDate = (d.margin && d.margin.points && d.margin.points.length) ? d.margin.points[d.margin.points.length - 1][0] : '';
-  var _amtDate = (d.amtD && d.amtD.cur && d.amtD.cur.length) ? d.amtD.cur[0] : '';
-  var rzyeFundCard = card('两融余额' + LXMAP.ic(LXMAP.index('两融余额'), '理杏仁 · 两融/成交'),
-    '两融余额=月频杠杆资金规模（万亿，自2010年）· 与三大宽基月收益相关性，越正=资金与行情同步越强 · 均为资金参与度指标',
-    metric('两融余额', _rzyeTw != null ? _rzyeTw.toFixed(2) + ' 万亿' : '—', ' · ' + tag(_rzyeTag, _rzyeCol)) +
-    '<div style="font-size:10px;color:var(--slate-500,#64748b);margin-top:6px">与宽基月收益相关性：' + _fCorr('rzye') + '</div>' +
-    '<div id="pxFundRzye" style="height:92px;margin-top:6px"></div>' + srcLine('东财 RPTA_RZRQ_LSHJ', _rzyeDate));
-  var amtFundCard = card('全A成交额' + LXMAP.ic(LXMAP.index('全A成交额'), '理杏仁 · 两融/成交'),
-    '全A成交额=近30交易日活跃度（日频，万亿）· 与三大宽基近1月日收益相关性，越正=资金与行情同步越强',
-    metric('全A成交额', _amtTw != null ? _amtTw.toFixed(2) + ' 万亿' : '—', ' · ' + tag(_amtTag, _amtCol)) +
-    '<div style="font-size:10px;color:var(--slate-500,#64748b);margin-top:6px">与宽基日收益相关性（近1月）：' + _fCorr('amt') + '</div>' +
-    '<div id="pxFundAmt" style="height:92px;margin-top:6px"></div>' + srcLine('新浪+westock(沪深京)', _amtDate));
+  /* fw2_v701_mood_dedup（v701）：删「资金与供给」组内两融余额卡（rzyeFundCard）与全A成交额卡（amtFundCard）——
+     v697p 合并视图后与本 tab 母卡「情绪温度计：两融与成交」（d.margin 全量：余额+占比+分位+阈值）和
+     「全A成交额（沪深京·近30日）」（d.amtD 全量：均值/区间/偏离+M7 阈值）同屏重复；v567 迁入时为独立情绪页、
+     合并后撞车。相关性行（唯一增量）依赖 __pxPre 缓存多数场景不显示，随卡删除；pxDrawFundCharts 及其
+     v566/v-mood 两处调用、_fCorr/_fPre/_fReady 死变量块一并清理 */
   var smHtml =
-    '<div style="display:flex;justify-content:space-between;align-items:flex-start;font-size:12px;color:var(--slate-500,#64748b);margin-bottom:8px"><span>数据截至 ' + esc(d.updatedAt || '') + ' · 情绪全景 · 广度与情绪视图——核心估值/流动性（ERP/PE/VIX/两融/成交额）已在 A股估值 / 情绪温度 等明细 tab 统一呈现，本页聚焦广度（涨跌家数 · 大小盘）+ 情绪 + 资金系数(M2)；换手率/股息率/市净率中位数/融资买入额/总市值/超额流动性＝理杏仁，恐贪＝CNN，FSI＝FRED</span><button onclick="__mcRefreshMacro(this)" style="flex:none;margin-left:12px;padding:5px 12px;border:1px solid #e3e8ef;border-radius:8px;background:#fff;font-size:12px;color:var(--ink,#0f172a);cursor:pointer">刷新数据</button></div>' +
+    '<div style="display:flex;justify-content:space-between;align-items:flex-start;font-size:12px;color:var(--slate-500,#64748b);margin-bottom:8px"><span>数据截至 ' + esc(d.updatedAt || '') + ' · 情绪全景 · 广度与情绪视图——核心估值/海外风险（ERP/PE/VIX）已在 A股估值 等明细 tab 统一呈现，两融余额/全A成交额见本页上方『情绪温度计』『全A成交额』母卡（fw2_v701_mood_dedup 后仅此一处），本页聚焦广度（涨跌家数 · 大小盘）+ 情绪 + 资金系数(M2)；换手率/股息率/市净率中位数/融资买入额/总市值/超额流动性＝理杏仁，恐贪＝CNN，FSI＝FRED</span><button onclick="__mcRefreshMacro(this)" style="flex:none;margin-left:12px;padding:5px 12px;border:1px solid #e3e8ef;border-radius:8px;background:#fff;font-size:12px;color:var(--ink,#0f172a);cursor:pointer">刷新数据</button></div>' +
     smMagnet +
     smGroup('风险偏好 · 海外', (fsi && fsi.score != null ? fsiCard : '') + sCnn + sOp) +
     smGroup('估值与性价比', sBp + sPb + sSec) +
 
-    smGroup('资金与供给', rzyeFundCard + amtFundCard + amtCard + sMbuy + sFi + sRp + sLift + sHolder) +
+    smGroup('资金与供给', amtCard + sMbuy + sFi + sRp + sLift + sHolder) +
     smGroup('广度与结构', brCard + sSize + sCr + sSecUp + sCrowd + sTurn) +
     smGroup('信号与补充', sBasis + sLiq + sCap + sNa) +
     '<div style="margin-top:16px">' + todoCard + '</div>';
@@ -10242,12 +10213,9 @@ var PX_ASSETS = [
   { id:'usdx',  g:'c', label:'美元指数', dec:2, src:'fx.cur.usdx', seq:'fx:2', mf:1 },
   { id:'usdcnh',g:'c', label:'USDCNH', dec:4, src:'fx.cur.usdcnh', seq:'fx:1', mf:1 }
 ];
-/* fw2_v697t_px_rows_del：VIX/两融余额/全A成交额三行自资产一览表移除（用户 2026-10-26 圈删，与流动情绪·资金与供给/海外约束视图重复）——
-   两项数据仍装配（不出表行）：rzye/amt 供情绪全景资金面卡的 _fCorr 跨视图相关性（__pxPre 缓存）；vix 已随「风险情绪锚」块删除（v697u）不再装配 */
-var PX_HIDDEN = [
-  { id:'rzye',  g:'e', label:'两融余额', dec:2, unit:'万亿', src:'margin.cur.rzye', scale:1e-4, seq:'margin:1', mf:1 },
-  { id:'amt',   g:'e', label:'全A成交额', dec:2, unit:'万亿', src:'amtD.cur:1', scale:1e-4, seq:'amtD:1', mf:1 }
-];
+/* fw2_v697t_px_rows_del：VIX/两融余额/全A成交额三行自资产一览表移除（用户 2026-10-26 圈删，与流动情绪·资金与供给/海外约束视图重复）。
+   fw2_v701_mood_dedup：PX_HIDDEN（rzye/amt 装配）整体删除——其唯一消费者（pxDrawFundCharts + 情绪全景 _fCorr 相关性）
+   已随 v701 删卡清理，rzye/amt 月末聚合装配成死代码；两融/成交额数据由宏观母卡 d.margin/d.amtD 独立供给，不受影响 */
 /* v433 fw2_v433_px_held_dynamic：持仓高亮动态读 SIGNALS_CFG.barbell.funds（策略执行杠铃配置）——
    配置改、持仓高亮自动跟随，不再写死在 PX_ASSETS；命中返回该基金配置名，未命中返回 null */
 /* v445 fw2_v445_px_held_real：持仓徽标改以「我的持仓」真实数据为准——state.portfolio 三层兜底
@@ -10390,9 +10358,9 @@ function pxStats(pts, latest, lastN) {
 function renderPriceMon(d) {
   var body = $('#macroBody'); if (!body) return;
   fillMacroTabs();
-  /* 同步可得：macro 快照项（月频）；PX_HIDDEN（rzye/amt）只装配数据不出表行，供情绪全景资金面卡相关性用 */
+  /* 同步可得：macro 快照项（月频）。fw2_v701_mood_dedup：PX_HIDDEN 已删（rzye/amt 相关性消费者不存在），只遍历 PX_ASSETS */
   var pre = {};
-  PX_ASSETS.concat(PX_HIDDEN).forEach(function (a) {
+  PX_ASSETS.forEach(function (a) {
     var it = { a: a, cur: null, pct: null, time: '', st: null, pts: [], mfPts: [] };
     if (a.src || a.seq) {
       var v = a.src ? pxPath(d, a.src) : null;
@@ -10623,25 +10591,8 @@ function pxCorrHtml(pre, ready) {
     '<div style="overflow-x:auto">' + matHtml + '</div>' +
     '</div>';
 }
-function pxDrawFundCharts(pre) {
-  [['rzye', 'pxFundRzye', '两融余额', '#2f6bff'], ['amt', 'pxFundAmt', '全A成交额', '#7c3aed']].forEach(function (cfg) {
-    var id = cfg[0], elId = cfg[1], label = cfg[2], col = cfg[3];
-    var el = document.getElementById(elId);
-    if (!el || !window.echarts) return;
-    var inst = echarts.getInstanceByDom(el); if (inst) inst.dispose();
-    var it = pre[id];
-    var pts = it && it.mfPts ? it.mfPts.slice(-13) : [];
-    if (pts.length < 2) { el.innerHTML = '<div style="font-size:10px;color:var(--slate-400,#94a3b8);padding:6px">序列不足</div>'; return; }
-    var c = echarts.init(el);
-    c.setOption({
-      tooltip: { trigger: 'axis', valueFormatter: function (v) { return fmtNum(v, 2) + ' 万亿'; } },
-      grid: { left: 40, right: 8, top: 10, bottom: 20 },
-      xAxis: { type: 'category', data: pts.map(function (p) { return p[0].slice(2); }), axisLabel: { fontSize: 8, color: '#94a3b8', hideOverlap: true } },
-      yAxis: { type: 'value', axisLabel: { fontSize: 8, color: '#94a3b8' }, splitLine: { lineStyle: { color: '#eef2f7' } } },
-      series: [{ name: label, type: 'line', data: pts.map(function (p) { return p[1]; }), showSymbol: false, lineStyle: { width: 1.4, color: col }, itemStyle: { color: col }, areaStyle: { opacity: 0.08, color: col } }]
-    });
-  });
-}
+/* fw2_v701_mood_dedup：pxDrawFundCharts 函数删除（原 v567 资金面双图卡专用，v701 删卡后全站零调用；
+   容器 #pxFundRzye/#pxFundAmt 随卡一并消失） */
 /* ================= 黄金与央行 · 中国央行购金卡（fw2_v450_gold_removed：黄金研究模块迁入 px） =================
  * 数据：loadGoldData() → gold-data.json（cb_m 月度 / cb_y 年度 / csv_payloads['cb_gold.csv']）
  * 口径：中国人民银行《官方储备资产》月度（每月 7 日前后公布上月末，环比=当月净购金；1 万盎司≈0.3110 吨）；
