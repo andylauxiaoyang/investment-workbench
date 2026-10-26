@@ -10598,9 +10598,8 @@ var PX_ASSETS = [
   { id:'usdcnh',g:'c', label:'USDCNH', dec:4, src:'fx.cur.usdcnh', seq:'fx:1', mf:1 }
 ];
 /* fw2_v697t_px_rows_del：VIX/两融余额/全A成交额三行自资产一览表移除（用户 2026-10-26 圈删，与流动情绪·资金与供给/海外约束视图重复）——
-   三项数据仍装配（不出表行）：vix 供「风险情绪锚」对冲相关性块；rzye/amt 供情绪全景资金面卡的 _fCorr 跨视图相关性（__pxPre 缓存） */
+   两项数据仍装配（不出表行）：rzye/amt 供情绪全景资金面卡的 _fCorr 跨视图相关性（__pxPre 缓存）；vix 已随「风险情绪锚」块删除（v697u）不再装配 */
 var PX_HIDDEN = [
-  { id:'vix',   g:'e', label:'VIX 恐慌', dec:2, src:'vix.cur', seq:'vix:1', mf:1 },
   { id:'rzye',  g:'e', label:'两融余额', dec:2, unit:'万亿', src:'margin.cur.rzye', scale:1e-4, seq:'margin:1', mf:1 },
   { id:'amt',   g:'e', label:'全A成交额', dec:2, unit:'万亿', src:'amtD.cur:1', scale:1e-4, seq:'amtD:1', mf:1 }
 ];
@@ -10746,7 +10745,7 @@ function pxStats(pts, latest, lastN) {
 function renderPriceMon(d) {
   var body = $('#macroBody'); if (!body) return;
   fillMacroTabs();
-  /* 同步可得：macro 快照项（月频）；PX_HIDDEN（vix）只装配数据不出表行，供风险情绪锚用 */
+  /* 同步可得：macro 快照项（月频）；PX_HIDDEN（rzye/amt）只装配数据不出表行，供情绪全景资金面卡相关性用 */
   var pre = {};
   PX_ASSETS.concat(PX_HIDDEN).forEach(function (a) {
     var it = { a: a, cur: null, pct: null, time: '', st: null, pts: [], mfPts: [] };
@@ -10788,12 +10787,12 @@ function renderPriceMon(d) {
     '<div class="card"><div class="card-h"><h3>资产价格监控 · 全景表 · 相关性</h3><span class="hint">全景表=17 项可投资资产时点与判断一览（点击行查看该资产长期走势）· 相关性矩阵=资产之间是共振还是互补</span></div>' +
     '<div style="margin-top:16px">' +
     '<div style="font-size:13px;font-weight:700;color:var(--ink,#0f172a);margin-bottom:2px">资产一览 · 时点与判断</div>' +
-    '<div style="font-size:11px;color:var(--slate-500,#64748b);margin-bottom:6px">17 项可投资资产：现价/今日/1月/年初至今/1-20年/52周位置 + 周期指向与持仓·信号判断；点击行查看长期走势。现价=腾讯实时快照（月频资产=最新月频值）。VIX/两融/全A成交额已移除（见流动情绪·资金与供给；VIX 对冲关系见下方风险情绪锚）。<span id="pxAsofBadge" class="asof" style="margin-left:8px"></span></div>' +
+    '<div style="font-size:11px;color:var(--slate-500,#64748b);margin-bottom:6px">17 项可投资资产：现价/今日/1月/年初至今/1-20年/52周位置 + 周期指向与持仓·信号判断；点击行查看长期走势。现价=腾讯实时快照（月频资产=最新月频值）。VIX/两融/全A成交额已移除（见流动情绪·资金与供给）。<span id="pxAsofBadge" class="asof" style="margin-left:8px"></span></div>' +
     '<div id="pxTable" style="overflow-x:auto">' + pxTableHeadHtml() + preTable + '</tbody></table></div>' +
     '</div>' +
     '<div id="pxCorr">' + pxCorrHtml(pre, false) + '</div>' +
     '<div id="pxGoldCb"></div>' +
-    '<div class="asof" style="margin-top:6px">相关性=Pearson 相关系数（全局 15 项统一近 12 月月收益口径，日频资产由日K聚合为月末点）；1-20年收益=月末序列口径：股指长历史已接（上证 36 年/沪深300 21 年/标普 40 年/纳指 35 年/恒生 36 年/日经 39 年，10/20 年列按各资产可得，物理上限如科创50 仅 7 年）；月频资产=理杏仁 10 年（美债/伦敦金/WTI/VIX 的 20 年+待 FRED 接入，美元指数因口径不一致暂不接）；VIX 恐慌/两融余额/全A成交额三项已自本表移除（v697t）：VIX 对冲关系见下方风险情绪锚，两融/成交额见流动情绪·资金与供给，均不进入价格相关性矩阵。周期指向与信号徽标复用宏观指标页同口径阈值；日经 225 日频仅近 1 年（3/5 年窗口自动剔除，10/20 年走月末长序列）。数据不构成投资建议。</div>' +
+    '<div class="asof" style="margin-top:6px">相关性=Pearson 相关系数（全局 15 项统一近 12 月月收益口径，日频资产由日K聚合为月末点）；1-20年收益=月末序列口径：股指长历史已接（上证 36 年/沪深300 21 年/标普 40 年/纳指 35 年/恒生 36 年/日经 39 年，10/20 年列按各资产可得，物理上限如科创50 仅 7 年）；月频资产=理杏仁 10 年（美债/伦敦金/WTI/VIX 的 20 年+待 FRED 接入，美元指数因口径不一致暂不接）；VIX 恐慌/两融余额/全A成交额已自本视图移除（v697t/u）：见流动情绪·资金与供给，不进入价格相关性矩阵。周期指向与信号徽标复用宏观指标页同口径阈值；日经 225 日频仅近 1 年（3/5 年窗口自动剔除，10/20 年走月末长序列）。数据不构成投资建议。</div>' +
     '</div></div>';
   /* 异步：腾讯快照（现价/今日）+ 日K（1300 点 ≈5 年），趋势图按窗口切片复用；表格日频行由日K 重算 52周统计 */
   var klineDone = {};
@@ -10909,25 +10908,6 @@ function pxMonthEnds(pts) {
 var PX_CORR_ASSET_IDS = PX_DAILY.concat(PX_MONTHLY).filter(function (id) {
   return id !== 'usdx' && id !== 'usdcnh' && id !== 'vix';
 });
-function pxVixHedgeHtml(pre, ready) {
-  var pairs = [['spx', '标普500'], ['nq', '纳斯达克'], ['gold', '伦敦金'], ['wti', 'WTI原油']];
-  var chips = pairs.map(function (p) {
-    var vPts = pre && pre['vix'] ? pxCorrSeries(pre['vix'], true) : [];
-    var aPts = pre && pre[p[0]] ? pxCorrSeries(pre[p[0]], true) : [];
-    var cv = (vPts.length >= 2 && aPts.length >= 2) ? pxCorrOf(vPts, aPts, 6) : null;
-    var col = cv ? (cv.r < 0 ? '#2f6bff' : '#e02e24') : '#94a3b8';
-    return '<span style="font-size:10px;color:var(--slate-700,#334155);background:var(--panel-3,#f1f5f9);border:1px solid var(--line,#e2e8f0);border-radius:8px;padding:4px 8px;display:inline-block;margin:3px 6px 0 0">' +
-      '<b style="color:var(--ink,#0f172a)">' + esc(p[1]) + '</b> · ' +
-      (cv ? '<b style="color:' + col + '">ρ ' + cv.r.toFixed(2) + '</b>' : '<span style="color:var(--slate-400,#94a3b8)">·</span>') +
-      (cv ? ' <span style="color:' + (cv.r < 0 ? 'var(--nav-blue,#2f6bff)' : 'var(--slate-500,#64748b)') + '">' + (cv.r < 0 ? '反向对冲' : '同向共振') + '</span>' : '') +
-      '</span>';
-  }).join('');
-  return '<div style="margin-top:14px">' +
-    '<div style="font-size:12px;font-weight:700;color:var(--slate-600,#475569);margin-bottom:6px">风险情绪锚 · VIX 对冲关系</div>' +
-    '<div style="font-size:11px;color:var(--slate-500,#64748b);margin-bottom:6px">VIX 非可投资资产、不进资产矩阵；作为风险情绪开关，单独展示其与主要资产的月收益相关性（越负 = 恐慌时该资产反向走强，对冲价值越高）。</div>' +
-    '<div style="display:flex;gap:10px;flex-wrap:wrap">' + (chips || '<span style="font-size:10px;color:var(--slate-400,#94a3b8)">月收益序列聚合中，稍候自动填充…</span>') + '</div>' +
-    '</div>';
-}
 function pxCorrSeries(it, monthly) {
   if (!it) return [];
   if (monthly) {
@@ -10979,26 +10959,6 @@ function pxCorrMatrixHtml(ids, items, opts) {
   /* fw2_v441_px_corr_fullwidth / fw2_v442_px_corr_merge：相关性矩阵整屏——表格 width:100% 占满父容器，列宽按内容 auto 摊分，名称列保持 min-width，数值列自动放宽、色块居中 */
   return '<table style="border-collapse:collapse;width:100%">' + head + rows + '</table>';
 }
-function pxComplPairsHtml(ids, items, opts) {
-  opts = opts || {};
-  var minS = opts.minSamples || 30;
-  var pairs = [];
-  for (var i = 0; i < ids.length; i++) {
-    for (var j = i + 1; j < ids.length; j++) {
-      var aPts = opts.monthly ? pxCorrSeries(items[ids[i]], true) : (items[ids[i]] ? (opts.useMf ? items[ids[i]].mfPts : items[ids[i]].pts) : []);
-      var bPts = opts.monthly ? pxCorrSeries(items[ids[j]], true) : (items[ids[j]] ? (opts.useMf ? items[ids[j]].mfPts : items[ids[j]].pts) : []);
-      var cv = pxCorrOf(aPts, bPts, minS);
-      if (cv && cv.r <= 0.30) pairs.push({ a: ids[i], b: ids[j], r: cv.r });
-    }
-  }
-  pairs.sort(function (x, y) { return x.r - y.r; });
-  var out = pairs.slice(0, 6).map(function (p) {
-    var tag = p.r < 0 ? '负相关·对冲避险' : '低相关·分散配置';
-    return '<span style="font-size:10px;color:var(--slate-700,#334155);background:var(--panel-3,#f1f5f9);border:1px solid var(--line,#e2e8f0);border-radius:8px;padding:4px 8px;display:inline-block;margin:3px 6px 0 0">' +
-      '<b style="color:var(--ink,#0f172a)">' + esc(pxLabelShort(p.a)) + ' × ' + esc(pxLabelShort(p.b)) + '</b> · ρ ' + p.r.toFixed(2) + ' · ' + tag + '</span>';
-  }).join('');
-  return out || '<span style="font-size:10px;color:var(--slate-400,#94a3b8)">当前窗口内无 ρ≤0.30 组合（资产高度共振）</span>';
-}
 function pxCorrHtml(pre, ready) {
   /* fw2_v442_px_corr_merge：日频 + 月频合并为一张全局矩阵（统一口径「近12月月收益」：
      日频资产由日K聚合成月末点、月频资产用理杏仁月末序列，pxCorrSeries 同口径对齐），
@@ -11010,15 +10970,12 @@ function pxCorrHtml(pre, ready) {
   var matHtml = ready
     ? pxCorrMatrixHtml(allIds, pre, { freq: '全局 14 项 · 近12月月收益', minSamples: 6, monthly: true })
     : '<div style="font-size:11px;color:var(--slate-400,#94a3b8);padding:10px 0">月收益序列聚合中，稍候自动填充…（日K 尚未完成月末聚合）</div>';
-  var comp = ready ? pxComplPairsHtml(allIds, pre, { minSamples: 6, monthly: true }) : '';
+  /* fw2_v697u_corr_trim：删「风险情绪锚·VIX 对冲关系」与「互补/对冲组合」两块（用户 2026-10-26 圈删）——
+     pxVixHedgeHtml/pxComplPairsHtml 随之删除，vix 自 PX_HIDDEN 移除（其唯一消费者即风险情绪锚） */
   return '<div style="margin-top:16px">' +
     '<div style="font-size:13px;font-weight:700;color:var(--ink,#0f172a);margin-bottom:2px">相关性与对冲 · 全局一览</div>' +
-    '<div style="font-size:11px;color:var(--slate-500,#64748b);margin-bottom:10px">颜色=相关性强度：红=同涨同跌（共振），蓝=涨跌相反（互补/对冲），白≈0=互不相关。统一口径：全部 14 项按近 12 月月收益计算 ρ（日频资产由日K聚合为月末点，与月频资产同口径对齐）。USD/CNH、VIX 与美元指数按性质移出本矩阵：汇率与美元指数信息高度重叠且月频对齐样本空白；VIX 为情绪指标，其对冲关系在下方「风险情绪锚」单列。两融/成交额已由流动情绪·资金与供给覆盖，不进入本矩阵。</div>' +
+    '<div style="font-size:11px;color:var(--slate-500,#64748b);margin-bottom:10px">颜色=相关性强度：红=同涨同跌（共振），蓝=涨跌相反（互补/对冲），白≈0=互不相关。统一口径：全部 14 项按近 12 月月收益计算 ρ（日频资产由日K聚合为月末点，与月频资产同口径对齐）。USD/CNH、VIX 与美元指数按性质移出本矩阵：汇率与美元指数信息高度重叠且月频对齐样本空白，VIX 为情绪指标。两融/成交额已由流动情绪·资金与供给覆盖，不进入本矩阵。</div>' +
     '<div style="overflow-x:auto">' + matHtml + '</div>' +
-    pxVixHedgeHtml(pre, ready) +
-    '<div style="margin-top:12px">' +
-    '<div style="font-size:12px;font-weight:700;color:var(--slate-600,#475569);margin-bottom:6px">互补 / 对冲组合（ρ ≤ 0.30，越负对冲越强）</div>' +
-    '<div style="display:flex;gap:10px;flex-wrap:wrap">' + (comp || '') + '</div></div>' +
     '</div>';
 }
 function pxDrawFundCharts(pre) {
@@ -12946,7 +12903,7 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
        ①删 cbExport/cbImport/cbCloudRestore 三按钮 + #cbImportFile + #cbCloudInfo 灰字（HTML+三段绑定）；
        ②成交台账(cbLedgerToggle)/设置负债等其余工具栏按钮不动；③renderCloudInfo（自带 !el 守卫）/
        cbImportFile onchange/restoreFromMirror 保留死代码，恢复入口只需还原 HTML+绑定。
-       注意：全量 DB 备份入口随之消失，台账流水仍可经总览·交易台账折叠块备份。 */  if (vc) vc.textContent = 'v697t · px表删情绪资金三行' /* fw2_v697p_macro_11to5 fw2_v695_sw_cache_bust fw2_v694_dm_instr_fix fw2_v687_action_loop fw2_v687_next_plan fw2_v686_drip_pollute fw2_v686_review_role_grp fw2_v685_review_pct_netbeg fw2_v684_review_conclusion fw2_v680_review_refstyle fw2_v681_review_t2_gap fw2_v682_review_t2_rightalign fw2_v683_t2_align_t1 fw2_v678_tbl_col_harmony fw2_v677_role_col_del fw2_v676_attr_monthnav fw2_v676_attr_zero fw2_v675_num_col_widen fw2_v674_rev_breathe fw2_v673_rev_union fw2_v673_sig_retrace fw2_v669_review_tables fw2_v668_review_monthly fw2_v667_review_insight fw2_v666_tiles_bigger fw2_v665_review_tiles fw2_v664_review_rebuild fw2_v663_hero_retire fw2_v661_filter_compact fw2_v660_ui_simplify fw2_v659_backup_btns_del fw2_v658_rpt_monthnav fw2_v657_rptbar_del fw2_v656_rpt_6m fw2_v655_rpt_kpi fw2_v654_held_pf_authority fw2_v653_alloc_pile_assign fw2_v652_data_tab_removed fw2_v651_recent_hide fw2_v651_ledger_slim fw2_v651_entry_unify fw2_v650_netseries_daily fw2_v650_moneynav fw2_v649_merge_holdings fw2_v648_capbal_slim fw2_v647_netseries_fix fw2_v646_ledger_capbal fw2_v644_revert_watch_tab fw2_v643_mtbl_tier fw2_v642_a500_enh fw2_v641_peak_dd fw2_v640_buy_pct fw2_v639_del_decisionfw2_v516_a500lk fw2_v517_4otc fw2_v518_hspos fw2_v519_sm_merge fw2_v520_chgflat fw2_v521_magnet fw2_v522_overview fw2_v523_sm_dedup fw2_v524_geo_fsi fw2_v525_geo_filter fw2_v526_geo_filter_removed fw2_v527_verdict fw2_v529_smux fw2_v530_datamgmt fw2_v531_sm_dmgmt fw2_v532_all_dm fw2_v533_px_long fw2_v533d_dm_scroll fw2_v534_dm_module fw2_v535_dm_auto fw2_v539_hold_realpnl fw2_v539a_seed_sync fw2_v539a_seed_order fw2_v540_hold_path fw2_v542_pf_mirror_first fw2_v542_mv_settled fw2_v542_mv_account fw2_v543_dm_holdings_note fw2_v544_ledger_mirror_guard fw2_v545_hold_total_row fw2_v546_navdate_all fw2_v547_vix_to_ovs fw2_v548_ovs_mrg fw2_v549_region_align fw2_v550_grp_tabs fw2_v551_sop_cockpit fw2_v552_sop_taborder fw2_v553_chain_data fw2_v554_sop_rename fw2_v556_market_split fw2_v557_sm_renamed fw2_v558_cbrates_fix fw2_v558a_cb_label fw2_v559_chain_dates fw2_v560_chain_verdict fw2_v561_curve_hold fw2_v562_hold_inline fw2_v563_alloc fw2_v564_lxlink fw2_v565_cal_lx fw2_v565_sub_lx fw2_v566_fund_move fw2_v567_fund_merge fw2_v568_lxlink_fix fw2_v569_manager_pool fw2_v570_manager_universe fw2_v571_mgr_east fw2_v574_mgr_subscore fw2_v575_mgr_merge fw2_v576_mgr_group fw2_v577_mgr_lxlink fw2_v578_mgr_lxreal fw2_v579_mgr_weight fw2_v581_fund_lxreal fw2_v582_mgr_min10 fw2_v583_mgr_noyear fw2_v584_mgr_career fw2_v585_mgr_srank fw2_v586_mgr_srank fw2_v587_mgr_since fw2_v588_mgr_lxfull fw2_v589_mgr_rules fw2_v590_mgr_scores fw2_v591_mgr_ladder fw2_v592_mgr_cols fw2_v593_mgr_score fw2_anti_halluc_p0 fw2_v595_alpha_attrib fw2_v596_sig_hist fw2_v597_fund_overlap fw2_v598_mgr_hold fw2_v599_time_decay fw2_v599_corr_pen fw2_v600_buytrack fw2_v601_backtest fw2_v602_kline_page fw2_v603_old_debts fw2_v604_xirr fw2_v605_holdings_global fw2_v606_v11_signal fw2_v607_v11_bt fw2_v608_lx_audit fw2_v609_sig_table fw2_v610_sig_merge fw2_v611_grp_line fw2_v612_index_lxreal fw2_v613_near_blue fw2_v615_sig_grp fw2_v616_sig_hdstyle fw2_v617_sig_vline fw2_v618_sig_lcr fw2_v619_curthr fw2_v620_curthr_all fw2_v621_ret_hpr fw2_v621_t13_lastbuy fw2_v622_lastbuy_auto fw2_v623_firstbuy_roll fw2_v623_alloc_watch fw2_v624_m13_m17 fw2_v626_sig_cost_guard fw2_v626_watch_pe_exempt fw2_v627_colorder fw2_v627_action_plan fw2_v627_data_date fw2_v628_fixed_cols fw2_v629_pool_pile_guard fw2_v629_t9_pfdate fw2_v630_missing_cost fw2_v631_pool_held_live fw2_v632_held_off fw2_v633_ledger_tx_sync fw2_v634_plan_dir fw2_v635_capbal_fix fw2_v636_capbal_converge fw2_v637_mv_consist fw2_v638_mv_unify fw2_v697p_macro_11to5 fw2_v697q_cockpit_return fw2_v697r_tab_highlight fw2_v697s_px_del_trends fw2_v697t_px_rows_del */ + (window.getAllocWatchCodes ? window.getAllocWatchCodes().length : 0) + '只';
+       注意：全量 DB 备份入口随之消失，台账流水仍可经总览·交易台账折叠块备份。 */  if (vc) vc.textContent = 'v697u · 删风险情绪锚与对冲组合' /* fw2_v697p_macro_11to5 fw2_v695_sw_cache_bust fw2_v694_dm_instr_fix fw2_v687_action_loop fw2_v687_next_plan fw2_v686_drip_pollute fw2_v686_review_role_grp fw2_v685_review_pct_netbeg fw2_v684_review_conclusion fw2_v680_review_refstyle fw2_v681_review_t2_gap fw2_v682_review_t2_rightalign fw2_v683_t2_align_t1 fw2_v678_tbl_col_harmony fw2_v677_role_col_del fw2_v676_attr_monthnav fw2_v676_attr_zero fw2_v675_num_col_widen fw2_v674_rev_breathe fw2_v673_rev_union fw2_v673_sig_retrace fw2_v669_review_tables fw2_v668_review_monthly fw2_v667_review_insight fw2_v666_tiles_bigger fw2_v665_review_tiles fw2_v664_review_rebuild fw2_v663_hero_retire fw2_v661_filter_compact fw2_v660_ui_simplify fw2_v659_backup_btns_del fw2_v658_rpt_monthnav fw2_v657_rptbar_del fw2_v656_rpt_6m fw2_v655_rpt_kpi fw2_v654_held_pf_authority fw2_v653_alloc_pile_assign fw2_v652_data_tab_removed fw2_v651_recent_hide fw2_v651_ledger_slim fw2_v651_entry_unify fw2_v650_netseries_daily fw2_v650_moneynav fw2_v649_merge_holdings fw2_v648_capbal_slim fw2_v647_netseries_fix fw2_v646_ledger_capbal fw2_v644_revert_watch_tab fw2_v643_mtbl_tier fw2_v642_a500_enh fw2_v641_peak_dd fw2_v640_buy_pct fw2_v639_del_decisionfw2_v516_a500lk fw2_v517_4otc fw2_v518_hspos fw2_v519_sm_merge fw2_v520_chgflat fw2_v521_magnet fw2_v522_overview fw2_v523_sm_dedup fw2_v524_geo_fsi fw2_v525_geo_filter fw2_v526_geo_filter_removed fw2_v527_verdict fw2_v529_smux fw2_v530_datamgmt fw2_v531_sm_dmgmt fw2_v532_all_dm fw2_v533_px_long fw2_v533d_dm_scroll fw2_v534_dm_module fw2_v535_dm_auto fw2_v539_hold_realpnl fw2_v539a_seed_sync fw2_v539a_seed_order fw2_v540_hold_path fw2_v542_pf_mirror_first fw2_v542_mv_settled fw2_v542_mv_account fw2_v543_dm_holdings_note fw2_v544_ledger_mirror_guard fw2_v545_hold_total_row fw2_v546_navdate_all fw2_v547_vix_to_ovs fw2_v548_ovs_mrg fw2_v549_region_align fw2_v550_grp_tabs fw2_v551_sop_cockpit fw2_v552_sop_taborder fw2_v553_chain_data fw2_v554_sop_rename fw2_v556_market_split fw2_v557_sm_renamed fw2_v558_cbrates_fix fw2_v558a_cb_label fw2_v559_chain_dates fw2_v560_chain_verdict fw2_v561_curve_hold fw2_v562_hold_inline fw2_v563_alloc fw2_v564_lxlink fw2_v565_cal_lx fw2_v565_sub_lx fw2_v566_fund_move fw2_v567_fund_merge fw2_v568_lxlink_fix fw2_v569_manager_pool fw2_v570_manager_universe fw2_v571_mgr_east fw2_v574_mgr_subscore fw2_v575_mgr_merge fw2_v576_mgr_group fw2_v577_mgr_lxlink fw2_v578_mgr_lxreal fw2_v579_mgr_weight fw2_v581_fund_lxreal fw2_v582_mgr_min10 fw2_v583_mgr_noyear fw2_v584_mgr_career fw2_v585_mgr_srank fw2_v586_mgr_srank fw2_v587_mgr_since fw2_v588_mgr_lxfull fw2_v589_mgr_rules fw2_v590_mgr_scores fw2_v591_mgr_ladder fw2_v592_mgr_cols fw2_v593_mgr_score fw2_anti_halluc_p0 fw2_v595_alpha_attrib fw2_v596_sig_hist fw2_v597_fund_overlap fw2_v598_mgr_hold fw2_v599_time_decay fw2_v599_corr_pen fw2_v600_buytrack fw2_v601_backtest fw2_v602_kline_page fw2_v603_old_debts fw2_v604_xirr fw2_v605_holdings_global fw2_v606_v11_signal fw2_v607_v11_bt fw2_v608_lx_audit fw2_v609_sig_table fw2_v610_sig_merge fw2_v611_grp_line fw2_v612_index_lxreal fw2_v613_near_blue fw2_v615_sig_grp fw2_v616_sig_hdstyle fw2_v617_sig_vline fw2_v618_sig_lcr fw2_v619_curthr fw2_v620_curthr_all fw2_v621_ret_hpr fw2_v621_t13_lastbuy fw2_v622_lastbuy_auto fw2_v623_firstbuy_roll fw2_v623_alloc_watch fw2_v624_m13_m17 fw2_v626_sig_cost_guard fw2_v626_watch_pe_exempt fw2_v627_colorder fw2_v627_action_plan fw2_v627_data_date fw2_v628_fixed_cols fw2_v629_pool_pile_guard fw2_v629_t9_pfdate fw2_v630_missing_cost fw2_v631_pool_held_live fw2_v632_held_off fw2_v633_ledger_tx_sync fw2_v634_plan_dir fw2_v635_capbal_fix fw2_v636_capbal_converge fw2_v637_mv_consist fw2_v638_mv_unify fw2_v697p_macro_11to5 fw2_v697q_cockpit_return fw2_v697r_tab_highlight fw2_v697s_px_del_trends fw2_v697t_px_rows_del fw2_v697u_corr_trim */ + (window.getAllocWatchCodes ? window.getAllocWatchCodes().length : 0) + '只';
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
