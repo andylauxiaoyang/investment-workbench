@@ -8052,470 +8052,6 @@ function cycleEngine(d) {
     var u0 = usdxPts[usdxPts.length - 13];
     if (u0 && u0[1] > 0) usdx12 = (usdxCur / u0[1] - 1) * 100;
   }
-  var goldBull = (goldYoy != null && goldYoy > 15);
-  var dollarSignals = [];
-  if (goldOil != null) {
-    dollarSignals.push(goldOil > 30 ? '金油比 ' + goldOil.toFixed(1) + ' 极端升水（中枢 10-15 桶）→ 信用对冲/避险占绝对主导'
-      : goldOil > 15 ? '金油比 ' + goldOil.toFixed(1) + ' 高于中枢（10-15 桶）→ 避险升水'
-      : '金油比 ' + goldOil.toFixed(1) + ' 中枢区间（10-15 桶）');
-  }
-  if (goldBull) dollarSignals.push('黄金 12m +' + goldYoy.toFixed(0) + '% → 萧条期黄金牛市延续');
-  if (goldCuUp === true) dollarSignals.push('金铜比上行 → 金强于铜（避险 > 工业需求）');
-  if (usdx12 != null) dollarSignals.push('美元 12m ' + (usdx12 >= 0 ? '+' : '') + usdx12.toFixed(1) + '% '
-    + (usdx12 < 0 ? '→ 弱美元支撑黄金' : '→ 强美元压制商品'));
-  var dollarLayer = {
-    name: '美元 / 黄金 / 大宗联动',
-    phase: { s: goldBull ? '黄金牛市延续 · 信用对冲' : '黄金中性 · 观察', c: dollarSignals.slice(0, 2).join('；') || '—' },
-    asset: '黄金压舱石逻辑有效（萧条期核心配置）',
-    proxy: '伦敦金 ' + (goldCur != null ? goldCur.toFixed(0) + ' USD/oz（12m '
-      + (goldYoy != null ? (goldYoy >= 0 ? '+' : '') + goldYoy.toFixed(1) + '%' : '—') + '）' : '—')
-      + ' · WTI ' + (dlr.oil && dlr.oil.cur != null ? dlr.oil.cur.toFixed(1) : '—')
-      + ' · 铜 ' + (dlr.copper && dlr.copper.cur != null ? dlr.copper.cur.toFixed(0) : '—')
-      + ' · 金油比 ' + (goldOil != null ? goldOil.toFixed(1) : '—') + ' · 美元 ' + (usdxCur != null ? usdxCur.toFixed(1) : '—'),
-    signals: dollarSignals
-  };
-
-  /* ---- pulse 信用脉冲（社融同比 3 月变化，领先 A 股约 6 个月） ---- */
-  var sfNow = pulse[0], sfDelta = pulse[1];
-  var pulseLayer = {
-    name: '信用脉冲',
-    phase: { s: sfDelta == null ? '数据缺失' : (sfDelta > 0.3 ? '扩张' : sfDelta < -0.3 ? '收缩' : '中性'),
-             c: sfDelta == null ? '—' : (sfDelta > 0.3 ? '社融同比边际扩张 · 信用动能增强'
-                : sfDelta < -0.3 ? '社融同比边际收缩 · 信用动能衰减（领先 A 股约 6 个月）'
-                : '社融同比走平 · 中性') },
-    proxy: '社融同比 ' + (sfNow != null ? sfNow.toFixed(1) + '%' : '—')
-      + ' · 脉冲（3 月变化）' + (sfDelta != null ? (sfDelta >= 0 ? '+' : '') + sfDelta.toFixed(1) + 'pct' : '—')
-  };
-
-  /* ---- 共振合成（周金涛洞见：同向共振 = 大波动窗口） ---- */
-  var resParts = [];
-  var resScore = 0;
-  /* k2 地产：向下 -1 / 磨底 0 / 企稳 +1 */
-  var k2s = (reiY == null) ? 0 : (reiY < -10 ? -1 : (reiY < 0 ? (reiUp === true ? 0 : -1) : (reiUp === true ? 1 : 0)));
-  resScore += k2s; resParts.push('地产 ' + (k2s > 0 ? '↑' : k2s < 0 ? '↓' : '→'));
-  /* k3 朱格拉：收缩 -1 / 分化偏弱 0 / 修复 +1 */
-  var k3s = (fixY == null) ? 0 : (fixY < 0 ? (fixUp === true ? 0 : -1) : (fixUp === true ? 1 : 0));
-  resScore += k3s; resParts.push('设备 ' + (k3s > 0 ? '↑' : k3s < 0 ? '↓' : '→'));
-  /* L2 信用：宽信用 +1 / 边际改善 0.5 / 紧信用 -1 */
-  var l2s = (phase2.s === '宽信用扩张') ? 1 : (phase2.s === '边际改善') ? 0.5 : (phase2.s === '紧信用') ? -1 : 0;
-  resScore += l2s; resParts.push('信用 ' + (l2s > 0 ? '↑' : l2s < 0 ? '↓' : '→'));
-  /* pulse：扩张 +1 / 收缩 -1 */
-  var ps = (sfDelta == null) ? 0 : (sfDelta > 0.3 ? 1 : sfDelta < -0.3 ? -1 : 0);
-  resScore += ps; resParts.push('脉冲 ' + (ps > 0 ? '↑' : ps < 0 ? '↓' : '→'));
-  /* L3 基钦：补库 +1 / 去库 -1 / 过渡 0 */
-  var l3s = (phase3.s.indexOf('补库') >= 0) ? 1 : (phase3.s === '主动去库') ? -1 : 0;
-  resScore += l3s; resParts.push('库存 ' + (l3s > 0 ? '↑' : l3s < 0 ? '↓' : '→'));
-  var resText;
-  if (resScore <= -2) resText = '多周期同向下行（地产↓ 设备↓ 信用/脉冲弱）→ 防御优先：现金+黄金+高评级债券，等共振拐点';
-  else if (resScore >= 2) resText = '多周期同向回升 → 进攻窗口：成长/主线分批布局';
-  else if (resScore > 0) resText = '周期偏暖（信用/库存改善）→ 中性偏多，结构优先';
-  else resText = '周期分化 → 中性仓位，不追高、逢回调分批';
-  var resonance = {
-    score: resScore,
-    parts: resParts,
-    warn: resText,
-    note: '五维短中周期同向共振 = 大波动窗口（周金涛核心洞见）；当前康波长波为背景层，单独定位'
-  };
-
-  /* ---------- 决策合成 ---------- */
-  var laggardRisk = (phase1.s === '滞胀');
-  var verdict;
-  if (resScore <= -2) {
-    verdict = '周期共振向下（地产/设备/信用多周期同下行）—— 防御优先，现金+黄金+高评级债券，等共振拐点';
-  } else if (phase2.s === '边际改善' && temp != null && temp <= 59 && !laggardRisk) {
-    verdict = '复苏观察 · 信用边际改善 · 温度中性 —— 结构性偏多';
-  } else if (laggardRisk) {
-    verdict = '滞胀边缘（增长弱回升 + 通胀上行）—— 防御为主，等 PMI 站上 50 再转积极';
-  } else if (temp != null && temp >= 75) {
-    verdict = '市场过热（温度 ' + temp + '）—— 防御减配，不加仓';
-  } else {
-    verdict = '周期信号分化（增长弱 vs 信用改善）—— 中性仓位，结构性机会优先';
-  }
-  var alloc = [
-    '长波基调：第五次康波萧条尾声 → 现金+黄金+高评级债券为主；股票结构性（第六次康波主线：AI 算力/新能源/高端制造/生物科技）；规避地产链（库兹涅茨右侧下行）',
-    '股债 ' + (erpPct != null && erpPct >= 75 ? '7:3' : '6:4') + ' ~ 7:3（ERP '
-      + (erpPct != null ? erpPct.toFixed(0) : '—') + ' 分位，接近增配线但 PMI<50 不追高）',
-    '信用改善弹性：中小盘 / 成长分批布局（剪刀差收窄中）',
-    '现金保留 1 成，等 PMI 站上 50 确认复苏'
-  ];
-
-  /* ---------- 阶段二：行业倾向（申万一级 31 行业，周期逻辑 × 估值拥挤度 + 主线修正） ---------- */
-  var indList = (d.industry && d.industry.list) || [];
-  var indAsOf = (d.industry && d.industry.asOf) || '';
-  var indMissing = (d.industry && d.industry.missing) || [];
-  var grpT = {};
-  for (var gi = 0; gi < indList.length; gi++) {
-    var it = indList[gi];
-    if (it.pct == null) continue;
-    var g = it.grp || '其他';
-    if (!grpT[g]) grpT[g] = { pcts: [], cnt: 0, mc: 0 };
-    grpT[g].pcts.push(it.pct);
-    grpT[g].cnt++;
-    if (it.mc != null) grpT[g].mc += it.mc;
-  }
-  var grpAvg = {};
-  Object.keys(grpT).forEach(function (g) { grpAvg[g] = _cycAvg(grpT[g].pcts); });
-  function grpLine(g, extra) {
-    var a = grpAvg[g];
-    var lab = a != null ? (a >= 80 ? '拥挤 ' + a.toFixed(0) + '分位' : a <= 25 ? '低估 ' + a.toFixed(0) + '分位' : '中性 ' + a.toFixed(0) + '分位') : '数据不足';
-    return (extra || '') + '（' + lab + '）';
-  }
-  /* 周期主倾向分组：库存阶段 × 大经济周期 */
-  var tiltGrp1 = null, tiltGrp2 = null, tiltWhy = '';
-  if (phase3.s.indexOf('补库') >= 0) {
-    tiltGrp1 = '上游资源'; tiltGrp2 = '中游制造';
-    tiltWhy = '补库确认（需求+库存同升）→ 上游资源 / 中游制造';
-  } else if (phase3.s === '被动补库') {
-    tiltGrp1 = '下游消费'; tiltGrp2 = '公用防御';
-    tiltWhy = '被动补库（需求弱+库存积）→ 消费 / 防御';
-  } else if (phase3.s === '主动去库') {
-    tiltGrp1 = '公用防御'; tiltGrp2 = null;
-    tiltWhy = '主动去库（出清期）→ 现金等待 / 防御';
-  } else {
-    tiltGrp1 = '下游消费'; tiltGrp2 = null;
-    tiltWhy = '去库尾声 → 消费 / 低波等待';
-  }
-  if (phase1.s === '过热' && tiltGrp1 !== '上游资源') { tiltGrp1 = '上游资源'; tiltGrp2 = '中游制造'; tiltWhy = '过热（增长强+通胀↑）→ 商品 / 资源'; }
-  if (phase1.s === '滞胀' && tiltGrp1 !== '公用防御') { tiltGrp1 = '公用防御'; tiltGrp2 = '下游消费'; tiltWhy = '滞胀（增长弱+通胀↑）→ 防御 / 现金'; }
-  if (phase1.s === '复苏' && tiltGrp1 !== '中游制造') { tiltGrp1 = '中游制造'; tiltGrp2 = 'TMT成长'; tiltWhy = '复苏（增长强+通胀温和）→ 中游 / 成长'; }
-  /* v201 主导产业主线修正：第六次康波主线 vs 地产链规避 */
-  var MAINLINE = ['电子', '通信', '计算机', '电力设备', '医药生物', '国防军工'];
-  var AVOID = ['房地产', '建筑', '建筑材料', '钢铁'];
-  var mainList = [], avoidList = [];
-  for (var mi = 0; mi < indList.length; mi++) {
-    var nm = indList[mi].name || indList[mi].label || '';
-    var p = indList[mi].pct;
-    if (MAINLINE.indexOf(nm) >= 0 && p != null) mainList.push(nm + ' ' + p.toFixed(0) + '分位');
-    if (AVOID.indexOf(nm) >= 0 && p != null) avoidList.push(nm + ' ' + p.toFixed(0) + '分位');
-  }
-  /* 拥挤度修正：主倾向组若拥挤 → 提示等回调；低估组 → 关注 */
-  var a1 = tiltGrp1 ? grpAvg[tiltGrp1] : null;
-  var a2 = tiltGrp2 ? grpAvg[tiltGrp2] : null;
-  var crowded = [];
-  if (a1 != null && a1 >= 80) crowded.push(tiltGrp1 + ' ' + a1.toFixed(0) + '分位');
-  if (a2 != null && a2 >= 80) crowded.push(tiltGrp2 + ' ' + a2.toFixed(0) + '分位');
-  var cheap = [];
-  Object.keys(grpAvg).forEach(function (g) {
-    if (g === tiltGrp1 || g === tiltGrp2) return;
-    if (grpAvg[g] != null && grpAvg[g] <= 25) cheap.push(g + ' ' + grpAvg[g].toFixed(0) + '分位');
-  });
-  var indTilt = {
-    asOf: indAsOf,
-    grp1: tiltGrp1, grp2: tiltGrp2, why: tiltWhy,
-    grpAvg: grpAvg,
-    crowded: crowded, cheap: cheap,
-    missing: indMissing,
-    mainLine: mainList, avoid: avoidList,
-    whyWave: (reiY != null && reiY < 0) ? '库兹涅茨右侧下行 → 地产链（房地产/建筑/建材/钢铁）回避'
-      : '地产链观察，等右侧确认'
-  };
-  var style = [
-    (tiltWhy || '行业方向未共振') + grpLine(tiltGrp1, tiltGrp1 ? ' → ' : ''),
-    (crowded.length ? '拥挤回避（等回调）：' + crowded.slice(0, 2).join(' / ')
-      : cheap.length ? '低估关注（分批）：' + cheap.slice(0, 2).join(' / ')
-      : '分位中性区：跟踪主倾向组，回调分批'),
-    (mainList.length ? '主线（第六次康波）：' + mainList.slice(0, 4).join(' / ') : ''),
-    (avoidList.length ? '回避（库兹涅茨右侧）：' + avoidList.slice(0, 4).join(' / ') : ''),
-    '风格：' + (phase1.s === '滞胀' || phase1.s === '衰退' ? '价值 / 红利 / 高股息更稳'
-      : phase1.s === '过热' ? '资源 / 商品 / 周期'
-      : phase1.s === '复苏' ? '成长 / 周期成长'
-      : '均衡偏成长') + '（CPI ' + (pr.cpi != null ? pr.cpi.toFixed(1) + '%' : '—')
-      + ' · 中小盘 ' + (zz500 && zz500[1] != null ? zz500[1].toFixed(0) + ' 分位' : '—') + '）'
-  ];
-  var disc = [
-    '温度 ' + (temp != null ? temp : '—') + ' 中性：不追高、逢回调分批',
-    'VIX ' + (vix != null ? vix.toFixed(1) : '—') + ' 平稳 + 美债2s10s '
-      + (rt.spread != null ? (rt.spread >= 0 ? '+' : '') + rt.spread.toFixed(2) : '—')
-      + ' → 无衰退警报，仓位中枢可维持',
-    '监控：PMI 站上 50 / M1 延续回升 / 产成品存货名义增速见顶 / 地产投资单月同比拐头 / 固投转正'
-  ];
-  return {
-    verdict: verdict,
-    alloc: alloc,
-    style: style,
-    disc: disc,
-    indTilt: indTilt,
-    resonance: resonance,
-    layers: {
-      l1: l1, l2: l2, l3: l3, l4: l4,
-      temp: temp, valScore: valScore, moodScore: moodScore, riskAdj: riskAdj,
-      konbo: konboLayer, k2: k2, k3: k3, dollar: dollarLayer, pulse: pulseLayer
-    }
-  };
-}
-/* ===== v201 宏观周期·判读引擎 v6（涛动周期录·四周期嵌套） =====
-   在 v5（L1 美林 / L2 信用 / L3 基钦 / L4 温度）之上新增涛动周期层：
-   konbo 康波层（理论时间表+数据锚点：黄金十年/美元）· k2 库兹涅茨地产层（理杏仁 real-estate
-   单月同比自算：投资额/施工/销售）· k3 朱格拉设备层（固投当月同比×工业增加值）·
-   dollar 美元/黄金/大宗联动（金油比·金铜比·金价·美元）· pulse 信用脉冲（社融同比 3 月变化）。
-   四周期嵌套相位表 + 共振合成（周金涛核心洞见：同向共振=大波动窗口）+ 长波配置基调 +
-   indTilt 主导产业主线修正（第六次康波主线 vs 地产链规避）。
-   L1 美林保留并标注「短中期层」（对应：美林滞涨≈长波衰退、美林衰退≈长波萧条）。
-   数据截至 macro-data.json updatedAt；结论为规则引擎输出，不构成投资建议。 */
-function _cycAvg(arr, get) {
-  /* 序列均值（null/非有限值跳过） */
-  if (!arr || !arr.length) return null;
-  var s = 0, n = 0;
-  for (var i = 0; i < arr.length; i++) {
-    var v = get ? get(arr[i]) : arr[i];
-    if (v == null || !isFinite(v)) continue;
-    s += v; n++;
-  }
-  return n ? s / n : null;
-}
-function cycleEngine(d) {
-  if (!d) return null;
-  /* ---------- 基础读数 ---------- */
-  var pmi = (d.pmi && d.pmi.cur) || {};
-  var indus = (d.indus && d.indus.cur) || {};
-  var inv = (d.inventory && d.inventory.cur) || {};
-  var invPrev = (d.inventory && d.inventory.prev) || {};
-  var cr = (d.credit && d.credit.cur) || {};
-  var pr = (d.price && d.price.cur) || {};
-  var erpPct = d.erp && d.erp.erpPct;
-  var br = d.broad || {};
-  var zz500 = (br.zz500 && br.zz500.cur) || null;
-  var zz1000 = (br.zz1000 && br.zz1000.cur) || null;
-  var cyb = (br.cyb && br.cyb.cur) || null;
-  var mg = (d.margin && d.margin.cur) || {};
-  var vix = d.vix && d.vix.cur;
-  var rt = (d.rates && d.rates.cur) || {};
-  var indusPts = (d.indus && d.indus.points) || [];
-  var pmiPts = (d.pmi && d.pmi.points) || [];
-  var ppiPts = (d.price && d.price.points) || [];
-  var crPts = (d.credit && d.credit.points) || [];
-  /* v201 涛动周期数据 */
-  var w = d.wave || {};
-  var konbo = w.konbo || {};
-  var est = (w.estate && w.estate.cur) || [];
-  var estPts = (w.estate && w.estate.points) || [];
-  var jug = (w.juglar && w.juglar.cur) || [];
-  var jugPts = (w.juglar && w.juglar.points) || [];
-  var dlr = w.dollar || {};
-  var pulse = (w.pulse && w.pulse.cur) || [];
-  var pulsePts = (w.pulse && w.pulse.points) || [];
-  function ago(pts, idx) {
-    /* 3 个月前（月度/月末序列取倒数第 4 个点） */
-    if (!pts || pts.length < 4) return null;
-    var row = pts[pts.length - 4];
-    if (!row) return null;
-    var v = row[idx];
-    return (v == null || !isFinite(v)) ? null : v;
-  }
-  function prev(pts, idx) {
-    /* 上月/最近一个完整月（倒数第 2 个点），用于环比方向 */
-    if (!pts || pts.length < 2) return null;
-    var row = pts[pts.length - 2];
-    if (!row) return null;
-    var v = row[idx];
-    return (v == null || !isFinite(v)) ? null : v;
-  }
-  var indusAgo3 = ago(indusPts, 1);  /* 工业增加值当月同比（[日期,当月,累计]→idx1） */
-  var ppiPrev = prev(ppiPts, 2);     /* PPI 同比 上月（[日期,CPI,PPI,差]→idx2，环比方向） */
-  var gapPrev = prev(crPts, 4);      /* 剪刀差（[日期,社融,M1,M2,差]→idx4） */
-  var m1Prev = prev(crPts, 2);       /* M1（→idx2） */
-  var pmiPrev = prev(pmiPts, 1);     /* PMI（[日期,制造业,非制造业]→idx1） */
-  var indusPrev = prev(indusPts, 1); /* 工业增加值 上月 */
-
-  /* ---------- L1 大经济周期（美林四象限 · 短中期层） ---------- */
-  var gVal = pmi.make;
-  var iVal = pr.ppi;
-  var gStrong = (gVal != null && gVal >= 50) || (indus.same != null && indus.same >= 6);
-  var gUp = (indus.same != null && indusAgo3 != null) ? (indus.same > indusAgo3)
-    : (pmi.make != null && ago(pmiPts, 1) != null) ? (pmi.make > ago(pmiPts, 1)) : null;
-  var iUp = (iVal != null && ppiPrev != null) ? (iVal > ppiPrev) : null;
-  var phase1;
-  if (gStrong && iUp === true) phase1 = { s: '过热', asset: '商品 / 资源 / 黄金', c: '增长强 · 通胀上行' };
-  else if (gStrong) phase1 = { s: '复苏', asset: '股票 / 周期成长', c: '增长强 · 通胀温和' };
-  else if (iUp === true) phase1 = { s: '滞胀', asset: '现金 / 黄金 / 防御', c: '增长弱 · 通胀上行（防滞胀）' };
-  else phase1 = { s: '衰退', asset: '债券 / 低波', c: '增长弱 · 通胀回落' };
-  if (gUp === true && phase1.s === '滞胀') phase1.c = '增长弱回升 · 通胀上行（滞胀→复苏过渡观察）';
-  var l1 = {
-    name: '大经济周期（短中期层）',
-    phase: { s: phase1.s, c: phase1.c },
-    asset: phase1.asset,
-    proxy: 'PMI ' + (gVal != null ? gVal.toFixed(1) : '—') + ' · 工业增加值 '
-      + (indus.same != null ? (indus.same >= 0 ? '+' : '') + indus.same.toFixed(1) + '%' : '—')
-      + ' · PPI ' + (iVal != null ? (iVal >= 0 ? '+' : '') + iVal.toFixed(1) + '%' : '—')
-      + '（上月 ' + (ppiPrev != null ? ppiPrev.toFixed(1) + '%' : '—') + '）'
-  };
-
-  /* ---------- L2 信用周期 ---------- */
-  var gap = cr.gap;
-  var gapUp = (gap != null && gapPrev != null) ? (gap > gapPrev) : null;
-  var m1Up = (cr.m1 != null && m1Prev != null) ? (cr.m1 > m1Prev) : null;
-  var phase2;
-  if (gap == null) phase2 = { s: '数据缺失', c: '—' };
-  else if (gap >= 0) phase2 = { s: '宽信用扩张', c: 'M1≥M2 · 盈利扩张顺风' };
-  else if (gap >= -2) phase2 = { s: '边际改善', c: '剪刀差 −2~0 · 收敛观察' };
-  else if (gapUp === true || m1Up === true) phase2 = { s: '边际改善', c: '深负收窄 · M1 回升（拐点观察期）' };
-  else phase2 = { s: '紧信用', c: '剪刀差走阔 · 盈利收缩逆风' };
-  var l2 = {
-    name: '信用周期',
-    phase: { s: phase2.s, c: phase2.c },
-    proxy: '社融 ' + (cr.sf != null ? cr.sf.toFixed(1) + '%' : '—') + ' · M1 '
-      + (cr.m1 != null ? cr.m1.toFixed(1) + '%' : '—') + ' · M2 '
-      + (cr.m2 != null ? cr.m2.toFixed(1) + '%' : '—') + ' · 剪刀差 '
-      + (gap != null ? (gap >= 0 ? '+' : '') + gap.toFixed(1) + 'pct' : '—')
-      + '（上月 ' + (gapPrev != null ? (gapPrev >= 0 ? '+' : '') + gapPrev.toFixed(1) + 'pct' : '—') + '）'
-  };
-
-  /* ---------- L3 库存周期（基钦 · 最短嵌套层） ---------- */
-  var needUp = (pmi.make != null && pmiPrev != null)
-    ? (pmi.make >= pmiPrev ? true : (indus.same != null && indusPrev != null && indus.same > indusPrev)) : null;
-  var invNominal = inv.yoy;
-  var invReal = (invNominal != null && iVal != null) ? (invNominal - iVal) : null;
-  var invPrevYoy = (invPrev && invPrev.yoy != null) ? invPrev.yoy : null;
-  var invRising = (invNominal != null && invPrevYoy != null) ? (invNominal > invPrevYoy) : null;
-  var phase3;
-  if (needUp === true && invRising === true) phase3 = { s: '主动补库', c: '需求回升 + 库存累积（补库确认中）' };
-  else if (invRising === true) phase3 = { s: '被动补库', c: '需求弱 + 库存仍累积（去化未完成）' };
-  else if (needUp === true) phase3 = { s: '被动去库', c: '需求回升 + 库存回落（去库尾声）' };
-  else phase3 = { s: '主动去库', c: '需求弱 + 库存回落（出清期）' };
-  if (phase3.s === '被动补库' && needUp === true) {
-    phase3.s = '被动补库 → 主动补库过渡';
-    phase3.c = '需求弱回升 · 库存名义仍累积（过渡观察）';
-  }
-  var l3 = {
-    name: '库存周期（基钦）',
-    phase: { s: phase3.s, c: phase3.c },
-    asset: (phase3.s.indexOf('补库') >= 0)
-      ? '上游资源 / 中游制造（PPI 上行 + 补库逻辑）'
-      : (phase3.s === '主动去库' ? '现金等待 / 防御' : '行业方向未共振，等待确认'),
-    proxy: 'PMI ' + (pmi.make != null ? pmi.make.toFixed(1) : '—') + ' · 工业增加值 '
-      + (indus.same != null ? (indus.same >= 0 ? '+' : '') + indus.same.toFixed(1) + '%' : '—')
-      + ' · PPI ' + (iVal != null ? (iVal >= 0 ? '+' : '') + iVal.toFixed(1) + '%' : '—')
-      + ' · 产成品存货 ' + (invNominal != null ? (invNominal >= 0 ? '+' : '') + invNominal.toFixed(1) + '%' : '—')
-      + (inv.month ? '（' + inv.month + '，' + (inv.val != null ? inv.val : '') + (inv.unit || '') + '，实际约 +'
-        + (invReal != null ? invReal.toFixed(1) : '—') + '% 扣 PPI）' : '')
-  };
-
-  /* ---------- L4 资本市场温度 ---------- */
-  var peVals = [];
-  if (zz500 && zz500[1] != null) peVals.push(zz500[1]);
-  if (zz1000 && zz1000[1] != null) peVals.push(zz1000[1]);
-  if (cyb && cyb[1] != null) peVals.push(cyb[1]);
-  var peAvg = _cycAvg(peVals);
-  var erpInv = (erpPct != null) ? (100 - erpPct) : null;
-  var valScore = null;
-  var vParts = [];
-  if (peAvg != null) vParts.push(peAvg);
-  if (erpInv != null) vParts.push(erpInv);
-  valScore = _cycAvg(vParts);
-  var moodScore = null;
-  var mParts = [];
-  if (mg.zb != null) mParts.push(Math.max(0, Math.min(100, 20 + (mg.zb - 2.0) * 40)));
-  if (vix != null) mParts.push(vix < 15 ? 35 : vix < 20 ? 45 : vix < 25 ? 60 : vix < 30 ? 75 : 90);
-  if (mParts.length) moodScore = _cycAvg(mParts);
-  var riskAdj = 0;
-  if (vix != null && vix >= 30) riskAdj -= 6;
-  else if (vix != null && vix >= 25) riskAdj -= 3;
-  if (rt.spread != null && rt.spread < 0) riskAdj -= 8;
-  if (rt.ust10 != null && rt.ust10 >= 4.5) riskAdj -= 2;
-  var riskScore = 50 + riskAdj;
-  var temp = null;
-  if (valScore != null && moodScore != null) {
-    temp = Math.round(0.5 * valScore + 0.35 * moodScore + 0.15 * riskScore);
-  }
-  var phase4;
-  if (temp == null) phase4 = { s: '数据不足', c: '—' };
-  else if (temp <= 25) phase4 = { s: '冰点区', c: '逆向加配窗口' };
-  else if (temp <= 59) phase4 = { s: '中性区', c: '不追高 · 逢回调分批' };
-  else if (temp <= 74) phase4 = { s: '偏暖谨慎', c: '控制新仓 · 防过热' };
-  else phase4 = { s: '过热区', c: '防御减配' };
-  var l4 = {
-    name: '资本市场温度',
-    phase: { s: phase4.s, c: phase4.c },
-    temp: temp,
-    valScore: valScore,
-    moodScore: moodScore,
-    riskAdj: riskAdj,
-    proxy: 'ERP ' + (erpPct != null ? erpPct.toFixed(0) + ' 分位' : '—') + ' · 宽基 PE '
-      + (peAvg != null ? peAvg.toFixed(0) + ' 分位' : '—') + ' · 两融占比 '
-      + (mg.zb != null ? mg.zb.toFixed(2) + '%' : '—') + ' · VIX '
-      + (vix != null ? vix.toFixed(1) : '—') + ' · 美债2s10s '
-      + (rt.spread != null ? (rt.spread >= 0 ? '+' : '') + rt.spread.toFixed(2) + 'pct' : '—')
-  };
-
-  /* ================= v201 涛动周期层（四周期嵌套） ================= */
-
-  /* ---- konbo 康波层（理论定位 + 数据锚点） ---- */
-  var ga = (konbo.anchor && konbo.anchor.gold) || {};
-  var ua = (konbo.anchor && konbo.anchor.usdx) || {};
-  var goldRise = ga.risePct;         /* 黄金 10 年涨幅 % */
-  var usdxYoy = ua.yoyPct;           /* 美元 12 个月变化 % */
-  var konboNote = '理论定位：第五次康波 1982-2030（回升 82-91 / 繁荣 91-04 / 衰退 05-19 / 萧条 19-30）'
-    + '；AI 2022.11 提前点燃第六次康波，修正原 2030 时间表。1 康波 ≈ 3 库兹涅茨 ≈ 9 朱格拉 ≈ 18 基钦。';
-  var konboLayer = {
-    name: '康波长波',
-    phase: { s: konbo.phase || '数据缺失', c: '萧条尾声 → 回升前夜 · 资产：现金+黄金+高评级债券为主' },
-    asset: '黄金 / 现金 / 高评级债券 · 股票结构性（第六次康波主线）',
-    proxy: '黄金十年 ' + (goldRise != null ? '+' + goldRise.toFixed(0) + '%' : '—')
-      + ' · 美元 12m ' + (usdxYoy != null ? (usdxYoy >= 0 ? '+' : '') + usdxYoy.toFixed(1) + '%' : '—')
-      + ' · ' + (konbo.note || ''),
-    note: konboNote
-  };
-
-  /* ---- k2 库兹涅茨地产层（数据驱动：理杏仁 real-estate 单月同比自算） ---- */
-  var reiY = est[0], reCaY = est[1], saY = est[2], stY = est[3];
-  var reiAgo3 = ago(estPts, 1);
-  var reiUp = (reiY != null && reiAgo3 != null) ? (reiY > reiAgo3) : null;
-  var phaseK2;
-  if (reiY == null) phaseK2 = { s: '数据缺失', c: '—' };
-  else if (reiY < -10) phaseK2 = { s: '右侧下行 · 深度收缩', c: '投资/销售深度负增长 · 地产链持续承压' };
-  else if (reiY < 0 && reiUp === true) phaseK2 = { s: '右侧下行趋缓 · 磨底观察', c: '负增长收窄 · 底部区域观察（不抢反弹）' };
-  else if (reiY < 0) phaseK2 = { s: '右侧下行', c: '投资/销售负增长 · 库兹涅茨下行期延续' };
-  else if (reiUp === true) phaseK2 = { s: '左侧企稳 · 修复观察', c: '投资转正回升 · 地产链修复观察' };
-  else phaseK2 = { s: '左侧回落观察', c: '投资正但回落 · 未见右侧拐点' };
-  var k2 = {
-    name: '库兹涅茨（地产）',
-    phase: { s: phaseK2.s, c: phaseK2.c },
-    asset: (reiY != null && reiY < 0) ? '规避地产链：房地产/建筑/建材/钢铁' : '地产链修复观察：等右侧确认',
-    proxy: '投资额 ' + (reiY != null ? (reiY >= 0 ? '+' : '') + reiY.toFixed(1) + '%' : '—')
-      + ' · 施工 ' + (reCaY != null ? (reCaY >= 0 ? '+' : '') + reCaY.toFixed(1) + '%' : '—')
-      + ' · 销售面积 ' + (saY != null ? (saY >= 0 ? '+' : '') + saY.toFixed(1) + '%' : '—')
-      + ' · 销售额 ' + (stY != null ? (stY >= 0 ? '+' : '') + stY.toFixed(1) + '%' : '—')
-      + (estPts.length ? '（' + estPts[estPts.length - 1][0] + '，单月同比自算）' : '')
-  };
-
-  /* ---- k3 朱格拉设备层（数据驱动：固投当月同比 × 工业增加值） ---- */
-  var fixY = jug[0], indY = jug[1];
-  var fixAgo3 = ago(jugPts, 1);
-  var fixUp = (fixY != null && fixAgo3 != null) ? (fixY > fixAgo3) : null;
-  var phaseK3;
-  if (fixY == null) phaseK3 = { s: '数据缺失', c: '—' };
-  else if (fixY < 0 && indY != null && indY < 0) phaseK3 = { s: '设备投资收缩', c: '固投+生产双弱 · 资本开支下行' };
-  else if (fixY < 0) phaseK3 = { s: '设备投资偏弱', c: '固投负增长 · 生产端有韧性（投资/生产分化）' };
-  else if (fixUp === true) phaseK3 = { s: '设备投资修复', c: '固投转正回升 · 朱格拉上行启动' };
-  else phaseK3 = { s: '设备投资企稳', c: '固投正但动能弱 · 观察斜率' };
-  var k3 = {
-    name: '朱格拉（设备投资）',
-    phase: { s: phaseK3.s, c: phaseK3.c },
-    asset: (fixY != null && fixY < 0) ? '中游制造/设备链观望 · 等固投转正' : '设备链修复观察（机械/电力设备）',
-    proxy: '固投当月同比 ' + (fixY != null ? (fixY >= 0 ? '+' : '') + fixY.toFixed(1) + '%' : '—')
-      + ' · 工业增加值 ' + (indY != null ? (indY >= 0 ? '+' : '') + indY.toFixed(1) + '%' : '—')
-      + '（3 月前 ' + (fixAgo3 != null ? (fixAgo3 >= 0 ? '+' : '') + fixAgo3.toFixed(1) + '%' : '—') + '）'
-  };
-
-  /* ---- dollar 美元/黄金/大宗联动 ---- */
-  var goldCur = (dlr.gold && dlr.gold.cur) || null;
-  var goldPts = (dlr.gold && dlr.gold.points) || [];
-  var goldYoy = null;
-  if (goldCur != null && goldPts.length >= 13) {
-    var g0 = goldPts[goldPts.length - 13];
-    if (g0 && g0[1] > 0) goldYoy = (goldCur / g0[1] - 1) * 100;
-  }
-  var goldOil = (dlr.goldOil && dlr.goldOil.cur) || null;       /* 金油比 */
-  var goldCu = (dlr.goldCopper && dlr.goldCopper.cur) || null;  /* 金铜比 */
-  var goldCuPts = (dlr.goldCopper && dlr.goldCopper.points) || [];
-  var goldCuUp = (goldCu != null && goldCuPts.length >= 4) ? (goldCu > goldCuPts[goldCuPts.length - 4][1]) : null;
-  var usdxCur = (dlr.usdx && dlr.usdx.cur) || null;
-  var usdxPts = (dlr.usdx && dlr.usdx.points) || [];
-  var usdx12 = null;
-  if (usdxCur != null && usdxPts.length >= 13) {
-    var u0 = usdxPts[usdxPts.length - 13];
-    if (u0 && u0[1] > 0) usdx12 = (usdxCur / u0[1] - 1) * 100;
-  }
   var goldBull = (goldYoy != null && goldYoy > 15) || (goldOil != null && goldOil > 30);
   var dollarSignals = [];
   if (goldOil != null) {
@@ -8581,26 +8117,36 @@ function cycleEngine(d) {
     note: '五维短中周期同向共振 = 大波动窗口（周金涛核心洞见）；当前康波长波为背景层，单独定位'
   };
 
-  /* ---------- 决策合成 ---------- */
+  /* ---------- 决策合成（v700 分支优先级：防御 > 进攻 > 观察——先排除「不该做」，再谈「往哪做」） ---------- */
   var laggardRisk = (phase1.s === '滞胀');
-  var verdict;
-  if (resScore <= -2) {
-    verdict = '周期共振向下（地产/设备/信用多周期同下行）—— 防御优先，现金+黄金+高评级债券，等共振拐点';
-  } else if (phase2.s === '边际改善' && temp != null && temp <= 59 && !laggardRisk) {
-    verdict = '复苏观察 · 信用边际改善 · 温度中性 —— 结构性偏多';
-  } else if (laggardRisk) {
-    verdict = '滞胀边缘（增长弱回升 + 通胀上行）—— 防御为主，等 PMI 站上 50 再转积极';
-  } else if (temp != null && temp >= 75) {
-    verdict = '市场过热（温度 ' + temp + '）—— 防御减配，不加仓';
-  } else {
-    verdict = '周期信号分化（增长弱 vs 信用改善）—— 中性仓位，结构性机会优先';
+  var verdict, verdictCls;
+  if (resScore <= -2) { /* 1 防御：共振向下 */
+    verdict = '周期共振向下（地产/设备/信用多周期同下行）—— 防御优先，现金+黄金+高评级债券，等共振拐点'; verdictCls = 'def';
+  } else if (laggardRisk) { /* 2 防御：滞胀 */
+    verdict = '滞胀边缘（增长弱回升 + 通胀上行）—— 防御为主，等 PMI 站上 50 再转积极'; verdictCls = 'def';
+  } else if (temp != null && temp >= 75) { /* 3 防御：过热（估值纪律优先于共振向上，与 M 系列一致） */
+    verdict = '市场过热（温度 ' + temp + '）—— 防御减配，不加仓'; verdictCls = 'def';
+  } else if (resScore >= 2) { /* 4 进攻：多周期共振向上（v700 新增，与 resonance.warn 同源） */
+    verdict = '多周期共振向上 —— 进攻窗口：成长/主线分批布局'; verdictCls = 'off';
+  } else if (temp != null && temp <= 25) { /* 5 进攻：冰点逆向（v700 新增，与层4卡「冰点区·逆向加配窗口」同口径） */
+    verdict = '市场冰点（温度 ' + temp + '）—— 逆向加配关注，分批左侧，等右侧确认'; verdictCls = 'off';
+  } else if (phase2.s === '宽信用扩张') { /* 6 进攻：宽信用顺风（v700 新增，M1≥M2 盈利扩张期） */
+    verdict = '宽信用顺风（M1≥M2）—— 盈利扩张期，仓位中枢可维持偏高水平'; verdictCls = 'off';
+  } else if (phase2.s === '边际改善' && temp != null && temp <= 59) { /* 7 观察：复苏观察（laggardRisk 已在分支2排除） */
+    verdict = '复苏观察 · 信用边际改善 · 温度中性 —— 结构性偏多'; verdictCls = 'neu';
+  } else { /* 8 观察：默认分化 */
+    verdict = '周期信号分化（增长弱 vs 信用改善）—— 中性仓位，结构性机会优先'; verdictCls = 'neu';
   }
-  var alloc = [
-    '长波基调：第五次康波萧条尾声 → 现金+黄金+高评级债券为主；股票结构性（第六次康波主线：AI 算力/新能源/高端制造/生物科技）；规避地产链（库兹涅茨右侧下行）',
-    '股债 ' + (erpPct != null && erpPct >= 75 ? '7:3' : '6:4') + ' ~ 7:3（ERP '
-      + (erpPct != null ? erpPct.toFixed(0) : '—') + ' 分位，接近增配线但 PMI<50 不追高）',
-    '信用改善弹性：中小盘 / 成长分批布局（剪刀差收窄中）',
-    '现金保留 1 成，等 PMI 站上 50 确认复苏'
+  var alloc = [   /* v700 alloc 动态化：4 行全部按相位/读数分支生成，消除硬编码快照文案（旧文案恒显「信用改善」「PMI<50」） */
+    '长波基调：第五次康波萧条尾声 → 现金+黄金+高评级债券为主；股票结构性（第六次康波主线：AI 算力/新能源/高端制造/生物科技）；'
+      + (reiY != null && reiY < 0 ? '规避地产链（库兹涅茨右侧下行）' : '地产链观察，等右侧确认'),
+    '股债 ' + (erpPct != null && erpPct >= 75 ? '7:3' : '6:4 ~ 7:3') + '（ERP '
+      + (erpPct != null ? erpPct.toFixed(0) : '—') + ' 分位，'
+      + (pmi.make == null ? 'PMI 读数缺失，暂不追高' : pmi.make >= 50 ? '盈利扩张确认，增配可执行' : '接近增配线但 PMI<50，不追高') + '）',
+    (phase2.s === '宽信用扩张') ? '信用顺风：成长/中小盘弹性可分批（剪刀差 ' + (cr.gap != null ? (cr.gap >= 0 ? '+' : '') + cr.gap.toFixed(1) : '—') + ' pct）'
+      : (phase2.s === '边际改善') ? '信用改善观察：等剪刀差拐点确认（当前 ' + (cr.gap != null ? (cr.gap >= 0 ? '+' : '') + cr.gap.toFixed(1) : '—') + ' pct）'
+      : '信用收缩：控制弹性仓位，等 M1 回升',
+    (pmi.make != null && pmi.make >= 50) ? '复苏确认，现金可降至 0.5-1 成' : '现金保留 1 成，等 PMI 站上 50 确认复苏'
   ];
 
   /* ---------- 阶段二：行业倾向（申万一级 31 行业，周期逻辑 × 估值拥挤度 + 主线修正） ---------- */
@@ -8686,15 +8232,20 @@ function cycleEngine(d) {
       : '均衡偏成长') + '（CPI ' + (pr.cpi != null ? pr.cpi.toFixed(1) + '%' : '—')
       + ' · 中小盘 ' + (zz500 && zz500[1] != null ? zz500[1].toFixed(0) + ' 分位' : '—') + '）'
   ];
-  var disc = [
-    '温度 ' + (temp != null ? temp : '—') + ' 中性：不追高、逢回调分批',
-    'VIX ' + (vix != null ? vix.toFixed(1) : '—') + ' 平稳 + 美债2s10s '
-      + (rt.spread != null ? (rt.spread >= 0 ? '+' : '') + rt.spread.toFixed(2) : '—')
-      + ' → 无衰退警报，仓位中枢可维持',
-    '监控：PMI 站上 50 / M1 延续回升 / 产成品存货名义增速见顶 / 地产投资单月同比拐头 / 固投转正'
+  var disc = [   /* v700 disc 动态化：温度四档（对齐层4阈值）/VIX三档/2s10s 倒挂分支/监控清单按相位裁剪（旧文案恒显「中性」「平稳·无衰退警报」） */
+    '温度 ' + (temp != null ? temp : '—') + (temp == null ? '' : temp <= 25 ? ' 冰点：逆向加配窗口，分批左侧等右侧确认'
+      : temp <= 59 ? ' 中性：不追高、逢回调分批' : temp < 75 ? ' 偏暖：控制新仓、防过热' : ' 过热：防御减配'),
+    'VIX ' + (vix != null ? vix.toFixed(1) : '—') + (vix == null ? '' : vix < 20 ? ' 平稳' : vix < 30 ? ' 警惕：控制新仓' : ' 恐慌：降杠杆避开开仓')
+      + ' · 美债2s10s ' + (rt.spread != null ? (rt.spread >= 0 ? '+' : '') + rt.spread.toFixed(2) : '—')
+      + (rt.spread == null ? '' : rt.spread < 0 ? '（倒挂：衰退警报，降仓位中枢）' : '（无衰退警报）'),
+    '监控：PMI 站上 50 / M1 延续回升'
+      + (phase3.s.indexOf('补库') >= 0 ? ' / 产成品存货名义增速见顶' : '')
+      + (reiY != null && reiY < 0 ? ' / 地产投资单月同比拐头' : '')
+      + (fixY != null && fixY < 0 ? ' / 固投转正' : '')
   ];
   return {
     verdict: verdict,
+    verdictCls: verdictCls,   /* v700：def 防御 / off 进攻 / neu 观察——供周期定位卡与顶部证据面一致性对拍 */
     alloc: alloc,
     style: style,
     disc: disc,
@@ -9482,6 +9033,24 @@ function renderMacro() {
      每张卡按自身「指向」行同源条件注册 dir(+1有利/-1不利/0中性)与短文本；磁铁只汇总不二次判断（口径 100% 同源）。
      注册顺序：本块（主模板 19 项）→ renderMacroGrowth（实体景气 1 项，mcActOk 同判据）→ wrapMcMods → renderMcMagnets。
      仅①-⑥组有证据；⑦SOP 磁铁为静态三步摘要（mcSopMagnet）。缺源卡无数据不臆造方向。 */
+  /* fw2_v700_cycle：一致性对拍——周期定位卡 verdict（四层时钟）vs 顶部合成条基调（mcVerdictCore 五组硬指标加权）。
+     同 C 同参调用（与 renderMacroSyncBar 内完全同源），归类映射 pos→off / neg→def / div→neu，与 cyc.verdictCls 比对出一致/分歧。 */
+  let _syncNote = '';
+  try {
+    if (typeof mcMatrix === 'function' && typeof mcVerdictCore === 'function' && cyc && cyc.verdictCls) {
+      const _mxS = mcMatrix(C);
+      if (_mxS && _mxS.scores) {
+        const _kS = mcVerdictCore(C, _mxS.scores, 'cn');
+        const _top = _kS.cls === 'pos' ? 'off' : _kS.cls === 'neg' ? 'def' : 'neu';
+        const _TOP = { off: '顺风（进攻）', def: '逆风（防御）', neu: '中性（观察）' };
+        const _CYC = { off: '进攻窗口', def: '防御为主', neu: '观察·结构优先' };
+        _syncNote = (_top === cyc.verdictCls)
+          ? '✓ 与顶部证据面一致（证据面＝五组硬指标读数加权；周期定位＝四层时钟位置，两口径同向）'
+          : '⚠ 与顶部证据面分歧：证据面判 ' + (_TOP[_top] || '—') + ' · 周期定位判 ' + (_CYC[cyc.verdictCls] || '—')
+            + ' —— 证据面看当下读数，周期定位看时钟位置，分歧时以各卡阈值为准';
+      }
+    }
+  } catch (_e) { _syncNote = ''; }
   mcRegisterEvidence(C);
 body.innerHTML = ((_region === 'cn' || _region === 'v-cycle') ? renderMacroToolsHtml() : (_region === 'mi' ? renderMacroGroupCaps() : '')) + `
   <!-- ===== v201 涛动周期：四周期嵌套定位 + 共振合成（周金涛框架） ===== -->
@@ -9509,6 +9078,7 @@ body.innerHTML = ((_region === 'cn' || _region === 'v-cycle') ? renderMacroTools
       ${['l1','l2','l3','l4'].map((k) => { const L = cyc.layers[k]; return '<div class="cyc-badge"><b>' + L.name + '</b><span class="cyc-ph">' + L.phase.s + '</span><span class="cyc-c">' + L.phase.c + '</span></div>'; }).join('')}
     </div>
     <div class="rv-line"><span class="tag tag-ai">综合定位</span><span><b>${cyc.verdict}</b></span></div>
+    ${_syncNote ? '<div class="rv-line" style="font-size:11px;color:var(--muted)"><span class="tag tag-data">口径对拍</span><span>' + _syncNote + '</span></div>' : ''}
     <div class="cyc-col3">
       <div class="cyc-col"><h4>资产配置倾向</h4>${cyc.alloc.map((x) => '<div class="cyc-li">· ' + x + '</div>').join('') || '<div class="cyc-li muted">—</div>'}</div>
       <div class="cyc-col"><h4>行业 / 风格</h4>${cyc.style.map((x) => '<div class="cyc-li">· ' + x + '</div>').join('') || '<div class="cyc-li muted">—</div>'}</div>
@@ -13003,7 +12573,7 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
        ①删 cbExport/cbImport/cbCloudRestore 三按钮 + #cbImportFile + #cbCloudInfo 灰字（HTML+三段绑定）；
        ②成交台账(cbLedgerToggle)/设置负债等其余工具栏按钮不动；③renderCloudInfo（自带 !el 守卫）/
        cbImportFile onchange/restoreFromMirror 保留死代码，恢复入口只需还原 HTML+绑定。
-       注意：全量 DB 备份入口随之消失，台账流水仍可经总览·交易台账折叠块备份。 */  if (vc) vc.textContent = 'v699 · 组合波动率对比' /* fw2_v697p_macro_11to5 fw2_v695_sw_cache_bust fw2_v694_dm_instr_fix fw2_v687_action_loop fw2_v687_next_plan fw2_v686_drip_pollute fw2_v686_review_role_grp fw2_v685_review_pct_netbeg fw2_v684_review_conclusion fw2_v680_review_refstyle fw2_v681_review_t2_gap fw2_v682_review_t2_rightalign fw2_v683_t2_align_t1 fw2_v678_tbl_col_harmony fw2_v677_role_col_del fw2_v676_attr_monthnav fw2_v676_attr_zero fw2_v675_num_col_widen fw2_v674_rev_breathe fw2_v673_rev_union fw2_v673_sig_retrace fw2_v669_review_tables fw2_v668_review_monthly fw2_v667_review_insight fw2_v666_tiles_bigger fw2_v665_review_tiles fw2_v664_review_rebuild fw2_v663_hero_retire fw2_v661_filter_compact fw2_v660_ui_simplify fw2_v659_backup_btns_del fw2_v658_rpt_monthnav fw2_v657_rptbar_del fw2_v656_rpt_6m fw2_v655_rpt_kpi fw2_v654_held_pf_authority fw2_v653_alloc_pile_assign fw2_v652_data_tab_removed fw2_v651_recent_hide fw2_v651_ledger_slim fw2_v651_entry_unify fw2_v650_netseries_daily fw2_v650_moneynav fw2_v649_merge_holdings fw2_v648_capbal_slim fw2_v647_netseries_fix fw2_v646_ledger_capbal fw2_v644_revert_watch_tab fw2_v643_mtbl_tier fw2_v642_a500_enh fw2_v641_peak_dd fw2_v640_buy_pct fw2_v639_del_decisionfw2_v516_a500lk fw2_v517_4otc fw2_v518_hspos fw2_v519_sm_merge fw2_v520_chgflat fw2_v521_magnet fw2_v522_overview fw2_v523_sm_dedup fw2_v524_geo_fsi fw2_v525_geo_filter fw2_v526_geo_filter_removed fw2_v527_verdict fw2_v529_smux fw2_v530_datamgmt fw2_v531_sm_dmgmt fw2_v532_all_dm fw2_v533_px_long fw2_v533d_dm_scroll fw2_v534_dm_module fw2_v535_dm_auto fw2_v539_hold_realpnl fw2_v539a_seed_sync fw2_v539a_seed_order fw2_v540_hold_path fw2_v542_pf_mirror_first fw2_v542_mv_settled fw2_v542_mv_account fw2_v543_dm_holdings_note fw2_v544_ledger_mirror_guard fw2_v545_hold_total_row fw2_v546_navdate_all fw2_v547_vix_to_ovs fw2_v548_ovs_mrg fw2_v549_region_align fw2_v550_grp_tabs fw2_v551_sop_cockpit fw2_v552_sop_taborder fw2_v553_chain_data fw2_v554_sop_rename fw2_v556_market_split fw2_v557_sm_renamed fw2_v558_cbrates_fix fw2_v558a_cb_label fw2_v559_chain_dates fw2_v560_chain_verdict fw2_v561_curve_hold fw2_v562_hold_inline fw2_v563_alloc fw2_v564_lxlink fw2_v565_cal_lx fw2_v565_sub_lx fw2_v566_fund_move fw2_v567_fund_merge fw2_v568_lxlink_fix fw2_v569_manager_pool fw2_v570_manager_universe fw2_v571_mgr_east fw2_v574_mgr_subscore fw2_v575_mgr_merge fw2_v576_mgr_group fw2_v577_mgr_lxlink fw2_v578_mgr_lxreal fw2_v579_mgr_weight fw2_v581_fund_lxreal fw2_v582_mgr_min10 fw2_v583_mgr_noyear fw2_v584_mgr_career fw2_v585_mgr_srank fw2_v586_mgr_srank fw2_v587_mgr_since fw2_v588_mgr_lxfull fw2_v589_mgr_rules fw2_v590_mgr_scores fw2_v591_mgr_ladder fw2_v592_mgr_cols fw2_v593_mgr_score fw2_anti_halluc_p0 fw2_v595_alpha_attrib fw2_v596_sig_hist fw2_v597_fund_overlap fw2_v598_mgr_hold fw2_v599_time_decay fw2_v599_corr_pen fw2_v600_buytrack fw2_v601_backtest fw2_v602_kline_page fw2_v603_old_debts fw2_v604_xirr fw2_v605_holdings_global fw2_v606_v11_signal fw2_v607_v11_bt fw2_v608_lx_audit fw2_v609_sig_table fw2_v610_sig_merge fw2_v611_grp_line fw2_v612_index_lxreal fw2_v613_near_blue fw2_v615_sig_grp fw2_v616_sig_hdstyle fw2_v617_sig_vline fw2_v618_sig_lcr fw2_v619_curthr fw2_v620_curthr_all fw2_v621_ret_hpr fw2_v621_t13_lastbuy fw2_v622_lastbuy_auto fw2_v623_firstbuy_roll fw2_v623_alloc_watch fw2_v624_m13_m17 fw2_v626_sig_cost_guard fw2_v626_watch_pe_exempt fw2_v627_colorder fw2_v627_action_plan fw2_v627_data_date fw2_v628_fixed_cols fw2_v629_pool_pile_guard fw2_v629_t9_pfdate fw2_v630_missing_cost fw2_v631_pool_held_live fw2_v632_held_off fw2_v633_ledger_tx_sync fw2_v634_plan_dir fw2_v635_capbal_fix fw2_v636_capbal_converge fw2_v637_mv_consist fw2_v638_mv_unify fw2_v697p_macro_11to5 fw2_v697q_cockpit_return fw2_v697r_tab_highlight fw2_v697s_px_del_trends fw2_v697t_px_rows_del fw2_v697u_corr_trim fw2_v698_macro_sync fw2_v699_volcard */ + (window.getAllocWatchCodes ? window.getAllocWatchCodes().length : 0) + '只';
+       注意：全量 DB 备份入口随之消失，台账流水仍可经总览·交易台账折叠块备份。 */  if (vc) vc.textContent = 'v700 · 周期定位优化' /* fw2_v700_cycle fw2_v697p_macro_11to5 fw2_v695_sw_cache_bust fw2_v694_dm_instr_fix fw2_v687_action_loop fw2_v687_next_plan fw2_v686_drip_pollute fw2_v686_review_role_grp fw2_v685_review_pct_netbeg fw2_v684_review_conclusion fw2_v680_review_refstyle fw2_v681_review_t2_gap fw2_v682_review_t2_rightalign fw2_v683_t2_align_t1 fw2_v678_tbl_col_harmony fw2_v677_role_col_del fw2_v676_attr_monthnav fw2_v676_attr_zero fw2_v675_num_col_widen fw2_v674_rev_breathe fw2_v673_rev_union fw2_v673_sig_retrace fw2_v669_review_tables fw2_v668_review_monthly fw2_v667_review_insight fw2_v666_tiles_bigger fw2_v665_review_tiles fw2_v664_review_rebuild fw2_v663_hero_retire fw2_v661_filter_compact fw2_v660_ui_simplify fw2_v659_backup_btns_del fw2_v658_rpt_monthnav fw2_v657_rptbar_del fw2_v656_rpt_6m fw2_v655_rpt_kpi fw2_v654_held_pf_authority fw2_v653_alloc_pile_assign fw2_v652_data_tab_removed fw2_v651_recent_hide fw2_v651_ledger_slim fw2_v651_entry_unify fw2_v650_netseries_daily fw2_v650_moneynav fw2_v649_merge_holdings fw2_v648_capbal_slim fw2_v647_netseries_fix fw2_v646_ledger_capbal fw2_v644_revert_watch_tab fw2_v643_mtbl_tier fw2_v642_a500_enh fw2_v641_peak_dd fw2_v640_buy_pct fw2_v639_del_decisionfw2_v516_a500lk fw2_v517_4otc fw2_v518_hspos fw2_v519_sm_merge fw2_v520_chgflat fw2_v521_magnet fw2_v522_overview fw2_v523_sm_dedup fw2_v524_geo_fsi fw2_v525_geo_filter fw2_v526_geo_filter_removed fw2_v527_verdict fw2_v529_smux fw2_v530_datamgmt fw2_v531_sm_dmgmt fw2_v532_all_dm fw2_v533_px_long fw2_v533d_dm_scroll fw2_v534_dm_module fw2_v535_dm_auto fw2_v539_hold_realpnl fw2_v539a_seed_sync fw2_v539a_seed_order fw2_v540_hold_path fw2_v542_pf_mirror_first fw2_v542_mv_settled fw2_v542_mv_account fw2_v543_dm_holdings_note fw2_v544_ledger_mirror_guard fw2_v545_hold_total_row fw2_v546_navdate_all fw2_v547_vix_to_ovs fw2_v548_ovs_mrg fw2_v549_region_align fw2_v550_grp_tabs fw2_v551_sop_cockpit fw2_v552_sop_taborder fw2_v553_chain_data fw2_v554_sop_rename fw2_v556_market_split fw2_v557_sm_renamed fw2_v558_cbrates_fix fw2_v558a_cb_label fw2_v559_chain_dates fw2_v560_chain_verdict fw2_v561_curve_hold fw2_v562_hold_inline fw2_v563_alloc fw2_v564_lxlink fw2_v565_cal_lx fw2_v565_sub_lx fw2_v566_fund_move fw2_v567_fund_merge fw2_v568_lxlink_fix fw2_v569_manager_pool fw2_v570_manager_universe fw2_v571_mgr_east fw2_v574_mgr_subscore fw2_v575_mgr_merge fw2_v576_mgr_group fw2_v577_mgr_lxlink fw2_v578_mgr_lxreal fw2_v579_mgr_weight fw2_v581_fund_lxreal fw2_v582_mgr_min10 fw2_v583_mgr_noyear fw2_v584_mgr_career fw2_v585_mgr_srank fw2_v586_mgr_srank fw2_v587_mgr_since fw2_v588_mgr_lxfull fw2_v589_mgr_rules fw2_v590_mgr_scores fw2_v591_mgr_ladder fw2_v592_mgr_cols fw2_v593_mgr_score fw2_anti_halluc_p0 fw2_v595_alpha_attrib fw2_v596_sig_hist fw2_v597_fund_overlap fw2_v598_mgr_hold fw2_v599_time_decay fw2_v599_corr_pen fw2_v600_buytrack fw2_v601_backtest fw2_v602_kline_page fw2_v603_old_debts fw2_v604_xirr fw2_v605_holdings_global fw2_v606_v11_signal fw2_v607_v11_bt fw2_v608_lx_audit fw2_v609_sig_table fw2_v610_sig_merge fw2_v611_grp_line fw2_v612_index_lxreal fw2_v613_near_blue fw2_v615_sig_grp fw2_v616_sig_hdstyle fw2_v617_sig_vline fw2_v618_sig_lcr fw2_v619_curthr fw2_v620_curthr_all fw2_v621_ret_hpr fw2_v621_t13_lastbuy fw2_v622_lastbuy_auto fw2_v623_firstbuy_roll fw2_v623_alloc_watch fw2_v624_m13_m17 fw2_v626_sig_cost_guard fw2_v626_watch_pe_exempt fw2_v627_colorder fw2_v627_action_plan fw2_v627_data_date fw2_v628_fixed_cols fw2_v629_pool_pile_guard fw2_v629_t9_pfdate fw2_v630_missing_cost fw2_v631_pool_held_live fw2_v632_held_off fw2_v633_ledger_tx_sync fw2_v634_plan_dir fw2_v635_capbal_fix fw2_v636_capbal_converge fw2_v637_mv_consist fw2_v638_mv_unify fw2_v697p_macro_11to5 fw2_v697q_cockpit_return fw2_v697r_tab_highlight fw2_v697s_px_del_trends fw2_v697t_px_rows_del fw2_v697u_corr_trim fw2_v698_macro_sync fw2_v699_volcard */ + (window.getAllocWatchCodes ? window.getAllocWatchCodes().length : 0) + '只';
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
