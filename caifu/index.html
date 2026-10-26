@@ -9316,7 +9316,7 @@ function renderMacro() {
   const _region = state.macroRegion || 'v-cycle';   /* fw2_v697p：默认落点改「周期定位」视图 */
   /* fw2_v697p：11→5 决策视图映射——旧 region(cn/val/cred/mood/ovs/us/gbl/ovs/sm/chain/px/sop) 仍兼容，仅 tab 栏不再暴露；
      v-* 视图复用现有渲染器拼接，不动 700 行母模板；高亮用原始 _region，模板过滤用翻译后的 reg */
-  const VIEW_REG = { 'v-cycle':'cn', 'v-val':'val', 'v-mood':'mood', 'v-chain':'chain', 'v-global':'ovs', 'v-px':'px' };
+  const VIEW_REG = { 'v-cycle':'cn', 'v-val':'val', 'v-mood':'mood', 'v-global':'ovs', 'v-px':'px' };
   const reg = VIEW_REG[_region] || _region;
   const _navEl = document.getElementById('dcMcNav');
   /* fw2_v431：静态导航恒隐藏（显示规则由 __mcApply 按 region 统一执行） */
@@ -9977,9 +9977,6 @@ body.innerHTML = ((_region === 'cn' || _region === 'v-cycle') ? renderMacroTools
     if (typeof renderMacroUSCharts === 'function') renderMacroUSCharts();
     if (typeof renderMacroGblCharts === 'function') renderMacroGblCharts();
   }
-  if (_region === 'v-chain' || _region === 'chain') {
-    body.innerHTML += renderChain(d);
-  }
   /* fw2_v697q：v-cycle 顶部追加"周期总览卡"（研读驾驶舱回归），前置到母模板最前 */
   if (_region === 'v-cycle' || _region === 'cn') {
     var _cp = (typeof renderMacroCockpit === 'function') ? renderMacroCockpit(C) : '';
@@ -10282,16 +10279,15 @@ function fillMacroTabs() {
      而 __mcGo 在 renderMacro 之后再调 fillMacroTabs ⇒ 此时读到裸值，与 data-r(v-*) 不匹配 ⇒ 5 个 tab 全部无高亮
      （v697p 起所有视图切换后均如此，非资产价格特有）。逆映射回 v-* 修复，并兼容旧 localStorage 残留 region。 */
   const _raw = state.macroRegion || 'v-cycle';
-  const REV = { cn:'v-cycle', sop:'v-cycle', ov:'v-cycle', val:'v-val', cred:'v-val', mood:'v-mood', sm:'v-mood', us:'v-global', gbl:'v-global', ovs:'v-global', chain:'v-chain', px:'v-px' };
+  const REV = { cn:'v-cycle', sop:'v-cycle', ov:'v-cycle', val:'v-val', cred:'v-val', mood:'v-mood', sm:'v-mood', us:'v-global', gbl:'v-global', ovs:'v-global', px:'v-px' };
   const reg = REV[_raw] || _raw;   /* fw2_v697p：默认落点改「周期定位」决策视图 */
   const tBase = 'padding:8px 22px;border-radius:10px;border:1px solid var(--line-mid,#d8dee6);background:var(--panel-3,#f1f5f9);color:var(--slate-600,#475569);font-size:13px;font-weight:600;cursor:pointer';
   const tAct = 'padding:8px 22px;border-radius:10px;border:1px solid var(--nav-blue,#2f6bff);background:var(--nav-blue,#2f6bff);color:#fff;font-size:13px;font-weight:600;cursor:pointer';
-  /* v697u：传导链从海外与传导拆出，单独tab放在流动情绪后面 */
+  /* v697v：删传导链tab（用户反馈数据滞后+结论模糊，对基金定投无决策价值） */
   const items = [
     ['v-cycle', '周期定位'],     /* 合并 原 cn 周期卡 */
     ['v-val', '估值赔率'],      /* 合并 原 val(A股估值) */
     ['v-mood', '流动情绪'],     /* 合并 原 mood + sm(情绪全景) */
-    ['v-chain', '传导链'],      /* 原 chain 单独拆出 */
     ['v-global', '海外周期'],   /* 合并 原 us + gbl + ovs */
     ['v-px', '资产价格'],       /* 原 px(资产价格监控) */
   ];
