@@ -1,4 +1,6 @@
 ---
+ **v697o 修复宏观周期空白（2026-10-26，chip v697n→v697o，head ffe576e99e02）**——回归修复：v697n 提取传导链为独立 tab 时，fillMacroTabs 的 items 数组在 `['sm','情绪全景']` 与 `['chain','传导链']` 之间**漏写逗号**，JS 将其解析为 `['sm',...]['chain',...]`（成员访问）得 undefined、挤掉一个数组元素；fillMacroTabs 内 `items.map(it=>it[0])` 对 undefined 取 [0] 抛 TypeError，renderMacro 首行即中断，#macroBody 永不被填充→宏观周期页外壳（标题+指数行情条）在、主体全空白。补逗号后 sop 研读驾驶舱与 chain 传导链两 tab 均正常渲染（CDP 实测 #macroBody 14,255 / 34,880 字符）。属 v697n 的发布后回归，与数据/跨模块无关；另发现 21941 行顶层 `sm13f-modal.onclick` 在元素未建时即赋值（聪明的钱模块预存加载期 throw，与本次无关）。
+
  **v697n 传导链独立子模块（2026-10-26，chip v697m→v697n，head 85f770b78ddc）**——用户要求把「传导链」从研读驾驶舱(sop)抽出为独立 tab，排在情绪全景(sm)之后。重构：新增 renderChainBody(d)（纯逻辑·7条链+链结论+脚注，单一真源）+ renderChain(d)（包卡片/标题/脚注）；renderMacro() 加 `if (_region==='chain')` 分支；fillMacroTabs 的 items 在 ['sm','情绪全景'] 之后追加 ['chain','传导链']。研读驾驶舱与新 tab 共用 renderChainBody，杜绝双份漂移。node --check 主 script 返回 0；sop 内联残留 '+ chains +'=0。index.html 3,962,762→3,971,178（+8,416 字符，纯 LF）。
 
  **v697m 聪明的钱重构（2026-10-25，chip v697l→v697m，head d05e3420692e）**——用户报模块数据滞后（13F/国家队季度90-120天）、一堆数据无从下手、对基金定投无指导意义。重构：砍4个旧tab（雷达/国家队/机构反查/更快信号，个股层面+季度滞后），改为单一"ETF资金流向"视图。映射持仓联接基金→场内ETF（563360/510880/159949/518880/511360/511260/510330），读data/etf-shares.json日频份额，展示最新亿份/近5日变化%/连续申赎天数/一句话行动信号（连续5日同方向且>3%才提示）。fetch_etf_shares.py TARGETS从9只扩到15只。新ETF需交易日积累约1个月可见趋势。
