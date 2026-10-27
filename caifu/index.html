@@ -9765,7 +9765,7 @@ function renderMacroSentiment(d) {
   /* fw2_v529_smux P5：todoCard 可折叠——占整格，点击标题区折叠/展开内容（内联 onclick 切换 data-todo-body 显隐） */
   var todoCard = '<div class="card" style="cursor:pointer" onclick="var _b=this.querySelector(\'[data-todo-body]\');_b.style.display=_b.style.display===\'none\'?\'\':\'none\';var _a=this.querySelector(\'[data-todo-arrow]\');if(_a)_a.textContent=_b.style.display===\'none\'?\'▸\':\'▾\'"><div class="card-h"><h3>数据源状态（官方停更说明 · 手册有·工作台已通）</h3><span class="hint">缺源不渲染不编造，取数失败立即修复 · 点击<span data-todo-arrow style="font-weight:600">▾</span>折叠</span></div><div data-todo-body>' +
     '<div style="font-size:12px;color:var(--slate-600,#475569);line-height:1.9">· 中国波指 iVIX：<b>官方 2018-02-22 起暂停发布至今未恢复</b>（上交所仅剩期权风险指标 Delta/Gamma 类）→ 国内期权情绪已由「期权 PCR」替代<br>· 北向资金：<b>官方 2024-05-13 起取消日度净买入披露</b>（盘后仅公布买+卖成交额/十大活跃股）→ 已改「北向成交活跃度」探测中<br>· 财新PMI：商业授权非统计局序列 → 已用统计局官方 PMI 替代（宏观硬指标页）</div>' +
-    '<div style="font-size:11px;color:#0d9f4d;line-height:1.7;margin-top:8px">✓ 已接入：换手率、市净率中位数、融资买入额、A股总市值、大小盘相对强弱、超额流动性、CNN 恐贪(美股)、证券化率/巴菲特指数、限售解禁(未来30日)、产业资本净增减持(近30日)、板块拥挤度(最热板块)、破净率(全A)、成交集中度(CR10)、行业情绪(上涨占比)、期指升贴水(IF/IH/IC/IM)、新发公募(发行中+待发行)、产业资本回购(公告数)——fw2_v702_mood_bigcard 起全部统一母卡格式（数据截至+磁贴+指向+图表）<br><span style="color:#2f6bff">✓ fw2_v703_sm_flat_hist：全指标一行一卡平铺（280px 全宽图表）；行业情绪/板块拥挤度/期指升贴水已回填一年历史（东财日K自算，换月/口径注释见图旁说明）；全A成交额母卡扩至一年</span><br><span style="color:var(--slate-500,#64748b)">◇ 序列积累中（无公开历史源，随数据层逐日累积、满 60 日度点自动出图，不编造）：破净率、CR10、巴菲特指数、全A总市值、新发公募、回购（当前各 4 点）<br>◇ 探测中/缺源：期权 PCR（东财报表名不存在、期权行情接口限流，通道待换）；北向成交活跃度（官方 2024-05-13 停更日度净买入，接口仅剩占位数据，无合规机读源）</span></div></div>';
+    '<div style="font-size:11px;color:#0d9f4d;line-height:1.7;margin-top:8px">✓ 已接入：换手率、市净率中位数、融资买入额、A股总市值、大小盘相对强弱、超额流动性、CNN 恐贪(美股)、证券化率/巴菲特指数、限售解禁(未来30日)、产业资本净增减持(近30日)、板块拥挤度(最热板块)、破净率(全A)、成交集中度(CR10)、行业情绪(上涨占比)、期指升贴水(IF/IH/IC/IM)、新发公募(发行中+待发行)、产业资本回购(公告数)——fw2_v702_mood_bigcard 起全部统一母卡格式（数据截至+磁贴+指向+图表）<br><span style="color:#2f6bff">✓ fw2_v703_sm_flat_hist：全指标一行一卡平铺（280px 全宽图表）；行业情绪/板块拥挤度/期指升贴水已回填一年历史（东财日K自算，换月/口径注释见图旁说明）；全A成交额母卡扩至一年</span><br><span style="color:#2f6bff">✓ fw2_v703b_sm_reorder：同类聚类重排（同类相邻、仍一行一卡）——① 市况广度与结构 → ② 量能交投 → ③ 估值温度 → ④ 风险偏好（海外+衍生品）→ ⑤ 资金供需 → ⑥ 宏观流动性；总市值归入广度结构（规模类）、北向归入资金供需</span><br><span style="color:var(--slate-500,#64748b)">◇ 序列积累中（无公开历史源，随数据层逐日累积、满 60 日度点自动出图，不编造）：破净率、CR10、巴菲特指数、全A总市值、新发公募、回购（当前各 4 点）<br>◇ 探测中/缺源：期权 PCR（东财报表名不存在、期权行情接口限流，通道待换）；北向成交活跃度（官方 2024-05-13 停更日度净买入，接口仅剩占位数据，无合规机读源）</span></div></div>';
   /* fw2_v465_fsi_card：FSI 全球金融压力指数由整幅横幅改为与其它卡同款的卡片，置于网格首位（用户要求）。
      复用本模块 card()/metric()/spark() 助手，数据源同 d.fsi，不新增取数；renderMacroTop 横幅不再在此调用。 */
   var fsiSc = fsi.score, fsiPct = fsi.percentile;
@@ -9929,22 +9929,26 @@ function renderMacroSentiment(d) {
   window.__smMagnetHtml = smMagnet;
   /* fw2_v703_sm_flat_hist：分组标题删除（用户指定「每一个指标一行显示」）——smGroup 函数与 6 组 grid
      （repeat(auto-fill,minmax(300px,1fr)) 多列）改为单列全宽 grid（grid-template-columns:1fr），
-     卡片仍按情绪传导链顺序平铺（市况→量能杠杆→估值温度→风险偏好→资金供需→流动性补充），
-     每行一卡（卡内 280px 全宽图表，与母卡形态一致） */
+     每行一卡（卡内 280px 全宽图表，与母卡形态一致）。
+     fw2_v703b_sm_reorder：同类聚类重排（用户指定「相同类别的排一起」）——6 类相邻平铺、仍无组标题：
+     ①市况广度与结构（市场宽度/行业占比/大小盘/总市值/CR10/拥挤度）→ ②量能交投（换手率/资金系数/融资买入）
+     → ③估值温度（破净率/PB中位数/巴菲特指数）→ ④风险偏好·海外+衍生品（FSI/CNN恐贪/期指升贴水/PCR）
+     → ⑤资金供需（基金发行/回购/解禁/增减持/北向活跃度）→ ⑥宏观流动性（剪刀差收尾）。
+     迁移：总市值 估值组→广度结构（规模类，与大小盘相邻）；北向 末尾→资金供需组内；剪刀差→全组最后 */
   window.__smDrawCharts = function () {
     smTasks.forEach(function (t) {
       try { var c = chartOf(t.id); if (c) c.setOption(smLineOpt(t), true); } catch (e) {}
     });
   };
   var smHtml =
-    '<div style="display:flex;justify-content:space-between;align-items:flex-start;font-size:12px;color:var(--slate-500,#64748b);margin-bottom:8px"><span>数据截至 ' + esc(d.updatedAt || '') + ' · 情绪全景 · 全指标一行一卡平铺（fw2_v703_sm_flat_hist：取消分组、每卡全宽 280px 图表）——两融余额/全A成交额见本页上方『情绪温度计』『全A成交额』母卡（fw2_v701_mood_dedup 后仅此一处）；按情绪传导链排列：市况广度 → 量能杠杆 → 估值温度 → 风险偏好 → 资金供需 → 流动性补充；历史序列已回填一年（东财日K自算），无公开历史源的卡如实标注「序列积累中」——不编造缺失数据</span><button onclick="__mcRefreshMacro(this)" style="flex:none;margin-left:12px;padding:5px 12px;border:1px solid #e3e8ef;border-radius:8px;background:#fff;font-size:12px;color:var(--ink,#0f172a);cursor:pointer">刷新数据</button></div>' +
+    '<div style="display:flex;justify-content:space-between;align-items:flex-start;font-size:12px;color:var(--slate-500,#64748b);margin-bottom:8px"><span>数据截至 ' + esc(d.updatedAt || '') + ' · 情绪全景 · 全指标一行一卡平铺（fw2_v703_sm_flat_hist：取消分组、每卡全宽 280px 图表）——两融余额/全A成交额见本页上方『情绪温度计』『全A成交额』母卡（fw2_v701_mood_dedup 后仅此一处）；按类别聚类排列（fw2_v703b_sm_reorder，同类相邻）：① 市况广度与结构 → ② 量能交投 → ③ 估值温度 → ④ 风险偏好（海外+衍生品）→ ⑤ 资金供需 → ⑥ 宏观流动性；历史序列已回填一年（东财日K自算），无公开历史源的卡如实标注「序列积累中」——不编造缺失数据</span><button onclick="__mcRefreshMacro(this)" style="flex:none;margin-left:12px;padding:5px 12px;border:1px solid #e3e8ef;border-radius:8px;background:#fff;font-size:12px;color:var(--ink,#0f172a);cursor:pointer">刷新数据</button></div>' +
     '<div style="display:grid;grid-template-columns:1fr;gap:12px;margin-top:8px">' +
-    brCard + sSecUp + sSize + sCr + sCrowd +
+    brCard + sSecUp + sSize + sCap + sCr + sCrowd +   /* fw2_v703b_sm_reorder：总市值→①广度结构（规模，与大小盘相邻） */
     sTurn + amtCard + sMbuy +
-    sBp + sPb + sSec + sCap +
+    sBp + sPb + sSec +
     (fsi && fsi.score != null ? fsiCard : '') + sCnn + sBasis + sOp +
-    sFi + sRp + sLift + sHolder +
-    sLiq + sNa +
+    sFi + sRp + sLift + sHolder + sNa +               /* fw2_v703b_sm_reorder：北向→⑤资金供需组内 */
+    sLiq +                                            /* fw2_v703b_sm_reorder：剪刀差（⑥宏观流动性）收尾 */
     '</div>' +
     '<div style="margin-top:16px">' + todoCard + '</div>';
   return smHtml;
