@@ -293,16 +293,22 @@ button, input, select, textarea { font-family: inherit; font-size: var(--fs-md);
 .mcmp-chip .x:hover { opacity: 1; }
 .mcmp-add { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: var(--r-pill); border: 1px dashed var(--brand-line); background: none; color: var(--brand); font-size: var(--fs-xs); cursor: pointer; }
 .mcmp-add:hover { background: var(--brand-soft); }
-.mcmp-pop { position: absolute; top: calc(100% + 6px); left: 0; z-index: 30; width: 340px; max-width: 92vw; background: var(--panel); border: 1px solid var(--line); border-radius: var(--r-8); box-shadow: var(--shadow-hover); padding: 10px; }
+.mcmp-pop { position: absolute; top: calc(100% + 6px); left: 0; z-index: 30; width: 400px; max-width: 92vw; background: var(--panel); border: 1px solid var(--line); border-radius: var(--r-8); box-shadow: var(--shadow-hover); padding: 10px; } /* fw2_v706：340→400px（复选框+全称不截断） */
 .mcmp-pop input { width: 100%; padding: 6px 9px; border: 1px solid var(--line); border-radius: var(--r-6); font-size: var(--fs-sm); outline: none; background: var(--panel); color: var(--text); }
 .mcmp-pop input:focus { border-color: var(--brand-line); box-shadow: 0 0 0 3px var(--ring); }
 .mcmp-res { margin-top: 6px; max-height: 190px; overflow-y: auto; }
 .mcmp-opt { display: flex; align-items: center; gap: 8px; padding: 6px 7px; border-radius: var(--r-6); cursor: pointer; font-size: var(--fs-sm); }
 .mcmp-opt:hover { background: var(--brand-tint); }
-.mcmp-opt .nm { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.mcmp-opt .cd { margin-left: auto; font-family: var(--mono); font-size: var(--fs-2xs); color: var(--muted); }
+.mcmp-opt input[type="checkbox"] { flex: none; width: auto; margin: 0; accent-color: var(--brand); cursor: pointer; } /* fw2_v706：批量勾选模式（width:auto 压过 .mcmp-pop input 的 width:100%，否则 checkbox 占满整行、名称列被挤成 0 宽不可见） */
+.mcmp-opt.checked { background: var(--brand-soft); } /* fw2_v706：勾选高亮 */
+.mcmp-opt .nm { flex: 1; min-width: 0; word-break: break-all; } /* fw2_v706：显示全称（去 ellipsis 截断，允许换行） */
+.mcmp-opt .cd { margin-left: auto; font-family: var(--mono); font-size: var(--fs-2xs); color: var(--muted); white-space: nowrap; }
 .mcmp-opt .tp { font-size: var(--fs-2xs); color: var(--muted); white-space: nowrap; }
 .mcmp-sec-t { font-size: var(--fs-2xs); color: var(--muted); margin: 9px 0 2px; }
+.mcmp-pop-foot { display: flex; align-items: center; gap: 8px; margin-top: 9px; padding-top: 8px; border-top: 1px solid var(--line); } /* fw2_v706：勾选底栏 */
+.mcmp-pop-foot .cnt { flex: 1; font-size: var(--fs-xs); color: var(--muted); }
+.mcmp-ok { padding: 4px 16px; border-radius: var(--r-pill); border: none; background: var(--brand); color: #fff; font-size: var(--fs-xs); cursor: pointer; } /* fw2_v706：确认添加 */
+.mcmp-ok:disabled { opacity: .45; cursor: not-allowed; }
 .mtbl tr.mcmp-yr td { background: var(--panel-3); font-weight: 700; color: var(--text); text-align: left; border-left: 1px solid var(--line-2); font-size: var(--fs-sm); }
 .mtbl th.mcmp-fund, .mtbl td.mcmp-fund { width: 150px; min-width: 150px; max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .mtbl tbody td.mcmp-fund { font-weight: 600; color: var(--blue); }
@@ -6844,6 +6850,9 @@ function __fcmpComps() {
 }
 function __fcmpTableHtml() {
   const a = window.__FCMP_ANCHOR; if (!a || !a.ret) return '';
+  /* fw2_v706：无对比基金时基金名称列不渲染（卡上方锚 chip 已有全名，逐行重复冗余；有对比时保留名称列区分行） */
+  const hasCmp = __fcmpComps().length > 0;
+  const NC = hasCmp ? 14 : 13;
   const list = [{ code: a.code, name: a.name, fm: a.ret, anchor: true }].concat(__fcmpComps().map((c) => {
     const meta = window.__FCMP_DATA[c] || {};
     return { code: c, name: meta.name || window.__FCMP_NM[c] || c, fm: __fcmpSeriesOf(c), fail: !!meta.fail };
@@ -6854,10 +6863,11 @@ function __fcmpTableHtml() {
   const rowsHtml = a.ret.years.slice().reverse().map((yr) => {
     const group = list.filter((x) => __fcmpYearAlive(x.fm, yr));
     if (!group.length) return '';
-    const head = `<tr class="mcmp-yr"><td colspan="14">${yr}年${yr === curYear ? partial : ''}</td></tr>`;
+    const head = `<tr class="mcmp-yr"><td colspan="${NC}">${yr}年${yr === curYear ? partial : ''}</td></tr>`;
     const body = group.map((x) => {
       const tds = Array.from({ length: 12 }, (_, m) => __fcmpCell(x.fm ? x.fm.ret[yr + '-' + String(m + 1).padStart(2, '0')] : null)).join('');
-      return `<tr><td class="mcmp-fund" title="${esc(x.name)}（${x.code}）">${esc(x.name)}</td>${tds}${__fcmpCell(x.fm ? x.fm.yret[yr] : null)}</tr>`;
+      const nmTd = hasCmp ? `<td class="mcmp-fund" title="${esc(x.name)}（${x.code}）">${esc(x.name)}</td>` : '';
+      return `<tr>${nmTd}${tds}${__fcmpCell(x.fm ? x.fm.yret[yr] : null)}</tr>`;
     }).join('');
     return head + body;
   }).join('');
@@ -6865,8 +6875,8 @@ function __fcmpTableHtml() {
   const pendNote = pend ? `<div class="hint" style="margin-top:8px">对比基金净值加载中（剩 ${pend} 只 · 天天基金 pingzhongdata · 各基金独立串行拉取）…</div>` : '';
   const failNote = list.some((x) => x.fail) ? '<div class="hint" style="margin-top:8px">有对比基金未取到累计净值序列（货基/无净值口径或代码无效），其行未展示；可点 chip × 移除。</div>' : '';
   return `<table class="table mtbl" style="width:100%;font-size:12px">
-      <thead><tr><th class="mcmp-fund">基金</th>${Array.from({ length: 12 }, (_, m) => `<th class="num">${m + 1}月</th>`).join('')}<th class="num">年度涨跌</th></tr></thead>
-      <tbody>${rowsHtml || `<tr><td colspan="14" style="color:var(--muted)">—</td></tr>`}</tbody>
+      <thead><tr>${hasCmp ? '<th class="mcmp-fund">基金</th>' : ''}${Array.from({ length: 12 }, (_, m) => `<th class="num">${m + 1}月</th>`).join('')}<th class="num">年度涨跌</th></tr></thead>
+      <tbody>${rowsHtml || `<tr><td colspan="${NC}" style="color:var(--muted)">—</td></tr>`}</tbody>
     </table>${pendNote}${failNote}`;
 }
 function __fcmpChipsHtml() {
@@ -6906,7 +6916,7 @@ function __fcmpSetAnchor(code, name, ret) {
   __fcmpRender();
   __fcmpBoot();
 }
-/* 快捷清单：持仓 ∪ 自选 ∪ 配置目标（barbell.funds），仅 6 位基金码，排除锚与已加 */
+/* 快捷清单：持仓 ∪ 自选 ∪ 配置目标（barbell.funds）∪ 筛选池（SCREEN_POOL.funds，fw2_v706）——本工作台全部基金可选，仅 6 位基金码，排除锚与已加 */
 function __fcmpQuickList() {
   const a = window.__FCMP_ANCHOR; const have = {}; const out = [];
   const push = (code, name) => {
@@ -6922,23 +6932,57 @@ function __fcmpQuickList() {
   Object.keys(state.watchMeta || {}).forEach((c) => { if (/^f\d{6}$/.test(String(c))) push(String(c).slice(1), (state.watchMeta[c] && state.watchMeta[c].name) || ''); });
   (state.watchlist || []).forEach((c) => { if (/^f\d{6}$/.test(String(c))) push(String(c).slice(1), (state.watchMeta && state.watchMeta[c] && state.watchMeta[c].name) || ''); });
   try { if (window.SIGNALS_CFG && window.SIGNALS_CFG.barbell && window.SIGNALS_CFG.barbell.funds) window.SIGNALS_CFG.barbell.funds.forEach((f) => { if (f && f.code) push(f.code, f.outerName || f.name || ''); }); } catch (e) {}
+  /* fw2_v706：筛选池并入（key=裸 6 位码，value.name=全称）——与持仓重合的以持仓名优先（push 去重先到先得） */
+  try {
+    const sp = (window.SCREEN_POOL && window.SCREEN_POOL.funds) || {};
+    Object.keys(sp).forEach((k) => { const m = /^(\d{6})$/.exec(String(k)); if (m) push(m[1], (sp[k] && sp[k].name) || ''); });
+  } catch (e) {}
   return out;
 }
-function __fcmpPopHtml() {
-  const q = __fcmpQuickList();
-  const qHtml = q.length
-    ? q.map((x) => `<div class="mcmp-opt" data-fcmp-pick="${x.code}" data-fcmp-name="${esc(x.name)}"><span class="nm">${esc(x.name)}</span><span class="cd">${x.code}</span></div>`).join('')
-    : '<div class="hint" style="margin-top:4px">持仓 / 自选 / 配置目标暂无其他基金</div>';
-  return `<input id="mcmpSearch" placeholder="搜索基金名称 / 代码（东财）" autocomplete="off"><div class="mcmp-res" id="mcmpSrchRes"></div><div class="mcmp-sec-t">快捷 · 持仓 / 自选 / 配置目标</div><div class="mcmp-res">${qHtml}</div>`;
+/* fw2_v706：筛选池惰性兜底（本地优先，就绪后回调；已就绪同步回调）——弹层打开时 SCREEN_POOL 可能尚未加载 */
+function __fcmpScreenPool(cb) {
+  if (window.SCREEN_POOL) { cb(); return; }
+  const _u = ['./screen-pool.json', 'https://raw.githubusercontent.com/andylauxiaoyang/investment-workbench/master/caifu/screen-pool.json']; let _i = 0;
+  (function _n() { if (_i >= _u.length) { cb(); return; } fetch(_u[_i], { cache: 'no-cache' }).then((r) => r.ok ? r.json() : null).then((j) => { if (j && j.funds) { window.SCREEN_POOL = j; cb(); } else { _i++; _n(); } }).catch(() => { _i++; _n(); }); })();
 }
-/* 事件（脚本加载时注册一次）：添加弹层开关 / 删 chip / 点选添加 / 搜索防抖 300ms / 点击弹层外关闭 */
+/* fw2_v706：弹层改批量勾选模式——勾选暂存 __FCMP_SEL（弹层会话级），确认（#mcmpOk）才整批写入对比清单；
+   已在对比清单里的默认勾选，确认时取消勾选＝移除（同一交互双向）；__FCMP_SEL_OPEN 标记弹层会话（筛选池晚到补刷保勾选） */
+function __fcmpPopHtml() {
+  const a = window.__FCMP_ANCHOR; if (!a) return '';
+  if (!window.__FCMP_SEL_OPEN) {
+    window.__FCMP_SEL = {};
+    __fcmpComps().forEach((c) => { window.__FCMP_SEL[c] = (window.__FCMP_DATA[c] && window.__FCMP_DATA[c].name) || window.__FCMP_NM[c] || c; });
+  }
+  window.__FCMP_SEL_OPEN = true;
+  const sel = window.__FCMP_SEL || {};
+  const opt = (x, tp) => `<label class="mcmp-opt${sel[x.code] ? ' checked' : ''}"><input type="checkbox" data-fcmp-ck="${x.code}" data-fcmp-name="${esc(x.name)}"${sel[x.code] ? ' checked' : ''}><span class="nm" title="${esc(x.name)}">${esc(x.name)}</span>${tp ? `<span class="tp">${esc(tp)}</span>` : ''}<span class="cd">${x.code}</span></label>`;
+  const q = __fcmpQuickList();
+  const qHtml = q.length ? q.map((x) => opt(x)).join('') : '<div class="hint" style="margin-top:4px">持仓 / 自选 / 配置目标 / 筛选池暂无其他基金</div>';
+  const n = Object.keys(sel).length;
+  return `<input id="mcmpSearch" placeholder="搜索基金名称 / 代码（天天基金）" autocomplete="off"><div class="mcmp-res" id="mcmpSrchRes"></div><div class="mcmp-sec-t">快捷 · 持仓 / 自选 / 配置目标 / 筛选池（勾选后点确认）</div><div class="mcmp-res" id="mcmpQuickRes">${qHtml}</div><div class="mcmp-pop-foot"><span class="cnt" id="mcmpCnt">已选 ${n} 只（确认后生效）</span><button class="mcmp-ok" id="mcmpOk" type="button"${n ? '' : ' disabled'}>确认添加</button></div>`;
+}
+function __fcmpSelSync() {
+  const n = Object.keys(window.__FCMP_SEL || {}).length;
+  const cnt = document.getElementById('mcmpCnt'), ok = document.getElementById('mcmpOk');
+  if (cnt) cnt.textContent = '已选 ' + n + ' 只（确认后生效）';
+  if (ok) ok.disabled = !n;
+}
+/* 事件（脚本加载时注册一次）：添加弹层开关 / 删 chip / 勾选确认（fw2_v706 批量模式） / 搜索防抖 300ms / 点击弹层外关闭 */
 document.addEventListener('click', (e) => {
   const pop = document.getElementById('mcmpPop');
   const tg = e.target;
   if (tg && tg.closest && tg.closest('#mcmpAdd')) {
     if (pop) {
       pop.classList.toggle('hidden');
-      if (!pop.classList.contains('hidden')) { pop.innerHTML = __fcmpPopHtml(); const ip = document.getElementById('mcmpSearch'); if (ip) ip.focus(); }
+      if (!pop.classList.contains('hidden')) {
+        pop.innerHTML = __fcmpPopHtml(); const ip = document.getElementById('mcmpSearch'); if (ip) ip.focus();
+        /* fw2_v706：筛选池晚到补刷（弹层还开着且未输入搜索词才刷，保住已勾选状态） */
+        __fcmpScreenPool(() => {
+          const p2 = document.getElementById('mcmpPop');
+          const s2 = document.getElementById('mcmpSearch');
+          if (p2 && !p2.classList.contains('hidden') && s2 && !s2.value.trim()) p2.innerHTML = __fcmpPopHtml();
+        });
+      }
     }
     return;
   }
@@ -6948,18 +6992,30 @@ document.addEventListener('click', (e) => {
     const m = __fcmpMap(); m[a.code] = __fcmpComps().filter((c) => c !== xel.dataset.fcmpX);
     __fcmpSaveMap(m); __fcmpRender(); return;
   }
-  const pel = tg && tg.closest && tg.closest('[data-fcmp-pick]');
-  if (pel) {
-    const a = window.__FCMP_ANCHOR; const c = String(pel.dataset.fcmpPick || '');
-    if (a && /^\d{6}$/.test(c) && c !== a.code && !__fcmpComps().includes(c)) {
-      window.__FCMP_NM[c] = pel.dataset.fcmpName || window.__FCMP_NM[c] || '';
-      const m = __fcmpMap(); m[a.code] = __fcmpComps().concat([c]); __fcmpSaveMap(m);
+  /* fw2_v706：确认＝勾选集合整批写入对比清单（取消勾选的也在其中＝移除语义） */
+  if (tg && tg.closest && tg.closest('#mcmpOk')) {
+    const a = window.__FCMP_ANCHOR;
+    if (a && window.__FCMP_SEL) {
+      const codes = Object.keys(window.__FCMP_SEL).filter((c) => /^\d{6}$/.test(c) && c !== a.code);
+      codes.forEach((c) => { window.__FCMP_NM[c] = window.__FCMP_NM[c] || window.__FCMP_SEL[c] || ''; });
+      const m = __fcmpMap(); m[a.code] = codes; __fcmpSaveMap(m);
+      window.__FCMP_SEL_OPEN = false;
       if (pop) pop.classList.add('hidden');
       __fcmpRender(); __fcmpBoot();
     }
     return;
   }
-  if (pop && !pop.classList.contains('hidden') && !(tg && tg.closest && tg.closest('#mcmpPop'))) pop.classList.add('hidden');
+  if (pop && !pop.classList.contains('hidden') && !(tg && tg.closest && tg.closest('#mcmpPop'))) { pop.classList.add('hidden'); window.__FCMP_SEL_OPEN = false; }
+});
+/* fw2_v706：勾选（change 委托）——只更新弹层暂存与计数，不写对比清单 */
+document.addEventListener('change', (e) => {
+  const ck = e.target && e.target.closest ? e.target.closest('[data-fcmp-ck]') : null;
+  if (!ck) return;
+  const c = String(ck.dataset.fcmpCk || ''), nm = ck.dataset.fcmpName || '';
+  if (!window.__FCMP_SEL) window.__FCMP_SEL = {};
+  if (ck.checked) window.__FCMP_SEL[c] = nm; else delete window.__FCMP_SEL[c];
+  const lb = ck.closest('.mcmp-opt'); if (lb) lb.classList.toggle('checked', ck.checked);
+  __fcmpSelSync();
 });
 document.addEventListener('input', (e) => {
   const ip = e.target && e.target.id === 'mcmpSearch' ? e.target : null;
@@ -6979,7 +7035,7 @@ document.addEventListener('input', (e) => {
         .map((x) => ({ code: String(x.code || '').replace(/\D/g, ''), name: x.name || '', tp: x.tp || x.cls || '' }))
         .filter((x) => /^\d{6}$/.test(x.code) && !/指数$/.test(x.name) && x.tp !== '指数');
       res.innerHTML = arr.length
-        ? arr.map((x) => `<div class="mcmp-opt" data-fcmp-pick="${x.code}" data-fcmp-name="${esc(x.name)}"><span class="nm">${esc(x.name)}</span><span class="tp">${esc(x.tp)}</span><span class="cd">${x.code}</span></div>`).join('')
+        ? arr.map((x) => `<label class="mcmp-opt${(window.__FCMP_SEL || {})[x.code] ? ' checked' : ''}"><input type="checkbox" data-fcmp-ck="${x.code}" data-fcmp-name="${esc(x.name)}"${(window.__FCMP_SEL || {})[x.code] ? ' checked' : ''}><span class="nm" title="${esc(x.name)}">${esc(x.name)}</span><span class="tp">${esc(x.tp)}</span><span class="cd">${x.code}</span></label>`).join('')
         : '<div class="hint">无结果</div>';
     } catch (err) { res.innerHTML = '<div class="hint">搜索失败：' + esc((err && err.message) || err) + '</div>'; }
   }, 300);
@@ -12845,7 +12901,7 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
        ①删 cbExport/cbImport/cbCloudRestore 三按钮 + #cbImportFile + #cbCloudInfo 灰字（HTML+三段绑定）；
        ②成交台账(cbLedgerToggle)/设置负债等其余工具栏按钮不动；③renderCloudInfo（自带 !el 守卫）/
        cbImportFile onchange/restoreFromMirror 保留死代码，恢复入口只需还原 HTML+绑定。
-       注意：全量 DB 备份入口随之消失，台账流水仍可经总览·交易台账折叠块备份。 */  if (vc) vc.textContent = 'v705 · 市场情绪母卡拆独立子卡' /* fw2_v705_sm_split fw2_v704_mcmp fw2_v703c_tab_rename fw2_v703_sm_flat_hist fw2_v700_cycle fw2_v697p_macro_11to5 fw2_v695_sw_cache_bust fw2_v694_dm_instr_fix fw2_v687_action_loop fw2_v687_next_plan fw2_v686_drip_pollute fw2_v686_review_role_grp fw2_v685_review_pct_netbeg fw2_v684_review_conclusion fw2_v680_review_refstyle fw2_v681_review_t2_gap fw2_v682_review_t2_rightalign fw2_v683_t2_align_t1 fw2_v678_tbl_col_harmony fw2_v677_role_col_del fw2_v676_attr_monthnav fw2_v676_attr_zero fw2_v675_num_col_widen fw2_v674_rev_breathe fw2_v673_rev_union fw2_v673_sig_retrace fw2_v669_review_tables fw2_v668_review_monthly fw2_v667_review_insight fw2_v666_tiles_bigger fw2_v665_review_tiles fw2_v664_review_rebuild fw2_v663_hero_retire fw2_v661_filter_compact fw2_v660_ui_simplify fw2_v659_backup_btns_del fw2_v658_rpt_monthnav fw2_v657_rptbar_del fw2_v656_rpt_6m fw2_v655_rpt_kpi fw2_v654_held_pf_authority fw2_v653_alloc_pile_assign fw2_v652_data_tab_removed fw2_v651_recent_hide fw2_v651_ledger_slim fw2_v651_entry_unify fw2_v650_netseries_daily fw2_v650_moneynav fw2_v649_merge_holdings fw2_v648_capbal_slim fw2_v647_netseries_fix fw2_v646_ledger_capbal fw2_v644_revert_watch_tab fw2_v643_mtbl_tier fw2_v642_a500_enh fw2_v641_peak_dd fw2_v640_buy_pct fw2_v639_del_decisionfw2_v516_a500lk fw2_v517_4otc fw2_v518_hspos fw2_v519_sm_merge fw2_v520_chgflat fw2_v521_magnet fw2_v522_overview fw2_v523_sm_dedup fw2_v524_geo_fsi fw2_v525_geo_filter fw2_v526_geo_filter_removed fw2_v527_verdict fw2_v529_smux fw2_v530_datamgmt fw2_v531_sm_dmgmt fw2_v532_all_dm fw2_v533_px_long fw2_v533d_dm_scroll fw2_v534_dm_module fw2_v535_dm_auto fw2_v539_hold_realpnl fw2_v539a_seed_sync fw2_v539a_seed_order fw2_v540_hold_path fw2_v542_pf_mirror_first fw2_v542_mv_settled fw2_v542_mv_account fw2_v543_dm_holdings_note fw2_v544_ledger_mirror_guard fw2_v545_hold_total_row fw2_v546_navdate_all fw2_v547_vix_to_ovs fw2_v548_ovs_mrg fw2_v549_region_align fw2_v550_grp_tabs fw2_v551_sop_cockpit fw2_v552_sop_taborder fw2_v553_chain_data fw2_v554_sop_rename fw2_v556_market_split fw2_v557_sm_renamed fw2_v558_cbrates_fix fw2_v558a_cb_label fw2_v559_chain_dates fw2_v560_chain_verdict fw2_v561_curve_hold fw2_v562_hold_inline fw2_v563_alloc fw2_v564_lxlink fw2_v565_cal_lx fw2_v565_sub_lx fw2_v566_fund_move fw2_v567_fund_merge fw2_v568_lxlink_fix fw2_v569_manager_pool fw2_v570_manager_universe fw2_v571_mgr_east fw2_v574_mgr_subscore fw2_v575_mgr_merge fw2_v576_mgr_group fw2_v577_mgr_lxlink fw2_v578_mgr_lxreal fw2_v579_mgr_weight fw2_v581_fund_lxreal fw2_v582_mgr_min10 fw2_v583_mgr_noyear fw2_v584_mgr_career fw2_v585_mgr_srank fw2_v586_mgr_srank fw2_v587_mgr_since fw2_v588_mgr_lxfull fw2_v589_mgr_rules fw2_v590_mgr_scores fw2_v591_mgr_ladder fw2_v592_mgr_cols fw2_v593_mgr_score fw2_anti_halluc_p0 fw2_v595_alpha_attrib fw2_v596_sig_hist fw2_v597_fund_overlap fw2_v598_mgr_hold fw2_v599_time_decay fw2_v599_corr_pen fw2_v600_buytrack fw2_v601_backtest fw2_v602_kline_page fw2_v603_old_debts fw2_v604_xirr fw2_v605_holdings_global fw2_v606_v11_signal fw2_v607_v11_bt fw2_v608_lx_audit fw2_v609_sig_table fw2_v610_sig_merge fw2_v611_grp_line fw2_v612_index_lxreal fw2_v613_near_blue fw2_v615_sig_grp fw2_v616_sig_hdstyle fw2_v617_sig_vline fw2_v618_sig_lcr fw2_v619_curthr fw2_v620_curthr_all fw2_v621_ret_hpr fw2_v621_t13_lastbuy fw2_v622_lastbuy_auto fw2_v623_firstbuy_roll fw2_v623_alloc_watch fw2_v624_m13_m17 fw2_v626_sig_cost_guard fw2_v626_watch_pe_exempt fw2_v627_colorder fw2_v627_action_plan fw2_v627_data_date fw2_v628_fixed_cols fw2_v629_pool_pile_guard fw2_v629_t9_pfdate fw2_v630_missing_cost fw2_v631_pool_held_live fw2_v632_held_off fw2_v633_ledger_tx_sync fw2_v634_plan_dir fw2_v635_capbal_fix fw2_v636_capbal_converge fw2_v637_mv_consist fw2_v638_mv_unify fw2_v697p_macro_11to5 fw2_v697q_cockpit_return fw2_v697r_tab_highlight fw2_v697s_px_del_trends fw2_v697t_px_rows_del fw2_v697u_corr_trim fw2_v698_macro_sync fw2_v699_volcard */ + (window.getAllocWatchCodes ? window.getAllocWatchCodes().length : 0) + '只';
+       注意：全量 DB 备份入口随之消失，台账流水仍可经总览·交易台账折叠块备份。 */  if (vc) vc.textContent = 'v706 · 月度对比批量勾选' /* fw2_v706_mcmp_batch fw2_v705_sm_split fw2_v704_mcmp fw2_v703c_tab_rename fw2_v703_sm_flat_hist fw2_v700_cycle fw2_v697p_macro_11to5 fw2_v695_sw_cache_bust fw2_v694_dm_instr_fix fw2_v687_action_loop fw2_v687_next_plan fw2_v686_drip_pollute fw2_v686_review_role_grp fw2_v685_review_pct_netbeg fw2_v684_review_conclusion fw2_v680_review_refstyle fw2_v681_review_t2_gap fw2_v682_review_t2_rightalign fw2_v683_t2_align_t1 fw2_v678_tbl_col_harmony fw2_v677_role_col_del fw2_v676_attr_monthnav fw2_v676_attr_zero fw2_v675_num_col_widen fw2_v674_rev_breathe fw2_v673_rev_union fw2_v673_sig_retrace fw2_v669_review_tables fw2_v668_review_monthly fw2_v667_review_insight fw2_v666_tiles_bigger fw2_v665_review_tiles fw2_v664_review_rebuild fw2_v663_hero_retire fw2_v661_filter_compact fw2_v660_ui_simplify fw2_v659_backup_btns_del fw2_v658_rpt_monthnav fw2_v657_rptbar_del fw2_v656_rpt_6m fw2_v655_rpt_kpi fw2_v654_held_pf_authority fw2_v653_alloc_pile_assign fw2_v652_data_tab_removed fw2_v651_recent_hide fw2_v651_ledger_slim fw2_v651_entry_unify fw2_v650_netseries_daily fw2_v650_moneynav fw2_v649_merge_holdings fw2_v648_capbal_slim fw2_v647_netseries_fix fw2_v646_ledger_capbal fw2_v644_revert_watch_tab fw2_v643_mtbl_tier fw2_v642_a500_enh fw2_v641_peak_dd fw2_v640_buy_pct fw2_v639_del_decisionfw2_v516_a500lk fw2_v517_4otc fw2_v518_hspos fw2_v519_sm_merge fw2_v520_chgflat fw2_v521_magnet fw2_v522_overview fw2_v523_sm_dedup fw2_v524_geo_fsi fw2_v525_geo_filter fw2_v526_geo_filter_removed fw2_v527_verdict fw2_v529_smux fw2_v530_datamgmt fw2_v531_sm_dmgmt fw2_v532_all_dm fw2_v533_px_long fw2_v533d_dm_scroll fw2_v534_dm_module fw2_v535_dm_auto fw2_v539_hold_realpnl fw2_v539a_seed_sync fw2_v539a_seed_order fw2_v540_hold_path fw2_v542_pf_mirror_first fw2_v542_mv_settled fw2_v542_mv_account fw2_v543_dm_holdings_note fw2_v544_ledger_mirror_guard fw2_v545_hold_total_row fw2_v546_navdate_all fw2_v547_vix_to_ovs fw2_v548_ovs_mrg fw2_v549_region_align fw2_v550_grp_tabs fw2_v551_sop_cockpit fw2_v552_sop_taborder fw2_v553_chain_data fw2_v554_sop_rename fw2_v556_market_split fw2_v557_sm_renamed fw2_v558_cbrates_fix fw2_v558a_cb_label fw2_v559_chain_dates fw2_v560_chain_verdict fw2_v561_curve_hold fw2_v562_hold_inline fw2_v563_alloc fw2_v564_lxlink fw2_v565_cal_lx fw2_v565_sub_lx fw2_v566_fund_move fw2_v567_fund_merge fw2_v568_lxlink_fix fw2_v569_manager_pool fw2_v570_manager_universe fw2_v571_mgr_east fw2_v574_mgr_subscore fw2_v575_mgr_merge fw2_v576_mgr_group fw2_v577_mgr_lxlink fw2_v578_mgr_lxreal fw2_v579_mgr_weight fw2_v581_fund_lxreal fw2_v582_mgr_min10 fw2_v583_mgr_noyear fw2_v584_mgr_career fw2_v585_mgr_srank fw2_v586_mgr_srank fw2_v587_mgr_since fw2_v588_mgr_lxfull fw2_v589_mgr_rules fw2_v590_mgr_scores fw2_v591_mgr_ladder fw2_v592_mgr_cols fw2_v593_mgr_score fw2_anti_halluc_p0 fw2_v595_alpha_attrib fw2_v596_sig_hist fw2_v597_fund_overlap fw2_v598_mgr_hold fw2_v599_time_decay fw2_v599_corr_pen fw2_v600_buytrack fw2_v601_backtest fw2_v602_kline_page fw2_v603_old_debts fw2_v604_xirr fw2_v605_holdings_global fw2_v606_v11_signal fw2_v607_v11_bt fw2_v608_lx_audit fw2_v609_sig_table fw2_v610_sig_merge fw2_v611_grp_line fw2_v612_index_lxreal fw2_v613_near_blue fw2_v615_sig_grp fw2_v616_sig_hdstyle fw2_v617_sig_vline fw2_v618_sig_lcr fw2_v619_curthr fw2_v620_curthr_all fw2_v621_ret_hpr fw2_v621_t13_lastbuy fw2_v622_lastbuy_auto fw2_v623_firstbuy_roll fw2_v623_alloc_watch fw2_v624_m13_m17 fw2_v626_sig_cost_guard fw2_v626_watch_pe_exempt fw2_v627_colorder fw2_v627_action_plan fw2_v627_data_date fw2_v628_fixed_cols fw2_v629_pool_pile_guard fw2_v629_t9_pfdate fw2_v630_missing_cost fw2_v631_pool_held_live fw2_v632_held_off fw2_v633_ledger_tx_sync fw2_v634_plan_dir fw2_v635_capbal_fix fw2_v636_capbal_converge fw2_v637_mv_consist fw2_v638_mv_unify fw2_v697p_macro_11to5 fw2_v697q_cockpit_return fw2_v697r_tab_highlight fw2_v697s_px_del_trends fw2_v697t_px_rows_del fw2_v697u_corr_trim fw2_v698_macro_sync fw2_v699_volcard */ + (window.getAllocWatchCodes ? window.getAllocWatchCodes().length : 0) + '只';
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
