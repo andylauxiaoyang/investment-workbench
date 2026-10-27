@@ -7974,7 +7974,7 @@ function cycleEngine(d) {
     moodScore: moodScore,
     riskAdj: riskAdj,
     proxy: 'ERP ' + (erpPct != null ? erpPct.toFixed(0) + ' 分位' : '—') + ' · 宽基 PE '
-      + (peAvg != null ? peAvg.toFixed(0) + ' 分位' : '—') + ' · 两融占比 '
+      + (peAvg != null ? peAvg.toFixed(0) + ' 分位' : '—') + ' · 融资占比 '
       + (mg.zb != null ? mg.zb.toFixed(2) + '%' : '—') + ' · VIX '
       + (vix != null ? vix.toFixed(1) : '—') + ' · 美债2s10s '
       + (rt.spread != null ? (rt.spread >= 0 ? '+' : '') + rt.spread.toFixed(2) + 'pct' : '—')
@@ -8382,7 +8382,9 @@ function mcCalcCommon(d) {
   const zbPct = myZb != null && zbSeries.length ? Math.round(zbSeries.filter((v) => v <= myZb).length / zbSeries.length * 1000) / 10 : null;
   const aCur = d.amt && d.amt.cur || null;
   const aPct = aCur ? aCur[2] : null;
-  const moodLvl = ((zbPct != null && zbPct > 90) || (aPct != null && aPct > 90)) ? '过热·杠杆拥挤（防御，暂停加档）' : ((zbPct != null && zbPct < 10) || (aPct != null && aPct < 10)) ? '冰点·逆向关注（可小幅加档）' : '中性区·正常节奏';
+  /* fw2_v703d_mood_purity：成交分位因子移除（用户 2026-10-27 指定磁贴搬至全A成交额卡）——moodLvl 由
+     zbPct/aPct 双因子改 zbPct 单因子（当前数据 zbPct=91.5>90 判定不变，逻辑口径收敛） */
+  const moodLvl = (zbPct != null && zbPct > 90) ? '过热·杠杆拥挤（防御，暂停加档）' : (zbPct != null && zbPct < 10) ? '冰点·逆向关注（可小幅加档）' : '中性区·正常节奏';
   const erpLvl = ePct == null ? '—' : ePct >= 75 ? '增配股票（M9：股债利差高位，≥75% 增股至 70-80%）' : ePct >= 50 ? '均衡偏股（股债性价比中高位）' : ePct >= 25 ? '均衡偏债（性价比中性偏低）' : '减配股票（M9：<25% 减股至 20-30%）';
   const peLvl = peLast ? (peLast[2] == null ? '—' : peLast[2] >= 80 ? '偏贵（>80% 减速止盈）' : peLast[2] >= 60 ? '中性偏暖' : peLast[2] >= 40 ? '中性' : peLast[2] >= 20 ? '中性偏冷' : '便宜（<20% 加档定投）') : '—';
   const gapLvl = cCur.gap == null ? '—' : cCur.gap >= 0 ? '盈利扩张·顺风（M1>M2，中枢可维持）' : cCur.gap >= -2 ? '收敛观察·等拐点（剪刀差负值收窄=回暖前兆）' : '盈利收缩·逆风（M1&lt;M2 深负，降仓位中枢）';
@@ -8424,8 +8426,8 @@ function mcRegisterEvidence(C) {
   mcEv('cred', cCur.gap == null ? 0 : (cCur.gap >= 0 ? 1 : cCur.gap >= -2 ? 0 : -1), 'M1−M2 剪刀差 ' + (cCur.gap != null ? fmtNum(cCur.gap, 1) + 'pct' : '—'));
   mcEv('cred', mk == null ? 0 : ((mk >= 50 && pmPrev && pmPrev[1] >= 50) ? 1 : ((mk < 49 && pmPrev && pmPrev[1] < 49) ? -1 : 0)), '制造业 PMI ' + (mk != null ? fmtNum(mk, 1) : '—') + (pmPrev ? '（前值 ' + fmtNum(pmPrev[1], 1) + '）' : ''));
   mcEv('cred', 0, 'CPI−PPI 剪刀差 ' + (pgL != null ? fmtNum(pgL, 1) + 'pct' : '—') + ' · 风格参考（非方向证据）');
-  mcEv('mood', ((zbPct != null && zbPct > 90) || (aPct != null && aPct > 90)) ? -1 : ((zbPct != null && zbPct < 10) || (aPct != null && aPct < 10)) ? 1 : 0, '两融占比分位 ' + (zbPct != null ? fmtNum(zbPct, 1) + '%' : '—') + ' · 成交额分位 ' + (aPct != null ? fmtNum(aPct, 1) + '%' : '—'));
-  mcEv('mood', amtDunset ? 0 : (amtDv == null ? 0 : (amtDv < 15000 ? 1 : amtDv >= 30000 ? -1 : 0)), '全A成交额 ' + amtDtxt + (amtDunset ? '（盘中未结算·不判读）' : ''));
+  mcEv('mood', (zbPct != null && zbPct > 90) ? -1 : (zbPct != null && zbPct < 10) ? 1 : 0, '融资占比分位 ' + (zbPct != null ? fmtNum(zbPct, 1) + '%' : '—')); /* fw2_v703d_mood_purity：成交分位因子移除，证据改单因子 */
+  mcEv('mood', amtDunset ? 0 : (amtDv == null ? 0 : (amtDv < 15000 ? 1 : amtDv >= 30000 ? -1 : 0)), '全A成交额 ' + amtDtxt + (aPct != null ? ' · 当月分位 ' + fmtNum(aPct, 1) + '%' : '') + (amtDunset ? '（盘中未结算·不判读）' : (aPct != null ? '（120月·未完月偏低）' : ''))); /* fw2_v703d_mood_purity：月频成交分位信息并入本证据行 */
   /* fw2_v547_vix_to_ovs：VIX 为 CBOE 美国指标，证据随卡归入 ④海外约束（ovs）——③情绪组保持纯中国口径（两融/成交额），中美市场区分独立 */
   mcEv('ovs', vL == null ? 0 : (vL >= 30 ? -1 : vL < 20 ? 1 : 0), 'VIX ' + (vL != null ? fmtNum(vL, 2) : '—'));
   mcEv('ovs', fxGate === '逆风·防御' ? -1 : fxGate === '顺风' ? 1 : 0, '外围红绿灯 ' + fxGate + '（达标 ' + badCnt + '/3）');
@@ -9224,28 +9226,30 @@ body.innerHTML = ((_region === 'cn' || _region === 'v-cycle') ? renderMacroTools
     <div class="chart" id="mcPmi" style="height:200px"></div>
   </div>
   <div class="card">
-    <div class="card-h"><h3>情绪温度计：两融与成交${LXMAP.ic(LXMAP.index('两融余额'), '理杏仁 · 两融余额')}</h3><span class="hint">月末点 · ${mrg.length} 个月${aCur ? ' · 当月成交 ' + (aCur[1] / 10000).toFixed(1) + ' 万亿（未完月）' : ''}</span></div>
-    ${_mcMeta(_mcLastOf(mrg), '月末', '融资余额 + 占流通市值比 + 两市月成交额分位', 75)}
+    <!-- fw2_v703d_mood_purity：用户 2026-10-27 指定①标题「两融与成交」改「融资余额」（卡内数据本就只有融资余额+占流通市值比）
+         ②「两市月成交额分位」磁贴搬至下方全A成交额卡（成交额衍生读数归成交卡，主题聚拢）——判读/阈值同步单因子化 -->
+    <div class="card-h"><h3>情绪温度计：融资余额${LXMAP.ic(LXMAP.index('两融余额'), '理杏仁 · 两融余额')}</h3><span class="hint">月末点 · ${mrg.length} 个月</span></div>
+    ${_mcMeta(_mcLastOf(mrg), '月末', '融资余额 + 占流通市值比（10年分位）', 75)}
     <div class="metric-grid">
       ${metric('融资余额', myYe != null ? fmtNum(myYe / 10000, 2) + ' 万亿' : '—')}
       ${metric('占流通市值比', myZb != null ? fmtNum(myZb, 2) + '%' : '—', zbPct != null && zbPct > 90 ? 'v down' : zbPct != null && zbPct < 10 ? 'v up' : '')}
       ${metric('占比 10年分位', zbPct != null ? fmtNum(zbPct, 1) + '%' : '—', zbPct != null && zbPct > 90 ? 'v down' : zbPct != null && zbPct < 10 ? 'v up' : '')}
-      ${metric('两市月成交额分位', aPct != null ? fmtNum(aPct, 1) + '%' : '—', aPct != null && aPct > 90 ? 'v down' : '')}
     </div>
-    <div class="rv-line"><span class="tag tag-ai">指向</span><span><b>${moodLvl}</b> · 两融占比分位 ${_mcBar(zbPct)} · 成交额分位 ${_mcBar(aPct)}</span></div>
-    <div class="rv-line"><span class="tag tag-data">阈值</span><span>两融占比 / 成交额分位 <b>&gt;90%</b>＝杠杆拥挤过热（防御，暂停加档） · <b>&lt;10%</b>＝冰点逆向关注（可小幅加档） · 之间＝中性区正常节奏</span></div>
+    <div class="rv-line"><span class="tag tag-ai">指向</span><span><b>${moodLvl}</b> · 融资占比分位 ${_mcBar(zbPct)}</span></div>
+    <div class="rv-line"><span class="tag tag-data">阈值</span><span>融资占比分位 <b>&gt;90%</b>＝杠杆拥挤过热（防御，暂停加档） · <b>&lt;10%</b>＝冰点逆向关注（可小幅加档） · 之间＝中性区正常节奏</span></div>
     <div class="chart" id="mcMood" style="height:200px"></div>
   </div>
   <div class="card">
-    <div class="card-h"><h3>全A成交额（沪深京 · 近一年）${LXMAP.ic(LXMAP.index('全A成交额'), '理杏仁 · 全A成交额')}</h3><span class="hint">日成交额 · 三所合计(沪+深+京) · ${amtDall.length} 个交易日${amtDunset ? ' · <b>盘中未结算</b>（抓取 ' + (amtDcap || '—') + '，非全天值；均值/区间仅计已结算日）' : ' · 均值/区间按近30日窗口'}</span></div>
-    ${_mcMeta(amtDAsOf, '日频', '沪深京三所合计日成交额（近一年，判读窗口近30日）', 10)}
+    <div class="card-h"><h3>全A成交额（沪深京 · 近一年）${LXMAP.ic(LXMAP.index('全A成交额'), '理杏仁 · 全A成交额')}</h3><span class="hint">日成交额 · 三所合计(沪+深+京) · ${amtDall.length} 个交易日${amtDunset ? ' · <b>盘中未结算</b>（抓取 ' + (amtDcap || '—') + '，非全天值；均值/区间仅计已结算日）' : ' · 均值/区间按近30日窗口'}${aCur ? ' · 当月成交 ' + (aCur[1] / 10000).toFixed(1) + ' 万亿（未完月）' : ''}</span></div>
+    ${_mcMeta(amtDAsOf, '日频', '沪深京三所合计日成交额（近一年，判读窗口近30日）' + (aCur ? '；当月分位=当月累计额在近120个月月末额中的历史分位（未完月系统性偏低）' : ''), 10)}
     <div class="metric-grid">
       ${metric('最新全A成交额' + (amtDunset ? '（盘中累计）' : ''), amtDtxt, amtDunset ? '' : (amtDv != null && amtDv < 15000 ? 'v down' : amtDv != null && amtDv >= 30000 ? 'v up' : ''))}
       ${metric('近30日均值', amtDavg != null ? fmtNum(amtDavg / 10000, 2) + ' 万亿' : '—')}
       ${metric('近30日区间', (amtDmin != null && amtDmax != null) ? fmtNum(amtDmin, 0) + '–' + fmtNum(amtDmax, 0) + ' 亿' : '—')}
       ${metric('较30日均值', amtDrl != null ? (amtDrl >= 0 ? '+' : '') + fmtNum(amtDrl, 1) + '%' : '—', amtDrl != null && amtDrl <= -15 ? 'v down' : amtDrl != null && amtDrl >= 20 ? 'v up' : '')}
+      ${metric('当月成交分位', aPct != null ? fmtNum(aPct, 1) + '%' : '—', aPct != null && aPct > 90 ? 'v down' : '')} <!-- fw2_v703d_mood_purity：自「情绪温度计」母卡迁入（月频 120 月历史分位，与上方近30日短窗口互补） -->
     </div>
-    <div class="rv-line"><span class="tag tag-ai">指向</span><span><b>${amtDlvl}</b>${amtDunset ? ' · <b>当日尚未收盘结算</b>，上方为盘中累计值' : ' · 近30日均值 ' + (amtDavg != null ? fmtNum(amtDavg / 10000, 2) + ' 万亿' : '—')}</span></div>
+    <div class="rv-line"><span class="tag tag-ai">指向</span><span><b>${amtDlvl}</b>${amtDunset ? ' · <b>当日尚未收盘结算</b>，上方为盘中累计值' : ' · 近30日均值 ' + (amtDavg != null ? fmtNum(amtDavg / 10000, 2) + ' 万亿' : '—')}${aPct != null ? ' · 当月分位 ' + fmtNum(aPct, 1) + '%' : ''}</span></div>
     <div class="rv-line"><span class="tag tag-data">阈值</span><span>M7 口径：<b>&lt;1.5万亿</b> 网格定投区 · <b>1.5~2万亿</b> 关注入场 · <b>2~3万亿</b> 正常区 · <b>≥3万亿</b> 过热分批卖。低于 <b>2万亿</b>（20000亿）直接显示亿数，冰点更敏感${amtDunset ? '；<b>盘中值切勿按 M7 阈值判定冰点/过热</b>' : ''}</span></div>
     <div class="chart" id="mcAmtD" style="height:200px"></div>
   </div>
@@ -9765,7 +9769,7 @@ function renderMacroSentiment(d) {
   /* fw2_v529_smux P5：todoCard 可折叠——占整格，点击标题区折叠/展开内容（内联 onclick 切换 data-todo-body 显隐） */
   var todoCard = '<div class="card" style="cursor:pointer" onclick="var _b=this.querySelector(\'[data-todo-body]\');_b.style.display=_b.style.display===\'none\'?\'\':\'none\';var _a=this.querySelector(\'[data-todo-arrow]\');if(_a)_a.textContent=_b.style.display===\'none\'?\'▸\':\'▾\'"><div class="card-h"><h3>数据源状态（官方停更说明 · 手册有·工作台已通）</h3><span class="hint">缺源不渲染不编造，取数失败立即修复 · 点击<span data-todo-arrow style="font-weight:600">▾</span>折叠</span></div><div data-todo-body>' +
     '<div style="font-size:12px;color:var(--slate-600,#475569);line-height:1.9">· 中国波指 iVIX：<b>官方 2018-02-22 起暂停发布至今未恢复</b>（上交所仅剩期权风险指标 Delta/Gamma 类）→ 国内期权情绪已由「期权 PCR」替代<br>· 北向资金：<b>官方 2024-05-13 起取消日度净买入披露</b>（盘后仅公布买+卖成交额/十大活跃股）→ 已改「北向成交活跃度」探测中<br>· 财新PMI：商业授权非统计局序列 → 已用统计局官方 PMI 替代（宏观硬指标页）</div>' +
-    '<div style="font-size:11px;color:#0d9f4d;line-height:1.7;margin-top:8px">✓ 已接入：换手率、市净率中位数、融资买入额、A股总市值、大小盘相对强弱、超额流动性、CNN 恐贪(美股)、证券化率/巴菲特指数、限售解禁(未来30日)、产业资本净增减持(近30日)、板块拥挤度(最热板块)、破净率(全A)、成交集中度(CR10)、行业情绪(上涨占比)、期指升贴水(IF/IH/IC/IM)、新发公募(发行中+待发行)、产业资本回购(公告数)——fw2_v702_mood_bigcard 起全部统一母卡格式（数据截至+磁贴+指向+图表）<br><span style="color:#2f6bff">✓ fw2_v703_sm_flat_hist：全指标一行一卡平铺（280px 全宽图表）；行业情绪/板块拥挤度/期指升贴水已回填一年历史（东财日K自算，换月/口径注释见图旁说明）；全A成交额母卡扩至一年</span><br><span style="color:#2f6bff">✓ fw2_v703b_sm_reorder：同类聚类重排（同类相邻、仍一行一卡）——① 市况广度与结构 → ② 量能交投 → ③ 估值温度 → ④ 风险偏好（海外+衍生品）→ ⑤ 资金供需 → ⑥ 宏观流动性；总市值归入广度结构（规模类）、北向归入资金供需</span><br><span style="color:var(--slate-500,#64748b)">◇ 序列积累中（无公开历史源，随数据层逐日累积、满 60 日度点自动出图，不编造）：破净率、CR10、巴菲特指数、全A总市值、新发公募、回购（当前各 4 点）<br>◇ 探测中/缺源：期权 PCR（东财报表名不存在、期权行情接口限流，通道待换）；北向成交活跃度（官方 2024-05-13 停更日度净买入，接口仅剩占位数据，无合规机读源）</span></div></div>';
+    '<div style="font-size:11px;color:#0d9f4d;line-height:1.7;margin-top:8px">✓ 已接入：换手率、市净率中位数、融资买入额、A股总市值、大小盘相对强弱、超额流动性、CNN 恐贪(美股)、证券化率/巴菲特指数、限售解禁(未来30日)、产业资本净增减持(近30日)、板块拥挤度(最热板块)、破净率(全A)、成交集中度(CR10)、行业情绪(上涨占比)、期指升贴水(IF/IH/IC/IM)、新发公募(发行中+待发行)、产业资本回购(公告数)——fw2_v702_mood_bigcard 起全部统一母卡格式（数据截至+磁贴+指向+图表）<br><span style="color:#2f6bff">✓ fw2_v703_sm_flat_hist：全指标一行一卡平铺（280px 全宽图表）；行业情绪/板块拥挤度/期指升贴水已回填一年历史（东财日K自算，换月/口径注释见图旁说明）；全A成交额母卡扩至一年</span><br><span style="color:#2f6bff">✓ fw2_v703b_sm_reorder：同类聚类重排（同类相邻、仍一行一卡）——① 市况广度与结构 → ② 量能交投 → ③ 估值温度 → ④ 风险偏好（海外+衍生品）→ ⑤ 资金供需 → ⑥ 宏观流动性；总市值归入广度结构（规模类）、北向归入资金供需</span><br><span style="color:#2f6bff">✓ fw2_v703d_mood_purity：母卡改名「情绪温度计：融资余额」（判读/阈值改融资占比分位单因子）；「当月成交分位」磁贴迁入全A成交额卡（口径=当月累计额在近120个月月末额中的历史分位，未完月偏低已标注）</span><br><span style="color:var(--slate-500,#64748b)">◇ 序列积累中（无公开历史源，随数据层逐日累积、满 60 日度点自动出图，不编造）：破净率、CR10、巴菲特指数、全A总市值、新发公募、回购（当前各 4 点）<br>◇ 探测中/缺源：期权 PCR（东财报表名不存在、期权行情接口限流，通道待换）；北向成交活跃度（官方 2024-05-13 停更日度净买入，接口仅剩占位数据，无合规机读源）</span></div></div>';
   /* fw2_v465_fsi_card：FSI 全球金融压力指数由整幅横幅改为与其它卡同款的卡片，置于网格首位（用户要求）。
      复用本模块 card()/metric()/spark() 助手，数据源同 d.fsi，不新增取数；renderMacroTop 横幅不再在此调用。 */
   var fsiSc = fsi.score, fsiPct = fsi.percentile;
@@ -9816,7 +9820,7 @@ function renderMacroSentiment(d) {
   var sTurn = sBig(S.turnover, { k0: '换手率', hint: '日成交额/流通市值 · 理杏仁', unit: '%', chId: 'smChTurn' });
   /* fw2_v557_sm_renamed：删「股息率 vs 10Y 国债」卡（股债性价比=val A股估值 ERP 已覆盖，v523 去重残留）＋其 smReg 注册（温度磁铁随之剔除估值性价比维度） */
   var sPb = sBig(S.pbMedian, { k0: 'PB 中位数', hint: '全A市净率中位数 · 理杏仁', chId: 'smChPb' });
-  var sMbuy = sBig(S.marginBuy, { k0: '融资买入额', hint: '日度融资买入额 · 区别于「情绪温度」页两融余额（月频）· 理杏仁', unit: ' 亿元', dec: 0, chId: 'smChMbuy' });
+  var sMbuy = sBig(S.marginBuy, { k0: '融资买入额', hint: '日度融资买入额 · 区别于「情绪温度」页融资余额（月频）· 理杏仁', unit: ' 亿元', dec: 0, chId: 'smChMbuy' });
   var sCap = sBig(S.mktcap, { k0: '总市值', hint: 'A股总市值 · 理杏仁', unit: ' 万亿元', chId: 'smChCap' });
   var sSize = sBig(S.sizeRatio, { k0: '大小盘比值', hint: '沪深300/中证1000 · 走低=小盘走强', dec: 3, col: '#7c3aed', chId: 'smChSize' });
   var sLiq = sBig(S.liqSpread, { k0: '剪刀差', hint: '社融增速−M2增速 · 理杏仁(自算)', unit: ' pp', sign: true, col: '#0d9f4d', chId: 'smChLiq' });
@@ -14050,7 +14054,7 @@ setTimeout(() => { renderResearchChips(); if (!state.news.items.length) loadNews
     '外围：USDCNH / 美元指数 / 美债10Y / 中美利差': '美元与利差',
     'VIX 恐慌指数（标普500 期权隐含波动率）': 'VIX 恐慌',
     '制造业 PMI（荣枯线 50）': '制造业 PMI',
-    '情绪温度计：两融与成交': '两融与成交',
+    '情绪温度计：融资余额': '融资余额', /* fw2_v703d_mood_purity：原 '情绪温度计：两融与成交': '两融与成交' 随卡改名同步 */
     '全A成交额（沪深京 · 近一年）': '全A成交额',
     '宽基估值温度（A股·中小盘）': '宽基估值',
     '全球利率与汇率（美债·日元）': '全球利率',
