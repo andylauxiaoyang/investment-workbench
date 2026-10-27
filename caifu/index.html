@@ -8412,6 +8412,7 @@ function mcRegisterEvidence(C) {
       fxGate = C.fxGate, badCnt = C.badCnt, spxPct = C.spxPct, ushfBE = C.ushfBE, cbRatesArr = C.cbRatesArr,
       ushfIC = C.ushfIC, ushfUR = C.ushfUR, ushfRet = C.ushfRet, ushfPce = C.ushfPce, ushfCc = C.ushfCc,
       ushfDur = C.ushfDur, ismMfg = C.ismMfg, ismSvc = C.ismSvc, ushfCli = C.ushfCli, ushfKr = C.ushf.krExport;
+  window.__MC_ZBPCT = zbPct; /* fw2_v703e_smvote_margin：融资占比分位暴露给 sm 页全景投票（原左磁铁 10 项投票缺杠杆项，判过热的唯一依据未参与投票，与右磁铁 mood 组方向系统性冲突——用户 2026-10-27 拍板补注册） */
   mcEv('val', ePct == null ? 0 : (ePct >= 75 ? 1 : ePct < 25 ? -1 : 0), 'ERP 10年分位 ' + (ePct != null ? fmtNum(ePct, 1) + '%' : '—'));
   mcEv('val', (peLast && peLast[2] != null) ? (peLast[2] >= 80 ? -1 : peLast[2] < 20 ? 1 : 0) : 0, '沪深300 PE 分位 ' + (peLast && peLast[2] != null ? fmtNum(peLast[2], 1) + '%' : '—'));
   (function () {
@@ -9769,7 +9770,7 @@ function renderMacroSentiment(d) {
   /* fw2_v529_smux P5：todoCard 可折叠——占整格，点击标题区折叠/展开内容（内联 onclick 切换 data-todo-body 显隐） */
   var todoCard = '<div class="card" style="cursor:pointer" onclick="var _b=this.querySelector(\'[data-todo-body]\');_b.style.display=_b.style.display===\'none\'?\'\':\'none\';var _a=this.querySelector(\'[data-todo-arrow]\');if(_a)_a.textContent=_b.style.display===\'none\'?\'▸\':\'▾\'"><div class="card-h"><h3>数据源状态（官方停更说明 · 手册有·工作台已通）</h3><span class="hint">缺源不渲染不编造，取数失败立即修复 · 点击<span data-todo-arrow style="font-weight:600">▾</span>折叠</span></div><div data-todo-body>' +
     '<div style="font-size:12px;color:var(--slate-600,#475569);line-height:1.9">· 中国波指 iVIX：<b>官方 2018-02-22 起暂停发布至今未恢复</b>（上交所仅剩期权风险指标 Delta/Gamma 类）→ 国内期权情绪已由「期权 PCR」替代<br>· 北向资金：<b>官方 2024-05-13 起取消日度净买入披露</b>（盘后仅公布买+卖成交额/十大活跃股）→ 已改「北向成交活跃度」探测中<br>· 财新PMI：商业授权非统计局序列 → 已用统计局官方 PMI 替代（宏观硬指标页）</div>' +
-    '<div style="font-size:11px;color:#0d9f4d;line-height:1.7;margin-top:8px">✓ 已接入：换手率、市净率中位数、融资买入额、A股总市值、大小盘相对强弱、超额流动性、CNN 恐贪(美股)、证券化率/巴菲特指数、限售解禁(未来30日)、产业资本净增减持(近30日)、板块拥挤度(最热板块)、破净率(全A)、成交集中度(CR10)、行业情绪(上涨占比)、期指升贴水(IF/IH/IC/IM)、新发公募(发行中+待发行)、产业资本回购(公告数)——fw2_v702_mood_bigcard 起全部统一母卡格式（数据截至+磁贴+指向+图表）<br><span style="color:#2f6bff">✓ fw2_v703_sm_flat_hist：全指标一行一卡平铺（280px 全宽图表）；行业情绪/板块拥挤度/期指升贴水已回填一年历史（东财日K自算，换月/口径注释见图旁说明）；全A成交额母卡扩至一年</span><br><span style="color:#2f6bff">✓ fw2_v703b_sm_reorder：同类聚类重排（同类相邻、仍一行一卡）——① 市况广度与结构 → ② 量能交投 → ③ 估值温度 → ④ 风险偏好（海外+衍生品）→ ⑤ 资金供需 → ⑥ 宏观流动性；总市值归入广度结构（规模类）、北向归入资金供需</span><br><span style="color:#2f6bff">✓ fw2_v703d_mood_purity：母卡改名「情绪温度计：融资余额」（判读/阈值改融资占比分位单因子）；「当月成交分位」磁贴迁入全A成交额卡（口径=当月累计额在近120个月月末额中的历史分位，未完月偏低已标注）</span><br><span style="color:var(--slate-500,#64748b)">◇ 序列积累中（无公开历史源，随数据层逐日累积、满 60 日度点自动出图，不编造）：破净率、CR10、巴菲特指数、全A总市值、新发公募、回购（当前各 4 点）<br>◇ 探测中/缺源：期权 PCR（东财报表名不存在、期权行情接口限流，通道待换）；北向成交活跃度（官方 2024-05-13 停更日度净买入，接口仅剩占位数据，无合规机读源）</span></div></div>';
+    '<div style="font-size:11px;color:#0d9f4d;line-height:1.7;margin-top:8px">✓ 已接入：换手率、市净率中位数、融资买入额、A股总市值、大小盘相对强弱、超额流动性、CNN 恐贪(美股)、证券化率/巴菲特指数、限售解禁(未来30日)、产业资本净增减持(近30日)、板块拥挤度(最热板块)、破净率(全A)、成交集中度(CR10)、行业情绪(上涨占比)、期指升贴水(IF/IH/IC/IM)、新发公募(发行中+待发行)、产业资本回购(公告数)——fw2_v702_mood_bigcard 起全部统一母卡格式（数据截至+磁贴+指向+图表）<br><span style="color:#2f6bff">✓ fw2_v703_sm_flat_hist：全指标一行一卡平铺（280px 全宽图表）；行业情绪/板块拥挤度/期指升贴水已回填一年历史（东财日K自算，换月/口径注释见图旁说明）；全A成交额母卡扩至一年</span><br><span style="color:#2f6bff">✓ fw2_v703b_sm_reorder：同类聚类重排（同类相邻、仍一行一卡）——① 市况广度与结构 → ② 量能交投 → ③ 估值温度 → ④ 风险偏好（海外+衍生品）→ ⑤ 资金供需 → ⑥ 宏观流动性；总市值归入广度结构（规模类）、北向归入资金供需</span><br><span style="color:#2f6bff">✓ fw2_v703d_mood_purity：母卡改名「情绪温度计：融资余额」（判读/阈值改融资占比分位单因子）；「当月成交分位」磁贴迁入全A成交额卡（口径=当月累计额在近120个月月末额中的历史分位，未完月偏低已标注）</span><br><span style="color:#2f6bff">✓ fw2_v703e_smvote_margin：全景温度投票补入融资杠杆票（融资占比分位 &gt;90% 偏热 / &lt;10% 偏冷，与 mood 组硬阈值同源）——修复左磁铁缺杠杆项致与右磁铁「偏过热·防御」方向冲突（当前 3热2冷6中 → 判「偏热」，两磁铁方向一致）</span><br><span style="color:var(--slate-500,#64748b)">◇ 序列积累中（无公开历史源，随数据层逐日累积、满 60 日度点自动出图，不编造）：破净率、CR10、巴菲特指数、全A总市值、新发公募、回购（当前各 4 点）<br>◇ 探测中/缺源：期权 PCR（东财报表名不存在、期权行情接口限流，通道待换）；北向成交活跃度（官方 2024-05-13 停更日度净买入，接口仅剩占位数据，无合规机读源）</span></div></div>';
   /* fw2_v465_fsi_card：FSI 全球金融压力指数由整幅横幅改为与其它卡同款的卡片，置于网格首位（用户要求）。
      复用本模块 card()/metric()/spark() 助手，数据源同 d.fsi，不新增取数；renderMacroTop 横幅不再在此调用。 */
   var fsiSc = fsi.score, fsiPct = fsi.percentile;
@@ -9821,6 +9822,9 @@ function renderMacroSentiment(d) {
   /* fw2_v557_sm_renamed：删「股息率 vs 10Y 国债」卡（股债性价比=val A股估值 ERP 已覆盖，v523 去重残留）＋其 smReg 注册（温度磁铁随之剔除估值性价比维度） */
   var sPb = sBig(S.pbMedian, { k0: 'PB 中位数', hint: '全A市净率中位数 · 理杏仁', chId: 'smChPb' });
   var sMbuy = sBig(S.marginBuy, { k0: '融资买入额', hint: '日度融资买入额 · 区别于「情绪温度」页融资余额（月频）· 理杏仁', unit: ' 亿元', dec: 0, chId: 'smChMbuy' });
+  /* fw2_v703e_smvote_margin：融资杠杆票补入全景投票（阈值与 mood 组硬阈值同源：融资占比分位 >90 过热 / <10 冰点；
+     数据=母卡月频两融占流通市值比 10 年分位 window.__MC_ZBPCT，缺源投中性——renderMacro 先注册、sm 后渲染，时序无陈旧值） */
+  smReg('融资占比分位(杠杆)', window.__MC_ZBPCT == null ? 0 : (window.__MC_ZBPCT > 90 ? 1 : (window.__MC_ZBPCT < 10 ? -1 : 0)));
   var sCap = sBig(S.mktcap, { k0: '总市值', hint: 'A股总市值 · 理杏仁', unit: ' 万亿元', chId: 'smChCap' });
   var sSize = sBig(S.sizeRatio, { k0: '大小盘比值', hint: '沪深300/中证1000 · 走低=小盘走强', dec: 3, col: '#7c3aed', chId: 'smChSize' });
   var sLiq = sBig(S.liqSpread, { k0: '剪刀差', hint: '社融增速−M2增速 · 理杏仁(自算)', unit: ' pp', sign: true, col: '#0d9f4d', chId: 'smChLiq' });
