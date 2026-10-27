@@ -281,6 +281,31 @@ button, input, select, textarea { font-family: inherit; font-size: var(--fs-md);
 .mtbl tbody tr:nth-child(even) { background: #fafbfc; }
 .mtbl tbody tr:hover { background: var(--brand-tint); }
 .mtbl tbody td:first-child { font-weight: 600; color: var(--text); }
+/* v704 fw2_v704_mcmp：月度涨跌多基金对比——chip 行（锚＋可删对比 chip＋添加）＋添加弹层＋年份分组行（图1 天天基金式） */
+.mcmp-chipbar { position: relative; margin: 0 0 10px; }
+.mcmp-chiprow { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.mcmp-chip { display: inline-flex; align-items: center; gap: 5px; padding: 3px 9px; border-radius: var(--r-pill); border: 1px solid var(--brand-line); background: var(--brand-soft); color: var(--brand); font-size: var(--fs-xs); max-width: 250px; }
+.mcmp-chip .nm { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; }
+.mcmp-chip .cd { font-family: var(--mono); font-size: var(--fs-2xs); opacity: .75; }
+.mcmp-chip.anchor { border-color: var(--brand); background: var(--brand); color: #fff; }
+.mcmp-chip.fail { border-color: var(--up-line); background: var(--up-soft); color: var(--up); }
+.mcmp-chip .x { cursor: pointer; font-weight: 700; padding: 0 2px; opacity: .7; font-style: normal; }
+.mcmp-chip .x:hover { opacity: 1; }
+.mcmp-add { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: var(--r-pill); border: 1px dashed var(--brand-line); background: none; color: var(--brand); font-size: var(--fs-xs); cursor: pointer; }
+.mcmp-add:hover { background: var(--brand-soft); }
+.mcmp-pop { position: absolute; top: calc(100% + 6px); left: 0; z-index: 30; width: 340px; max-width: 92vw; background: var(--panel); border: 1px solid var(--line); border-radius: var(--r-8); box-shadow: var(--shadow-hover); padding: 10px; }
+.mcmp-pop input { width: 100%; padding: 6px 9px; border: 1px solid var(--line); border-radius: var(--r-6); font-size: var(--fs-sm); outline: none; background: var(--panel); color: var(--text); }
+.mcmp-pop input:focus { border-color: var(--brand-line); box-shadow: 0 0 0 3px var(--ring); }
+.mcmp-res { margin-top: 6px; max-height: 190px; overflow-y: auto; }
+.mcmp-opt { display: flex; align-items: center; gap: 8px; padding: 6px 7px; border-radius: var(--r-6); cursor: pointer; font-size: var(--fs-sm); }
+.mcmp-opt:hover { background: var(--brand-tint); }
+.mcmp-opt .nm { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mcmp-opt .cd { margin-left: auto; font-family: var(--mono); font-size: var(--fs-2xs); color: var(--muted); }
+.mcmp-opt .tp { font-size: var(--fs-2xs); color: var(--muted); white-space: nowrap; }
+.mcmp-sec-t { font-size: var(--fs-2xs); color: var(--muted); margin: 9px 0 2px; }
+.mtbl tr.mcmp-yr td { background: var(--panel-3); font-weight: 700; color: var(--text); text-align: left; border-left: 1px solid var(--line-2); font-size: var(--fs-sm); }
+.mtbl th.mcmp-fund, .mtbl td.mcmp-fund { width: 150px; min-width: 150px; max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mtbl tbody td.mcmp-fund { font-weight: 600; color: var(--blue); }
 .empty { padding: 22px; text-align: center; color: var(--muted); font-size: var(--fs-sm); }
 
 /* 徽标 / 标签 */
@@ -2363,6 +2388,18 @@ window.HS_name = function (code) {
       document.head.appendChild(s);
     });
   }
+  /* v704 mcmp：jsonp 变体——自定义回调参数名（天天基金 FundSearchAPI 认 callback 不认 cb） */
+  function jsonpCb(url, cbKey) {
+    return new Promise((resolve, reject) => {
+      const cb = '_cb' + Math.random().toString(36).slice(2, 8);
+      const s = document.createElement('script');
+      const cleanup = () => { try { delete window[cb]; s.remove(); } catch (e) {} };
+      window[cb] = (data) => { cleanup(); resolve(data); };
+      s.onerror = () => { cleanup(); reject(new Error('jsonp error')); };
+      s.src = url + (url.indexOf('?') >= 0 ? '&' : '?') + (cbKey || 'cb') + '=' + cb;
+      document.head.appendChild(s);
+    });
+  }
 
   /* ---------- 文本工具 ---------- */
   function stripHtml(s) { return (s || '').replace(/<[^>]+>/g, '').replace(/&nbsp;/g, ' ').trim(); }
@@ -2991,6 +3028,18 @@ window.HS_name = function (code) {
       .map((it) => ({ code: emCodeToApp(it.Code, it), name: it.Name || '', cls: it.SecurityTypeName || '' }))
       .filter((x) => x.code);
   }
+  /* v704 mcmp：基金关键词搜索（天天基金 FundSearchAPI JSONP）——/api/search 的 type=14 suggest 对基金名检索
+     几乎无效（实测 '中证500' 0 条、'沪深300' 仅返回指数），本接口补任意基金名称/代码搜索；
+     Datas 基金项带 FundBaseInfo（指数项没有，天然过滤指数），FTYPE 作类型提示 */
+  async function fundSearchQ(q) {
+    const u = 'https://fundsuggest.eastmoney.com/FundSearch/api/FundSearchAPI.ashx?m=1&key=' + encodeURIComponent(q) + '&uid=&rt=' + Date.now();
+    const j = await jsonpCb(u, 'callback');
+    const arr = (j && j.Datas) || [];
+    return arr
+      .filter((x) => x && x.FundBaseInfo && /^\d{6}$/.test(String(x.CODE || '').trim()))
+      .slice(0, 10)
+      .map((x) => ({ code: String(x.CODE).trim(), name: x.NAME || '', tp: (x.FundBaseInfo && x.FundBaseInfo.FTYPE) || '' }));
+  }
 
   /* ====================================================================
    *  公告：东方财富 np-anotice（CORS *）
@@ -3288,6 +3337,8 @@ window.HS_name = function (code) {
         if (path === '/api/news') return await aggregateNews(params.sources || '', params.codes || '');
         if (path === '/api/announcements') { const r = await announcementsForCode(params.code || ''); return { ok: true, code: params.code, supported: r.supported, data: r.data }; }
         if (path === '/api/search') { const data = await emSuggest(params.q || ''); return { ok: true, q: params.q, data }; }
+        /* v704 mcmp：基金关键词搜索（FundSearchAPI）——月度涨跌多基金对比添加框用 */
+        if (path === '/api/fundsearch') { const data = await fundSearchQ(params.q || ''); return { ok: true, q: params.q, data }; }
         if (path === '/api/notes') return notesGet();
         return { ok: false, error: 'unknown path ' + path };
       } catch (e) {
@@ -6656,47 +6707,19 @@ function renderFundPerf(rs) {
     const sub = p.avg != null ? ` · 同类平均 ${fmtPct(p.avg)}` : '';
     return `<div class="metric"><div class="k">${labelOf(t)}</div><div class="v ${cls(p.syl)}">${fmtPct(p.syl)}</div><div class="sub-line" style="font-size:10px;color:var(--slate-600,#475569)">${pctRank}${sub}</div></div>`;
   };
-  /* v641 fw2_v641_peak_dd：月度涨跌表（理杏仁「月度回撤」样式）——行=年份、列=1~12月+年度涨跌，
-     单元格＝月末净值环比（上月末→本月末），口径=累计净值（含分红再投，与上方业绩口径注记一致；160422 折算型也因此算得准）。
-     数据源=本模块已有全量累计净值 _acAll（rs.fund.ac 兜底 ft），不发新请求；首月为成立日至月末的 partial 区间（与理杏仁一致）。 */
-  const _mTbl = (() => {
-    const src = _acAll;
-    if (!src || src.length < 25) return '';
-    const mLast = {}, yLast = {};
-    src.forEach((p) => {
-      const d = p.d || '';
-      if (d.length < 7 || !(p.y > 0)) return;
-      const ym = d.slice(0, 7), yr = d.slice(0, 4);
-      if (!mLast[ym] || d >= mLast[ym].d) mLast[ym] = { d, y: p.y };
-      if (!yLast[yr] || d >= yLast[yr].d) yLast[yr] = { d, y: p.y };
-    });
-    const yms = Object.keys(mLast).sort();
-    const years = Object.keys(yLast).sort();
-    if (!yms.length || years.length < 1) return '';
-    const ret = {};
-    let prev = null;
-    yms.forEach((ym) => { if (prev && prev.y > 0) ret[ym] = (mLast[ym].y / prev.y - 1) * 100; prev = mLast[ym]; });
-    const yret = {};
-    let py = null;
-    years.forEach((yr) => { if (py && py.y > 0) yret[yr] = (yLast[yr].y / py.y - 1) * 100; py = yLast[yr]; });
-    const cell = (v) => v == null ? '<td class="num" style="color:var(--muted)">—</td>'
-      : `<td class="num ${cls(v)}">${v > 0 ? '+' : ''}${fmtNum(v, 1)}%</td>`;
-    const curYear = years[years.length - 1];
-    /* v643 fw2_v643_mtbl_tier：年份倒序渲染——最新年度在上、最远在下（理杏仁月度涨跌表样式）；
-       斑马纹/淡线条/表头淡影框由 .mtbl CSS 承担（L275 附近），本处只管数据与顺序 */
-    const rowsHtml = years.slice().reverse().map((yr) => {
-      const tds = Array.from({ length: 12 }, (_, m) => cell(ret[yr + '-' + String(m + 1).padStart(2, '0')])).join('');
-      const partial = yr === curYear && yLast[yr].d.slice(5, 7) !== '12' ? ' <span style="font-size:10px;color:var(--muted)">至今</span>' : '';
-      return `<tr><td><b>${yr}</b>${partial}</td>${tds}${cell(yret[yr])}</tr>`;
-    }).join('');
-    return `<div class="card">
-    <div class="card-h"><h3>月度涨跌</h3><span class="hint">月末净值环比 · 累计净值口径（含分红再投）· ${src.length} 个净值日</span></div>
-    <div class="table-wrap"><table class="table mtbl" style="width:100%;font-size:12px">
-      <thead><tr><th>年份</th>${Array.from({ length: 12 }, (_, m) => `<th class="num">${m + 1}月</th>`).join('')}<th class="num">年度涨跌</th></tr></thead>
-      <tbody>${rowsHtml}</tbody>
-    </table></div>
+  /* v704 fw2_v704_mcmp：月度涨跌多基金对比（图1 天天基金式）——顶部 chip 行（锚基金不可删＋对比 chip 可删＋添加），
+     下方年份分组行 × 每基金一行（12 个月＋年度涨跌）。对比基金数据＝/api/fund-profile（天天基金 pingzhongdata
+     全量累计净值，与本卡同口径），由顶层助手 __fcmp*（renderFundPerf 之后）异步补齐、渐进重绘；
+     对比清单按锚定基金存 localStorage('fw2_fund_mcmp_v1')，换基金互不干扰。
+     口径与边界：各基金按当月最后一个净值日环比（QDII T-2 等披露差 1-2 天属同口径近似）；缺月显「—」；
+     年份分组＝锚基金年份集合，某对比基金该年无数据（未成立）则该组不显示其行；货基等无累计净值序列无法对比（chip 标注）。 */
+  const _anchorRet = __fmret(_acAll);
+  const _nmA = (f && f.name) || shortCode(rs.code);
+  const _mTbl = !_anchorRet ? '' : `<div class="card">
+    <div class="card-h"><h3>月度涨跌</h3><span class="hint">月末净值环比 · 累计净值口径（含分红再投）· ${_acAll.length} 个净值日</span></div>
+    <div class="mcmp-chipbar"><div class="mcmp-chiprow" id="mcmpChips"></div><div class="mcmp-pop hidden" id="mcmpPop"></div></div>
+    <div class="table-wrap" id="mcmpTblWrap"></div>
   </div>`;
-  })();
   let html = `<div class="card">
     <div class="card-h"><h3>净值走势</h3><span class="hint">${ft.length} 个净值日 · 天天基金</span></div>
     <div class="chart chart-lg" id="rsNavChart"></div>
@@ -6767,9 +6790,200 @@ function renderFundPerf(rs) {
       }, true);
       rc.resize();
     }
+    /* v704 mcmp：多基金对比挂载——设锚（触发 chip/表格重绘）并渐进加载对比基金净值 */
+    __fcmpSetAnchor(shortCode(rs.code), _nmA, _anchorRet);
   };
   return { html, mount };
 }
+/* ================= v704 fw2_v704_mcmp：月度涨跌多基金对比（顶层助手） =================
+   数据流：锚基金月度收益由 renderFundPerf 算好（__fmret 口径＝旧 _mTbl：累计净值月末环比），
+   对比基金序列经 /api/fund-profile（pingzhongdata 全量累计净值，后端 pzdCache 去重）异步补齐 → __fcmpRender 渐进重绘。
+   对比清单按锚基金存 localStorage('fw2_fund_mcmp_v1')＝{锚码:[对比码...]}；序列缓存 window.__FCMP_DATA 跨基金复用（会话级）。 */
+window.__FCMP_DATA = {};
+window.__FCMP_NM = {};
+window.__FCMP_ANCHOR = null;
+function __fcmpMap() {
+  try { const m = JSON.parse(localStorage.getItem('fw2_fund_mcmp_v1') || '{}'); return (m && typeof m === 'object' && !Array.isArray(m)) ? m : {}; }
+  catch (e) { return {}; }
+}
+function __fcmpSaveMap(m) { try { localStorage.setItem('fw2_fund_mcmp_v1', JSON.stringify(m)); } catch (e) {} }
+/* 月度收益计算（口径与 v641 旧 _mTbl 完全一致）：mLast/yLast=各月/年最后净值日；ret/yret=月末环比%与年度涨跌%（首月/首年无环比） */
+function __fmret(src2) {
+  if (!src2 || src2.length < 25) return null;
+  const mLast = {}, yLast = {};
+  src2.forEach((p) => {
+    const d = p.d || '';
+    if (d.length < 7 || !(p.y > 0)) return;
+    const ym = d.slice(0, 7), yr = d.slice(0, 4);
+    if (!mLast[ym] || d >= mLast[ym].d) mLast[ym] = { d, y: p.y };
+    if (!yLast[yr] || d >= yLast[yr].d) yLast[yr] = { d, y: p.y };
+  });
+  const yms = Object.keys(mLast).sort();
+  const years = Object.keys(yLast).sort();
+  if (!yms.length || !years.length) return null;
+  const ret = {}; let prev = null;
+  yms.forEach((ym) => { if (prev && prev.y > 0) ret[ym] = (mLast[ym].y / prev.y - 1) * 100; prev = mLast[ym]; });
+  const yret = {}; let py = null;
+  years.forEach((yr) => { if (py && py.y > 0) yret[yr] = (yLast[yr].y / py.y - 1) * 100; py = yLast[yr]; });
+  return { ret, yret, mLast, yLast, years };
+}
+function __fcmpSeriesOf(code) { const s = window.__FCMP_DATA[code]; return (s && !s.fail && Array.isArray(s.ac) && s.ac.length) ? __fmret(s.ac) : null; }
+/* 某年该基金是否有可显示数据（该年至少一个非空月度/年度涨跌——未成立/已清盘年份不显示其行） */
+function __fcmpYearAlive(fm, yr) {
+  if (!fm) return false;
+  for (let m = 1; m <= 12; m++) if (fm.ret[yr + '-' + String(m).padStart(2, '0')] != null) return true;
+  return fm.yret[yr] != null;
+}
+function __fcmpCell(v) {
+  if (v == null) return '<td class="num" style="color:var(--muted)">—</td>';
+  return `<td class="num ${cls(v)}">${v > 0 ? '+' : ''}${fmtNum(v, 1)}%</td>`;
+}
+function __fcmpComps() {
+  const a = window.__FCMP_ANCHOR; if (!a) return [];
+  return (__fcmpMap()[a.code] || []).filter((c) => /^\d{6}$/.test(c) && c !== a.code);
+}
+function __fcmpTableHtml() {
+  const a = window.__FCMP_ANCHOR; if (!a || !a.ret) return '';
+  const list = [{ code: a.code, name: a.name, fm: a.ret, anchor: true }].concat(__fcmpComps().map((c) => {
+    const meta = window.__FCMP_DATA[c] || {};
+    return { code: c, name: meta.name || window.__FCMP_NM[c] || c, fm: __fcmpSeriesOf(c), fail: !!meta.fail };
+  }));
+  /* 年份分组＝锚基金年份集合（倒序）；组内每基金一行（该年无数据不显示该行，避免整行「—」噪音；服务对冲/相关性同年对读） */
+  const curYear = a.ret.years[a.ret.years.length - 1];
+  const partial = curYear && a.ret.yLast[curYear] && a.ret.yLast[curYear].d.slice(5, 7) !== '12' ? ' <span style="font-size:10px;color:var(--muted)">至今</span>' : '';
+  const rowsHtml = a.ret.years.slice().reverse().map((yr) => {
+    const group = list.filter((x) => __fcmpYearAlive(x.fm, yr));
+    if (!group.length) return '';
+    const head = `<tr class="mcmp-yr"><td colspan="14">${yr}年${yr === curYear ? partial : ''}</td></tr>`;
+    const body = group.map((x) => {
+      const tds = Array.from({ length: 12 }, (_, m) => __fcmpCell(x.fm ? x.fm.ret[yr + '-' + String(m + 1).padStart(2, '0')] : null)).join('');
+      return `<tr><td class="mcmp-fund" title="${esc(x.name)}（${x.code}）">${esc(x.name)}</td>${tds}${__fcmpCell(x.fm ? x.fm.yret[yr] : null)}</tr>`;
+    }).join('');
+    return head + body;
+  }).join('');
+  const pend = __fcmpComps().filter((c) => !window.__FCMP_DATA[c]).length;
+  const pendNote = pend ? `<div class="hint" style="margin-top:8px">对比基金净值加载中（剩 ${pend} 只 · 天天基金 pingzhongdata · 各基金独立串行拉取）…</div>` : '';
+  const failNote = list.some((x) => x.fail) ? '<div class="hint" style="margin-top:8px">有对比基金未取到累计净值序列（货基/无净值口径或代码无效），其行未展示；可点 chip × 移除。</div>' : '';
+  return `<table class="table mtbl" style="width:100%;font-size:12px">
+      <thead><tr><th class="mcmp-fund">基金</th>${Array.from({ length: 12 }, (_, m) => `<th class="num">${m + 1}月</th>`).join('')}<th class="num">年度涨跌</th></tr></thead>
+      <tbody>${rowsHtml || `<tr><td colspan="14" style="color:var(--muted)">—</td></tr>`}</tbody>
+    </table>${pendNote}${failNote}`;
+}
+function __fcmpChipsHtml() {
+  const a = window.__FCMP_ANCHOR; if (!a) return '';
+  const comps = __fcmpComps();
+  const chips = comps.map((c) => {
+    const meta = window.__FCMP_DATA[c] || {};
+    const nm = meta.fail ? (c + '（无净值序列）') : (meta.name || window.__FCMP_NM[c] || (c + '…'));
+    return `<span class="mcmp-chip${meta.fail ? ' fail' : ''}" title="${esc(nm)}（${c}）${meta.fail ? ' · 无法对比' : ' · 点 × 移除'}"><span class="nm">${esc(nm)}</span><span class="cd">${c}</span><b class="x" data-fcmp-x="${c}">×</b></span>`;
+  }).join('');
+  return `<span class="mcmp-chip anchor" title="当前基金（锚，不可移除）"><span class="nm">${esc(a.name)}</span><span class="cd">${a.code}</span></span>${chips}<button class="mcmp-add" id="mcmpAdd" type="button">＋ 对比基金</button>`;
+}
+function __fcmpRender() {
+  const chips = document.getElementById('mcmpChips'), tw = document.getElementById('mcmpTblWrap');
+  if (chips) chips.innerHTML = __fcmpChipsHtml();
+  if (tw) tw.innerHTML = __fcmpTableHtml();
+}
+async function __fcmpBoot() {
+  const comps = __fcmpComps();
+  for (const c of comps) {
+    if (window.__FCMP_DATA[c]) continue;   /* 成功/失败都缓存到会话结束，重开页面才会重试 */
+    let ok = false;
+    try {
+      const r = await apiGet('/api/fund-profile', { code: c });
+      if (r && r.ok && r.data && Array.isArray(r.data.ac) && r.data.ac.length) {
+        window.__FCMP_DATA[c] = { name: r.data.name || c, ac: r.data.ac };
+        window.__FCMP_NM[c] = r.data.name || window.__FCMP_NM[c] || '';
+        ok = true;
+      }
+    } catch (e) { /* 网络/风控失败 → 标记 fail，不编数据 */ }
+    if (!ok) window.__FCMP_DATA[c] = { name: c, ac: [], fail: true };
+    __fcmpRender();
+  }
+}
+function __fcmpSetAnchor(code, name, ret) {
+  window.__FCMP_ANCHOR = { code, name, ret };
+  __fcmpRender();
+  __fcmpBoot();
+}
+/* 快捷清单：持仓 ∪ 自选 ∪ 配置目标（barbell.funds），仅 6 位基金码，排除锚与已加 */
+function __fcmpQuickList() {
+  const a = window.__FCMP_ANCHOR; const have = {}; const out = [];
+  const push = (code, name) => {
+    const c = String(code || '').replace(/\D/g, '');
+    if (!/^\d{6}$/.test(c) || !a || c === a.code || have[c]) return;
+    have[c] = 1;
+    out.push({ code: c, name: name || window.__FCMP_NM[c] || (window.__FCMP_DATA[c] && window.__FCMP_DATA[c].name) || c });
+  };
+  (state.portfolio || []).forEach((h) => {
+    const raw = String(h.code || '');
+    if (/^f\d{6}$/.test(raw) || h.at === 'fund' || h.at === 'etf') push(shortCode(raw), h.name);
+  });
+  Object.keys(state.watchMeta || {}).forEach((c) => { if (/^f\d{6}$/.test(String(c))) push(String(c).slice(1), (state.watchMeta[c] && state.watchMeta[c].name) || ''); });
+  (state.watchlist || []).forEach((c) => { if (/^f\d{6}$/.test(String(c))) push(String(c).slice(1), (state.watchMeta && state.watchMeta[c] && state.watchMeta[c].name) || ''); });
+  try { if (window.SIGNALS_CFG && window.SIGNALS_CFG.barbell && window.SIGNALS_CFG.barbell.funds) window.SIGNALS_CFG.barbell.funds.forEach((f) => { if (f && f.code) push(f.code, f.outerName || f.name || ''); }); } catch (e) {}
+  return out;
+}
+function __fcmpPopHtml() {
+  const q = __fcmpQuickList();
+  const qHtml = q.length
+    ? q.map((x) => `<div class="mcmp-opt" data-fcmp-pick="${x.code}" data-fcmp-name="${esc(x.name)}"><span class="nm">${esc(x.name)}</span><span class="cd">${x.code}</span></div>`).join('')
+    : '<div class="hint" style="margin-top:4px">持仓 / 自选 / 配置目标暂无其他基金</div>';
+  return `<input id="mcmpSearch" placeholder="搜索基金名称 / 代码（东财）" autocomplete="off"><div class="mcmp-res" id="mcmpSrchRes"></div><div class="mcmp-sec-t">快捷 · 持仓 / 自选 / 配置目标</div><div class="mcmp-res">${qHtml}</div>`;
+}
+/* 事件（脚本加载时注册一次）：添加弹层开关 / 删 chip / 点选添加 / 搜索防抖 300ms / 点击弹层外关闭 */
+document.addEventListener('click', (e) => {
+  const pop = document.getElementById('mcmpPop');
+  const tg = e.target;
+  if (tg && tg.closest && tg.closest('#mcmpAdd')) {
+    if (pop) {
+      pop.classList.toggle('hidden');
+      if (!pop.classList.contains('hidden')) { pop.innerHTML = __fcmpPopHtml(); const ip = document.getElementById('mcmpSearch'); if (ip) ip.focus(); }
+    }
+    return;
+  }
+  const xel = tg && tg.closest && tg.closest('[data-fcmp-x]');
+  if (xel) {
+    const a = window.__FCMP_ANCHOR; if (!a) return;
+    const m = __fcmpMap(); m[a.code] = __fcmpComps().filter((c) => c !== xel.dataset.fcmpX);
+    __fcmpSaveMap(m); __fcmpRender(); return;
+  }
+  const pel = tg && tg.closest && tg.closest('[data-fcmp-pick]');
+  if (pel) {
+    const a = window.__FCMP_ANCHOR; const c = String(pel.dataset.fcmpPick || '');
+    if (a && /^\d{6}$/.test(c) && c !== a.code && !__fcmpComps().includes(c)) {
+      window.__FCMP_NM[c] = pel.dataset.fcmpName || window.__FCMP_NM[c] || '';
+      const m = __fcmpMap(); m[a.code] = __fcmpComps().concat([c]); __fcmpSaveMap(m);
+      if (pop) pop.classList.add('hidden');
+      __fcmpRender(); __fcmpBoot();
+    }
+    return;
+  }
+  if (pop && !pop.classList.contains('hidden') && !(tg && tg.closest && tg.closest('#mcmpPop'))) pop.classList.add('hidden');
+});
+document.addEventListener('input', (e) => {
+  const ip = e.target && e.target.id === 'mcmpSearch' ? e.target : null;
+  if (!ip) return;
+  const res = document.getElementById('mcmpSrchRes'); if (!res) return;
+  const q = ip.value.trim();
+  clearTimeout(window.__FCMP_ST);
+  if (!q) { res.innerHTML = ''; return; }
+  window.__FCMP_ST = setTimeout(async () => {
+    res.innerHTML = '<div class="hint">搜索中…</div>';
+    try {
+      const r = await apiGet('/api/fundsearch', { q });
+      /* 天天基金 FundSearchAPI：后端已按 FundBaseInfo 过滤指数（指数项无该字段）；
+         前端再兜一层（名称以「指数」结尾的排除，指数增强类真基金不受影响）；
+         误选非基金码由 /api/fund-profile 校验兜底（fail chip 提示，不编数据） */
+      const arr = ((r && r.ok && r.data) || [])
+        .map((x) => ({ code: String(x.code || '').replace(/\D/g, ''), name: x.name || '', tp: x.tp || x.cls || '' }))
+        .filter((x) => /^\d{6}$/.test(x.code) && !/指数$/.test(x.name) && x.tp !== '指数');
+      res.innerHTML = arr.length
+        ? arr.map((x) => `<div class="mcmp-opt" data-fcmp-pick="${x.code}" data-fcmp-name="${esc(x.name)}"><span class="nm">${esc(x.name)}</span><span class="tp">${esc(x.tp)}</span><span class="cd">${x.code}</span></div>`).join('')
+        : '<div class="hint">无结果</div>';
+    } catch (err) { res.innerHTML = '<div class="hint">搜索失败：' + esc((err && err.message) || err) + '</div>'; }
+  }, 300);
+});
 /* 让收益页把排名走势图也渲染出来（净值大图下方） */
 function renderFundScore(rs) {
   const f = rs.fund, ft = rs.fundTrend || [];
@@ -12621,7 +12835,7 @@ v118 fw2_v118_first_open_fix：修「＋ 新增持仓」首次点击打不开（
        ①删 cbExport/cbImport/cbCloudRestore 三按钮 + #cbImportFile + #cbCloudInfo 灰字（HTML+三段绑定）；
        ②成交台账(cbLedgerToggle)/设置负债等其余工具栏按钮不动；③renderCloudInfo（自带 !el 守卫）/
        cbImportFile onchange/restoreFromMirror 保留死代码，恢复入口只需还原 HTML+绑定。
-       注意：全量 DB 备份入口随之消失，台账流水仍可经总览·交易台账折叠块备份。 */  if (vc) vc.textContent = 'v703 · 市场情绪一行一卡·一年历史' /* fw2_v703c_tab_rename fw2_v703_sm_flat_hist fw2_v700_cycle fw2_v697p_macro_11to5 fw2_v695_sw_cache_bust fw2_v694_dm_instr_fix fw2_v687_action_loop fw2_v687_next_plan fw2_v686_drip_pollute fw2_v686_review_role_grp fw2_v685_review_pct_netbeg fw2_v684_review_conclusion fw2_v680_review_refstyle fw2_v681_review_t2_gap fw2_v682_review_t2_rightalign fw2_v683_t2_align_t1 fw2_v678_tbl_col_harmony fw2_v677_role_col_del fw2_v676_attr_monthnav fw2_v676_attr_zero fw2_v675_num_col_widen fw2_v674_rev_breathe fw2_v673_rev_union fw2_v673_sig_retrace fw2_v669_review_tables fw2_v668_review_monthly fw2_v667_review_insight fw2_v666_tiles_bigger fw2_v665_review_tiles fw2_v664_review_rebuild fw2_v663_hero_retire fw2_v661_filter_compact fw2_v660_ui_simplify fw2_v659_backup_btns_del fw2_v658_rpt_monthnav fw2_v657_rptbar_del fw2_v656_rpt_6m fw2_v655_rpt_kpi fw2_v654_held_pf_authority fw2_v653_alloc_pile_assign fw2_v652_data_tab_removed fw2_v651_recent_hide fw2_v651_ledger_slim fw2_v651_entry_unify fw2_v650_netseries_daily fw2_v650_moneynav fw2_v649_merge_holdings fw2_v648_capbal_slim fw2_v647_netseries_fix fw2_v646_ledger_capbal fw2_v644_revert_watch_tab fw2_v643_mtbl_tier fw2_v642_a500_enh fw2_v641_peak_dd fw2_v640_buy_pct fw2_v639_del_decisionfw2_v516_a500lk fw2_v517_4otc fw2_v518_hspos fw2_v519_sm_merge fw2_v520_chgflat fw2_v521_magnet fw2_v522_overview fw2_v523_sm_dedup fw2_v524_geo_fsi fw2_v525_geo_filter fw2_v526_geo_filter_removed fw2_v527_verdict fw2_v529_smux fw2_v530_datamgmt fw2_v531_sm_dmgmt fw2_v532_all_dm fw2_v533_px_long fw2_v533d_dm_scroll fw2_v534_dm_module fw2_v535_dm_auto fw2_v539_hold_realpnl fw2_v539a_seed_sync fw2_v539a_seed_order fw2_v540_hold_path fw2_v542_pf_mirror_first fw2_v542_mv_settled fw2_v542_mv_account fw2_v543_dm_holdings_note fw2_v544_ledger_mirror_guard fw2_v545_hold_total_row fw2_v546_navdate_all fw2_v547_vix_to_ovs fw2_v548_ovs_mrg fw2_v549_region_align fw2_v550_grp_tabs fw2_v551_sop_cockpit fw2_v552_sop_taborder fw2_v553_chain_data fw2_v554_sop_rename fw2_v556_market_split fw2_v557_sm_renamed fw2_v558_cbrates_fix fw2_v558a_cb_label fw2_v559_chain_dates fw2_v560_chain_verdict fw2_v561_curve_hold fw2_v562_hold_inline fw2_v563_alloc fw2_v564_lxlink fw2_v565_cal_lx fw2_v565_sub_lx fw2_v566_fund_move fw2_v567_fund_merge fw2_v568_lxlink_fix fw2_v569_manager_pool fw2_v570_manager_universe fw2_v571_mgr_east fw2_v574_mgr_subscore fw2_v575_mgr_merge fw2_v576_mgr_group fw2_v577_mgr_lxlink fw2_v578_mgr_lxreal fw2_v579_mgr_weight fw2_v581_fund_lxreal fw2_v582_mgr_min10 fw2_v583_mgr_noyear fw2_v584_mgr_career fw2_v585_mgr_srank fw2_v586_mgr_srank fw2_v587_mgr_since fw2_v588_mgr_lxfull fw2_v589_mgr_rules fw2_v590_mgr_scores fw2_v591_mgr_ladder fw2_v592_mgr_cols fw2_v593_mgr_score fw2_anti_halluc_p0 fw2_v595_alpha_attrib fw2_v596_sig_hist fw2_v597_fund_overlap fw2_v598_mgr_hold fw2_v599_time_decay fw2_v599_corr_pen fw2_v600_buytrack fw2_v601_backtest fw2_v602_kline_page fw2_v603_old_debts fw2_v604_xirr fw2_v605_holdings_global fw2_v606_v11_signal fw2_v607_v11_bt fw2_v608_lx_audit fw2_v609_sig_table fw2_v610_sig_merge fw2_v611_grp_line fw2_v612_index_lxreal fw2_v613_near_blue fw2_v615_sig_grp fw2_v616_sig_hdstyle fw2_v617_sig_vline fw2_v618_sig_lcr fw2_v619_curthr fw2_v620_curthr_all fw2_v621_ret_hpr fw2_v621_t13_lastbuy fw2_v622_lastbuy_auto fw2_v623_firstbuy_roll fw2_v623_alloc_watch fw2_v624_m13_m17 fw2_v626_sig_cost_guard fw2_v626_watch_pe_exempt fw2_v627_colorder fw2_v627_action_plan fw2_v627_data_date fw2_v628_fixed_cols fw2_v629_pool_pile_guard fw2_v629_t9_pfdate fw2_v630_missing_cost fw2_v631_pool_held_live fw2_v632_held_off fw2_v633_ledger_tx_sync fw2_v634_plan_dir fw2_v635_capbal_fix fw2_v636_capbal_converge fw2_v637_mv_consist fw2_v638_mv_unify fw2_v697p_macro_11to5 fw2_v697q_cockpit_return fw2_v697r_tab_highlight fw2_v697s_px_del_trends fw2_v697t_px_rows_del fw2_v697u_corr_trim fw2_v698_macro_sync fw2_v699_volcard */ + (window.getAllocWatchCodes ? window.getAllocWatchCodes().length : 0) + '只';
+       注意：全量 DB 备份入口随之消失，台账流水仍可经总览·交易台账折叠块备份。 */  if (vc) vc.textContent = 'v704 · 月度涨跌多基金对比' /* fw2_v704_mcmp fw2_v703c_tab_rename fw2_v703_sm_flat_hist fw2_v700_cycle fw2_v697p_macro_11to5 fw2_v695_sw_cache_bust fw2_v694_dm_instr_fix fw2_v687_action_loop fw2_v687_next_plan fw2_v686_drip_pollute fw2_v686_review_role_grp fw2_v685_review_pct_netbeg fw2_v684_review_conclusion fw2_v680_review_refstyle fw2_v681_review_t2_gap fw2_v682_review_t2_rightalign fw2_v683_t2_align_t1 fw2_v678_tbl_col_harmony fw2_v677_role_col_del fw2_v676_attr_monthnav fw2_v676_attr_zero fw2_v675_num_col_widen fw2_v674_rev_breathe fw2_v673_rev_union fw2_v673_sig_retrace fw2_v669_review_tables fw2_v668_review_monthly fw2_v667_review_insight fw2_v666_tiles_bigger fw2_v665_review_tiles fw2_v664_review_rebuild fw2_v663_hero_retire fw2_v661_filter_compact fw2_v660_ui_simplify fw2_v659_backup_btns_del fw2_v658_rpt_monthnav fw2_v657_rptbar_del fw2_v656_rpt_6m fw2_v655_rpt_kpi fw2_v654_held_pf_authority fw2_v653_alloc_pile_assign fw2_v652_data_tab_removed fw2_v651_recent_hide fw2_v651_ledger_slim fw2_v651_entry_unify fw2_v650_netseries_daily fw2_v650_moneynav fw2_v649_merge_holdings fw2_v648_capbal_slim fw2_v647_netseries_fix fw2_v646_ledger_capbal fw2_v644_revert_watch_tab fw2_v643_mtbl_tier fw2_v642_a500_enh fw2_v641_peak_dd fw2_v640_buy_pct fw2_v639_del_decisionfw2_v516_a500lk fw2_v517_4otc fw2_v518_hspos fw2_v519_sm_merge fw2_v520_chgflat fw2_v521_magnet fw2_v522_overview fw2_v523_sm_dedup fw2_v524_geo_fsi fw2_v525_geo_filter fw2_v526_geo_filter_removed fw2_v527_verdict fw2_v529_smux fw2_v530_datamgmt fw2_v531_sm_dmgmt fw2_v532_all_dm fw2_v533_px_long fw2_v533d_dm_scroll fw2_v534_dm_module fw2_v535_dm_auto fw2_v539_hold_realpnl fw2_v539a_seed_sync fw2_v539a_seed_order fw2_v540_hold_path fw2_v542_pf_mirror_first fw2_v542_mv_settled fw2_v542_mv_account fw2_v543_dm_holdings_note fw2_v544_ledger_mirror_guard fw2_v545_hold_total_row fw2_v546_navdate_all fw2_v547_vix_to_ovs fw2_v548_ovs_mrg fw2_v549_region_align fw2_v550_grp_tabs fw2_v551_sop_cockpit fw2_v552_sop_taborder fw2_v553_chain_data fw2_v554_sop_rename fw2_v556_market_split fw2_v557_sm_renamed fw2_v558_cbrates_fix fw2_v558a_cb_label fw2_v559_chain_dates fw2_v560_chain_verdict fw2_v561_curve_hold fw2_v562_hold_inline fw2_v563_alloc fw2_v564_lxlink fw2_v565_cal_lx fw2_v565_sub_lx fw2_v566_fund_move fw2_v567_fund_merge fw2_v568_lxlink_fix fw2_v569_manager_pool fw2_v570_manager_universe fw2_v571_mgr_east fw2_v574_mgr_subscore fw2_v575_mgr_merge fw2_v576_mgr_group fw2_v577_mgr_lxlink fw2_v578_mgr_lxreal fw2_v579_mgr_weight fw2_v581_fund_lxreal fw2_v582_mgr_min10 fw2_v583_mgr_noyear fw2_v584_mgr_career fw2_v585_mgr_srank fw2_v586_mgr_srank fw2_v587_mgr_since fw2_v588_mgr_lxfull fw2_v589_mgr_rules fw2_v590_mgr_scores fw2_v591_mgr_ladder fw2_v592_mgr_cols fw2_v593_mgr_score fw2_anti_halluc_p0 fw2_v595_alpha_attrib fw2_v596_sig_hist fw2_v597_fund_overlap fw2_v598_mgr_hold fw2_v599_time_decay fw2_v599_corr_pen fw2_v600_buytrack fw2_v601_backtest fw2_v602_kline_page fw2_v603_old_debts fw2_v604_xirr fw2_v605_holdings_global fw2_v606_v11_signal fw2_v607_v11_bt fw2_v608_lx_audit fw2_v609_sig_table fw2_v610_sig_merge fw2_v611_grp_line fw2_v612_index_lxreal fw2_v613_near_blue fw2_v615_sig_grp fw2_v616_sig_hdstyle fw2_v617_sig_vline fw2_v618_sig_lcr fw2_v619_curthr fw2_v620_curthr_all fw2_v621_ret_hpr fw2_v621_t13_lastbuy fw2_v622_lastbuy_auto fw2_v623_firstbuy_roll fw2_v623_alloc_watch fw2_v624_m13_m17 fw2_v626_sig_cost_guard fw2_v626_watch_pe_exempt fw2_v627_colorder fw2_v627_action_plan fw2_v627_data_date fw2_v628_fixed_cols fw2_v629_pool_pile_guard fw2_v629_t9_pfdate fw2_v630_missing_cost fw2_v631_pool_held_live fw2_v632_held_off fw2_v633_ledger_tx_sync fw2_v634_plan_dir fw2_v635_capbal_fix fw2_v636_capbal_converge fw2_v637_mv_consist fw2_v638_mv_unify fw2_v697p_macro_11to5 fw2_v697q_cockpit_return fw2_v697r_tab_highlight fw2_v697s_px_del_trends fw2_v697t_px_rows_del fw2_v697u_corr_trim fw2_v698_macro_sync fw2_v699_volcard */ + (window.getAllocWatchCodes ? window.getAllocWatchCodes().length : 0) + '只';
 }
 function fillRsNameList() {
   const dl = $('#rsNameList'); if (!dl) return;
