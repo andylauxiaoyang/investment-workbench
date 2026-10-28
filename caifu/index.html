@@ -8254,6 +8254,11 @@ async function loadMacroData() {
   const hint = $('#macroSrcHint');
   if (d) {
     state.macro = d; state.macroSrc = src || '';
+    /* fw2_v745_mcln_extra：加载补充宏观指标（工业利润/用电量/社零等） */
+    try {
+      const meR = await fetch('./data/macro-extra.json', { cache: 'no-cache' });
+      window.__MACRO_EXTRA = await meR.json();
+    } catch (e) { window.__MACRO_EXTRA = {}; }
     /* fw2_v429：宏观数据就绪后失效市场信号缓存并重算——M12 读 state.macro.fsi，
        此前 marketEvalAll 在 macro-data.json fetch 完成前先跑（600s 缓存）导致 M12 永不渲染 */
     if (window.MKT_EVAL) window.MKT_EVAL = { at: 0, data: null };
@@ -8379,16 +8384,20 @@ function cycleEngine(d) {
   /* ---------- L1 大经济周期（美林四象限 · 短中期层） ---------- */
   var gVal = pmi.make;
   var iVal = pr.ppi;
-  /* fw2_v744_mcln_weighted：加权投票制
-     增长指标（权重）：PMI(2) / 工业增加值(1) / M1(2) / 社融(2) / 库存去化(1)
-     通胀指标（权重）：PPI(2) / CPI(2) / M2(1)
-     待接：出口/地产投资/固投/社零/工业利润/用电量/失业率/GDP平减指数 */
+  /* fw2_v745_mcln_extra：补充指标从 macro-extra.json 读（工业利润/用电量/社零/出口/地产/固投） */
+  var me = window.__MACRO_EXTRA || {};
+  /* 加权投票制
+     增长指标（权重）：PMI(2) / 工业增加值(1) / M1(2) / 社融(2) / 库存去化(1) / 工业利润(2) / 用电量(1) / 社零(1)
+     通胀指标（权重）：PPI(2) / CPI(2) / M2(1) */
   var gScore = 0, gMax = 0, gParts = [];
   if (gVal != null) { gMax += 2; var v = gVal >= 50 ? 2 : 0; gScore += v; gParts.push('PMI' + (v>0?'✓':'✗')); }
   if (indus.same != null) { gMax += 1; var v = indus.same >= 5 ? 1 : 0; gScore += v; gParts.push('工增' + (v>0?'✓':'✗')); }
   if (cr.m1 != null && m1Prev != null) { gMax += 2; var v = cr.m1 > m1Prev ? 2 : 0; gScore += v; gParts.push('M1' + (v>0?'✓':'✗')); }
   if (cr.sf != null && sfPrev != null) { gMax += 2; var v = cr.sf > sfPrev ? 2 : 0; gScore += v; gParts.push('社融' + (v>0?'✓':'✗')); }
   if (inv.yoy != null && invPrevYoy != null) { gMax += 1; var v = inv.yoy < invPrevYoy ? 1 : 0; gScore += v; gParts.push('去库' + (v>0?'✓':'✗')); }
+  if (me.profit && me.profit.yoy != null) { gMax += 2; var v = me.profit.yoy >= 0 ? 2 : 0; gScore += v; gParts.push('利润' + (v>0?'✓':'✗')); }
+  if (me.electricity && me.electricity.yoy != null) { gMax += 1; var v = me.electricity.yoy >= 4 ? 1 : 0; gScore += v; gParts.push('用电' + (v>0?'✓':'✗')); }
+  if (me.retail && me.retail.yoy != null) { gMax += 1; var v = me.retail.yoy >= 5 ? 1 : 0; gScore += v; gParts.push('社零' + (v>0?'✓':'✗')); }
   var gStrong = (gMax > 0 && gScore >= gMax * 0.5);  // 加权得分过半=增长强
   var gUp = (indus.same != null && indusAgo3 != null) ? (indus.same > indusAgo3)
     : (pmi.make != null && ago(pmiPts, 1) != null) ? (pmi.make > ago(pmiPts, 1)) : null;
