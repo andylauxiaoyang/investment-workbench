@@ -9722,6 +9722,25 @@ body.innerHTML = ((_region === 'cn' || _region === 'v-cycle') ? renderMacroTools
     <div class="rv-line"><span class="tag tag-data">阈值</span><span>ERP 10年分位 <b>≥75%</b> 增股至 70-80% · <b>25–50%</b> 均衡 · <b>&lt;25%</b> 减股至 20-30%（M9）</span></div>
     <div class="chart chart-lg" id="mcErp"></div>
   </div>
+  <!-- fw2_v754：巴菲特指数/证券化率从市场情绪页挪到估值赔率 -->
+  <div class="card">
+    <div class="card-h"><h3>证券化率 / 巴菲特指数</h3><span class="hint">总市值/GDP · 理杏仁口径核验 + 沪深官方自算</span></div>
+    ${(() => {
+      const B10 = window.BUFF10Y || {};
+      const v = B10.v;
+      const pct = B10.pct;
+      if (v == null) return '<p style="color:#94a3b8;font-size:13px">数据未加载</p>';
+      const lv = v >= 100 ? '高估' : v >= 80 ? '偏高' : v >= 50 ? '合理' : '低估';
+      const lvCol = v >= 100 ? '#e06a1b' : v >= 80 ? '#d98c00' : v >= 50 ? '#0d9f4d' : '#2f6bff';
+      return `<div class="metric-grid">
+        ${metric('理杏仁口径', fmtNum(v, 2) + '%')}
+        ${metric('自算(沪深官方)', B10.calc != null ? fmtNum(B10.calc, 2) + '%' : '—')}
+        ${metric('10年分位', pct != null ? 'P' + pct : '—')}
+      </div>
+      <div class="rv-line"><span class="tag tag-ai">指向</span><span style="color:${lvCol};font-weight:600">${lv}</span> · 处于近10年 ${pct != null ? pct + '%' : '—'} 分位</div>
+      <div class="rv-line"><span class="tag tag-data">阈值</span><span>≥100 高估 · 80–100 偏高 · 50–80 合理 · &lt;50 低估</span></div>`;
+    })()}
+  </div>
   <div class="card">
     <div class="card-h"><h3>沪深300 PE-TTM 与 10年分位</h3><span class="hint">理杏仁官方分位 · 月末点 ${pe.length} 个</span></div>
     ${_mcMeta(_mcLastOf(pe), '月末', 'PE-TTM 总市值加权 · 理杏仁官方分位', 75)}
@@ -10514,12 +10533,10 @@ function renderMacroSentiment(d, _C) {
        仅保留「数据截至 · 情绪全景」+ 刷新按钮（变更史由源码注释与 README 承载，不上 UI） */
     '<div style="display:flex;justify-content:space-between;align-items:flex-start;font-size:12px;color:var(--slate-500,#64748b);margin-bottom:8px"><span>数据截至 ' + esc(d.updatedAt || '') + ' · 情绪全景</span><button onclick="__mcRefreshMacro(this)" style="flex:none;margin-left:12px;padding:5px 12px;border:1px solid #e3e8ef;border-radius:8px;background:#fff;font-size:12px;color:var(--ink,#0f172a);cursor:pointer">刷新数据</button></div>' +
     '<div style="display:grid;grid-template-columns:1fr;gap:12px;margin-top:8px" id="smFlatGrid">' +
-    sSec +                                           /* fw2_v703i：证券化率卡置顶（用户 2026-10-27 指定），后续仍按 fw2_v703b 聚类序 */
     sMrgSplit + sZbSplit + sAmtDSplit +              /* fw2_v705_sm_split：母卡拆 3 独立子卡紧跟证券化率卡（用户拍板；杠杆+成交=组2磁铁 mood 判定核心证据，保持页首视觉位） */
     amtCard +                                        /* fw2_v709_amt_card_move：资金系数（成交/M2）挪到全A成交额卡正下方（用户 2026-10-27 指定「资金系数放在全A成交额下面」——两卡同属量能对照：成交额绝对值 + 成交/M2 相对水位，相邻并读） */
     sSize +                                           /* fw2_v716_del_cr_crowd：sCr（成交集中度 CR10）+sCrowd（板块拥挤度）删除（用户 2026-10-27 截图红框指定）——广度结构组剩大小盘 1 卡；CR10 票随卡删（同 v703h 先例），全景投票 9→8 票 */
     sTurn + sMbuy +
-    sBp +                                             /* fw2_v711_del_pb：市净率(PB中位数)卡删除（用户 2026-10-27 指定）——估值温度组剩破净率+巴菲特指数；无 smReg 注册、票型不受影响 */
     sBasis + sOp +                                    /* fw2_v713_fsi_cnn_move：FSI/CNN 两卡挪「海外宏观」页（用户 2026-10-27 指定），本页不再渲染；smReg 两票保留、全景投票口径不变 */
     sLift + sHolder + sNa +                           /* fw2_v714_del_fi_rp：sFi（新发公募）+sRp（产业资本回购）删除（用户 2026-10-27 指定）——资金供需组剩 产业资本增减持/北向活跃度；无 smReg 注册、票型不受影响 */
     sLiq +                                            /* fw2_v703b_sm_reorder：剪刀差（⑥宏观流动性）收尾 */
