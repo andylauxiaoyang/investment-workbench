@@ -8379,7 +8379,8 @@ function cycleEngine(d) {
   /* ---------- L1 大经济周期（美林四象限 · 短中期层） ---------- */
   var gVal = pmi.make;
   var iVal = pr.ppi;
-  var gStrong = (gVal != null && gVal >= 50) || (indus.same != null && indus.same >= 6);
+  /* fw2_v741_pmi_threshold：PMI≥52才算增长强（50-52只是荣枯线上弱复苏，不算过热条件） */
+  var gStrong = (gVal != null && gVal >= 52) || (indus.same != null && indus.same >= 6);
   var gUp = (indus.same != null && indusAgo3 != null) ? (indus.same > indusAgo3)
     : (pmi.make != null && ago(pmiPts, 1) != null) ? (pmi.make > ago(pmiPts, 1)) : null;
   var iUp = (iVal != null && ppiPrev != null) ? (iVal > ppiPrev) : null;
