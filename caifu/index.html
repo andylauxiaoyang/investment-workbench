@@ -9722,8 +9722,8 @@ body.innerHTML = ((_region === 'cn' || _region === 'v-cycle') ? renderMacroTools
     <div class="rv-line"><span class="tag tag-data">阈值</span><span>ERP 10年分位 <b>≥75%</b> 增股至 70-80% · <b>25–50%</b> 均衡 · <b>&lt;25%</b> 减股至 20-30%（M9）</span></div>
     <div class="chart chart-lg" id="mcErp"></div>
   </div>
-  <!-- fw2_v754：巴菲特指数/证券化率从市场情绪页挪到估值赔率 -->
-  <div class="card">
+  <!-- fw2_v754：巴菲特指数/证券化率从市场情绪页挪到估值全景 -->
+  <div class="card" data-title="证券化率 / 巴菲特指数">
     <div class="card-h"><h3>证券化率 / 巴菲特指数</h3><span class="hint">总市值/GDP · 理杏仁口径核验 + 沪深官方自算</span></div>
     ${(() => {
       const B10 = window.BUFF10Y || {};
@@ -10589,7 +10589,7 @@ function fillMacroTabs() {
   /* v697v：删传导链tab（用户反馈数据滞后+结论模糊，对基金定投无决策价值） */
   const items = [
     ['v-cycle', '周期定位'],     /* 合并 原 cn 周期卡 */
-    ['v-val', '估值赔率'],      /* 合并 原 val(A股估值) */
+    ['v-val', '估值全景'],      /* fw2_v755：改名估值全景（含A股/港股/美股各市场估值） */
     ['v-mood', '市场情绪'],     /* fw2_v703c_tab_rename：用户 2026-10-27 指定「流动情绪」改「市场情绪」；视图内容不变仍指 v-mood。合并 原 mood + sm(情绪全景) */
     ['v-global', '海外宏观'],   /* fw2_v700d_tab_rename：原「海外周期」与「周期定位」撞词混淆（用户 2026-10-26 指定改名）；视图内容=美国利率周期+海外景气+传导链，更名后仍指 v-global */
     ['v-px', '资产价格'],       /* 原 px(资产价格监控) */
@@ -14741,7 +14741,7 @@ setTimeout(() => { renderResearchChips(); if (!state.news.items.length) loadNews
      data-g（wrapMcMods 按 keys 前缀匹配写入）、mcEv 证据注册、__mcGo 跨 tab 跳转 完全不动 ⇒ 同源架构不受影响。
      cn＝①A股估值/②信用增长/③情绪流动性（中国侧）；ovs＝④海外约束/⑤美国周期/⑥全球景气（海外侧）；sop＝⑦判读SOP（方法）。 */
   window.MI_GROUPS = [
-    { id:'val',  geo:'cn',  name:'A股估值',       concl:'便宜 / 合理 / 贵',           vd:{ p:'偏便宜', n:'偏贵', d:'证据分歧' },             keys:['ERP 股债性价比', '沪深300 PE-TTM', '宽基估值温度'] },
+    { id:'val',  geo:'cn',  name:'估值全景',       concl:'便宜 / 合理 / 贵',           vd:{ p:'偏便宜', n:'偏贵', d:'证据分歧' },             keys:['ERP 股债性价比', '沪深300 PE-TTM', '宽基估值温度', '证券化率'] },
     { id:'cred', geo:'cn',  name:'信用与增长',    concl:'扩张 / 收缩 / 僵持',         vd:{ p:'偏扩张', n:'偏收缩', d:'证据分歧' },           keys:['信用脉冲：社融', '物价剪刀差', '制造业 PMI', '实体景气'] },
     { id:'mood', geo:'cn',  name:'情绪温度',  concl:'过热 / 中性 / 冰冷',         vd:{ p:'偏冰冷·逆向关注', n:'偏过热·防御', d:'证据分歧' }, keys:[] },   /* fw2_v705_sm_split：keys=['情绪温度计','全A成交额'] 清空——母卡拆独立子卡进 sm 平铺列表后母模板 mood 组零模块（wrapMcMods 前缀匹配无对象，__mcApply 组过滤对空集容忍）；磁铁/胶囊仍由 name/concl 驱动，组证据走 mcEv('mood') 数据层 */
     { id:'ovs',  geo:'ovs', name:'海外约束',      concl:'顺风 / 中性 / 逆风',         vd:{ p:'偏顺风', n:'偏逆风', d:'证据分歧' },           q:'本组回答：海外环境紧不紧（压力温度：利率 / 汇率 / 估值 / VIX）', keys:['全球利率与汇率', '美股估值温度', '政策利率与收益率曲线', '全球央行政策利率一览', 'VIX 恐慌'] },
