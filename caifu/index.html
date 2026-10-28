@@ -5662,6 +5662,88 @@ async function fetchDdRows() {
   return rows;
 }
 window.fetchDdRows = fetchDdRows;
+/* fw2_v723_ddwarn_l1：回撤预警 Layer1（最小版）——基金自身 5日动量 + 20日均线 + 跑输基准，日频。
+   数据源优先 window.__NAV_SERIES__[code6]（fund-daily 净值全序列，与收益曲线同源，零新增网络），缺失回退 apiGet('/api/fund-ac-series',{days:30})。
+   阈值=文档建议值：5日跌>10%→行动(暂停加仓) / 5-10%→接近 / 破20日线→接近 / 跑输沪深300≥5%→接近 / ≥2信号共振→行动。
+   动作原则=暂停加仓不新增（不联动定投引擎）；severity 映射为默认，待用户拍板(#5/#8)。 */
+async function fetchDrawdownWarnRows() {
+  const codes = []; const seen = new Set();
+  const add = (c, name) => { const k = shortCode(c); if (!k || seen.has(k)) return; seen.add(k); codes.push({ code: k, name: name || '' }); };
+  (state.portfolio || []).forEach((h) => { if ((h.assetType || '') !== 'cash') add(h.code, h.name); });
+  try { (window.getAllocWatchCodes ? window.getAllocWatchCodes() : []).forEach((c) => add(c, '')); } catch (e) {}
+  if (!codes.length) return [];
+  /* 基准：沪深300 近6日收盘 → 5日收益（用于「跑输基准」子信号） */
+  let bench5 = null;
+  try {
+    const _bk = await apiGet('/api/kline', { code: 'sh000300', klt: 103, lmt: 8 }).catch(() => null);
+    const _bd = (_bk && _bk.ok && Array.isArray(_bk.data)) ? _bk.data : [];
+    if (_bd.length >= 6) { const _a = _bd[_bd.length - 6].close, _b = _bd[_bd.length - 1].close; if (_a > 0) bench5 = _b / _a - 1; }
+  } catch (e) {}
+  const pct = (x) => (x * 100).toFixed(1) + '%';
+  const rows = [];
+  for (const f of codes) {
+    const c = f.code;
+    let series = (window.__NAV_SERIES__ && window.__NAV_SERIES__[c]) || null;
+    let ddDate = '';
+    if (!series || series.length < 20) {
+      const _r = await apiGet('/api/fund-ac-series', { code: c, days: 30 }).catch(() => null);
+      const _t = _r && _r.ok && _r.data ? (_r.data.trend || []) : [];
+      if (_t && _t.length >= 20) { series = _t.map((p) => [p.d, p.y]); ddDate = _t[_t.length - 1].d; }
+    } else if (series.length) { ddDate = series[series.length - 1][0]; }
+    if (!series || series.length < 20) continue; /* 数据不足：静默跳过（不出行；空组在 grp 显示「暂无标的」而非静默消失） */
+    const navs = series.map((x) => x[1]).filter((v) => v > 0);
+    if (navs.length < 20) continue;
+    const n = navs.length, nav0 = navs[n - 1], nav5 = navs[n - 6 < 0 ? 0 : n - 6];
+    const dd5 = nav0 / nav5 - 1;
+    const ma20 = navs.slice(-20).reduce((a, b) => a + b, 0) / 20;
+    const belowMA = nav0 < ma20;
+    const benchGap = (bench5 != null) ? (dd5 - bench5) : null;
+    const trig = [];
+    if (dd5 <= -0.10) trig.push('mom'); else if (dd5 <= -0.05) trig.push('momN');
+    if (belowMA) trig.push('ma');
+    if (benchGap != null && benchGap <= -0.05) trig.push('bench');
+    if (!trig.length) continue;
+    const base = { pool: 'ddwarn', code: c, name: f.name || c, noLink: false, dd: ddDate, src: 'fund-daily 净值序列（与收益曲线同源）' };
+    if (trig.indexOf('mom') >= 0 || trig.indexOf('momN') >= 0) {
+      const lvl = trig.indexOf('mom') >= 0 ? 'act' : 'near';
+      rows.push(Object.assign({}, base, {
+        sig: 'L1 5日动量跌幅', cur: '5日 ' + pct(dd5), curMain: pct(dd5), curSub: '净值 ' + nav0.toFixed(4),
+        thrCond: lvl === 'act' ? '≤ -10%' : '≤ -5%',
+        thrAct: '暂停该基金定投加仓（不新增）',
+        thr: lvl === 'act' ? '5日跌>10% → 行动·暂停加仓' : '5日跌 5-10% → 接近·关注',
+        lvl: lvl, plan: lvl === 'act' ? '【暂停加仓】该基金定投暂停，观察是否企稳，不恐慌清仓' : '【不动】定投照常 · 接近触发线，触发后暂停加仓'
+      }));
+    }
+    if (trig.indexOf('ma') >= 0) {
+      rows.push(Object.assign({}, base, {
+        sig: 'L1 20日均线破位', cur: 'MA20 ' + ma20.toFixed(4), curMain: '破位', curSub: '净值 ' + nav0.toFixed(4),
+        thrCond: '净值 < MA20', thrAct: '重新评估持仓',
+        thr: '净值跌破20日均线 → 接近·重新评估', lvl: 'near',
+        plan: '【不动】净值跌破20日线，重新评估趋势，定投照常不追'
+      }));
+    }
+    if (trig.indexOf('bench') >= 0) {
+      rows.push(Object.assign({}, base, {
+        sig: 'L1 跑输基准', cur: '跑输 ' + pct(Math.abs(benchGap)), curMain: pct(benchGap),
+        curSub: '基准沪深300 5日 ' + (bench5 != null ? pct(bench5) : '—'),
+        thrCond: '5日跑输沪深300 ≥5%', thrAct: '关注风格偏离',
+        thr: '5日跑输沪深300≥5% → 接近·踩风格', lvl: 'near',
+        plan: '【不动】相对沪深300跑输，关注是否踩错风格，定投照常'
+      }));
+    }
+    const nTrig = (trig.indexOf('mom') >= 0 ? 1 : 0) + (trig.indexOf('ma') >= 0 ? 1 : 0) + (trig.indexOf('bench') >= 0 ? 1 : 0);
+    if (nTrig >= 2) {
+      rows.push(Object.assign({}, base, {
+        sig: 'L1 多信号共振', cur: '共振 ' + nTrig + ' 项', curMain: nTrig + ' 项共振', curSub: '动量/均线/基准多信号同亮',
+        thrCond: '≥2 项 L1 信号同触发', thrAct: '暂停加仓 + 评估减仓（不恐慌）',
+        thr: '≥2 项 L1 同触发 → 行动·暂停加仓评估', lvl: 'act',
+        plan: '【暂停加仓】多信号共振，暂停该基金定投并评估是否减仓，不恐慌清仓'
+      }));
+    }
+  }
+  return rows;
+}
+window.fetchDrawdownWarnRows = fetchDrawdownWarnRows;
 /* v320 fw2_v320_m6_into_signals：renderDrawdownCard 已删除——M6 明细改由交易信号·持仓信号内的 sigRiskHtml 渲染（同一 fetchDdRows 数据源），避免两处重复 */
 function renderHdFilter() {
   const box = $('#hdFilter');
@@ -13292,7 +13374,8 @@ function renderSignalDash() {
   const mkP = (window.marketEvalAll ? window.marketEvalAll() : Promise.resolve(null)).catch(() => null);
   const riskP = Promise.resolve().then(() => (window.holdRiskSignals ? window.holdRiskSignals() : { risks: [], opps: [] })).catch(() => ({ risks: [], opps: [] }));
   const ddP = window.fetchDdRows ? window.fetchDdRows().catch(() => []) : Promise.resolve([]);
-  Promise.all([window.signalEvalAll(hold, wl), mkP, riskP, ddP]).then(([rows, mk, risk, ddRows]) => {
+  const ddWarnP = window.fetchDrawdownWarnRows ? window.fetchDrawdownWarnRows().catch(() => []) : Promise.resolve([]); /* fw2_v723_ddwarn_l1：回撤预警 Layer1 拉取 */
+  Promise.all([window.signalEvalAll(hold, wl), mkP, riskP, ddP, ddWarnP]).then(([rows, mk, risk, ddRows, ddWarnRows]) => {
     if (state.view !== 'signal') return;
     /* v325 fw2_v325_watch_nodup：自选信号剔除已持仓标的（其信号已由持仓信号 T 系列覆盖，避免跨类重复展示）；
        v333 fw2_v333_watch_nodup_all：剔除基准改用全量持仓（含货币基金等 cash 类），避免货基等 cash 资产仍残留自选区 */
@@ -13416,7 +13499,7 @@ function renderSignalDash() {
         + '<th style="padding:4px 8px;text-align:center">操作</th>'
         + '</tr></thead><tbody>' + (rowObjs.length ? tds : emptyRow) + '</tbody></table></div></div>';
     };
-    const GRP_COLOR = { '持仓信号': '#4D6BFE', '自选信号': '#BA7517', '筛选信号': '#7C3AED', '市场信号': '#888780' };
+    const GRP_COLOR = { '持仓信号': '#4D6BFE', '自选信号': '#BA7517', '筛选信号': '#7C3AED', '市场信号': '#888780', '回撤预警L1': '#C2410C' }; /* fw2_v723_ddwarn_l1 */
     const GRP_KEY = 'fw2_sig_grp_v1';
     let grpFold = {};
     try { grpFold = JSON.parse(localStorage.getItem(GRP_KEY) || '{}'); } catch (e) { grpFold = {}; }
@@ -13674,6 +13757,8 @@ function renderSignalDash() {
          点标的名跳基金透视；数据=筛池画像+日频净值，与筛选规则模块同源联动 */
       + grp('筛选信号（候选池 · 买入评估）', rows.screen, [],
         '筛选池 ' + ((window.SCREEN_POOL && window.SCREEN_POOL.funds) ? Object.keys(window.SCREEN_POOL.funds).length : 0) + ' 只候选 · 仅展示估值/回撤/波动/低点/趋势/风险触发的标的 · 无持仓专属信号（止盈/止损/网格依赖成本，不适用候选）· 数据=筛池画像+日频净值（与收益曲线同源）', null, true)
+      + grp('回撤预警L1（动量 / 均线）', ddWarnRows, [],
+        '阈值=文档建议值（5日跌>10%→行动·暂停加仓 / 5-10%→接近 / 破20日线→接近 / 跑输沪深300≥5%→接近 / ≥2共振→行动）；动作只提醒不联动定投；数据源=fund-daily 净值序列（与收益曲线同源）', null, false) /* fw2_v723_ddwarn_l1 */
       + '</div>'
       + '<div id="btStatWrap">' + btStatHtml() + '</div>'
       + '<div id="v11Wrap">' + v11SignalHtml() + '</div>' /* v606 V11 狙击信号（独立于网格信号） */
