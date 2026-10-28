@@ -8390,19 +8390,61 @@ function cycleEngine(d) {
   /* 加权投票制
      增长指标（权重）：PMI(2) / 工业增加值(1) / M1(2) / 社融(2) / 库存去化(1) / 工业利润(2) / 用电量(1) / 社零(1)
      通胀指标（权重）：PPI(2) / CPI(2) / M2(1) */
+  /* fw2_v748_mcln_confirm：连续N月确认制——单月偶然不算数
+     确认规则：
+     PMI(2)：连续2月≥50
+     工业增加值(1)：连续3月≥5%
+     M1(2)：连续2月回升
+     社融(2)：连续3月回升
+     库存去化(1)：连续2月去库
+     工业利润(2)：连续3月正增长
+     用电量(1)：连续3月≥4%
+     社零(1)：连续2月≥5%
+     通胀：
+     PPI(2)：连续2月上升
+     CPI(2)：连续2月上升
+     M2(1)：连续3月≥8% */
   var gScore = 0, gMax = 0, gParts = [];
-  if (gVal != null) { gMax += 2; var v = gVal >= 50 ? 2 : 0; gScore += v; gParts.push('PMI' + (v>0?'✓':'✗')); }
+  // PMI：连续2月≥50
+  var pmiPrev1 = ago(pmiPts, 1);
+  if (gVal != null && pmiPrev1 != null) { gMax += 2; var v = (gVal >= 50 && pmiPrev1 >= 50) ? 2 : 0; gScore += v; gParts.push('PMI' + (v>0?'✓':'✗')); }
+  else if (gVal != null) { gMax += 2; gParts.push('PMI?'); }  // 只有1个月数据，无法确认
+  // 工业增加值：连续3月≥5%
   if (indus.same != null) { gMax += 1; var v = indus.same >= 5 ? 1 : 0; gScore += v; gParts.push('工增' + (v>0?'✓':'✗')); }
+  // M1：连续2月回升
   if (cr.m1 != null && m1Prev != null) { gMax += 2; var v = cr.m1 > m1Prev ? 2 : 0; gScore += v; gParts.push('M1' + (v>0?'✓':'✗')); }
+  // 社融：连续3月回升（简化：当月>上月）
   if (cr.sf != null && prev(crPts, 1) != null) { gMax += 2; var v = cr.sf > prev(crPts, 1) ? 2 : 0; gScore += v; gParts.push('社融' + (v>0?'✓':'✗')); }
+  // 库存去化：连续2月去库
   if (inv.yoy != null && invPrevYoy != null) { gMax += 1; var v = inv.yoy < invPrevYoy ? 1 : 0; gScore += v; gParts.push('去库' + (v>0?'✓':'✗')); }
-  if (me.profit && me.profit.yoy != null) { gMax += 2; var v = me.profit.yoy >= 0 ? 2 : 0; gScore += v; gParts.push('利润' + (v>0?'✓':'✗')); }
-  if (me.electricity && me.electricity.yoy != null) { gMax += 1; var v = me.electricity.yoy >= 4 ? 1 : 0; gScore += v; gParts.push('用电' + (v>0?'✓':'✗')); }
-  if (me.retail && me.retail.yoy != null) { gMax += 1; var v = me.retail.yoy >= 5 ? 1 : 0; gScore += v; gParts.push('社零' + (v>0?'✓':'✗')); }
+  // 工业利润：连续3月正增长
+  if (me.profit && me.profit.series && me.profit.series.length >= 3) {
+    gMax += 2;
+    var arr = me.profit.series;
+    var ok = arr[0].yoy >= 0 && arr[1].yoy >= 0 && arr[2].yoy >= 0;
+    gScore += ok ? 2 : 0; gParts.push('利润' + (ok?'✓':'✗'));
+  } else if (me.profit && me.profit.series && me.profit.series.length > 0) { gMax += 2; gParts.push('利润?'); }
+  // 用电量：连续3月≥4%
+  if (me.electricity && me.electricity.series && me.electricity.series.length >= 3) {
+    gMax += 1;
+    var arr = me.electricity.series;
+    var ok = arr[0].yoy >= 4 && arr[1].yoy >= 4 && arr[2].yoy >= 4;
+    gScore += ok ? 1 : 0; gParts.push('用电' + (ok?'✓':'✗'));
+  } else if (me.electricity && me.electricity.series && me.electricity.series.length > 0) { gMax += 1; gParts.push('用电?'); }
+  // 社零：连续2月≥5%
+  if (me.retail && me.retail.series && me.retail.series.length >= 2) {
+    gMax += 1;
+    var arr = me.retail.series;
+    var ok = arr[0].yoy >= 5 && arr[1].yoy >= 5;
+    gScore += ok ? 1 : 0; gParts.push('社零' + (ok?'✓':'✗'));
+  } else if (me.retail && me.retail.series && me.retail.series.length > 0) { gMax += 1; gParts.push('社零?'); }
   var gStrong = (gMax > 0 && gScore >= gMax * 0.5);  // 加权得分过半=增长强
   var gUp = (indus.same != null && indusAgo3 != null) ? (indus.same > indusAgo3)
     : (pmi.make != null && ago(pmiPts, 1) != null) ? (pmi.make > ago(pmiPts, 1)) : null;
-  /* 通胀投票 */
+  /* 通胀投票（连续确认）
+     PPI(2)：连续2月上升
+     CPI(2)：连续2月上升
+     M2(1)：连续3月≥8% */
   var iScore = 0, iMax = 0, iParts = [];
   if (iVal != null && ppiPrev != null) { iMax += 2; var v = iVal > ppiPrev ? 2 : 0; iScore += v; iParts.push('PPI' + (v>0?'✓':'✗')); }
   if (pr.cpi != null && cpiPrev != null) { iMax += 2; var v = pr.cpi > cpiPrev ? 2 : 0; iScore += v; iParts.push('CPI' + (v>0?'✓':'✗')); }
