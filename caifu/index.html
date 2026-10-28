@@ -8264,7 +8264,8 @@ async function loadMacroData() {
     try {
       const pbR = await fetch('./data/pb-ratio.json', { cache: 'no-cache' });
       window.__PB_RATIO = await pbR.json();
-    } catch (e) { window.__PB_RATIO = { pts: [] }; }
+      console.log('[v764] pb-ratio loaded, pts:', window.__PB_RATIO.pts.length);
+    } catch (e) { window.__PB_RATIO = { pts: [] }; console.log('[v764] pb-ratio load fail:', e); }
     /* fw2_v429：宏观数据就绪后失效市场信号缓存并重算——M12 读 state.macro.fsi，
        此前 marketEvalAll 在 macro-data.json fetch 完成前先跑（600s 缓存）导致 M12 永不渲染 */
     if (window.MKT_EVAL) window.MKT_EVAL = { at: 0, data: null };
