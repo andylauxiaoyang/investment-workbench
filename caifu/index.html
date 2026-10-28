@@ -10580,18 +10580,12 @@ function fillMacroTabs() {
   host.innerHTML = items.map((it) => '<button data-r="' + it[0] + '" type="button" style="' + (reg === it[0] ? tAct : tBase) + '">' + it[1] + '</button>').join('');
 }
 function renderMacroToolsHtml() {
-  /* fw2_v430 窗口选择（1/3/5/10年）+ 数据截至：归属中国周期内容，随 renderMacro 中国分支渲染；
-     hint 直接读 state.macro（loadMacroData 已先就位），不再依赖静态 #macroSrcHint 事后回填 */
+  /* fw2_v753_del_win：删窗口选择器（只影响历史回放，对当前判断无意义），保留数据截至提示 */
   const d = state.macro;
   const src = state.macroSrc || '';
-  const wMap = { '1': '1年', '3': '3年', '5': '5年', '10': '10年' };
-  const cur = state.macroWin || '10';
-  const btns = Object.keys(wMap).map((w) => '<button data-w="' + w + '"' + (cur === w ? ' class="active"' : '') + '>' + wMap[w] + '</button>').join('');
   let hintTxt = '宏观数据未取得';
   if (d) hintTxt = '数据截至 ' + d.updatedAt + ' · 理杏仁（' + (src || '内置') + '）';
   return '<div class="dc-mc-tools" style="display:flex;align-items:center;gap:8px;margin-bottom:10px">' +
-    '<span class="flbl">窗口</span>' +
-    '<div class="seg seg-tabs" id="macroWin">' + btns + '</div>' +
     '<span class="hint" id="macroSrcHint">' + esc(hintTxt) + '</span></div>';
 }
 /* fw2_v524_geo_fsi：mi 组胶囊 + 大磁铁加「中国指标 / 海外指标 / 方法」地理徽标（方案A 视觉重聚类·零风险）。
