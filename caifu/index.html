@@ -8260,6 +8260,11 @@ async function loadMacroData() {
       const meR = await fetch('./data/macro-extra.json', { cache: 'no-cache' });
       window.__MACRO_EXTRA = await meR.json();
     } catch (e) { window.__MACRO_EXTRA = {}; }
+    /* fw2_v762：加载破净率10年历史数据 */
+    try {
+      const pbR = await fetch('./data/pb-ratio.json', { cache: 'no-cache' });
+      window.__PB_RATIO = await pbR.json();
+    } catch (e) { window.__PB_RATIO = { pts: [] }; }
     /* fw2_v429：宏观数据就绪后失效市场信号缓存并重算——M12 读 state.macro.fsi，
        此前 marketEvalAll 在 macro-data.json fetch 完成前先跑（600s 缓存）导致 M12 永不渲染 */
     if (window.MKT_EVAL) window.MKT_EVAL = { at: 0, data: null };
@@ -9733,7 +9738,8 @@ body.innerHTML = ((_region === 'cn' || _region === 'v-cycle') ? renderMacroTools
         ${metric('信号', lv)}
       </div>
       <div class="rv-line"><span class="tag tag-ai">指向</span><span style="color:${lvCol};font-weight:600">${lv}</span> · 破净率越高=市场越接近底部</div>
-      <div class="rv-line"><span class="tag tag-data">阈值</span><span>≥12% 深度底部 · 8–12% 底部特征 · 5–8% 偏低 · &lt;5% 常态</span></div>`;
+      <div class="rv-line"><span class="tag tag-data">阈值</span><span>≥12% 深度底部 · 8–12% 底部特征 · 5–8% 偏低 · &lt;5% 常态</span></div>
+      <div class="chart" id="mcPb" style="height:200px"></div>`;
     })()}
   </div>
   <div class="card">
@@ -9957,6 +9963,20 @@ body.innerHTML = ((_region === 'cn' || _region === 'v-cycle') ? renderMacroTools
       ],
     }), true);
     cb.resize();
+  }
+  /* fw2_v762：破净率10年曲线 */
+  const cpb = chartOf('mcPb');
+  if (cpb && window.__PB_RATIO && window.__PB_RATIO.pts && window.__PB_RATIO.pts.length) {
+    const pts = window.__PB_RATIO.pts;
+    cpb.setOption(Object.assign({}, base, {
+      xAxis: { type: 'category', data: pts.map((p) => p[0]), axisLabel: { fontSize: 10, color: '#475569', hideOverlap: true }, axisLine: { lineStyle: { color: '#d8dee6' } } },
+      yAxis: { type: 'value', axisLabel: { fontSize: 10, color: '#475569', formatter: (v) => v + '%' }, splitLine: { lineStyle: { color: '#e3e8ee' } } },
+      series: [
+        { name: '破净率', type: 'line', data: pts.map((p) => p[1]), showSymbol: false, lineStyle: { color: '#2f6bff', width: 1.6 }, itemStyle: { color: '#2f6bff' }, areaStyle: { opacity: 0.15 },
+          markLine: { silent: true, symbol: 'none', label: { fontSize: 9, color: '#475569' }, data: [{ yAxis: 5, name: '5%' }, { yAxis: 8, name: '8%' }, { yAxis: 12, name: '12%' }], lineStyle: { color: '#d9a441', type: 'dotted' } } },
+      ],
+    }), true);
+    cpb.resize();
   }
   const cc = chartOf('mcCredit');
   if (cc && cr.length) {
