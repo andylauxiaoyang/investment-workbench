@@ -5662,7 +5662,37 @@ async function fetchDdRows() {
   return rows;
 }
 window.fetchDdRows = fetchDdRows;
-/* fw2_v723_ddwarn_l1：回撤预警 Layer1（动量/均线）。
+/* fw2_v725_ddwarn_l2_penetration：L2穿透股票池——主动基金前十大重仓股日频监控
+   只有主动基金需要穿透（指数基金跟踪指数本身即可，L1已覆盖）。
+   数据=2026Q3季报（9-30），每季度更新一次。A股用sh/sz前缀，美股直接用代码。
+   权重×持有金额=间接持仓金额，用于排序取重要股票 */
+const FUND_HOLDINGS_MAP = {
+  '012920': { /* 易方达全球成长精选QDII（AI算力链） */
+    asOf: '2026-09-30',
+    stocks: [
+      { code: 'TSM',     name: '台积电ADR',    w: 0.0828, mkt: 'us' },
+      { code: 'NVDA',    name: '英伟达',        w: 0.0705, mkt: 'us' },
+      { code: 'INTC',    name: '英特尔',        w: 0.0554, mkt: 'us' },
+      { code: 'sz300308',name: '中际旭创',      w: 0.0416, mkt: 'cn' },
+      { code: 'BE',      name: 'Bloom Energy', w: 0.0403, mkt: 'us' },
+      { code: 'AMD',     name: 'AMD',          w: 0.0394, mkt: 'us' },
+      { code: 'sz300502',name: '新易盛',        w: 0.0340, mkt: 'cn' },
+      { code: 'LITE',    name: 'Lumentum',     w: 0.0323, mkt: 'us' },
+      { code: 'ASML',    name: 'ASML',         w: 0.0276, mkt: 'us' },
+      { code: 'sz002463',name: '沪士电子',      w: 0.0241, mkt: 'cn' }
+    ]
+  },
+  '000746': { /* 招商行业精选股票（金融/地产/医药） */
+    asOf: '2026-09-30',
+    stocks: [
+      { code: 'sh600048',name: '保利发展',      w: 0.0655, mkt: 'cn' },
+      { code: 'sz002244',name: '滨江集团',      w: 0.0604, mkt: 'cn' },
+      { code: 'sh603259',name: '药明康德',      w: 0.0573, mkt: 'cn' },
+      { code: 'sh601398',name: '工商银行',       w: 0.0527, mkt: 'cn' }
+    ]
+  }
+};
+/* fw2_v724_ddwarn_l1：回撤预警 Layer1（动量/均线）。
    fw2_v724：Q4债/金阈值放宽(bond -1.5%/-3%, gold -4%/-7%) + L3宏观开关(FSI/VIX) + Q5联动定投表标记 */
 async function fetchDrawdownWarnRows() {
   const codes = []; const seen = new Set(); const atMap = {};
@@ -5777,6 +5807,47 @@ async function fetchDrawdownWarnRows() {
         thr: 'VIX≥25 → 恐慌 / ≥30 → 极端', lvl: vix >= 30 ? 'act' : 'near', src: 'CBOE',
         plan: vix >= 30 ? '【不动】极端恐慌 · 不开新仓，定投照常不追' : '【不动】恐慌 · 控制新仓，定投照常'
       });
+    }
+  } catch (e) {}
+  /* L2 fw2_v725_ddwarn_l2_penetration：穿透持仓股日频监控
+     对主动基金前十大重仓股拉最近3日涨跌，A股重仓股白天大跌→QDII当晚必跌，有1天预警窗口。
+     只监控A股重仓股（美股接口复杂且QDII本身已滞后1天），合计3日跌>8%→接近，>12%→行动 */
+  try {
+    const heldFunds = (state.portfolio || []).filter(h => FUND_HOLDINGS_MAP[shortCode(h.code)]);
+    for (const h of heldFunds) {
+      const fc = shortCode(h.code);
+      const hm = FUND_HOLDINGS_MAP[fc];
+      if (!hm || !hm.stocks) continue;
+      const cnStocks = hm.stocks.filter(s => s.mkt === 'cn');
+      if (!cnStocks.length) continue;
+      /* 拉每只A股重仓股近5日K线，算3日涨跌 */
+      const stockChanges = [];
+      for (const s of cnStocks) {
+        try {
+          const k = await apiGet('/api/kline', { code: s.code, klt: 101, lmt: 5 }).catch(() => null);
+          const kd = (k && k.ok && Array.isArray(k.data)) ? k.data : [];
+          if (kd.length >= 4) {
+            const c0 = kd[kd.length-4].close, c3 = kd[kd.length-1].close;
+            if (c0 > 0) stockChanges.push({ name: s.name, chg: c3/c0 - 1, code: s.code });
+          }
+        } catch (e) {}
+      }
+      if (!stockChanges.length) continue;
+      const avgChg = stockChanges.reduce((a, b) => a + b.chg, 0) / stockChanges.length;
+      const worst = stockChanges.reduce((a, b) => a.chg < a.chg ? b : a, stockChanges[0]);
+      const drops = stockChanges.filter(s => s.chg <= -0.05).length;
+      if (avgChg <= -0.08 || drops >= 2) {
+        const lvl = (avgChg <= -0.12 || drops >= 3) ? 'act' : 'near';
+        const summary = stockChanges.sort((a,b)=>a.chg-b.chg).slice(0,4).map(s => s.name + ' ' + (s.chg*100).toFixed(1)+'%').join(' · ');
+        rows.push({ pool: 'ddwarn', code: fc, name: 'L2 穿透重仓股·' + h.name, noLink: false, dd: hm.asOf,
+          sig: 'L2 穿透重仓股3日', cur: '均值 ' + (avgChg*100).toFixed(1) + '%', curMain: (avgChg*100).toFixed(1)+'%',
+          curSub: '跌>5%有' + drops + '只: ' + summary,
+          thrCond: '3日均跌>8% / ≥2只跌>5%', thrAct: 'QDII当晚大概率跟跌，提前预警',
+          thr: '重仓股3日跌>8% → ' + (lvl==='act'?'行动':'接近'), lvl: lvl,
+          src: hm.asOf + '季报前十大（A股部分）',
+          plan: lvl==='act' ? '【暂停加仓】底层重仓股集体大跌，该基金当晚净值大概率跟跌，暂停加仓等企稳' : '【不动】底层重仓股有调整，关注是否传导到基金净值'
+        });
+      }
     }
   } catch (e) {}
   return rows;
