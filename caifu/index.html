@@ -13856,7 +13856,11 @@ function renderSignalDash() {
       + '<div class="dc-grid">'
       /* v31b: 市场信号置顶 */ /* fw2_sig_order_v31b */
       + grp('市场信号（环境 / 温度计 / 资金面）', (mk && mk.rows) || [], null)
-      + grp('持仓信号（止盈 / 止损 / 加仓 / 仓位）', rows.hold, rows.meta.filter((m) => m.pool === 'hold'), null, null, true,
+      /* fw2_v727_ddwarn_merge_hold：回撤预警基金级信号(L1/L2)合并到持仓信号组，不再单独开组；
+         L3宏观信号(FSI/VIX, code非6位数字)仍独立显示 */
+      + grp('持仓信号（止盈 / 止损 / 加仓 / 仓位 / 回撤预警）',
+        rows.hold.concat(ddWarnRows.filter(function(r){return /^\d{6}$/.test(String(r.code));})),
+        rows.meta.filter((m) => m.pool === 'hold'), null, null, true,
         (window.rulesBannerHtml ? window.rulesBannerHtml() : ''))
       + grp('自选信号（配置目标 · 买入时机 / 风险）', watchRows, rows.meta.filter((m) => m.pool === 'watch'),
         '自选来源：配置目标未买入（杠铃档位 barbell.funds 剔除已持仓，与资产配置池同口径）· 展示 ' + new Set(watchRows.map(function (r) { return String(r.code); })).size + ' 只标的'
@@ -13866,8 +13870,10 @@ function renderSignalDash() {
          点标的名跳基金透视；数据=筛池画像+日频净值，与筛选规则模块同源联动 */
       + grp('筛选信号（候选池 · 买入评估）', rows.screen, [],
         '筛选池 ' + ((window.SCREEN_POOL && window.SCREEN_POOL.funds) ? Object.keys(window.SCREEN_POOL.funds).length : 0) + ' 只候选 · 仅展示估值/回撤/波动/低点/趋势/风险触发的标的 · 无持仓专属信号（止盈/止损/网格依赖成本，不适用候选）· 数据=筛池画像+日频净值（与收益曲线同源）', null, true)
-      + grp('回撤预警L1（动量 / 均线）', ddWarnRows, [],
-        '阈值=文档建议值（5日跌>10%→行动·暂停加仓 / 5-10%→接近 / 破20日线→接近 / 跑输沪深300≥5%→接近 / ≥2共振→行动）；动作只提醒不联动定投；数据源=fund-daily 净值序列（与收益曲线同源）', null, false) /* fw2_v723_ddwarn_l1 */
+      /* fw2_v727_ddwarn_merge_hold：回撤预警独立grp删除，基金级L1/L2已合并到持仓信号组；
+         L3宏观信号(FSI/VIX)单独一行放在筛选信号后面 */
+      + grp('宏观风险开关（FSI / VIX）', ddWarnRows.filter(function(r){return !/^\d{6}$/.test(String(r.code));}), [],
+        'L3宏观开关：FSI≥50警戒/≥70危机，VIX≥25恐慌/≥30极端；触发时显示，未触发时无内容', null, false)
       + '</div>'
       + '<div id="btStatWrap">' + btStatHtml() + '</div>'
       + '<div id="v11Wrap">' + v11SignalHtml() + '</div>' /* v606 V11 狙击信号（独立于网格信号） */
