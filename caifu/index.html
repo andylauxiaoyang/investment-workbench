@@ -9684,30 +9684,7 @@ body.innerHTML = ((_region === 'cn' || _region === 'v-cycle') ? renderMacroTools
     <div class="rv-line"><span class="tag tag-ai">指向</span><span><b>${cyc.layers.dollar.asset}</b> · 金油比中枢 10-15 桶；美元走弱+金强 = 萧条信用对冲增强；金铜比上行 = 避险强于工业需求</span></div>
     <div class="rv-line"><span class="tag tag-data">口径</span><span>伦敦金/WTI/伦敦铜＝理杏仁现货月末价；美元指数＝理杏仁 usdx 月末；均为真实数据可追溯</span></div>
   </div>
-  <div class="card dc-cyc">
-    <div class="card-h"><h3>行业周期 · 申万一级估值温度</h3><span class="hint">理杏仁申万2021一级 ${indList.length} 行业 · PE-TTM 10年分位 · 截至 ${cyc.indTilt.asOf || '—'}</span></div>
-    <div class="rv-line"><span class="tag tag-ai">周期倾向</span><span>${cyc.indTilt.why}${cyc.indTilt.grp2 ? ' → ' + cyc.indTilt.grp2 + '（' + (cyc.indTilt.grpAvg[cyc.indTilt.grp2] != null ? cyc.indTilt.grpAvg[cyc.indTilt.grp2].toFixed(0) + ' 分位' : '—') + '）' : ''} ｜ ${cyc.indTilt.crowded.length ? '拥挤回避（等回调）：' + cyc.indTilt.crowded.slice(0, 2).join(' / ') : cyc.indTilt.cheap.length ? '低估关注（分批）：' + cyc.indTilt.cheap.slice(0, 2).join(' / ') : '分位中性区：跟踪主倾向组'}</span></div>
-    <div class="rv-line"><span class="tag tag-ai">涛动主线</span><span>${cyc.indTilt.mainLine.length ? '第六次康波主线（结构性加分）：' + cyc.indTilt.mainLine.slice(0, 4).join(' / ') : '主线数据不足'} ｜ ${cyc.indTilt.avoid.length ? '库兹涅茨右侧回避：' + cyc.indTilt.avoid.slice(0, 4).join(' / ') : ''} ｜ ${cyc.indTilt.whyWave}</span></div>
-    <div class="cyc-tbl-wrap">
-      <table class="cyc-tbl">
-        <thead><tr><th style="width:18%">行业</th><th style="width:13%">分组</th><th style="width:12%">PE-TTM</th><th style="width:38%">10年分位</th><th style="width:19%">市值(亿)</th></tr></thead>
-        <tbody>
-          ${indList.map(function (it) {
-            var pct = it.pct != null ? it.pct : null;
-            var bar = pct != null ? '<div style="display:flex;align-items:center;gap:8px"><div class="mc-pbar mc-pbar-lg" style="flex:1"><i style="width:' + pct + '%"></i></div><span style="font-size:12px;font-weight:600;min-width:36px">' + pct + '%</span></div>' : '—';
-            var cls = pct != null ? (pct >= 80 ? 'v-up' : pct <= 25 ? 'v-down' : '') : 'muted';
-            var peTxt = it.peOk ? fmtNum(it.pe, 1) : '亏损';
-            return '<tr><td><b>' + it.name + '</b>' + (it.peOk ? '' : ' <i class="muted" style="font-style:normal" title="负PE，分位失真">*</i>') + '</td>'
-              + '<td><span class="cyc-grp">' + it.grp + '</span></td>'
-              + '<td class="' + cls + '">' + peTxt + '</td>'
-              + '<td>' + bar + '</td>'
-              + '<td>' + (it.mc != null ? fmtNum(it.mc, 0) : '—') + '</td></tr>';
-          }).join('')}
-        </tbody>
-      </table>
-    </div>
-    <div class="rv-line"><span class="tag tag-data">口径</span><span>PE-TTM 市值加权，10年分位为理杏仁官方口径（<b>分位 &lt;25</b> 低估 · <b>&gt;80</b> 拥挤）；负 PE 行业分位失真已标「亏损」；${cyc.indTilt.missing && cyc.indTilt.missing.length ? '理杏仁未覆盖申万2021新增：' + cyc.indTilt.missing.join(' / ') : '申万2021一级 31 行业全覆盖（v199 起 sw_2021 端点）'}；分组按周期属性划分，供库存周期→行业倾向使用</span></div>
-  </div>
+  <!-- fw2_v756_del_ind_cycle：删行业周期·申万一级估值温度表（用户买宽基基金，行业分位无决策价值） -->
   ${renderReplayCard(d.replay)}
   <div class="card">
     <div class="card-h"><h3>ERP 股债性价比（沪深300）</h3><span class="hint">E/P − 10Y国债 · 月末点 ${erp.length} 个</span></div>
