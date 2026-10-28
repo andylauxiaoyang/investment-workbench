@@ -14871,6 +14871,22 @@ setTimeout(() => { renderResearchChips(); if (!state.news.items.length) loadNews
         mg.style.display = ((reg === 'mi' || (window.__MC_GRP_REG && window.__MC_GRP_REG[reg] != null)) && mg.getAttribute('data-mg') === grp) ? 'block' : 'none';
       });
       vis = mods.filter(function (m) { return m.style.display === 'block'; });
+      /* fw2_v759：估值全景组按 MI_GROUPS keys 顺序重排（HTML原始顺序是开发顺序，不是决策优先级顺序） */
+      if (window.MI_GROUPS && typeof state.miGroup === 'number') {
+        var grpDef = window.MI_GROUPS[state.miGroup];
+        if (grpDef && grpDef.keys) {
+          var keyOrder = {};
+          grpDef.keys.forEach(function(k, i){ keyOrder[k] = i; });
+          vis.sort(function(a, b){
+            var ta = a.getAttribute('data-title') || '', tb = b.getAttribute('data-title') || '';
+            var ia = 99, ib = 99;
+            for (var k in keyOrder) { if (ta.indexOf(k) === 0) { ia = keyOrder[k]; break; } }
+            for (var k in keyOrder) { if (tb.indexOf(k) === 0) { ib = keyOrder[k]; break; } }
+            return ia - ib;
+          });
+          vis.forEach(function(m){ body.appendChild(m); });
+        }
+      }
       /* fw2_v457_mc_banner_removed：宏观指标页组名横幅（mc-gbanner）已移除——顶部子模块胶囊行
          （#mcGroupCaps）已显示组名且点击高亮跟随（fw2_v457_mc_cap_follow），内容区再插组名横幅即重复冗余；
          组过滤仍按 wrapMcMods 写入的 data-g 生效，可见组卡片直接平铺。 */
