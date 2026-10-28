@@ -13865,11 +13865,9 @@ function renderSignalDash() {
     const _sigP = function(k){ return ' data-sigpane="'+k+'" style="'+(k===_sigTab?'':'display:none')+'"'; };
     body.innerHTML = '<div class="dc-verdict ' + vTone + '"><div class="dc-vmain">' + vMain + '</div><div class="dc-vevid">' + vVid + '</div></div>'
       + '<div style="margin:10px 0">' + _sigTabBtns + '</div>'
-      /* tab: 市场信号 */
+      /* tab: 市场信号（FSI/VIX已在M12，不再单独开L3组） */
       + '<div' + _sigP('market') + '><div class="dc-grid">'
       + grp('市场信号（环境 / 温度计 / 资金面）', (mk && mk.rows) || [], null)
-      + grp('宏观风险开关（FSI / VIX）', ddWarnRows.filter(function(r){return !/^\d{6}$/.test(String(r.code));}), [],
-        'L3宏观开关：FSI≥50警戒/≥70危机，VIX≥25恐慌/≥30极端；触发时显示，未触发时无内容', null, false)
       + '</div></div>'
       /* tab: 持仓信号 */
       + '<div' + _sigP('hold') + '><div class="dc-grid">'
