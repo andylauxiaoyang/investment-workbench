@@ -9815,7 +9815,7 @@ body.innerHTML = ((_region === 'cn' || _region === 'v-cycle') ? renderMacroTools
        紧跟证券化率卡（AskUserQuestion 用户拍板：拆 3 卡 + 紧跟证券化率），见 renderMacroSentiment fw2_v705_sm_split 块；
        mcMood/mcAmtD 图表初始化随卡删除；数据层不动（mcCalcCommon 同源），全景投票杠杆票（__MC_ZBPCT）与
        组2磁铁证据判（mcEv('mood')）不受影响；母模板 mood 组零模块，__mcApply 组过滤对空集容忍（磁铁独立渲染）。 -->
-  <div class="card">
+  <div class="card" data-title="宽基估值温度（A股·中小盘）">
     <div class="card-h"><h3>宽基估值温度（A股·中小盘）${LXMAP.ic(LXMAP.index('中证500'), '理杏仁 · 中证500')}</h3><span class="hint">PE-TTM 10年分位 · 理杏仁</span></div>
     ${_mcMeta(_mcLastOf(broad.zz500 && broad.zz500.points), '月末', 'PE-TTM 10年分位（理杏仁，与沪深300同口径）', 75)}
     <div class="metric-grid">
@@ -9827,7 +9827,7 @@ body.innerHTML = ((_region === 'cn' || _region === 'v-cycle') ? renderMacroTools
     <div class="rv-line"><span class="tag tag-data">阈值</span><span>分位 <b>&lt;20%</b> 便宜加档 · <b>20–80%</b> 中性 · <b>&gt;80%</b> 偏贵减速（与沪深300同口径）。进攻端中小盘温度单独看，避免只看沪深300漏掉风格</span></div>
     <div class="chart" id="mcBroad" style="height:200px"></div>
   </div>
-  <div class="card">
+  <div class="card" data-title="美股估值温度（标普500）">
     <div class="card-h"><h3>美股估值温度（标普500）${LXMAP.ic(LXMAP.index('标普500'), '腾讯行情 · 标普500')}</h3><span class="hint">标普500=理杏仁(.INX) · PE-TTM 10年分位</span></div>
     ${_mcMeta(_mcLastOf(spxPts), '月末', '标普500(.INX) PE-TTM 10年分位（理杏仁）', 75)}
     <div class="metric-grid">
@@ -14735,7 +14735,7 @@ setTimeout(() => { renderResearchChips(); if (!state.news.items.length) loadNews
      data-g（wrapMcMods 按 keys 前缀匹配写入）、mcEv 证据注册、__mcGo 跨 tab 跳转 完全不动 ⇒ 同源架构不受影响。
      cn＝①A股估值/②信用增长/③情绪流动性（中国侧）；ovs＝④海外约束/⑤美国周期/⑥全球景气（海外侧）；sop＝⑦判读SOP（方法）。 */
   window.MI_GROUPS = [
-    { id:'val',  geo:'cn',  name:'估值全景',       concl:'便宜 / 合理 / 贵',           vd:{ p:'偏便宜', n:'偏贵', d:'证据分歧' },             keys:['ERP 股债性价比', '沪深300 PE-TTM', '宽基估值温度', '证券化率', '破净率'] },
+    { id:'val',  geo:'cn',  name:'估值全景',       concl:'便宜 / 合理 / 贵',           vd:{ p:'偏便宜', n:'偏贵', d:'证据分歧' },             keys:['证券化率', 'ERP 股债性价比', '沪深300 PE-TTM', '宽基估值温度', '美股估值温度', '破净率'] },
     { id:'cred', geo:'cn',  name:'信用与增长',    concl:'扩张 / 收缩 / 僵持',         vd:{ p:'偏扩张', n:'偏收缩', d:'证据分歧' },           keys:['信用脉冲：社融', '物价剪刀差', '制造业 PMI', '实体景气'] },
     { id:'mood', geo:'cn',  name:'情绪温度',  concl:'过热 / 中性 / 冰冷',         vd:{ p:'偏冰冷·逆向关注', n:'偏过热·防御', d:'证据分歧' }, keys:[] },   /* fw2_v705_sm_split：keys=['情绪温度计','全A成交额'] 清空——母卡拆独立子卡进 sm 平铺列表后母模板 mood 组零模块（wrapMcMods 前缀匹配无对象，__mcApply 组过滤对空集容忍）；磁铁/胶囊仍由 name/concl 驱动，组证据走 mcEv('mood') 数据层 */
     { id:'ovs',  geo:'ovs', name:'海外约束',      concl:'顺风 / 中性 / 逆风',         vd:{ p:'偏顺风', n:'偏逆风', d:'证据分歧' },           q:'本组回答：海外环境紧不紧（压力温度：利率 / 汇率 / 估值 / VIX）', keys:['全球利率与汇率', '美股估值温度', '政策利率与收益率曲线', '全球央行政策利率一览', 'VIX 恐慌'] },
