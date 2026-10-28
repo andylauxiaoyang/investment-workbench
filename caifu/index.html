@@ -9718,6 +9718,23 @@ body.innerHTML = ((_region === 'cn' || _region === 'v-cycle') ? renderMacroTools
       <div class="rv-line"><span class="tag tag-data">阈值</span><span>≥100 高估 · 80–100 偏高 · 50–80 合理 · &lt;50 低估</span></div>`;
     })()}
   </div>
+  <!-- fw2_v757：破净率从市场情绪页挪到估值全景 -->
+  <div class="card" data-title="破净率（全A）">
+    <div class="card-h"><h3>破净率 · 全A估值</h3><span class="hint">市净率&lt;1 个股占比 · 东财全A截面</span></div>
+    ${(() => {
+      const bp = (d.sentiment || {}).brokenPct;
+      if (!bp || !bp.available || bp.value == null) return '<p style="color:#94a3b8;font-size:13px">数据未加载</p>';
+      const v = bp.value;
+      const lv = v >= 12 ? '深度底部' : v >= 8 ? '底部特征' : v >= 5 ? '偏低' : '常态';
+      const lvCol = v >= 12 ? '#0d9f4d' : v >= 8 ? '#2f6bff' : v >= 5 ? '#d98c00' : '#475569';
+      return `<div class="metric-grid">
+        ${metric('破净率', fmtNum(v, 1) + '%')}
+        ${metric('信号', lv)}
+      </div>
+      <div class="rv-line"><span class="tag tag-ai">指向</span><span style="color:${lvCol};font-weight:600">${lv}</span> · 破净率越高=市场越接近底部</div>
+      <div class="rv-line"><span class="tag tag-data">阈值</span><span>≥12% 深度底部 · 8–12% 底部特征 · 5–8% 偏低 · &lt;5% 常态</span></div>`;
+    })()}
+  </div>
   <div class="card">
     <div class="card-h"><h3>沪深300 PE-TTM 与 10年分位</h3><span class="hint">理杏仁官方分位 · 月末点 ${pe.length} 个</span></div>
     ${_mcMeta(_mcLastOf(pe), '月末', 'PE-TTM 总市值加权 · 理杏仁官方分位', 75)}
@@ -14718,7 +14735,7 @@ setTimeout(() => { renderResearchChips(); if (!state.news.items.length) loadNews
      data-g（wrapMcMods 按 keys 前缀匹配写入）、mcEv 证据注册、__mcGo 跨 tab 跳转 完全不动 ⇒ 同源架构不受影响。
      cn＝①A股估值/②信用增长/③情绪流动性（中国侧）；ovs＝④海外约束/⑤美国周期/⑥全球景气（海外侧）；sop＝⑦判读SOP（方法）。 */
   window.MI_GROUPS = [
-    { id:'val',  geo:'cn',  name:'估值全景',       concl:'便宜 / 合理 / 贵',           vd:{ p:'偏便宜', n:'偏贵', d:'证据分歧' },             keys:['ERP 股债性价比', '沪深300 PE-TTM', '宽基估值温度', '证券化率'] },
+    { id:'val',  geo:'cn',  name:'估值全景',       concl:'便宜 / 合理 / 贵',           vd:{ p:'偏便宜', n:'偏贵', d:'证据分歧' },             keys:['ERP 股债性价比', '沪深300 PE-TTM', '宽基估值温度', '证券化率', '破净率'] },
     { id:'cred', geo:'cn',  name:'信用与增长',    concl:'扩张 / 收缩 / 僵持',         vd:{ p:'偏扩张', n:'偏收缩', d:'证据分歧' },           keys:['信用脉冲：社融', '物价剪刀差', '制造业 PMI', '实体景气'] },
     { id:'mood', geo:'cn',  name:'情绪温度',  concl:'过热 / 中性 / 冰冷',         vd:{ p:'偏冰冷·逆向关注', n:'偏过热·防御', d:'证据分歧' }, keys:[] },   /* fw2_v705_sm_split：keys=['情绪温度计','全A成交额'] 清空——母卡拆独立子卡进 sm 平铺列表后母模板 mood 组零模块（wrapMcMods 前缀匹配无对象，__mcApply 组过滤对空集容忍）；磁铁/胶囊仍由 name/concl 驱动，组证据走 mcEv('mood') 数据层 */
     { id:'ovs',  geo:'ovs', name:'海外约束',      concl:'顺风 / 中性 / 逆风',         vd:{ p:'偏顺风', n:'偏逆风', d:'证据分歧' },           q:'本组回答：海外环境紧不紧（压力温度：利率 / 汇率 / 估值 / VIX）', keys:['全球利率与汇率', '美股估值温度', '政策利率与收益率曲线', '全球央行政策利率一览', 'VIX 恐慌'] },
