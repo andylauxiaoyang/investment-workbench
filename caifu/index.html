@@ -5834,20 +5834,20 @@ async function fetchDrawdownWarnRows() {
       }
       if (!stockChanges.length) continue;
       const avgChg = stockChanges.reduce((a, b) => a + b.chg, 0) / stockChanges.length;
-      const worst = stockChanges.reduce((a, b) => a.chg < a.chg ? b : a, stockChanges[0]);
       const drops = stockChanges.filter(s => s.chg <= -0.05).length;
-      if (avgChg <= -0.08 || drops >= 2) {
-        const lvl = (avgChg <= -0.12 || drops >= 3) ? 'act' : 'near';
-        const summary = stockChanges.sort((a,b)=>a.chg-b.chg).slice(0,4).map(s => s.name + ' ' + (s.chg*100).toFixed(1)+'%').join(' · ');
-        rows.push({ pool: 'ddwarn', code: fc, name: 'L2 穿透重仓股·' + h.name, noLink: false, dd: hm.asOf,
-          sig: 'L2 穿透重仓股3日', cur: '均值 ' + (avgChg*100).toFixed(1) + '%', curMain: (avgChg*100).toFixed(1)+'%',
-          curSub: '跌>5%有' + drops + '只: ' + summary,
-          thrCond: '3日均跌>8% / ≥2只跌>5%', thrAct: 'QDII当晚大概率跟跌，提前预警',
-          thr: '重仓股3日跌>8% → ' + (lvl==='act'?'行动':'接近'), lvl: lvl,
-          src: hm.asOf + '季报前十大（A股部分）',
-          plan: lvl==='act' ? '【暂停加仓】底层重仓股集体大跌，该基金当晚净值大概率跟跌，暂停加仓等企稳' : '【不动】底层重仓股有调整，关注是否传导到基金净值'
-        });
-      }
+      /* fw2_v726_l2_always_show：常驻显示，不管跌没跌都出一行（用户要求像L1那样每只基金一行） */
+      const lvl = (avgChg <= -0.12 || drops >= 3) ? 'act' : (avgChg <= -0.08 || drops >= 2) ? 'near' : 'ok';
+      const summary = stockChanges.sort((a,b)=>a.chg-b.chg).slice(0,4).map(s => s.name + ' ' + (s.chg*100).toFixed(1)+'%').join(' · ');
+      rows.push({ pool: 'ddwarn', code: fc, name: h.name, noLink: false, dd: hm.asOf,
+        sig: 'L2 穿透重仓股3日', cur: '均值 ' + (avgChg*100).toFixed(1) + '%', curMain: (avgChg*100).toFixed(1)+'%',
+        curSub: '跌>5%有' + drops + '只: ' + summary,
+        thrCond: '3日均跌>8% / ≥2只跌>5%', thrAct: 'QDII当晚大概率跟跌，提前预警',
+        thr: '重仓股3日跌>8% → ' + (lvl==='act'?'行动':lvl==='near'?'接近':'正常'), lvl: lvl,
+        src: hm.asOf + '季报前十大（A股部分）',
+        plan: lvl==='act' ? '【暂停加仓】底层重仓股集体大跌，该基金当晚净值大概率跟跌，暂停加仓等企稳'
+            : lvl==='near' ? '【不动】底层重仓股有调整，关注是否传导到基金净值'
+            : '【正常】底层重仓股平稳，定投照常'
+      });
     }
   } catch (e) {}
   return rows;
