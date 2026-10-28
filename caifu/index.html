@@ -8376,6 +8376,7 @@ function cycleEngine(d) {
   }
   var indusAgo3 = ago(indusPts, 1);  /* 工业增加值当月同比（[日期,当月,累计]→idx1） */
   var ppiPrev = prev(ppiPts, 2);     /* PPI 同比 上月（[日期,CPI,PPI,差]→idx2，环比方向） */
+  var cpiPrev = prev(ppiPts, 1);     /* CPI 同比 上月（→idx1） */
   var gapPrev = prev(crPts, 4);      /* 剪刀差（[日期,社融,M1,M2,差]→idx4） */
   var m1Prev = prev(crPts, 2);       /* M1（→idx2） */
   var pmiPrev = prev(pmiPts, 1);     /* PMI（[日期,制造业,非制造业]→idx1） */
@@ -13861,8 +13862,8 @@ function renderSignalDash() {
     var vVid = bnAll.map(bnFmt).join('｜');
 
 
-    /* fw2_v728_sig_tabs：交易信号分tab显示——持仓/筛选/市场/V11 四个子模块，点tab切换 */
-    const _sigTab = localStorage.getItem('fw2_sig_tab_v1') || 'hold';
+    /* fw2_v746_sig_tab_default：交易信号默认打开持仓信号tab（不记忆上次选择） */
+    const _sigTab = 'hold';
     const _sigTabBtns = [
       {k:'hold', label:'持仓信号'},
       {k:'screen', label:'筛选信号'},
