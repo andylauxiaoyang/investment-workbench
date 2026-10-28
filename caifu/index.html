@@ -5662,15 +5662,13 @@ async function fetchDdRows() {
   return rows;
 }
 window.fetchDdRows = fetchDdRows;
-/* fw2_v723_ddwarn_l1：回撤预警 Layer1（最小版）——基金自身 5日动量 + 20日均线 + 跑输基准，日频。
-   数据源优先 window.__NAV_SERIES__[code6]（fund-daily 净值全序列，与收益曲线同源，零新增网络），缺失回退 apiGet('/api/fund-ac-series',{days:30})。
-   阈值=文档建议值：5日跌>10%→行动(暂停加仓) / 5-10%→接近 / 破20日线→接近 / 跑输沪深300≥5%→接近 / ≥2信号共振→行动。
-   动作原则=暂停加仓不新增（不联动定投引擎）；severity 映射为默认，待用户拍板(#5/#8)。 */
+/* fw2_v723_ddwarn_l1：回撤预警 Layer1（动量/均线）。
+   fw2_v724：Q4债/金阈值放宽(bond -1.5%/-3%, gold -4%/-7%) + L3宏观开关(FSI/VIX) + Q5联动定投表标记 */
 async function fetchDrawdownWarnRows() {
-  const codes = []; const seen = new Set();
-  const add = (c, name) => { const k = shortCode(c); if (!k || seen.has(k)) return; seen.add(k); codes.push({ code: k, name: name || '' }); };
-  (state.portfolio || []).forEach((h) => { if ((h.assetType || '') !== 'cash') add(h.code, h.name); });
-  try { (window.getAllocWatchCodes ? window.getAllocWatchCodes() : []).forEach((c) => add(c, '')); } catch (e) {}
+  const codes = []; const seen = new Set(); const atMap = {};
+  const add = (c, name, at) => { const k = shortCode(c); if (!k || seen.has(k)) return; seen.add(k); codes.push({ code: k, name: name || '' }); atMap[k] = at || ''; };
+  (state.portfolio || []).forEach((h) => { if ((h.assetType || '') !== 'cash') add(h.code, h.name, h.assetType); });
+  try { (window.getAllocWatchCodes ? window.getAllocWatchCodes() : []).forEach((c) => add(c, '', '')); } catch (e) {}
   if (!codes.length) return [];
   /* 基准：沪深300 近6日收盘 → 5日收益（用于「跑输基准」子信号） */
   let bench5 = null;
@@ -5691,6 +5689,13 @@ async function fetchDrawdownWarnRows() {
       if (_t && _t.length >= 20) { series = _t.map((p) => [p.d, p.y]); ddDate = _t[_t.length - 1].d; }
     } else if (series.length) { ddDate = series[series.length - 1][0]; }
     if (!series || series.length < 20) continue; /* 数据不足：静默跳过（不出行；空组在 grp 显示「暂无标的」而非静默消失） */
+    const at = atMap[c] || 'fund';
+    /* Q4 fw2_v724_ddwarn_asset_thresholds：债/金阈值放宽（波动小）
+       权益类(stock/etf/fund)：-5%接近/-10%行动（默认）
+       债券类(bond)：-1.5%接近/-3%行动（债基日波动<0.5%，3%已是大回撤）
+       黄金类(gold)：-4%接近/-7%行动（黄金波动介于股债之间） */
+    const thrNear = (at === 'bond') ? -0.015 : (at === 'gold') ? -0.04 : -0.05;
+    const thrAct  = (at === 'bond') ? -0.03  : (at === 'gold') ? -0.07 : -0.10;
     const navs = series.map((x) => x[1]).filter((v) => v > 0);
     if (navs.length < 20) continue;
     const n = navs.length, nav0 = navs[n - 1], nav5 = navs[n - 6 < 0 ? 0 : n - 6];
@@ -5699,18 +5704,18 @@ async function fetchDrawdownWarnRows() {
     const belowMA = nav0 < ma20;
     const benchGap = (bench5 != null) ? (dd5 - bench5) : null;
     const trig = [];
-    if (dd5 <= -0.10) trig.push('mom'); else if (dd5 <= -0.05) trig.push('momN');
+    if (dd5 <= thrAct) trig.push('mom'); else if (dd5 <= thrNear) trig.push('momN');
     if (belowMA) trig.push('ma');
-    if (benchGap != null && benchGap <= -0.05) trig.push('bench');
+    if (benchGap != null && benchGap <= -0.05 && at !== 'bond') trig.push('bench'); /* 债基不跟沪深300比 */
     if (!trig.length) continue;
     const base = { pool: 'ddwarn', code: c, name: f.name || c, noLink: false, dd: ddDate, src: 'fund-daily 净值序列（与收益曲线同源）' };
     if (trig.indexOf('mom') >= 0 || trig.indexOf('momN') >= 0) {
       const lvl = trig.indexOf('mom') >= 0 ? 'act' : 'near';
       rows.push(Object.assign({}, base, {
-        sig: 'L1 5日动量跌幅', cur: '5日 ' + pct(dd5), curMain: pct(dd5), curSub: '净值 ' + nav0.toFixed(4),
-        thrCond: lvl === 'act' ? '≤ -10%' : '≤ -5%',
+        sig: 'L1 5日动量跌幅', cur: '5日 ' + pct(dd5), curMain: pct(dd5), curSub: '净值 ' + nav0.toFixed(4) + ' · ' + (at==='bond'?'债券':at==='gold'?'黄金':'权益'),
+        thrCond: lvl === 'act' ? '≤ ' + (thrAct*100).toFixed(0) + '%' : '≤ ' + (thrNear*100).toFixed(0) + '%',
         thrAct: '暂停该基金定投加仓（不新增）',
-        thr: lvl === 'act' ? '5日跌>10% → 行动·暂停加仓' : '5日跌 5-10% → 接近·关注',
+        thr: lvl === 'act' ? '5日跌>' + (thrAct*100).toFixed(0) + '% → 行动·暂停加仓' : '5日跌 ' + (thrNear*100).toFixed(0) + '-' + (thrAct*100).toFixed(0) + '% → 接近·关注',
         lvl: lvl, plan: lvl === 'act' ? '【暂停加仓】该基金定投暂停，观察是否企稳，不恐慌清仓' : '【不动】定投照常 · 接近触发线，触发后暂停加仓'
       }));
     }
@@ -5741,6 +5746,39 @@ async function fetchDrawdownWarnRows() {
       }));
     }
   }
+  /* Q5 fw2_v724_ddwarn_link_dca：收集act级code，给定投执行页联动标记用 */
+  window.__DDWARN_ACT_CODES__ = new Set(rows.filter(r => r.lvl === 'act').map(r => r.code));
+  window.__DDWARN_NEAR_CODES__ = new Set(rows.filter(r => r.lvl === 'near').map(r => r.code));
+  /* L3 fw2_v724_ddwarn_l3_macro：宏观开关——总开关，不分个股
+     读取 window.MACRO_SNAP（与市场信号M11/M12同源），加2-3行宏观风险信号 */
+  try {
+    const mc = window.MACRO_SNAP || {};
+    const mcDate = mc.updatedAt || '';
+    /* FSI全球金融压力：≥50警戒/≥70危机 */
+    const fsi = mc.fsi || (mc.fs12 || null);
+    const fsiScore = fsi ? (fsi.score != null ? fsi.score : (fsi.cur != null ? fsi.cur : null)) : null;
+    if (fsiScore != null && fsiScore >= 50) {
+      const fsiLvl = fsiScore >= 70 ? 'act' : 'near';
+      rows.push({ pool: 'ddwarn', code: 'MACRO_FSI', name: 'L3 全球金融压力 FSI', noLink: true, dd: mcDate,
+        sig: 'L3 FSI全球压力', cur: 'FSI ' + fsiScore.toFixed(1), curMain: fsiScore.toFixed(1),
+        curSub: fsiScore >= 70 ? '危机级' : '警戒级',
+        thrCond: '≥50警戒 / ≥70危机', thrAct: fsiScore >= 70 ? '全面防御·停进攻开仓' : '暂停进攻开仓',
+        thr: 'FSI≥50 → 警戒 / ≥70 → 危机', lvl: fsiLvl, src: 'CBOE VIX+美债利差/美元/金油比',
+        plan: fsiScore >= 70 ? '【卖出】危机级 · 全面防御：停进攻开仓、清杠杆仓' : '【不动】警戒级 · 暂停进攻开仓，定投照常'
+      });
+    }
+    /* VIX：≥25恐慌/≥30极端恐慌 */
+    const vix = mc.vix && (mc.vix.cur != null ? mc.vix.cur : (mc.vix.value != null ? mc.vix.value : null));
+    if (vix != null && vix >= 25) {
+      rows.push({ pool: 'ddwarn', code: 'MACRO_VIX', name: 'L3 VIX波动率', noLink: true, dd: mcDate,
+        sig: 'L3 VIX恐慌指数', cur: 'VIX ' + vix.toFixed(1), curMain: vix.toFixed(1),
+        curSub: vix >= 30 ? '极端恐慌' : '恐慌',
+        thrCond: '≥25恐慌 / ≥30极端', thrAct: '控制新仓·避避开仓',
+        thr: 'VIX≥25 → 恐慌 / ≥30 → 极端', lvl: vix >= 30 ? 'act' : 'near', src: 'CBOE',
+        plan: vix >= 30 ? '【不动】极端恐慌 · 不开新仓，定投照常不追' : '【不动】恐慌 · 控制新仓，定投照常'
+      });
+    }
+  } catch (e) {}
   return rows;
 }
 window.fetchDrawdownWarnRows = fetchDrawdownWarnRows;
@@ -18300,7 +18338,12 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
       var _am = _allocMap[p.code];
       var info = (g && g.gap > 0) ? '<div style="font-size: 11px;color:var(--muted);margin-top:2px">实时缺口 ' + fmt(Math.round(g.gap)) + ' · 本月建议 ' + (_am != null ? fmt(_am) : fmt(lm)) + '</div>' : '';
       var _bcell = (p.code === '020712') ? '日定投 10/日（限额）' : ((_am != null) ? fmt(_am) : esc(p.build));
-      html += '<tr><td><div class="nm"><b class="lk-rs" data-rscode="' + p.code + '">' + esc(p.name) + LXMAP.ic(LXMAP.fund(p.code), '理杏仁基金') + '</b></div><div class="cd">' + p.code + '</div>' + info + '</td>' +
+      /* Q5 fw2_v724_ddwarn_link_dca：回撤预警act级→定投表红色暂停标记 */
+      var _ddw = (window.__DDWARN_ACT_CODES__ && window.__DDWARN_ACT_CODES__.has(p.code))
+        ? ' <span style="color:#dc2626;font-size:11px;font-weight:600;margin-left:4px">⚠回撤预警·暂停加仓</span>'
+        : (window.__DDWARN_NEAR_CODES__ && window.__DDWARN_NEAR_CODES__.has(p.code)
+          ? ' <span style="color:#d97706;font-size:11px;margin-left:4px">△接近预警</span>' : '');
+      html += '<tr><td><div class="nm"><b class="lk-rs" data-rscode="' + p.code + '">' + esc(p.name) + LXMAP.ic(LXMAP.fund(p.code), '理杏仁基金') + '</b>' + _ddw + '</div><div class="cd">' + p.code + '</div>' + info + '</td>' +
         '<td><div class="qty">' + esc(_bcell) + '</div></td><td>' + esc(p.normal) + '</td><td>' + esc(p.dbl) + '</td><td>' + esc(p.src) + '</td></tr>';
     });
     html += '</tbody></table></div></div>';
