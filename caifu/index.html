@@ -14872,19 +14872,22 @@ setTimeout(() => { renderResearchChips(); if (!state.news.items.length) loadNews
       });
       vis = mods.filter(function (m) { return m.style.display === 'block'; });
       /* fw2_v759：估值全景组按 MI_GROUPS keys 顺序重排（HTML原始顺序是开发顺序，不是决策优先级顺序） */
-      if (window.MI_GROUPS && typeof state.miGroup === 'number') {
-        var grpDef = window.MI_GROUPS[state.miGroup];
-        if (grpDef && grpDef.keys) {
-          var keyOrder = {};
-          grpDef.keys.forEach(function(k, i){ keyOrder[k] = i; });
-          vis.sort(function(a, b){
-            var ta = a.getAttribute('data-title') || '', tb = b.getAttribute('data-title') || '';
-            var ia = 99, ib = 99;
-            for (var k in keyOrder) { if (ta.indexOf(k) === 0) { ia = keyOrder[k]; break; } }
-            for (var k in keyOrder) { if (tb.indexOf(k) === 0) { ib = keyOrder[k]; break; } }
-            return ia - ib;
-          });
-          vis.forEach(function(m){ body.appendChild(m); });
+      if (window.MI_GROUPS) {
+        var grpIdx = parseInt(grp, 10);
+        if (!isNaN(grpIdx) && grpIdx >= 0 && grpIdx < window.MI_GROUPS.length) {
+          var grpDef = window.MI_GROUPS[grpIdx];
+          if (grpDef && grpDef.keys && grpDef.keys.length) {
+            var keyOrder = {};
+            grpDef.keys.forEach(function(k, i){ keyOrder[k] = i; });
+            vis.sort(function(a, b){
+              var ta = a.getAttribute('data-title') || '', tb = b.getAttribute('data-title') || '';
+              var ia = 99, ib = 99;
+              for (var k in keyOrder) { if (ta.indexOf(k) === 0) { ia = keyOrder[k]; break; } }
+              for (var k in keyOrder) { if (tb.indexOf(k) === 0) { ib = keyOrder[k]; break; } }
+              return ia - ib;
+            });
+            vis.forEach(function(m){ body.appendChild(m); });
+          }
         }
       }
       /* fw2_v457_mc_banner_removed：宏观指标页组名横幅（mc-gbanner）已移除——顶部子模块胶囊行
