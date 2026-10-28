@@ -13852,32 +13852,42 @@ function renderSignalDash() {
     var vVid = bnAll.map(bnFmt).join('｜');
 
 
+    /* fw2_v728_sig_tabs：交易信号分tab显示——持仓/筛选/市场/V11 四个子模块，点tab切换 */
+    const _sigTab = localStorage.getItem('fw2_sig_tab_v1') || 'hold';
+    const _sigTabBtns = [
+      {k:'hold', label:'持仓信号'},
+      {k:'screen', label:'筛选信号'},
+      {k:'market', label:'市场信号'},
+      {k:'v11', label:'V11狙击'}
+    ].map(function(t){
+      return '<button data-sigtab="'+t.k+'" style="padding:6px 16px;border:none;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;margin-right:6px;background:'+(t.k===_sigTab?'#4D6BFE':'#E9E7E0')+';color:'+(t.k===_sigTab?'#fff':'#5F5E5A')+'">'+t.label+'</button>';
+    }).join('');
+    const _sigP = function(k){ return ' data-sigpane="'+k+'" style="'+(k===_sigTab?'':'display:none')+'"'; };
     body.innerHTML = '<div class="dc-verdict ' + vTone + '"><div class="dc-vmain">' + vMain + '</div><div class="dc-vevid">' + vVid + '</div></div>'
-      + '<div class="dc-grid">'
-      /* v31b: 市场信号置顶 */ /* fw2_sig_order_v31b */
+      + '<div style="margin:10px 0">' + _sigTabBtns + '</div>'
+      /* tab: 市场信号 */
+      + '<div' + _sigP('market') + '><div class="dc-grid">'
       + grp('市场信号（环境 / 温度计 / 资金面）', (mk && mk.rows) || [], null)
-      /* fw2_v727_ddwarn_merge_hold：回撤预警基金级信号(L1/L2)合并到持仓信号组，不再单独开组；
-         L3宏观信号(FSI/VIX, code非6位数字)仍独立显示 */
+      + grp('宏观风险开关（FSI / VIX）', ddWarnRows.filter(function(r){return !/^\d{6}$/.test(String(r.code));}), [],
+        'L3宏观开关：FSI≥50警戒/≥70危机，VIX≥25恐慌/≥30极端；触发时显示，未触发时无内容', null, false)
+      + '</div></div>'
+      /* tab: 持仓信号 */
+      + '<div' + _sigP('hold') + '><div class="dc-grid">'
       + grp('持仓信号（止盈 / 止损 / 加仓 / 仓位 / 回撤预警）',
         rows.hold.concat(ddWarnRows.filter(function(r){return /^\d{6}$/.test(String(r.code));})),
         rows.meta.filter((m) => m.pool === 'hold'), null, null, true,
         (window.rulesBannerHtml ? window.rulesBannerHtml() : ''))
-      + grp('自选信号（配置目标 · 买入时机 / 风险）', watchRows, rows.meta.filter((m) => m.pool === 'watch'),
-        '自选来源：配置目标未买入（杠铃档位 barbell.funds 剔除已持仓，与资产配置池同口径）· 展示 ' + new Set(watchRows.map(function (r) { return String(r.code); })).size + ' 只标的'
-        + (_watchDup ? ' · 已剔除与持仓重复 ' + _watchDup + ' 只' : '')
-        + (state._wlErr ? ' · ⚠ ' + state._wlErr : ''), null, true)
-      /* fw2_v494_sig_screen：筛选信号（第四大类）——候选池基金只展示估值/回撤/波动/低点/趋势/风险触发的标的（无信号不占版面），
-         点标的名跳基金透视；数据=筛池画像+日频净值，与筛选规则模块同源联动 */
-      + grp('筛选信号（候选池 · 买入评估）', rows.screen, [],
-        '筛选池 ' + ((window.SCREEN_POOL && window.SCREEN_POOL.funds) ? Object.keys(window.SCREEN_POOL.funds).length : 0) + ' 只候选 · 仅展示估值/回撤/波动/低点/趋势/风险触发的标的 · 无持仓专属信号（止盈/止损/网格依赖成本，不适用候选）· 数据=筛池画像+日频净值（与收益曲线同源）', null, true)
-      /* fw2_v727_ddwarn_merge_hold：回撤预警独立grp删除，基金级L1/L2已合并到持仓信号组；
-         L3宏观信号(FSI/VIX)单独一行放在筛选信号后面 */
-      + grp('宏观风险开关（FSI / VIX）', ddWarnRows.filter(function(r){return !/^\d{6}$/.test(String(r.code));}), [],
-        'L3宏观开关：FSI≥50警戒/≥70危机，VIX≥25恐慌/≥30极端；触发时显示，未触发时无内容', null, false)
       + '</div>'
-      + '<div id="btStatWrap">' + btStatHtml() + '</div>'
-      + '<div id="v11Wrap">' + v11SignalHtml() + '</div>' /* v606 V11 狙击信号（独立于网格信号） */
-      + '<div id="v11BtWrap">' + v11BtHtml() + '</div>' /* v607 V11 信号回测统计（样本外） */
+      + '<div id="btStatWrap">' + btStatHtml() + '</div></div>'
+      /* tab: 筛选信号 */
+      + '<div' + _sigP('screen') + '><div class="dc-grid">'
+      + grp('筛选信号（候选池 · 买入评估）', rows.screen, [],
+        '筛选池 ' + ((window.SCREEN_POOL && window.SCREEN_POOL.funds) ? Object.keys(window.SCREEN_POOL.funds).length : 0) + ' 只候选 · 仅展示估值/回撤/波动/低点/趋势/风险触发的标的 · 数据=筛池画像+日频净值', null, true)
+      + '</div></div>'
+      /* tab: V11狙击 */
+      + '<div' + _sigP('v11') + '>'
+      + '<div id="v11Wrap">' + v11SignalHtml() + '</div>'
+      + '<div id="v11BtWrap">' + v11BtHtml() + '</div></div>'
       + '<div class="dc-note">触发≠自动交易 · 阈值锁季度复盘日（T12/D9）· 市场信号=环境提示非指令 · 标的级明细在此。</div>';
     /* v325 fw2_v325_sig_scroll：内容重建后恢复滚动位置（ack「知道了」等触发重渲染时防止跳回顶部） */
     if (_sigScroll) {
@@ -13889,6 +13899,20 @@ function renderSignalDash() {
       });
     }
     body.onclick = (e) => {
+      /* fw2_v728_sig_tabs：tab切换 */
+      const stb = e.target.closest('[data-sigtab]');
+      if (stb) {
+        const tk = stb.dataset.sigtab;
+        try { localStorage.setItem('fw2_sig_tab_v1', tk); } catch(e3){}
+        body.querySelectorAll('[data-sigtab]').forEach(function(b){
+          b.style.background = b.dataset.sigtab===tk ? '#4D6BFE' : '#E9E7E0';
+          b.style.color = b.dataset.sigtab===tk ? '#fff' : '#5F5E5A';
+        });
+        body.querySelectorAll('[data-sigpane]').forEach(function(p){
+          p.style.display = p.dataset.sigpane===tk ? '' : 'none';
+        });
+        return;
+      }
       const gb = e.target.closest('.dc-hd[data-grp]');
       if (gb) {
         const k = gb.dataset.grp;
