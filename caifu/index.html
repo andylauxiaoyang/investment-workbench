@@ -8379,23 +8379,25 @@ function cycleEngine(d) {
   /* ---------- L1 大经济周期（美林四象限 · 短中期层） ---------- */
   var gVal = pmi.make;
   var iVal = pr.ppi;
-  /* fw2_v744_mcln_vote：多指标投票制——不再单指标拍脑袋
-     增长投票：PMI>50 / 工业增加值>5% / M1回升 / 社融回升（4票取多数）
-     通胀投票：PPI上行 / CPI上行 / M2>8%（3票取多数） */
-  var growthVotes = 0, growthTotal = 0;
-  if (gVal != null) { growthTotal++; if (gVal >= 50) growthVotes++; }
-  if (indus.same != null) { growthTotal++; if (indus.same >= 5) growthVotes++; }
-  if (cr.m1 != null && m1Prev != null) { growthTotal++; if (cr.m1 > m1Prev) growthVotes++; }
-  if (cr.sf != null && sfPrev != null) { growthTotal++; if (cr.sf > sfPrev) growthVotes++; }
-  var gStrong = (growthTotal > 0 && growthVotes >= Math.ceil(growthTotal / 2));  // 多数票算增长强
+  /* fw2_v744_mcln_weighted：加权投票制
+     增长指标（权重）：PMI(2) / 工业增加值(1) / M1(2) / 社融(2) / 库存去化(1)
+     通胀指标（权重）：PPI(2) / CPI(2) / M2(1)
+     待接：出口/地产投资/固投/社零/工业利润/用电量/失业率/GDP平减指数 */
+  var gScore = 0, gMax = 0, gParts = [];
+  if (gVal != null) { gMax += 2; var v = gVal >= 50 ? 2 : 0; gScore += v; gParts.push('PMI' + (v>0?'✓':'✗')); }
+  if (indus.same != null) { gMax += 1; var v = indus.same >= 5 ? 1 : 0; gScore += v; gParts.push('工增' + (v>0?'✓':'✗')); }
+  if (cr.m1 != null && m1Prev != null) { gMax += 2; var v = cr.m1 > m1Prev ? 2 : 0; gScore += v; gParts.push('M1' + (v>0?'✓':'✗')); }
+  if (cr.sf != null && sfPrev != null) { gMax += 2; var v = cr.sf > sfPrev ? 2 : 0; gScore += v; gParts.push('社融' + (v>0?'✓':'✗')); }
+  if (inv.yoy != null && invPrevYoy != null) { gMax += 1; var v = inv.yoy < invPrevYoy ? 1 : 0; gScore += v; gParts.push('去库' + (v>0?'✓':'✗')); }
+  var gStrong = (gMax > 0 && gScore >= gMax * 0.5);  // 加权得分过半=增长强
   var gUp = (indus.same != null && indusAgo3 != null) ? (indus.same > indusAgo3)
     : (pmi.make != null && ago(pmiPts, 1) != null) ? (pmi.make > ago(pmiPts, 1)) : null;
   /* 通胀投票 */
-  var inflVotes = 0, inflTotal = 0;
-  if (iVal != null && ppiPrev != null) { inflTotal++; if (iVal > ppiPrev) inflVotes++; }
-  if (pr.cpi != null && cpiPrev != null) { inflTotal++; if (pr.cpi > cpiPrev) inflVotes++; }
-  if (cr.m2 != null) { inflTotal++; if (cr.m2 >= 8) inflVotes++; }  // M2高增=通胀压力
-  var iUp = (inflTotal > 0 && inflVotes >= Math.ceil(inflTotal / 2));  // 多数票算通胀上行
+  var iScore = 0, iMax = 0, iParts = [];
+  if (iVal != null && ppiPrev != null) { iMax += 2; var v = iVal > ppiPrev ? 2 : 0; iScore += v; iParts.push('PPI' + (v>0?'✓':'✗')); }
+  if (pr.cpi != null && cpiPrev != null) { iMax += 2; var v = pr.cpi > cpiPrev ? 2 : 0; iScore += v; iParts.push('CPI' + (v>0?'✓':'✗')); }
+  if (cr.m2 != null) { iMax += 1; var v = cr.m2 >= 8 ? 1 : 0; iScore += v; iParts.push('M2' + (v>0?'✓':'✗')); }
+  var iUp = (iMax > 0 && iScore >= iMax * 0.5);  // 加权得分过半=通胀上行
   var phase1;
   if (gStrong && iUp === true) phase1 = { s: '过热', asset: '商品 / 资源 / 黄金', c: '增长强 · 通胀上行' };
   else if (gStrong) phase1 = { s: '复苏', asset: '股票 / 周期成长', c: '增长强 · 通胀温和' };
@@ -8410,7 +8412,8 @@ function cycleEngine(d) {
       + (indus.same != null ? (indus.same >= 0 ? '+' : '') + indus.same.toFixed(1) + '%' : '—')
       + ' · PPI ' + (iVal != null ? (iVal >= 0 ? '+' : '') + iVal.toFixed(1) + '%' : '—')
       + '（上月 ' + (ppiPrev != null ? ppiPrev.toFixed(1) + '%' : '—') + '）'
-      + ' · 增长投票 ' + growthVotes + '/' + growthTotal + ' · 通胀投票 ' + inflVotes + '/' + inflTotal
+      + ' · 增长 ' + gScore + '/' + gMax + ' [' + gParts.join(' ') + ']'
+      + ' · 通胀 ' + iScore + '/' + iMax + ' [' + iParts.join(' ') + ']'
   };
 
   /* ---------- L2 信用周期 ---------- */
