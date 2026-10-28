@@ -9715,7 +9715,8 @@ body.innerHTML = ((_region === 'cn' || _region === 'v-cycle') ? renderMacroTools
         ${metric('10年分位', pct != null ? 'P' + pct : '—')}
       </div>
       <div class="rv-line"><span class="tag tag-ai">指向</span><span style="color:${lvCol};font-weight:600">${lv}</span> · 处于近10年 ${pct != null ? pct + '%' : '—'} 分位</div>
-      <div class="rv-line"><span class="tag tag-data">阈值</span><span>≥100 高估 · 80–100 偏高 · 50–80 合理 · &lt;50 低估</span></div>`;
+      <div class="rv-line"><span class="tag tag-data">阈值</span><span>≥100 高估 · 80–100 偏高 · 50–80 合理 · &lt;50 低估</span></div>
+      <div class="chart" id="mcBuff" style="height:200px"></div>`;
     })()}
   </div>
   <!-- fw2_v757：破净率从市场情绪页挪到估值全景 -->
@@ -9942,6 +9943,20 @@ body.innerHTML = ((_region === 'cn' || _region === 'v-cycle') ? renderMacroTools
       ],
     }), true);
     cp.resize();
+  }
+  /* fw2_v761：巴菲特指数10年曲线 */
+  const cb = chartOf('mcBuff');
+  if (cb && window.BUFF10Y && window.BUFF10Y.pts && window.BUFF10Y.pts.length) {
+    const pts = window.BUFF10Y.pts;
+    cb.setOption(Object.assign({}, base, {
+      xAxis: { type: 'category', data: pts.map((p) => p[0]), axisLabel: { fontSize: 10, color: '#475569', hideOverlap: true }, axisLine: { lineStyle: { color: '#d8dee6' } } },
+      yAxis: { type: 'value', axisLabel: { fontSize: 10, color: '#475569', formatter: (v) => v + '%' }, splitLine: { lineStyle: { color: '#e3e8ee' } } },
+      series: [
+        { name: '证券化率', type: 'line', data: pts.map((p) => p[1]), showSymbol: false, lineStyle: { color: '#2f6bff', width: 1.6 }, itemStyle: { color: '#2f6bff' },
+          markLine: { silent: true, symbol: 'none', label: { fontSize: 9, color: '#475569' }, data: [{ yAxis: 50, name: '50%' }, { yAxis: 80, name: '80%' }, { yAxis: 100, name: '100%' }], lineStyle: { color: '#d9a441', type: 'dotted' } } },
+      ],
+    }), true);
+    cb.resize();
   }
   const cc = chartOf('mcCredit');
   if (cc && cr.length) {
