@@ -1250,7 +1250,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
     <div data-page-node-id="4kpOdky7SODGpwcpiqg6Ul" class="brand">
       <div data-page-node-id="fy9nr7YX6z70XIIPP2k8cu" class="logo"><!--pnid:nS1XbU8IvoftAAsJBjPYR1-->理</div>
       <div data-page-node-id="KEpstPyZVkdFbO86DWabql" class="brand-txt">
-        <div data-page-node-id="PsvCVyRn9Hy3AVRIxAgjBc" class="b1"><!--pnid:uKibb7vNP0llwjGkZsDB1h-->理财工作台<!-- fw2_v766_ver_badge：最新版本号（与 README changelog / verChip 同步） --><span class="ver-badge" id="verBadge">v767</span></div>
+        <div data-page-node-id="PsvCVyRn9Hy3AVRIxAgjBc" class="b1"><!--pnid:uKibb7vNP0llwjGkZsDB1h-->理财工作台<!-- fw2_v766_ver_badge：最新版本号（与 README changelog / verChip 同步） --><span class="ver-badge" id="verBadge">v768</span></div>
         <div data-page-node-id="29etwgT4DhXWt50INGwSBu" class="b2"><!--pnid:abcwT00RaFu94EKr3WjV2J-->Personal Finance Desk</div>
       </div>
     </div>
@@ -8543,7 +8543,7 @@ window.renderTrendPanel = function () {
       return '<div class="tp-tile"><div class="tt-name">' + f.t + '</div><div class="tt-state" style="color:' + col + '">' + st + '</div>'
         + '<div class="tt-desc">' + f.d + '</div>' + (hint ? '<div class="tt-hint">' + esc(hint) + '</div>' : '') + '</div>';
     }).join('') + '</div>';
-    /* ③ 个基趋势指标表（数据真源 window.__SIG_FD_TREND__，与信号引擎同源；fw2_v767_watchpool：混排「持仓+筛选」加来源列，货基（净值序列恒定 max==min）剔除 */
+    /* ③ 个基趋势指标表（数据真源 window.__SIG_FD_TREND__，与信号引擎同源；fw2_v767_watchpool：混排「持仓+筛选」加来源列；fw2_v768_screenpool：筛选池全量纳入+筛选标的无净值序列计数跳过 */
     var fd = window.__SIG_FD_TREND__ || {};
     var hold = (state.portfolio || []).filter(function (h) { return (h.assetType || '') !== 'cash'; });
     var _bbNames = {};
@@ -8553,7 +8553,15 @@ window.renderTrendPanel = function () {
     var watchCodes = (typeof window.getAllocWatchCodes === 'function') ? window.getAllocWatchCodes() : [];
     var rowsSrc = hold.map(function (h) { return { code: String(h.code || '').replace(/\D/g, '').slice(-6), name: h.name || '', src: '持仓' }; })
       .concat(watchCodes.filter(function (c) { return !heldSet[c]; }).map(function (c) { return { code: c, name: _bbNames[c] || '', src: '筛选' }; }));
-    var moneySkipped = 0, holdN = 0, watchN = 0;
+    /* fw2_v768_screenpool：纳入全部筛选基金池（SCREEN_POOL.funds，40 只候选）——不只配置池；去重（持仓/配置池已含）、按代码升序保证稳定 */
+    var _inRows = {};
+    rowsSrc.forEach(function (r) { _inRows[r.code] = 1; });
+    try {
+      var _sp = (window.SCREEN_POOL && window.SCREEN_POOL.funds) || {};
+      var _spCodes = Object.keys(_sp).filter(function (k) { return /^\d{6}$/.test(k) && !_inRows[k]; }).sort();
+      rowsSrc = rowsSrc.concat(_spCodes.map(function (c) { return { code: c, name: (_sp[c] && _sp[c].name) || '', src: '筛选' }; }));
+    } catch (e) { /* 筛选池未就绪时仅显示持仓+配置池 */ }
+    var moneySkipped = 0, holdN = 0, watchN = 0, noNavSkipped = 0;
     /* fw2_v767_watchpool：货基识别双保险——①净值序列恒定（max==min）②无净值序列+名称含货币类关键词（fund-daily 对货基不产 nav 序列，如 007866 金鹰存钱宝货币C） */
     var _moneyName = /货币|存钱宝|现金宝|理财/;
     var _pc = function (v) { return v == null || !isFinite(v) ? '—' : (v > 0 ? '+' : '') + v.toFixed(1) + '%'; };
@@ -8564,6 +8572,8 @@ window.renderTrendPanel = function () {
       var nm = esc(r.name || c6) + ' <span style="color:var(--muted,#667085)">' + c6 + '</span>';
       if (!ts || ts.length < 20) {
         if (_moneyName.test(r.name || '')) { moneySkipped++; return null; }
+        /* fw2_v768_screenpool：筛选池标的无净值序列（fund-daily 未覆盖/序列过短）→ 计数跳过，不渲染占位行（避免 40 行噪声）；持仓标的仍保留未就绪行 */
+        if (r.src === '筛选') { noNavSkipped++; return null; }
         return '<tr><td>' + nm + '</td><td colspan="10" style="text-align:left;color:var(--muted,#667085)">净值序列未就绪（≤20 点）</td></tr>';
       }
       var _mn = ts[0].y, _mx = ts[0].y;
@@ -8594,11 +8604,11 @@ window.renderTrendPanel = function () {
         + '<td>' + bl + '</td>'
         + '<td style="color:' + _col(st.c20) + '">' + _pc(st.c20) + '</td></tr>';
     }).join('');
-    html += '<div class="card-h" style="margin-top:6px"><h3>个基趋势指标</h3><span class="hint">数据真源 fund-daily 净值序列（与信号引擎同源）· 持仓 ' + holdN + ' + 筛选 ' + watchN + (moneySkipped ? ' · 货基剔除 ' + moneySkipped : '') + '</span></div>'
+    html += '<div class="card-h" style="margin-top:6px"><h3>个基趋势指标</h3><span class="hint">数据真源 fund-daily 净值序列（与信号引擎同源）· 持仓 ' + holdN + ' + 筛选 ' + watchN + (noNavSkipped ? ' · 净值未就绪 ' + noNavSkipped : '') + (moneySkipped ? ' · 货基剔除 ' + moneySkipped : '') + '</span></div>'
       + '<table class="tp-tbl"><thead><tr><th>基金</th><th>来源</th><th>数据日期</th><th>vs MA20</th><th>vs MA60</th><th>距年线</th><th>排列</th><th>RSI14</th><th>MACD</th><th>布林z</th><th>20日动量</th></tr></thead><tbody>'
       + (body || '<tr><td colspan="11" style="text-align:left;color:var(--muted,#667085)">暂无场外持仓与筛选标的</td></tr>')
       + '</tbody></table>'
-      + '<div class="tp-note">口径说明：场外基金为 T+1 净值序列（无成交量/无日内），MA/RSI/MACD/布林均由净值派生，仅作周度级别趋势参考；趋势叠加层只调节定投节奏（加速/减速/降档），不对抗 DCA 内核、永不否决 T4 硬止损。距年线 = 净值相对 MA250 偏离；布林z =（净值−20日均值）/（2×标准差），≥1 触上轨、≤−1 触下轨。来源「持仓」= 当前持仓基金；「筛选」= 配置池中未持仓标的（与信号引擎筛选信号同口径）。货币基金（净值恒定）不适用趋势指标，已自动剔除' + (moneySkipped ? '（本次剔除 ' + moneySkipped + ' 只）' : '') + '。</div>';
+      + '<div class="tp-note">口径说明：场外基金为 T+1 净值序列（无成交量/无日内），MA/RSI/MACD/布林均由净值派生，仅作周度级别趋势参考；趋势叠加层只调节定投节奏（加速/减速/降档），不对抗 DCA 内核、永不否决 T4 硬止损。距年线 = 净值相对 MA250 偏离；布林z =（净值−20日均值）/（2×标准差），≥1 触上轨、≤−1 触下轨。来源「持仓」= 当前持仓基金；「筛选」= 筛选基金池全部候选（screen-pool，含配置池未持仓标的，与信号引擎筛选信号同口径）。货币基金（净值恒定）不适用趋势指标，已自动剔除' + (moneySkipped ? '（本次剔除 ' + moneySkipped + ' 只）' : '') + '；筛选池中暂无净值序列的标的计入「净值未就绪」不占行。</div>';
     _pane.innerHTML = html;
   }).catch(function (e) {
     var _pane = document.getElementById('sigTrendPane');
