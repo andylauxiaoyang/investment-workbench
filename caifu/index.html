@@ -1250,8 +1250,8 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
     <div data-page-node-id="4kpOdky7SODGpwcpiqg6Ul" class="brand">
       <div data-page-node-id="fy9nr7YX6z70XIIPP2k8cu" class="logo"><!--pnid:nS1XbU8IvoftAAsJBjPYR1-->理</div>
       <div data-page-node-id="KEpstPyZVkdFbO86DWabql" class="brand-txt">
-        <div data-page-node-id="PsvCVyRn9Hy3AVRIxAgjBc" class="b1"><!--pnid:uKibb7vNP0llwjGkZsDB1h-->理财工作台<!-- fw2_v766_ver_badge：最新版本号（与 README changelog / verChip 同步） --><span class="ver-badge" id="verBadge">v774</span><!-- fw2_v774_sw_bigbypass+fw2_v774_ldtimeout：买入峰值/最大回撤线上恒「—」根因＝SW 拦截 8MB fund-daily.json 响应体卡死（Playwright 线上 A/B 实证：SW on → r.json() 永不落地、__NAV_SERIES__ 建不起来；SW off → 93 序列秒建；本地不复现）。
-修复＝sw.js v3 对 fund-daily.json 不拦截 + 大于2MB 响应不再写缓存 + CACHE v2→v3；前端两处 loader 加 json() 15s 超时（超时走 raw 源重试）。 --><!-- fw2_v773_theme_collapse：资产配置表主题子组≥6行默认折叠只显小计（纳指100 11只存量），小计行「展开明细」按钮（allocThemeToggle 全局函数，免疫重渲染销毁监听）+ fw2_v773_widebase_off：022676 富国A500增强按宽基指数主题归「进攻/主题」档位（用户拍板 2026-10-29）；fw2_v773_spx_off：标普500存量（017641/096001）同归「进攻/主题」，计划外组清空 --></div>
+        <div data-page-node-id="PsvCVyRn9Hy3AVRIxAgjBc" class="b1"><!--pnid:uKibb7vNP0llwjGkZsDB1h-->理财工作台<!-- fw2_v766_ver_badge：最新版本号（与 README changelog / verChip 同步） --><span class="ver-badge" id="verBadge">v774</span><!-- fw2_v774_sw_bigbypass+fw2_v774_ldtimeout+fw2_v774_navhold：买入峰值/最大回撤线上恒「—」根因＝SW 拦截 8MB fund-daily.json 响应体卡死（Playwright 线上 A/B 实证：SW on → r.json() 永不落地、__NAV_SERIES__ 建不起来；SW off → 93 序列秒建；本地不复现）。
+修复＝sw.js v3 对 fund-daily.json 不拦截 + 大于2MB 响应不再写缓存 + CACHE v2→v3；前端两处 loader 加 json() 45s 超时（超时顺延下一源）。终判根因＝8MB fund-daily 在中国网络 20-35s+ 下载（content-length 为 gzip 1MB、body 完整），SW A/B 结论被沙箱代理慢速混淆；真修＝分层加载 fw2_v774_navhold：data/nav-hold.json（持仓 24 只迷你序列 1.6MB/gzip 170KB，gen_nav_hold.py 随 _make_bundle 重生成）先行秒级建序列，全量后台覆盖。 --><!-- fw2_v773_theme_collapse：资产配置表主题子组≥6行默认折叠只显小计（纳指100 11只存量），小计行「展开明细」按钮（allocThemeToggle 全局函数，免疫重渲染销毁监听）+ fw2_v773_widebase_off：022676 富国A500增强按宽基指数主题归「进攻/主题」档位（用户拍板 2026-10-29）；fw2_v773_spx_off：标普500存量（017641/096001）同归「进攻/主题」，计划外组清空 --></div>
         <div data-page-node-id="29etwgT4DhXWt50INGwSBu" class="b2"><!--pnid:abcwT00RaFu94EKr3WjV2J-->Personal Finance Desk</div>
       </div>
     </div>
@@ -6109,10 +6109,10 @@ function renderHoldings() {
      加载后重渲染让 QDII/场外基金市值变准（__ALLOC_NAV_TRY__ 防重；renderHoldings 内重渲染只发生一次） */
   if (!window.__ALLOC_NAV__ && !window.__ALLOC_NAV_TRY__) {
     window.__ALLOC_NAV_TRY__ = 1;
-    var urls = ['data/fund-daily.json', 'https://raw.githubusercontent.com/andylauxiaoyang/investment-workbench/master/caifu/data/fund-daily.json'];
+    var urls = ['data/nav-hold.json', 'data/fund-daily.json', 'https://raw.githubusercontent.com/andylauxiaoyang/investment-workbench/master/caifu/data/fund-daily.json'];
     (function tryLoad(i) {
       if (i >= urls.length) return;
-      fetch(urls[i], { cache: 'no-cache' }).then(function (r) { return r.ok ? Promise.race([r.json(), new Promise(function (_e, ej) { setTimeout(function () { ej(new Error('fund-daily json 15s 未落地')); }, 15000); })]) : null; }).then(function (d) {
+      fetch(urls[i], { cache: 'no-cache' }).then(function (r) { return r.ok ? Promise.race([r.json(), new Promise(function (_e, ej) { setTimeout(function () { ej(new Error('fund-daily json 45s 未落地')); }, 45000); })]) : null; }).then(function (d) {
         if (d && d.rows) {
                     var map = {};
           var ser = {}; /* v641 fw2_v641_peak_dd：完整日频净值序列（按 code 索引、日期升序），供买入峰值/最大回撤计算 */
@@ -6142,7 +6142,9 @@ function renderHoldings() {
           window.__NAV_SERIES__ = ser;
           window.__ALLOC_NAV__ = map;
           if (typeof renderHoldings === 'function') renderHoldings();
-        } else if (i + 1 < urls.length) { tryLoad(i + 1); }
+          if (!/nav-hold/.test(urls[i])) return; /* v774b fw2_v774_navhold：全量源成功即终止链条 */
+        }
+        if (i + 1 < urls.length) tryLoad(i + 1); /* v774b：迷你源成功后仍续拉全量覆盖；失败/超时也顺延下一源 */
       }).catch(function () { if (i + 1 < urls.length) tryLoad(i + 1); });
     })(0);
   }
@@ -18822,10 +18824,10 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
     /* v240 fw2_v240_nav_fb：异步加载 fund-daily.json 净值缓存（quotes 不可用时兜底市值），加载完重渲染 */
     if (!window.__ALLOC_NAV_TRY__) {
       window.__ALLOC_NAV_TRY__ = 1;
-      var urls = ['data/fund-daily.json', 'https://raw.githubusercontent.com/andylauxiaoyang/investment-workbench/master/caifu/data/fund-daily.json'];
+      var urls = ['data/nav-hold.json', 'data/fund-daily.json', 'https://raw.githubusercontent.com/andylauxiaoyang/investment-workbench/master/caifu/data/fund-daily.json'];
       (function tryLoad(i) {
         if (i >= urls.length) return;
-        fetch(urls[i], { cache: 'no-cache' }).then(function (r) { return r.ok ? Promise.race([r.json(), new Promise(function (_e, ej) { setTimeout(function () { ej(new Error('fund-daily json 15s 未落地')); }, 15000); })]) : null; }).then(function (d) {
+        fetch(urls[i], { cache: 'no-cache' }).then(function (r) { return r.ok ? Promise.race([r.json(), new Promise(function (_e, ej) { setTimeout(function () { ej(new Error('fund-daily json 45s 未落地')); }, 45000); })]) : null; }).then(function (d) {
           if (d && d.rows) {
                         var map = {};
             var ser = {}; /* v641 fw2_v641_peak_dd：与 renderHoldings 同构——v240 与持仓共用 __ALLOC_NAV_TRY__ 守卫，谁先跑谁建序列，否则峰值/回撤列永久缺数据 */
@@ -18855,7 +18857,9 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
             window.__NAV_SERIES__ = ser;
             window.__ALLOC_NAV__ = map;
             renderStrategyView();
-          } else if (i + 1 < urls.length) { tryLoad(i + 1); }
+          }
+          if (!/nav-hold/.test(urls[i])) return; /* v774b fw2_v774_navhold：全量源成功即终止链条 */
+          if (i + 1 < urls.length) tryLoad(i + 1); /* v774b：迷你源成功后仍续拉全量覆盖；失败/超时也顺延下一源 */
         }).catch(function () { if (i + 1 < urls.length) tryLoad(i + 1); });
       })(0);
     }
