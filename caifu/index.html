@@ -968,6 +968,17 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
    替换此前分散的 inline 10px #94a3b8 样式；禁止重彩装饰（用户红线）。滞后判据复用 _mcLagDays（只认 YYYY-MM-DD） */
 .asof { display: inline-flex; flex-wrap: wrap; align-items: baseline; gap: 2px 10px; font-size: var(--fs-sm, 12px); color: var(--text-2, #475467); line-height: 1.5; } /* fw2_v699_asof_weight：可信度信息提为次级强调（11px→12px、--muted→--text-2，对比度≈8.6:1），此前为全站最弱档 */
 
+/* fw2_v701_colpicker：持仓表 19 列分组（默认 8 核心列 + 列设置弹层按需勾选） */
+#colSetBtn { margin-left:auto; }
+.col-pop { display:none; position:absolute; z-index:1300; background:#fff; border:1px solid var(--line,#EAECF0); border-radius:12px; box-shadow:0 10px 34px rgba(16,24,40,.18); padding:10px 14px; min-width:230px; max-height:72vh; overflow:auto; font-size:13px; }
+.col-pop h4 { font-size:12px; color:var(--muted,#667085); margin:10px 0 4px; font-weight:600; }
+.col-pop h4:first-child { margin-top:0; }
+.col-pop label.chk { display:flex; align-items:center; gap:8px; padding:3px 0; cursor:pointer; }
+.col-pop label.chk input { accent-color:var(--brand,#4D6BFE); width:15px; height:15px; }
+.col-pop .col-foot { margin-top:8px; display:flex; gap:8px; justify-content:flex-end; }
+.col-pop .mini { font-size:12px; padding:4px 10px; border-radius:8px; border:1px solid var(--line,#EAECF0); background:#fff; cursor:pointer; font-family:inherit; }
+@media (prefers-color-scheme: dark) { .col-pop { background:var(--panel-1,#1b1f2a); border-color:var(--line,#2b3242); } .col-pop .mini { background:var(--panel-2,#232838); color:var(--text,#E5E7EB); } }
+
 /* fw2_v700_today_todo：首屏「今日待办」聚合条（纪律越界/行动信号/补仓点/数据滞后，一键跳转） */
 .todo-bar { display:flex; align-items:center; flex-wrap:wrap; gap:8px 10px; margin:0 0 12px; padding:10px 12px; background:var(--panel-2,#F8FAFC); border:1px solid var(--line,#EAECF0); border-radius:var(--radius,12px); }
 .todo-bar::before { content:'今日待办'; font-size:12px; font-weight:600; color:var(--text-2,#475467); margin-right:2px; white-space:nowrap; flex:none; }
@@ -980,6 +991,15 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .todo-chip.sev-near { color:#2563EB; border-color:#BCD0F7; background:#EAF1FF; }
 .todo-chip.sev-actadd { color:#15803D; border-color:#A7DCBA; background:#E7F6EC; }
 .todo-chip.sev-loading { color:var(--muted,#667085); border-color:var(--line,#EAECF0); background:#fff; cursor:default; }
+/* fw2_v702_trend_overlay：定投节奏档位指示器（汇总趋势叠加层四信号级别） */
+.dca-gear { display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin:0 0 12px; padding:8px 12px; background:var(--panel-2,#F8FAFC); border:1px solid var(--line,#EAECF0); border-radius:var(--radius,12px); font-size:12.5px; }
+.dca-gear .gear-label { font-weight:600; color:var(--text-2,#475467); }
+.dca-gear .gear-pill { padding:3px 12px; border-radius:999px; font-weight:700; font-family:inherit; }
+.dca-gear .gear-note { color:var(--muted,#667085); }
+.gear-normal { color:#2563EB; background:#EAF1FF; border:1px solid #BCD0F7; }
+.gear-up { color:#15803D; background:#E7F6EC; border:1px solid #A7DCBA; }
+.gear-slow { color:#92600A; background:#FAEEDA; border:1px solid #F0D9A8; }
+.gear-down { color:#A32D2D; background:#FCEBEB; border:1px solid #F0B9B9; }
 .todo-empty { font-size:12.5px; color:var(--text-2,#475467); }
 .asof b { color: var(--text, #101828); font-weight: 600; font-variant-numeric: tabular-nums; }
 .asof .lag-ok { color: var(--down, #047857); }
@@ -1270,6 +1290,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
         <!-- fw2_v661_filter_compact：持仓工具栏整体退役——「盈亏折人民币 + 排序下拉」并入下方 #hdFilter 筛选行，随资产类型 chips 紧凑排列 -->
         <div data-page-node-id="H0p80UORDRlXGXbbpRWhFq" class="filter-row" id="hdFilter"></div>
         <div id="todayTodo" class="todo-bar"></div><!-- fw2_v700_today_todo：首屏今日待办聚合条 -->
+        <div id="dcaGear" class="dca-gear"></div><!-- fw2_v702_trend_overlay：定投节奏档位指示器 -->
 
         <div id="pfSrcNote" style="margin:0 0 8px;font-size:var(--fs-sm);color:var(--warn,#b45309);font-weight:600"></div>
         <div data-page-node-id="CDSquaA0NXeISipWM3MeA9" class="kpi-grid kpi-4" id="hdSummary"></div>
@@ -1286,26 +1307,26 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
             <table data-page-node-id="sdwfOVlP6kTnoE4zJ72dY1" class="tb" data-sp-bindable="database" data-sp-database-id="GjLvwNekmiaDCgMZrhaa29" id="hdTable">
               <thead data-page-node-id="cDDSIKeOLrROVP7IDBUjkR">
                 <tr data-page-node-id="2HgzsW2CkV7n9J4JxcIxYO">
-                  <th data-page-node-id="BWkqnBTMVqsvkrvc316RgI" class="th-name"><!--pnid:LmSG7KnusjprEuy3WS4e9e-->名称 / 代码</th>
-                  <th data-page-node-id="nHy3tCDg9gwOzXMPHClp09"><!--pnid:gWsLXkTwBzHj8x1ubO154x-->板块</th>
-                  <th data-page-node-id="QYN973Djza77tFjto7sqDa"><!--pnid:EEtUKja24y5PL365TNIMcU-->资产类型</th>
-                  <th data-page-node-id="hu4UKojLp4nQBgyfgTiUiq" class="num"><!--pnid:Pe1LkM54Up7qLUCkZ5GgbT-->持仓市值</th>
-                  <th data-page-node-id="hdCostThK114mN2pQv4Rs8Tz" class="num"><!--pnid:hdCost0Th1K114mN2pQv4R-->持仓成本</th>
-                  <th data-page-node-id="0s9owBAvjYdXlvslpJlPIm" class="num" title="天天基金账户持有收益（含份额确认/费用）；无账户数据时按 市值−成本 推算"><!--pnid:12d22HMzBf8vRa9yIegoh8-->总盈亏</th>
-                  <th data-page-node-id="X5FxJFHbA7MVWIGwKaoWl2" class="num" title="天天基金账户当日收益（含份额确认/费用）；无账户数据时按（现价−昨收）×数量 推算"><!--pnid:A50LgFBc4akIska8SOZTWj-->当日盈亏</th>
+                  <th data-page-node-id="BWkqnBTMVqsvkrvc316RgI" class="th-name" data-col="name"><!--pnid:LmSG7KnusjprEuy3WS4e9e-->名称 / 代码</th>
+                  <th data-page-node-id="nHy3tCDg9gwOzXMPHClp09" data-col="sector"><!--pnid:gWsLXkTwBzHj8x1ubO154x-->板块</th>
+                  <th data-page-node-id="QYN973Djza77tFjto7sqDa" data-col="assetType"><!--pnid:EEtUKja24y5PL365TNIMcU-->资产类型</th>
+                  <th data-page-node-id="hu4UKojLp4nQBgyfgTiUiq" class="num" data-col="mv"><!--pnid:Pe1LkM54Up7qLUCkZ5GgbT-->持仓市值</th>
+                  <th data-page-node-id="hdCostThK114mN2pQv4Rs8Tz" class="num" data-col="cost"><!--pnid:hdCost0Th1K114mN2pQv4R-->持仓成本</th>
+                  <th data-page-node-id="0s9owBAvjYdXlvslpJlPIm" class="num" title="天天基金账户持有收益（含份额确认/费用）；无账户数据时按 市值−成本 推算" data-col="tot"><!--pnid:12d22HMzBf8vRa9yIegoh8-->总盈亏</th>
+                  <th data-page-node-id="X5FxJFHbA7MVWIGwKaoWl2" class="num" title="天天基金账户当日收益（含份额确认/费用）；无账户数据时按（现价−昨收）×数量 推算" data-col="day"><!--pnid:A50LgFBc4akIska8SOZTWj-->当日盈亏</th>
                   <!-- fw2_v114_col_order: 持仓市值 > 持仓成本 > 总盈亏 > 当日盈亏 -->
-                  <th data-page-node-id="jVTh0PBGCv5GN5AVSRVGYv" class="num"><!--pnid:Xjcc7GfG3kbbgeT4quXlL9-->单位成本</th>
-                  <th data-page-node-id="KEEnVp3Z4MzPXgVVbYRqDy" class="num"><!--pnid:y3JVQIVbKc3VqkTPodnSfO-->现价</th>
-                  <th data-page-node-id="hwtHtXS8e0ZOxbvIb9bC5L" class="num" title="当日涨跌幅（镜像 chg，与净值同源）"><!--pnid:qC1iMaNcfWnTIiWXjUdvEd-->日涨跌幅</th>
-                  <th class="num" title="本轮首笔买入净值 → 最新净值的累计涨跌幅（单位净值口径，分红未再投）；下方为第一笔买入日期">买入涨跌幅</th>
-                  <th class="num" title="首笔买入以来净值最高点相对买入价的涨幅（≥0，0%＝买入后从未回本）；下方为峰值日期">买入峰值</th>
-                  <th class="num" title="首笔买入以来自运行峰值的最深跌幅（≤0，以买入价为初始运行峰值）；下方为谷底日期">最大回撤</th>
-                  <th data-page-node-id="5vzcfXhFqnVtDseFKEFhPZ" class="num"><!--pnid:WPnPJouPTGARkLZ5GCQEew-->权重</th>
-                  <th data-page-node-id="h63mgk7xzawgdmcZ0XtqSm" class="num"><!--pnid:ypZ8J8h0wgiNdPXqacA0hG-->30日</th>
-                  <th data-page-node-id="dyerTZf37ttPziAXVQE0pu"><!--pnid:0TDUP1T8iToEbiCO9jgiFJ-->市场</th>
-                  <th data-page-node-id="S68bNe36dEVugJJiRXQXDQ"><!--pnid:PHksD1rrTQuc84gfFod0IG-->交易状态</th>
-                  <th data-page-node-id="hdHealthThK7mN2pQv4Rs8Tu"><!--pnid:hdHealth0Th1K7mN2pQv4Rs-->健康度</th>
-                  <th data-page-node-id="vekxOgKNZfcl2KEDhCeVhO" class="num"><!--pnid:jAs12gb8QAWHLlbjmGIp9K-->操作</th>
+                  <th data-page-node-id="jVTh0PBGCv5GN5AVSRVGYv" class="num" data-col="unitCost"><!--pnid:Xjcc7GfG3kbbgeT4quXlL9-->单位成本</th>
+                  <th data-page-node-id="KEEnVp3Z4MzPXgVVbYRqDy" class="num" data-col="price"><!--pnid:y3JVQIVbKc3VqkTPodnSfO-->现价</th>
+                  <th data-page-node-id="hwtHtXS8e0ZOxbvIb9bC5L" class="num" title="当日涨跌幅（镜像 chg，与净值同源）" data-col="pct"><!--pnid:qC1iMaNcfWnTIiWXjUdvEd-->日涨跌幅</th>
+                  <th class="num" title="本轮首笔买入净值 → 最新净值的累计涨跌幅（单位净值口径，分红未再投）；下方为第一笔买入日期" data-col="buyPct">买入涨跌幅</th>
+                  <th class="num" title="首笔买入以来净值最高点相对买入价的涨幅（≥0，0%＝买入后从未回本）；下方为峰值日期" data-col="peakPct">买入峰值</th>
+                  <th class="num" title="首笔买入以来自运行峰值的最深跌幅（≤0，以买入价为初始运行峰值）；下方为谷底日期" data-col="mdd">最大回撤</th>
+                  <th data-page-node-id="5vzcfXhFqnVtDseFKEFhPZ" class="num" data-col="weight"><!--pnid:WPnPJouPTGARkLZ5GCQEew-->权重</th>
+                  <th data-page-node-id="h63mgk7xzawgdmcZ0XtqSm" class="num" data-col="spark"><!--pnid:ypZ8J8h0wgiNdPXqacA0hG-->30日</th>
+                  <th data-page-node-id="dyerTZf37ttPziAXVQE0pu" data-col="market"><!--pnid:0TDUP1T8iToEbiCO9jgiFJ-->市场</th>
+                  <th data-page-node-id="S68bNe36dEVugJJiRXQXDQ" data-col="status"><!--pnid:PHksD1rrTQuc84gfFod0IG-->交易状态</th>
+                  <th data-page-node-id="hdHealthThK7mN2pQv4Rs8Tu" data-col="health"><!--pnid:hdHealth0Th1K7mN2pQv4Rs-->健康度</th>
+                  <th data-page-node-id="vekxOgKNZfcl2KEDhCeVhO" class="num" data-col="act"><!--pnid:jAs12gb8QAWHLlbjmGIp9K-->操作</th>
                 </tr>
               </thead>
               <tbody data-page-node-id="7JQjmBj0Lj9UXPwyb6wlYX"></tbody>
@@ -3683,6 +3704,21 @@ window.HS_name = function (code) {
         } else {
           rows.hold.push(valMissRow(base, 'T3 估值止盈 / T8 估值加仓', valNaKinds(name)));
         }
+        /* fw2_v702_trend_overlay：持仓趋势信号 TREND-UP / TREND-DN（基于 NAV 派生指标；只调节 DCA 节奏，不对抗定投内核） */
+        try {
+          const _ts = fundCalcStats(r.trend);
+          const _bullAln = _ts.ma250 != null && _ts.last >= _ts.ma20 && _ts.ma20 >= _ts.ma60 && _ts.last >= _ts.ma250; // 多头排列（短上长下 + 年线上）
+          const _macdUp = _ts.macd && _ts.macd.hist > 0;   // MACD 红柱 = 动能向上
+          const _macdDn = _ts.macd && _ts.macd.hist < 0;   // MACD 绿柱 = 动能向下
+          const _upTrig = _bullAln && _macdUp;
+          rows.hold.push(Object.assign({}, base, { sig: 'TREND-UP 多头共振', cur: (_bullAln ? '多头排列' : '非多头') + ' · MACD' + (_macdUp ? '红柱' : _macdDn ? '绿柱' : '持平'),
+            curMain: _bullAln ? '多头排列' : '非多头', curSub: 'MACD ' + (_macdUp ? '红柱↑' : _macdDn ? '绿柱↓' : '持平'),
+            thrCond: '站上MA60 + 多头排列 + MACD红柱', thrAct: '定投可加速一档', thr: '多头排列 + MACD红柱 → 定投加速一档', lvl: _upTrig ? 'near' : 'watch', src: '趋势叠加·右侧' }));
+          const _dnTrig = (_ts.last < _ts.ma60) && _macdDn;
+          rows.hold.push(Object.assign({}, base, { sig: 'TREND-DN 空头破位', cur: (_ts.last < _ts.ma60 ? '破MA60' : 'MA60上') + ' · MACD' + (_macdDn ? '绿柱' : _macdUp ? '红柱' : '持平'),
+            curMain: _ts.last < _ts.ma60 ? '破MA60' : 'MA60上', curSub: 'MACD ' + (_macdDn ? '绿柱↓' : _macdUp ? '红柱↑' : '持平'),
+            thrCond: '跌破MA60 + MACD绿柱', thrAct: '该基定投减速/暂缓补仓', thr: '跌破MA60 + MACD绿柱 → 该基定投减速/暂缓补仓（破位保护，不接飞刀）', lvl: _dnTrig ? 'act' : 'watch', src: '趋势叠加·破位保护' }));
+        } catch (e) { /* 趋势信号失败不影响其他信号 */ }
         /* v337 fw2_v337_t9_combo：T9 CAP 超限改为组合级（整体组合累计投入上限），不再按单标的市值逐条生成 */
         /* v322 fw2_v322_grid_track T13 网格跟踪；fw2_v621_t13_lastbuy：基准由「加权单位成本」改为
            「台账最近一笔买入确认净值」（localStorage fw2_trade_ledger_v1，与云端 ledger-import.json 同源），
@@ -4007,8 +4043,22 @@ window.HS_name = function (code) {
         const peak250 = Math.max.apply(null, ys.slice(-250));
         const dd = (last / peak250 - 1) * 100;
         rows.push(mkRow('M6', 'M6 深度回撤（沪深300 距250日高点）', '回撤幅度', (dd > 0 ? '+' : '') + dd.toFixed(1) + '%', '≥15% 接近 · ≥20% 分批补仓区', dd <= -20 ? 'act' : dd <= -15 ? 'near' : 'watch', '腾讯日K', {dd: ((ks[ks.length - 1] || {}).date || ''), curMain: (dd > 0 ? '+' : '') + dd.toFixed(1) + '%', thrCond: '≥15% · ≥20%', thrAct: '接近 · 分批补仓区', plan: dd <= -20 ? '【买入】深度回撤补仓区 · 按持仓卡回撤补仓信号分批执行（勿一次打完）' : dd <= -15 ? '【不动】暂不操作 · 接近补仓区：跌至 -20% 触发分批补仓，备好弹药清单' : '【不动】暂不操作 · 定投照常'}));
+        /* fw2_v702_trend_overlay：REGIME-BEAR 熊市regime（美林衰退 / 库存去库 / 沪深300跌破年线）→ 定投硬降档 */
+        const _mp = window.MACRO_PHASE || {};
+        const _macroBear = (_mp.l1 === '衰退') || (typeof _mp.l3 === 'string' && _mp.l3.indexOf('去库') >= 0);
+        const _mktBear = last < ma250;
+        const _bearTrig = _macroBear || _mktBear;
+        rows.push(mkRow('RB', 'REGIME-BEAR 熊市regime', '美林/库存/年线', (_macroBear ? '宏观:' + (_mp.l1 || '-') + '/' + (_mp.l3 || '-') : '宏观中性') + ' · 沪深300' + (_mktBear ? '年线下' : '年线上'),
+          _bearTrig ? '熊市regime → 定投降档' : '非熊市regime', _bearTrig ? 'act' : 'watch', '宏观+市场', {dd: ((ks[ks.length - 1] || {}).date || ''), curMain: (_macroBear ? '宏观熊' : '宏观中性') + ' · 沪深300' + (_mktBear ? '年线下' : '年线上'), curSub: '美林:' + (_mp.l1 || '-') + ' 库存:' + (_mp.l3 || '-'), thrCond: '美林衰退 / 主动去库 / 沪深300跌破年线', thrAct: '全组合定投硬降档', plan: _bearTrig ? '【不动】熊市regime → 全组合定投降一档（保留 DCA 内核，不停止）；补仓弹药转入观望，等 regime 修复' : '【不动】非熊市regime · 定投照常'}));
       }
     } catch (e) { /* K线失败跳过趋势行 */ }
+    /* fw2_v702_trend_overlay：BREADTH-W 广度恶化（全市场跌停扩散）→ 全组合降档 */
+    try {
+      const _ld = (window.MKT_SNAP && window.MKT_SNAP.limitDown) || [];
+      const _ldN = Array.isArray(_ld) ? _ld.length : 0;
+      if (_ldN >= RISK_CFG.breadthLimitDown) rows.push(mkRow('BW', 'BREADTH-W 广度恶化', '全市场跌停只数', _ldN + ' 只（≥' + RISK_CFG.breadthLimitDown + ' 情绪扩散）', '跌停≥' + RISK_CFG.breadthLimitDown + ' → 全组合降档', 'act', '市场广度', {dd: '', curMain: _ldN + ' 只跌停', curSub: '情绪扩散', thrCond: '跌停≥' + RISK_CFG.breadthLimitDown, thrAct: '全组合定投降档', plan: '【不动】广度恶化 → 全组合定投降一档（不停），补仓弹药转入观望，等广度修复'}));
+      else rows.push(mkRow('BW', 'BREADTH-W 广度', '全市场跌停只数', _ldN + ' 只（阈值≥' + RISK_CFG.breadthLimitDown + '）', '跌停≥' + RISK_CFG.breadthLimitDown + ' → 全组合降档', 'watch', '市场广度', {dd: '', curMain: _ldN + ' 只跌停', curSub: '未达阈值', thrCond: '跌停≥' + RISK_CFG.breadthLimitDown, thrAct: '全组合定投降档', plan: '【不动】广度正常 · 定投照常'}));
+    } catch (e) {}
     /* --- M7~M8 资金面（固定取最近已完成交易日全天成交额；全A=沪深京三所，京=北证50口径实证≈全所）--- */ /* fw2_m7_scope_v33 */ /* fw2_m7_fullday_v33 */ /* fw2_m7_chain_v34 */
     let amtYi = null, amtDay = '', amtSrc = '', amtRoll = false;
     let envHot = false, envCold = false, envNote = "";
@@ -5873,7 +5923,8 @@ function renderHdFilter() {
     + `<select class="sel-sm" id="hdSort">`
     + [['mv', '按市值排序'], ['day', '按当日盈亏'], ['total', '按总盈亏'], ['pct', '按日涨跌幅'], ['weight', '按权重']]
         .map(([v, l]) => `<option value="${v}" ${state.hdSort === v ? 'selected' : ''}>${l}</option>`).join('')
-    + `</select></span>`;
+    + `</select></span>`
+    + `<button id="colSetBtn" class="chip" type="button" style="margin-left:auto" title="自定义持仓表显示的列">列设置 ▾</button>`;
 }
 /* v113 fw2_v113_risk_cfg：风险与机会扫描 / 单票健康度 / 涨跌停判定的**唯一阈值源**（UI 与 Markdown 导出共用）。
    ★与 window.SIGNALS_CFG 的分工：SIGNALS_CFG 管「交易动作」（补仓/止盈/止损/失衡，T1~T10）；
@@ -6048,6 +6099,85 @@ function renderDiscipline(all) {
   }
 }
 
+/* ==========================================================
+ *  fw2_v701_colpicker：持仓表 19 列分组
+ *  默认只显示 8 列核心（名称/市值/成本/总盈亏/日涨跌/权重/健康度/操作），
+ *  其余 11 列经「列设置」弹层按需勾选；选择存入 localStorage。
+ * ========================================================== */
+const HD_COLS = [
+  { k: 'name', t: '名称/代码', g: 'core', fixed: true },
+  { k: 'mv', t: '持仓市值', g: 'core' },
+  { k: 'cost', t: '持仓成本', g: 'core' },
+  { k: 'tot', t: '总盈亏', g: 'core' },
+  { k: 'pct', t: '日涨跌幅', g: 'core' },
+  { k: 'weight', t: '权重', g: 'core' },
+  { k: 'health', t: '健康度', g: 'core' },
+  { k: 'act', t: '操作', g: 'core' },
+  { k: 'day', t: '当日盈亏', g: 'pnl' },
+  { k: 'buyPct', t: '买入涨跌幅', g: 'pnl' },
+  { k: 'peakPct', t: '买入峰值', g: 'pnl' },
+  { k: 'mdd', t: '最大回撤', g: 'pnl' },
+  { k: 'sector', t: '板块', g: 'other' },
+  { k: 'assetType', t: '资产类型', g: 'other' },
+  { k: 'unitCost', t: '单位成本', g: 'other' },
+  { k: 'price', t: '现价', g: 'other' },
+  { k: 'spark', t: '30日', g: 'other' },
+  { k: 'market', t: '市场', g: 'other' },
+  { k: 'status', t: '交易状态', g: 'other' },
+];
+const HD_DEFAULT_COLS = { name: 1, mv: 1, cost: 1, tot: 1, pct: 1, weight: 1, health: 1, act: 1 };
+const HD_COL_GROUPS = [
+  { id: 'core', t: '核心（建议常显）' },
+  { id: 'pnl', t: '盈亏详情' },
+  { id: 'other', t: '分类·其他' },
+];
+function loadColVis() {
+  try { const s = localStorage.getItem('hdCols'); if (s) { const o = JSON.parse(s); return Object.assign({}, HD_DEFAULT_COLS, o); } } catch (e) {}
+  return Object.assign({}, HD_DEFAULT_COLS);
+}
+function saveColVis(o) { try { localStorage.setItem('hdCols', JSON.stringify(o)); } catch (e) {} }
+function applyColVisibility() {
+  const t = document.getElementById('hdTable'); if (!t) return;
+  if (!state.hdCols) state.hdCols = loadColVis();
+  const vis = state.hdCols;
+  t.querySelectorAll('th[data-col], td[data-col]').forEach(function (el) {
+    const c = el.getAttribute('data-col');
+    el.style.display = vis[c] ? '' : 'none';
+  });
+  const empty = t.querySelector('td.empty');
+  if (empty) empty.setAttribute('colspan', String(Object.keys(vis).filter(function (k) { return vis[k]; }).length));
+}
+function renderColPicker() {
+  let pop = document.getElementById('colPicker');
+  if (!pop) { pop = document.createElement('div'); pop.id = 'colPicker'; pop.className = 'col-pop'; document.body.appendChild(pop); }
+  const vis = state.hdCols || HD_DEFAULT_COLS;
+  let html = '';
+  HD_COL_GROUPS.forEach(function (grp) {
+    html += '<h4>' + grp.t + '</h4>';
+    HD_COLS.filter(function (c) { return c.g === grp.id; }).forEach(function (c) {
+      const on = vis[c.k] ? 'checked' : '';
+      const dis = c.fixed ? 'disabled' : '';
+      html += '<label class="chk"><input type="checkbox" data-col="' + c.k + '" ' + on + ' ' + dis + '> ' + c.t + (c.fixed ? '（固定）' : '') + '</label>';
+    });
+  });
+  html += '<div class="col-foot"><button class="mini" data-act="reset">恢复默认</button></div>';
+  pop.innerHTML = html;
+}
+function toggleColPicker() {
+  let pop = document.getElementById('colPicker');
+  if (!pop || pop.style.display !== 'block') {
+    renderColPicker();
+    pop = document.getElementById('colPicker');
+    const btn = document.getElementById('colSetBtn');
+    const r = btn.getBoundingClientRect();
+    pop.style.display = 'block';
+    pop.style.position = 'absolute';
+    const pw = pop.offsetWidth || 240;
+    pop.style.top = (window.scrollY + r.bottom + 6) + 'px';
+    pop.style.left = Math.max(8, window.scrollX + r.right - pw) + 'px';
+  } else { pop.style.display = 'none'; }
+}
+
 function renderHoldings() {
   /* v261 fw2_v261_nav_fb：净值缓存未加载时主动拉取 fund-daily.json（与资产配置表/决策总览同源），
      加载后重渲染让 QDII/场外基金市值变准（__ALLOC_NAV_TRY__ 防重；renderHoldings 内重渲染只发生一次） */
@@ -6143,52 +6273,52 @@ function renderHoldings() {
       const stCls = st.kind === 'live' ? 'tag-live' : 'tag';
       const hh = healthOf(r);
       return `<tr data-code="${r.code}" data-sp-bindable="database" data-sp-database-id="GjLvwNekmiaDCgMZrhaa29">
-        <td>
+        <td data-col="name">
           <div class="nm"><b class="lk-rs" data-rscode="${r.code}" data-rast="${r.assetType || 'fund'}">${esc(r.name)}${r.assetType === 'fund' ? LXMAP.ic(LXMAP.fund(r.code), '理杏仁基金') : ''}</b></div>
           <div class="cd">${shortCode(r.code)} · ${r.qty} 股${r.qtyStale ? ' <span style="color:var(--warn);font-weight:600">⚠份额待核对</span>' : ''}</div>
         </td>
-        <td><span class="tag">${esc(r.sector)}</span></td>
-        <td><span class="at-tag ${at.cls}">${at.label}</span></td>
-        <td class="num">${unit}${fmtMoney(mv)}</td>
-        <td class="num">${Number.isFinite(cost) ? unit + fmtMoney(cost) : '—'}</td>
-        <td class="num ${cls(tot)}">${tot == null ? '—' : unit + fmtMoney(tot, true)}
+        <td data-col="sector"><span class="tag">${esc(r.sector)}</span></td>
+        <td data-col="assetType"><span class="at-tag ${at.cls}">${at.label}</span></td>
+        <td class="num" data-col="mv">${unit}${fmtMoney(mv)}</td>
+        <td class="num" data-col="cost">${Number.isFinite(cost) ? unit + fmtMoney(cost) : '—'}</td>
+        <td class="num ${cls(tot)}" data-col="tot">${tot == null ? '—' : unit + fmtMoney(tot, true)}
           <div class="sub-line ${cls(r.totPct)}">${fmtPct(r.totPct)}</div></td>
-        <td class="num ${cls(day)}">${day == null ? '—' : unit + fmtMoney(day, true)}</td>
-        <td class="num">${fmtNum(r.cost, r.cost < 10 ? 3 : 2)}</td>
-        <td class="num ${cls(r.pct)}">${r.price == null ? '—' : fmtNum(r.price, r.price < 10 ? 3 : 2)}<div class="sub-line" style="font-size:10.5px;color:var(--muted)">${r.navDate ? esc(r.navDate.slice(5)) : '—'}</div></td>
-        <td class="num ${cls(r.pct)}">${fmtPct(r.pct)}</td>
-        <td class="num ${r.buyPct != null ? cls(r.buyPct) : ''}">${r.buyPct == null ? '—' : fmtPct(r.buyPct)}<div class="sub-line" style="font-size:10.5px;color:var(--muted)" title="第一笔买入日期">${r.firstBuyDate ? esc(r.firstBuyDate.slice(0, 10)) : '—'}</div></td>
-        <td class="num ${r.peakPct != null && r.peakPct > 0 ? 'up' : ''}">${r.peakPct == null ? '—' : fmtPct(r.peakPct)}<div class="sub-line" style="font-size:10.5px;color:var(--muted)" title="峰值日期（0%＝从未回本，日期为买入日）">${r.peakPct == null ? '—' : esc(r.peakDate.slice(0, 10))}</div></td>
-        <td class="num ${r.mdd != null && r.mdd < 0 ? 'down' : ''}">${r.mdd == null ? '—' : fmtPct(r.mdd)}<div class="sub-line" style="font-size:10.5px;color:var(--muted)" title="谷底日期">${r.mdd == null ? '—' : esc(r.mddDate.slice(0, 10))}</div></td>
-        <td class="num">${r.weight.toFixed(2)}%</td>
-        <td class="num"><canvas class="spark" width="78" height="24" data-code="${r.code}"></canvas></td>
-        <td><span class="tag tag-${AT_MARKET_LABEL[r.assetType] ? 'fund' : r.market.toLowerCase()}">${r.marketLabel}</span></td>
-        <td><span class="${stCls}">${st.label}</span></td>
-        <td><span class="tag" style="color:${hh.color};border-color:${hh.color};background:color-mix(in srgb, ${hh.color} 14%, transparent)">${hh.label}</span></td>
-        <td class="num">
+        <td class="num ${cls(day)}" data-col="day">${day == null ? '—' : unit + fmtMoney(day, true)}</td>
+        <td class="num" data-col="unitCost">${fmtNum(r.cost, r.cost < 10 ? 3 : 2)}</td>
+        <td class="num ${cls(r.pct)}" data-col="price">${r.price == null ? '—' : fmtNum(r.price, r.price < 10 ? 3 : 2)}<div class="sub-line" style="font-size:10.5px;color:var(--muted)">${r.navDate ? esc(r.navDate.slice(5)) : '—'}</div></td>
+        <td class="num ${cls(r.pct)}" data-col="pct">${fmtPct(r.pct)}</td>
+        <td class="num ${r.buyPct != null ? cls(r.buyPct) : ''}" data-col="buyPct">${r.buyPct == null ? '—' : fmtPct(r.buyPct)}<div class="sub-line" style="font-size:10.5px;color:var(--muted)" title="第一笔买入日期">${r.firstBuyDate ? esc(r.firstBuyDate.slice(0, 10)) : '—'}</div></td>
+        <td class="num ${r.peakPct != null && r.peakPct > 0 ? 'up' : ''}" data-col="peakPct">${r.peakPct == null ? '—' : fmtPct(r.peakPct)}<div class="sub-line" style="font-size:10.5px;color:var(--muted)" title="峰值日期（0%＝从未回本，日期为买入日）">${r.peakPct == null ? '—' : esc(r.peakDate.slice(0, 10))}</div></td>
+        <td class="num ${r.mdd != null && r.mdd < 0 ? 'down' : ''}" data-col="mdd">${r.mdd == null ? '—' : fmtPct(r.mdd)}<div class="sub-line" style="font-size:10.5px;color:var(--muted)" title="谷底日期">${r.mdd == null ? '—' : esc(r.mddDate.slice(0, 10))}</div></td>
+        <td class="num" data-col="weight">${r.weight.toFixed(2)}%</td>
+        <td class="num" data-col="spark"><canvas class="spark" width="78" height="24" data-code="${r.code}"></canvas></td>
+        <td data-col="market"><span class="tag tag-${AT_MARKET_LABEL[r.assetType] ? 'fund' : r.market.toLowerCase()}">${r.marketLabel}</span></td>
+        <td data-col="status"><span class="${stCls}">${st.label}</span></td>
+        <td data-col="health"><span class="tag" style="color:${hh.color};border-color:${hh.color};background:color-mix(in srgb, ${hh.color} 14%, transparent)">${hh.label}</span></td>
+        <td class="num" data-col="act">
           <button class="btn-link" data-act="research" data-code="${r.code}" data-rast="${r.assetType || 'fund'}">研究</button>
           <button class="btn-link" data-act="edit" data-code="${r.code}">改</button>
           <button class="btn-link" data-act="del" data-code="${r.code}" style="color:var(--up)">删</button>
         </td>
       </tr>`;
     }).join('') + (sorted.length ? `<tr class="tot-row">
-        <td title="${cny ? '合计＝全部持仓（折人民币），与上方 KPI 卡一致' : '合计＝全部持仓（原币分列，与数据行同币种）；KPI 卡仍为折人民币'}"><b>合计（${totals.count} 只）</b></td>
-        <td></td>
-        <td></td>
-        <td class="num"><b>${totCur('mv', false)}</b></td>
-        <td class="num"><b>${Number.isFinite(totals.cost) ? totCur('cost', false) : '—'}</b></td>
-        <td class="num ${cls(totals.total)}"><b>${totCur('total', true)}</b>
+        <td data-col="name" title="${cny ? '合计＝全部持仓（折人民币），与上方 KPI 卡一致' : '合计＝全部持仓（原币分列，与数据行同币种）；KPI 卡仍为折人民币'}"><b>合计（${totals.count} 只）</b></td>
+        <td data-col="sector"></td>
+        <td data-col="assetType"></td>
+        <td class="num" data-col="mv"><b>${totCur('mv', false)}</b></td>
+        <td class="num" data-col="cost"><b>${Number.isFinite(totals.cost) ? totCur('cost', false) : '—'}</b></td>
+        <td class="num ${cls(totals.total)}" data-col="tot"><b>${totCur('total', true)}</b>
           <div class="sub-line ${cls(totals.total)}">${fmtPct(totals.totalPct)}</div></td>
-        <td class="num ${cls(totals.day)}"><b>${totCur('day', true)}</b>
+        <td class="num ${cls(totals.day)}" data-col="day"><b>${totCur('day', true)}</b>
           <div class="sub-line ${cls(totals.day)}">${fmtPct(totals.dayPct)}</div></td>
-        <td class="num">—</td>
-        <td class="num">—</td>
-        <td class="num">—</td>
-        <td class="num">—</td>
-        <td class="num">—</td>
-        <td class="num">—</td>
-        <td class="num"><b>${sorted.reduce((s2, r2) => s2 + r2.weight, 0).toFixed(2)}%</b></td>
-        <td></td><td></td><td></td><td></td><td></td>
+        <td class="num" data-col="unitCost">—</td>
+        <td class="num" data-col="price">—</td>
+        <td class="num" data-col="pct">—</td>
+        <td class="num" data-col="buyPct">—</td>
+        <td class="num" data-col="peakPct">—</td>
+        <td class="num" data-col="mdd">—</td>
+        <td class="num" data-col="weight"><b>${sorted.reduce((s2, r2) => s2 + r2.weight, 0).toFixed(2)}%</b></td>
+        <td data-col="spark"></td><td data-col="market"></td><td data-col="status"></td><td data-col="health"></td><td data-col="act"></td>
       </tr>` : ''); /* v545 fw2_v545_hold_total_row：持仓表底部合计行（红框需求），四列金额与 KPI 卡同源 all.totals */
     ensureSparks(sorted);
   }
@@ -6197,6 +6327,7 @@ function renderHoldings() {
     · 权重＝个股市值 ÷ 持仓总市值 · 当日盈亏＝（现价 − 昨收）× 数量；有账户数据时为天天基金账户真实日收益（含份额确认/费用）
     · 当前表格显示 <b>${rows.length}</b> / ${all.rows.length} 只${filter !== 'all' ? '（已按资产类型筛选）' : ''}
     · 示例持仓为模拟数据，可随时编辑或清空。`;
+  applyColVisibility(); /* fw2_v701_colpicker：持仓表列分组（默认 8 核心列，其余经列设置弹层勾选） */
   renderPnlCalendar();
   /* v319 fw2_v319_sig_risk_fusion：风险与机会扫描已迁入交易信号（holdRiskSignals），持仓视图不再渲染 */
   /* v320 fw2_v320_m6_into_signals：M6 明细已迁入交易信号·持仓信号（同源 fetchDdRows），持仓视图不再渲染 */
@@ -6603,9 +6734,33 @@ function fundCalcStats(trend) {
   let yi = -1;
   for (let i = 0; i < trend.length; i++) { if (trend[i].d >= year + '-01-01') { yi = i; break; } }
   const ytd = yi > 0 ? (last / trend[yi - 1].y - 1) * 100 : null;
+  // fw2_v702_trend_overlay：NAV 派生趋势指标（场外无量的前提下全部可算；滞后 T+1，仅周度参考，不用于即时动作）
+  const _N = ys.length;
+  let rsi14 = null;
+  if (_N >= 15) {
+    let _g = 0, _l = 0;
+    for (let i = _N - 14; i < _N; i++) { const _d = ys[i] - ys[i - 1]; if (_d >= 0) _g += _d; else _l -= _d; }
+    const _ag = _g / 14, _al = _l / 14;
+    rsi14 = _al === 0 ? 100 : +(100 - 100 / (1 + _ag / _al)).toFixed(1);
+  }
+  const _ema = (arr, n) => { const k = 2 / (n + 1); let e = arr[0]; for (let i = 1; i < arr.length; i++) e = arr[i] * k + e * (1 - k); return e; };
+  let macd = null;
+  if (_N >= 35) {
+    const _difs = []; let _e12 = ys[0], _e26 = ys[0]; const _k12 = 2 / 13, _k26 = 2 / 27;
+    for (let i = 0; i < _N; i++) { _e12 = ys[i] * _k12 + _e12 * (1 - _k12); _e26 = ys[i] * _k26 + _e26 * (1 - _k26); _difs.push(_e12 - _e26); }
+    const _dea = _ema(_difs, 9);
+    macd = { dif: +_difs[_N - 1].toFixed(4), dea: +_dea.toFixed(4), hist: +(2 * (_difs[_N - 1] - _dea)).toFixed(4) };
+  }
+  let boll = null;
+  if (_N >= 20) {
+    const _w = ys.slice(_N - 20); const _mid = _w.reduce((a, b) => a + b, 0) / 20;
+    const _sd = Math.sqrt(_w.reduce((a, b) => a + (b - _mid) ** 2, 0) / 20);
+    boll = { mid: +_mid.toFixed(4), up: +(_mid + 2 * _sd).toFixed(4), low: +(_mid - 2 * _sd).toFixed(4), pct: _sd ? +(((last - _mid) / (2 * _sd))).toFixed(2) : 0 };
+  }
   return { last, ma20: navMa(20), ma60: navMa(60), /* fw2_v422_ma250：补年线（MA250）——「风险速览」要展示净值在年线上/下；navMa 自身有 ys.length<n 守卫，不足 250 点自动返 null */
     ma250: navMa(250), ma120: navMa(120),
-    c5: chg(5), c20: chg(20), c60: chg(60), c120: chg(120), c250: chg(250), ytd, mdd: mdd * 100, vol };
+    c5: chg(5), c20: chg(20), c60: chg(60), c120: chg(120), c250: chg(250), ytd, mdd: mdd * 100, vol,
+    rsi14, macd, boll /* fw2_v702_trend_overlay：趋势叠加层 NAV 派生指标（RSI/MACD/布林） */ };
 }
 function renderFundHead(rs) {
   setRsTabLabels('fund');   /* v97 fw2_v97_research_merge */
@@ -8044,7 +8199,7 @@ function renderCurrentView() {
     else if (state.view === 'datamgmt') { renderDataMgmt(); } /* fw2_v530_datamgmt：数据管理 */
   } catch (e) { console.error('[render]', e); }
   markAsOfLag(); setTimeout(markAsOfLag, 900); /* fw2_v699_asof_lag：滞后标记；二次补标覆盖异步晚到数据（如宏观/快照延迟渲染） */
-  renderTodayTodo(); setTimeout(renderTodayTodo, 900); /* fw2_v700_today_todo：首屏今日待办聚合（异步信号晚到二次补渲） */
+  renderTodayTodo(); setTimeout(renderTodayTodo, 900); renderDcaGear(); setTimeout(renderDcaGear, 900); /* fw2_v700_today_todo + fw2_v702 定投节奏档位（异步信号晚到二次补渲） */
 }
 /* ================= 数据管理（fw2_v530_datamgmt，2026-10-13） =================
  * 数据管理（22 数据集 新鲜度/滞后提示/更新指令）＋聪明钱数据纳入数据管理（fw2_v531_sm_dmgmt，2026-10-13）＋
@@ -8379,6 +8534,23 @@ function discViolations() {
   };
 }
 
+/* fw2_v702_trend_overlay：定投节奏档位指示器 —— 汇总趋势叠加层四信号（TREND-UP/DN、BREADTH-W、REGIME-BEAR）级别，得出「加速/常态/减速/降档」一档；只调节 DCA 节奏，不对抗定投内核 */
+function renderDcaGear() {
+  var el = document.getElementById('dcaGear'); if (!el) return;
+  var rows = window.__sigAllRows || [];
+  if (!rows.length) { el.innerHTML = '<span class="gear-label">定投节奏</span><span class="gear-pill gear-normal">常态</span><span class="gear-note">信号计算中…</span>'; return; }
+  var down = rows.some(function (r) { return /REGIME-BEAR|BREADTH-W/.test(r.sig || '') && r.lvl === 'act'; });
+  var slow = rows.some(function (r) { return /TREND-DN/.test(r.sig || '') && r.lvl === 'act'; });
+  var up = rows.some(function (r) { return /TREND-UP/.test(r.sig || '') && r.lvl === 'near'; });
+  var drivers = rows.filter(function (r) { return /TREND-UP|TREND-DN|BREADTH-W|REGIME-BEAR/.test(r.sig || '') && (r.lvl === 'act' || r.lvl === 'near'); })
+    .map(function (r) { return r.sig.split(' ')[0] + (r.lvl === 'act' ? '↓' : '↑'); });
+  var gear, cls, note;
+  if (down) { gear = '降档'; cls = 'gear-down'; note = '熊市/广度恶化 → 全组合定投降一档（不停 DCA）'; }
+  else if (slow) { gear = '减速'; cls = 'gear-slow'; note = '个基破位 → 该基定投减速/暂缓补仓'; }
+  else if (up) { gear = '加速'; cls = 'gear-up'; note = '多头共振 → 定投可加速一档'; }
+  else { gear = '常态'; cls = 'gear-normal'; note = '无趋势叠加信号 → 定投照常'; }
+  el.innerHTML = '<span class="gear-label">定投节奏</span><span class="gear-pill ' + cls + '">' + gear + '档</span><span class="gear-note">' + note + (drivers.length ? ' · 驱动：' + drivers.join(' ') : '') + '</span>';
+}
 function renderTodayTodo() {
   var bar = document.getElementById('todayTodo');
   if (!bar) return;
@@ -8419,8 +8591,8 @@ function renderTodayTodo() {
         var hold = (state.portfolio || []).filter(function (h) { return (h.assetType || '') !== 'cash'; });
         var wl = (typeof window.getAllocWatchCodes === 'function') ? window.getAllocWatchCodes() : [];
         Promise.resolve(window.signalEvalAll ? window.signalEvalAll(hold, wl) : null)
-          .then(function (rows) { window.__sigFetching = false; if (rows) { window.__sigAllRows = rows; renderTodayTodo(); } else { window.__sigFailed = true; renderTodayTodo(); } })
-          .catch(function () { window.__sigFetching = false; window.__sigFailed = true; renderTodayTodo(); });
+          .then(function (rows) { window.__sigFetching = false; if (rows) { window.__sigAllRows = rows; renderTodayTodo(); renderDcaGear(); } else { window.__sigFailed = true; renderTodayTodo(); renderDcaGear(); } })
+          .catch(function () { window.__sigFetching = false; window.__sigFailed = true; renderTodayTodo(); renderDcaGear(); });
       }
     } else {
       items.push({ sev: 'loading', icon: '…', label: '信号待持仓加载', view: null, hint: '' });
@@ -9055,6 +9227,7 @@ function mcCalcCommon(d) {
   const cbRatesArr = cbRates.rates || [];
   const N = { '1': 12, '3': 36, '5': 60, '10': 120 }[state.macroWin] || 120;
   const cyc = cycleEngine(d);
+  window.MACRO_PHASE = { l1: cyc.layers.l1.phase.s, l2: cyc.layers.l2.phase.s, l3: cyc.layers.l3.phase.s }; /* fw2_v702_trend_overlay：暴露宏观相位供信号引擎 REGIME-BEAR 读取（趋势叠加层） */
   const indList = (d.industry && d.industry.list) || [];
   const erp = _mcSlice(d.erp && d.erp.points, N);
   const pe = _mcSlice(d.pe && d.pe.points, N);
@@ -11939,6 +12112,28 @@ $('#hdTable').onclick = async (e) => {
     saveStore(); renderCurrentView(); toast('已删除');
   } else if (b.dataset.act === 'research') { openResearch(toResearchCode(code, b.dataset.rast || 'fund')); }   /* v172c fw2_v172c_lkrs：与 .lk-rs 同一口径 —— 原样传原始码会让场外基金落进「股票/指数」分支 */
 };
+
+/* fw2_v701_colpicker：列设置弹层交互（列设置按钮在 #hdFilter 内随 innerHTML 重建，改用 document 委托；点击外部关闭） */
+document.addEventListener('click', (e) => {
+  const setBtn = e.target.closest('#colSetBtn');
+  if (setBtn) { e.preventDefault(); toggleColPicker(); return; }
+  const pop = document.getElementById('colPicker');
+  if (pop && pop.style.display === 'block') {
+    if (e.target.closest('.col-pop')) {
+      const cb = e.target.closest('input[data-col]');
+      if (cb) {
+        if (!state.hdCols) state.hdCols = loadColVis();
+        state.hdCols[cb.dataset.col] = cb.checked ? 1 : 0;
+        saveColVis(state.hdCols); applyColVisibility();
+      } else if (e.target.closest('[data-act="reset"]')) {
+        state.hdCols = Object.assign({}, HD_DEFAULT_COLS);
+        saveColVis(state.hdCols); renderColPicker(); applyColVisibility();
+      }
+      return;
+    }
+    pop.style.display = 'none'; /* 点击外部关闭 */
+  }
+});
 
 
 /* 资讯页 */
