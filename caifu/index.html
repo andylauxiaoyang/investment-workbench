@@ -1250,7 +1250,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
     <div data-page-node-id="4kpOdky7SODGpwcpiqg6Ul" class="brand">
       <div data-page-node-id="fy9nr7YX6z70XIIPP2k8cu" class="logo"><!--pnid:nS1XbU8IvoftAAsJBjPYR1-->理</div>
       <div data-page-node-id="KEpstPyZVkdFbO86DWabql" class="brand-txt">
-        <div data-page-node-id="PsvCVyRn9Hy3AVRIxAgjBc" class="b1"><!--pnid:uKibb7vNP0llwjGkZsDB1h-->理财工作台<!-- fw2_v766_ver_badge：最新版本号（与 README changelog / verChip 同步） --><span class="ver-badge" id="verBadge">v774</span><!-- fw2_v774_sw_bigbypass+fw2_v774_ldtimeout+fw2_v774_navhold：买入峰值/最大回撤线上恒「—」根因＝SW 拦截 8MB fund-daily.json 响应体卡死（Playwright 线上 A/B 实证：SW on → r.json() 永不落地、__NAV_SERIES__ 建不起来；SW off → 93 序列秒建；本地不复现）。
+        <div data-page-node-id="PsvCVyRn9Hy3AVRIxAgjBc" class="b1"><!--pnid:uKibb7vNP0llwjGkZsDB1h-->理财工作台<!-- fw2_v766_ver_badge：最新版本号（与 README changelog / verChip 同步） --><span class="ver-badge" id="verBadge">v775</span><!-- fw2_v775_drop_cols：用户 2026-10-29 拍板，持仓表删「板块/资产类型」两列（存量全为 其他/基金 零信息量）；19→17 列同步：数据行/合计行/空态 colspan；sector 与 assetType 数据字段保留（编辑表单/筛选/研究链接仍在用） --></span><!-- fw2_v774_sw_bigbypass+fw2_v774_ldtimeout+fw2_v774_navhold：买入峰值/最大回撤线上恒「—」根因＝SW 拦截 8MB fund-daily.json 响应体卡死（Playwright 线上 A/B 实证：SW on → r.json() 永不落地、__NAV_SERIES__ 建不起来；SW off → 93 序列秒建；本地不复现）。
 修复＝sw.js v3 对 fund-daily.json 不拦截 + 大于2MB 响应不再写缓存 + CACHE v2→v3；前端两处 loader 加 json() 45s 超时（超时顺延下一源）。终判根因＝8MB fund-daily 在中国网络 20-35s+ 下载（content-length 为 gzip 1MB、body 完整），SW A/B 结论被沙箱代理慢速混淆；真修＝分层加载 fw2_v774_navhold：data/nav-hold.json（持仓 24 只迷你序列 1.6MB/gzip 170KB，gen_nav_hold.py 随 _make_bundle 重生成）先行秒级建序列，全量后台覆盖。 --><!-- fw2_v773_theme_collapse：资产配置表主题子组≥6行默认折叠只显小计（纳指100 11只存量），小计行「展开明细」按钮（allocThemeToggle 全局函数，免疫重渲染销毁监听）+ fw2_v773_widebase_off：022676 富国A500增强按宽基指数主题归「进攻/主题」档位（用户拍板 2026-10-29）；fw2_v773_spx_off：标普500存量（017641/096001）同归「进攻/主题」，计划外组清空 --></div>
         <div data-page-node-id="29etwgT4DhXWt50INGwSBu" class="b2"><!--pnid:abcwT00RaFu94EKr3WjV2J-->Personal Finance Desk</div>
       </div>
@@ -1313,8 +1313,6 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
               <thead data-page-node-id="cDDSIKeOLrROVP7IDBUjkR">
                 <tr data-page-node-id="2HgzsW2CkV7n9J4JxcIxYO">
                   <th data-page-node-id="BWkqnBTMVqsvkrvc316RgI" class="th-name"><!--pnid:LmSG7KnusjprEuy3WS4e9e-->名称 / 代码</th>
-                  <th data-page-node-id="nHy3tCDg9gwOzXMPHClp09"><!--pnid:gWsLXkTwBzHj8x1ubO154x-->板块</th>
-                  <th data-page-node-id="QYN973Djza77tFjto7sqDa"><!--pnid:EEtUKja24y5PL365TNIMcU-->资产类型</th>
                   <th data-page-node-id="hu4UKojLp4nQBgyfgTiUiq" class="num"><!--pnid:Pe1LkM54Up7qLUCkZ5GgbT-->持仓市值</th>
                   <th data-page-node-id="hdCostThK114mN2pQv4Rs8Tz" class="num"><!--pnid:hdCost0Th1K114mN2pQv4R-->持仓成本</th>
                   <th data-page-node-id="0s9owBAvjYdXlvslpJlPIm" class="num" title="天天基金账户持有收益（含份额确认/费用）；无账户数据时按 市值−成本 推算"><!--pnid:12d22HMzBf8vRa9yIegoh8-->总盈亏</th>
@@ -6188,7 +6186,7 @@ function renderHoldings() {
   renderDiscipline(all);
   const tbody = $('#hdTable tbody');
   if (!sorted.length) {
-    tbody.innerHTML = '<tr><td colspan="19" class="empty">暂无持仓 · 账户同步后自动显示</td></tr>'; /* fw2_v660_ui_simplify */
+    tbody.innerHTML = '<tr><td colspan="17" class="empty">暂无持仓 · 账户同步后自动显示</td></tr>'; /* fw2_v660_ui_simplify；v775 删板块/资产类型两列 19→17 */
   } else {
     tbody.innerHTML = sorted.map((r) => {
       const mv = cny ? r.mvCny : r.mvLocal;
@@ -6196,7 +6194,6 @@ function renderHoldings() {
       const tot = cny ? r.totCny : r.totLocal;
       const unit = cny ? '¥' : r.cur;
       const cost = cny ? r.costCny : r.costLocal;
-      const at = ASSET_TYPES[r.assetType] || ASSET_TYPES.stock;
       const st = r.status;
       const stCls = st.kind === 'live' ? 'tag-live' : 'tag';
       const hh = healthOf(r);
@@ -6205,8 +6202,6 @@ function renderHoldings() {
           <div class="nm"><b class="lk-rs" data-rscode="${r.code}" data-rast="${r.assetType || 'fund'}">${esc(r.name)}${r.assetType === 'fund' ? LXMAP.ic(LXMAP.fund(r.code), '理杏仁基金') : ''}</b></div>
           <div class="cd">${shortCode(r.code)} · ${r.qty} 股${r.qtyStale ? ' <span style="color:var(--warn);font-weight:600">⚠份额待核对</span>' : ''}</div>
         </td>
-        <td><span class="tag">${esc(r.sector)}</span></td>
-        <td><span class="at-tag ${at.cls}">${at.label}</span></td>
         <td class="num">${unit}${fmtMoney(mv)}</td>
         <td class="num">${Number.isFinite(cost) ? unit + fmtMoney(cost) : '—'}</td>
         <td class="num ${cls(tot)}">${tot == null ? '—' : unit + fmtMoney(tot, true)}
@@ -6231,8 +6226,6 @@ function renderHoldings() {
       </tr>`;
     }).join('') + (sorted.length ? `<tr class="tot-row">
         <td title="${cny ? '合计＝全部持仓（折人民币），与上方 KPI 卡一致' : '合计＝全部持仓（原币分列，与数据行同币种）；KPI 卡仍为折人民币'}"><b>合计（${totals.count} 只）</b></td>
-        <td></td>
-        <td></td>
         <td class="num"><b>${totCur('mv', false)}</b></td>
         <td class="num"><b>${Number.isFinite(totals.cost) ? totCur('cost', false) : '—'}</b></td>
         <td class="num ${cls(totals.total)}"><b>${totCur('total', true)}</b>
