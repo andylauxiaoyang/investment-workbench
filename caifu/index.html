@@ -1250,7 +1250,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
     <div data-page-node-id="4kpOdky7SODGpwcpiqg6Ul" class="brand">
       <div data-page-node-id="fy9nr7YX6z70XIIPP2k8cu" class="logo"><!--pnid:nS1XbU8IvoftAAsJBjPYR1-->理</div>
       <div data-page-node-id="KEpstPyZVkdFbO86DWabql" class="brand-txt">
-        <div data-page-node-id="PsvCVyRn9Hy3AVRIxAgjBc" class="b1"><!--pnid:uKibb7vNP0llwjGkZsDB1h-->理财工作台<!-- fw2_v766_ver_badge：最新版本号（与 README changelog / verChip 同步） --><span class="ver-badge" id="verBadge">v769</span></div>
+        <div data-page-node-id="PsvCVyRn9Hy3AVRIxAgjBc" class="b1"><!--pnid:uKibb7vNP0llwjGkZsDB1h-->理财工作台<!-- fw2_v766_ver_badge：最新版本号（与 README changelog / verChip 同步） --><span class="ver-badge" id="verBadge">v770</span></div>
         <div data-page-node-id="29etwgT4DhXWt50INGwSBu" class="b2"><!--pnid:abcwT00RaFu94EKr3WjV2J-->Personal Finance Desk</div>
       </div>
     </div>
@@ -8567,6 +8567,10 @@ window.renderTrendPanel = function () {
       return '<div class="tp-tile"><div class="tt-name">' + f.t + '</div><div class="tt-state" style="color:' + col + '">' + st + '</div>'
         + '<div class="tt-desc">' + f.d + '</div>' + (hint ? '<div class="tt-hint">' + esc(hint) + '</div>' : '') + '</div>';
     }).join('') + '</div>';
+    /* fw2_v770_tile_scope：磁贴口径标注（用户 2026-10-29 拍板方案A）——TREND 磁贴/定投档位仅统计持仓；筛选池/配置池不做定投，趋势见下方全量表、买入时机由 S 系信号覆盖 */
+    var _heldN = (state.portfolio || []).filter(function (h) { return (h.assetType || '') !== 'cash'; }).length;
+    var _poolN = 0; try { _poolN = window.SCREEN_POOL && window.SCREEN_POOL.funds ? Object.keys(window.SCREEN_POOL.funds).length : 0; } catch (e) { _poolN = 0; }
+    html += '<div class="tp-note" style="margin-top:6px">磁贴统计口径：定投节奏与 TREND 磁贴仅统计当前持仓 ' + _heldN + ' 只；筛选池/配置池不做定投，其趋势见下方「个基趋势指标」全量表（筛选池 ' + _poolN + ' 只候选）、买入时机由 S 系筛选信号覆盖。BREADTH-W / REGIME-BEAR 为市场级信号，与持仓数量无关。</div>';
     /* ③ 个基趋势指标表（数据真源 window.__SIG_FD_TREND__，与信号引擎同源；fw2_v767_watchpool：混排「持仓+筛选」加来源列；fw2_v768_screenpool：筛选池全量纳入+筛选标的无净值序列计数跳过 */
     var fd = window.__SIG_FD_TREND__ || {};
     var hold = (state.portfolio || []).filter(function (h) { return (h.assetType || '') !== 'cash'; });
