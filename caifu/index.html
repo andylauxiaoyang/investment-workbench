@@ -276,6 +276,11 @@ button, input, select, textarea { font-family: inherit; font-size: var(--fs-md);
 .tb .cd { font-size: var(--fs-2xs); color: var(--muted); font-family: var(--mono); }
 .tb .sub-line { font-size: var(--fs-2xs); color: var(--muted); font-family: var(--mono); }
 .tb .spark { width: 78px; height: 24px; display: block; }
+/* v776 fw2_v776_spark_center：30日 走势列表头与画布居中（用户 2026-10-29 拍板）。
+   id 选择器特异性压过 .tb thead th.num 的 right；画布 display:block + margin auto 居中。 */
+#hdTable thead th.spark-col-h { text-align: center; }
+#hdTable tbody td.spark-col { text-align: center; }
+#hdTable tbody td.spark-col .spark { margin: 0 auto; }
 /* v643 fw2_v643_mtbl_tier：月度涨跌表（理杏仁样式）——淡色细网格线 + 表头淡影框 + 斑马纹，年份倒序（最新在上）。
    仅作用 .mtbl，不碰 .tb（其余表格共用）。border-collapse:separate 让表头 box-shadow 淡影框生效。 */
 .mtbl { border-collapse: separate; border-spacing: 0; width: 100%; }
@@ -1250,7 +1255,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
     <div data-page-node-id="4kpOdky7SODGpwcpiqg6Ul" class="brand">
       <div data-page-node-id="fy9nr7YX6z70XIIPP2k8cu" class="logo"><!--pnid:nS1XbU8IvoftAAsJBjPYR1-->理</div>
       <div data-page-node-id="KEpstPyZVkdFbO86DWabql" class="brand-txt">
-        <div data-page-node-id="PsvCVyRn9Hy3AVRIxAgjBc" class="b1"><!--pnid:uKibb7vNP0llwjGkZsDB1h-->理财工作台<!-- fw2_v766_ver_badge：最新版本号（与 README changelog / verChip 同步） --><span class="ver-badge" id="verBadge">v775</span><!-- fw2_v775_drop_cols：用户 2026-10-29 拍板，持仓表删「板块/资产类型」两列（存量全为 其他/基金 零信息量）；19→17 列同步：数据行/合计行/空态 colspan；sector 与 assetType 数据字段保留（编辑表单/筛选/研究链接仍在用） --></span><!-- fw2_v774_sw_bigbypass+fw2_v774_ldtimeout+fw2_v774_navhold：买入峰值/最大回撤线上恒「—」根因＝SW 拦截 8MB fund-daily.json 响应体卡死（Playwright 线上 A/B 实证：SW on → r.json() 永不落地、__NAV_SERIES__ 建不起来；SW off → 93 序列秒建；本地不复现）。
+        <div data-page-node-id="PsvCVyRn9Hy3AVRIxAgjBc" class="b1"><!--pnid:uKibb7vNP0llwjGkZsDB1h-->理财工作台<!-- fw2_v766_ver_badge：最新版本号（与 README changelog / verChip 同步） --><span class="ver-badge" id="verBadge">v776</span><!-- fw2_v776_spark_center：用户 2026-10-29 拍板，持仓表「30日」走势列表头与画布居中（th/td 加 spark-col-h/-col 类，id 选择器压过 th.num 右对齐，画布 block+margin auto）--></span><!-- fw2_v775_drop_cols：用户 2026-10-29 拍板，持仓表删「板块/资产类型」两列（存量全为 其他/基金 零信息量）；19→17 列同步：数据行/合计行/空态 colspan；sector 与 assetType 数据字段保留（编辑表单/筛选/研究链接仍在用） --></span><!-- fw2_v774_sw_bigbypass+fw2_v774_ldtimeout+fw2_v774_navhold：买入峰值/最大回撤线上恒「—」根因＝SW 拦截 8MB fund-daily.json 响应体卡死（Playwright 线上 A/B 实证：SW on → r.json() 永不落地、__NAV_SERIES__ 建不起来；SW off → 93 序列秒建；本地不复现）。
 修复＝sw.js v3 对 fund-daily.json 不拦截 + 大于2MB 响应不再写缓存 + CACHE v2→v3；前端两处 loader 加 json() 45s 超时（超时顺延下一源）。终判根因＝8MB fund-daily 在中国网络 20-35s+ 下载（content-length 为 gzip 1MB、body 完整），SW A/B 结论被沙箱代理慢速混淆；真修＝分层加载 fw2_v774_navhold：data/nav-hold.json（持仓 24 只迷你序列 1.6MB/gzip 170KB，gen_nav_hold.py 随 _make_bundle 重生成）先行秒级建序列，全量后台覆盖。 --><!-- fw2_v773_theme_collapse：资产配置表主题子组≥6行默认折叠只显小计（纳指100 11只存量），小计行「展开明细」按钮（allocThemeToggle 全局函数，免疫重渲染销毁监听）+ fw2_v773_widebase_off：022676 富国A500增强按宽基指数主题归「进攻/主题」档位（用户拍板 2026-10-29）；fw2_v773_spx_off：标普500存量（017641/096001）同归「进攻/主题」，计划外组清空 --></div>
         <div data-page-node-id="29etwgT4DhXWt50INGwSBu" class="b2"><!--pnid:abcwT00RaFu94EKr3WjV2J-->Personal Finance Desk</div>
       </div>
@@ -1325,7 +1330,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
                   <th class="num" title="首笔买入以来净值最高点相对买入价的涨幅（≥0，0%＝买入后从未回本）；下方为峰值日期">买入峰值</th>
                   <th class="num" title="首笔买入以来自运行峰值的最深跌幅（≤0，以买入价为初始运行峰值）；下方为谷底日期">最大回撤</th>
                   <th data-page-node-id="5vzcfXhFqnVtDseFKEFhPZ" class="num"><!--pnid:WPnPJouPTGARkLZ5GCQEew-->权重</th>
-                  <th data-page-node-id="h63mgk7xzawgdmcZ0XtqSm" class="num"><!--pnid:ypZ8J8h0wgiNdPXqacA0hG-->30日</th>
+                  <th data-page-node-id="h63mgk7xzawgdmcZ0XtqSm" class="num spark-col-h"><!--pnid:ypZ8J8h0wgiNdPXqacA0hG-->30日</th>
                   <th data-page-node-id="dyerTZf37ttPziAXVQE0pu"><!--pnid:0TDUP1T8iToEbiCO9jgiFJ-->市场</th>
                   <th data-page-node-id="S68bNe36dEVugJJiRXQXDQ"><!--pnid:PHksD1rrTQuc84gfFod0IG-->交易状态</th>
                   <th data-page-node-id="hdHealthThK7mN2pQv4Rs8Tu"><!--pnid:hdHealth0Th1K7mN2pQv4Rs-->健康度</th>
@@ -6214,7 +6219,7 @@ function renderHoldings() {
         <td class="num ${r.peakPct != null && r.peakPct > 0 ? 'up' : ''}">${r.peakPct == null ? '—' : fmtPct(r.peakPct)}<div class="sub-line" style="font-size:10.5px;color:var(--muted)" title="峰值日期（0%＝从未回本，日期为买入日）">${r.peakPct == null ? '—' : esc(r.peakDate.slice(0, 10))}</div></td>
         <td class="num ${r.mdd != null && r.mdd < 0 ? 'down' : ''}">${r.mdd == null ? '—' : fmtPct(r.mdd)}<div class="sub-line" style="font-size:10.5px;color:var(--muted)" title="谷底日期">${r.mdd == null ? '—' : esc(r.mddDate.slice(0, 10))}</div></td>
         <td class="num">${r.weight.toFixed(2)}%</td>
-        <td class="num"><canvas class="spark" width="78" height="24" data-code="${r.code}"></canvas></td>
+        <td class="num spark-col"><canvas class="spark" width="78" height="24" data-code="${r.code}"></canvas></td>
         <td><span class="tag tag-${AT_MARKET_LABEL[r.assetType] ? 'fund' : r.market.toLowerCase()}">${r.marketLabel}</span></td>
         <td><span class="${stCls}">${st.label}</span></td>
         <td><span class="tag" style="color:${hh.color};border-color:${hh.color};background:color-mix(in srgb, ${hh.color} 14%, transparent)">${hh.label}</span></td>
