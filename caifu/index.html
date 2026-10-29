@@ -8543,16 +8543,33 @@ window.renderTrendPanel = function () {
       return '<div class="tp-tile"><div class="tt-name">' + f.t + '</div><div class="tt-state" style="color:' + col + '">' + st + '</div>'
         + '<div class="tt-desc">' + f.d + '</div>' + (hint ? '<div class="tt-hint">' + esc(hint) + '</div>' : '') + '</div>';
     }).join('') + '</div>';
-    /* ③ 个基趋势指标表（数据真源 window.__SIG_FD_TREND__，与信号引擎同源） */
+    /* ③ 个基趋势指标表（数据真源 window.__SIG_FD_TREND__，与信号引擎同源；fw2_v767_watchpool：混排「持仓+筛选」加来源列，货基（净值序列恒定 max==min）剔除 */
     var fd = window.__SIG_FD_TREND__ || {};
     var hold = (state.portfolio || []).filter(function (h) { return (h.assetType || '') !== 'cash'; });
+    var _bbNames = {};
+    try { ((window.SIGNALS_CFG && window.SIGNALS_CFG.barbell && window.SIGNALS_CFG.barbell.funds) || []).forEach(function (f) { if (f && f.code) _bbNames[String(f.code).replace(/\D/g, '').slice(-6)] = f.name || ''; }); } catch (e) { /* 配置缺失回退空 */ }
+    var heldSet = {};
+    hold.forEach(function (h) { heldSet[String(h.code || '').replace(/\D/g, '').slice(-6)] = 1; });
+    var watchCodes = (typeof window.getAllocWatchCodes === 'function') ? window.getAllocWatchCodes() : [];
+    var rowsSrc = hold.map(function (h) { return { code: String(h.code || '').replace(/\D/g, '').slice(-6), name: h.name || '', src: '持仓' }; })
+      .concat(watchCodes.filter(function (c) { return !heldSet[c]; }).map(function (c) { return { code: c, name: _bbNames[c] || '', src: '筛选' }; }));
+    var moneySkipped = 0, holdN = 0, watchN = 0;
+    /* fw2_v767_watchpool：货基识别双保险——①净值序列恒定（max==min）②无净值序列+名称含货币类关键词（fund-daily 对货基不产 nav 序列，如 007866 金鹰存钱宝货币C） */
+    var _moneyName = /货币|存钱宝|现金宝|理财/;
     var _pc = function (v) { return v == null || !isFinite(v) ? '—' : (v > 0 ? '+' : '') + v.toFixed(1) + '%'; };
     var _col = function (v) { return v == null || !isFinite(v) ? 'var(--muted,#667085)' : v > 0 ? 'var(--up,#c0392b)' : v < 0 ? 'var(--down,#047857)' : 'var(--muted,#667085)'; };
-    var body = hold.map(function (h) {
-      var c6 = String(h.code || '').replace(/\D/g, '').slice(-6);
+    var body = rowsSrc.map(function (r) {
+      var c6 = r.code;
       var ts = fd[c6];
-      var nm = esc(h.name || c6) + ' <span style="color:var(--muted,#667085)">' + c6 + '</span>';
-      if (!ts || ts.length < 20) return '<tr><td>' + nm + '</td><td colspan="10" style="text-align:left;color:var(--muted,#667085)">净值序列未就绪（≤20 点）</td></tr>';
+      var nm = esc(r.name || c6) + ' <span style="color:var(--muted,#667085)">' + c6 + '</span>';
+      if (!ts || ts.length < 20) {
+        if (_moneyName.test(r.name || '')) { moneySkipped++; return null; }
+        return '<tr><td>' + nm + '</td><td colspan="10" style="text-align:left;color:var(--muted,#667085)">净值序列未就绪（≤20 点）</td></tr>';
+      }
+      var _mn = ts[0].y, _mx = ts[0].y;
+      for (var _i = 1; _i < ts.length; _i++) { if (ts[_i].y < _mn) _mn = ts[_i].y; if (ts[_i].y > _mx) _mx = ts[_i].y; }
+      if (_mx === _mn) { moneySkipped++; return null; }
+      if (r.src === '持仓') holdN++; else watchN++;
       var st = fundCalcStats(ts);
       var dd = ts[ts.length - 1] ? ts[ts.length - 1].d : '';
       var aln, alnC;
@@ -8567,7 +8584,7 @@ window.renderTrendPanel = function () {
       var rsiC = rsi == null ? 'var(--muted,#667085)' : rsi >= 70 ? 'var(--up,#c0392b)' : rsi <= 30 ? 'var(--down,#047857)' : 'var(--text,#101828)';
       var mc = st.macd ? (st.macd.hist > 0 ? '<span style="color:var(--up,#c0392b)">红柱↑</span>' : st.macd.hist < 0 ? '<span style="color:var(--down,#047857)">绿柱↓</span>' : '持平') : '—';
       var bl = st.boll ? st.boll.pct.toFixed(2) + (st.boll.pct >= 1 ? ' 触上轨' : st.boll.pct <= -1 ? ' 触下轨' : '') : '—';
-      return '<tr><td>' + nm + '</td><td style="color:var(--muted,#667085)">' + dd + '</td>'
+      return '<tr><td>' + nm + '</td><td style="white-space:nowrap;color:' + (r.src === '筛选' ? '#2563EB' : 'var(--muted,#667085)') + '">' + r.src + '</td><td style="color:var(--muted,#667085)">' + dd + '</td>'
         + '<td style="color:' + _col(d20) + '">' + _pc(d20) + '</td>'
         + '<td style="color:' + _col(d60) + '">' + _pc(d60) + '</td>'
         + '<td style="color:' + _col(d250) + '">' + _pc(d250) + '</td>'
@@ -8577,11 +8594,11 @@ window.renderTrendPanel = function () {
         + '<td>' + bl + '</td>'
         + '<td style="color:' + _col(st.c20) + '">' + _pc(st.c20) + '</td></tr>';
     }).join('');
-    html += '<div class="card-h" style="margin-top:6px"><h3>个基趋势指标</h3><span class="hint">数据真源 fund-daily 净值序列（与信号引擎同源）</span></div>'
-      + '<table class="tp-tbl"><thead><tr><th>基金</th><th>数据日期</th><th>vs MA20</th><th>vs MA60</th><th>距年线</th><th>排列</th><th>RSI14</th><th>MACD</th><th>布林z</th><th>20日动量</th></tr></thead><tbody>'
-      + (body || '<tr><td colspan="10" style="text-align:left;color:var(--muted,#667085)">暂无场外持仓</td></tr>')
+    html += '<div class="card-h" style="margin-top:6px"><h3>个基趋势指标</h3><span class="hint">数据真源 fund-daily 净值序列（与信号引擎同源）· 持仓 ' + holdN + ' + 筛选 ' + watchN + (moneySkipped ? ' · 货基剔除 ' + moneySkipped : '') + '</span></div>'
+      + '<table class="tp-tbl"><thead><tr><th>基金</th><th>来源</th><th>数据日期</th><th>vs MA20</th><th>vs MA60</th><th>距年线</th><th>排列</th><th>RSI14</th><th>MACD</th><th>布林z</th><th>20日动量</th></tr></thead><tbody>'
+      + (body || '<tr><td colspan="11" style="text-align:left;color:var(--muted,#667085)">暂无场外持仓与筛选标的</td></tr>')
       + '</tbody></table>'
-      + '<div class="tp-note">口径说明：场外基金为 T+1 净值序列（无成交量/无日内），MA/RSI/MACD/布林均由净值派生，仅作周度级别趋势参考；趋势叠加层只调节定投节奏（加速/减速/降档），不对抗 DCA 内核、永不否决 T4 硬止损。距年线 = 净值相对 MA250 偏离；布林z =（净值−20日均值）/（2×标准差），≥1 触上轨、≤−1 触下轨。</div>';
+      + '<div class="tp-note">口径说明：场外基金为 T+1 净值序列（无成交量/无日内），MA/RSI/MACD/布林均由净值派生，仅作周度级别趋势参考；趋势叠加层只调节定投节奏（加速/减速/降档），不对抗 DCA 内核、永不否决 T4 硬止损。距年线 = 净值相对 MA250 偏离；布林z =（净值−20日均值）/（2×标准差），≥1 触上轨、≤−1 触下轨。来源「持仓」= 当前持仓基金；「筛选」= 配置池中未持仓标的（与信号引擎筛选信号同口径）。货币基金（净值恒定）不适用趋势指标，已自动剔除' + (moneySkipped ? '（本次剔除 ' + moneySkipped + ' 只）' : '') + '。</div>';
     _pane.innerHTML = html;
   }).catch(function (e) {
     var _pane = document.getElementById('sigTrendPane');
