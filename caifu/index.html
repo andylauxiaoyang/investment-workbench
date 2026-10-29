@@ -990,6 +990,18 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .gear-up { color:#15803D; background:#E7F6EC; border:1px solid #A7DCBA; }
 .gear-slow { color:#92600A; background:#FAEEDA; border:1px solid #F0D9A8; }
 .gear-down { color:#A32D2D; background:#FCEBEB; border:1px solid #F0B9B9; }
+/* fw2_v703_trend_tab：交易信号·趋势策略子面板（档位横幅复用 .dca-gear 系；此处为磁贴与个基趋势表） */
+.tp-tiles { display:flex; gap:10px; flex-wrap:wrap; margin:2px 0 14px; }
+.tp-tile { flex:1 1 220px; min-width:200px; border:1px solid var(--line,#e5e7eb); border-radius:10px; padding:10px 12px; background:var(--panel-2,#f7f9fc); }
+.tp-tile .tt-name { font-weight:600; font-size:13px; color:var(--text,#101828); }
+.tp-tile .tt-state { font-size:12.5px; font-weight:600; margin-top:4px; }
+.tp-tile .tt-desc { font-size:11.5px; color:var(--muted,#667085); margin-top:3px; line-height:1.45; }
+.tp-tile .tt-hint { font-size:11.5px; color:var(--text-2,#475467); margin-top:4px; }
+.tp-tbl { width:100%; border-collapse:collapse; font-size:12.5px; margin-top:6px; }
+.tp-tbl th, .tp-tbl td { border-bottom:1px solid var(--line,#e5e7eb); padding:6px 8px; text-align:right; white-space:nowrap; font-variant-numeric: tabular-nums; }
+.tp-tbl th:first-child, .tp-tbl td:first-child { text-align:left; }
+.tp-tbl thead th { background:var(--panel-2,#f7f9fc); font-weight:600; color:var(--text-2,#475467); }
+.tp-note { font-size:11.5px; color:var(--muted,#667085); margin-top:8px; line-height:1.6; }
 .todo-empty { font-size:12.5px; color:var(--text-2,#475467); }
 .asof b { color: var(--text, #101828); font-weight: 600; font-variant-numeric: tabular-nums; }
 .asof .lag-ok { color: var(--down, #047857); }
@@ -1363,7 +1375,9 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
       <!-- v37: 今日决策改名为「交易信号」；原交易信号页（投资心得库）模块已删除 -->
       <!-- ---------- 交易信号（信号仪表盘） ---------- -->
       <section class="view" id="view-signal">
+        <div class="strat-tabs v-tabs" id="sigTabs" style="margin-bottom:12px"><!-- fw2_v703_trend_tab：交易信号子模块（信号仪表盘 / 趋势策略） --><button class="sig-tab v-tab active" data-sig="dash">信号仪表盘</button><button class="sig-tab v-tab" data-sig="trend">趋势策略</button></div>
         <div class="card" id="sigDash"></div>
+        <div class="card" id="sigTrendPane" style="display:none"></div>
       </section>
 
       <!--pnid:fH65aUhj0Z6qDeQzgzmPPU--><!-- ---------- 资讯 ---------- -->
@@ -8444,10 +8458,12 @@ function discViolations() {
 }
 
 /* fw2_v702_trend_overlay：定投节奏档位指示器 —— 汇总趋势叠加层四信号（TREND-UP/DN、BREADTH-W、REGIME-BEAR）级别，得出「加速/常态/减速/降档」一档；只调节 DCA 节奏，不对抗定投内核 */
-function renderDcaGear() {
-  var el = document.getElementById('dcaGear'); if (!el) return;
-  var rows = window.__sigAllRows || [];
-  if (!rows.length) { el.innerHTML = '<span class="gear-label">定投节奏</span><span class="gear-pill gear-normal">常态</span><span class="gear-note">信号计算中…</span>'; return; }
+/* fw2_v703_trend_tab：重构 —— ①__sigAllRows 是 {hold,watch,screen,meta} 对象（v702 误当数组用 .some/.length，生产环境档位永远停在占位态）；②市场行（BREADTH-W/REGIME-BEAR）在 marketEvalAll().rows，v702 从未纳入档位计算。抽取 dcaGearCalc/dcaFlattenRows 共用口径（首屏指示器与趋势子面板同源，防同页跨口径自相矛盾） */
+function dcaFlattenRows() {
+  var sig = window.__sigAllRows || {}, mkt = window.__sigMarketRows || [];
+  return [].concat(sig.hold || [], sig.watch || [], sig.screen || [], mkt);
+}
+window.dcaGearCalc = function (rows) {
   var down = rows.some(function (r) { return /REGIME-BEAR|BREADTH-W/.test(r.sig || '') && r.lvl === 'act'; });
   var slow = rows.some(function (r) { return /TREND-DN/.test(r.sig || '') && r.lvl === 'act'; });
   var up = rows.some(function (r) { return /TREND-UP/.test(r.sig || '') && r.lvl === 'near'; });
@@ -8458,8 +8474,134 @@ function renderDcaGear() {
   else if (slow) { gear = '减速'; cls = 'gear-slow'; note = '个基破位 → 该基定投减速/暂缓补仓'; }
   else if (up) { gear = '加速'; cls = 'gear-up'; note = '多头共振 → 定投可加速一档'; }
   else { gear = '常态'; cls = 'gear-normal'; note = '无趋势叠加信号 → 定投照常'; }
-  el.innerHTML = '<span class="gear-label">定投节奏</span><span class="gear-pill ' + cls + '">' + gear + '档</span><span class="gear-note">' + note + (drivers.length ? ' · 驱动：' + drivers.join(' ') : '') + '</span>';
+  return { gear: gear, cls: cls, note: note, drivers: drivers };
+};
+function renderDcaGear() {
+  var el = document.getElementById('dcaGear'); if (!el) return;
+  var sig = window.__sigAllRows;
+  var placeholder = function () { el.innerHTML = '<span class="gear-label">定投节奏</span><span class="gear-pill gear-normal">常态</span><span class="gear-note">信号计算中…</span>'; };
+  if (!sig) { placeholder(); return; }
+  var rows = dcaFlattenRows();
+  if (!rows.length) { placeholder(); return; }
+  var g = window.dcaGearCalc(rows);
+  el.innerHTML = '<span class="gear-label">定投节奏</span><span class="gear-pill ' + g.cls + '">' + g.gear + '档</span><span class="gear-note">' + g.note + (g.drivers.length ? ' · 驱动：' + g.drivers.join(' ') : '') + '</span>';
 }
+/* fw2_v703_trend_tab：趋势数据装配 —— signalEvalAll（持仓/自选/筛选行 + 装载 __SIG_FD_TREND__ 净值序列）与 marketEvalAll（市场行）统一拉取；净值行就绪即返回（面板先渲），市场行后台补齐后 kickTrendRerender 自动重渲（档位口径始终取最新并集） */
+function kickTrendRerender() {
+  var tp = document.getElementById('sigTrendPane');
+  if (tp && tp.style.display !== 'none' && typeof window.renderTrendPanel === 'function') { try { window.renderTrendPanel(); } catch (e) {} }
+}
+function ensureTrendRows() {
+  var hold = (state.portfolio || []).filter(function (h) { return (h.assetType || '') !== 'cash'; });
+  var wl = (typeof window.getAllocWatchCodes === 'function') ? window.getAllocWatchCodes() : [];
+  var jobs = [];
+  if (!window.__sigAllRows) {
+    jobs.push(Promise.resolve(window.signalEvalAll ? window.signalEvalAll(hold, wl) : null).catch(function () { return null; }).then(function (r) { if (r) window.__sigAllRows = r; }));
+  }
+  if (!window.__sigMarketRows) {
+    Promise.resolve(window.marketEvalAll ? window.marketEvalAll() : null).catch(function () { return null; }).then(function (mk) {
+      window.__sigMarketRows = (mk && mk.rows) || [];
+      renderDcaGear();
+      kickTrendRerender();
+    });
+  }
+  var p = jobs.length ? Promise.all(jobs).then(function () { renderDcaGear(); }) : Promise.resolve();
+  return p;
+}
+/* fw2_v703_trend_tab：交易信号子模块 tab 切换（信号仪表盘 / 趋势策略）；sigTabs 为静态 DOM，直接绑定 */
+function switchSigTab(name) {
+  Array.prototype.forEach.call(document.querySelectorAll('#sigTabs .sig-tab'), function (b) { b.classList.toggle('active', b.getAttribute('data-sig') === name); });
+  var dash = document.getElementById('sigDash'), tp = document.getElementById('sigTrendPane');
+  if (dash) dash.style.display = name === 'dash' ? '' : 'none';
+  if (tp) tp.style.display = name === 'trend' ? '' : 'none';
+  if (name === 'trend' && typeof window.renderTrendPanel === 'function') { try { window.renderTrendPanel(); } catch (e) { if (window.console) console.error('[trendPanel]', e); } }
+}
+(function bindSigTabs() {
+  var go = function () {
+    Array.prototype.forEach.call(document.querySelectorAll('#sigTabs .sig-tab'), function (b) {
+      b.addEventListener('click', function () { switchSigTab(b.getAttribute('data-sig')); });
+    });
+  };
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', go); else go();
+})();
+/* fw2_v703_trend_tab：趋势策略子面板 —— ①定投节奏档位横幅（dcaGearCalc 同源）②四信号磁贴 ③个基趋势指标表（__SIG_FD_TREND__ 净值序列 × fundCalcStats：MA 三线/排列/RSI14/MACD/布林/动量/距年线；场外 T+1 无量，仅周度参考，不对抗 DCA 内核） */
+window.renderTrendPanel = function () {
+  var pane = document.getElementById('sigTrendPane');
+  if (!pane) return;
+  pane.innerHTML = '<div class="dc-load">趋势面板计算中（净值序列加载约需数秒）…</div>';
+  ensureTrendRows().then(function () {
+    var _pane = document.getElementById('sigTrendPane');
+    if (!_pane || state.view !== 'signal') return;
+    var rows = dcaFlattenRows();
+    var g = window.dcaGearCalc(rows);
+    /* ① 档位横幅 */
+    var html = '<div class="dca-gear" style="display:flex;align-items:center;gap:10px;margin-bottom:12px">'
+      + '<span class="gear-label">定投节奏</span><span class="gear-pill ' + g.cls + '">' + g.gear + '档</span>'
+      + '<span class="gear-note">' + esc(g.note) + (g.drivers.length ? ' · 驱动：' + esc(g.drivers.join(' ')) : '') + '</span></div>';
+    /* ② 四信号磁贴 */
+    var fams = [
+      { key: 'TREND-UP', t: 'TREND-UP 多头共振', d: '多头排列 + MACD 红柱 → 定投可加速一档' },
+      { key: 'TREND-DN', t: 'TREND-DN 空头破位', d: '破 MA60 + MACD 绿柱 → 该基减速 / 暂缓补仓' },
+      { key: 'BREADTH-W', t: 'BREADTH-W 广度恶化', d: '全市场跌停扩散 → 全组合降档' },
+      { key: 'REGIME-BEAR', t: 'REGIME-BEAR 熊市 regime', d: '美林衰退/去库 / 沪深300 年线下 → 定投硬降档' }
+    ];
+    html += '<div class="tp-tiles">' + fams.map(function (f) {
+      var rs = rows.filter(function (r) { return String(r.sig || '').indexOf(f.key) === 0; });
+      var act = rs.filter(function (r) { return r.lvl === 'act'; });
+      var near = rs.filter(function (r) { return r.lvl === 'near'; });
+      var st, col;
+      if (act.length) { st = act.length + ' 项触发'; col = '#A32D2D'; }
+      else if (near.length) { st = near.length + ' 项接近'; col = '#2563EB'; }
+      else { st = rs.length ? rs.length + ' 项观察' : '未触发'; col = '#5F5E5A'; }
+      var hint = act.concat(near).slice(0, 3).map(function (r) { return (r.name || r.code || '') + '·' + (r.curMain || r.cur || ''); }).join(' · ');
+      return '<div class="tp-tile"><div class="tt-name">' + f.t + '</div><div class="tt-state" style="color:' + col + '">' + st + '</div>'
+        + '<div class="tt-desc">' + f.d + '</div>' + (hint ? '<div class="tt-hint">' + esc(hint) + '</div>' : '') + '</div>';
+    }).join('') + '</div>';
+    /* ③ 个基趋势指标表（数据真源 window.__SIG_FD_TREND__，与信号引擎同源） */
+    var fd = window.__SIG_FD_TREND__ || {};
+    var hold = (state.portfolio || []).filter(function (h) { return (h.assetType || '') !== 'cash'; });
+    var _pc = function (v) { return v == null || !isFinite(v) ? '—' : (v > 0 ? '+' : '') + v.toFixed(1) + '%'; };
+    var _col = function (v) { return v == null || !isFinite(v) ? 'var(--muted,#667085)' : v > 0 ? 'var(--up,#c0392b)' : v < 0 ? 'var(--down,#047857)' : 'var(--muted,#667085)'; };
+    var body = hold.map(function (h) {
+      var c6 = String(h.code || '').replace(/\D/g, '').slice(-6);
+      var ts = fd[c6];
+      var nm = esc(h.name || c6) + ' <span style="color:var(--muted,#667085)">' + c6 + '</span>';
+      if (!ts || ts.length < 20) return '<tr><td>' + nm + '</td><td colspan="10" style="text-align:left;color:var(--muted,#667085)">净值序列未就绪（≤20 点）</td></tr>';
+      var st = fundCalcStats(ts);
+      var dd = ts[ts.length - 1] ? ts[ts.length - 1].d : '';
+      var aln, alnC;
+      if (st.last >= st.ma20 && st.ma20 >= st.ma60) { aln = '多头'; alnC = 'var(--up,#c0392b)'; }
+      else if (st.last <= st.ma20 && st.ma20 <= st.ma60) { aln = '空头'; alnC = 'var(--down,#047857)'; }
+      else { aln = '震荡'; alnC = 'var(--muted,#667085)'; }
+      var d20 = st.ma20 != null ? (st.last / st.ma20 - 1) * 100 : null;
+      var d60 = st.ma60 != null ? (st.last / st.ma60 - 1) * 100 : null;
+      var d250 = st.ma250 != null ? (st.last / st.ma250 - 1) * 100 : null;
+      var rsi = st.rsi14;
+      var rsiTxt = rsi == null ? '—' : rsi.toFixed(0) + (rsi >= 70 ? ' 超买' : rsi <= 30 ? ' 超卖' : '');
+      var rsiC = rsi == null ? 'var(--muted,#667085)' : rsi >= 70 ? 'var(--up,#c0392b)' : rsi <= 30 ? 'var(--down,#047857)' : 'var(--text,#101828)';
+      var mc = st.macd ? (st.macd.hist > 0 ? '<span style="color:var(--up,#c0392b)">红柱↑</span>' : st.macd.hist < 0 ? '<span style="color:var(--down,#047857)">绿柱↓</span>' : '持平') : '—';
+      var bl = st.boll ? st.boll.pct.toFixed(2) + (st.boll.pct >= 1 ? ' 触上轨' : st.boll.pct <= -1 ? ' 触下轨' : '') : '—';
+      return '<tr><td>' + nm + '</td><td style="color:var(--muted,#667085)">' + dd + '</td>'
+        + '<td style="color:' + _col(d20) + '">' + _pc(d20) + '</td>'
+        + '<td style="color:' + _col(d60) + '">' + _pc(d60) + '</td>'
+        + '<td style="color:' + _col(d250) + '">' + _pc(d250) + '</td>'
+        + '<td style="color:' + alnC + ';font-weight:600">' + aln + '</td>'
+        + '<td style="color:' + rsiC + '">' + rsiTxt + '</td>'
+        + '<td>' + mc + '</td>'
+        + '<td>' + bl + '</td>'
+        + '<td style="color:' + _col(st.c20) + '">' + _pc(st.c20) + '</td></tr>';
+    }).join('');
+    html += '<div class="card-h" style="margin-top:6px"><h3>个基趋势指标</h3><span class="hint">数据真源 fund-daily 净值序列（与信号引擎同源）</span></div>'
+      + '<table class="tp-tbl"><thead><tr><th>基金</th><th>数据日期</th><th>vs MA20</th><th>vs MA60</th><th>距年线</th><th>排列</th><th>RSI14</th><th>MACD</th><th>布林z</th><th>20日动量</th></tr></thead><tbody>'
+      + (body || '<tr><td colspan="10" style="text-align:left;color:var(--muted,#667085)">暂无场外持仓</td></tr>')
+      + '</tbody></table>'
+      + '<div class="tp-note">口径说明：场外基金为 T+1 净值序列（无成交量/无日内），MA/RSI/MACD/布林均由净值派生，仅作周度级别趋势参考；趋势叠加层只调节定投节奏（加速/减速/降档），不对抗 DCA 内核、永不否决 T4 硬止损。距年线 = 净值相对 MA250 偏离；布林z =（净值−20日均值）/（2×标准差），≥1 触上轨、≤−1 触下轨。</div>';
+    _pane.innerHTML = html;
+  }).catch(function (e) {
+    var _pane = document.getElementById('sigTrendPane');
+    if (_pane) _pane.innerHTML = '<div class="empty st st-err">趋势面板获取失败（' + esc((e && e.message) || '未知错误') + '）</div>';
+  });
+};
 function renderTodayTodo() {
   var bar = document.getElementById('todayTodo');
   if (!bar) return;
@@ -8500,7 +8642,7 @@ function renderTodayTodo() {
         var hold = (state.portfolio || []).filter(function (h) { return (h.assetType || '') !== 'cash'; });
         var wl = (typeof window.getAllocWatchCodes === 'function') ? window.getAllocWatchCodes() : [];
         Promise.resolve(window.signalEvalAll ? window.signalEvalAll(hold, wl) : null)
-          .then(function (rows) { window.__sigFetching = false; if (rows) { window.__sigAllRows = rows; renderTodayTodo(); renderDcaGear(); } else { window.__sigFailed = true; renderTodayTodo(); renderDcaGear(); } })
+          .then(function (rows) { window.__sigFetching = false; if (rows) { window.__sigAllRows = rows; /* fw2_v703_trend_tab：补拉市场行（BREADTH-W/REGIME-BEAR 参与档位），趋势面板可见则重渲 */ return Promise.resolve(window.marketEvalAll ? window.marketEvalAll().catch(function () { return null; }) : null).then(function (mk) { window.__sigMarketRows = (mk && mk.rows) || []; renderTodayTodo(); renderDcaGear(); var _tp = document.getElementById('sigTrendPane'); if (_tp && _tp.style.display !== 'none') { try { window.renderTrendPanel(); } catch (e) {} } }); } window.__sigFailed = true; renderTodayTodo(); renderDcaGear(); })
           .catch(function () { window.__sigFetching = false; window.__sigFailed = true; renderTodayTodo(); renderDcaGear(); });
       }
     } else {
@@ -13811,6 +13953,7 @@ function renderSignalDash() {
   const ddP = window.fetchDdRows ? window.fetchDdRows().catch(() => []) : Promise.resolve([]);
   const ddWarnP = window.fetchDrawdownWarnRows ? window.fetchDrawdownWarnRows().catch(() => []) : Promise.resolve([]); /* fw2_v723_ddwarn_l1：回撤预警 Layer1 拉取 */
   Promise.all([window.signalEvalAll(hold, wl), mkP, riskP, ddP, ddWarnP]).then(([rows, mk, risk, ddRows, ddWarnRows]) => {
+    window.__sigMarketRows = (mk && mk.rows) || []; /* fw2_v703_trend_tab：市场行入全局，定投档位/趋势子面板与信号视图同源 */
     if (state.view !== 'signal') return;
     /* v325 fw2_v325_watch_nodup：自选信号剔除已持仓标的（其信号已由持仓信号 T 系列覆盖，避免跨类重复展示）；
        v333 fw2_v333_watch_nodup_all：剔除基准改用全量持仓（含货币基金等 cash 类），避免货基等 cash 资产仍残留自选区 */
