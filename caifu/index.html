@@ -8849,8 +8849,11 @@ function _mcSlice(pts, n) { return (pts || []).slice(-n); }
    ★滞后判据只认 YYYY-MM-DD（月度/日频序列）；实时类（日经）传 lagMax=null 即不判。 */
 function _mcLastOf(pts) { return (pts && pts.length) ? pts[pts.length - 1][0] : ''; }
 function _mcLagDays(s) {
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(String(s || ''))) return null;
-  var t = Date.parse(String(s) + 'T00:00:00');
+  /* fw2_v805_lag_datetime：放宽为「提取前导 YYYY-MM-DD」——带时间的 updatedAt(2026-11-04 22:03) 此前被
+     全串正则拒判 → lag 静默为 null，v805 给全景表 asofBadge 传 lagMax=7 后暴露此坑；月串(YYYY-MM)仍不判 */
+  var mm = String(s || '').match(/(\d{4}-\d{2}-\d{2})/);
+  if (!mm) return null;
+  var t = Date.parse(mm[1] + 'T00:00:00');
   return isFinite(t) ? Math.floor((Date.now() - t) / 86400000) : null;
 }
 function _mcBar(p) {
