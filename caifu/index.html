@@ -1279,7 +1279,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
     <div data-page-node-id="4kpOdky7SODGpwcpiqg6Ul" class="brand">
       <div data-page-node-id="fy9nr7YX6z70XIIPP2k8cu" class="logo"><!--pnid:nS1XbU8IvoftAAsJBjPYR1-->理</div>
       <div data-page-node-id="KEpstPyZVkdFbO86DWabql" class="brand-txt">
-        <div data-page-node-id="PsvCVyRn9Hy3AVRIxAgjBc" class="b1"><!--pnid:uKibb7vNP0llwjGkZsDB1h-->理财工作台<span id="verBadge" class="ver-badge">v809</span><!-- fw2_v766_ver_badge：最新版本号（与 README changelog / verChip 同步）；fw2_v788 起真正实现 #verBadge 元素（v766/v767 仅建 CSS 类未插节点，属宣称≠存在，此处补实） --><!-- fw2_v783_global_through：用户 2026-10-30 反馈「全球的股票没穿透进来」——QDII 底层纳入穿透：①解析器 _gen_jjcc_batch.py 代码正则放开 A股6位/港股4-5位/美股字母ticker（东财QDII表9列，cells[1]=代码、cells[6]=占净值比，列位与A股表一致）；②重刷后当期覆盖 6 A股 + 11 QDII 共 17 只，陈旧剔除 4 只（000834/008971@2023、012761@2024、160422@2019），货基/债基 3 只无明细；③P6 行情联动 symOf 扩展 sh/sz/hk/us（实测美股裸码可用带后缀反而 none_match，港股 5 位补零，美股/港股 f[32] 同为当日涨跌%，价为当地币种、涨跌幅不受汇率影响）；ifzq 近20日 K线同 symOf。 --><!-- fw2_v784_track_tech：用户 2026-10-30 两项反馈——①归属基金按指数聚合（同一指数如纳指100 十几只只显指数一枚 chip「纳指100 ×8 7.6%」，悬浮 title 列全明细；主动基金仍显单基金；track 数据＝东财 F10 jbgk「跟踪标的」，_refresh_held_jjcc.py 幂等富化进 fund-jjcc.json，纳斯达克100 别名纳指100）；②借鉴用户个股信号表字段新增 7 列技术指标：vsMA20/vsMA60/距年线(MA250)/排列(多空震荡=close 与三线同向)/RSI14(Wilder 全史平滑)/MACD(红绿柱+方向箭头，悬浮显柱值)/布林z((c-MA20)/std20)——K线请求 21→260 根自算，近20日列即 20日动量；说明行标注技术指标截至 kdate 与自算口径。 --><!-- fw2_v784b_qdii_full：用户 2026-10-30 反馈「易方达全球成长持仓的都没放进去」——双 bug：①012920 缓存为 v781 旧正则残留（仅 3 只 A股，TSM/NVDA 等 7 只美股被挡，v783 因非 None 跳过重抓、v784 track 富化也未重抓）；②解析器三雷全修：按表分组取当期（东财 QDII 返 3 表=近三期报告，全表混扫靠 top[:10] 截断碰巧保对）、pct 自适应（9列表 cells[6] / 7列表 cells[4]，取行内首个带 % 且 pct∈(0,100] 的 cell）、代码放宽至字母数字混合（285A=KIOXIA 东京码）。重抓后 012920 当期 10 只全球全齐（台积电8.28/英伟达7.05/英特尔5.54/中际旭创4.16/BLOOM4.03/超威3.94/新易盛3.40/LITE3.23/阿斯麦2.76/沪电2.41），与用户东财截图逐只一致；24 只持仓体检=当期 17 + 陈旧 4 + 货基债基 3。全量重抓顺带重建私有缓存（24→61 键=持仓24+筛选池37）。 --><!-- fw2_v784c_crowd_src：用户 2026-10-30 反馈「拥挤度也不对，其实就是买了一个指数，因为限额的原因买多只同指数基金而已」——P1 拥挤度从「归属基金只数」改为「独立持仓来源数」：同指数（track 相同）的多只基金算 1 来源（限额拆买≠拥挤），主动基金（track=None）各算 1 来源；来源 key=track||'主动:'+code。徽章文案 P1拥挤×N → P1拥挤·N源（悬浮列来源明细），磁贴「P1 多基拥挤」→「P1 多源拥挤」，表头「基金数」→「独立来源」（悬浮 title=来源明细+基金总只数），阈值 CROWD_W=3/CROWD_A=4 语义同数值套用来源口径，P6 共振判定自动跟随。 --><!-- fw2_v784d_eq_denom：用户 2026-10-30 拍板——P2 暴露与 P4 覆盖分母从「持仓总市值」改为「股票敞口市值」（剔除货基/债基：jjcc 无 topStocks＝无股票敞口不进分母；陈旧 equity 基金仍有敞口照算分母）。eqMv 在陈旧分类循环内累计，pctPort/coverPct 换分母，磁贴与说明行文案同步；数值影响：分母变小暴露变大（台积电 6.6% 约 8% 上下）。 --><!-- fw2_v784e_tfoot_sum：用户 2026-10-30 要求穿透市值与组合占比做合计——表尾 tfoot 加「Top20 合计」行：穿透市值 Σ求和、组合占比=Σ穿透市值/股票敞口市值（与行级同分母 eqMv，v784d 口径），基金内占比不可加（各行为多基金最高值）标 —，其余 10 列空。空态不渲染合计行。 --><!-- fw2_v784f_action_col：用户 2026-10-30 两项——①表头说明行（dc-note）整行删除不显示；②「数据日期」前加「行动参考」列：按触发的 P 系信号与技术指标给出对应基金操作建议（P2≥5%=检视减仓基金内占比最高基金；P2 3–5%=调仓勿再加；P6 共振急跌=勿恐慌赎回按回撤纪律；RSI≤30=维持定投纪律；RSI≥70 且站上年线=可分批止盈；其余=持有观察；最多取 2 条）。表格 17→18 列（空态 colspan 与 tfoot 同步）。 --><!-- fw2_v784g_through_wrap：用户 2026-10-30 截图——行动参考列覆盖后面列且自身显示不全。根因＝全局 .tb tbody td white-space:nowrap 强制单行 + 长基金名（易方达全球成长精选混合(QDII)人民币A）撑宽。修法＝新增本表专属类 tb-through（仅持仓穿透，不碰全局）：行动参考/归属基金/信号三列放开换行（word-break:break-word，chip 与徽章内部仍 nowrap 保完整）+ 列宽约束（advice max 180px、funds max 200px、th 宽度提示 信号104px/归属15%/行动参考180px）+ 行动参考内长基金名截断（超 9 字 + 省略号，全名进 title 悬浮）。 --><!-- fw2_v785_trend_advice：用户 2026-10-30 截图——趋势跟踪·个基趋势指标表新增「行动参考」列（数据日期后一列）。口径与磁贴/信号引擎同源：TREND-DN＝破MA60＋MACD绿柱→持仓显「该基减速/暂缓补仓」（筛选池标的改「破位·暂不买入」，筛选池不做定投）、TREND-UP＝多头排列(含年线)＋MACD红柱→持仓显「定投可加速一档」（筛选池改「趋势转多·关注」）；辅助提示＝RSI14≥70 超买勿追高 / ≤30 超卖维持定投、布林触上轨短线勿加 / 触下轨维持定投（最多 2 条、去重防超买与上轨重复）；无触发时持仓显「定投照常/持有观察·定投照常」、筛选显「观望」。单元格 white-space:normal 局部放开 tp-tbl 全表 nowrap；未就绪行 colspan 10→11、空态 colspan 11→12 同步。 --><!-- fw2_v785b_etf_date：用户 2026-10-30 问「聪明的钱·我的持仓ETF动向/国家队宽基ETF动向两张表数据是否严重滞后」——实测数据不滞后（etf-shares.json updatedAt=2026-10-29，交易所份额 T+1），但 10 月起采集断档（510300 最后 5 个 gap=7/2/6/7/8 天，此前基本每交易日）而 1日/3日 列按采集点数回退（chgN 按 hist 索引），跨周变化被标成 1日（如 510300「1日」实为 10-21→10-29 跨 8 天 −19.2%），视觉上既像滞后又像暴涨暴跌。本轮按用户要求：两表「规模(亿元)」后各新增「数据日期」列（每只 ETF 自己 hist 最后一个点 r.last.d / r.d，与整体「数据日 upd」可能不同的 ETF 逐行可见）；列宽 colgroup 12 列重排（18/8/8/8/6×5/8/9/11），无数据行 colspan 10→11、历史积累行 9→10 同步。采集断档根因与 1日/3日 列日历日化修正挂账待办。 --><!-- fw2_v787b_dm_sched：数据管理·日轨调度实录修正（用户 2026-10-30「统一排查 21:30 日频自动化」）——实证：WorkBuddy 自动化清单仅 2 条提醒类、Windows 计划任务无数据任务、GitHub 近 30 天提交无 21:30（UTC 13:30）窗口记录 ⇒ 历史宣称「cron_job 14013240823042 每晚自动」已死（CloudStudio 旧环境），页面照抄=虚假承诺。修正：①DMTRACKS 日轨 note 改指 WorkBuddy 自动化「投资工作台·日频数据统一刷新+发布」（本机执行，工作日 21:30，id 0920f58a-1c24-48ba-ba91-4405de199740，含显式失败报告禁静默）；②refresh_all.py SERIAL_AFTER 末位新增 bundle 组（fw2_v787b_bundle_sched）——_make_bundle.py 原为纯手动步骤（无任何调用点），夜刷漏打则 meta-bundle 内嵌 holdings/watchlist/macro/gold 停更，前端 mbGet 首屏读旧值；③34 数据集频次/数据源经逐项核对与 DMCONFIG 一致（v771 审计后无漂移）。 --><!-- fw2_v787_tday_align：用户拍板「1日=真·上一交易日」——聪明的钱两表变化列按A股交易日历回退：①fetch_etf_shares.py 随数据写入交易日历 tdays（东财上证指数日K 320天，失败沿用旧值）；②chgT 按日历回退，目标交易日缺采集点→顺延最近采集点并标≈（悬浮显实际对比日），表头 vs 日期=真交易日（1日=vs 10-29）；③连续申赎按交易日相邻判定，断档即断；④断档口径不触发行动参考，防跨8天变化被误读为单日暴涨。根因结论＝系统无任何采集定时自动化（仅2个提醒类automation），10月断档=手动跑全域链的频次。附带修 _tx 盘后模板字段后移坑：盘后88段 idx70/71 变涨跌幅小值，份额改取 idx70/71/72/73 首个量级合理值（1亿~10万亿份）＋份额×现价兜底市值（实测东财 push2 全程 RemoteDisconnected 走腾讯通道，旧解析器在盘后抓到 -0.00 亿份坏点，已用修复解析器重抓覆盖 10-30 全部17只）。--><!-- fw2_v786_unify：跨体系信号统一并入（用户拍板 B 方案 2026-10-30「全部接入，互斥需提示」）——signalEvalAll 引擎级并入四体系：①聪明的钱 XOV→持仓行（复用决策看板 _xovAct 同口径，019441 并入 016452 不重复评估）②V11 狙击→筛选池行（就绪=act/观望=near，独立体系不并档，环境过热/CAP 超限标 ⚠互斥）③持仓穿透 P 系→持仓行（P1 拥挤/P2 单票暴露/P3 集中度/P4 覆盖率，阈值同 v784c/v784d 口径，P6 需盘中行情仍留穿透页签）④筛选池趋势 S-TREND→筛选行（TREND-DN=破位暂不买入 act / TREND-UP=转多关注 near，货债金豁免）⑤互斥检测 pass：同标的一买一卖双向逐行标注 ⚠互斥（不自动降档，沿 fw2_v671 T7 教训），T3/T8 合并行按分位归族，筛选池 S-TREND 破位 vs S1/S2/S3 买入同触双向标注；缓存指纹加 V11 asOf/SM_XOV generated/jjcc updatedAt。今日待办自动覆盖新增 act/near 行。--><!-- fw2_v782_through_signals：持仓穿透统计表升级为 P 系信号（用户 2026-10-30 反馈「只是统计没信号」）——P1 多基拥挤（单股≥3/≥4 基共持，行级徽章+磁贴三档）、P2 隐性单票暴露（组合占比≥3/5%）、P3 Top5 底层集中度、P4 覆盖市值不足 50% 提示、P5 陈旧过滤（concDate 距今大于 180 天的基金不参与聚合与拥挤度判定，012761@2024/160422@2019 已剔除，结论不再被旧重仓污染）、P6 行情联动（腾讯 qt.gtimg 批量现价当日涨跌 + ifzq kline 21 根算近 20 日，两段渲染：信号表立现、行情到齐重绘；拥挤股单日跌超 5% 触发 P6 共振磁贴）。数据侧 _gen_jjcc_batch.py topStocks 补 c 代码字段 + _refresh_held_jjcc.py 旧缓存缺 c 自动重抓（fund-jjcc.json 已重生成随发布）。诚实边界：穿透为季报近似下界，P 系是结构性慢信号非择时；行情为时效性补充。--><!-- fw2_v781b_fix_scope：修复持仓穿透「加载中」卡死——①fetchJson 是 block10 IIFE 闭包内函数（22144 行），block7 侧 renderHoldThrough 调用即 ReferenceError 被 onclick try/catch 吞掉（v685/686/687 同型），改为函数内自带微型加载器（本地失败落 raw 兜底，失败不置 done 可重试）；②holdRows 同在 block10 闭包内（v697c 实证）window.holdRows=undefined → 静默渲染空表，在本块末尾 window.holdRows=holdRows 导出真源引用（fw2_v781b_hold_rows_export，只增不改）。修后经本地 HTTP+Edge CDP 完整交互链路实测：导航→点页签→Top20 表格渲染（20 行/覆盖 8 只/日期正确）。--><!-- fw2_v781_hold_through：交易信号视图新增「持仓穿透」子页签——穿透持仓基金底层前十大重仓股，按穿透市值聚合 Top20；配套数据集 data/fund-jjcc.json（东财 jjcc，24 只持仓基金仅 8 只 A股 equity 当期有数据，货基/债基/QDII美股正确排除）须随发布（v695 教训）。--><!-- fw2_v780_profiles_dim：修复基金数据页「收益/风险/经理/产品」四列全「—」（复发）——根因＝_gen_profiles.py 导出白名单漏写 scoreDim/scoreDimSub/scoreCov/scoreVeto（score_fund 内存里算好但没落盘），每次刷新重建 fund-profiles.json 即冲掉分；内联 FUND_PROFILES_MIRROR 又源自该 JSON 故同丢。修法＝①补白名单（根治，v697l 的 _backfill_profiles_dim.py 只是事后补）②离线重算回填 53/53 ③_embed_v186_assets.py 重嵌镜像 ④_audit_cross_module.py 新增 I 组断言（缺分即 FAIL）防复发。--> <!-- fw2_v779_collapse_min2：用户 2026-10-29 拍板，资产配置表同本质子组折叠阈值 6→2（TH_COLLAPSE_MIN）——标普500 两只存量（017641/096001）默认隐藏只显小计行，点「展开明细」按钮展示；规则收敛为「有小计行（≥2 只同本质）即默认折叠」。v778 visibility:collapse 已保 rowspan 占位，零布局风险；纯 JS 常量一行改动 --><!-- fw2_v778_rowspan_collapse：用户 2026-10-29 报「资产配置表全坏」（截图安全垫/对冲/合计列错位）。根因＝v773 主题子组默认折叠用 display:none，Chromium 中隐藏行不消耗上方 rowspan 占位 →「进攻/主题」档位格 rowspan=20 只覆盖 9 个可见行，剩余 11 格下渗把安全垫/对冲/合计全部顶错列（潜伏 5 版）。修法＝tr.th-hide 改 visibility:collapse（17086 行 CSS 注释含探针实测）；纯 CSS 一行，DOM/渲染/数据零改动 --><!-- fw2_v777_drop_ops：用户 2026-10-29 拍板，持仓表删「操作」列（研究/改/删 三按钮整列移除）。入口保全：①「研究」点名称 lk-rs 链接仍在（v172c 同口径）；②「改」openHoldingEditor 仍由研究页 #rsAddHold 调用；③「删」无 UI 入口属有意——持仓份额/成本以对账单+每晚 ttskill 刷新为权威，UI 手删易被覆盖；#hdTable 委托监听保留为空转守卫（data-act 无来源，留作日后重挂）；v776 居中说明见 279 行 CSS 注释 --></span><!-- fw2_v775_drop_cols：用户 2026-10-29 拍板，持仓表删「板块/资产类型」两列（存量全为 其他/基金 零信息量）；19→17 列同步：数据行/合计行/空态 colspan；sector 与 assetType 数据字段保留（编辑表单/筛选/研究链接仍在用） --></span><!-- fw2_v774_sw_bigbypass+fw2_v774_ldtimeout+fw2_v774_navhold：买入峰值/最大回撤线上恒「—」根因＝SW 拦截 8MB fund-daily.json 响应体卡死（Playwright 线上 A/B 实证：SW on → r.json() 永不落地、__NAV_SERIES__ 建不起来；SW off → 93 序列秒建；本地不复现）。
+        <div data-page-node-id="PsvCVyRn9Hy3AVRIxAgjBc" class="b1"><!--pnid:uKibb7vNP0llwjGkZsDB1h-->理财工作台<span id="verBadge" class="ver-badge">v810</span><!-- fw2_v766_ver_badge：最新版本号（与 README changelog / verChip 同步）；fw2_v788 起真正实现 #verBadge 元素（v766/v767 仅建 CSS 类未插节点，属宣称≠存在，此处补实） --><!-- fw2_v783_global_through：用户 2026-10-30 反馈「全球的股票没穿透进来」——QDII 底层纳入穿透：①解析器 _gen_jjcc_batch.py 代码正则放开 A股6位/港股4-5位/美股字母ticker（东财QDII表9列，cells[1]=代码、cells[6]=占净值比，列位与A股表一致）；②重刷后当期覆盖 6 A股 + 11 QDII 共 17 只，陈旧剔除 4 只（000834/008971@2023、012761@2024、160422@2019），货基/债基 3 只无明细；③P6 行情联动 symOf 扩展 sh/sz/hk/us（实测美股裸码可用带后缀反而 none_match，港股 5 位补零，美股/港股 f[32] 同为当日涨跌%，价为当地币种、涨跌幅不受汇率影响）；ifzq 近20日 K线同 symOf。 --><!-- fw2_v784_track_tech：用户 2026-10-30 两项反馈——①归属基金按指数聚合（同一指数如纳指100 十几只只显指数一枚 chip「纳指100 ×8 7.6%」，悬浮 title 列全明细；主动基金仍显单基金；track 数据＝东财 F10 jbgk「跟踪标的」，_refresh_held_jjcc.py 幂等富化进 fund-jjcc.json，纳斯达克100 别名纳指100）；②借鉴用户个股信号表字段新增 7 列技术指标：vsMA20/vsMA60/距年线(MA250)/排列(多空震荡=close 与三线同向)/RSI14(Wilder 全史平滑)/MACD(红绿柱+方向箭头，悬浮显柱值)/布林z((c-MA20)/std20)——K线请求 21→260 根自算，近20日列即 20日动量；说明行标注技术指标截至 kdate 与自算口径。 --><!-- fw2_v784b_qdii_full：用户 2026-10-30 反馈「易方达全球成长持仓的都没放进去」——双 bug：①012920 缓存为 v781 旧正则残留（仅 3 只 A股，TSM/NVDA 等 7 只美股被挡，v783 因非 None 跳过重抓、v784 track 富化也未重抓）；②解析器三雷全修：按表分组取当期（东财 QDII 返 3 表=近三期报告，全表混扫靠 top[:10] 截断碰巧保对）、pct 自适应（9列表 cells[6] / 7列表 cells[4]，取行内首个带 % 且 pct∈(0,100] 的 cell）、代码放宽至字母数字混合（285A=KIOXIA 东京码）。重抓后 012920 当期 10 只全球全齐（台积电8.28/英伟达7.05/英特尔5.54/中际旭创4.16/BLOOM4.03/超威3.94/新易盛3.40/LITE3.23/阿斯麦2.76/沪电2.41），与用户东财截图逐只一致；24 只持仓体检=当期 17 + 陈旧 4 + 货基债基 3。全量重抓顺带重建私有缓存（24→61 键=持仓24+筛选池37）。 --><!-- fw2_v784c_crowd_src：用户 2026-10-30 反馈「拥挤度也不对，其实就是买了一个指数，因为限额的原因买多只同指数基金而已」——P1 拥挤度从「归属基金只数」改为「独立持仓来源数」：同指数（track 相同）的多只基金算 1 来源（限额拆买≠拥挤），主动基金（track=None）各算 1 来源；来源 key=track||'主动:'+code。徽章文案 P1拥挤×N → P1拥挤·N源（悬浮列来源明细），磁贴「P1 多基拥挤」→「P1 多源拥挤」，表头「基金数」→「独立来源」（悬浮 title=来源明细+基金总只数），阈值 CROWD_W=3/CROWD_A=4 语义同数值套用来源口径，P6 共振判定自动跟随。 --><!-- fw2_v784d_eq_denom：用户 2026-10-30 拍板——P2 暴露与 P4 覆盖分母从「持仓总市值」改为「股票敞口市值」（剔除货基/债基：jjcc 无 topStocks＝无股票敞口不进分母；陈旧 equity 基金仍有敞口照算分母）。eqMv 在陈旧分类循环内累计，pctPort/coverPct 换分母，磁贴与说明行文案同步；数值影响：分母变小暴露变大（台积电 6.6% 约 8% 上下）。 --><!-- fw2_v784e_tfoot_sum：用户 2026-10-30 要求穿透市值与组合占比做合计——表尾 tfoot 加「Top20 合计」行：穿透市值 Σ求和、组合占比=Σ穿透市值/股票敞口市值（与行级同分母 eqMv，v784d 口径），基金内占比不可加（各行为多基金最高值）标 —，其余 10 列空。空态不渲染合计行。 --><!-- fw2_v784f_action_col：用户 2026-10-30 两项——①表头说明行（dc-note）整行删除不显示；②「数据日期」前加「行动参考」列：按触发的 P 系信号与技术指标给出对应基金操作建议（P2≥5%=检视减仓基金内占比最高基金；P2 3–5%=调仓勿再加；P6 共振急跌=勿恐慌赎回按回撤纪律；RSI≤30=维持定投纪律；RSI≥70 且站上年线=可分批止盈；其余=持有观察；最多取 2 条）。表格 17→18 列（空态 colspan 与 tfoot 同步）。 --><!-- fw2_v784g_through_wrap：用户 2026-10-30 截图——行动参考列覆盖后面列且自身显示不全。根因＝全局 .tb tbody td white-space:nowrap 强制单行 + 长基金名（易方达全球成长精选混合(QDII)人民币A）撑宽。修法＝新增本表专属类 tb-through（仅持仓穿透，不碰全局）：行动参考/归属基金/信号三列放开换行（word-break:break-word，chip 与徽章内部仍 nowrap 保完整）+ 列宽约束（advice max 180px、funds max 200px、th 宽度提示 信号104px/归属15%/行动参考180px）+ 行动参考内长基金名截断（超 9 字 + 省略号，全名进 title 悬浮）。 --><!-- fw2_v785_trend_advice：用户 2026-10-30 截图——趋势跟踪·个基趋势指标表新增「行动参考」列（数据日期后一列）。口径与磁贴/信号引擎同源：TREND-DN＝破MA60＋MACD绿柱→持仓显「该基减速/暂缓补仓」（筛选池标的改「破位·暂不买入」，筛选池不做定投）、TREND-UP＝多头排列(含年线)＋MACD红柱→持仓显「定投可加速一档」（筛选池改「趋势转多·关注」）；辅助提示＝RSI14≥70 超买勿追高 / ≤30 超卖维持定投、布林触上轨短线勿加 / 触下轨维持定投（最多 2 条、去重防超买与上轨重复）；无触发时持仓显「定投照常/持有观察·定投照常」、筛选显「观望」。单元格 white-space:normal 局部放开 tp-tbl 全表 nowrap；未就绪行 colspan 10→11、空态 colspan 11→12 同步。 --><!-- fw2_v785b_etf_date：用户 2026-10-30 问「聪明的钱·我的持仓ETF动向/国家队宽基ETF动向两张表数据是否严重滞后」——实测数据不滞后（etf-shares.json updatedAt=2026-10-29，交易所份额 T+1），但 10 月起采集断档（510300 最后 5 个 gap=7/2/6/7/8 天，此前基本每交易日）而 1日/3日 列按采集点数回退（chgN 按 hist 索引），跨周变化被标成 1日（如 510300「1日」实为 10-21→10-29 跨 8 天 −19.2%），视觉上既像滞后又像暴涨暴跌。本轮按用户要求：两表「规模(亿元)」后各新增「数据日期」列（每只 ETF 自己 hist 最后一个点 r.last.d / r.d，与整体「数据日 upd」可能不同的 ETF 逐行可见）；列宽 colgroup 12 列重排（18/8/8/8/6×5/8/9/11），无数据行 colspan 10→11、历史积累行 9→10 同步。采集断档根因与 1日/3日 列日历日化修正挂账待办。 --><!-- fw2_v787b_dm_sched：数据管理·日轨调度实录修正（用户 2026-10-30「统一排查 21:30 日频自动化」）——实证：WorkBuddy 自动化清单仅 2 条提醒类、Windows 计划任务无数据任务、GitHub 近 30 天提交无 21:30（UTC 13:30）窗口记录 ⇒ 历史宣称「cron_job 14013240823042 每晚自动」已死（CloudStudio 旧环境），页面照抄=虚假承诺。修正：①DMTRACKS 日轨 note 改指 WorkBuddy 自动化「投资工作台·日频数据统一刷新+发布」（本机执行，工作日 21:30，id 0920f58a-1c24-48ba-ba91-4405de199740，含显式失败报告禁静默）；②refresh_all.py SERIAL_AFTER 末位新增 bundle 组（fw2_v787b_bundle_sched）——_make_bundle.py 原为纯手动步骤（无任何调用点），夜刷漏打则 meta-bundle 内嵌 holdings/watchlist/macro/gold 停更，前端 mbGet 首屏读旧值；③34 数据集频次/数据源经逐项核对与 DMCONFIG 一致（v771 审计后无漂移）。 --><!-- fw2_v787_tday_align：用户拍板「1日=真·上一交易日」——聪明的钱两表变化列按A股交易日历回退：①fetch_etf_shares.py 随数据写入交易日历 tdays（东财上证指数日K 320天，失败沿用旧值）；②chgT 按日历回退，目标交易日缺采集点→顺延最近采集点并标≈（悬浮显实际对比日），表头 vs 日期=真交易日（1日=vs 10-29）；③连续申赎按交易日相邻判定，断档即断；④断档口径不触发行动参考，防跨8天变化被误读为单日暴涨。根因结论＝系统无任何采集定时自动化（仅2个提醒类automation），10月断档=手动跑全域链的频次。附带修 _tx 盘后模板字段后移坑：盘后88段 idx70/71 变涨跌幅小值，份额改取 idx70/71/72/73 首个量级合理值（1亿~10万亿份）＋份额×现价兜底市值（实测东财 push2 全程 RemoteDisconnected 走腾讯通道，旧解析器在盘后抓到 -0.00 亿份坏点，已用修复解析器重抓覆盖 10-30 全部17只）。--><!-- fw2_v786_unify：跨体系信号统一并入（用户拍板 B 方案 2026-10-30「全部接入，互斥需提示」）——signalEvalAll 引擎级并入四体系：①聪明的钱 XOV→持仓行（复用决策看板 _xovAct 同口径，019441 并入 016452 不重复评估）②V11 狙击→筛选池行（就绪=act/观望=near，独立体系不并档，环境过热/CAP 超限标 ⚠互斥）③持仓穿透 P 系→持仓行（P1 拥挤/P2 单票暴露/P3 集中度/P4 覆盖率，阈值同 v784c/v784d 口径，P6 需盘中行情仍留穿透页签）④筛选池趋势 S-TREND→筛选行（TREND-DN=破位暂不买入 act / TREND-UP=转多关注 near，货债金豁免）⑤互斥检测 pass：同标的一买一卖双向逐行标注 ⚠互斥（不自动降档，沿 fw2_v671 T7 教训），T3/T8 合并行按分位归族，筛选池 S-TREND 破位 vs S1/S2/S3 买入同触双向标注；缓存指纹加 V11 asOf/SM_XOV generated/jjcc updatedAt。今日待办自动覆盖新增 act/near 行。--><!-- fw2_v782_through_signals：持仓穿透统计表升级为 P 系信号（用户 2026-10-30 反馈「只是统计没信号」）——P1 多基拥挤（单股≥3/≥4 基共持，行级徽章+磁贴三档）、P2 隐性单票暴露（组合占比≥3/5%）、P3 Top5 底层集中度、P4 覆盖市值不足 50% 提示、P5 陈旧过滤（concDate 距今大于 180 天的基金不参与聚合与拥挤度判定，012761@2024/160422@2019 已剔除，结论不再被旧重仓污染）、P6 行情联动（腾讯 qt.gtimg 批量现价当日涨跌 + ifzq kline 21 根算近 20 日，两段渲染：信号表立现、行情到齐重绘；拥挤股单日跌超 5% 触发 P6 共振磁贴）。数据侧 _gen_jjcc_batch.py topStocks 补 c 代码字段 + _refresh_held_jjcc.py 旧缓存缺 c 自动重抓（fund-jjcc.json 已重生成随发布）。诚实边界：穿透为季报近似下界，P 系是结构性慢信号非择时；行情为时效性补充。--><!-- fw2_v781b_fix_scope：修复持仓穿透「加载中」卡死——①fetchJson 是 block10 IIFE 闭包内函数（22144 行），block7 侧 renderHoldThrough 调用即 ReferenceError 被 onclick try/catch 吞掉（v685/686/687 同型），改为函数内自带微型加载器（本地失败落 raw 兜底，失败不置 done 可重试）；②holdRows 同在 block10 闭包内（v697c 实证）window.holdRows=undefined → 静默渲染空表，在本块末尾 window.holdRows=holdRows 导出真源引用（fw2_v781b_hold_rows_export，只增不改）。修后经本地 HTTP+Edge CDP 完整交互链路实测：导航→点页签→Top20 表格渲染（20 行/覆盖 8 只/日期正确）。--><!-- fw2_v781_hold_through：交易信号视图新增「持仓穿透」子页签——穿透持仓基金底层前十大重仓股，按穿透市值聚合 Top20；配套数据集 data/fund-jjcc.json（东财 jjcc，24 只持仓基金仅 8 只 A股 equity 当期有数据，货基/债基/QDII美股正确排除）须随发布（v695 教训）。--><!-- fw2_v780_profiles_dim：修复基金数据页「收益/风险/经理/产品」四列全「—」（复发）——根因＝_gen_profiles.py 导出白名单漏写 scoreDim/scoreDimSub/scoreCov/scoreVeto（score_fund 内存里算好但没落盘），每次刷新重建 fund-profiles.json 即冲掉分；内联 FUND_PROFILES_MIRROR 又源自该 JSON 故同丢。修法＝①补白名单（根治，v697l 的 _backfill_profiles_dim.py 只是事后补）②离线重算回填 53/53 ③_embed_v186_assets.py 重嵌镜像 ④_audit_cross_module.py 新增 I 组断言（缺分即 FAIL）防复发。--> <!-- fw2_v779_collapse_min2：用户 2026-10-29 拍板，资产配置表同本质子组折叠阈值 6→2（TH_COLLAPSE_MIN）——标普500 两只存量（017641/096001）默认隐藏只显小计行，点「展开明细」按钮展示；规则收敛为「有小计行（≥2 只同本质）即默认折叠」。v778 visibility:collapse 已保 rowspan 占位，零布局风险；纯 JS 常量一行改动 --><!-- fw2_v778_rowspan_collapse：用户 2026-10-29 报「资产配置表全坏」（截图安全垫/对冲/合计列错位）。根因＝v773 主题子组默认折叠用 display:none，Chromium 中隐藏行不消耗上方 rowspan 占位 →「进攻/主题」档位格 rowspan=20 只覆盖 9 个可见行，剩余 11 格下渗把安全垫/对冲/合计全部顶错列（潜伏 5 版）。修法＝tr.th-hide 改 visibility:collapse（17086 行 CSS 注释含探针实测）；纯 CSS 一行，DOM/渲染/数据零改动 --><!-- fw2_v777_drop_ops：用户 2026-10-29 拍板，持仓表删「操作」列（研究/改/删 三按钮整列移除）。入口保全：①「研究」点名称 lk-rs 链接仍在（v172c 同口径）；②「改」openHoldingEditor 仍由研究页 #rsAddHold 调用；③「删」无 UI 入口属有意——持仓份额/成本以对账单+每晚 ttskill 刷新为权威，UI 手删易被覆盖；#hdTable 委托监听保留为空转守卫（data-act 无来源，留作日后重挂）；v776 居中说明见 279 行 CSS 注释 --></span><!-- fw2_v775_drop_cols：用户 2026-10-29 拍板，持仓表删「板块/资产类型」两列（存量全为 其他/基金 零信息量）；19→17 列同步：数据行/合计行/空态 colspan；sector 与 assetType 数据字段保留（编辑表单/筛选/研究链接仍在用） --></span><!-- fw2_v774_sw_bigbypass+fw2_v774_ldtimeout+fw2_v774_navhold：买入峰值/最大回撤线上恒「—」根因＝SW 拦截 8MB fund-daily.json 响应体卡死（Playwright 线上 A/B 实证：SW on → r.json() 永不落地、__NAV_SERIES__ 建不起来；SW off → 93 序列秒建；本地不复现）。
 修复＝sw.js v3 对 fund-daily.json 不拦截 + 大于2MB 响应不再写缓存 + CACHE v2→v3；前端两处 loader 加 json() 45s 超时（超时顺延下一源）。终判根因＝8MB fund-daily 在中国网络 20-35s+ 下载（content-length 为 gzip 1MB、body 完整），SW A/B 结论被沙箱代理慢速混淆；真修＝分层加载 fw2_v774_navhold：data/nav-hold.json（持仓 24 只迷你序列 1.6MB/gzip 170KB，gen_nav_hold.py 随 _make_bundle 重生成）先行秒级建序列，全量后台覆盖。 --><!-- fw2_v773_theme_collapse：资产配置表主题子组≥6行默认折叠只显小计（纳指100 11只存量），小计行「展开明细」按钮（allocThemeToggle 全局函数，免疫重渲染销毁监听）+ fw2_v773_widebase_off：022676 富国A500增强按宽基指数主题归「进攻/主题」档位（用户拍板 2026-10-29）；fw2_v773_spx_off：标普500存量（017641/096001）同归「进攻/主题」，计划外组清空 --></div>
         <div data-page-node-id="29etwgT4DhXWt50INGwSBu" class="b2"><!--pnid:abcwT00RaFu94EKr3WjV2J-->Personal Finance Desk</div>
       </div>
@@ -10408,12 +10408,16 @@ window.__mcGo = function (region, group) {
   if (typeof renderMacro === 'function') renderMacro();
   if (typeof fillMacroTabs === 'function') fillMacroTabs();
 };
-/* fw2_v803_macro_notes：宏观周期模块全指标「四段解读」＝注释 / 阀值 / 最新数据分析 / 投资影响与建议。
+/* fw2_v803_macro_notes + fw2_v810_notes_depth：宏观周期模块全指标「四段解读」＝注释 / 阀值 / 最新数据分析 / 投资影响与建议。
+   v810：①[[r:红]][[g:绿]][[y:橙]][[b:蓝]]行内彩色标记（esc 后转换，防注入）；②阈值突破自动 ⚠ 高亮（band 加 brk:1）；
+   ③insFn(C) 计算型深度分析——「须与X对比」的卡直接算出比值/分位/同向背离结论。
    数据一律取 window.__MC_C（与 renderMacro 同源计算值）或卡内已渲染读数，不臆造；好/坏/中性按各卡自带阈值档位自动判。
    保留各卡原有「指向 / 阈值」行，四段定位为互补深度解读，统一插在卡片最底部。 */
 var MN_GREEN = '#0d9f4d', MN_RED = '#dc2626', MN_GRAY = '#475569';
 var MN_NA = { label: '数据缺失', color: MN_GRAY, insight: '当前无可用读数，只展示口径与阈值，不做方向判定（不臆造）。' };
 function mnNum(v, dg, unit) { return (v == null || !isFinite(v)) ? '—' : (Number(v).toFixed(dg == null ? 1 : dg) + (unit || '')); }
+/* fw2_v810_notes_depth：v 在数组中的分位（0-100，忽略 null）；供 insFn 计算自身历史分位 */
+function mnPctOf(arr, v) { if (v == null || !arr || !arr.length) return null; var n = 0, m = 0; for (var i = 0; i < arr.length; i++) { if (arr[i] == null) continue; m++; if (arr[i] <= v) n++; } return m ? Math.round(n / m * 1000) / 10 : null; }
 function mnBand(v, bands) {
   if (v == null || !isFinite(v)) return MN_NA;
   for (var i = 0; i < bands.length; i++) if (bands[i].lt == null || v < bands[i].lt) return bands[i];
@@ -10424,7 +10428,7 @@ function mnMake(valFn, fmtFn, bands) {
     var v = null; try { v = valFn(C || {}); } catch (e) { v = null; }
     var b = mnBand(v, bands);
     var t = ''; try { t = fmtFn(v, C || {}); } catch (e) { t = mnNum(v, 1); }
-    return { txt: t, label: b.label, color: b.color, insight: b.insight || '' };
+    return { txt: t, label: b.label, color: b.color, insight: b.insight || '', brk: b.brk || null };   /* fw2_v810_notes_depth：brk=行动阈值突破档 */
   };
 }
 var MACRO_NOTES = {
@@ -10441,6 +10445,17 @@ var MACRO_NOTES = {
     note: '信用脉冲＝社融存量同比的 3 个月变化，衡量「信用扩张的速度」而非水平。计算＝当月社融同比减去 3 个月前的同比，单位 pct（二阶导）。逻辑：信用加速领先企业盈利与 A 股约 6 个月，是最常用的领先指标之一。',
     thr: '上阈值约 +0.5pct 以上＝信用明显加速；下阈值 −0.5pct 以下＝信用减速或收缩；之间为平台期。上破支持盈利扩张与权益加仓，下破提示盈利下修需降仓位中枢；口径调整造成的单月跳变不计入。',
     valText: '脉冲值与相位见卡内读数', verdict: '领先信号', color: MN_GRAY,
+    insFn: function (C) {
+      var pts = ((C.d || {}).credit || {}).points || [];
+      if (pts.length < 4) return '社融序列不足，无法算脉冲（不臆造）。';
+      var now = pts[pts.length - 1], b3 = pts[pts.length - 4];
+      var pulse = (now[1] != null && b3[1] != null) ? now[1] - b3[1] : null;
+      if (pulse == null) return '社融同比组件缺数，不臆造。';
+      var g = (C.cCur || {}).gap, mk = C.mk;
+      var lvl = pulse >= 0.5 ? '[[g:≥+0.5 信用加速]]——领先盈利与 A 股约 6 个月' : pulse <= -0.5 ? '[[r:≤−0.5 信用减速]]——盈利下修预警' : '平台期（±0.5 内）';
+      var cross = (g != null && mk != null) ? '与 M1−M2 ' + mnNum(g, 1, ' pct') + '、PMI ' + mnNum(mk, 1) + ' ' + ((pulse >= 0.5 && mk >= 50) || (pulse <= -0.5 && mk < 50) ? '[[g:同向共振]]——领先信号可信度高' : '[[y:未共振]]——按规则等连续两月与多指标确认，不抢跑') + '。' : '';
+      return '信用脉冲 ' + mnNum(pulse, 2, ' pct') + '（社融同比 ' + mnNum(now[1], 1, '%') + ' − 3 个月前 ' + mnNum(b3[1], 1, '%') + '）属' + lvl + '。' + cross;
+    },
     ins: '看方向不看绝对值，且需与 M1−M2 剪刀差、PMI 同向确认；单独一次转正不足以改变仓位中枢。',
     imp: '【大类】脉冲转正利好 A 股与港股宽基、压制债券避险需求。【我的持仓】A500指数×2、沪深300、创业板160422 直接受益；红利与自由现金流在加速期弹性较弱但回撤小；纳指100×11、标普500×2 主要跟美国信用条件，不必与中国脉冲同步。【筛选池】加速期可重新核对池内宽基评分，仍守「同指数留 1 只、已持指数禁入」。【新机会】脉冲连续两月为正且估值分位未过热，才是权益定投加档候选。不构成投资建议。'
   },
@@ -10457,11 +10472,20 @@ var MACRO_NOTES = {
     note: 'ERP（股权风险溢价）＝沪深300 盈利收益率 E/P 减去 10 年期国债收益率，衡量股票相对债券多补偿多少风险。E/P 为 PE-TTM 的倒数；再对 ERP 序列算近 10 年分位，把「贵不贵」标准化。逻辑：ERP 越高，股票相对债券越便宜。',
     thr: '10 年分位 ≥75%＝股票显著便宜，按 M9 增股至 70–80%；25–50% 均衡；<25%＝股票偏贵，减股至 20–30%。上破触发的是「股债再平衡」而非满仓，下破应减速而非清仓。',
     r: mnMake(function (C) { return C.ePct; }, function (v, C) { return 'ERP 10年分位 ' + mnNum(v, 1, '%') + ' · ERP 利差 ' + mnNum(C.eCur && C.eCur.erp, 2, '%'); }, [
-      { lt: 25, label: '偏贵 · 坏', color: MN_RED, insight: '分位偏低说明股票相对债券补偿不足，权益性价比下降；按 M9 应减速而非继续加档。' },
+      { lt: 25, brk: 1, label: '偏贵 · 坏', color: MN_RED, insight: '分位偏低说明股票相对债券补偿不足，权益性价比下降；按 M9 应减速而非继续加档。' },
       { lt: 50, label: '中性偏暖', color: MN_GRAY, insight: '性价比中性，维持既定仓位中枢与定投节奏即可。' },
       { lt: 75, label: '中性偏多', color: MN_GRAY, insight: '股票相对债券已有一定补偿，但未到加档触发线，记录观察。' },
       { lt: null, label: '偏便宜 · 好', color: MN_GREEN, insight: '分位达 M9 增股触发区，是股债再平衡的窗口，但须与信用脉冲、PMI 同向确认后落动作。' }
     ]),
+    /* fw2_v810_insfn：以下 insFn 为计算型深度分析（比值/分位/同向背离直接算出结论） */
+    insFn: function (C) {
+      var e = C.eCur || {}, p = C.ePct, pl = C.peLast;
+      if (e.erp == null) return 'ERP 组件缺数，无法做归因分解（不臆造）。';
+      var head = '分解：盈利收益率 E/P ' + mnNum(e.ep, 2, '%') + ' − 10Y 国债 ' + mnNum(e.y10, 2, '%') + ' ＝ ERP ' + mnNum(e.erp, 2, '%') + '（10 年分位 P' + mnNum(p, 0) + '）。';
+      var peP = pl ? pl[2] : null;
+      var tail = (p != null && peP != null) ? (p - peP > 15 ? 'ERP 分位比 PE 分位高 ' + mnNum(p - peP, 0, ' pct') + '——[[y:高 ERP 主要由低利率贡献]]（债券端把股票衬便宜），而非盈利端改善；利率回升会直接压缩 ERP，加档前须确认利率端不反转。' : (peP - p > 15 ? 'PE 分位反高于 ERP 分位——[[r:股票贵更多来自盈利端与价格本身]]，而非利率补偿不足，减速信号更强。' : 'ERP 分位与 PE 分位基本同档（P' + mnNum(p, 0) + ' vs P' + mnNum(peP, 0) + '），估值结论两卡互证。')) : '';
+      return head + tail;
+    },
     ins: '分位是相对历史的相对量，不代表绝对低估值；高 ERP 有时来自盈利下修，须核对 E/P 与国债各自走势。',
     imp: '【大类】ERP 高＝股票与偏股基金优于债券与货币，低＝反之。【我的持仓】A500指数×2、沪深300、创业板160422 为直接受益端；红利、自由现金流在债券收益率下行时也有类债支撑；纳指100×11、标普500×2 参照美股自身 ERP，不与本卡混用；黄金、货币是低分位期的弹药与缓冲。【筛选池】分位 ≥75% 时才值得重新核对池内宽基评分，仍守同指数留 1 只与已持指数禁入。【新机会】高 ERP 且信用脉冲转正＝定投加档候选，资金先过资金平衡表。不构成投资建议。'
   },
@@ -10470,11 +10494,19 @@ var MACRO_NOTES = {
     note: '巴菲特指数＝股票总市值 ÷ GDP，衡量一国股市相对实体经济的整体膨胀程度。计算用全 A 总市值（东财市值标定，日频跟踪）与近四季名义 GDP；月频自算与日频跟踪同口径衔接。逻辑：市值涨得比产出快，意味着未来回报被提前透支。',
     thr: '≥100% 高估、80–100% 偏高、50–80% 合理、<50% 低估。上破 100% 提示整体减速与降低预期收益，下破 50% 提示长期布局价值；该指标对择时不敏感，只用于调整长期回报假设与仓位上限。',
     r: mnMake(function () { var B = window.BUFF10Y || {}; return B.v; }, function (v) { return '证券化率 ' + mnNum(v, 2, '%') + ' · 10年分位 P' + mnNum((window.BUFF10Y || {}).pct, 0); }, [
-      { lt: 50, label: '低估 · 好', color: MN_GREEN, insight: '股市相对实体产出偏低，长期回报空间较大，是长期资金布局区间。' },
+      { lt: 50, brk: 1, label: '低估 · 好', color: MN_GREEN, insight: '股市相对实体产出偏低，长期回报空间较大，是长期资金布局区间。' },
       { lt: 80, label: '合理', color: MN_GRAY, insight: '整体估值与实体规模匹配，维持长期配比即可。' },
       { lt: 100, label: '偏高 · 谨慎', color: MN_RED, insight: '市值增速快于产出，应下调长期收益预期、放慢加档。' },
-      { lt: null, label: '高估 · 坏', color: MN_RED, insight: '历史高位区，重点是控制仓位上限而非追逐短期涨幅。' }
+      { lt: null, brk: 1, label: '高估 · 坏', color: MN_RED, insight: '历史高位区，重点是控制仓位上限而非追逐短期涨幅。' }
     ]),
+    insFn: function () {
+      var B = window.BUFF10Y || {}, v = B.v, p = B.pct;
+      if (v == null) return '巴菲特指数组件缺数，不臆造。';
+      var d100 = 100 - v;
+      var near = d100 <= 0 ? '（[[r:已越 100% 高估线]]）' : d100 < 10 ? '（[[y:距 100% 高估线不足 ' + mnNum(d100, 0, ' pct') + '，减速优先]]）' : '（距 100% 高估线 ' + mnNum(d100, 0, ' pct') + '）';
+      var lvl = (p != null) ? (p >= 80 ? '，自身 10 年分位 P' + mnNum(p, 0) + '＝[[r:历史高位]]——长期回报假设应下修，这不是卖出信号而是降低加档上限' : p <= 20 ? '，自身 10 年分位 P' + mnNum(p, 0) + '＝[[b:历史低位]]——长期赔率改善区' : '，自身 10 年分位 P' + mnNum(p, 0) + '，处历史中段') : '';
+      return '总市值/GDP ' + mnNum(v, 1, '%') + near + lvl + '。只与本国自身历史比（各国直接融资占比不同，跨国比较失真）。';
+    },
     ins: '跨国比较会失真（各国直接融资占比不同），只看本国自身历史分位；日频跟踪值可能与月频口径有小幅差异。',
     imp: '【大类】整国估值偏高时，股票与偏股基金的长期预期收益下修，债券、货币、黄金的相对权重上升。【我的持仓】A500指数×2、沪深300、创业板160422 属 A 股敞口，直接受本卡约束；纳指100×11、标普500×2 需看美股自己的证券化率，勿用 A 股阈值套用；红利与自由现金流在高位期回撤通常更小。 【筛选池】高位期不新增 A 股宽基，池内仍守同指数留 1 只与已持指数禁入。【新机会】低于 50% 且 ERP 同步高位，才是长期加档窗口。不构成投资建议。'
   },
@@ -10486,8 +10518,16 @@ var MACRO_NOTES = {
       { lt: 5, label: '常态 · 中性', color: MN_GRAY, insight: '市场未出现系统性折价，按既定中枢执行。' },
       { lt: 8, label: '偏低 · 中性偏多', color: MN_GRAY, insight: '折价个股开始增多，赔率小幅改善，记录观察。' },
       { lt: 12, label: '底部特征 · 偏多', color: MN_GREEN, insight: '悲观定价较充分，逆向价值提升，但需信用与盈利不再恶化。' },
-      { lt: null, label: '深度底部 · 好', color: MN_GREEN, insight: '历史级折价区，是长期资金分批布局的赔率窗口，不是短期择时点。' }
+      { lt: null, brk: 1, label: '深度底部 · 好', color: MN_GREEN, insight: '历史级折价区，是长期资金分批布局的赔率窗口，不是短期择时点。' }
     ]),
+    insFn: function (C) {
+      var s = ((C.d || {}).sentiment || {}).brokenPct || {}, v = s.value;
+      if (v == null) return '破净率缺数，不臆造。';
+      var lvl = v >= 12 ? '≥12% [[b:深度底部档]]——系统性折价的强逆向信号' : v >= 8 ? '8–12% 底部特征档——赔率改善中' : v >= 5 ? '5–8% 偏低档——开始有折价个股聚集' : '<5% 常态档——无系统性折价';
+      var erpP = C.ePct, peP = C.peLast ? C.peLast[2] : null;
+      var cross = (erpP != null && peP != null) ? '与 ERP P' + mnNum(erpP, 0) + '、沪深300 PE P' + mnNum(peP, 0) + ' 三项' + ((v >= 8 && erpP >= 60) ? '[[g:同向偏底部]]——赔率改善的组合证据，但须盈利不再下修' : (v < 5 && peP >= 70) ? '[[y:背离]]——破净率低而 PE 高＝结构分化：低 PB 行业看似便宜、成长股不便宜，勿用本卡判断整体便宜' : '方向不完全一致，按各自档位分别判读') + '。' : '';
+      return '当前破净率 ' + mnNum(v, 1, '%') + '，属' + lvl + '。' + cross;
+    },
     ins: '破净率受银行地产等低 PB 行业权重影响较大，是结构指标；须与 ERP、PE 分位交叉验证。',
     imp: '【大类】深度底部期 A 股宽基与价值风格赔率优于现金与债券。【我的持仓】A500指数×2、沪深300 含较多低 PB 成分，受益最直接；红利与自由现金流在此区间防御与修复兼顾；创业板160422 弹性更大但确定性低；黄金、货币在高破净期可适当让位给权益弹药。【筛选池】底部区可复核池内宽基与价值类评分，同指数留 1 只、已持指数禁入不变。【新机会】破净率与 ERP 同时触发时，定投加档的赔率最优。不构成投资建议。'
   },
@@ -10496,12 +10536,21 @@ var MACRO_NOTES = {
     note: 'PE-TTM＝总市值 ÷ 最近 12 个月净利润（总市值加权，理杏仁官方口径），再算该值在近 10 年序列中的分位。逻辑：分位把「贵不贵」放到自身历史里比较，比绝对 PE 更可比；是 M1 估值档的核心输入。',
     thr: '10 年分位 <20% 重点标记加档、20–40% 中性偏冷、60–80% 中性偏暖、>80% 偏贵减速（M1）。上破 80% 应放慢定投而非卖出，下破 20% 才有加档依据；分位越界须与盈利方向同时看，防止「便宜是因为盈利崩了」。',
     r: mnMake(function (C) { return C.peLast && C.peLast[2] != null ? C.peLast[2] : null; }, function (v, C) { return 'PE-TTM ' + mnNum(C.peLast && C.peLast[1], 2) + ' · 10年分位 ' + mnNum(v, 1, '%'); }, [
-      { lt: 20, label: '便宜 · 好', color: MN_GREEN, insight: '达 M1 重点加档区，权益定投赔率改善。' },
+      { lt: 20, brk: 1, label: '便宜 · 好', color: MN_GREEN, insight: '达 M1 重点加档区，权益定投赔率改善。' },
       { lt: 40, label: '中性偏冷 · 偏多', color: MN_GRAY, insight: '估值偏低但未到触发线，维持节奏并记录观察。' },
       { lt: 60, label: '中性', color: MN_GRAY, insight: '估值居中，按既定中枢与定投金额执行。' },
       { lt: 80, label: '中性偏暖 · 谨慎', color: MN_RED, insight: '估值偏贵，控制新增仓位、不加档。' },
-      { lt: null, label: '偏贵 · 坏', color: MN_RED, insight: '触发 M1 减速档，重点是放慢投入而非清仓。' }
+      { lt: null, brk: 1, label: '偏贵 · 坏', color: MN_RED, insight: '触发 M1 减速档，重点是放慢投入而非清仓。' }
     ]),
+    insFn: function (C) {
+      var pl = C.peLast, e = C.eCur || {};
+      if (!pl || pl[1] == null) return 'PE 序列缺数，不臆造。';
+      var peV = pl[1], p = pl[2];
+      var d80 = 80 - p, ep = peV ? 100 / peV : null;
+      var head = 'PE ' + mnNum(peV, 2) + '（P' + mnNum(p, 0) + '）：' + (d80 <= 0 ? '[[r:已越 80% 减速线]]——放慢定投而非卖出' : d80 < 5 ? '距 80% 减速线仅 ' + mnNum(d80, 0, ' pct') + '（[[y:特别关注]]）' : '距 80% 减速线 ' + mnNum(d80, 0, ' pct')) + '、距 20% 加档线 ' + mnNum(20 - p, 0, ' pct') + '。';
+      var tail = (ep != null && e.y10 != null) ? '比价落地：E/P ' + mnNum(ep, 2, '%') + ' − 10Y 国债 ' + mnNum(e.y10, 2, '%') + ' ＝ ERP ' + mnNum(e.erp, 2, '%') + '（P' + mnNum(C.ePct, 0) + '）——股票相对债券的补偿' + (e.erp >= 6 ? '[[g:较厚]]，持有权益的机会成本可控' : e.erp <= 3 ? '[[r:偏薄]]，债券吸引力在上升' : '中等') + '。' : '';
+      return head + tail;
+    },
     ins: '分位是相对量，须核对 PE 绝对值与盈利同比；理杏仁 403 期间可能用旧快照，以卡内「数据截至」为准。',
     imp: '【大类】分位低利好 A 股宽基与偏股基金，分位高则债券与货币的相对吸引力上升。【我的持仓】沪深300、A500指数×2 与创业板160422 直接对标本卡；红利与自由现金流通常 PE 分位更低，是高估值期的防御替代；纳指100×11、标普500×2 属美股口径，须看「美股估值温度」卡。【筛选池】分位 <20% 才值得重跑池内宽基评分，同指数留 1 只、已持指数整组禁入。【新机会】低分位且 ERP 高位＝定投加档候选。不构成投资建议。'
   },
@@ -10510,10 +10559,18 @@ var MACRO_NOTES = {
     note: '用社融、M1、M2 的月度同比，以及 M1−M2 剪刀差刻画信用与货币活化程度。M1 以活期存款为主，M2 含定期；剪刀差为正代表资金从储蓄转向交易与经营，是盈利扩张的领先代理。计算＝各序列同比后直接相减，单位 pct。',
     thr: '剪刀差 ≥0 盈利扩张顺风、0 至 −2 收敛观察等拐点、<−2 盈利收缩逆风；拐点领先 A 股约 6 个月，用于定仓位中枢。上破 0 支持加仓，下破 −2 应降中枢；2025-01 前后 M1 口径调整可能造成跳变，须剔除。',
     r: mnMake(function (C) { return C.cCur && C.cCur.gap != null ? C.cCur.gap : null; }, function (v, C) { return 'M1−M2 剪刀差 ' + mnNum(v, 1, 'pct') + ' · 社融同比 ' + mnNum(C.cCur && C.cCur.sf, 1, '%') + ' · M1 ' + mnNum(C.cCur && C.cCur.m1, 1, '%'); }, [
-      { lt: -2, label: '收缩逆风 · 坏', color: MN_RED, insight: '资金淤积在定期存款、活化不足，企业盈利下修风险高，按规则降仓位中枢。' },
+      { lt: -2, brk: 1, label: '收缩逆风 · 坏', color: MN_RED, insight: '资金淤积在定期存款、活化不足，企业盈利下修风险高，按规则降仓位中枢。' },
       { lt: 0, label: '收敛观察 · 中性', color: MN_GRAY, insight: '负但收窄，是等拐点的阶段，不宜抢跑加仓。' },
-      { lt: null, label: '扩张顺风 · 好', color: MN_GREEN, insight: '资金转向交易与经营，领先盈利约 6 个月，支持权益加档。' }
+      { lt: null, brk: 1, label: '扩张顺风 · 好', color: MN_GREEN, insight: '资金转向交易与经营，领先盈利约 6 个月，支持权益加档。' }
     ]),
+    insFn: function (C) {
+      var c = C.cCur || {}, g = c.gap, mk = C.mk;
+      if (g == null) return '信用组件缺数，不臆造。';
+      var lvl = g >= 0 ? '≥0（[[g:活化顺风]]——资金从储蓄转向交易与经营）' : g <= -2 ? '<−2（[[r:淤积逆风]]——定期化明显，盈利下修风险）' : '0 至 −2（收敛观察区——等拐点，不抢跑）';
+      var base = (c.sf != null && c.m1 != null && c.m2 != null) ? '底数：社融同比 ' + mnNum(c.sf, 1, '%') + '、M1 ' + mnNum(c.m1, 1, '%') + '、M2 ' + mnNum(c.m2, 1, '%') + '。' : '';
+      var cross = (mk != null) ? '与制造业 PMI ' + mnNum(mk, 1) + '（' + (mk >= 50 ? '扩张' : '收缩') + '）' + ((g >= 0 && mk >= 50) || (g <= -2 && mk < 50) ? '[[g:同向]]——盈利领先信号共振，可信度高于单指标' : '[[y:背离]]——信用领先盈利约 6 个月，背离期以信用方向为领先参考、以更弱一端定仓位') : '';
+      return 'M1−M2 ' + mnNum(g, 1, ' pct') + ' 属' + lvl + '。' + base + cross;
+    },
     ins: '剪刀差是同比之差，受基数影响大；须结合社融同比绝对水平与信用脉冲二阶导一起读。',
     imp: '【大类】剪刀差转正利好 A 股宽基与顺周期，负值期债券、黄金、货币相对占优。【我的持仓】A500指数×2、沪深300、创业板160422 对国内信用最敏感；红利、自由现金流在收缩期回撤更小；纳指100×11、标普500×2 跟美联储条件而非中国 M1；黄金在对冲信用收缩时价值上升。【筛选池】转正期复核池内宽基评分，守同指数留 1 只与已持指数禁入。【新机会】剪刀差连续两月 ≥0 且估值分位不过热，才是加档窗口。不构成投资建议。'
   },
@@ -10526,6 +10583,14 @@ var MACRO_NOTES = {
       { lt: 2, label: '风格均衡 · 中性', color: MN_GRAY, insight: '上下游价差温和，无明显风格偏移，按既定配比执行。' },
       { lt: null, label: '中下游占优', color: MN_GRAY, insight: 'CPI 相对强，消费与中下游毛利改善，防御与消费风格相对占优。' }
     ]),
+    insFn: function (C) {
+      var cpi = C.cpiL, ppi = C.ppiL, pg = C.pgL;
+      if (pg == null) return '物价组件缺数，不臆造。';
+      var s1 = (cpi != null) ? (cpi > 3 ? 'CPI ' + mnNum(cpi, 1, '%') + '（[[r:通胀警戒 >3]]）' : cpi < 0 ? 'CPI ' + mnNum(cpi, 1, '%') + '（[[b:通缩担忧 <0]]）' : 'CPI ' + mnNum(cpi, 1, '%') + '（温和区）') : '';
+      var s2 = (ppi != null) ? (ppi < 0 ? 'PPI ' + mnNum(ppi, 1, '%') + '（[[y:工业需求不足]]）' : 'PPI ' + mnNum(ppi, 1, '%')) : '';
+      var tail = pg <= -2 ? '剪刀差 ' + mnNum(pg, 1, ' pct') + '：[[y:利润向上游资源集中]]——中下游毛利承压，我的持仓里红利/自由现金流相对占优、创业板毛利弹性受挤压' : pg >= 2 ? '剪刀差 ' + mnNum(pg, 1, ' pct') + '：[[g:利润向中下游回流]]——消费与成长毛利改善' : '剪刀差 ' + mnNum(pg, 1, ' pct') + '：产业链利润分配中性，风格由其他因子决定';
+      return [s1, s2].filter(function (x) { return x; }).join(' · ') + '。' + tail + '。';
+    },
     ins: '剪刀差方向不等于股市涨跌，它只解释利润在产业链上怎么分；须与 PMI、社融一起判断需求强度。',
     imp: '【大类】PPI 强时资源与周期股占优、债券受通胀预期压制；CPI 强时消费与防御占优，实际利率上行压制黄金。【我的持仓】红利与自由现金流在上游涨价与防御期相对稳；A500指数×2、沪深300 覆盖上下游较均衡；创业板160422 对需求与流动性更敏感；黄金受实际利率与通胀预期双向影响；纳指100×11、标普500×2 看美国 PCE 而非中国 CPI。【筛选池】风格切换期复核池内红利与宽基评分，守同指数留 1 只。【新机会】CPI 回落而 PPI 触底回升往往是顺周期修复起点，可作观察项。不构成投资建议。'
   },
@@ -10535,8 +10600,16 @@ var MACRO_NOTES = {
     thr: '美债 10Y ≥4.5%、人民币近 6 月贬值 >2%、美元指数明显走强，三占其二即外资流出压力（防御降仓）；中美利差 <0 为倒挂，资本外流逆风；2s10s <0 为收益率曲线倒挂，衰退与避险信号；2s10s 转正往往滞后于衰退开始。',
     r: mnMake(function (C) { return C.badCnt; }, function (v, C) { return '达标 ' + mnNum(v, 0) + '/3 · 红绿灯 ' + (C.fxGate || '—') + ' · 美债10Y ' + mnNum(C.tL, 2, '%') + ' · 美元指数 ' + mnNum(C.uL, 2); }, [
       { lt: 2, label: '外围顺风 · 好', color: MN_GREEN, insight: '未达防御触发条件，跨境资本压力小，权益环境相对友好。' },
-      { lt: null, label: '外围逆风 · 坏', color: MN_RED, insight: '三项占其二已触发，按规则防御降仓，优先保住弹药与黄金缓冲。' }
+      { lt: null, brk: 1, label: '外围逆风 · 坏', color: MN_RED, insight: '三项占其二已触发，按规则防御降仓，优先保住弹药与黄金缓冲。' }
     ]),
+    insFn: function (C) {
+      if (C.badCnt == null) return '外围组件缺数，不臆造。';
+      var items = [];
+      if (C.fChg != null) items.push('美元指数 6 月 ' + (C.fChg >= 0 ? '+' : '') + mnNum(C.fChg, 1, '%') + (C.fChg > 2 ? '（[[r:命中 >2]]）' : '（未命中）'));
+      if (C.tL != null) items.push('美债 10Y ' + mnNum(C.tL, 2, '%') + (C.tL >= 4.5 ? '（[[r:命中 ≥4.5]]）' : '（未命中）'));
+      if (C.uChg != null) items.push('人民币 6 月 ' + (C.uChg >= 0 ? '+' : '') + mnNum(C.uChg, 1, '%') + (C.uChg > 3 ? '（[[r:命中贬值 >3]]）' : '（未命中）'));
+      return '三选二明细：' + items.join(' · ') + ' → 命中 ' + C.badCnt + '/3，红绿灯【' + (C.fxGate || '—') + '】' + (C.badCnt >= 2 ? '——[[r:外围防御触发]]，QDII 与高估值资产按规则降敞口' : C.badCnt === 1 ? '——[[y:半档警惕]]，不加仓但不撤退' : '——[[g:外围顺风]]，无额外约束') + '。';
+    },
     ins: '红绿灯是规则引擎的三选二判据，不是预测；2s10s 倒挂领先衰退但时滞很长，不宜单独择时。',
     imp: '【大类】美元强加美债利率高时，全球权益与黄金承压、现金与短债占优；人民币贬值压制 A 股外资流向，但利好出口链。【我的持仓】纳指100×11、标普500×2 为 QDII，同时受美股估值与汇兑双向影响；A500指数×2、沪深300 受外资流向压制；黄金与实际利率负相关，美债 10Y 高时承压；日经225 受益于日元贬值；货币仓在逆风期是弹药。【筛选池】逆风期不新增 QDII，池内同指数留 1 只、已持指数禁入不变。【新机会】红绿灯转顺风且 VIX 回落，才是 QDII 定投恢复加档的观察点。不构成投资建议。'
   },
@@ -10547,8 +10620,15 @@ var MACRO_NOTES = {
     r: mnMake(function (C) { return C.vL; }, function (v) { return '最新 VIX ' + mnNum(v, 2); }, [
       { lt: 20, label: '平稳 · 好', color: MN_GREEN, insight: '隐含波动低，外围风险开关未触发，权益环境相对平稳。' },
       { lt: 30, label: '警惕 · 中性偏坏', color: MN_GRAY, insight: '波动抬升但未到恐慌区，控制新增仓位、保留弹药。' },
-      { lt: null, label: '恐慌 · 坏', color: MN_RED, insight: '按规则降杠杆、暂停新开仓；恐慌区不宜逆势抄底，等波动回落确认。' }
+      { lt: null, brk: 1, label: '恐慌 · 坏', color: MN_RED, insight: '按规则降杠杆、暂停新开仓；恐慌区不宜逆势抄底，等波动回落确认。' }
     ]),
+    insFn: function (C) {
+      var v = C.vL, fsi = ((C.d || {}).fsi || {}).score;
+      if (v == null) return 'VIX 缺数，不臆造。';
+      var lvl = v >= 30 ? '恐慌区（[[r:>30，风险开关开启]]）' : v >= 20 ? '警惕区（20–30，控制新仓）' : '平稳区（[[g:<20]]）';
+      var cross = (fsi != null) ? (v >= 20 && fsi >= 50 ? '与 FSI ' + mnNum(fsi, 0) + ' [[r:双高]]——波动已扩散为系统性压力，防守优先级最高' : v >= 20 && fsi < 50 ? '高 VIX 而 FSI ' + mnNum(fsi, 0) + ' 正常——[[y:股市局部波动未扩散]]为系统性压力，观察而非立即防御' : v < 20 && fsi >= 50 ? '低 VIX 而 FSI ' + mnNum(fsi, 0) + ' 偏高——[[y:平静下的脆弱]]，低波动常掩盖杠杆堆积' : '与 FSI ' + mnNum(fsi, 0) + ' 同处低位——外围实质平稳') : '';
+      return 'VIX ' + mnNum(v, 1) + ' 属' + lvl + '。' + cross;
+    },
     ins: 'VIX 是预期波动而非方向，低 VIX 也可能对应高杠杆的脆弱平静；须与 FSI、信用利差交叉验证。',
     imp: '【大类】VIX 抬升时股票与偏股基金普遍承压，黄金、短债、货币相对占优；极端恐慌后波动回落常见反弹。【我的持仓】纳指100×11、标普500×2 与 VIX 直接同源，冲击最明显；日经225、创业板160422 跟随全球风险偏好；黄金是主要对冲仓；红利、自由现金流、货币仓负责降低组合波动；A500指数×2、沪深300 受外资情绪间接传导。【筛选池】恐慌期不新开仓，池内守同指数留 1 只与已持指数禁入。【新机会】VIX 从 >30 回落至 20 下方且 ERP 未过热，才是 QDII 定投恢复加档的观察点。不构成投资建议。'
   },
@@ -10557,10 +10637,17 @@ var MACRO_NOTES = {
     note: 'PMI＝采购经理人指数，对企业的新订单、生产、就业、供应商配送、库存五项做扩散指数加权，月度问卷合成。计算＝回答「好转」的比例加一半「持平」比例，因此 50 是荣枯线：高于 50 表示环比扩张的企业占多数。逻辑：它是环比动能而非同比增速，领先工业增加值与盈利。',
     thr: '制造业 PMI ≥50 且连续两月＝盈利扩张顺风、加仓窗口；<49 且连续两月＝收缩逆风、降仓位中枢；49–50 附近＝荣枯线观察等方向确认。单月越线不作数，必须连续两期同向；非制造业 PMI 参照 50 但波动更大。',
     r: mnMake(function (C) { return C.mk; }, function (v, C) { return '制造业 PMI ' + mnNum(v, 1) + ' · 非制造业 PMI ' + mnNum(C.nm2, 1); }, [
-      { lt: 49, label: '收缩逆风 · 坏', color: MN_RED, insight: '景气收缩区，按规则降仓位中枢，等连续两月回到 50 上方再谈加档。' },
+      { lt: 49, brk: 1, label: '收缩逆风 · 坏', color: MN_RED, insight: '景气收缩区，按规则降仓位中枢，等连续两月回到 50 上方再谈加档。' },
       { lt: 50, label: '荣枯线附近 · 中性', color: MN_GRAY, insight: '方向未确认，记录观察、不抢跑。' },
-      { lt: null, label: '扩张顺风 · 好', color: MN_GREEN, insight: '景气扩张区，盈利上修概率上升，连续两月确认后支持权益加档。' }
+      { lt: null, brk: 1, label: '扩张顺风 · 好', color: MN_GREEN, insight: '景气扩张区，盈利上修概率上升，连续两月确认后支持权益加档。' }
     ]),
+    insFn: function (C) {
+      var mk = C.mk, pv = C.pmPrev ? C.pmPrev[1] : null, g = (C.cCur || {}).gap;
+      if (mk == null) return 'PMI 缺数，不臆造。';
+      var two = (pv != null) ? ((mk >= 50 && pv >= 50) ? '连续两月 ≥50（[[g:扩张确认]]）' : (mk < 49 && pv < 49) ? '连续两月 <49（[[r:收缩确认]]）' : '[[y:方向未连续]]——单月越线不作数') : '';
+      var cross = (g != null) ? '与 M1−M2 剪刀差 ' + mnNum(g, 1, ' pct') + ' ' + ((mk >= 50 && g >= 0) ? '[[g:同向扩张]]——需求与信用共振' : (mk < 49 && g < 0) ? '[[r:同向收缩]]' : '[[y:背离]]——信用领先 PMI 约 6 个月，背离期以信用方向为领先参考') + '。' : '';
+      return '制造业 PMI ' + mnNum(mk, 1) + '（非制造业 ' + mnNum(C.nm2, 1) + '）。' + two + '。' + cross;
+    },
     ins: 'PMI 是环比扩散指数，数值高低代表「多少企业在改善」而非增长幅度；季节性明显，宜看 3 月均值。',
     imp: '【大类】PMI 连续扩张利好 A 股宽基与顺周期、压制债券避险需求；连续收缩反之。【我的持仓】A500指数×2、沪深300、创业板160422 对国内景气最敏感；红利、自由现金流在收缩期防御性更好；主动权益×2 依赖选股但同样受景气约束；纳指100×11、标普500×2 看美国 ISM 而非中国 PMI；黄金在收缩期有对冲价值。【筛选池】扩张确认期复核池内宽基评分，守同指数留 1 只与已持指数禁入。【新机会】PMI 连续两月 ≥50 且信用脉冲转正，是加档条件最齐的窗口。不构成投资建议。'
   },
@@ -10572,10 +10659,20 @@ var MACRO_NOTES = {
       var b = C.broad || {}, g = function (x) { return x && x.cur ? mnNum(x.cur[1], 0, '%') : '—'; };
       return '中证500 ' + g(b.zz500) + ' · 中证1000 ' + g(b.zz1000) + ' · 创业板 ' + g(b.cyb);
     }, [
-      { lt: 20, label: '便宜 · 好', color: MN_GREEN, insight: '中小盘估值达加档区，进攻端赔率改善。' },
+      { lt: 20, brk: 1, label: '便宜 · 好', color: MN_GREEN, insight: '中小盘估值达加档区，进攻端赔率改善。' },
       { lt: 80, label: '中性', color: MN_GRAY, insight: '估值居中，按既定中枢执行；注意三个宽基之间的分歧。' },
-      { lt: null, label: '偏贵 · 坏', color: MN_RED, insight: '触发减速档，控制中小盘与成长风格的追加投入。' }
+      { lt: null, brk: 1, label: '偏贵 · 坏', color: MN_RED, insight: '触发减速档，控制中小盘与成长风格的追加投入。' }
     ]),
+    insFn: function (C) {
+      var b = C.broad || {}, g = function (x) { return x && x.cur ? x.cur[2] : null; };
+      var p5 = g(b.zz500), p10 = g(b.zz1000), pc = g(b.cyb);
+      if (p5 == null && p10 == null && pc == null) return '宽基分位缺数，不臆造。';
+      var arr = [p5, p10, pc].filter(function (x) { return x != null; });
+      var hi = arr.filter(function (x) { return x >= 80; }).length, lo = arr.filter(function (x) { return x < 20; }).length;
+      var spread = arr.length > 1 ? Math.max.apply(null, arr) - Math.min.apply(null, arr) : null;
+      var verdict = (spread != null && spread > 30) ? '三者分位差 ' + mnNum(spread, 0, ' pct') + '（[[y:风格分歧大]]）——不能用一个温度代表中小盘，进攻端按各自分位分别减速/加档' : hi >= 2 ? '两项以上 ≥80（[[r:中小盘整体偏贵]]）——创业板等进攻端新增减速' : lo >= 2 ? '两项以上 <20（[[b:整体便宜区]]）——进攻端赔率改善，可核对加档条件' : '整体处中性区，按既定节奏执行';
+      return '中证500 P' + mnNum(p5, 0) + ' · 中证1000 P' + mnNum(p10, 0) + ' · 创业板 P' + mnNum(pc, 0) + '。' + verdict + '。';
+    },
     ins: '显示值以中证500 分位作判定代表，其余两者并列展示；三者分歧时不要用一个温度代表全部中小盘。',
     imp: '【大类】中小盘与成长风格分位低时，创业板与中证系宽基赔率优于大盘价值；分位高时债券与货币相对占优。【我的持仓】创业板160422 是本卡的直接敞口；A500指数×2、沪深300 偏大盘，需分开看；红利、自由现金流属价值防御，与中小盘温度常呈跷跷板；纳指100×11、标普500×2 属美股口径。【筛选池】分位 <20% 时复核池内中小盘与创业板评分，同指数留 1 只、已持指数整组禁入。【新机会】创业板分位低且 PMI 扩张，是成长端加档候选。不构成投资建议。'
   },
@@ -10584,10 +10681,18 @@ var MACRO_NOTES = {
     note: '标普500（.INX）的 PE-TTM 与近 10 年分位（理杏仁官方口径）。计算＝指数成分总市值加权 PE 在自身近 10 年序列中的百分位。逻辑：这是跨资产温度的美股锚，专门用来判断我最大敞口（纳指100 与标普500）贵不贵，不与 A 股阈值混用。',
     thr: '10 年分位 <20% 便宜加档、20–80% 中性、>80% 偏贵减速。上破 80% 应放慢 QDII 定投，下破 20% 才有加档依据；美股分位长期偏高是常态，须与美债利率、VIX 一起看，单看分位容易过早减速。',
     r: mnMake(function (C) { return C.spxPct; }, function (v, C) { return '标普500 PE-TTM ' + mnNum(C.spxLast && C.spxLast[1], 1) + ' · 10年分位 ' + mnNum(v, 0, '%'); }, [
-      { lt: 20, label: '便宜 · 好', color: MN_GREEN, insight: '美股估值达加档区，QDII 定投赔率改善。' },
+      { lt: 20, brk: 1, label: '便宜 · 好', color: MN_GREEN, insight: '美股估值达加档区，QDII 定投赔率改善。' },
       { lt: 80, label: '中性', color: MN_GRAY, insight: '估值居中，维持既定定投金额与节奏。' },
-      { lt: null, label: '偏贵 · 坏', color: MN_RED, insight: '触发减速档，放慢 QDII 新增投入而非卖出。' }
+      { lt: null, brk: 1, label: '偏贵 · 坏', color: MN_RED, insight: '触发减速档，放慢 QDII 新增投入而非卖出。' }
     ]),
+    insFn: function (C) {
+      var p = C.spxPct, t = C.tL;
+      if (p == null) return '标普分位缺数，不臆造。';
+      var d80 = 80 - p;
+      var head = '标普500 PE 分位 P' + mnNum(p, 0) + '：' + (d80 <= 0 ? '[[r:已越 80 减速线]]——QDII 新增放慢（这是纳指100×11、标普500×2 最大敞口的直接约束）' : d80 < 5 ? '距 80 线仅 ' + mnNum(d80, 0, ' pct') + '（[[y:特别关注]]）' : '距 80 减速线 ' + mnNum(d80, 0, ' pct')) + '。';
+      var tail = (t != null) ? '对照美债 10Y ' + mnNum(t, 2, '%') + '：' + (p >= 80 && t >= 4.5 ? '[[r:高估值+高利率]]双重压制——对长久期的纳指100 敏感度最高，减速判断增强' : p >= 60 && t >= 4.5 ? '估值偏高叠加利率高位——回撤敏感期' : '利率端未构成额外压制') + '。' : '';
+      return head + tail;
+    },
     ins: '理杏仁 403 期间可能是滞后旧快照，以卡内「数据截至」为准；标普500 等权与市值加权口径分位差异较大，本卡用总市值加权。',
     imp: '【大类】美股分位高时全球权益预期收益下修，短债、货币、黄金相对占优；同时高估值对美债利率与 VIX 更敏感。【我的持仓】纳指100×11 与标普500×2 是我最大敞口，本卡直接约束其定投节奏；日经225 跟随全球风险偏好但估值口径独立；A500指数×2、沪深300 属 A 股温度；黄金、货币在高分位期是弹药与缓冲。【筛选池】高分位期不新增 QDII，池内同指数留 1 只、已持指数整组禁入。【新机会】分位 <20% 且 VIX 回落至平稳区，才是 QDII 加档候选。不构成投资建议。'
   },
@@ -10598,8 +10703,16 @@ var MACRO_NOTES = {
     r: mnMake(function (C) { return C.ushfBE && C.ushfBE.cur != null ? C.ushfBE.cur : null; }, function (v, C) { return '10Y 盈亏平衡通胀 ' + mnNum(v, 2, '%') + ' · 有效联邦基金 ' + mnNum(C.ushfFF && C.ushfFF.cur, 2, '%') + ' · SOFR ' + mnNum(C.ushfFF && C.ushfFF.sofr, 2, '%'); }, [
       { lt: 2, label: '通缩担忧 · 中性偏多', color: MN_GRAY, insight: '通胀预期低于目标，利好久期资产与实际利率下行，但也提示需求偏弱。' },
       { lt: 2.5, label: '目标附近 · 中性', color: MN_GRAY, insight: '通胀预期贴近 2% 锚，按既定配比执行。' },
-      { lt: null, label: '通胀升温 · 谨慎', color: MN_RED, insight: '预期升温压制长久期资产，高估值成长股与美债承压。' }
+      { lt: null, brk: 1, label: '通胀升温 · 谨慎', color: MN_RED, insight: '预期升温压制长久期资产，高估值成长股与美债承压。' }
     ]),
+    insFn: function (C) {
+      var be = C.ushfBE || {}, ff = C.ushfFF || {};
+      var b = be.cur, eff = ff.cur, sofr = ff.sofr;
+      if (b == null) return '利率组件缺数，不臆造。';
+      var lvl = b > 2.5 ? '[[r:>2.5 通胀预期升温]]——压制久期资产' : b < 2 ? '[[b:<2 通缩担忧]]——利好久期但警惕需求过弱' : '2–2.5 目标锚附近';
+      var sp = (sofr != null && eff != null) ? sofr - eff : null;
+      return '10Y 盈亏平衡通胀 ' + mnNum(b, 2, '%') + ' 属' + lvl + '。' + (sp != null ? 'SOFR−EFFR ' + mnNum(sp, 2, ' pct') + (Math.abs(sp) > 0.1 ? '（[[y:剪刀差异常走阔]]——短端流动性紧张信号，须与 FSI 并读）' : '（正常，短端流动性平稳）') + '。' : '') + '与海外宏观页核心 PCE 实际读数对照着看（预期 vs 现实）。';
+    },
     ins: '盈亏平衡通胀含流动性溢价，不等于未来实际 CPI；须与核心 PCE 实际读数一起判断通胀是否顽固。',
     imp: '【大类】政策利率高加通胀预期升温时，长久期成长股、长债与高估值资产承压，短债与货币占优；降息周期反之。【我的持仓】纳指100×11 是长久期成长股集中敞口，对实际利率最敏感；标普500×2 次之；黄金与实际利率负相关，利率高时承压；红利、自由现金流与货币仓在紧缩期相对稳；A500指数×2、沪深300 受中美利差与外资流向间接影响。【筛选池】紧缩期不新增长久期成长类，同指数留 1 只、已持指数禁入。【新机会】盈亏平衡通胀回落且政策利率转向，是成长端估值修复的观察点。不构成投资建议。'
   },
@@ -10610,8 +10723,17 @@ var MACRO_NOTES = {
     r: mnMake(function (C) { var a = C.cbRatesArr || []; return a.length && a[0].rate != null ? a[0].rate : null; }, function (v, C) { return '美联储 ' + mnNum(v, 2, '%') + ' · 五国利率见卡内磁贴（更新 ' + (((C.cbRates || {}).updatedAt) || '—') + '）'; }, [
       { lt: 2, label: '偏松 · 中性偏多', color: MN_GRAY, insight: '政策利率偏低，流动性宽松，权益与久期资产环境较友好。' },
       { lt: 3.75, label: '中性', color: MN_GRAY, insight: '利率处于中间区间，按既定中枢执行。' },
-      { lt: null, label: '偏紧 · 谨慎', color: MN_RED, insight: '资金成本高，高估值成长股与长久期资产承压，短端现金类收益较好。' }
+      { lt: null, brk: 1, label: '偏紧 · 谨慎', color: MN_RED, insight: '资金成本高，高估值成长股与长久期资产承压，短端现金类收益较好。' }
     ]),
+    insFn: function (C) {
+      var a = C.cbRatesArr || [];
+      if (!a.length) return '央行利率组件缺数，不臆造。';
+      var mx = null, mn = null;
+      for (var i = 0; i < a.length; i++) { var r0 = a[i] && a[i].rate; if (r0 == null) continue; if (!mx || r0 > mx.rate) mx = a[i]; if (!mn || r0 < mn.rate) mn = a[i]; }
+      if (!mx || !mn) return '央行利率组件缺数，不臆造。';
+      var spread = mx.rate - mn.rate;
+      return '利差落地：最高 ' + (mx.name || '?') + ' ' + mnNum(mx.rate, 2, '%') + ' vs 最低 ' + (mn.name || '?') + ' ' + mnNum(mn.rate, 2, '%') + ' ＝ ' + mnNum(spread, 2, ' pct') + '——资金天然流向高利率货币，' + (spread >= 4 ? '[[y:利差极宽]]：低利率端货币的套息平仓风险与高利率端成长股的估值压制都需计入' : '当前利差处常态区间') + '。';
+    },
     ins: '显示值以美联储利率作判定代表，五国全量见卡内；各国利率不可直接相加或平均。',
     imp: '【大类】美欧利率高时美元资产短端收益占优，压制全球权益估值；日元低利率长期支撑套息交易，加息会触发平仓波动。【我的持仓】纳指100×11、标普500×2 受美联储路径影响最大；日经225 对日本央行正常化与日元汇率敏感；货币仓在高利率期收益改善；黄金受实际利率压制；A500指数×2、沪深300 受中美利差与外资流向影响。【筛选池】跨国利差变化时可复核 QDII 与货币类评分，守同指数留 1 只。【新机会】美联储转向宽松且美元回落，是 QDII 与黄金同时受益的少见窗口。不构成投资建议。'
   },
@@ -10620,10 +10742,20 @@ var MACRO_NOTES = {
     note: '把 GDP、社会消费品零售、固定资产投资、出口、工业增加值、70 城房价六项实体活动指标并列，用各自同比（或增速）与正增长个数合成「增长动能」判断。逻辑：这些是需求端的真实产出，比金融指标滞后但更可靠，用来验证信用脉冲与 PMI 给出的领先信号是否落地。',
     thr: '六项中 ≥4 项正增长＝增长动能偏强、≤1 项＝偏弱、之间＝分化（卡内 mcActOk 口径）。越强越支持权益加档，越弱越应降仓位中枢；分化时只记录观察，不作为行动依据。房价与出口同时转负是需求端较弱的确认信号。',
     r: mnMake(function (C) { return (typeof mcActOk === 'function' && C.d) ? mcActOk(C.d).ok : null; }, function (v, C) { var a = (typeof mcActOk === 'function' && C.d) ? mcActOk(C.d) : null; return '正增长 ' + mnNum(v, 0) + '/5 项 · ' + (a ? a.txt : '分项见卡内'); }, [
-      { lt: 2, label: '增长偏弱 · 坏', color: MN_RED, insight: '多数实体活动未扩张，盈利下修风险高，按规则降仓位中枢。' },
+      { lt: 2, brk: 1, label: '增长偏弱 · 坏', color: MN_RED, insight: '多数实体活动未扩张，盈利下修风险高，按规则降仓位中枢。' },
       { lt: 4, label: '增长分化 · 中性', color: MN_GRAY, insight: '部分指标改善但未形成合力，记录观察、等方向确认。' },
       { lt: null, label: '增长偏强 · 好', color: MN_GREEN, insight: '实体活动多数扩张，领先信号得到验证，支持权益加档。' }
     ]),
+    insFn: function (C) {
+      if (typeof mcActOk !== 'function' || !C.d) return '实体组件缺数，不臆造。';
+      var a = null; try { a = mcActOk(C.d); } catch (e) { a = null; }
+      var ok = a && a.ok;
+      if (ok == null) return '实体分项缺数，不臆造。';
+      var mk = C.mk;
+      var lvl = ok >= 4 ? '[[g:≥4 项正增长——动能偏强]]' : ok <= 1 ? '[[r:≤1 项——动能偏弱]]' : '分化（2–3 项）——记录观察';
+      var cross = (mk != null) ? '与制造业 PMI ' + mnNum(mk, 1) + '（' + (mk >= 50 ? '扩张' : '收缩') + '）' + ((ok >= 4 && mk >= 50) || (ok <= 1 && mk < 50) ? '[[g:同向]]——领先信号正在落地验证，方向可信度高' : '[[y:背离]]——领先（PMI/信用）与滞后（实体）矛盾时，等下月两者收敛再定方向') + '。' : '';
+      return '实体活动正增长 ' + ok + '/5 项' + (a && a.txt ? '（' + a.txt + '）' : '') + '属' + lvl + '。' + cross;
+    },
     ins: '本卡是滞后确认指标，不能替代信用脉冲与 PMI 的领先判断；缺源项如实留白不臆造。',
     imp: '【大类】实体增长强时 A 股宽基、顺周期与可选消费占优，债券与黄金相对让位；弱时反之。【我的持仓】A500指数×2、沪深300、创业板160422 对国内需求最直接；红利、自由现金流在弱增长期防御性更好；出口链走弱会间接影响主动权益×2；纳指100×11、标普500×2 属美国需求，须看美国零售与 ISM；黄金在弱增长加宽松期受益。【筛选池】增长确认转强才复核池内宽基评分，守同指数留 1 只与已持指数禁入。【新机会】实体、信用、PMI 三者同时转正，是加档条件最完整的窗口。不构成投资建议。'
   },
@@ -10634,9 +10766,17 @@ var MACRO_NOTES = {
     r: mnMake(function (C) { var f = ((C.d || {}).fsi) || {}; return f.score != null ? f.score : null; }, function (v, C) { var f = ((C.d || {}).fsi) || {}; return '压力指数 ' + mnNum(v, 1) + '/100 · 历史分位 ' + mnNum(f.percentile, 1, '%'); }, [
       { lt: 30, label: '正常 · 好', color: MN_GREEN, insight: '系统性压力低，外围环境平稳，按既定配比执行。' },
       { lt: 50, label: '关注 · 中性偏坏', color: MN_GRAY, insight: '压力抬升但未到警戒，控制新仓、保留弹药。' },
-      { lt: 70, label: '警戒 · 坏', color: MN_RED, insight: '按规则降杠杆、放缓新增投入，优先持有流动性与对冲资产。' },
-      { lt: null, label: '危机 · 坏', color: MN_RED, insight: '系统性压力高位，重点是保流动性与控制回撤，不做逆势加仓。' }
+      { lt: 70, brk: 1, label: '警戒 · 坏', color: MN_RED, insight: '按规则降杠杆、放缓新增投入，优先持有流动性与对冲资产。' },
+      { lt: null, brk: 1, label: '危机 · 坏', color: MN_RED, insight: '系统性压力高位，重点是保流动性与控制回撤，不做逆势加仓。' }
     ]),
+    insFn: function (C) {
+      var f = ((C.d || {}).fsi) || {}, s = f.score;
+      if (s == null) return 'FSI 缺数，不臆造。';
+      var mx = null, ind = f.indis || [];
+      for (var i = 0; i < ind.length; i++) { var z = ind[i] && ind[i].z; if (z != null && (!mx || Math.abs(z) > Math.abs(mx.z))) mx = ind[i]; }
+      var lvl = s >= 70 ? '危机档（[[r:≥70 保流动性优先]]）' : s >= 50 ? '警戒档（[[r:≥50 降杠杆]]）' : s >= 30 ? '关注档（30–50）' : '正常档（[[g:<30]]）';
+      return '压力 ' + mnNum(s, 1) + '/100（历史分位 P' + mnNum(f.percentile, 0) + '）属' + lvl + '。' + (mx ? '分项 z 绝对值最高的是「' + (mx.name || mx.key) + '」（z=' + mnNum(mx.z, 2) + '）——当前系统性压力的[[y:主要来源]]，压力缓解应先看该分项回落。' : '');
+    },
     ins: '分项表与总卡是同一份 fsi.indis 数据；等权合成会掩盖单一市场极端值，须看分项 z 分布。',
     imp: '【大类】压力上行时全球股票与偏股基金同步承压、信用债利差走阔，黄金、短债、货币相对占优；压力回落是风险资产修复的先行条件。【我的持仓】纳指100×11、标普500×2 对全球流动性最敏感；日经225、创业板160422 跟随风险偏好；黄金是主要对冲仓；红利、自由现金流、货币仓降低组合波动；A500指数×2、沪深300 受外资流向间接传导。【筛选池】警戒以上不新增风险资产，池内守同指数留 1 只与已持指数禁入。【新机会】FSI 从警戒回落至正常且 VIX 同步回落，才是 QDII 恢复加档的观察点。不构成投资建议。'
   },
@@ -10645,12 +10785,20 @@ var MACRO_NOTES = {
     note: 'CNN Fear & Greed 把 7 项美股情绪代理（股价动量、强度、广度、看跌看涨期权比、垃圾债需求、波动率、避险需求）各自标准化后等权合成 0–100。逻辑：它是逆向指标——极度贪婪意味着仓位拥挤、回调风险积累，极度恐惧常伴阶段性底部。',
     thr: '≥75 极度贪婪、55–75 贪婪、45–55 中性、25–45 恐惧、<25 极度恐惧。上破 75 应放慢追高、检查拥挤度；下破 25 是逆向布局的赔率窗口但需 FSI 与 VIX 不再恶化配合；单看情绪不能择时。',
     r: mnMake(function (C) { var c = (((C.d || {}).sentiment) || {}).cnnFG; return c && c.available ? c.value : null; }, function (v) { return 'CNN Fear & Greed ' + mnNum(v, 1) + '/100'; }, [
-      { lt: 25, label: '极度恐惧 · 逆向偏多', color: MN_GREEN, insight: '情绪极度悲观，长期赔率改善，但须压力指标不再恶化才考虑分批布局。' },
+      { lt: 25, brk: 1, label: '极度恐惧 · 逆向偏多', color: MN_GREEN, insight: '情绪极度悲观，长期赔率改善，但须压力指标不再恶化才考虑分批布局。' },
       { lt: 45, label: '恐惧 · 中性偏多', color: MN_GRAY, insight: '情绪偏弱、仓位不拥挤，记录观察。' },
       { lt: 55, label: '中性', color: MN_GRAY, insight: '情绪居中，按既定定投节奏执行。' },
       { lt: 75, label: '贪婪 · 谨慎', color: MN_RED, insight: '仓位渐趋拥挤，不宜追加追高。' },
-      { lt: null, label: '极度贪婪 · 坏', color: MN_RED, insight: '拥挤度高、回调风险积累，控制新增投入并检查集中度。' }
+      { lt: null, brk: 1, label: '极度贪婪 · 坏', color: MN_RED, insight: '拥挤度高、回调风险积累，控制新增投入并检查集中度。' }
     ]),
+    insFn: function (C) {
+      var c = ((((C.d || {}).sentiment) || {}).cnnFG) || {}, v = c.available ? c.value : null;
+      if (v == null) return 'CNN 缺数，不臆造。';
+      var spx = C.spxPct, vix = C.vL;
+      var lvl = v >= 75 ? '极度贪婪（[[r:≥75 拥挤]]）' : v >= 55 ? '贪婪' : v >= 45 ? '中性' : v >= 25 ? '恐惧' : '极度恐惧（[[b:<25 逆向窗口]]）';
+      var cross = (v >= 75 && spx != null && spx >= 80) ? '与标普500 PE 分位 P' + mnNum(spx, 0) + ' [[r:同处高位]]——情绪拥挤叠加估值贵，QDII 新增减速优先' : (v <= 25 && vix != null && vix >= 30) ? '与 VIX ' + mnNum(vix, 0) + ' [[r:双恐慌]]——先等 FSI/初请不再恶化，逆向分批不抢底' : (v <= 25 ? '恐惧区但 VIX 未恐慌——可能是单一情绪冲击，等交叉确认再布局' : '情绪档位与估值/波动未形成极端组合，按各自阈值分别判读');
+      return 'CNN ' + mnNum(v, 1) + '/100 属' + lvl + '。' + cross + '。';
+    },
     ins: '情绪是同向放大器而非反转时钟，极度贪婪可以维持很久；须与估值分位、FSI 交叉验证。',
     imp: '【大类】极度贪婪时美股与高 beta 资产回撤风险上升，现金与黄金的相对价值提高；极度恐惧时常是长期资金的赔率窗口。【我的持仓】纳指100×11 与标普500×2 是我最大且最集中的敞口，贪婪区尤其要检查集中度；日经225、创业板160422 跟随全球情绪；黄金与货币仓在情绪反转时提供缓冲；红利、自由现金流波动更低。【筛选池】贪婪区不新增美股类，池内同指数留 1 只、已持指数整组禁入。【新机会】极度恐惧叠加估值分位回落，才是 QDII 分批加档候选。不构成投资建议。'
   },
@@ -10669,8 +10817,16 @@ var MACRO_NOTES = {
     r: mnMake(function (C) { return C.ushfIC && C.ushfIC.avg4w != null ? C.ushfIC.avg4w / 10000 : null; }, function (v, C) { return '4周均值 ' + mnNum(v, 1, ' 万') + ' · 月末周初请 ' + mnNum(C.ushfIC && C.ushfIC.cur != null ? C.ushfIC.cur / 10000 : null, 1, ' 万'); }, [
       { lt: 20, label: '就业强劲 · 好', color: MN_GREEN, insight: '裁员压力低，盈利与消费有支撑，但需留意通胀与利率偏高。' },
       { lt: 25, label: '常态 · 中性', color: MN_GRAY, insight: '就业市场平稳，按既定配比执行。' },
-      { lt: null, label: '就业转弱 · 坏', color: MN_RED, insight: '4 周均值越 25 万，衰退前兆，权益需防守、债券与黄金相对占优。' }
+      { lt: null, brk: 1, label: '就业转弱 · 坏', color: MN_RED, insight: '4 周均值越 25 万，衰退前兆，权益需防守、债券与黄金相对占优。' }
     ]),
+    insFn: function (C) {
+      var ic = C.ushfIC || {}, a = ic.avg4w, cur = ic.cur;
+      if (a == null) return '初请组件缺数，不臆造。';
+      var aw = a / 10000;
+      var lvl = aw > 25 ? '[[r:>25 万——就业转弱/衰退前兆档]]' : aw < 20 ? '[[g:<20 万——就业强劲档]]' : '常态档（20–25 万）';
+      var mom = (cur != null) ? '最新单周 ' + mnNum(cur / 10000, 1, ' 万') + (cur > a ? ' 高于 4 周均值——[[y:边际恶化]]，连续 4–6 周上行才确认趋势' : ' 低于 4 周均值——边际改善') + '。' : '';
+      return '4 周均值 ' + mnNum(aw, 1, ' 万') + ' 属' + lvl + '。' + mom;
+    },
     ins: '单位换算：卡内显示「万」，判定用 4 周均值而非单周值；单周跳升不作数。',
     imp: '【大类】初请持续上行触发衰退交易，美股与全球权益承压、债券与黄金受益；低位则支持盈利但可能推迟降息。【我的持仓】纳指100×11、标普500×2 对美国就业与利率路径最敏感；日经225 跟随全球需求；黄金在宽松预期下受益；货币仓在高利率期提供收益与弹药；A500指数×2、沪深300 受美元流动性间接影响。【筛选池】就业转弱期不新增美股类，守同指数留 1 只与已持指数禁入。【新机会】初请见顶回落且 FSI 平稳，往往是权益修复的早期信号。不构成投资建议。'
   },
@@ -10681,8 +10837,16 @@ var MACRO_NOTES = {
     r: mnMake(function (C) { return C.ushfUR && C.ushfUR.cur != null ? C.ushfUR.cur : null; }, function (v, C) { var u = C.ushfUR || {}; return 'U-3 ' + mnNum(v, 1, '%') + ' · U-6 ' + mnNum(u.u6, 1, '%') + ' · 差距 ' + mnNum(u.u6 != null && u.cur != null ? u.u6 - u.cur : null, 1, 'pct'); }, [
       { lt: 4, label: '就业偏紧 · 好', color: MN_GREEN, insight: '失业率低，消费与盈利有支撑，但需留意工资通胀与利率偏高。' },
       { lt: 5, label: '常态 · 中性', color: MN_GRAY, insight: '接近充分就业，按既定配比执行。' },
-      { lt: null, label: '警戒 · 坏', color: MN_RED, insight: 'U-3 越 5%，叠加萨姆规则与 U6−U3 差距判断衰退风险，权益需防守。' }
+      { lt: null, brk: 1, label: '警戒 · 坏', color: MN_RED, insight: 'U-3 越 5%，叠加萨姆规则与 U6−U3 差距判断衰退风险，权益需防守。' }
     ]),
+    insFn: function (C) {
+      var u = C.ushfUR || {}, u3 = u.cur, u6 = u.u6;
+      if (u3 == null) return '失业率组件缺数，不臆造。';
+      var gap = (u6 != null) ? u6 - u3 : null;
+      var t1 = u3 > 5 ? 'U-3 ' + mnNum(u3, 1, '%') + '（[[r:>5% 警戒线已破]]）' : 'U-3 ' + mnNum(u3, 1, '%') + '（5% 警戒线下）';
+      var t2 = (gap != null) ? 'U6−U3 ' + mnNum(gap, 1, ' pct') + (gap > 4 ? '（[[r:>4pct 就业质量恶化]]——隐性兼职与边际劳动力多，U-3 低估了闲置）' : '（差距正常——就业质量未恶化）') : '';
+      return t1 + ' · ' + t2 + '。U-3 下降若伴随参与率下滑未必是改善，本卡以 U-3 与差距双判据交叉。';
+    },
     ins: '判定用 U-3，U-6 与差距并列展示；U-3 下降若伴随劳动参与率下滑，未必是改善。',
     imp: '【大类】失业率上行触发衰退交易与降息预期，利好久期债券与黄金、压制权益；低位则支持盈利但工资通胀会推迟宽松。【我的持仓】纳指100×11、标普500×2 受盈利与利率双向影响；日经225 跟随全球需求；黄金在实际利率下行时受益；红利、自由现金流、货币仓在权益回撤期缓冲；A500指数×2、沪深300 受美元流动性间接传导。【筛选池】失业率破 5% 时不新增 QDII，守同指数留 1 只与已持指数禁入。【新机会】失业率见顶回落且政策转向，是权益与成长端修复的观察点。不构成投资建议。'
   },
@@ -10691,10 +10855,17 @@ var MACRO_NOTES = {
     note: '实际零售销售（FRED RRSFS）同比：先剔除价格因素得到实际销量，再算与去年同月的百分比变化。逻辑：美国个人消费占 GDP 约七成，零售是消费需求最直接的月度读数，也是判断「软着陆还是衰退」的核心证据。',
     thr: '同比转负＝消费走弱、衰退信号；>5%＝消费强劲，但需关注通胀压力与推迟降息；0–5% 为常态。连续两月转负比单月更有意义；名义与实际口径差异在通胀高时很大，本卡用实际值。',
     r: mnMake(function (C) { return C.ushfRet && C.ushfRet.cur != null ? C.ushfRet.cur : null; }, function (v) { return '实际零售同比 ' + mnNum(v, 1, '%'); }, [
-      { lt: 0, label: '消费走弱 · 坏', color: MN_RED, insight: '零售转负，需求端收缩，衰退风险上升，权益盈利预期面临下修。' },
+      { lt: 0, brk: 1, label: '消费走弱 · 坏', color: MN_RED, insight: '零售转负，需求端收缩，衰退风险上升，权益盈利预期面临下修。' },
       { lt: 5, label: '常态扩张 · 中性', color: MN_GRAY, insight: '消费温和增长，按既定配比执行。' },
       { lt: null, label: '消费强劲 · 好', color: MN_GREEN, insight: '需求旺盛支撑盈利，但需留意通胀顽固与利率维持高位。' }
     ]),
+    insFn: function (C) {
+      var r = C.ushfRet || {}, v = r.cur, cc = C.ushfCc ? C.ushfCc.cur : null;
+      if (v == null) return '零售组件缺数，不臆造。';
+      var lvl = v < 0 ? '[[r:转负——消费收缩，衰退信号]]' : v > 5 ? '[[g:强劲（>5%）]]——留意通胀与推迟降息' : '常态扩张（0–5%）';
+      var cross = (cc != null) ? '与密歇根信心 ' + mnNum(cc, 0) + '（' + (cc >= 80 ? '乐观' : cc < 70 ? '[[r:悲观]]' : '中性') + '）' + ((v < 0 && cc < 70) ? '[[r:双弱]]——消费下行确认度高' : (v > 0 && cc >= 80) ? '[[g:双强]]——消费扩张确认度高' : '方向不一——信心领先零售 1–2 季，等零售自身连续确认') + '。' : '';
+      return '实际零售同比 ' + mnNum(v, 1, '%') + ' 属' + lvl + '。' + cross;
+    },
     ins: '零售是同比量，受基数影响；须与消费者信心、失业率一起区分「消费强」还是「涨价推高名义值」。',
     imp: '【大类】消费走弱触发衰退交易，债券与黄金受益、全球权益承压；消费强劲支撑美股盈利但可能推迟降息。【我的持仓】纳指100×11、标普500×2 的盈利与美国消费链高度相关；日经225 跟随全球需求；黄金在宽松预期下受益；货币仓在高利率期提供收益；A500指数×2、沪深300 受外需与美元流动性间接影响。【筛选池】零售转负期不新增美股类，守同指数留 1 只与已持指数禁入。【新机会】零售触底回升且失业率未破警戒，是权益修复的确认点。不构成投资建议。'
   },
@@ -10705,8 +10876,16 @@ var MACRO_NOTES = {
     r: mnMake(function (C) { return C.ushfPce && C.ushfPce.corePceYoy != null ? C.ushfPce.corePceYoy : null; }, function (v, C) { var p = C.ushfPce || {}; return '核心 PCE ' + mnNum(v, 1, '%') + ' · PCE 同比 ' + mnNum(p.pceYoy, 1, '%') + ' · 个人收入 ' + mnNum(p.piCur, 0, ' 百万$'); }, [
       { lt: 2, label: '低于目标 · 偏多', color: MN_GREEN, insight: '通胀低于目标，支持宽松，利好久期资产与成长股，但也需排除需求过弱。' },
       { lt: 2.5, label: '可容忍区间 · 中性', color: MN_GRAY, insight: '通胀接近目标，按既定配比执行，关注方向而非单月数值。' },
-      { lt: null, label: '通胀顽固 · 坏', color: MN_RED, insight: '核心 PCE 越 2.5%，降息预期后移，长久期成长股与美债承压。' }
+      { lt: null, brk: 1, label: '通胀顽固 · 坏', color: MN_RED, insight: '核心 PCE 越 2.5%，降息预期后移，长久期成长股与美债承压。' }
     ]),
+    insFn: function (C) {
+      var p = C.ushfPce || {}, core = p.corePceYoy, all = p.pceYoy;
+      if (core == null) return 'PCE 组件缺数，不臆造。';
+      var d25 = core - 2.5, d2 = 2 - core;
+      var lvl = core > 2.5 ? '[[r:>2.5 顽固区]]——降息预期后移' : core < 2 ? '[[g:<2 宽松区]]' : '2–2.5 可容忍区';
+      var gap = (all != null) ? all - core : null;
+      return '核心 PCE ' + mnNum(core, 1, '%') + '：距 2.5 顽固线 ' + mnNum(d25, 1, ' pct') + (d25 > 0 ? '（已越线）' : '') + '、距 2 目标 ' + mnNum(-d2, 1, ' pct') + '，属' + lvl + '。' + (gap != null ? '整体 PCE ' + mnNum(all, 1, '%') + ' 与核心差 ' + mnNum(gap, 1, ' pct') + '（能源食品贡献' + (gap > 0 ? '正' : '负') + '）——' + (Math.abs(gap) > 0.5 ? '[[y:波动项扰动大]]，政策反应看核心' : '两口径接近，通胀结构平稳') + '。' : '');
+    },
     ins: '判定用核心 PCE，整体 PCE 与个人收入并列展示；核心值波动更小，是政策关注对象。',
     imp: '【大类】通胀顽固时高估值成长股、长债承压，短债与货币占优；回落至 2% 附近利好久期与黄金。【我的持仓】纳指100×11 是最长久期、对实际利率最敏感的敞口；标普500×2 次之；黄金与实际利率负相关；货币仓在高利率期收益改善；红利、自由现金流波动较低；A500指数×2、沪深300 受中美利差间接影响。【筛选池】通胀高位不新增长久期成长类，守同指数留 1 只与已持指数禁入。【新机会】核心 PCE 稳定回落且政策转向，是成长端估值修复的观察点。不构成投资建议。'
   },
@@ -10715,10 +10894,17 @@ var MACRO_NOTES = {
     note: '密歇根大学消费者信心指数 UMCSENT：按月抽样问卷，把消费者对当前财务状况与未来预期的净差值标准化（1966=100）。逻辑：信心领先实际消费约 1–2 个季度，是零售销售的先行指标；谘商会 CCSENT 因 FRED 接口不可用在本工作台缺源留白，不臆造。',
     thr: '>80 乐观（消费扩张）、70–80 中性、<70 悲观（消费收缩先行）。上破 80 支持盈利上修，下破 70 提示零售将走弱；信心对油价与股市短期波动极敏感，须看 3 月均值而非单月。',
     r: mnMake(function (C) { return C.ushfCc && C.ushfCc.cur != null ? C.ushfCc.cur : null; }, function (v) { return '密歇根信心 ' + mnNum(v, 1); }, [
-      { lt: 70, label: '悲观 · 坏', color: MN_RED, insight: '信心偏低，领先消费约 1–2 季，零售与盈利面临下修风险。' },
+      { lt: 70, brk: 1, label: '悲观 · 坏', color: MN_RED, insight: '信心偏低，领先消费约 1–2 季，零售与盈利面临下修风险。' },
       { lt: 80, label: '中性', color: MN_GRAY, insight: '信心居中，按既定配比执行。' },
       { lt: null, label: '乐观 · 好', color: MN_GREEN, insight: '消费意愿强，支撑后续零售与企业盈利。' }
     ]),
+    insFn: function (C) {
+      var c = C.ushfCc || {}, v = c.cur, ret = C.ushfRet ? C.ushfRet.cur : null;
+      if (v == null) return '信心组件缺数，不臆造。';
+      var lvl = v < 70 ? '[[r:<70 悲观——消费收缩先行信号]]' : v > 80 ? '[[g:>80 乐观]]——消费扩张先行' : '中性（70–80）';
+      var cross = (ret != null) ? '与实际零售同比 ' + mnNum(ret, 1, '%') + ' ' + ((v < 70 && ret < 0) ? '[[r:同弱]]——消费链下行确认' : (v > 80 && ret > 0) ? '[[g:同强]]——消费链上行确认' : '背离——信心领先零售 1–2 季，以信心方向为前瞻') + '。' : '';
+      return '密歇根信心 ' + mnNum(v, 1) + ' 属' + lvl + '。' + cross;
+    },
     ins: '本卡仅密歇根口径；谘商会信心缺源如实留白，两个口径的绝对水平不可直接比较。',
     imp: '【大类】信心持续走弱领先消费与权益盈利下修，债券与黄金相对占优；回升则支持风险资产。【我的持仓】纳指100×11、标普500×2 对美国消费预期最敏感；日经225 跟随全球需求；黄金在悲观加宽松预期下受益；红利、自由现金流、货币仓缓冲波动；A500指数×2、沪深300 受外需间接影响。【筛选池】信心破 70 时不新增美股类，守同指数留 1 只与已持指数禁入。【新机会】信心自低位连续回升且零售转正，是消费链修复的确认点。不构成投资建议。'
   },
@@ -10727,10 +10913,17 @@ var MACRO_NOTES = {
     note: '耐用品新订单（FRED DGORDER）同比：统计预计使用寿命三年以上的制成品新增订单金额。逻辑：企业设备与资本开支意愿的先行指标，订单转负通常领先产能利用率下滑、就业与库存周期下行，是朱格拉周期的高频代理。',
     thr: '同比转负＝企业投资收缩、周期下行确认；转正并连续回升＝资本开支修复；波动大的月份看 3 月均值与除运输类核心订单。上破零轴支持顺周期与设备链，下破提示企业盈利下修；单月大额订单（飞机、军品）会造成假信号。',
     r: mnMake(function (C) { return C.ushfDur && C.ushfDur.cur != null ? C.ushfDur.cur : null; }, function (v) { return '耐用品订单同比 ' + mnNum(v, 1, '%'); }, [
-      { lt: 0, label: '投资收缩 · 坏', color: MN_RED, insight: '订单同比转负，资本开支收缩，周期下行确认，权益盈利预期承压。' },
+      { lt: 0, brk: 1, label: '投资收缩 · 坏', color: MN_RED, insight: '订单同比转负，资本开支收缩，周期下行确认，权益盈利预期承压。' },
       { lt: 5, label: '温和修复 · 中性', color: MN_GRAY, insight: '订单正增长但力度有限，记录观察、按既定中枢执行。' },
       { lt: null, label: '投资扩张 · 好', color: MN_GREEN, insight: '资本开支意愿强，支持顺周期、设备链与后续就业。' }
     ]),
+    insFn: function (C) {
+      var dd = C.ushfDur || {}, v = dd.cur, kr = (((C.ushf || {}).krExport) || {}).yoy;
+      if (v == null) return '耐用品组件缺数，不臆造。';
+      var lvl = v < 0 ? '[[r:转负——资本开支收缩]]' : '正增长（修复中）';
+      var cross = (kr != null) ? '与韩国出口同比 ' + mnNum(kr, 1, '%') + '（' + (kr > 5 ? '扩张' : kr < -5 ? '[[r:收缩]]' : '中性') + '）' + ((v < 0 && kr < 0) ? '[[r:双负]]——全球资本开支与电子链同步下行' : (v > 0 && kr > 0) ? '[[g:双正]]——设备与电子链修复确认' : '方向不一——美国内需与全球电子周期节奏不同步，以更弱一端为准') + '。' : '';
+      return '耐用品订单同比 ' + mnNum(v, 1, '%') + ' 属' + lvl + '。' + cross;
+    },
     ins: '总订单含运输类大额扰动，判读时应优先看除运输核心口径与多月趋势。',
     imp: '【大类】订单转负利好债券与黄金、压制全球权益与工业品；回升利好顺周期、半导体设备与资本开支链。【我的持仓】纳指100×11 含较多科技与设备链成分，受资本开支周期影响；标普500×2 覆盖更均衡；创业板160422 与 A 股电子链受全球半导体景气传导；黄金在下行期对冲；红利、自由现金流、货币仓缓冲。【筛选池】订单收缩期不新增成长与设备类，守同指数留 1 只与已持指数禁入。【新机会】订单连续回升且韩国出口同比转正，是全球电子链修复的观察点。不构成投资建议。'
   },
@@ -10739,9 +10932,16 @@ var MACRO_NOTES = {
     note: 'ISM 制造业 PMI：美国供应管理协会对采购经理的新订单、生产、就业、供应商配送、库存五项扩散指数加权，50 为荣枯线；并列 ISM 非制造业。逻辑：与中国官方 PMI 同为环比扩散指数，但样本与行业结构不同，两者不可直接比高低。数据源为腾讯自选股转发 ISM 官方。',
     thr: '>50 扩张、<50 收缩；制造业连续 3 月 <50 通常对应美国周期下行，领先就业与资本开支。上破 50 且连续两月支持权益加档，下破 50 且连续两月应降仓位中枢；单月越线只记观察。',
     r: mnMake(function (C) { return C.ismMfg && C.ismMfg.value != null ? C.ismMfg.value : null; }, function (v, C) { return 'ISM 制造业 ' + mnNum(v, 1) + ' · 非制造业 ' + mnNum(C.ismSvc && C.ismSvc.value, 1); }, [
-      { lt: 50, label: '收缩 · 坏', color: MN_RED, insight: '制造业景气收缩，连续三月低于 50 对应周期下行，权益需防守。' },
+      { lt: 50, brk: 1, label: '收缩 · 坏', color: MN_RED, insight: '制造业景气收缩，连续三月低于 50 对应周期下行，权益需防守。' },
       { lt: null, label: '扩张 · 好', color: MN_GREEN, insight: '制造业扩张，领先就业与资本开支修复，支持权益环境。' }
     ]),
+    insFn: function (C) {
+      var m = C.ismMfg || {}, s = m.value, ssv = (C.ismSvc || {}).value;
+      if (s == null) return 'ISM 缺数，不臆造。';
+      var lvl = s < 50 ? '[[r:<50 收缩]]' : '[[g:>50 扩张]]';
+      var cross = (ssv != null) ? '非制造业 ' + mnNum(ssv, 1) + '（' + (ssv >= 50 ? '扩张' : '收缩') + '）：服务占美国经济约八成，' + (s < 50 && ssv >= 50 ? '制造收缩而服务扩张＝[[y:放缓集中在商品与制造链]]，衰退确认要等服务也落水下' : (s >= 50 && ssv >= 50) ? '[[g:双扩张]]' : '[[r:双收缩]]——周期下行确认度高') + '。' : '';
+      return 'ISM 制造业 ' + mnNum(s, 1) + ' 属' + lvl + '。' + cross;
+    },
     ins: '判定用制造业，非制造业并列展示；本卡源为转发 ISM 官方，与 FRED NAPM 序列不可混用。',
     imp: '【大类】ISM 连续扩张支撑美股盈利与全球制造业链，收缩则触发衰退交易、债券与黄金占优。【我的持仓】纳指100×11、标普500×2 直接对标美国景气；日经225 与全球制造链同步；创业板160422 受电子出口链间接传导；黄金在收缩加宽松预期下受益；红利、自由现金流、货币仓降低回撤；A500指数×2、沪深300 看中国 PMI 而非本卡。【筛选池】ISM 连续收缩期不新增美股类，守同指数留 1 只与已持指数禁入。【新机会】ISM 回到 50 上方且耐用品订单转正，是制造链修复的确认点。不构成投资建议。'
   },
@@ -10758,10 +10958,17 @@ var MACRO_NOTES = {
     note: '韩国商品出口额（FRED XTEXVA01KRM667S，美元计价）月度同比。逻辑：韩国出口以半导体、电子与资本设备为主，且数据发布早，是全球半导体与资本开支周期的强代理；传导链为费半与台积电营收 → 韩国出口 → A 股电子与科创。',
     thr: '同比 >5% 出口扩张、全球景气顺风；<−5% 收缩、逆风；之间中性观察。该阈值为经验口径、未回测校准；FRED 月频发布有滞后，以卡内 asOf 为准。上破 5% 支持电子链，下破 −5% 提示全球需求收缩。',
     r: mnMake(function (C) { var u = C.ushf || {}; return u.krExport && u.krExport.yoy != null ? u.krExport.yoy : null; }, function (v, C) { var u = C.ushf || {}, k = u.krExport || {}; return '韩国出口同比 ' + mnNum(v, 1, '%') + ' · 当月出口额 ' + mnNum(k.val, 0, ' 亿$'); }, [
-      { lt: -5, label: '收缩逆风 · 坏', color: MN_RED, insight: '出口同比低于 −5%，全球电子与资本开支需求收缩，成长与设备链承压。' },
+      { lt: -5, brk: 1, label: '收缩逆风 · 坏', color: MN_RED, insight: '出口同比低于 −5%，全球电子与资本开支需求收缩，成长与设备链承压。' },
       { lt: 5, label: '中性观察', color: MN_GRAY, insight: '同比在中性区间，方向未明，记录观察、按既定中枢执行。' },
-      { lt: null, label: '扩张顺风 · 好', color: MN_GREEN, insight: '出口同比高于 5%，全球半导体与资本开支周期上行，利好电子与科技链。' }
+      { lt: null, brk: 1, label: '扩张顺风 · 好', color: MN_GREEN, insight: '出口同比高于 5%，全球半导体与资本开支周期上行，利好电子与科技链。' }
     ]),
+    insFn: function (C) {
+      var k = (((C.ushf || {}).krExport) || {}), v = k.yoy, dur = C.ushfDur ? C.ushfDur.cur : null;
+      if (v == null) return '韩国出口组件缺数，不臆造。';
+      var lvl = v > 5 ? '[[g:>5% 扩张顺风]]' : v < -5 ? '[[r:<−5% 收缩逆风]]' : '中性区（±5%）';
+      var cross = (dur != null) ? '与美耐用品订单同比 ' + mnNum(dur, 1, '%') + ' ' + ((v > 0 && dur > 0) ? '[[g:同正]]——全球资本开支周期上行确认' : (v < 0 && dur < 0) ? '[[r:同负]]——全球需求收缩确认' : '背离——以更弱一端为准') + '。' : '';
+      return '韩国出口同比 ' + mnNum(v, 1, '%') + ' 属' + lvl + '。' + cross;
+    },
     ins: '名义美元出口额受汇率与大宗价格影响，不是纯量指标；阈值是经验口径未回测，须与费半、台积电营收交叉验证。',
     imp: '【大类】出口扩张利好全球科技股、半导体与设备链，收缩则债券与黄金相对占优。【我的持仓】纳指100×11 含大量科技与半导体成分，受益最直接；创业板160422 与 A 股电子链受传导；标普500×2 覆盖更均衡；日经225 与韩国同属东亚出口链；黄金在收缩期对冲；红利、自由现金流、货币仓缓冲。【筛选池】扩张期可复核池内科技与电子类评分，守同指数留 1 只与已持指数整组禁入。【新机会】韩国出口连续两月 >5% 且 ISM 扩张，是科技链加档候选。不构成投资建议。'
   },
@@ -10773,6 +10980,16 @@ var MACRO_NOTES = {
     note: '融资余额＝两融中「融资买入后尚未偿还」的存量资金月末余额，代表场内杠杆资金的总规模。逻辑：绝对值随流通市值自然增长，单看绝对值意义有限，本卡是杠杆温度的「分母侧」背景卡，方向判读看下一张「融资余额占流通市值比」卡的分位。',
     thr: '本卡不设独立阈值（绝对值无好坏）；杠杆拥挤度阈值在占流通市值比卡：占比 10 年分位 >90% 过热（防御）、<10% 冰点（逆向关注）。余额连续 3 月环比下行叠占比分位回落，才是杠杆实质性退潮。',
     valText: '融资余额月末序列与最新值见卡内磁贴与柱图', verdict: '杠杆存量背景', color: MN_GRAY,
+    insFn: function (C) {
+      var pts = ((C.d || {}).margin || {}).points || [];
+      if (!pts.length) return '融资序列缺数，不臆造。';
+      var m3 = null, i3 = pts.length - 4;
+      if (i3 >= 0 && pts[i3][1]) m3 = (pts[pts.length - 1][1] / pts[i3][1] - 1) * 100;
+      var zp = C.zbPct;
+      var trend = (m3 != null) ? '，近 3 月 ' + (m3 >= 0 ? '+' : '') + mnNum(m3, 1, '%') + (m3 > 5 ? '（[[y:扩张较快]]）' : m3 < -3 ? '（退潮中）' : '（温和）') : '';
+      var deep = (zp != null) ? (zp >= 90 ? '实质结论：占比分位 P' + mnNum(zp, 0) + ' [[r:已越 90 过热线]]——余额增长是真加杠杆，进攻端减速' : zp >= 80 ? '实质结论：占比分位 P' + mnNum(zp, 0) + '，[[y:逼近 90 过热线]]——余额增长开始跑赢市值增长' : '实质结论：占比分位 P' + mnNum(zp, 0) + ' 处中性区——余额变化主要是[[b:市值水涨船高]]，非杠杆实质扩张，真温度看占比卡') : '';
+      return '余额最新 ' + mnNum((C.myYe || 0) / 10000, 2, ' 万亿') + trend + '。' + deep;
+    },
     ins: '读本卡先看趋势（近 3-6 月方向）再看水平；占比卡的分位才是行动阈值，两卡必须并读不拆开。',
     imp: '【大类】杠杆资金退潮期中小盘与高 beta 板块弹性先失、防御相对占优；扩张期成长与顺周期更受益。【我的持仓】创业板160422、纳指100×11 等进攻端对杠杆温度最敏感；红利、自由现金流、货币受杠杆变化影响小；黄金不受影响。【筛选池】杠杆过热期不新增高弹性标的，守同指数留 1 只与已持指数整组禁入。【新机会】占比分位从 >90% 回落至中性区，才重新打开进攻端加档讨论。不构成投资建议。'
   },
@@ -10781,10 +10998,18 @@ var MACRO_NOTES = {
     note: '融资余额占流通市值比＝融资余额 ÷ 流通市值（月末），再算该占比在近 10 年序列中的分位。逻辑：剔除市值增长的水分后，剩下的才是真实的杠杆拥挤程度——余额涨可能是水涨船高，占比涨才是真加杠杆。',
     thr: '占比 10 年分位 >90%＝杠杆拥挤过热（防御，暂停进攻端加档）；<10%＝冰点逆向关注（可小幅加档）；之间＝中性区正常节奏。分位越界须与成交额、指数位置交叉确认，单指标不触发动作。',
     r: mnMake(function (C) { return C.zbPct; }, function (v, C) { return '占比 10年分位 ' + mnNum(v, 1, '%') + ' · 当前占比 ' + mnNum(C.myZb, 2, '%') + ' · 判定 ' + (C.moodLvl || '—'); }, [
-      { lt: 10, label: '杠杆冰点 · 逆向偏多', color: MN_GREEN, insight: '杠杆资金降到历史低位，抛压来源枯竭，长期赔率改善，可小幅加档但等成交额配合。' },
+      { lt: 10, brk: 1, label: '杠杆冰点 · 逆向偏多', color: MN_GREEN, insight: '杠杆资金降到历史低位，抛压来源枯竭，长期赔率改善，可小幅加档但等成交额配合。' },
       { lt: 90, label: '中性区 · 正常节奏', color: MN_GRAY, insight: '杠杆温度居中，按既定定投节奏与仓位中枢执行。' },
-      { lt: null, label: '杠杆过热 · 坏', color: MN_RED, insight: '分位越 90%，拥挤度高，按规则暂停进攻端加档、保留弹药。' }
+      { lt: null, brk: 1, label: '杠杆过热 · 坏', color: MN_RED, insight: '分位越 90%，拥挤度高，按规则暂停进攻端加档、保留弹药。' }
     ]),
+    insFn: function (C) {
+      var zp = C.zbPct, zb = C.myZb, amt = C.amtDv;
+      if (zp == null) return '占比分位缺数，不臆造。';
+      var d90 = 90 - zp;
+      var head = '占比 ' + mnNum(zb, 2, '%') + '（10 年分位 P' + mnNum(zp, 0) + '）：' + (d90 <= 0 ? '[[r:已越 90% 过热线]]——按规则暂停进攻端加档、保留弹药' : d90 < 3 ? '距 90% 过热线仅 ' + mnNum(d90, 1, ' pct') + '（[[y:特别关注]]——下月占比再升即触发防御）' : '距 90% 过热线 ' + mnNum(d90, 1, ' pct') + '，中性区') + '。';
+      var cross = (amt != null) ? '与成交额 M7 档（' + (C.amtDlvl || '—') + '）' + ((zp >= 90 && amt >= 30000) ? '[[r:双过热]]——杠杆与交投同时拥挤，防御优先级最高' : (zp <= 10 && amt < 15000) ? '[[b:双冰点]]——逆向加档条件最齐' : '未同档——单指标不触发动作，按各卡阈值分别执行') : '';
+      return head + cross;
+    },
     ins: '分位是相对量，须与融资余额绝对趋势并读；M1 口径调整等数据事件可能造成序列跳变，越界时先核对数据源公告。',
     imp: '【大类】过热期高 beta 与两融标的集中的板块回撤风险最大，债券、货币相对占优；冰点期权益赔率改善。【我的持仓】创业板160422、纳指100×11、标普500×2 等进攻端按本卡阈值减速或恢复；红利、自由现金流是过热期的防御替代；黄金、货币是弹药。【筛选池】过热期不新增高弹性标的，守同指数留 1 只与已持指数整组禁入。【新机会】分位 <10% 且成交额同步冰点（M7 定投区），是逆向加档条件最齐的窗口。不构成投资建议。'
   },
@@ -10793,11 +11018,20 @@ var MACRO_NOTES = {
     note: '全 A 成交额＝沪、深、北三所合计日成交额，衡量市场参与热度与增量资金活跃度。判读窗口用近 30 日均值对照，当月分位＝当月累计额在近 120 个月月末额中的历史分位（未完月系统性偏低，已标注）。本卡同时是信号横幅 M7 的同源口径。',
     thr: 'M7 口径：<1.5 万亿 网格定投区（冰点逆向）；1.5~2 万亿 关注入场；2~3 万亿 正常区；≥3 万亿 过热分批卖。盘中未结算值切勿按阈值判定；低于 2 万亿直接显示亿数以便冰点识别。',
     r: mnMake(function (C) { return C.amtDv; }, function (v, C) { return '最新成交 ' + (C.amtDtxt || mnNum(v, 0, ' 亿')) + (C.amtDunset ? '（盘中未结算）' : '') + ' · 判定 ' + (C.amtDlvl || '—') + (C.aPct != null ? ' · 当月分位 ' + mnNum(C.aPct, 1, '%') : ''); }, [
-      { lt: 15000, label: '冰点定投区 · 逆向偏多', color: MN_GREEN, insight: '成交冰点，悲观定价较充分，按 M7 属网格定投区，维持定投不加仓。' },
+      { lt: 15000, brk: 1, label: '冰点定投区 · 逆向偏多', color: MN_GREEN, insight: '成交冰点，悲观定价较充分，按 M7 属网格定投区，维持定投不加仓。' },
       { lt: 20000, label: '关注入场区 · 中性偏多', color: MN_GRAY, insight: '量能偏低但未极端，关注入场节奏，不抢跑。' },
       { lt: 30000, label: '正常区 · 中性', color: MN_GRAY, insight: '量能正常，按既定中枢执行。' },
-      { lt: null, label: '过热区分批卖 · 坏', color: MN_RED, insight: '成交过热，拥挤度高，按 M7 分批止盈而非追高。' }
+      { lt: null, brk: 1, label: '过热区分批卖 · 坏', color: MN_RED, insight: '成交过热，拥挤度高，按 M7 分批止盈而非追高。' }
     ]),
+    insFn: function (C) {
+      if (C.amtDv == null) return '成交额组件缺数，不臆造。';
+      var m2 = (window.MKT_SNAP || {}).m2Ref || {};
+      var coef = (m2.value != null) ? (C.amtDv / 10000) / m2.value * 100 : null;
+      var unc = C.amtDunset ? '（[[y:盘中未结算]]——收盘前不作阈值判定）' : '';
+      var rel = (C.amtDrl != null) ? '较 30 日均值 ' + (C.amtDrl >= 0 ? '+' : '') + mnNum(C.amtDrl, 0, '%') : '';
+      var cross = (coef != null) ? '资金系数 ' + mnNum(coef, 2, '%') + '（' + (coef >= 1.5 ? '[[r:过热档]]' : coef < 0.2 ? '[[b:冰点档]]' : '平稳档') + '）与 M7 档' + ((C.amtDv < 15000 && coef < 0.2) || (C.amtDv >= 30000 && coef >= 1.5) ? '[[g:互相确认]]——量能结论可信度高' : '未同档——等收盘值与月度口径收敛') + '。' : ((C.aPct != null) ? '当月历史分位 P' + mnNum(C.aPct, 0) + '。' : '');
+      return '当日成交 ' + (C.amtDtxt || '—') + '（M7 档：' + (C.amtDlvl || '—') + '）' + unc + (rel ? '，' + rel : '') + '。' + cross;
+    },
     ins: '成交额是同步量不是领先量，冰点确认底部区域但不知底在何日；过热确认拥挤但可维持很久；必须与融资占比、估值分位并读。',
     imp: '【大类】冰点期权益资产赔率改善、现金有再配置价值；过热期高 beta 回撤风险积累。【我的持仓】A500指数×2、沪深300、创业板160422 的定投节奏直接对标 M7 阈值；红利、自由现金流、货币在过热期承接分批卖出资金；黄金不受影响。【筛选池】过热期不新增标的，守同指数留 1 只与已持指数整组禁入。【新机会】成交额与融资占比分位同步进入低位区，是逆向加档的双重确认。不构成投资建议。'
   },
@@ -10806,11 +11040,20 @@ var MACRO_NOTES = {
     note: '资金系数＝全 A 日成交额 ÷ 广义货币 M2（当期口径，×100%），衡量成交额相对整个货币总量的活跃度。逻辑：成交额绝对值会随经济体量与通胀自然抬升，除以 M2 剔除货币总量增长后，剩下的才是「居民把多少货币投入交易」的相对水位。',
     thr: '经验档位（未回测校准）：<0.2% 低迷（历史级冰点，逆向关注）；0.2–0.8% 平稳；0.8–1.5% 活跃；≥1.5% 过热（历史极值区，拥挤防御）。M2 无日频序列，系数历史不可算，只做当期快照判读。',
     r: mnMake(function (C) { var m2 = (window.MKT_SNAP || {}).m2Ref || {}; var v = (C.amtDv != null && m2.value != null) ? (C.amtDv / 10000) / m2.value * 100 : null; return v; }, function (v) { return '资金系数 ' + mnNum(v, 2, '%') + '（成交 ÷ M2 当期）'; }, [
-      { lt: 0.2, label: '低迷 · 逆向机会', color: MN_GREEN, insight: '交易情绪历史级冰点，长期赔率改善，等趋势指标确认后分批布局。' },
+      { lt: 0.2, brk: 1, label: '低迷 · 逆向机会', color: MN_GREEN, insight: '交易情绪历史级冰点，长期赔率改善，等趋势指标确认后分批布局。' },
       { lt: 0.8, label: '平稳 · 中性', color: MN_GRAY, insight: '交易活跃度居中，按既定节奏执行。' },
       { lt: 1.5, label: '活跃 · 中性偏热', color: MN_GRAY, insight: '交投偏热但未到极值，控制新增节奏。' },
-      { lt: null, label: '过热 · 防御', color: MN_RED, insight: '货币总量中被交易的占比达历史极值，拥挤度高，防御优先。' }
+      { lt: null, brk: 1, label: '过热 · 防御', color: MN_RED, insight: '货币总量中被交易的占比达历史极值，拥挤度高，防御优先。' }
     ]),
+    insFn: function (C) {
+      var m2 = (window.MKT_SNAP || {}).m2Ref || {}, v = C.amtDv;
+      if (v == null || m2.value == null) return '成交或 M2 组件缺数，不臆造。';
+      var coef = (v / 10000) / m2.value * 100;
+      var lvl = coef < 0.2 ? '[[b:<0.2% 冰点]]（历史级，逆向关注）' : coef >= 1.5 ? '[[r:≥1.5% 过热]]（历史极值区，拥挤防御）' : coef >= 0.8 ? '活跃（0.8–1.5%）' : '平稳（0.2–0.8%）';
+      var zp = C.zbPct;
+      var cross = (zp != null) ? '与融资占比分位 P' + mnNum(zp, 0) + (coef < 0.2 && zp <= 20 ? ' [[b:双低]]——杠杆与交投同冷，逆向赔率区' : coef >= 1.5 && zp >= 80 ? ' [[r:双高]]——拥挤叠加杠杆，防御优先' : ' 方向不完全一致，分别判读') + '。' : '';
+      return '资金系数 ' + mnNum(coef, 2, '%') + ' 属' + lvl + '——含义落地：每 100 元广义货币中约 ' + mnNum(coef * 10, 1, ' 分') + ' 参与 A 股日度交易（剔除货币总量增长后的真实交投水位）。' + cross;
+    },
     ins: '系数受 M2 发布滞后影响（月频），日频读数用最近一期 M2 是近似口径；与成交额卡、融资占比卡三方互相验证。',
     imp: '【大类】过热期权益与高 beta 占优但回撤风险积累，冰点期是长期资金的赔率区。【我的持仓】进攻端（A500指数×2、沪深300、创业板160422、纳指100×11、标普500×2）按本卡与 M7 阈值联动减速或恢复；红利、自由现金流、货币是过热期缓冲。【筛选池】极值区不新增标的，守同指数留 1 只与已持指数整组禁入。【新机会】系数回落至低迷档且估值分位不高，是逆向定投加档的观察点。不构成投资建议。'
   },
@@ -10821,6 +11064,16 @@ var MACRO_NOTES = {
     r: mnMake(function (C) { var s = (((C.d || {}).sentiment) || {}).sizeRatio; return s && s.available ? s.value : null; }, function (v) { return '沪深300/中证1000 比值 ' + mnNum(v, 3); }, [
       { lt: null, label: '风格相对量 · 看趋势', color: MN_GRAY, insight: '比值本身无绝对好坏，结合自身历史分位与趋势方向判读，不做单独行动触发。' }
     ]),
+    insFn: function (C) {
+      var s = (((C.d || {}).sentiment) || {}).sizeRatio || {}, v = s.value;
+      if (v == null) return '比值缺数，不臆造。';
+      var arr = (s.points || []).map(function (p) { return p[1]; });
+      var p = mnPctOf(arr, v);
+      var cyb = (C.broad || {}).cyb, cybP = cyb && cyb.cur ? cyb.cur[2] : null;
+      var head = '沪深300/中证1000 比值 ' + mnNum(v, 4) + (p != null ? '（自身近一年 P' + mnNum(p, 0) + (p >= 80 ? '，[[y:大盘极强区]]——向均值回归概率上升，小盘赔率改善' : p <= 20 ? '，[[y:小盘极强区]]——大盘价值赔率改善' : '，中段') + '）' : '');
+      var tail = (cybP != null) ? '对照创业板 PE 分位 P' + mnNum(cybP, 0) + '：' + (p <= 20 && cybP <= 40 ? '小盘占优且成长估值不高——创业板弹性有估值保护' : p >= 80 && cybP >= 70 ? '大盘占优而成长已贵——风格再平衡时创业板承压更明显' : '风格与成长估值组合中性') + '。' : '';
+      return head + '。' + tail;
+    },
     ins: '风格指标只能解释「涨的不是同一批股票」，不能回答「涨不涨」；与宽基估值温度卡（中证500/1000/创业板分位）交叉读。',
     imp: '【大类】小盘占优期成长与高弹性风格超额收益大，大盘占优期价值与红利占优。【我的持仓】小盘强时创业板160422 相对受益；大盘强时红利、A500指数×2、沪深300 相对占优；纳指100×11、标普500×2 看美股自身风格，与本卡无关。【筛选池】风格极值期复核池内标的风格集中度，守同指数留 1 只与已持指数整组禁入。【新机会】风格从极值回归的起点是再平衡窗口，但再平衡幅度以组合约束（±5pct）为界。不构成投资建议。'
   },
@@ -10831,8 +11084,16 @@ var MACRO_NOTES = {
     r: mnMake(function (C) { var s = (((C.d || {}).sentiment) || {}).turnover; return s && s.available ? s.value : null; }, function (v) { return '全A换手率 ' + mnNum(v, 2, '%'); }, [
       { lt: 1, label: '偏冷 · 中性偏多', color: MN_GRAY, insight: '交投清淡，悲观或共识定价，赔率略偏改善但需趋势确认。' },
       { lt: 2, label: '常态 · 中性', color: MN_GRAY, insight: '换手居中，按既定节奏执行。' },
-      { lt: null, label: '偏热 · 谨慎', color: MN_RED, insight: '筹码交换加速、分歧放大，拥挤度上升，控制新增仓位。' }
+      { lt: null, brk: 1, label: '偏热 · 谨慎', color: MN_RED, insight: '筹码交换加速、分歧放大，拥挤度上升，控制新增仓位。' }
     ]),
+    insFn: function (C) {
+      var s = (((C.d || {}).sentiment) || {}).turnover || {}, v = s.available ? s.value : null;
+      if (v == null) return '换手率缺数，不臆造。';
+      var lvl = v < 1 ? '[[b:<1% 偏冷]]（交投清淡）' : v > 2 ? '[[r:>2% 偏热]]（分歧加大、拥挤度上升）' : '常态（1–2%）';
+      var rl = C.amtDrl;
+      var cross = (rl != null) ? '与当日成交较 30 日均值偏离 ' + (rl >= 0 ? '+' : '') + mnNum(rl, 0, '%') + ((v > 2 && rl > 20) ? ' [[r:同向偏热]]——交投拥挤确认' : (v < 1 && rl < -20) ? ' [[b:同向偏冷]]——交投冰点确认' : '——两口径未同档，等趋势收敛') + '。' : '';
+      return '全A换手率 ' + mnNum(v, 2, '%') + ' 属' + lvl + '。' + cross;
+    },
     ins: '换手率突然放大常出现在趋势加速与反转初期，单看高低不定方向；与价格位置并读（高位高换手＝风险，低位高换手＝可能是资金进场）。',
     imp: '【大类】高换手期高 beta 波动放大，低换手期防御资产相对占优。【我的持仓】创业板160422、纳指100×11 等高弹性端对换手温度最敏感；红利、自由现金流、货币在偏热期缓冲。【筛选池】偏热期不新增高弹性标的，守同指数留 1 只与已持指数整组禁入。【新机会】换手自极热回落至常态且估值分位不高，是重新加档的观察点。不构成投资建议。'
   },
@@ -10843,6 +11104,12 @@ var MACRO_NOTES = {
     r: mnMake(function (C) { var s = (((C.d || {}).sentiment) || {}).marginBuy; return s && s.available ? s.value : null; }, function (v) { return '当日融资买入额 ' + mnNum(v, 0, ' 亿'); }, [
       { lt: null, label: '杠杆流量 · 看趋势', color: MN_GRAY, insight: '流量指标无绝对好坏档，结合占成交比例趋势与存量分位判读。' }
     ]),
+    insFn: function (C) {
+      var s = (((C.d || {}).sentiment) || {}).marginBuy || {}, v = s.available ? s.value : null;
+      if (v == null) return '融资数据缺数，不臆造。';
+      var zp = C.zbPct;
+      return '数据层为替代口径（融资余额 ' + mnNum(v, 0, ' 亿') + '；原融资买入额无公开源——v710 定案），「买入额÷成交额」的杠杆参与度比值[[y:因缺源无法计算，如实留白]]。替代读法：余额占流通市值 ' + (C.myZb != null ? mnNum(C.myZb, 2, '%') : '—') + '（P' + mnNum(zp, 0) + '）' + (zp != null ? (zp >= 90 ? '——[[r:杠杆拥挤]]，替代判据同样偏热' : zp <= 10 ? '——[[b:杠杆冰点]]' : '——中性区') : '') + '；本卡序列为月频，日度流量信号缺源不做臆测。';
+    },
     ins: '流量单日波动大，看 5 日均值方向；数据层 label 曾误标「融资余额」，v710 已在前端正名为「融资买入额」，口径以本注释为准。',
     imp: '【大类】杠杆买入占比抬升期成长与高 beta 弹性大，退潮期防御占优。【我的持仓】进攻端（创业板160422、纳指100×11、标普500×2）按杠杆温度联动调整；红利、自由现金流、货币是缓冲。【筛选池】杠杆快速退潮期不新增高弹性标的，守同指数留 1 只与已持指数整组禁入。【新机会】本卡与占比分位卡同步进入低位，才是逆向加档确认。不构成投资建议。'
   },
@@ -10854,6 +11121,17 @@ var MACRO_NOTES = {
       { lt: 0, label: '整体贴水 · 对冲偏重', color: MN_RED, insight: '期货对冲需求重，情绪偏空；剔除分红后的超额贴水才含增量信息。' },
       { lt: null, label: '整体升水 · 多头偏强', color: MN_GREEN, insight: '杠杆多头愿意付溢价，情绪偏多，但极值升水也可能是拥挤信号。' }
     ]),
+    insFn: function (C) {
+      var s = (((C.d || {}).sentiment) || {}).basis || {}, b = s.basis || {}, v = s.available ? s.value : null;
+      if (v == null) return '升贴水缺数，不臆造。';
+      var struct = '';
+      if (b.IF != null && b.IC != null) {
+        var iih = Math.min(b.IF != null ? b.IF : 9, b.IH != null ? b.IH : 9);
+        struct = (iih > b.IC) ? 'IF/IH（机构盘）贴水浅于 IC/IM（对冲盘）——[[b:分红与对冲的常态结构]]，非情绪恶化信号' : 'IF 贴水深于 IC/IM——[[r:机构盘转空]]，比常态结构更值得警惕';
+      }
+      var allNeg = (b.IF < 0 && b.IH < 0 && b.IC < 0 && b.IM < 0);
+      return '整体 ' + mnNum(v, 2, '%') + '（' + (v < 0 ? '贴水' : '[[g:升水]]') + '）：IF ' + mnNum(b.IF, 2, '%') + ' · IH ' + mnNum(b.IH, 2, '%') + ' · IC ' + mnNum(b.IC, 2, '%') + ' · IM ' + mnNum(b.IM, 2, '%') + '。' + (allNeg ? '四品种全体贴水，' : '') + struct;
+    },
     ins: '贴水必须剔除分红因素再判情绪（分红季贴水是机械性的）；四品种分歧时看 IF/IH（机构盘）与 IC/IM（对冲盘）的相对变化。',
     imp: '【大类】持续深贴水期权益情绪弱、对冲成本高，防御资产占优；升水期情绪偏多。【我的持仓】IC/IM 贴水深度与创业板160422、A500指数×2、沪深300 的市场情绪直接相关；纳指100×11、标普500×2 看美股期指口径；黄金、货币在深贴水期缓冲。【筛选池】深贴水期不新增高弹性标的，守同指数留 1 只与已持指数整组禁入。【新机会】超额贴水收敛转升水且成交额回暖，是情绪修复的确认点。不构成投资建议。'
   },
@@ -10864,6 +11142,13 @@ var MACRO_NOTES = {
     r: mnMake(function (C) { var s = (((C.d || {}).sentiment) || {}).lift; return s && s.available ? s.value : null; }, function (v) { return '未来30日解禁市值 ' + mnNum(v, 0, ' 亿'); }, [
       { lt: null, label: '供给变量 · 看相对量', color: MN_GRAY, insight: '绝对值无好坏档，与流通市值之比和历史同期比较才有意义。' }
     ]),
+    insFn: function (C) {
+      var s = (((C.d || {}).sentiment) || {}).lift || {}, v = s.available ? s.value : null;
+      if (v == null) return '解禁数据缺数，不臆造。';
+      var ratio = null, floatMv = null;
+      if (C.myYe && C.myZb) { floatMv = C.myYe / (C.myZb / 100); if (floatMv > 0) ratio = v / floatMv * 100; }
+      return '未来 30 日解禁 ' + mnNum(v, 0, ' 亿') + (ratio != null ? '，约占流通市值（' + mnNum(floatMv / 10000, 1, ' 万亿') + '，由融资余额÷占比反推）的 ' + mnNum(ratio, 2, '%') + (ratio >= 0.5 ? '——[[y:供给压力偏大]]，对解禁集中板块的影响大于指数' : '——占比低，指数层面影响有限') + '。' : '。') + '解禁≠卖出：实际抛压以「产业资本净增减持」卡净额为准（两卡并读，本页相邻）。';
+    },
     ins: '解禁是预期供给非实际卖出，真实压力看「产业资本净增减持」卡（本页相邻卡）的实际减持数据；两卡必须并读。',
     imp: '【大类】解禁高峰期相关板块承压、对指数影响分散。【我的持仓】宽基指数（A500指数×2、沪深300、纳指100×11 等）受单一解禁影响小；主动权益×2 若重仓解禁压力大的个股会被传导，需在持仓诊断里核。【筛选池】解禁高峰期复核池内标的的解禁日历，守同指数留 1 只与已持指数整组禁入。【新机会】解禁高峰落地且增减持数据未恶化，供给利空出尽可作观察点。不构成投资建议。'
   },
@@ -10875,6 +11160,11 @@ var MACRO_NOTES = {
       { lt: 0, label: '净减持 · 偏空', color: MN_RED, insight: '内部人在净卖出，对当前估值投的是不信任票，控制新增节奏。' },
       { lt: null, label: '净增持 · 偏多', color: MN_GREEN, insight: '内部人用真金白银看多，产业资本信号偏正面。' }
     ]),
+    insFn: function (C) {
+      var s = (((C.d || {}).sentiment) || {}).holder || {}, v = s.available ? s.value : null;
+      if (v == null) return '增减持数据缺数，不臆造。';
+      return '近 30 日净额 ' + mnNum(v, 2, ' 亿') + '（' + (v >= 0 ? '[[g:净增持]]——产业资本用真金白银看多' : '[[r:净减持]]——内部人净卖出，对当前估值是不信任票') + '）' + (v < -50 ? '，力度较大（[[y:对情绪压制明显]]）' : '') + '。注意：减持动机多元（财务安排、质押平仓），不等于看空估值；与破净率、ERP 同向触发时才构成逆向加档的产业资本证据。';
+    },
     ins: '减持动机多元（个人财务安排、质押平仓等）未必都是看空估值；须与估值分位、解禁日历并读，单月数据不构成行动依据。',
     imp: '【大类】产业资本净增持期是底部区特征之一，净减持高峰常在估值高位。【我的持仓】宽基与指数基金受单一个股减持影响小；主动权益×2 与个股集中持仓需关注重仓股减持公告。【筛选池】池内标的若现重要股东大额减持，复核其评分与持仓诊断，守同指数留 1 只与已持指数整组禁入。【新机会】净增持与破净率、ERP 同步触发底部特征，是逆向加档的产业资本证据。不构成投资建议。'
   },
@@ -10886,6 +11176,14 @@ var MACRO_NOTES = {
       { lt: 0, label: '实体吸金 · 剩余流动性收敛', color: MN_GRAY, insight: '融资需求强于货币供给，金融资产受分流压力，但也是实体向好的证据。' },
       { lt: null, label: '流动性外溢 · 金融顺风', color: MN_GREEN, insight: '货币供给超过融资需求，剩余流动性可外溢至金融市场，股债环境偏顺风。' }
     ]),
+    insFn: function (C) {
+      var s = (((C.d || {}).sentiment) || {}).liqSpread || {}, v = s.available ? s.value : null;
+      if (v == null) return '剪刀差缺数，不臆造。';
+      var g = (C.cCur || {}).gap;
+      var self = v >= 0 ? '[[r:实体吸金]]——剩余流动性收敛，金融资产受分流压力' : '[[g:流动性外溢]]——货币供给超过融资需求，股债环境顺风';
+      var cross = (g != null) ? '对照 M1−M2 ' + mnNum(g, 1, ' pct') + '（' + (g >= 0 ? '活化' : '淤积') + '）：' + (v < 0 && g >= 0 ? '[[y:外溢但未活化]]——水多但不进实体交易，对权益估值的推动弱于完整顺风' : (v < 0 && g < 0) ? '[[g:双负]]——量与活化同时改善，流动性完整顺风' : '[[r:双正/收敛]]——实体吸金叠加存款定期化，金融环境偏紧') + '。' : '';
+      return '社融−M2 ' + mnNum(v, 2, ' pp') + '：' + self + '。' + cross;
+    },
     ins: '本卡（社融−M2）与信用组 M1−M2 剪刀差回答不同问题：前者看「池子里剩多少水」，后者看「水的活化程度」；两个剪刀差同时改善才是流动性的完整顺风。',
     imp: '【大类】剪刀差为负（外溢）利好股债估值，为正（吸金）利好实体与顺周期、压制金融资产估值。【我的持仓】外溢期进攻端（A500指数×2、沪深300、创业板160422、纳指100×11、标普500×2）估值端受益；红利、货币的相对吸引力下降；黄金看实际利率另算。【筛选池】外溢期可复核池内宽基评分，守同指数留 1 只与已持指数整组禁入。【新机会】本卡与 M1−M2 同时转正且信用脉冲上行，是流动性加档的条件组合。不构成投资建议。'
   },
@@ -10919,15 +11217,20 @@ function attachMacroNotes(root) {
     var r = n.r ? n.r(C) : null;
     var mb = card.querySelector('.mc-meta b');
     var asOf = mb ? mb.textContent.trim() : (((C.d || {}).updatedAt) || '—');
+    /* fw2_v810_notes_depth：先 esc 再转 [[r:]] [[g:]] [[y:]] [[b:]] 彩色标记（红=突破/警戒 绿=机会确认 橙=特别关注 蓝=冰点/逆向） */
+    var rich = function (x) { return esc(x).replace(/\[\[([rgby]):([\s\S]*?)\]\]/g, function (_, c2, s2) { return '<b style="color:' + ({ r: MN_RED, g: MN_GREEN, y: '#d97706', b: '#2563eb' })[c2] + '">' + s2 + '</b>'; }); };
     var vTxt = r ? r.txt : (n.valText || '见卡内实时读数');
     var vLbl = r ? r.label : (n.verdict || '需人工复核');
     var vCol = r ? r.color : (n.color || MN_GRAY);
-    var ins = (r && r.insight) || n.ins || '详见卡内读数与阈值行，按本卡判据复核。';
+    var ins = '';
+    if (n.insFn) { try { ins = n.insFn(C) || ''; } catch (e) { ins = n.ins || '深度分析生成失败，按卡内读数与阈值复核。'; } }
+    if (!ins) ins = (r && r.insight) || n.ins || '详见卡内读数与阈值行，按本卡判据复核。';
+    var brk = !!(r && r.brk);   /* 当前读数命中行动阈值档 → 阀值行/最新分析加 ⚠ 彩色警示 */
     var html = '<div class="mc-note">'
-      + '<div class="mn-row"><span class="tag tag-note">注释</span><span>' + esc(n.note) + '</span></div>'
-      + '<div class="mn-row"><span class="tag tag-thr">阀值</span><span>' + esc(n.thr) + '</span></div>'
-      + '<div class="mn-row"><span class="tag tag-now">最新分析</span><span><b style="color:' + vCol + '">' + esc(vLbl) + '</b> · ' + esc(vTxt) + '（数据截至 ' + esc(asOf) + '）— ' + esc(ins) + '</span></div>'
-      + '<div class="mn-row"><span class="tag tag-imp">投资影响</span><span>' + esc(n.imp) + '</span></div>'
+      + '<div class="mn-row"><span class="tag tag-note">注释</span><span>' + rich(n.note) + '</span></div>'
+      + '<div class="mn-row"><span class="tag tag-thr">阀值</span><span>' + rich(n.thr) + (brk ? ' <b style="color:' + vCol + '">⚠ 当前读数已越过本档行动阈值（见「最新分析」）</b>' : '') + '</span></div>'
+      + '<div class="mn-row"><span class="tag tag-now">最新分析</span><span><b style="color:' + vCol + '">' + (brk ? '⚠ ' : '') + esc(vLbl) + '</b> · ' + esc(vTxt) + '（数据截至 ' + esc(asOf) + '）— ' + (brk ? '⚠ ' : '') + rich(ins) + '</span></div>'
+      + '<div class="mn-row"><span class="tag tag-imp">投资影响</span><span>' + rich(n.imp) + '</span></div>'
       + '</div>';
     card.insertAdjacentHTML('beforeend', html);
   }
