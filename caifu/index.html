@@ -11856,8 +11856,8 @@ function renderMacroSentiment(d, _C) {
      文案/阈值/口径逐行自母卡迁移，数据层不动（Cx=mcCalcCommon 同源）；全景投票杠杆票仍走 __MC_ZBPCT（下方 sMbuy 处 smReg），
      此处不重复 smReg；mood 组磁铁证据 mcEv('mood') 在 mcRegisterEvidence 不变。 ===== */
   var _mgZbPts = (Cx && Cx.mrg || []).filter(function (p) { return p[2] != null; }).map(function (p) { return [p[0], p[2]]; });
-  /* fw2_v807_pct_curve：融资占比逐点分位曲线——各月占比在全部月末占比序列中的分位（全序列口径，与磁贴 zbPct 同源同算：count(v<=x)/N），紫线叠两张杠杆卡副轴 */
-  var _zbPctCurve = _mgZbPts.map(function (p) { var n = 0; for (var i = 0; i < _mgZbPts.length; i++) { if (_mgZbPts[i][1] <= p[1]) n++; } return [p[0], Math.round(n / _mgZbPts.length * 1000) / 10]; });
+  /* fw2_v807_pct_curve：融资占比逐点分位曲线——分母用 Cx.zbSeries（全史 201 个月末占比），与磁贴 zbPct 完全同源同算 count(v<=x)/N（防同卡双口径：图内窗口 120 点算出 93.3 vs 磁贴全史 87.6 的自相矛盾，2026-11-05 CDP 实证后修正），紫线叠两张杠杆卡副轴 */
+  var _zbPctCurve = _mgZbPts.map(function (p) { var n = 0; for (var i = 0; i < Cx.zbSeries.length; i++) { if (Cx.zbSeries[i] <= p[1]) n++; } return [p[0], Math.round(n / Cx.zbSeries.length * 1000) / 10]; });
   var _zbPctFor = function (dt) { for (var i = _zbPctCurve.length - 1; i >= 0; i--) { if (_zbPctCurve[i][0] === dt) return _zbPctCurve[i][1]; } return null; };
   var sMrgSplit = (Cx && Cx.mrg && Cx.mrg.length) ? bigCard({
     h: '融资余额（月末）', hint: '两融融资部分余额 · ' + Cx.mrg.length + ' 个月 · 紫线=占比10年分位',   /* fw2_v807_pct_curve */
