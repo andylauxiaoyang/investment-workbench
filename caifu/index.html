@@ -11945,6 +11945,10 @@ body.innerHTML = ((_region === 'cn' || _region === 'v-cycle') ? renderMacroTools
     }), true);
     cfx.resize();
   }
+  /* fw2_v823_vix_chart：抽成可复用函数——v-global 合并视图的 body.innerHTML +=
+     会销毁主模板已 init 的 ECharts，需在同一份 vix/base 配置上补绘一次；chartOf
+     自带 v22「旧 dom 不一致则 dispose+reinit」保护，不会画到游离节点。 */
+  function drawMcVix() {
   const cvx = chartOf('mcVix');
   if (cvx && vix.length) {
     cvx.setOption(Object.assign({}, base, {
@@ -11954,6 +11958,8 @@ body.innerHTML = ((_region === 'cn' || _region === 'v-cycle') ? renderMacroTools
     }), true);
     cvx.resize();
   }
+  }
+  drawMcVix();
   const cpm = chartOf('mcPmi');
   if (cpm && pmi.length) {
     cpm.setOption(Object.assign({}, base, {
@@ -12147,6 +12153,7 @@ body.innerHTML = ((_region === 'cn' || _region === 'v-cycle') ? renderMacroTools
         shell.parentNode.removeChild(shell);
       }
     })();
+    drawMcVix();   /* fw2_v823_vix_chart：合并视图重建 DOM 后补绘 VIX 曲线（同源配置） */
     if (typeof renderMacroUSCharts === 'function') renderMacroUSCharts();
     if (typeof renderMacroGblCharts === 'function') renderMacroGblCharts();
     attachMacroNotes(body);   /* fw2_v806_sm_gbl_notes：海外合并视图（US+Gbl）卡在 wrapMcMods 之后追加，此处补挂四段解读（fsi/cnn/nonfarm/usIC/usU6/usRet/usPce/usCc/usDur/usIsm/oecd/kor 条目 v803 已备） */
