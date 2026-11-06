@@ -1279,7 +1279,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
     <div data-page-node-id="4kpOdky7SODGpwcpiqg6Ul" class="brand">
       <div data-page-node-id="fy9nr7YX6z70XIIPP2k8cu" class="logo"><!--pnid:nS1XbU8IvoftAAsJBjPYR1-->理</div>
       <div data-page-node-id="KEpstPyZVkdFbO86DWabql" class="brand-txt">
-        <div data-page-node-id="PsvCVyRn9Hy3AVRIxAgjBc" class="b1"><!--pnid:uKibb7vNP0llwjGkZsDB1h-->理财工作台<span id="verBadge" class="ver-badge">v821</span><!-- fw2_v766_ver_badge：最新版本号（与 README changelog / verChip 同步）；fw2_v788 起真正实现 #verBadge 元素（v766/v767 仅建 CSS 类未插节点，属宣称≠存在，此处补实） --><!-- fw2_v783_global_through：用户 2026-10-30 反馈「全球的股票没穿透进来」——QDII 底层纳入穿透：①解析器 _gen_jjcc_batch.py 代码正则放开 A股6位/港股4-5位/美股字母ticker（东财QDII表9列，cells[1]=代码、cells[6]=占净值比，列位与A股表一致）；②重刷后当期覆盖 6 A股 + 11 QDII 共 17 只，陈旧剔除 4 只（000834/008971@2023、012761@2024、160422@2019），货基/债基 3 只无明细；③P6 行情联动 symOf 扩展 sh/sz/hk/us（实测美股裸码可用带后缀反而 none_match，港股 5 位补零，美股/港股 f[32] 同为当日涨跌%，价为当地币种、涨跌幅不受汇率影响）；ifzq 近20日 K线同 symOf。 --><!-- fw2_v784_track_tech：用户 2026-10-30 两项反馈——①归属基金按指数聚合（同一指数如纳指100 十几只只显指数一枚 chip「纳指100 ×8 7.6%」，悬浮 title 列全明细；主动基金仍显单基金；track 数据＝东财 F10 jbgk「跟踪标的」，_refresh_held_jjcc.py 幂等富化进 fund-jjcc.json，纳斯达克100 别名纳指100）；②借鉴用户个股信号表字段新增 7 列技术指标：vsMA20/vsMA60/距年线(MA250)/排列(多空震荡=close 与三线同向)/RSI14(Wilder 全史平滑)/MACD(红绿柱+方向箭头，悬浮显柱值)/布林z((c-MA20)/std20)——K线请求 21→260 根自算，近20日列即 20日动量；说明行标注技术指标截至 kdate 与自算口径。 --><!-- fw2_v784b_qdii_full：用户 2026-10-30 反馈「易方达全球成长持仓的都没放进去」——双 bug：①012920 缓存为 v781 旧正则残留（仅 3 只 A股，TSM/NVDA 等 7 只美股被挡，v783 因非 None 跳过重抓、v784 track 富化也未重抓）；②解析器三雷全修：按表分组取当期（东财 QDII 返 3 表=近三期报告，全表混扫靠 top[:10] 截断碰巧保对）、pct 自适应（9列表 cells[6] / 7列表 cells[4]，取行内首个带 % 且 pct∈(0,100] 的 cell）、代码放宽至字母数字混合（285A=KIOXIA 东京码）。重抓后 012920 当期 10 只全球全齐（台积电8.28/英伟达7.05/英特尔5.54/中际旭创4.16/BLOOM4.03/超威3.94/新易盛3.40/LITE3.23/阿斯麦2.76/沪电2.41），与用户东财截图逐只一致；24 只持仓体检=当期 17 + 陈旧 4 + 货基债基 3。全量重抓顺带重建私有缓存（24→61 键=持仓24+筛选池37）。 --><!-- fw2_v784c_crowd_src：用户 2026-10-30 反馈「拥挤度也不对，其实就是买了一个指数，因为限额的原因买多只同指数基金而已」——P1 拥挤度从「归属基金只数」改为「独立持仓来源数」：同指数（track 相同）的多只基金算 1 来源（限额拆买≠拥挤），主动基金（track=None）各算 1 来源；来源 key=track||'主动:'+code。徽章文案 P1拥挤×N → P1拥挤·N源（悬浮列来源明细），磁贴「P1 多基拥挤」→「P1 多源拥挤」，表头「基金数」→「独立来源」（悬浮 title=来源明细+基金总只数），阈值 CROWD_W=3/CROWD_A=4 语义同数值套用来源口径，P6 共振判定自动跟随。 --><!-- fw2_v784d_eq_denom：用户 2026-10-30 拍板——P2 暴露与 P4 覆盖分母从「持仓总市值」改为「股票敞口市值」（剔除货基/债基：jjcc 无 topStocks＝无股票敞口不进分母；陈旧 equity 基金仍有敞口照算分母）。eqMv 在陈旧分类循环内累计，pctPort/coverPct 换分母，磁贴与说明行文案同步；数值影响：分母变小暴露变大（台积电 6.6% 约 8% 上下）。 --><!-- fw2_v784e_tfoot_sum：用户 2026-10-30 要求穿透市值与组合占比做合计——表尾 tfoot 加「Top20 合计」行：穿透市值 Σ求和、组合占比=Σ穿透市值/股票敞口市值（与行级同分母 eqMv，v784d 口径），基金内占比不可加（各行为多基金最高值）标 —，其余 10 列空。空态不渲染合计行。 --><!-- fw2_v784f_action_col：用户 2026-10-30 两项——①表头说明行（dc-note）整行删除不显示；②「数据日期」前加「行动参考」列：按触发的 P 系信号与技术指标给出对应基金操作建议（P2≥5%=检视减仓基金内占比最高基金；P2 3–5%=调仓勿再加；P6 共振急跌=勿恐慌赎回按回撤纪律；RSI≤30=维持定投纪律；RSI≥70 且站上年线=可分批止盈；其余=持有观察；最多取 2 条）。表格 17→18 列（空态 colspan 与 tfoot 同步）。 --><!-- fw2_v784g_through_wrap：用户 2026-10-30 截图——行动参考列覆盖后面列且自身显示不全。根因＝全局 .tb tbody td white-space:nowrap 强制单行 + 长基金名（易方达全球成长精选混合(QDII)人民币A）撑宽。修法＝新增本表专属类 tb-through（仅持仓穿透，不碰全局）：行动参考/归属基金/信号三列放开换行（word-break:break-word，chip 与徽章内部仍 nowrap 保完整）+ 列宽约束（advice max 180px、funds max 200px、th 宽度提示 信号104px/归属15%/行动参考180px）+ 行动参考内长基金名截断（超 9 字 + 省略号，全名进 title 悬浮）。 --><!-- fw2_v785_trend_advice：用户 2026-10-30 截图——趋势跟踪·个基趋势指标表新增「行动参考」列（数据日期后一列）。口径与磁贴/信号引擎同源：TREND-DN＝破MA60＋MACD绿柱→持仓显「该基减速/暂缓补仓」（筛选池标的改「破位·暂不买入」，筛选池不做定投）、TREND-UP＝多头排列(含年线)＋MACD红柱→持仓显「定投可加速一档」（筛选池改「趋势转多·关注」）；辅助提示＝RSI14≥70 超买勿追高 / ≤30 超卖维持定投、布林触上轨短线勿加 / 触下轨维持定投（最多 2 条、去重防超买与上轨重复）；无触发时持仓显「定投照常/持有观察·定投照常」、筛选显「观望」。单元格 white-space:normal 局部放开 tp-tbl 全表 nowrap；未就绪行 colspan 10→11、空态 colspan 11→12 同步。 --><!-- fw2_v785b_etf_date：用户 2026-10-30 问「聪明的钱·我的持仓ETF动向/国家队宽基ETF动向两张表数据是否严重滞后」——实测数据不滞后（etf-shares.json updatedAt=2026-10-29，交易所份额 T+1），但 10 月起采集断档（510300 最后 5 个 gap=7/2/6/7/8 天，此前基本每交易日）而 1日/3日 列按采集点数回退（chgN 按 hist 索引），跨周变化被标成 1日（如 510300「1日」实为 10-21→10-29 跨 8 天 −19.2%），视觉上既像滞后又像暴涨暴跌。本轮按用户要求：两表「规模(亿元)」后各新增「数据日期」列（每只 ETF 自己 hist 最后一个点 r.last.d / r.d，与整体「数据日 upd」可能不同的 ETF 逐行可见）；列宽 colgroup 12 列重排（18/8/8/8/6×5/8/9/11），无数据行 colspan 10→11、历史积累行 9→10 同步。采集断档根因与 1日/3日 列日历日化修正挂账待办。 --><!-- fw2_v787b_dm_sched：数据管理·日轨调度实录修正（用户 2026-10-30「统一排查 21:30 日频自动化」）——实证：WorkBuddy 自动化清单仅 2 条提醒类、Windows 计划任务无数据任务、GitHub 近 30 天提交无 21:30（UTC 13:30）窗口记录 ⇒ 历史宣称「cron_job 14013240823042 每晚自动」已死（CloudStudio 旧环境），页面照抄=虚假承诺。修正：①DMTRACKS 日轨 note 改指 WorkBuddy 自动化「投资工作台·日频数据统一刷新+发布」（本机执行，工作日 21:30，id 0920f58a-1c24-48ba-ba91-4405de199740，含显式失败报告禁静默）；②refresh_all.py SERIAL_AFTER 末位新增 bundle 组（fw2_v787b_bundle_sched）——_make_bundle.py 原为纯手动步骤（无任何调用点），夜刷漏打则 meta-bundle 内嵌 holdings/watchlist/macro/gold 停更，前端 mbGet 首屏读旧值；③34 数据集频次/数据源经逐项核对与 DMCONFIG 一致（v771 审计后无漂移）。 --><!-- fw2_v787_tday_align：用户拍板「1日=真·上一交易日」——聪明的钱两表变化列按A股交易日历回退：①fetch_etf_shares.py 随数据写入交易日历 tdays（东财上证指数日K 320天，失败沿用旧值）；②chgT 按日历回退，目标交易日缺采集点→顺延最近采集点并标≈（悬浮显实际对比日），表头 vs 日期=真交易日（1日=vs 10-29）；③连续申赎按交易日相邻判定，断档即断；④断档口径不触发行动参考，防跨8天变化被误读为单日暴涨。根因结论＝系统无任何采集定时自动化（仅2个提醒类automation），10月断档=手动跑全域链的频次。附带修 _tx 盘后模板字段后移坑：盘后88段 idx70/71 变涨跌幅小值，份额改取 idx70/71/72/73 首个量级合理值（1亿~10万亿份）＋份额×现价兜底市值（实测东财 push2 全程 RemoteDisconnected 走腾讯通道，旧解析器在盘后抓到 -0.00 亿份坏点，已用修复解析器重抓覆盖 10-30 全部17只）。--><!-- fw2_v786_unify：跨体系信号统一并入（用户拍板 B 方案 2026-10-30「全部接入，互斥需提示」）——signalEvalAll 引擎级并入四体系：①聪明的钱 XOV→持仓行（复用决策看板 _xovAct 同口径，019441 并入 016452 不重复评估）②V11 狙击→筛选池行（就绪=act/观望=near，独立体系不并档，环境过热/CAP 超限标 ⚠互斥）③持仓穿透 P 系→持仓行（P1 拥挤/P2 单票暴露/P3 集中度/P4 覆盖率，阈值同 v784c/v784d 口径，P6 需盘中行情仍留穿透页签）④筛选池趋势 S-TREND→筛选行（TREND-DN=破位暂不买入 act / TREND-UP=转多关注 near，货债金豁免）⑤互斥检测 pass：同标的一买一卖双向逐行标注 ⚠互斥（不自动降档，沿 fw2_v671 T7 教训），T3/T8 合并行按分位归族，筛选池 S-TREND 破位 vs S1/S2/S3 买入同触双向标注；缓存指纹加 V11 asOf/SM_XOV generated/jjcc updatedAt。今日待办自动覆盖新增 act/near 行。--><!-- fw2_v782_through_signals：持仓穿透统计表升级为 P 系信号（用户 2026-10-30 反馈「只是统计没信号」）——P1 多基拥挤（单股≥3/≥4 基共持，行级徽章+磁贴三档）、P2 隐性单票暴露（组合占比≥3/5%）、P3 Top5 底层集中度、P4 覆盖市值不足 50% 提示、P5 陈旧过滤（concDate 距今大于 180 天的基金不参与聚合与拥挤度判定，012761@2024/160422@2019 已剔除，结论不再被旧重仓污染）、P6 行情联动（腾讯 qt.gtimg 批量现价当日涨跌 + ifzq kline 21 根算近 20 日，两段渲染：信号表立现、行情到齐重绘；拥挤股单日跌超 5% 触发 P6 共振磁贴）。数据侧 _gen_jjcc_batch.py topStocks 补 c 代码字段 + _refresh_held_jjcc.py 旧缓存缺 c 自动重抓（fund-jjcc.json 已重生成随发布）。诚实边界：穿透为季报近似下界，P 系是结构性慢信号非择时；行情为时效性补充。--><!-- fw2_v781b_fix_scope：修复持仓穿透「加载中」卡死——①fetchJson 是 block10 IIFE 闭包内函数（22144 行），block7 侧 renderHoldThrough 调用即 ReferenceError 被 onclick try/catch 吞掉（v685/686/687 同型），改为函数内自带微型加载器（本地失败落 raw 兜底，失败不置 done 可重试）；②holdRows 同在 block10 闭包内（v697c 实证）window.holdRows=undefined → 静默渲染空表，在本块末尾 window.holdRows=holdRows 导出真源引用（fw2_v781b_hold_rows_export，只增不改）。修后经本地 HTTP+Edge CDP 完整交互链路实测：导航→点页签→Top20 表格渲染（20 行/覆盖 8 只/日期正确）。--><!-- fw2_v781_hold_through：交易信号视图新增「持仓穿透」子页签——穿透持仓基金底层前十大重仓股，按穿透市值聚合 Top20；配套数据集 data/fund-jjcc.json（东财 jjcc，24 只持仓基金仅 8 只 A股 equity 当期有数据，货基/债基/QDII美股正确排除）须随发布（v695 教训）。--><!-- fw2_v780_profiles_dim：修复基金数据页「收益/风险/经理/产品」四列全「—」（复发）——根因＝_gen_profiles.py 导出白名单漏写 scoreDim/scoreDimSub/scoreCov/scoreVeto（score_fund 内存里算好但没落盘），每次刷新重建 fund-profiles.json 即冲掉分；内联 FUND_PROFILES_MIRROR 又源自该 JSON 故同丢。修法＝①补白名单（根治，v697l 的 _backfill_profiles_dim.py 只是事后补）②离线重算回填 53/53 ③_embed_v186_assets.py 重嵌镜像 ④_audit_cross_module.py 新增 I 组断言（缺分即 FAIL）防复发。--> <!-- fw2_v779_collapse_min2：用户 2026-10-29 拍板，资产配置表同本质子组折叠阈值 6→2（TH_COLLAPSE_MIN）——标普500 两只存量（017641/096001）默认隐藏只显小计行，点「展开明细」按钮展示；规则收敛为「有小计行（≥2 只同本质）即默认折叠」。v778 visibility:collapse 已保 rowspan 占位，零布局风险；纯 JS 常量一行改动 --><!-- fw2_v778_rowspan_collapse：用户 2026-10-29 报「资产配置表全坏」（截图安全垫/对冲/合计列错位）。根因＝v773 主题子组默认折叠用 display:none，Chromium 中隐藏行不消耗上方 rowspan 占位 →「进攻/主题」档位格 rowspan=20 只覆盖 9 个可见行，剩余 11 格下渗把安全垫/对冲/合计全部顶错列（潜伏 5 版）。修法＝tr.th-hide 改 visibility:collapse（17086 行 CSS 注释含探针实测）；纯 CSS 一行，DOM/渲染/数据零改动 --><!-- fw2_v777_drop_ops：用户 2026-10-29 拍板，持仓表删「操作」列（研究/改/删 三按钮整列移除）。入口保全：①「研究」点名称 lk-rs 链接仍在（v172c 同口径）；②「改」openHoldingEditor 仍由研究页 #rsAddHold 调用；③「删」无 UI 入口属有意——持仓份额/成本以对账单+每晚 ttskill 刷新为权威，UI 手删易被覆盖；#hdTable 委托监听保留为空转守卫（data-act 无来源，留作日后重挂）；v776 居中说明见 279 行 CSS 注释 --></span><!-- fw2_v775_drop_cols：用户 2026-10-29 拍板，持仓表删「板块/资产类型」两列（存量全为 其他/基金 零信息量）；19→17 列同步：数据行/合计行/空态 colspan；sector 与 assetType 数据字段保留（编辑表单/筛选/研究链接仍在用） --></span><!-- fw2_v774_sw_bigbypass+fw2_v774_ldtimeout+fw2_v774_navhold：买入峰值/最大回撤线上恒「—」根因＝SW 拦截 8MB fund-daily.json 响应体卡死（Playwright 线上 A/B 实证：SW on → r.json() 永不落地、__NAV_SERIES__ 建不起来；SW off → 93 序列秒建；本地不复现）。
+        <div data-page-node-id="PsvCVyRn9Hy3AVRIxAgjBc" class="b1"><!--pnid:uKibb7vNP0llwjGkZsDB1h-->理财工作台<span id="verBadge" class="ver-badge">v822</span><!-- fw2_v766_ver_badge：最新版本号（与 README changelog / verChip 同步）；fw2_v788 起真正实现 #verBadge 元素（v766/v767 仅建 CSS 类未插节点，属宣称≠存在，此处补实） --><!-- fw2_v783_global_through：用户 2026-10-30 反馈「全球的股票没穿透进来」——QDII 底层纳入穿透：①解析器 _gen_jjcc_batch.py 代码正则放开 A股6位/港股4-5位/美股字母ticker（东财QDII表9列，cells[1]=代码、cells[6]=占净值比，列位与A股表一致）；②重刷后当期覆盖 6 A股 + 11 QDII 共 17 只，陈旧剔除 4 只（000834/008971@2023、012761@2024、160422@2019），货基/债基 3 只无明细；③P6 行情联动 symOf 扩展 sh/sz/hk/us（实测美股裸码可用带后缀反而 none_match，港股 5 位补零，美股/港股 f[32] 同为当日涨跌%，价为当地币种、涨跌幅不受汇率影响）；ifzq 近20日 K线同 symOf。 --><!-- fw2_v784_track_tech：用户 2026-10-30 两项反馈——①归属基金按指数聚合（同一指数如纳指100 十几只只显指数一枚 chip「纳指100 ×8 7.6%」，悬浮 title 列全明细；主动基金仍显单基金；track 数据＝东财 F10 jbgk「跟踪标的」，_refresh_held_jjcc.py 幂等富化进 fund-jjcc.json，纳斯达克100 别名纳指100）；②借鉴用户个股信号表字段新增 7 列技术指标：vsMA20/vsMA60/距年线(MA250)/排列(多空震荡=close 与三线同向)/RSI14(Wilder 全史平滑)/MACD(红绿柱+方向箭头，悬浮显柱值)/布林z((c-MA20)/std20)——K线请求 21→260 根自算，近20日列即 20日动量；说明行标注技术指标截至 kdate 与自算口径。 --><!-- fw2_v784b_qdii_full：用户 2026-10-30 反馈「易方达全球成长持仓的都没放进去」——双 bug：①012920 缓存为 v781 旧正则残留（仅 3 只 A股，TSM/NVDA 等 7 只美股被挡，v783 因非 None 跳过重抓、v784 track 富化也未重抓）；②解析器三雷全修：按表分组取当期（东财 QDII 返 3 表=近三期报告，全表混扫靠 top[:10] 截断碰巧保对）、pct 自适应（9列表 cells[6] / 7列表 cells[4]，取行内首个带 % 且 pct∈(0,100] 的 cell）、代码放宽至字母数字混合（285A=KIOXIA 东京码）。重抓后 012920 当期 10 只全球全齐（台积电8.28/英伟达7.05/英特尔5.54/中际旭创4.16/BLOOM4.03/超威3.94/新易盛3.40/LITE3.23/阿斯麦2.76/沪电2.41），与用户东财截图逐只一致；24 只持仓体检=当期 17 + 陈旧 4 + 货基债基 3。全量重抓顺带重建私有缓存（24→61 键=持仓24+筛选池37）。 --><!-- fw2_v784c_crowd_src：用户 2026-10-30 反馈「拥挤度也不对，其实就是买了一个指数，因为限额的原因买多只同指数基金而已」——P1 拥挤度从「归属基金只数」改为「独立持仓来源数」：同指数（track 相同）的多只基金算 1 来源（限额拆买≠拥挤），主动基金（track=None）各算 1 来源；来源 key=track||'主动:'+code。徽章文案 P1拥挤×N → P1拥挤·N源（悬浮列来源明细），磁贴「P1 多基拥挤」→「P1 多源拥挤」，表头「基金数」→「独立来源」（悬浮 title=来源明细+基金总只数），阈值 CROWD_W=3/CROWD_A=4 语义同数值套用来源口径，P6 共振判定自动跟随。 --><!-- fw2_v784d_eq_denom：用户 2026-10-30 拍板——P2 暴露与 P4 覆盖分母从「持仓总市值」改为「股票敞口市值」（剔除货基/债基：jjcc 无 topStocks＝无股票敞口不进分母；陈旧 equity 基金仍有敞口照算分母）。eqMv 在陈旧分类循环内累计，pctPort/coverPct 换分母，磁贴与说明行文案同步；数值影响：分母变小暴露变大（台积电 6.6% 约 8% 上下）。 --><!-- fw2_v784e_tfoot_sum：用户 2026-10-30 要求穿透市值与组合占比做合计——表尾 tfoot 加「Top20 合计」行：穿透市值 Σ求和、组合占比=Σ穿透市值/股票敞口市值（与行级同分母 eqMv，v784d 口径），基金内占比不可加（各行为多基金最高值）标 —，其余 10 列空。空态不渲染合计行。 --><!-- fw2_v784f_action_col：用户 2026-10-30 两项——①表头说明行（dc-note）整行删除不显示；②「数据日期」前加「行动参考」列：按触发的 P 系信号与技术指标给出对应基金操作建议（P2≥5%=检视减仓基金内占比最高基金；P2 3–5%=调仓勿再加；P6 共振急跌=勿恐慌赎回按回撤纪律；RSI≤30=维持定投纪律；RSI≥70 且站上年线=可分批止盈；其余=持有观察；最多取 2 条）。表格 17→18 列（空态 colspan 与 tfoot 同步）。 --><!-- fw2_v784g_through_wrap：用户 2026-10-30 截图——行动参考列覆盖后面列且自身显示不全。根因＝全局 .tb tbody td white-space:nowrap 强制单行 + 长基金名（易方达全球成长精选混合(QDII)人民币A）撑宽。修法＝新增本表专属类 tb-through（仅持仓穿透，不碰全局）：行动参考/归属基金/信号三列放开换行（word-break:break-word，chip 与徽章内部仍 nowrap 保完整）+ 列宽约束（advice max 180px、funds max 200px、th 宽度提示 信号104px/归属15%/行动参考180px）+ 行动参考内长基金名截断（超 9 字 + 省略号，全名进 title 悬浮）。 --><!-- fw2_v785_trend_advice：用户 2026-10-30 截图——趋势跟踪·个基趋势指标表新增「行动参考」列（数据日期后一列）。口径与磁贴/信号引擎同源：TREND-DN＝破MA60＋MACD绿柱→持仓显「该基减速/暂缓补仓」（筛选池标的改「破位·暂不买入」，筛选池不做定投）、TREND-UP＝多头排列(含年线)＋MACD红柱→持仓显「定投可加速一档」（筛选池改「趋势转多·关注」）；辅助提示＝RSI14≥70 超买勿追高 / ≤30 超卖维持定投、布林触上轨短线勿加 / 触下轨维持定投（最多 2 条、去重防超买与上轨重复）；无触发时持仓显「定投照常/持有观察·定投照常」、筛选显「观望」。单元格 white-space:normal 局部放开 tp-tbl 全表 nowrap；未就绪行 colspan 10→11、空态 colspan 11→12 同步。 --><!-- fw2_v785b_etf_date：用户 2026-10-30 问「聪明的钱·我的持仓ETF动向/国家队宽基ETF动向两张表数据是否严重滞后」——实测数据不滞后（etf-shares.json updatedAt=2026-10-29，交易所份额 T+1），但 10 月起采集断档（510300 最后 5 个 gap=7/2/6/7/8 天，此前基本每交易日）而 1日/3日 列按采集点数回退（chgN 按 hist 索引），跨周变化被标成 1日（如 510300「1日」实为 10-21→10-29 跨 8 天 −19.2%），视觉上既像滞后又像暴涨暴跌。本轮按用户要求：两表「规模(亿元)」后各新增「数据日期」列（每只 ETF 自己 hist 最后一个点 r.last.d / r.d，与整体「数据日 upd」可能不同的 ETF 逐行可见）；列宽 colgroup 12 列重排（18/8/8/8/6×5/8/9/11），无数据行 colspan 10→11、历史积累行 9→10 同步。采集断档根因与 1日/3日 列日历日化修正挂账待办。 --><!-- fw2_v787b_dm_sched：数据管理·日轨调度实录修正（用户 2026-10-30「统一排查 21:30 日频自动化」）——实证：WorkBuddy 自动化清单仅 2 条提醒类、Windows 计划任务无数据任务、GitHub 近 30 天提交无 21:30（UTC 13:30）窗口记录 ⇒ 历史宣称「cron_job 14013240823042 每晚自动」已死（CloudStudio 旧环境），页面照抄=虚假承诺。修正：①DMTRACKS 日轨 note 改指 WorkBuddy 自动化「投资工作台·日频数据统一刷新+发布」（本机执行，工作日 21:30，id 0920f58a-1c24-48ba-ba91-4405de199740，含显式失败报告禁静默）；②refresh_all.py SERIAL_AFTER 末位新增 bundle 组（fw2_v787b_bundle_sched）——_make_bundle.py 原为纯手动步骤（无任何调用点），夜刷漏打则 meta-bundle 内嵌 holdings/watchlist/macro/gold 停更，前端 mbGet 首屏读旧值；③34 数据集频次/数据源经逐项核对与 DMCONFIG 一致（v771 审计后无漂移）。 --><!-- fw2_v787_tday_align：用户拍板「1日=真·上一交易日」——聪明的钱两表变化列按A股交易日历回退：①fetch_etf_shares.py 随数据写入交易日历 tdays（东财上证指数日K 320天，失败沿用旧值）；②chgT 按日历回退，目标交易日缺采集点→顺延最近采集点并标≈（悬浮显实际对比日），表头 vs 日期=真交易日（1日=vs 10-29）；③连续申赎按交易日相邻判定，断档即断；④断档口径不触发行动参考，防跨8天变化被误读为单日暴涨。根因结论＝系统无任何采集定时自动化（仅2个提醒类automation），10月断档=手动跑全域链的频次。附带修 _tx 盘后模板字段后移坑：盘后88段 idx70/71 变涨跌幅小值，份额改取 idx70/71/72/73 首个量级合理值（1亿~10万亿份）＋份额×现价兜底市值（实测东财 push2 全程 RemoteDisconnected 走腾讯通道，旧解析器在盘后抓到 -0.00 亿份坏点，已用修复解析器重抓覆盖 10-30 全部17只）。--><!-- fw2_v786_unify：跨体系信号统一并入（用户拍板 B 方案 2026-10-30「全部接入，互斥需提示」）——signalEvalAll 引擎级并入四体系：①聪明的钱 XOV→持仓行（复用决策看板 _xovAct 同口径，019441 并入 016452 不重复评估）②V11 狙击→筛选池行（就绪=act/观望=near，独立体系不并档，环境过热/CAP 超限标 ⚠互斥）③持仓穿透 P 系→持仓行（P1 拥挤/P2 单票暴露/P3 集中度/P4 覆盖率，阈值同 v784c/v784d 口径，P6 需盘中行情仍留穿透页签）④筛选池趋势 S-TREND→筛选行（TREND-DN=破位暂不买入 act / TREND-UP=转多关注 near，货债金豁免）⑤互斥检测 pass：同标的一买一卖双向逐行标注 ⚠互斥（不自动降档，沿 fw2_v671 T7 教训），T3/T8 合并行按分位归族，筛选池 S-TREND 破位 vs S1/S2/S3 买入同触双向标注；缓存指纹加 V11 asOf/SM_XOV generated/jjcc updatedAt。今日待办自动覆盖新增 act/near 行。--><!-- fw2_v782_through_signals：持仓穿透统计表升级为 P 系信号（用户 2026-10-30 反馈「只是统计没信号」）——P1 多基拥挤（单股≥3/≥4 基共持，行级徽章+磁贴三档）、P2 隐性单票暴露（组合占比≥3/5%）、P3 Top5 底层集中度、P4 覆盖市值不足 50% 提示、P5 陈旧过滤（concDate 距今大于 180 天的基金不参与聚合与拥挤度判定，012761@2024/160422@2019 已剔除，结论不再被旧重仓污染）、P6 行情联动（腾讯 qt.gtimg 批量现价当日涨跌 + ifzq kline 21 根算近 20 日，两段渲染：信号表立现、行情到齐重绘；拥挤股单日跌超 5% 触发 P6 共振磁贴）。数据侧 _gen_jjcc_batch.py topStocks 补 c 代码字段 + _refresh_held_jjcc.py 旧缓存缺 c 自动重抓（fund-jjcc.json 已重生成随发布）。诚实边界：穿透为季报近似下界，P 系是结构性慢信号非择时；行情为时效性补充。--><!-- fw2_v781b_fix_scope：修复持仓穿透「加载中」卡死——①fetchJson 是 block10 IIFE 闭包内函数（22144 行），block7 侧 renderHoldThrough 调用即 ReferenceError 被 onclick try/catch 吞掉（v685/686/687 同型），改为函数内自带微型加载器（本地失败落 raw 兜底，失败不置 done 可重试）；②holdRows 同在 block10 闭包内（v697c 实证）window.holdRows=undefined → 静默渲染空表，在本块末尾 window.holdRows=holdRows 导出真源引用（fw2_v781b_hold_rows_export，只增不改）。修后经本地 HTTP+Edge CDP 完整交互链路实测：导航→点页签→Top20 表格渲染（20 行/覆盖 8 只/日期正确）。--><!-- fw2_v781_hold_through：交易信号视图新增「持仓穿透」子页签——穿透持仓基金底层前十大重仓股，按穿透市值聚合 Top20；配套数据集 data/fund-jjcc.json（东财 jjcc，24 只持仓基金仅 8 只 A股 equity 当期有数据，货基/债基/QDII美股正确排除）须随发布（v695 教训）。--><!-- fw2_v780_profiles_dim：修复基金数据页「收益/风险/经理/产品」四列全「—」（复发）——根因＝_gen_profiles.py 导出白名单漏写 scoreDim/scoreDimSub/scoreCov/scoreVeto（score_fund 内存里算好但没落盘），每次刷新重建 fund-profiles.json 即冲掉分；内联 FUND_PROFILES_MIRROR 又源自该 JSON 故同丢。修法＝①补白名单（根治，v697l 的 _backfill_profiles_dim.py 只是事后补）②离线重算回填 53/53 ③_embed_v186_assets.py 重嵌镜像 ④_audit_cross_module.py 新增 I 组断言（缺分即 FAIL）防复发。--> <!-- fw2_v779_collapse_min2：用户 2026-10-29 拍板，资产配置表同本质子组折叠阈值 6→2（TH_COLLAPSE_MIN）——标普500 两只存量（017641/096001）默认隐藏只显小计行，点「展开明细」按钮展示；规则收敛为「有小计行（≥2 只同本质）即默认折叠」。v778 visibility:collapse 已保 rowspan 占位，零布局风险；纯 JS 常量一行改动 --><!-- fw2_v778_rowspan_collapse：用户 2026-10-29 报「资产配置表全坏」（截图安全垫/对冲/合计列错位）。根因＝v773 主题子组默认折叠用 display:none，Chromium 中隐藏行不消耗上方 rowspan 占位 →「进攻/主题」档位格 rowspan=20 只覆盖 9 个可见行，剩余 11 格下渗把安全垫/对冲/合计全部顶错列（潜伏 5 版）。修法＝tr.th-hide 改 visibility:collapse（17086 行 CSS 注释含探针实测）；纯 CSS 一行，DOM/渲染/数据零改动 --><!-- fw2_v777_drop_ops：用户 2026-10-29 拍板，持仓表删「操作」列（研究/改/删 三按钮整列移除）。入口保全：①「研究」点名称 lk-rs 链接仍在（v172c 同口径）；②「改」openHoldingEditor 仍由研究页 #rsAddHold 调用；③「删」无 UI 入口属有意——持仓份额/成本以对账单+每晚 ttskill 刷新为权威，UI 手删易被覆盖；#hdTable 委托监听保留为空转守卫（data-act 无来源，留作日后重挂）；v776 居中说明见 279 行 CSS 注释 --></span><!-- fw2_v775_drop_cols：用户 2026-10-29 拍板，持仓表删「板块/资产类型」两列（存量全为 其他/基金 零信息量）；19→17 列同步：数据行/合计行/空态 colspan；sector 与 assetType 数据字段保留（编辑表单/筛选/研究链接仍在用） --></span><!-- fw2_v774_sw_bigbypass+fw2_v774_ldtimeout+fw2_v774_navhold：买入峰值/最大回撤线上恒「—」根因＝SW 拦截 8MB fund-daily.json 响应体卡死（Playwright 线上 A/B 实证：SW on → r.json() 永不落地、__NAV_SERIES__ 建不起来；SW off → 93 序列秒建；本地不复现）。
 修复＝sw.js v3 对 fund-daily.json 不拦截 + 大于2MB 响应不再写缓存 + CACHE v2→v3；前端两处 loader 加 json() 45s 超时（超时顺延下一源）。终判根因＝8MB fund-daily 在中国网络 20-35s+ 下载（content-length 为 gzip 1MB、body 完整），SW A/B 结论被沙箱代理慢速混淆；真修＝分层加载 fw2_v774_navhold：data/nav-hold.json（持仓 24 只迷你序列 1.6MB/gzip 170KB，gen_nav_hold.py 随 _make_bundle 重生成）先行秒级建序列，全量后台覆盖。 --><!-- fw2_v773_theme_collapse：资产配置表主题子组≥6行默认折叠只显小计（纳指100 11只存量），小计行「展开明细」按钮（allocThemeToggle 全局函数，免疫重渲染销毁监听）+ fw2_v773_widebase_off：022676 富国A500增强按宽基指数主题归「进攻/主题」档位（用户拍板 2026-10-29）；fw2_v773_spx_off：标普500存量（017641/096001）同归「进攻/主题」，计划外组清空 --></div>
         <div data-page-node-id="29etwgT4DhXWt50INGwSBu" class="b2"><!--pnid:abcwT00RaFu94EKr3WjV2J-->Personal Finance Desk</div>
       </div>
@@ -10876,57 +10876,34 @@ var MACRO_NOTES = {
     ins: '本卡是滞后确认指标，不能替代信用脉冲与 PMI 的领先判断；缺源项如实留白不臆造。',
     imp: '【大类】实体增长强时 A 股宽基、顺周期与可选消费占优，债券与黄金相对让位；弱时反之。【我的持仓】A500指数×2、沪深300、创业板160422 对国内需求最直接；红利、自由现金流在弱增长期防御性更好；出口链走弱会间接影响主动权益×2；纳指100×11、标普500×2 属美国需求，须看美国零售与 ISM；黄金在弱增长加宽松期受益。【筛选池】增长确认转强才复核池内宽基评分，守同指数留 1 只与已持指数禁入。【新机会】实体、信用、PMI 三者同时转正，是加档条件最完整的窗口。不构成投资建议。'
   },
+  /* fw2_v822_fsi_merge：一卡两区、一套结论（用户 2026-11-06 选 A 方案）。
+     原主卡判压力水平 0-100、分项表判压力结构 |z|，各出一套四段注释；
+     v821 只能靠「标签自带判据对象」打补丁。v822 起两区同卡，注释收敛为
+     唯一一套，水平与结构在同一条「最新分析」里合读，双卡冲突从结构上消失。
+     v820 的 z 口径说明、换算复核、缺项留白、月频边界全部并入本块，零信息丢失。 */
   fsi: {
     m: ['全球金融压力指数 FSI'],
-    note: 'FSI（金融压力指数）把 6 项资产与市场维度（信用利差、波动率、流动性、股债汇等）各自做近 10 年 z 分数后等权合成，映射到 0–100。z 分数＝(当前值 − 历史均值) ÷ 历史标准差。逻辑：把不同量纲的压力信号标准化后相加，用于识别系统性流动性紧张。分项表按 z 分数判读，本卡 0–100 分档不适用于单项 z。★两卡标签判据不同：本卡的「好／坏」判的是压力绝对水平（0–100 分档），分项表的「无单点极端／单维极端」判的是压力结构（各项 z 的分布），二者不是同一指标的好坏，不能互读。',
-    thr: '<30 正常、30–50 关注、50–70 警戒、≥70 危机；分项 z >1 为压力偏高、z <−1 为压力偏低。上破 50 应降杠杆与新增仓位，≥70 属危机状态优先保流动性；压力见顶回落常领先风险资产企稳。★动作强度须与分项结构合读：分项 z 全在 ±1 内而总分刚过 50 属广泛温和抬升，按分项表轻档处理——控制新仓、保留弹药，不做危机档降杠杆。',
-    r: mnMake(function (C) { var f = ((C.d || {}).fsi) || {}; return f.score != null ? f.score : null; }, function (v, C) { var f = ((C.d || {}).fsi) || {}; return '压力指数 ' + mnNum(v, 1) + '/100 · 历史分位 ' + mnNum(f.percentile, 1, '%'); }, [
-      { lt: 30, label: '正常 · 好（压力水平）', color: MN_GREEN, insight: '系统性压力低，外围环境平稳，按既定配比执行。' },
-      { lt: 50, label: '关注 · 中性偏坏（压力水平）', color: MN_GRAY, insight: '压力抬升但未到警戒，控制新仓、保留弹药。' },
-      { lt: 70, brk: 1, label: '警戒 · 坏（压力水平）', color: MN_RED, insight: '水平达警戒档，按主卡规则放缓新增投入、优先持有流动性与对冲资产；若分项 z 全在 ±1 内属广泛温和抬升，动作取轻档：控制新仓、保留弹药，不做危机档降杠杆。' },
-      { lt: null, brk: 1, label: '危机 · 坏（压力水平）', color: MN_RED, insight: '系统性压力高位，重点是保流动性与控制回撤，不做逆势加仓。' }
+    note: 'FSI（金融压力指数）把 6 项资产与市场维度（信用利差、波动率、流动性、股债汇等）各自做近 10 年月频 z 分数后等权合成，映射到 0–100。z 分数＝（当前值 − 近10年月频均值）÷ 标准差，截断 ±3；z 是标准差倍数、不是百分位，历史分位属本卡上区口径。逻辑：把不同量纲的压力信号标准化后相加，用于识别系统性流动性紧张。★反向指标（美债10Y-2Y利差、铜金比）先翻符号，各行 z 统一为「越大＝压力越大」，不能用构成明细「最新」列读数的高低去对 z 的正负。★本卡上区判压力绝对水平（0–100 分档），下半区判压力结构（各项 z 的分布），同一份 fsi.indis、两种判据；30/50/70 分档不适用于单项 z。构成明细是合成原料，不是另一套指标。',
+    thr: '上区水平：<30 正常、30–50 关注、50–70 警戒、≥70 危机；曲线 markLine 标 30/50/70。下区结构：单项 z >1 压力偏高（红）、z <−1 压力偏低（蓝）、|z|<1 属常态、|z|≥2 为单维极端。换算参照：(z+3)/6×100 后等权平均得 0–100 分，z=0 对应 50 分、z=+1 对应 66.7 分，可得分项须 ≥5 项，缺项留白不臆造。★动作按水平＋结构合读：总分 ≥70 或最大 |z|≥2 走重档（降杠杆、保流动性）；总分 ≥50 而分项全在 ±1 内属广泛温和抬升，走轻档——控制新仓、保留弹药，不做危机档降杠杆；其余按水平分档执行并盯住最紧分项。「无单点极端」是结构中性事实，不是利好。',
+    r: mnMake(function (C) { var f = ((C.d || {}).fsi) || {}; return f.score != null ? f.score : null; },
+      function (v, C) {
+        var f = ((C.d || {}).fsi) || {}, a = f.indis || [], mx = 0, n = 0;
+        for (var i = 0; i < a.length; i++) {
+          var z = a[i] && a[i].z;
+          if (z != null && isFinite(z)) { n++; if (Math.abs(z) > mx) mx = Math.abs(z); }
+        }
+        return '压力指数 ' + mnNum(v, 1) + '/100 · 历史分位 ' + mnNum(f.percentile, 1, '%')
+          + ' · 构成 ' + n + ' 项最大 |z|=' + mnNum(mx, 2);
+      }, [
+      { lt: 30, label: '水平正常（压力 0–100）', color: MN_GREEN, insight: '系统性压力低，外围环境平稳，按既定配比执行；结构档位见最新分析。' },
+      { lt: 50, label: '水平关注（压力 0–100）', color: MN_GRAY, insight: '压力抬升但未到警戒，控制新仓、保留弹药；结构档位见最新分析。' },
+      { lt: 70, brk: 1, label: '水平警戒（压力 0–100）', color: MN_RED, insight: '水平达警戒档，放缓新增投入；若分项 z 全在 ±1 内属广泛温和抬升，动作取轻档：控制新仓、保留弹药，不做危机档降杠杆。' },
+      { lt: null, brk: 1, label: '水平危机（压力 0–100）', color: MN_RED, insight: '系统性压力高位，重点是保流动性与控制回撤，不做逆势加仓。' }
     ]),
     insFn: function (C) {
-      var f = ((C.d || {}).fsi) || {}, s = f.score;
+      var f = ((C.d || {}).fsi) || {}, s = f.score, a = f.indis || [];
       if (s == null) return 'FSI 缺数，不臆造。';
-      var mx = null, ind = f.indis || [];
-      for (var i = 0; i < ind.length; i++) { var z = ind[i] && ind[i].z; if (z != null && (!mx || Math.abs(z) > Math.abs(mx.z))) mx = ind[i]; }
-      var lvl = s >= 70 ? '危机档（[[r:≥70 保流动性优先]]）' : s >= 50 ? '警戒档（[[r:≥50 水平达警戒]]）' : s >= 30 ? '关注档（30–50）' : '正常档（[[g:<30]]）';
-      var tail = mx
-        ? (Math.abs(mx.z) >= 1
-          ? '分项 z 绝对值最高的是「' + (mx.name || mx.key) + '」（|z|=' + mnNum(Math.abs(mx.z), 2) + '）——当前系统性压力的[[y:主要来源]]，压力缓解应先看该分项回落。'
-          : '分项 z 绝对值最高的是「' + (mx.name || mx.key) + '」（|z|=' + mnNum(Math.abs(mx.z), 2) + '）——[[y:相对最紧的一项，但未越 ±1]]，只作观察，不构成结构性压力来源。')
-        : '';
-      return '压力 ' + mnNum(s, 1) + '/100（历史分位 P' + mnNum(f.percentile, 0) + '）属' + lvl + '（本卡判压力水平，分项表判压力结构，两卡标签不可互读）。' + tail;
-    },
-    ins: '分项表与总卡是同一份 fsi.indis 数据；等权合成会掩盖单一市场极端值，须看分项 z 分布。★本卡标签判水平、分项表标签判结构，两卡同源不同判据：本卡「警戒 · 坏（压力水平）」与分项表「无单点极端（结构中性）」可以同时成立，不代表互相否定；动作强度按两卡合读，水平警戒而结构温和时取轻档。',
-    imp: '【大类】压力上行时全球股票与偏股基金同步承压、信用债利差走阔，黄金、短债、货币相对占优；压力回落是风险资产修复的先行条件。【我的持仓】纳指100×11、标普500×2 对全球流动性最敏感；日经225、创业板160422 跟随风险偏好；黄金是主要对冲仓；红利、自由现金流、货币仓降低组合波动；A500指数×2、沪深300 受外资流向间接传导。【筛选池】警戒以上不新增风险资产，池内守同指数留 1 只与已持指数禁入。【新机会】FSI 从警戒回落至正常且 VIX 同步回落，才是 QDII 恢复加档的观察点。【双卡读法】本卡判水平、分项表判结构；水平警戒而结构温和时按轻档处理，别把分项表「无单点极端」当利好，也别把本卡分档直接当危机。不构成投资建议。'
-  },
-  /* fw2_v821_fsi_labels：修同一份 fsi.indis 两卡标签语义错配（用户 2026-11-06 截图提问）。
-     主卡判压力水平、本表判压力结构；旧第一档把结构中性写成「好」，且 insFn 同段又写
-     「按总卡分档执行」，与本卡绿色好标签自相矛盾。v821 起本表标签不带好坏词、
-     统一带判据对象，动作强度与主卡对齐。v820 的 z 分数口径说明全部保留。 */
-  fsiIndis: {
-    m: [],
-    note: '分项表列的是 FSI 六个资产/市场维度各自的近 10 年月频 z 分数：z =（当前值 − 历史均值）÷ 历史标准差，截断 ±3；正值＝该维度比自身历史更紧张，负值＝更宽松。反向指标（美债10Y-2Y利差、铜金比）先翻符号，故各行 z 统一为「越大＝压力越大」，不能用「最新」列读数的高低去对 z 的正负。总指数按 (z+3)/6×100 把每个 z 映射到 0–100 再等权平均（可得分项 ≥5 项）；本表是合成原料，不是另一套指标。★z 是标准差倍数、不是百分位；历史分位属主卡口径，30/50/70 分档不适用于本表。★本表标签判的是压力结构（有无单点极端），不是方向好坏；主卡标签判的是压力水平，两卡同源数据、不同判据，标签不可互读。',
-    thr: '单项 z >1 压力偏高（红）、z <−1 压力偏低（蓝）、|z|<1 属常态；|z|≥2 为单维极端，|z| 最大者是当期压力主要来源。换算参照：z=0 对应合成 50 分、z=+1 对应 66.7 分。看分布而非均值：多数温和、个别极端时等权合成会被摊薄，这正是本表单独存在的理由。数据为月频月末值、滞后约 1 天~1 个月，不用于日频择时。★本表「结构中性」不是利好；总指数 >50 而分项全在 ±1 内时按广泛温和抬升处理，动作取轻档：控制新仓、保留弹药，不做危机档降杠杆。',
-    r: mnMake(function (C) {
-      var a = (((C.d || {}).fsi) || {}).indis || [], mx = 0;
-      for (var i = 0; i < a.length; i++) { var z = a[i] && a[i].z; if (z != null && isFinite(z) && Math.abs(z) > mx) mx = Math.abs(z); }
-      return a.length ? mx : null;
-    }, function (v, C) {
-      var a = (((C.d || {}).fsi) || {}).indis || [], it = null;
-      for (var i = 0; i < a.length; i++) { var z = a[i] && a[i].z; if (z != null && Math.abs(Math.abs(z) - v) < 1e-9) { it = a[i]; break; } }
-      return '最极端分项 |z|=' + mnNum(v, 2) + (it ? '（' + (it.name || it.key) + ' z=' + mnNum(it.z, 2) + '）' : '') + ' · 共 ' + a.length + ' 个分项';
-    }, [
-      { lt: 1, label: '分项全在常态 · 无单点极端（结构中性）', color: MN_GRAY, insight: '没有单一市场出现极端压力——这只是结构事实，不代表环境有利；总指数若抬升多属广泛温和变化，仍按主卡分档控制新仓。' },
-      { lt: 2, label: '单维偏高 · 关注（结构）', color: MN_GRAY, insight: '至少一个分项越过 +1，须确认是趋势还是单月扰动。' },
-      { lt: null, brk: 1, label: '单维极端 · 警戒（结构）', color: MN_RED, insight: '|z|≥2 的分项会主导后续压力演化，等权总指数可能低估结构风险。' }
-    ]),
-    insFn: function (C) {
-      var f = ((C.d || {}).fsi) || {}, a = f.indis || [], s0 = f.score;
-      if (!a.length) return '分项缺数，不臆造。';
-      var hi = [], lo = [], mx = null, mn = null, all = [];
+      var all = [], hi = [], lo = [], mx = null, mn = null;
       for (var i = 0; i < a.length; i++) {
         var it = a[i], z = it && it.z; if (z == null || !isFinite(z)) continue;
         all.push(z);
@@ -10936,24 +10913,33 @@ var MACRO_NOTES = {
         if (!mn || z < mn.z) mn = { n: it.name || it.key, z: z };
       }
       if (!mx || !mn) return '分项缺数，不臆造。';
-      var spread = mx.z - mn.z;
       var zMean = all.reduce(function (p, q) { return p + q; }, 0) / all.length;
       var conv = (zMean + 3) / 6 * 100;
-      var recon = s0 == null ? '' : ' 换算复核：z 均值 ' + mnNum(zMean, 3) + ' → 换算 ' + mnNum(conv, 1) + '/100，与总指数 ' + mnNum(s0, 1) + (Math.abs(conv - s0) <= 0.2 ? '[[g:逐值一致]]（等权合成核对通过）' : '[[r:不一致]]，须查缺项或口径') + '。';
+      var recon = '换算复核：z 均值 ' + mnNum(zMean, 3) + ' → ' + mnNum(conv, 1) + '/100，与上区总指数 ' + mnNum(s, 1)
+        + (Math.abs(conv - s) <= 0.2 ? '[[g:逐值一致]]（等权合成核对通过）' : '[[r:不一致]]，须查缺项或口径') + '。';
+      var lvl = s >= 70 ? '危机档（[[r:≥70 保流动性优先]]）' : s >= 50 ? '警戒档（[[r:≥50 水平达警戒]]）'
+        : s >= 30 ? '关注档（30–50）' : '正常档（[[g:<30]]）';
+      var spread = mx.z - mn.z;
       var struct = hi.length === 0 && lo.length === 0
-        ? '全部分项落在 ±1 内，压力没有单点主导，属[[g:广泛温和]]而非结构性冲击'
-        : (hi.length >= 2 ? '[[r:' + hi.length + ' 个分项同时 >1]]，压力面在扩散' : '压力集中在「' + mx.n + '」单点（z=' + mnNum(mx.z, 2) + '），[[y:等权合成会摊薄它]]');
-      var action = (s0 != null)
-        ? (s0 >= 70 || Math.abs(mx.z) >= 2
-          ? '[[r:水平或分项已达重档]]，按主卡降杠杆、保流动性'
-          : s0 >= 50 && hi.length === 0 && lo.length === 0
-            ? '[[g:水平达警戒但结构温和，动作取轻档]]——控制新仓、保留弹药，不做危机档降杠杆'
-            : '按主卡分档执行，并盯住最紧分项')
-        : '按主卡分档执行';
-      return '共 ' + all.length + ' 项：>1 有 ' + hi.length + ' 项' + (hi.length ? '（' + hi.join('、') + '）' : '') + '，<−1 有 ' + lo.length + ' 项' + (lo.length ? '（' + lo.join('、') + '）' : '') + '；最紧 ' + mx.n + ' ' + mnNum(mx.z, 2) + ' vs 最松 ' + mn.n + ' ' + mnNum(mn.z, 2) + '，跨度 ' + mnNum(spread, 2) + '。' + struct + (s0 != null ? '。对照总指数 ' + mnNum(s0, 1) + '/100：' + action : '') + '。' + recon;
+        ? '全部分项落在 ±1 内，压力[[g:无单点主导]]，属广泛温和抬升而非结构性冲击'
+        : (hi.length >= 2 ? '[[r:' + hi.length + ' 个分项同时 >1]]，压力面在扩散'
+          : '压力集中在「' + mx.n + '」单点（z=' + mnNum(mx.z, 2) + '），[[y:等权合成会摊薄它]]');
+      var src = Math.abs(mx.z) >= 1
+        ? '最紧「' + mx.n + '」（|z|=' + mnNum(Math.abs(mx.z), 2) + '）是当期压力[[y:主要来源]]，压力缓解应先看该分项回落'
+        : '最紧「' + mx.n + '」（|z|=' + mnNum(Math.abs(mx.z), 2) + '）[[y:相对最紧但未越 ±1]]，只作观察，不构成结构性压力来源';
+      var action = (s >= 70 || Math.abs(mx.z) >= 2)
+        ? '[[r:水平或分项已达重档]]，按规则降杠杆、保流动性'
+        : (s >= 50 && hi.length === 0 && lo.length === 0
+          ? '[[g:水平达警戒但结构温和，动作取轻档]]——控制新仓、保留弹药，不做危机档降杠杆'
+          : '按水平分档执行，并盯住最紧分项');
+      return '压力 ' + mnNum(s, 1) + '/100（历史分位 P' + mnNum(f.percentile, 0) + '）属' + lvl
+        + '；构成明细 ' + all.length + ' 项：>1 有 ' + hi.length + ' 项' + (hi.length ? '（' + hi.join('、') + '）' : '')
+        + '，<−1 有 ' + lo.length + ' 项' + (lo.length ? '（' + lo.join('、') + '）' : '')
+        + '；最紧 ' + mx.n + ' ' + mnNum(mx.z, 2) + ' vs 最松 ' + mn.n + ' ' + mnNum(mn.z, 2)
+        + '，跨度 ' + mnNum(spread, 2) + '。' + struct + '。' + src + '。' + action + '。' + recon;
     },
-    ins: '总卡与本表同源 fsi.indis，但判据不同：总卡看 0–100 分档，本表看单项 z 是否越 ±1。不可把 30/50/70 阈值套到 z 上，也不可把 z 当百分位读；反向指标已翻符号，读 z 时不要对照「最新」列读数的高低。★两卡标签各带判据对象（压力水平 / 结构），不可互读为同一指标的好坏；本表「无单点极端」是结构中性事实，不是利好，动作仍按总卡分档执行。',
-    imp: '【大类】压力来自波动率分项时全球股票同步回撤、黄金对冲有效；来自信用利差/流动性分项时信用债与高杠杆资产先承压，股债未必同跌。【我的持仓】纳指100×11、标普500×2 对波动率与全球流动性分项最敏感；日经225、创业板160422 跟随风险偏好；黄金、红利、自由现金流、货币仓在压力扩散期降波动。【筛选池】分项极端未回落前不新增风险资产，守同指数留 1 只与已持指数禁入。【新机会】|z| 最大分项从 >1 回落至 0 附近、且总指数同步下行，才是 QDII 恢复观察的窗口。【本表边界】月频月末值、滞后约 1 天~1 个月，只用于判断压力结构（广泛温和 vs 单点扩散），不产生日频交易动作；z 全在 ±1 内而总指数 >50 时按「广泛温和」处理，控制新仓即可，不做危机档降杠杆。★本表标签不带好坏方向词，勿据「结构中性」加仓。不构成投资建议。'
+    ins: '本卡上区与下半区同源 fsi.indis，但判据不同：上区看 0–100 分档，下区看单项 z 是否越 ±1。不可把 30/50/70 阈值套到 z 上，也不可把 z 当百分位读；反向指标已翻符号，读 z 时不要对照「最新」列读数的高低。等权合成会掩盖单一市场极端值，须看分项 z 分布。★「无单点极端」是结构中性事实、不是利好；水平警戒而结构温和时动作取轻档，勿据结构中性加仓，也别把水平分档直接当危机。',
+    imp: '【大类】压力上行时全球股票与偏股基金同步承压、信用债利差走阔，黄金、短债、货币相对占优；压力回落是风险资产修复的先行条件。压力来自波动率分项时全球股票同步回撤、黄金对冲有效；来自信用利差/流动性分项时信用债与高杠杆资产先承压，股债未必同跌。【我的持仓】纳指100×11、标普500×2 对全球流动性最敏感；日经225、创业板160422 跟随风险偏好；黄金是主要对冲仓；红利、自由现金流、货币仓降低组合波动；A500指数×2、沪深300 受外资流向间接传导。【筛选池】警戒以上不新增风险资产，分项极端未回落前不新增风险资产，守同指数留 1 只与已持指数禁入。【新机会】FSI 从警戒回落至正常且 VIX 同步回落，或 |z| 最大分项从 >1 回落至 0 附近且总指数同步下行，才是 QDII 恢复加档的观察点。【本卡边界】构成明细为月频月末值、滞后约 1 天~1 个月，只用于判断压力结构（广泛温和 vs 单点扩散），不产生日频交易动作；曲线为 10 年历史，用于看水平与分位，不作择时。不构成投资建议。'
   },
   cnn: {
     m: ['投资者情绪指数 CNN'],
@@ -12708,31 +12694,52 @@ function renderMacroUS(d, gblMag) {
   const _missLine = _indMiss.length
     ? '<div style="font-size:10px;color:#b45309;margin-top:4px">本月 6 项口径缺 ' + _indMiss.length + ' 项：' + esc(_indMiss.join('、')) + '（按 ≥5 项可得分项合成，缺项留白不臆造）</div>'
     : '';
-  const indCard = '<div class="card"><div class="card-h"><h3>FSI 压力分项（近10年 z 分数 · 当前月）</h3>' +
-    '<span class="hint">z =（当前值 − 近10年月频均值）÷ 标准差 · 已统一为「z 越大＝压力越大」（反向指标已翻符号）· z &gt;1 红 / z &lt;−1 蓝 / 其余常态 · 月频月末值，滞后约 1 天~1 个月 · 截至 ' + esc(_fsiAsOf) + '</span></div>' +
+  /* fw2_v822_fsi_merge：一卡双判据结论行——上区水平 × 下区结构 → 同一个动作，
+     不再由两张卡各出一份标签。供 chartCard 调用，真源仍是 fsi.score / fsi.indis。 */
+  function fsiDualHtml(f) {
+    var s = f && f.score, a = (f && f.indis) || [], mx = 0, mxn = '', n = 0;
+    for (var i = 0; i < a.length; i++) {
+      var z = a[i] && a[i].z; if (z == null || !isFinite(z)) continue;
+      n++; if (Math.abs(z) > mx) { mx = Math.abs(z); mxn = a[i].name || a[i].key; }
+    }
+    if (s == null) return 'FSI 缺数，不臆造。';
+    var lv = s >= 70 ? '危机' : s >= 50 ? '警戒' : s >= 30 ? '关注' : '正常';
+    var st = mx >= 2 ? '单维极端' : mx >= 1 ? '单维偏高' : '无单点极端';
+    var act = (s >= 70 || mx >= 2) ? '重档：降杠杆、保流动性'
+      : (s >= 50 && mx < 1) ? '轻档：控制新仓、保留弹药' : '按水平分档执行';
+    var lc = s >= 70 ? '#dc2626' : s >= 50 ? '#f59e0b' : s >= 30 ? '#c98a1b' : '#2f6bff';
+    return '<b style="color:' + lc + '">水平 ' + fmtNum(s, 1) + '/100（' + lv + '）</b> · <b>结构 ' + st + '</b>'
+      + '（' + n + ' 项最大 |z|=' + fmtNum(mx, 2) + (mxn ? '，' + esc(mxn) : '') + '）→ ' + act
+      + ' <span style="font-size:10px;color:var(--slate-400,#94a3b8)">上区判水平、下区判结构，卡底唯一一套注释</span>';
+  }
+  /* fw2_v822_fsi_merge：下区＝构成明细表，不再是独立 .card；去掉分项表专属注释挂载点，
+     四段注释由 .card h3 在整卡底部唯一注入。v820 的 z 口径 hint / 解读列 / 缺项留白全保留。 */
+  const indCard = '<div class="fsi-sub" style="margin-top:14px;border-top:1px solid var(--line,#e3e8ee);padding-top:12px">' +
+    '<div style="font-size:13px;font-weight:600;margin-bottom:4px">构成明细 · 近10年 z 分数（当前月）</div>' +
+    '<div style="font-size:10px;color:var(--slate-400,#94a3b8);margin-bottom:6px">z =（当前值 − 近10年月频均值）÷ 标准差 · 已统一为「z 越大＝压力越大」（反向指标已翻符号）· z &gt;1 红 / z &lt;−1 蓝 / 其余常态 · 月频月末值，滞后约 1 天~1 个月 · 截至 ' + esc(_fsiAsOf) + '</div>' +
     '<table style="width:100%;border-collapse:collapse;font-size:12px"><thead><tr style="background:var(--panel-3,#f1f5f9);color:var(--slate-600,#475569)">' +
     '<th style="padding:7px 8px;text-align:left">指标</th><th style="padding:7px 8px;text-align:left">最新</th><th style="padding:7px 8px;text-align:left" title="z 是标准差倍数，不是百分位">z 分数</th><th style="padding:7px 8px;text-align:left">解读</th></tr></thead>' +
     '<tbody>' + (indTr || '<tr><td colspan="4" style="padding:8px;color:var(--slate-400,#94a3b8)">当前月分项数据不足</td></tr>') + '</tbody></table>' +
     '<div style="font-size:10px;color:var(--slate-400,#94a3b8);margin-top:6px">' + esc((fsi.meta && fsi.meta.rule) || '') + '</div>' +
-    '<div style="font-size:10px;color:var(--slate-400,#94a3b8);margin-top:4px">换算：z → (z+3)/6×100 → 等权平均得主卡 0–100 分；z 是标准差倍数、不是百分位，历史分位见主卡。</div>' +
+    '<div style="font-size:10px;color:var(--slate-400,#94a3b8);margin-top:4px">' + esc((fsi.meta && fsi.meta.limitNote) || '') + '</div>' +
+    '<div style="font-size:10px;color:var(--slate-400,#94a3b8);margin-top:4px">换算：z → (z+3)/6×100 → 等权平均得上区 0–100 分；z 是标准差倍数、不是百分位，历史分位见上区。</div>' +
     _missLine +
-    '<div data-mn="fsiIndis" data-asof="' + esc(_fsiAsOf) + '"></div></div>';
-  /* fw2_v713_fsi_cnn_move：FSI 卡升级为完整大卡（原 sm 页 fsiCard 迁入形态，替代旧「历史走势」裸图卡——
-     用户 2026-10-27 指定「FSI/CNN 放到海外宏观，重复的保留一个」：磁贴 压力指数/历史分位 + 指向 + 图 mcFsiChart（渲染 30/50/70 阈值线不变）+ 分项指标组 note） */
+    '</div>';
+  /* fw2_v822_fsi_merge：FSI 一卡两区——上区磁贴 + 10 年曲线（判压力水平），
+     下区构成明细表（判压力结构），卡底由 .card h3 挂唯一一套四段注释。
+     旧「指向」与「阈值」两行 rv-line 合并为一条双判据「结论」行：
+     阈值已在卡底「阀值」段与曲线 markLine 各写一次，第三份属重复（v819 挂账）。 */
   const fsiSc = fsi.score, fsiPct = fsi.percentile;
-  const fsiLvC = fsiSc == null ? '#94a3b8' : fsiSc >= 70 ? '#dc2626' : fsiSc >= 50 ? '#f59e0b' : fsiSc >= 30 ? '#c98a1b' : '#2f6bff';
-  const fsiLvTxt = fsiSc == null ? '—' : (fsiSc >= 70 ? '危机' : fsiSc >= 50 ? '警戒' : fsiSc >= 30 ? '关注' : '正常');
-  /* fw2_v719_del_fsi_indinline：fsiIndis 内嵌分项行删除——与下方「FSI 压力分项」表同一份 fsi.indis 的重复渲染，
-     保留表格版（多「解读 note」列，信息为超集） */
-  const chartCard = '<div class="card"><div class="card-h"><h3>全球金融压力指数 FSI</h3><span class="hint">6项资产/市场维度综合 · FRED口径 · 0-100</span></div>' +
+  const chartCard = '<div class="card"><div class="card-h"><h3>全球金融压力指数 FSI</h3><span class="hint">6项资产/市场维度综合 · FRED口径 · 0-100 · 上区水平 / 下区结构</span></div>' +
     _mcMeta(_fsiAsOf, '日频', '6 维度综合压力 0-100 · FRED', 75) +
     '<div class="metric-grid">' +
     metric('压力指数', fsiSc == null ? '—' : fmtNum(fsiSc, 1), fsiSc != null && fsiSc >= 50 ? 'v up' : '') +
     metric('历史分位', fsiPct == null ? '—' : fmtNum(fsiPct, 1) + '%') +
     '</div>' +
-    '<div class="rv-line"><span class="tag tag-ai">指向</span><span><b style="color:' + fsiLvC + '">' + fsiLvTxt + '</b>' + (fsi.levelNote ? ' · ' + esc(fsi.levelNote) : '') + (fsi.meta && fsi.meta.limitNote ? ' · ' + esc(fsi.meta.limitNote) : '') + '</span></div>' +
-    '<div class="rv-line"><span class="tag tag-data">阈值</span><span>&lt;30 正常 / 30-50 关注 / 50-70 警戒 / ≥70 危机</span></div>' +
-    '<div id="mcFsiChart" class="chart" style="width:100%;height:230px"></div></div>';   /* fw2_v719_del_fsi_indinline：卡底内嵌分项行删除（与下方分项表重复） */
+    '<div class="rv-line"><span class="tag tag-ai">结论</span><span>' + fsiDualHtml(fsi) + '</span></div>' +
+    '<div id="mcFsiChart" class="chart" style="width:100%;height:230px"></div>' +
+    indCard +
+    '</div>';
   /* fw2_v713_fsi_cnn_move：CNN Fear & Greed 卡自 sm 页迁入（d.sentiment.cnnFG 同源数据） */
   const cnnFG = ((d && d.sentiment || {}).cnnFG) || {};
   const cnnV = cnnFG.available ? cnnFG.value : null;
@@ -12850,7 +12857,7 @@ function renderMacroUS(d, gblMag) {
     /* fw2_v719_del_ref_konbo_lei：两卡删除——「康波长波定位」（理论时间表非实时，同 v715 涛动周期口径；
        us.konbo 数据层保留）与「海外压力温度（引用）」（整卡仅一行导航说明的说明卡，v548 去重残留；
        导航信息由本注释承载不上 UI，同 v715 页头说明墙方向）。删除后 FSI 升为磁贴后首卡 */
-    chartCard + indCard + cnnCard + dlHtml + nfCard + usCards + foot + '</div>';   /* fw2_v713_fsi_cnn_move：FSI 大卡→分项表→CNN 卡次序；fw2_v720_del_cyc：cycHtml 拼接项删除 */
+    chartCard + cnnCard + dlHtml + nfCard + usCards + foot + '</div>';   /* fw2_v822_fsi_merge：分项表已并入 FSI 主卡下区，不再单独成卡；其后仍是 CNN 卡 */
 }
 /* fw2_v549_region_align：海外景气页（gbl tab）＝⑥全球景气非美实体卡全集——
    韩国出口/OECD/BDI日银/PMI合成 自 mi ⑥组迁入（mi 页⑥组改引用卡）；磁铁 mcMagnet(⑥) 同源渲染 */
