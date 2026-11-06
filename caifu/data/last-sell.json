@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-11-06T11:35:42+0800",
+  "updatedAt": "2026-11-06T20:44:19+0800",
   "source": "ttskill TRADE_QUERY trade_list(busType=2,statu=2) + trade_detail 确认净值",
   "scope": "T16 卖出后破位减半基准；只读镜像，资金平衡/IRR 真源仍为 data/ledger-import.json",
   "lookbackDays": 400,
@@ -85,7 +85,22 @@
       "excludedReason": "超出 T16 时效窗口（90 天），仅作审计留档"
     }
   },
-  "anomalies": [],
+  "anomalies": [
+    {
+      "code": "022438",
+      "diff": -7.95,
+      "marketValue": 471.75,
+      "expect": 479.7,
+      "hint": "账户金额低于份额×净值（疑似已卖出但份额未随对账单重建）"
+    },
+    {
+      "code": "019441",
+      "diff": -6.41,
+      "marketValue": 99.77,
+      "expect": 106.18,
+      "hint": "账户金额低于份额×净值（疑似已卖出但份额未随对账单重建）"
+    }
+  ],
   "crossCheck": {
     "ok": true,
     "matched": [
