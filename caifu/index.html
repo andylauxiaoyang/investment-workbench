@@ -110,7 +110,8 @@
   --zinc-700: #3f3f46;
   --blue: #1d4ed8;
   --blue-100: #bfdbfe;
-  --green: #15803d; /* v840 对比度：#16a34a→#15803d（近白底文字 ≈5.2:1 过 AA，保绿语义） */
+  --green: #12693a; /* v852：#15803d 于软绿底 #E7F6EC 仅 4.49 差 0.01 → #12693a（软绿底 6.05 / 白底 6.76） */
+  --gold-deep: #96600f; /* v852：--gold 作背景配白字仅 3.64（太浅）→ 深一档专供「金底白字」；作文字仍用 --gold-ink */
   --amber: #9a4708; /* v840 对比度：#b45309→#9a4708（浅蓝底 ≈5.2:1 过 AA，保琥珀语义） */
   /* fw2_v508_p3dsys：P3 低频专用色收尾——追加语义 token（值=原高频裸色，视觉零变化；--nav-blue 主导航选中/图表主系列、--gold 黄金/国家队、--orange 预警橙、--up-100 浅红涨/警示底边）。echarts canvas 不支持 CSS var，图表 option 内同值色保持字面量并与本 token 同值。 */
   --nav-blue: #2a4fd6; /* v838 原 #2f6bff 裸作文案色仅 ~4.38:1（AA 下），加深至 #2a4fd6（蓝字/白字蓝底均达 AA 4.5:1+） */
@@ -1052,18 +1053,18 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .todo-chip:active { transform:translateY(0); }
 .todo-chip .tc-ic { font-size:12px; line-height:1; }
 .todo-chip.sev-bad { color:#A32D2D; border-color:#F0B9B9; background:#FCEBEB; }
-.todo-chip.sev-warn { color:#92600A; border-color:#F0D9A8; background:#FAEEDA; }
-.todo-chip.sev-near { color:#2563EB; border-color:#BCD0F7; background:#EAF1FF; }
-.todo-chip.sev-actadd { color:#15803D; border-color:#A7DCBA; background:#E7F6EC; }
+.todo-chip.sev-warn { color:#7F4E07; border-color:#F0D9A8; background:#FAEEDA; } /* v852：4.69→6.11 */
+.todo-chip.sev-near { color:#1D4ED8; border-color:#BCD0F7; background:#EAF1FF; } /* v852：4.56→5.91 */
+.todo-chip.sev-actadd { color:#12693A; border-color:#A7DCBA; background:#E7F6EC; } /* v852：4.49→6.05 */
 .todo-chip.sev-loading { color:var(--muted,#667085); border-color:var(--line,#EAECF0); background:#fff; cursor:default; }
 /* fw2_v702_trend_overlay：定投节奏档位指示器（汇总趋势叠加层四信号级别） */
 .dca-gear { display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin:0 0 12px; padding:8px 12px; background:var(--panel-2,#F8FAFC); border:1px solid var(--line,#EAECF0); border-radius:var(--radius,12px); font-size:12.5px; }
 .dca-gear .gear-label { font-weight:600; color:var(--text-2,#475467); }
 .dca-gear .gear-pill { padding:3px 12px; border-radius:999px; font-weight:700; font-family:inherit; }
 .dca-gear .gear-note { color:var(--muted,#667085); }
-.gear-normal { color:#2563EB; background:#EAF1FF; border:1px solid #BCD0F7; }
-.gear-up { color:#15803D; background:#E7F6EC; border:1px solid #A7DCBA; }
-.gear-slow { color:#92600A; background:#FAEEDA; border:1px solid #F0D9A8; }
+.gear-normal { color:#1D4ED8; background:#EAF1FF; border:1px solid #BCD0F7; } /* v852：4.56→5.91（与 .todo-chip.sev-near 同源，改必同步） */
+.gear-up { color:#12693A; background:#E7F6EC; border:1px solid #A7DCBA; } /* v852：4.49→6.05（与 .todo-chip.sev-actadd 同源） */
+.gear-slow { color:#7F4E07; background:#FAEEDA; border:1px solid #F0D9A8; } /* v852：4.69→6.11（与 .todo-chip.sev-warn 同源） */
 .gear-down { color:#A32D2D; background:#FCEBEB; border:1px solid #F0B9B9; }
 /* fw2_v703_trend_tab：交易信号·趋势策略子面板（档位横幅复用 .dca-gear 系；此处为磁贴与个基趋势表） */
 .tp-tiles { display:flex; gap:10px; flex-wrap:wrap; margin:2px 0 14px; }
@@ -1235,7 +1236,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 #view-capbal .cb-kpi.tone-green { background: #EFF8F2; border-color: #C4E3D0; }
 #view-capbal .cb-kpi.tone-green.emph { background: #E4F4EA; border-color: #AFD9BF; box-shadow: inset 3px 0 0 #2F9E63; }
 /* fw2_v658_rpt_monthnav：现金流量表零流水月份披露条 */
-#view-capbal .cb-rpt-gapnote { margin-top:var(--sp-8); font-size:var(--fs-sm); color: #8a6d1a; background: #FDF7EC; border: 1px solid #ECDDBE; border-radius: 8px; padding:var(--sp-8) var(--sp-12); line-height: 1.6; }
+#view-capbal .cb-rpt-gapnote { margin-top:var(--sp-8); font-size:var(--fs-sm); color: #7a5f14; background: #FDF7EC; border: 1px solid #ECDDBE; border-radius: 8px; padding:var(--sp-8) var(--sp-12); line-height: 1.6; }
 #view-capbal .cb-kpi .k-lab { font-size:var(--fs-xs); color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 #view-capbal .cb-kpi .k-val { font-family: var(--mono); font-size:var(--fs-4xl); font-weight: 700; color: var(--text); margin-top:var(--sp-5); white-space: nowrap; }
 #view-capbal .cb-kpi .k-val.up { color: var(--up); }
@@ -1380,7 +1381,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
     <div data-page-node-id="4kpOdky7SODGpwcpiqg6Ul" class="brand">
       <div data-page-node-id="fy9nr7YX6z70XIIPP2k8cu" class="logo"><!--pnid:nS1XbU8IvoftAAsJBjPYR1-->理</div>
       <div data-page-node-id="KEpstPyZVkdFbO86DWabql" class="brand-txt">
-        <div data-page-node-id="PsvCVyRn9Hy3AVRIxAgjBc" class="b1"><!--pnid:uKibb7vNP0llwjGkZsDB1h-->理财工作台<span id="verBadge" class="ver-badge">v851</span><!-- fw2_v831_tab_rename3（套装三直述系，用户 2026-11-06 选定）：宏观周期→宏观环境（顶栏按钮+VIEW_META+数据管理 11 行模块标签+跨页引用文案）、tab 估值全景→估值分位与股债比/市场情绪→资金与杠杆情绪/海外宏观→海外景气与约束/资产价格→大类资产监控；VIEW_META 副标题同步更新（四周期嵌套已删失实）；px 页头与美元黄金卡/传导链/NOTES 内「资产价格监控」引用→「大类资产监控」；磁铁组名（估值全景/情绪温度等）非本页 tab 不在改名范围不动；fw2_v830_fix：v829 误将删除注释写入 body.innerHTML 模板字符串内部；fw2_v829_cycle_del：用户 2026-11-06「周期定位全部删除」——删 v-cycle tab+总览卡（v828 瘦身剩余唯一卡）+_syncNote 口径对拍块+renderMacroToolsHtml+CSS 死规则（v196/v197/v198/v201）；默认落点保持 v-val、旧 region 值(v-cycle/cn/sop/ov)归一 v-val；cycleLayer 四段注释迁「研读驾驶舱」活卡；引擎 cycleEngine+MACRO_PHASE 不动（REGIME-BEAR 风控仍读）。 fw2_v828_cycle_slim：周期定位视图瘦身（用户 2026-11-06 问"周期定位对投资没太大作用能否删"，选 B 瘦身留总览）：先实证两层——引擎层 cycleEngine 输出 MACRO_PHASE 喂持仓页 REGIME-BEAR 熊市 regime 风控行（美林衰退/主动去库/沪深300跌破年线→全组合定投硬降档，fw2_v702 拍板机制）动不得；UI 层 8 卡（总览/层1/层2/信用脉冲/层3/层4/美元黄金大宗死卡[恒隐藏 isDollar]/历史相似阶段回放；行业周期卡 v756 已删）对定投动作边际信息低，用户已连砍 6 刀同类卡（v697v/v700c/v715/v720/v734/v739）。改动：①删层1/层2/信用脉冲/层3/层4/美元黄金大宗死卡/renderReplayCard 调用与函数，只留总览卡（四层磁贴+综合定位+配置倾向/行业风格/纪律联动）；②默认落点 v-cycle→v-val 估值全景；③MC_CYCLE_KEYS 收敛 ['总览']、isDollar 死分支删；④MACRO_NOTES 迁移零丢失——cycleLayer.m→['总览']（四层框架注释挂总览卡）、cycPulse.m→['信用脉冲：社融']（迁 mi 页 mcCredit 活卡）；⑤导航别名表清 9 个死键；⑥引擎与 RB 风控行不动；gen_replay 数据层退役挂账（日频链改动属数据口径范畴须单独拍板）：韩国出口卡阈值四档化——用户 2026-11-06 问"能否删"：实证数据为真（FRED +67.76% 与韩国关税厅官方 +68.7%/芯片出口 +209% 两渠道互证）、97 天滞后＝FRED OECD 口径固有 2-3 月（非抓取坏），真病＝±5% 阈值在 +67.8% 下饱和恒「偏扩张」零增量。改动：①卡/磁铁 gbl/MACRO_NOTES.kor 三处标签同步四档化（≥30% 高热扩张＝周期极端段·警惕拥挤与晚期风险，联动 P 系/G 回落止盈；5%–30% 扩张；<−5% 收缩；中性）；②滞后口径入 note/thr/hint（结构慢信号非择时，asOf 为准）；③gen_kr_export.py 加量级校验硬卡（实测 fredgraph.csv 已返回原始美元，旧"百万美元"注释过时，防单位再漂移 100×）；换快源（韩国海关初值月后 1 日）挂账未做 --><!-- fw2_v766_ver_badge：最新版本号（与 README changelog / verChip 同步）；fw2_v788 起真正实现 #verBadge 元素（v766/v767 仅建 CSS 类未插节点，属宣称≠存在，此处补实） --><!-- fw2_v783_global_through：用户 2026-10-30 反馈「全球的股票没穿透进来」——QDII 底层纳入穿透：①解析器 _gen_jjcc_batch.py 代码正则放开 A股6位/港股4-5位/美股字母ticker（东财QDII表9列，cells[1]=代码、cells[6]=占净值比，列位与A股表一致）；②重刷后当期覆盖 6 A股 + 11 QDII 共 17 只，陈旧剔除 4 只（000834/008971@2023、012761@2024、160422@2019），货基/债基 3 只无明细；③P6 行情联动 symOf 扩展 sh/sz/hk/us（实测美股裸码可用带后缀反而 none_match，港股 5 位补零，美股/港股 f[32] 同为当日涨跌%，价为当地币种、涨跌幅不受汇率影响）；ifzq 近20日 K线同 symOf。 --><!-- fw2_v784_track_tech：用户 2026-10-30 两项反馈——①归属基金按指数聚合（同一指数如纳指100 十几只只显指数一枚 chip「纳指100 ×8 7.6%」，悬浮 title 列全明细；主动基金仍显单基金；track 数据＝东财 F10 jbgk「跟踪标的」，_refresh_held_jjcc.py 幂等富化进 fund-jjcc.json，纳斯达克100 别名纳指100）；②借鉴用户个股信号表字段新增 7 列技术指标：vsMA20/vsMA60/距年线(MA250)/排列(多空震荡=close 与三线同向)/RSI14(Wilder 全史平滑)/MACD(红绿柱+方向箭头，悬浮显柱值)/布林z((c-MA20)/std20)——K线请求 21→260 根自算，近20日列即 20日动量；说明行标注技术指标截至 kdate 与自算口径。 --><!-- fw2_v784b_qdii_full：用户 2026-10-30 反馈「易方达全球成长持仓的都没放进去」——双 bug：①012920 缓存为 v781 旧正则残留（仅 3 只 A股，TSM/NVDA 等 7 只美股被挡，v783 因非 None 跳过重抓、v784 track 富化也未重抓）；②解析器三雷全修：按表分组取当期（东财 QDII 返 3 表=近三期报告，全表混扫靠 top[:10] 截断碰巧保对）、pct 自适应（9列表 cells[6] / 7列表 cells[4]，取行内首个带 % 且 pct∈(0,100] 的 cell）、代码放宽至字母数字混合（285A=KIOXIA 东京码）。重抓后 012920 当期 10 只全球全齐（台积电8.28/英伟达7.05/英特尔5.54/中际旭创4.16/BLOOM4.03/超威3.94/新易盛3.40/LITE3.23/阿斯麦2.76/沪电2.41），与用户东财截图逐只一致；24 只持仓体检=当期 17 + 陈旧 4 + 货基债基 3。全量重抓顺带重建私有缓存（24→61 键=持仓24+筛选池37）。 --><!-- fw2_v784c_crowd_src：用户 2026-10-30 反馈「拥挤度也不对，其实就是买了一个指数，因为限额的原因买多只同指数基金而已」——P1 拥挤度从「归属基金只数」改为「独立持仓来源数」：同指数（track 相同）的多只基金算 1 来源（限额拆买≠拥挤），主动基金（track=None）各算 1 来源；来源 key=track||'主动:'+code。徽章文案 P1拥挤×N → P1拥挤·N源（悬浮列来源明细），磁贴「P1 多基拥挤」→「P1 多源拥挤」，表头「基金数」→「独立来源」（悬浮 title=来源明细+基金总只数），阈值 CROWD_W=3/CROWD_A=4 语义同数值套用来源口径，P6 共振判定自动跟随。 --><!-- fw2_v784d_eq_denom：用户 2026-10-30 拍板——P2 暴露与 P4 覆盖分母从「持仓总市值」改为「股票敞口市值」（剔除货基/债基：jjcc 无 topStocks＝无股票敞口不进分母；陈旧 equity 基金仍有敞口照算分母）。eqMv 在陈旧分类循环内累计，pctPort/coverPct 换分母，磁贴与说明行文案同步；数值影响：分母变小暴露变大（台积电 6.6% 约 8% 上下）。 --><!-- fw2_v784e_tfoot_sum：用户 2026-10-30 要求穿透市值与组合占比做合计——表尾 tfoot 加「Top20 合计」行：穿透市值 Σ求和、组合占比=Σ穿透市值/股票敞口市值（与行级同分母 eqMv，v784d 口径），基金内占比不可加（各行为多基金最高值）标 —，其余 10 列空。空态不渲染合计行。 --><!-- fw2_v784f_action_col：用户 2026-10-30 两项——①表头说明行（dc-note）整行删除不显示；②「数据日期」前加「行动参考」列：按触发的 P 系信号与技术指标给出对应基金操作建议（P2≥5%=检视减仓基金内占比最高基金；P2 3–5%=调仓勿再加；P6 共振急跌=勿恐慌赎回按回撤纪律；RSI≤30=维持定投纪律；RSI≥70 且站上年线=可分批止盈；其余=持有观察；最多取 2 条）。表格 17→18 列（空态 colspan 与 tfoot 同步）。 --><!-- fw2_v784g_through_wrap：用户 2026-10-30 截图——行动参考列覆盖后面列且自身显示不全。根因＝全局 .tb tbody td white-space:nowrap 强制单行 + 长基金名（易方达全球成长精选混合(QDII)人民币A）撑宽。修法＝新增本表专属类 tb-through（仅持仓穿透，不碰全局）：行动参考/归属基金/信号三列放开换行（word-break:break-word，chip 与徽章内部仍 nowrap 保完整）+ 列宽约束（advice max 180px、funds max 200px、th 宽度提示 信号104px/归属15%/行动参考180px）+ 行动参考内长基金名截断（超 9 字 + 省略号，全名进 title 悬浮）。 --><!-- fw2_v785_trend_advice：用户 2026-10-30 截图——趋势跟踪·个基趋势指标表新增「行动参考」列（数据日期后一列）。口径与磁贴/信号引擎同源：TREND-DN＝破MA60＋MACD绿柱→持仓显「该基减速/暂缓补仓」（筛选池标的改「破位·暂不买入」，筛选池不做定投）、TREND-UP＝多头排列(含年线)＋MACD红柱→持仓显「定投可加速一档」（筛选池改「趋势转多·关注」）；辅助提示＝RSI14≥70 超买勿追高 / ≤30 超卖维持定投、布林触上轨短线勿加 / 触下轨维持定投（最多 2 条、去重防超买与上轨重复）；无触发时持仓显「定投照常/持有观察·定投照常」、筛选显「观望」。单元格 white-space:normal 局部放开 tp-tbl 全表 nowrap；未就绪行 colspan 10→11、空态 colspan 11→12 同步。 --><!-- fw2_v785b_etf_date：用户 2026-10-30 问「聪明的钱·我的持仓ETF动向/国家队宽基ETF动向两张表数据是否严重滞后」——实测数据不滞后（etf-shares.json updatedAt=2026-10-29，交易所份额 T+1），但 10 月起采集断档（510300 最后 5 个 gap=7/2/6/7/8 天，此前基本每交易日）而 1日/3日 列按采集点数回退（chgN 按 hist 索引），跨周变化被标成 1日（如 510300「1日」实为 10-21→10-29 跨 8 天 −19.2%），视觉上既像滞后又像暴涨暴跌。本轮按用户要求：两表「规模(亿元)」后各新增「数据日期」列（每只 ETF 自己 hist 最后一个点 r.last.d / r.d，与整体「数据日 upd」可能不同的 ETF 逐行可见）；列宽 colgroup 12 列重排（18/8/8/8/6×5/8/9/11），无数据行 colspan 10→11、历史积累行 9→10 同步。采集断档根因与 1日/3日 列日历日化修正挂账待办。 --><!-- fw2_v787b_dm_sched：数据管理·日轨调度实录修正（用户 2026-10-30「统一排查 21:30 日频自动化」）——实证：WorkBuddy 自动化清单仅 2 条提醒类、Windows 计划任务无数据任务、GitHub 近 30 天提交无 21:30（UTC 13:30）窗口记录 ⇒ 历史宣称「cron_job 14013240823042 每晚自动」已死（CloudStudio 旧环境），页面照抄=虚假承诺。修正：①DMTRACKS 日轨 note 改指 WorkBuddy 自动化「投资工作台·日频数据统一刷新+发布」（本机执行，工作日 21:30，id 0920f58a-1c24-48ba-ba91-4405de199740，含显式失败报告禁静默）；②refresh_all.py SERIAL_AFTER 末位新增 bundle 组（fw2_v787b_bundle_sched）——_make_bundle.py 原为纯手动步骤（无任何调用点），夜刷漏打则 meta-bundle 内嵌 holdings/watchlist/macro/gold 停更，前端 mbGet 首屏读旧值；③34 数据集频次/数据源经逐项核对与 DMCONFIG 一致（v771 审计后无漂移）。 --><!-- fw2_v787_tday_align：用户拍板「1日=真·上一交易日」——聪明的钱两表变化列按A股交易日历回退：①fetch_etf_shares.py 随数据写入交易日历 tdays（东财上证指数日K 320天，失败沿用旧值）；②chgT 按日历回退，目标交易日缺采集点→顺延最近采集点并标≈（悬浮显实际对比日），表头 vs 日期=真交易日（1日=vs 10-29）；③连续申赎按交易日相邻判定，断档即断；④断档口径不触发行动参考，防跨8天变化被误读为单日暴涨。根因结论＝系统无任何采集定时自动化（仅2个提醒类automation），10月断档=手动跑全域链的频次。附带修 _tx 盘后模板字段后移坑：盘后88段 idx70/71 变涨跌幅小值，份额改取 idx70/71/72/73 首个量级合理值（1亿~10万亿份）＋份额×现价兜底市值（实测东财 push2 全程 RemoteDisconnected 走腾讯通道，旧解析器在盘后抓到 -0.00 亿份坏点，已用修复解析器重抓覆盖 10-30 全部17只）。--><!-- fw2_v786_unify：跨体系信号统一并入（用户拍板 B 方案 2026-10-30「全部接入，互斥需提示」）——signalEvalAll 引擎级并入四体系：①聪明的钱 XOV→持仓行（复用决策看板 _xovAct 同口径，019441 并入 016452 不重复评估）②V11 狙击→筛选池行（就绪=act/观望=near，独立体系不并档，环境过热/CAP 超限标 ⚠互斥）③持仓穿透 P 系→持仓行（P1 拥挤/P2 单票暴露/P3 集中度/P4 覆盖率，阈值同 v784c/v784d 口径，P6 需盘中行情仍留穿透页签）④筛选池趋势 S-TREND→筛选行（TREND-DN=破位暂不买入 act / TREND-UP=转多关注 near，货债金豁免）⑤互斥检测 pass：同标的一买一卖双向逐行标注 ⚠互斥（不自动降档，沿 fw2_v671 T7 教训），T3/T8 合并行按分位归族，筛选池 S-TREND 破位 vs S1/S2/S3 买入同触双向标注；缓存指纹加 V11 asOf/SM_XOV generated/jjcc updatedAt。今日待办自动覆盖新增 act/near 行。--><!-- fw2_v782_through_signals：持仓穿透统计表升级为 P 系信号（用户 2026-10-30 反馈「只是统计没信号」）——P1 多基拥挤（单股≥3/≥4 基共持，行级徽章+磁贴三档）、P2 隐性单票暴露（组合占比≥3/5%）、P3 Top5 底层集中度、P4 覆盖市值不足 50% 提示、P5 陈旧过滤（concDate 距今大于 180 天的基金不参与聚合与拥挤度判定，012761@2024/160422@2019 已剔除，结论不再被旧重仓污染）、P6 行情联动（腾讯 qt.gtimg 批量现价当日涨跌 + ifzq kline 21 根算近 20 日，两段渲染：信号表立现、行情到齐重绘；拥挤股单日跌超 5% 触发 P6 共振磁贴）。数据侧 _gen_jjcc_batch.py topStocks 补 c 代码字段 + _refresh_held_jjcc.py 旧缓存缺 c 自动重抓（fund-jjcc.json 已重生成随发布）。诚实边界：穿透为季报近似下界，P 系是结构性慢信号非择时；行情为时效性补充。--><!-- fw2_v781b_fix_scope：修复持仓穿透「加载中」卡死——①fetchJson 是 block10 IIFE 闭包内函数（22144 行），block7 侧 renderHoldThrough 调用即 ReferenceError 被 onclick try/catch 吞掉（v685/686/687 同型），改为函数内自带微型加载器（本地失败落 raw 兜底，失败不置 done 可重试）；②holdRows 同在 block10 闭包内（v697c 实证）window.holdRows=undefined → 静默渲染空表，在本块末尾 window.holdRows=holdRows 导出真源引用（fw2_v781b_hold_rows_export，只增不改）。修后经本地 HTTP+Edge CDP 完整交互链路实测：导航→点页签→Top20 表格渲染（20 行/覆盖 8 只/日期正确）。--><!-- fw2_v781_hold_through：交易信号视图新增「持仓穿透」子页签——穿透持仓基金底层前十大重仓股，按穿透市值聚合 Top20；配套数据集 data/fund-jjcc.json（东财 jjcc，24 只持仓基金仅 8 只 A股 equity 当期有数据，货基/债基/QDII美股正确排除）须随发布（v695 教训）。--><!-- fw2_v780_profiles_dim：修复基金数据页「收益/风险/经理/产品」四列全「—」（复发）——根因＝_gen_profiles.py 导出白名单漏写 scoreDim/scoreDimSub/scoreCov/scoreVeto（score_fund 内存里算好但没落盘），每次刷新重建 fund-profiles.json 即冲掉分；内联 FUND_PROFILES_MIRROR 又源自该 JSON 故同丢。修法＝①补白名单（根治，v697l 的 _backfill_profiles_dim.py 只是事后补）②离线重算回填 53/53 ③_embed_v186_assets.py 重嵌镜像 ④_audit_cross_module.py 新增 I 组断言（缺分即 FAIL）防复发。--> <!-- fw2_v779_collapse_min2：用户 2026-10-29 拍板，资产配置表同本质子组折叠阈值 6→2（TH_COLLAPSE_MIN）——标普500 两只存量（017641/096001）默认隐藏只显小计行，点「展开明细」按钮展示；规则收敛为「有小计行（≥2 只同本质）即默认折叠」。v778 visibility:collapse 已保 rowspan 占位，零布局风险；纯 JS 常量一行改动 --><!-- fw2_v778_rowspan_collapse：用户 2026-10-29 报「资产配置表全坏」（截图安全垫/对冲/合计列错位）。根因＝v773 主题子组默认折叠用 display:none，Chromium 中隐藏行不消耗上方 rowspan 占位 →「进攻/主题」档位格 rowspan=20 只覆盖 9 个可见行，剩余 11 格下渗把安全垫/对冲/合计全部顶错列（潜伏 5 版）。修法＝tr.th-hide 改 visibility:collapse（17086 行 CSS 注释含探针实测）；纯 CSS 一行，DOM/渲染/数据零改动 --><!-- fw2_v777_drop_ops：用户 2026-10-29 拍板，持仓表删「操作」列（研究/改/删 三按钮整列移除）。入口保全：①「研究」点名称 lk-rs 链接仍在（v172c 同口径）；②「改」openHoldingEditor 仍由研究页 #rsAddHold 调用；③「删」无 UI 入口属有意——持仓份额/成本以对账单+每晚 ttskill 刷新为权威，UI 手删易被覆盖；#hdTable 委托监听保留为空转守卫（data-act 无来源，留作日后重挂）；v776 居中说明见 279 行 CSS 注释 --></span><!-- fw2_v775_drop_cols：用户 2026-10-29 拍板，持仓表删「板块/资产类型」两列（存量全为 其他/基金 零信息量）；19→17 列同步：数据行/合计行/空态 colspan；sector 与 assetType 数据字段保留（编辑表单/筛选/研究链接仍在用） --></span><!-- fw2_v774_sw_bigbypass+fw2_v774_ldtimeout+fw2_v774_navhold：买入峰值/最大回撤线上恒「—」根因＝SW 拦截 8MB fund-daily.json 响应体卡死（Playwright 线上 A/B 实证：SW on → r.json() 永不落地、__NAV_SERIES__ 建不起来；SW off → 93 序列秒建；本地不复现）。
+        <div data-page-node-id="PsvCVyRn9Hy3AVRIxAgjBc" class="b1"><!--pnid:uKibb7vNP0llwjGkZsDB1h-->理财工作台<span id="verBadge" class="ver-badge">v852</span><!-- fw2_v831_tab_rename3（套装三直述系，用户 2026-11-06 选定）：宏观周期→宏观环境（顶栏按钮+VIEW_META+数据管理 11 行模块标签+跨页引用文案）、tab 估值全景→估值分位与股债比/市场情绪→资金与杠杆情绪/海外宏观→海外景气与约束/资产价格→大类资产监控；VIEW_META 副标题同步更新（四周期嵌套已删失实）；px 页头与美元黄金卡/传导链/NOTES 内「资产价格监控」引用→「大类资产监控」；磁铁组名（估值全景/情绪温度等）非本页 tab 不在改名范围不动；fw2_v830_fix：v829 误将删除注释写入 body.innerHTML 模板字符串内部；fw2_v829_cycle_del：用户 2026-11-06「周期定位全部删除」——删 v-cycle tab+总览卡（v828 瘦身剩余唯一卡）+_syncNote 口径对拍块+renderMacroToolsHtml+CSS 死规则（v196/v197/v198/v201）；默认落点保持 v-val、旧 region 值(v-cycle/cn/sop/ov)归一 v-val；cycleLayer 四段注释迁「研读驾驶舱」活卡；引擎 cycleEngine+MACRO_PHASE 不动（REGIME-BEAR 风控仍读）。 fw2_v828_cycle_slim：周期定位视图瘦身（用户 2026-11-06 问"周期定位对投资没太大作用能否删"，选 B 瘦身留总览）：先实证两层——引擎层 cycleEngine 输出 MACRO_PHASE 喂持仓页 REGIME-BEAR 熊市 regime 风控行（美林衰退/主动去库/沪深300跌破年线→全组合定投硬降档，fw2_v702 拍板机制）动不得；UI 层 8 卡（总览/层1/层2/信用脉冲/层3/层4/美元黄金大宗死卡[恒隐藏 isDollar]/历史相似阶段回放；行业周期卡 v756 已删）对定投动作边际信息低，用户已连砍 6 刀同类卡（v697v/v700c/v715/v720/v734/v739）。改动：①删层1/层2/信用脉冲/层3/层4/美元黄金大宗死卡/renderReplayCard 调用与函数，只留总览卡（四层磁贴+综合定位+配置倾向/行业风格/纪律联动）；②默认落点 v-cycle→v-val 估值全景；③MC_CYCLE_KEYS 收敛 ['总览']、isDollar 死分支删；④MACRO_NOTES 迁移零丢失——cycleLayer.m→['总览']（四层框架注释挂总览卡）、cycPulse.m→['信用脉冲：社融']（迁 mi 页 mcCredit 活卡）；⑤导航别名表清 9 个死键；⑥引擎与 RB 风控行不动；gen_replay 数据层退役挂账（日频链改动属数据口径范畴须单独拍板）：韩国出口卡阈值四档化——用户 2026-11-06 问"能否删"：实证数据为真（FRED +67.76% 与韩国关税厅官方 +68.7%/芯片出口 +209% 两渠道互证）、97 天滞后＝FRED OECD 口径固有 2-3 月（非抓取坏），真病＝±5% 阈值在 +67.8% 下饱和恒「偏扩张」零增量。改动：①卡/磁铁 gbl/MACRO_NOTES.kor 三处标签同步四档化（≥30% 高热扩张＝周期极端段·警惕拥挤与晚期风险，联动 P 系/G 回落止盈；5%–30% 扩张；<−5% 收缩；中性）；②滞后口径入 note/thr/hint（结构慢信号非择时，asOf 为准）；③gen_kr_export.py 加量级校验硬卡（实测 fredgraph.csv 已返回原始美元，旧"百万美元"注释过时，防单位再漂移 100×）；换快源（韩国海关初值月后 1 日）挂账未做 --><!-- fw2_v766_ver_badge：最新版本号（与 README changelog / verChip 同步）；fw2_v788 起真正实现 #verBadge 元素（v766/v767 仅建 CSS 类未插节点，属宣称≠存在，此处补实） --><!-- fw2_v783_global_through：用户 2026-10-30 反馈「全球的股票没穿透进来」——QDII 底层纳入穿透：①解析器 _gen_jjcc_batch.py 代码正则放开 A股6位/港股4-5位/美股字母ticker（东财QDII表9列，cells[1]=代码、cells[6]=占净值比，列位与A股表一致）；②重刷后当期覆盖 6 A股 + 11 QDII 共 17 只，陈旧剔除 4 只（000834/008971@2023、012761@2024、160422@2019），货基/债基 3 只无明细；③P6 行情联动 symOf 扩展 sh/sz/hk/us（实测美股裸码可用带后缀反而 none_match，港股 5 位补零，美股/港股 f[32] 同为当日涨跌%，价为当地币种、涨跌幅不受汇率影响）；ifzq 近20日 K线同 symOf。 --><!-- fw2_v784_track_tech：用户 2026-10-30 两项反馈——①归属基金按指数聚合（同一指数如纳指100 十几只只显指数一枚 chip「纳指100 ×8 7.6%」，悬浮 title 列全明细；主动基金仍显单基金；track 数据＝东财 F10 jbgk「跟踪标的」，_refresh_held_jjcc.py 幂等富化进 fund-jjcc.json，纳斯达克100 别名纳指100）；②借鉴用户个股信号表字段新增 7 列技术指标：vsMA20/vsMA60/距年线(MA250)/排列(多空震荡=close 与三线同向)/RSI14(Wilder 全史平滑)/MACD(红绿柱+方向箭头，悬浮显柱值)/布林z((c-MA20)/std20)——K线请求 21→260 根自算，近20日列即 20日动量；说明行标注技术指标截至 kdate 与自算口径。 --><!-- fw2_v784b_qdii_full：用户 2026-10-30 反馈「易方达全球成长持仓的都没放进去」——双 bug：①012920 缓存为 v781 旧正则残留（仅 3 只 A股，TSM/NVDA 等 7 只美股被挡，v783 因非 None 跳过重抓、v784 track 富化也未重抓）；②解析器三雷全修：按表分组取当期（东财 QDII 返 3 表=近三期报告，全表混扫靠 top[:10] 截断碰巧保对）、pct 自适应（9列表 cells[6] / 7列表 cells[4]，取行内首个带 % 且 pct∈(0,100] 的 cell）、代码放宽至字母数字混合（285A=KIOXIA 东京码）。重抓后 012920 当期 10 只全球全齐（台积电8.28/英伟达7.05/英特尔5.54/中际旭创4.16/BLOOM4.03/超威3.94/新易盛3.40/LITE3.23/阿斯麦2.76/沪电2.41），与用户东财截图逐只一致；24 只持仓体检=当期 17 + 陈旧 4 + 货基债基 3。全量重抓顺带重建私有缓存（24→61 键=持仓24+筛选池37）。 --><!-- fw2_v784c_crowd_src：用户 2026-10-30 反馈「拥挤度也不对，其实就是买了一个指数，因为限额的原因买多只同指数基金而已」——P1 拥挤度从「归属基金只数」改为「独立持仓来源数」：同指数（track 相同）的多只基金算 1 来源（限额拆买≠拥挤），主动基金（track=None）各算 1 来源；来源 key=track||'主动:'+code。徽章文案 P1拥挤×N → P1拥挤·N源（悬浮列来源明细），磁贴「P1 多基拥挤」→「P1 多源拥挤」，表头「基金数」→「独立来源」（悬浮 title=来源明细+基金总只数），阈值 CROWD_W=3/CROWD_A=4 语义同数值套用来源口径，P6 共振判定自动跟随。 --><!-- fw2_v784d_eq_denom：用户 2026-10-30 拍板——P2 暴露与 P4 覆盖分母从「持仓总市值」改为「股票敞口市值」（剔除货基/债基：jjcc 无 topStocks＝无股票敞口不进分母；陈旧 equity 基金仍有敞口照算分母）。eqMv 在陈旧分类循环内累计，pctPort/coverPct 换分母，磁贴与说明行文案同步；数值影响：分母变小暴露变大（台积电 6.6% 约 8% 上下）。 --><!-- fw2_v784e_tfoot_sum：用户 2026-10-30 要求穿透市值与组合占比做合计——表尾 tfoot 加「Top20 合计」行：穿透市值 Σ求和、组合占比=Σ穿透市值/股票敞口市值（与行级同分母 eqMv，v784d 口径），基金内占比不可加（各行为多基金最高值）标 —，其余 10 列空。空态不渲染合计行。 --><!-- fw2_v784f_action_col：用户 2026-10-30 两项——①表头说明行（dc-note）整行删除不显示；②「数据日期」前加「行动参考」列：按触发的 P 系信号与技术指标给出对应基金操作建议（P2≥5%=检视减仓基金内占比最高基金；P2 3–5%=调仓勿再加；P6 共振急跌=勿恐慌赎回按回撤纪律；RSI≤30=维持定投纪律；RSI≥70 且站上年线=可分批止盈；其余=持有观察；最多取 2 条）。表格 17→18 列（空态 colspan 与 tfoot 同步）。 --><!-- fw2_v784g_through_wrap：用户 2026-10-30 截图——行动参考列覆盖后面列且自身显示不全。根因＝全局 .tb tbody td white-space:nowrap 强制单行 + 长基金名（易方达全球成长精选混合(QDII)人民币A）撑宽。修法＝新增本表专属类 tb-through（仅持仓穿透，不碰全局）：行动参考/归属基金/信号三列放开换行（word-break:break-word，chip 与徽章内部仍 nowrap 保完整）+ 列宽约束（advice max 180px、funds max 200px、th 宽度提示 信号104px/归属15%/行动参考180px）+ 行动参考内长基金名截断（超 9 字 + 省略号，全名进 title 悬浮）。 --><!-- fw2_v785_trend_advice：用户 2026-10-30 截图——趋势跟踪·个基趋势指标表新增「行动参考」列（数据日期后一列）。口径与磁贴/信号引擎同源：TREND-DN＝破MA60＋MACD绿柱→持仓显「该基减速/暂缓补仓」（筛选池标的改「破位·暂不买入」，筛选池不做定投）、TREND-UP＝多头排列(含年线)＋MACD红柱→持仓显「定投可加速一档」（筛选池改「趋势转多·关注」）；辅助提示＝RSI14≥70 超买勿追高 / ≤30 超卖维持定投、布林触上轨短线勿加 / 触下轨维持定投（最多 2 条、去重防超买与上轨重复）；无触发时持仓显「定投照常/持有观察·定投照常」、筛选显「观望」。单元格 white-space:normal 局部放开 tp-tbl 全表 nowrap；未就绪行 colspan 10→11、空态 colspan 11→12 同步。 --><!-- fw2_v785b_etf_date：用户 2026-10-30 问「聪明的钱·我的持仓ETF动向/国家队宽基ETF动向两张表数据是否严重滞后」——实测数据不滞后（etf-shares.json updatedAt=2026-10-29，交易所份额 T+1），但 10 月起采集断档（510300 最后 5 个 gap=7/2/6/7/8 天，此前基本每交易日）而 1日/3日 列按采集点数回退（chgN 按 hist 索引），跨周变化被标成 1日（如 510300「1日」实为 10-21→10-29 跨 8 天 −19.2%），视觉上既像滞后又像暴涨暴跌。本轮按用户要求：两表「规模(亿元)」后各新增「数据日期」列（每只 ETF 自己 hist 最后一个点 r.last.d / r.d，与整体「数据日 upd」可能不同的 ETF 逐行可见）；列宽 colgroup 12 列重排（18/8/8/8/6×5/8/9/11），无数据行 colspan 10→11、历史积累行 9→10 同步。采集断档根因与 1日/3日 列日历日化修正挂账待办。 --><!-- fw2_v787b_dm_sched：数据管理·日轨调度实录修正（用户 2026-10-30「统一排查 21:30 日频自动化」）——实证：WorkBuddy 自动化清单仅 2 条提醒类、Windows 计划任务无数据任务、GitHub 近 30 天提交无 21:30（UTC 13:30）窗口记录 ⇒ 历史宣称「cron_job 14013240823042 每晚自动」已死（CloudStudio 旧环境），页面照抄=虚假承诺。修正：①DMTRACKS 日轨 note 改指 WorkBuddy 自动化「投资工作台·日频数据统一刷新+发布」（本机执行，工作日 21:30，id 0920f58a-1c24-48ba-ba91-4405de199740，含显式失败报告禁静默）；②refresh_all.py SERIAL_AFTER 末位新增 bundle 组（fw2_v787b_bundle_sched）——_make_bundle.py 原为纯手动步骤（无任何调用点），夜刷漏打则 meta-bundle 内嵌 holdings/watchlist/macro/gold 停更，前端 mbGet 首屏读旧值；③34 数据集频次/数据源经逐项核对与 DMCONFIG 一致（v771 审计后无漂移）。 --><!-- fw2_v787_tday_align：用户拍板「1日=真·上一交易日」——聪明的钱两表变化列按A股交易日历回退：①fetch_etf_shares.py 随数据写入交易日历 tdays（东财上证指数日K 320天，失败沿用旧值）；②chgT 按日历回退，目标交易日缺采集点→顺延最近采集点并标≈（悬浮显实际对比日），表头 vs 日期=真交易日（1日=vs 10-29）；③连续申赎按交易日相邻判定，断档即断；④断档口径不触发行动参考，防跨8天变化被误读为单日暴涨。根因结论＝系统无任何采集定时自动化（仅2个提醒类automation），10月断档=手动跑全域链的频次。附带修 _tx 盘后模板字段后移坑：盘后88段 idx70/71 变涨跌幅小值，份额改取 idx70/71/72/73 首个量级合理值（1亿~10万亿份）＋份额×现价兜底市值（实测东财 push2 全程 RemoteDisconnected 走腾讯通道，旧解析器在盘后抓到 -0.00 亿份坏点，已用修复解析器重抓覆盖 10-30 全部17只）。--><!-- fw2_v786_unify：跨体系信号统一并入（用户拍板 B 方案 2026-10-30「全部接入，互斥需提示」）——signalEvalAll 引擎级并入四体系：①聪明的钱 XOV→持仓行（复用决策看板 _xovAct 同口径，019441 并入 016452 不重复评估）②V11 狙击→筛选池行（就绪=act/观望=near，独立体系不并档，环境过热/CAP 超限标 ⚠互斥）③持仓穿透 P 系→持仓行（P1 拥挤/P2 单票暴露/P3 集中度/P4 覆盖率，阈值同 v784c/v784d 口径，P6 需盘中行情仍留穿透页签）④筛选池趋势 S-TREND→筛选行（TREND-DN=破位暂不买入 act / TREND-UP=转多关注 near，货债金豁免）⑤互斥检测 pass：同标的一买一卖双向逐行标注 ⚠互斥（不自动降档，沿 fw2_v671 T7 教训），T3/T8 合并行按分位归族，筛选池 S-TREND 破位 vs S1/S2/S3 买入同触双向标注；缓存指纹加 V11 asOf/SM_XOV generated/jjcc updatedAt。今日待办自动覆盖新增 act/near 行。--><!-- fw2_v782_through_signals：持仓穿透统计表升级为 P 系信号（用户 2026-10-30 反馈「只是统计没信号」）——P1 多基拥挤（单股≥3/≥4 基共持，行级徽章+磁贴三档）、P2 隐性单票暴露（组合占比≥3/5%）、P3 Top5 底层集中度、P4 覆盖市值不足 50% 提示、P5 陈旧过滤（concDate 距今大于 180 天的基金不参与聚合与拥挤度判定，012761@2024/160422@2019 已剔除，结论不再被旧重仓污染）、P6 行情联动（腾讯 qt.gtimg 批量现价当日涨跌 + ifzq kline 21 根算近 20 日，两段渲染：信号表立现、行情到齐重绘；拥挤股单日跌超 5% 触发 P6 共振磁贴）。数据侧 _gen_jjcc_batch.py topStocks 补 c 代码字段 + _refresh_held_jjcc.py 旧缓存缺 c 自动重抓（fund-jjcc.json 已重生成随发布）。诚实边界：穿透为季报近似下界，P 系是结构性慢信号非择时；行情为时效性补充。--><!-- fw2_v781b_fix_scope：修复持仓穿透「加载中」卡死——①fetchJson 是 block10 IIFE 闭包内函数（22144 行），block7 侧 renderHoldThrough 调用即 ReferenceError 被 onclick try/catch 吞掉（v685/686/687 同型），改为函数内自带微型加载器（本地失败落 raw 兜底，失败不置 done 可重试）；②holdRows 同在 block10 闭包内（v697c 实证）window.holdRows=undefined → 静默渲染空表，在本块末尾 window.holdRows=holdRows 导出真源引用（fw2_v781b_hold_rows_export，只增不改）。修后经本地 HTTP+Edge CDP 完整交互链路实测：导航→点页签→Top20 表格渲染（20 行/覆盖 8 只/日期正确）。--><!-- fw2_v781_hold_through：交易信号视图新增「持仓穿透」子页签——穿透持仓基金底层前十大重仓股，按穿透市值聚合 Top20；配套数据集 data/fund-jjcc.json（东财 jjcc，24 只持仓基金仅 8 只 A股 equity 当期有数据，货基/债基/QDII美股正确排除）须随发布（v695 教训）。--><!-- fw2_v780_profiles_dim：修复基金数据页「收益/风险/经理/产品」四列全「—」（复发）——根因＝_gen_profiles.py 导出白名单漏写 scoreDim/scoreDimSub/scoreCov/scoreVeto（score_fund 内存里算好但没落盘），每次刷新重建 fund-profiles.json 即冲掉分；内联 FUND_PROFILES_MIRROR 又源自该 JSON 故同丢。修法＝①补白名单（根治，v697l 的 _backfill_profiles_dim.py 只是事后补）②离线重算回填 53/53 ③_embed_v186_assets.py 重嵌镜像 ④_audit_cross_module.py 新增 I 组断言（缺分即 FAIL）防复发。--> <!-- fw2_v779_collapse_min2：用户 2026-10-29 拍板，资产配置表同本质子组折叠阈值 6→2（TH_COLLAPSE_MIN）——标普500 两只存量（017641/096001）默认隐藏只显小计行，点「展开明细」按钮展示；规则收敛为「有小计行（≥2 只同本质）即默认折叠」。v778 visibility:collapse 已保 rowspan 占位，零布局风险；纯 JS 常量一行改动 --><!-- fw2_v778_rowspan_collapse：用户 2026-10-29 报「资产配置表全坏」（截图安全垫/对冲/合计列错位）。根因＝v773 主题子组默认折叠用 display:none，Chromium 中隐藏行不消耗上方 rowspan 占位 →「进攻/主题」档位格 rowspan=20 只覆盖 9 个可见行，剩余 11 格下渗把安全垫/对冲/合计全部顶错列（潜伏 5 版）。修法＝tr.th-hide 改 visibility:collapse（17086 行 CSS 注释含探针实测）；纯 CSS 一行，DOM/渲染/数据零改动 --><!-- fw2_v777_drop_ops：用户 2026-10-29 拍板，持仓表删「操作」列（研究/改/删 三按钮整列移除）。入口保全：①「研究」点名称 lk-rs 链接仍在（v172c 同口径）；②「改」openHoldingEditor 仍由研究页 #rsAddHold 调用；③「删」无 UI 入口属有意——持仓份额/成本以对账单+每晚 ttskill 刷新为权威，UI 手删易被覆盖；#hdTable 委托监听保留为空转守卫（data-act 无来源，留作日后重挂）；v776 居中说明见 279 行 CSS 注释 --></span><!-- fw2_v775_drop_cols：用户 2026-10-29 拍板，持仓表删「板块/资产类型」两列（存量全为 其他/基金 零信息量）；19→17 列同步：数据行/合计行/空态 colspan；sector 与 assetType 数据字段保留（编辑表单/筛选/研究链接仍在用） --></span><!-- fw2_v774_sw_bigbypass+fw2_v774_ldtimeout+fw2_v774_navhold：买入峰值/最大回撤线上恒「—」根因＝SW 拦截 8MB fund-daily.json 响应体卡死（Playwright 线上 A/B 实证：SW on → r.json() 永不落地、__NAV_SERIES__ 建不起来；SW off → 93 序列秒建；本地不复现）。
 修复＝sw.js v3 对 fund-daily.json 不拦截 + 大于2MB 响应不再写缓存 + CACHE v2→v3；前端两处 loader 加 json() 45s 超时（超时顺延下一源）。终判根因＝8MB fund-daily 在中国网络 20-35s+ 下载（content-length 为 gzip 1MB、body 完整），SW A/B 结论被沙箱代理慢速混淆；真修＝分层加载 fw2_v774_navhold：data/nav-hold.json（持仓 24 只迷你序列 1.6MB/gzip 170KB，gen_nav_hold.py 随 _make_bundle 重生成）先行秒级建序列，全量后台覆盖。 --><!-- fw2_v773_theme_collapse：资产配置表主题子组≥6行默认折叠只显小计（纳指100 11只存量），小计行「展开明细」按钮（allocThemeToggle 全局函数，免疫重渲染销毁监听）+ fw2_v773_widebase_off：022676 富国A500增强按宽基指数主题归「进攻/主题」档位（用户拍板 2026-10-29）；fw2_v773_spx_off：标普500存量（017641/096001）同归「进攻/主题」，计划外组清空 --></div>
         <div data-page-node-id="29etwgT4DhXWt50INGwSBu" class="b2"><!--pnid:abcwT00RaFu94EKr3WjV2J-->Personal Finance Desk</div>
       </div>
@@ -1697,7 +1698,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   #view-macro .mc-mkt{border:1px solid var(--line-mid,#d8dee6);border-radius:10px;padding:var(--sp-10) var(--sp-12);margin:0 0 var(--sp-10);background:#fff}
   #view-macro .mc-mkt-h{display:flex;align-items:baseline;gap:var(--sp-8);flex-wrap:wrap;margin-bottom:var(--sp-8)}
   #view-macro .mc-mkt-h b{font-size:var(--fs-md);color:var(--ink,var(----ink))}
-  #view-macro .mc-mkt-geo{font-size:var(--fs-2xs);padding:1px var(--sp-6);border-radius:8px;background:#eef0f2;color:var(----flat);font-weight:600;white-space:nowrap}
+  #view-macro .mc-mkt-geo{font-size:var(--fs-2xs);padding:1px var(--sp-6);border-radius:8px;background:#eef0f2;color:var(--flat,#545b64));font-weight:600;white-space:nowrap}
   #view-macro .mc-mkt-d{font-size:var(--fs-xs);color:var(--slate-500,var(----slate-500))}
   #view-macro .mc-ov-sop{display:flex;flex-wrap:wrap;gap:var(--sp-8);align-items:stretch;margin:0 0 var(--sp-12)}
   #view-macro .mc-ov-sop>b{font-size:var(--fs-md);font-weight:500;color:var(--slate-600,var(----slate-600));align-self:center;margin-right:2px}
@@ -1995,7 +1996,7 @@ const CHART = {
   up:'#b91c1c', down:'#047857', bad:'#A32D2D', brand:'#3a55d6',
   navBlue:'#2a4fd6', slate600:'#475569', slate500:'#5a6675', amber:'#9a4708',
   gold:'#d9a441', orange:'#f0a020', orange2:'#d98c00', green:'#0a7a3d',
-  greenBr:'#15803d', upCss:'#b91c1c', badGray:'#94a3b8', line:'#d8dee6',
+  greenBr:'#12693a', upCss:'#b91c1c', badGray:'#64748b', line:'#d8dee6',
   border:'#e2e8f0', bgLight:'#f1f5f9', bgLight2:'#e3e8ee', bgLight3:'#eef2f7',
   bgLight4:'#eef1f6', white:'#ffffff', blue2:'#2563eb', gray4:'#5f5e5a',
   purple:'#7a3fd4', teal:'#13a3b5', orange3:'#ef9f27', orange4:'#d9822b',
@@ -2003,7 +2004,11 @@ const CHART = {
 };
 /* v851 语义键 → CSS token（唯一真源）。未列入的键＝分类调色板/描边类，无同义 token：
    bad(#A32D2D「严重/踩雷」≠涨跌红)、line(#d8dee6 tooltip 描边需比 --line 更实一档)、
-   gold、orange 系列、purple、teal、blue 系列、bgLight 系列、border、badGray = 图表分类色。 */
+   gold、orange 系列、purple、teal、blue 系列、bgLight 系列、border、badGray = 图表分类色。
+   v852 修正边界：badGray 原被划为「纯图表色」，但它同时是信号页每行「阈值未达」的 DOM 文字色
+   （实测 1355 处、白底 2.56 远不可读），且同一行的 planColor 早就用了 #64748b —— 同一视觉角色
+   写了两个值。现统一为 #64748b（4.76），图表虚线同步加深（改善）。
+   orange2 同理：作图表线保留，但作「进攻/主题」标签文字（软橙底 #FFF5E8 上仅 2.53）改用 CHART.amber（5.94）。 */
 const CHART_TOKENS = {
   up:'--up', down:'--down', upCss:'--up', brand:'--brand-ink',
   slate500:'--muted', slate600:'--slate-600', warn:'--warn',
@@ -6846,7 +6851,7 @@ function renderHoldings() {
         <td>
           <div class="nm"><b class="lk-rs" data-rscode="${r.code}" data-rast="${r.assetType || 'fund'}">${esc(r.name)}${r.assetType === 'fund' ? LXMAP.ic(LXMAP.fund(r.code), '理杏仁基金') : ''}</b></div>
           <div class="cd">${r.assetType === 'cash'
-            ? shortCode(r.code) + ' · ¥' + fmtMoney(mv) + ' 可用 <span style="display:inline-block;margin-left:5px;padding:0 5px;border-radius:3px;background:#ecfdf5;color:var(----down);font-size:11px;font-weight:600">现金 / 弹药</span>'
+            ? shortCode(r.code) + ' · ¥' + fmtMoney(mv) + ' 可用 <span style="display:inline-block;margin-left:5px;padding:0 5px;border-radius:3px;background:#ecfdf5;color:var(--down,#047857));font-size:11px;font-weight:600">现金 / 弹药</span>'
             : shortCode(r.code) + ' · ' + r.qty + ' 股' + (r.qtyStale ? ' <span style="color:var(--warn);font-weight:600">⚠份额待核对</span>' : '')}</div>
         </td>
         <td class="num">${unit}${fmtMoney(mv)}</td>
@@ -8180,7 +8185,7 @@ function renderFundScore(rs) {
   }
   const riskHtml = risks.length ? `<div style="margin-top:12px">
         <div style="font-weight:700;font-size:14px;margin-bottom:6px">风险清单（M7 雷区 / M4 / M3 / M6 自动检查）</div>
-        ${risks.map(([lv, txt]) => `<div class="rv-line"><span class="tag" style="background:${lv === 'high' ? '#fde8e8' : lv === 'mid' ? '#fdf3e0' : CHART.bgLight4};color:${lv === 'high' ? '#b91c1c' : lv === 'mid' ? CHART.warn : 'var(----slate-600)'}">${lv === 'high' ? '高危' : lv === 'mid' ? '中危' : '关注'}</span><span>${esc(txt)}</span></div>`).join('')}
+        ${risks.map(([lv, txt]) => `<div class="rv-line"><span class="tag" style="background:${lv === 'high' ? '#fde8e8' : lv === 'mid' ? '#fdf3e0' : CHART.bgLight4};color:${lv === 'high' ? '#b91c1c' : lv === 'mid' ? CHART.warn : 'var(--slate-600,#475569))'}">${lv === 'high' ? '高危' : lv === 'mid' ? '中危' : '关注'}</span><span>${esc(txt)}</span></div>`).join('')}
       </div>` : '';
   const ringVal = headlineScore != null ? headlineScore : (tScore != null ? tScore : 0);
   let html = `<div class="card">
@@ -10539,7 +10544,7 @@ function renderChainBody(d) {
       + '<div style="color:#374151;margin-top:3px"><b>现状</b> ' + (o.now == null ? '—' : esc(o.now)) + '</div>'
       + '<div style="color:#374151"><b>过去</b> ' + (o.past == null ? '—' : esc(o.past)) + '</div>'
       + '<div style="color:#374151"><b>未来</b> ' + (o.future == null ? '—' : esc(o.future)) + '</div>'
-      + (o.asOf ? '<div style="margin-top:2px;color:var(----slate-500);font-size:11px;font-weight:600">数据截至 ' + esc(o.asOf) + '</div>' : '')
+      + (o.asOf ? '<div style="margin-top:2px;color:var(--slate-500,#5a6675));font-size:11px;font-weight:600">数据截至 ' + esc(o.asOf) + '</div>' : '')
       + (o.link ? '<div style="margin-top:3px"><span style="cursor:pointer;color:var(--nav-blue,var(----nav-blue));font-weight:600" onclick="window.__mcGo(\'' + o.link + '\')">↗ 原始数据</span></div>' : '<div style="margin-top:3px;color:#9ca3af">传导：' + esc(o.flow || '—') + '</div>')
       + '</div>';
   }
@@ -10557,7 +10562,7 @@ function renderChainBody(d) {
     return '<div style="background:' + bg + ';border:1px solid ' + bd + ';border-radius:8px;padding:8px 10px;margin:-4px 0 10px;font-size:11px;line-height:1.65">'
       + '<div style="font-weight:700;color:var(--ink,var(----ink))">链结论 <span style="font-size:11px;color:' + col + ';font-weight:700">' + lbl + '</span></div>'
       + '<div style="color:#374151;margin-top:2px">' + esc(txt) + '</div>'
-      + '<div style="color:var(----slate-600);margin-top:3px"><b>对宏观：</b>' + esc(macro) + '</div>'
+      + '<div style="color:var(--slate-600,#475569));margin-top:3px"><b>对宏观：</b>' + esc(macro) + '</div>'
       + '<div style="color:var(--slate-400);margin-top:3px;font-size:11px">依据 ' + esc(ev) + '</div>'
       + '</div>';
   }
@@ -12367,7 +12372,7 @@ function renderMacroSentiment(d, _C) {
   /* fw2_v529_smux P5：todoCard 可折叠——占整格，点击标题区折叠/展开内容（内联 onclick 切换 data-todo-body 显隐） */
   var todoCard = '<div class="card" style="cursor:pointer" onclick="var _b=this.querySelector(\'[data-todo-body]\');_b.style.display=_b.style.display===\'none\'?\'\':\'none\';var _a=this.querySelector(\'[data-todo-arrow]\');if(_a)_a.textContent=_b.style.display===\'none\'?\'▸\':\'▾\'"><div class="card-h"><h3>数据源状态（官方停更说明 · 手册有·工作台已通）</h3><span class="hint">缺源不渲染不编造，取数失败立即修复 · 点击<span data-todo-arrow style="font-weight:600">▸</span>展开</span></div><div data-todo-body style="display:none">' +
     '<div style="font-size:11px;color:var(--slate-600,var(----slate-600));line-height:1.9">· 中国波指 iVIX：<b>官方 2018-02-22 起暂停发布至今未恢复</b>（上交所仅剩期权风险指标 Delta/Gamma 类）→ 国内期权情绪已由「期权 PCR」替代<br>· 北向资金：<b>官方 2024-05-13 起取消日度净买入披露</b>（盘后仅公布买+卖成交额/十大活跃股）→ 已改「北向成交活跃度」探测中<br>· 财新PMI：商业授权非统计局序列 → 已用统计局官方 PMI 替代（宏观硬指标页）</div>' +
-    '<div style="font-size:11px;color:#047857;line-height:1.7;margin-top:8px">✓ 已接入：换手率、融资买入额、大小盘相对强弱、超额流动性、CNN 恐贪(美股)、证券化率/巴菲特指数、限售解禁(未来30日)、产业资本净增减持(近30日)、破净率(全A)、期指升贴水(IF/IH/IC/IM)——fw2_v702_mood_bigcard 起全部统一母卡格式（数据截至+磁贴+指向+图表）；新发公募/产业资本回购（fw2_v714）、成交集中度/板块拥挤度（fw2_v716）四卡已删（用户指定）<br><span style="color:var(----nav-blue)">✓ fw2_v703_sm_flat_hist：全指标一行一卡平铺（280px 全宽图表）；行业情绪/板块拥挤度/期指升贴水已回填一年历史（东财日K自算，换月/口径注释见图旁说明）；全A成交额母卡扩至一年</span><br><span style="color:var(----nav-blue)">✓ fw2_v703b_sm_reorder：同类聚类重排（同类相邻、仍一行一卡）——① 市况广度与结构 → ② 量能交投 → ③ 估值温度 → ④ 风险偏好（海外+衍生品）→ ⑤ 资金供需 → ⑥ 宏观流动性；总市值归入广度结构（规模类）、北向归入资金供需</span><br><span style="color:var(----nav-blue)">✓ fw2_v703d_mood_purity：母卡改名「情绪温度计：融资余额」（判读/阈值改融资占比分位单因子）；「当月成交分位」磁贴迁入全A成交额卡（口径=当月累计额在近120个月月末额中的历史分位，未完月偏低已标注）</span><br><span style="color:var(----nav-blue)">✓ fw2_v703e_smvote_margin：全景温度投票补入融资杠杆票（融资占比分位 &gt;90% 偏热 / &lt;10% 偏冷，与 mood 组硬阈值同源）——修复左磁铁缺杠杆项致与右磁铁「偏过热·防御」方向冲突（当前 3热2冷6中 → 判「偏热」，两磁铁方向一致）</span><br><span style="color:var(----nav-blue)">✓ fw2_v703f_del_mktcap：删「A股总市值」卡（用户指定）——序列积累中仅 4/60 点无图、信息量低，与巴菲特指数卡（全A总市值/GDP 自算）口径部分重叠；全景投票不受影响</span><br><span style="color:var(----nav-blue)">✓ fw2_v703g_magnet_one：顶部合并条改单一磁贴（左=全景投票大判定词+票型明细、竖线分隔、右=杠杆阈值判定+▲▼证据两栏，共享一个外框）</span><br><span style="color:var(----nav-blue)">✓ fw2_v703h_del_br_sec：删「市场宽度·上涨占比」（恒未加载纯占位）与「行业情绪·上涨行业占比」（无图仅 3 点）两卡（用户指定，知情拍板）——全景投票随之 2热:2冷 平局，左磁铁判「中性·信号张力」为票少的如实结果；行业情绪曾投偏热 1 票（普涨·强），删除后广度结构仅剩大小盘/CR10/拥挤度 3 卡</span><br><span style="color:var(----nav-blue)">✓ fw2_v705_sm_split：两张母卡（情绪温度计：融资余额/全A成交额）拆 3 独立子卡（融资余额（月末）/融资余额占流通市值比/全A成交额（沪深京 · 近一年））进平铺列表、紧跟证券化率卡（用户指定「拆成独立的子表，不是有什么母指标，跟下面所有指标都是并列的；巴菲特指标放最前面＝放在它们两个上面的最前面」）——数据层/全景投票杠杆票/右磁铁证据判不动，占比卡带 90/10 阈值线、成交额卡带 2万亿线+冰点黄杆</span><br><span style="color:var(----nav-blue)">✓ fw2_v712_bp_pe_chart：破净率卡配一年估值曲线（用户指定「拉长到一年配曲线图」）——破净率本身无免费历史源（理杏仁无指标+配额尽/乐咕改版死/东财仅截面，全部实测），拍板方案=磁贴保留破净率当日截面(东财)+曲线用中证官方全A市盈率一年 250 点（估值代理与破净率同向，图名/口径条/hint 三处披露双口径）；CR10 同源但未回填</span><br><span style="color:var(----nav-blue)">✓ fw2_v713_fsi_cnn_move：FSI/投资者情绪指数(CNN) 两卡挪至「海外宏观」页（用户指定「放到海外宏观里，重复的保留一个」——海外页原 FSI 走势裸图卡升级为完整大卡接棒，本页不再重复渲染）；两卡的全景投票票保留、口径不变</span><br><span style="color:var(----nav-blue)">✓ fw2_v716_del_cr_crowd：「成交集中度(前10大个股/全A)」「板块拥挤度(最热板块)」两卡删除（用户 2026-10-27 截图红框指定）；CR10 的全景投票票随卡删（同 v703h 行业情绪先例），总票数 9→8；数据层 cr10/sectorCrowd 保留</span><br><span style="color:var(----nav-blue)">✓ fw2_v717_todo_collapse：本卡改默认折叠（用户 2026-10-27 指定「默认不显示」），点标题展开</span><br><span style="color:var(----nav-blue)">✓ fw2_v718_magnet_noev：顶部合并磁贴右段证据栏（▲支持/▼反对+融资占比分位+全A成交额）删除（用户 2026-10-27 红框指定），磁贴只留全景投票判定+票型明细</span><br><span style="color:var(----nav-blue)">✓ fw2_v719_ovs_trim：海外宏观页减卡——康波长波定位/海外压力温度(引用)/LEI占位三卡删除+FSI 分项去重+us 磁贴去证据栏（用户指定「全部做」优化建议）；FRED 直连恢复，四周期+高频 8 卡数据刷新</span><br><span style="color:var(----nav-blue)">✓ fw2_v720_del_cyc：「美国宏观四周期（FRED）」卡删除（用户 2026-10-28 红框指定），d.wave 数据层与 gen_us_wave 管道保留</span><br><span style="color:var(----nav-blue)">✓ fw2_v721_del_bdi_pmi：海外景气页「全球航运与日本景气（BDI/日银短观）」缺源卡与「全球 PMI 合成口径」引用卡删除（用户 2026-10-28 红框指定），组 keys 悬空词同步清理</span><br><span style="color:var(----nav-blue)">✓ fw2_v722_buff_daily：巴菲特指数卡日频化——月频10年历史+日频跟踪拼接（东财全市场市值/理杏仁GDP TTM×K1.1712 标定，2026-10-27 对照衔接 v703i 月频自算口径；K 换季须重估）；mktcap 市值 sanity 下限 80 万亿+环比 15% 坏点剔除（2026-10-28 东财分页失败 21 万亿坏点防御）</span><br><span style="color:var(--slate-500,var(----slate-500))">◇ 序列积累中（无公开历史源，随数据层逐日累积、满 60 日度点自动出图，不编造）：破净率、巴菲特指数（当前各 4 点）<br>◇ 探测中/缺源：期权 PCR（东财报表名不存在、期权行情接口限流，通道待换）；北向成交活跃度（官方 2024-05-13 停更日度净买入，接口仅剩占位数据，无合规机读源）</span></div></div>';
+    '<div style="font-size:11px;color:#047857;line-height:1.7;margin-top:8px">✓ 已接入：换手率、融资买入额、大小盘相对强弱、超额流动性、CNN 恐贪(美股)、证券化率/巴菲特指数、限售解禁(未来30日)、产业资本净增减持(近30日)、破净率(全A)、期指升贴水(IF/IH/IC/IM)——fw2_v702_mood_bigcard 起全部统一母卡格式（数据截至+磁贴+指向+图表）；新发公募/产业资本回购（fw2_v714）、成交集中度/板块拥挤度（fw2_v716）四卡已删（用户指定）<br><span style="color:var(--nav-blue,#2a4fd6))">✓ fw2_v703_sm_flat_hist：全指标一行一卡平铺（280px 全宽图表）；行业情绪/板块拥挤度/期指升贴水已回填一年历史（东财日K自算，换月/口径注释见图旁说明）；全A成交额母卡扩至一年</span><br><span style="color:var(--nav-blue,#2a4fd6))">✓ fw2_v703b_sm_reorder：同类聚类重排（同类相邻、仍一行一卡）——① 市况广度与结构 → ② 量能交投 → ③ 估值温度 → ④ 风险偏好（海外+衍生品）→ ⑤ 资金供需 → ⑥ 宏观流动性；总市值归入广度结构（规模类）、北向归入资金供需</span><br><span style="color:var(--nav-blue,#2a4fd6))">✓ fw2_v703d_mood_purity：母卡改名「情绪温度计：融资余额」（判读/阈值改融资占比分位单因子）；「当月成交分位」磁贴迁入全A成交额卡（口径=当月累计额在近120个月月末额中的历史分位，未完月偏低已标注）</span><br><span style="color:var(--nav-blue,#2a4fd6))">✓ fw2_v703e_smvote_margin：全景温度投票补入融资杠杆票（融资占比分位 &gt;90% 偏热 / &lt;10% 偏冷，与 mood 组硬阈值同源）——修复左磁铁缺杠杆项致与右磁铁「偏过热·防御」方向冲突（当前 3热2冷6中 → 判「偏热」，两磁铁方向一致）</span><br><span style="color:var(--nav-blue,#2a4fd6))">✓ fw2_v703f_del_mktcap：删「A股总市值」卡（用户指定）——序列积累中仅 4/60 点无图、信息量低，与巴菲特指数卡（全A总市值/GDP 自算）口径部分重叠；全景投票不受影响</span><br><span style="color:var(--nav-blue,#2a4fd6))">✓ fw2_v703g_magnet_one：顶部合并条改单一磁贴（左=全景投票大判定词+票型明细、竖线分隔、右=杠杆阈值判定+▲▼证据两栏，共享一个外框）</span><br><span style="color:var(--nav-blue,#2a4fd6))">✓ fw2_v703h_del_br_sec：删「市场宽度·上涨占比」（恒未加载纯占位）与「行业情绪·上涨行业占比」（无图仅 3 点）两卡（用户指定，知情拍板）——全景投票随之 2热:2冷 平局，左磁铁判「中性·信号张力」为票少的如实结果；行业情绪曾投偏热 1 票（普涨·强），删除后广度结构仅剩大小盘/CR10/拥挤度 3 卡</span><br><span style="color:var(--nav-blue,#2a4fd6))">✓ fw2_v705_sm_split：两张母卡（情绪温度计：融资余额/全A成交额）拆 3 独立子卡（融资余额（月末）/融资余额占流通市值比/全A成交额（沪深京 · 近一年））进平铺列表、紧跟证券化率卡（用户指定「拆成独立的子表，不是有什么母指标，跟下面所有指标都是并列的；巴菲特指标放最前面＝放在它们两个上面的最前面」）——数据层/全景投票杠杆票/右磁铁证据判不动，占比卡带 90/10 阈值线、成交额卡带 2万亿线+冰点黄杆</span><br><span style="color:var(--nav-blue,#2a4fd6))">✓ fw2_v712_bp_pe_chart：破净率卡配一年估值曲线（用户指定「拉长到一年配曲线图」）——破净率本身无免费历史源（理杏仁无指标+配额尽/乐咕改版死/东财仅截面，全部实测），拍板方案=磁贴保留破净率当日截面(东财)+曲线用中证官方全A市盈率一年 250 点（估值代理与破净率同向，图名/口径条/hint 三处披露双口径）；CR10 同源但未回填</span><br><span style="color:var(--nav-blue,#2a4fd6))">✓ fw2_v713_fsi_cnn_move：FSI/投资者情绪指数(CNN) 两卡挪至「海外宏观」页（用户指定「放到海外宏观里，重复的保留一个」——海外页原 FSI 走势裸图卡升级为完整大卡接棒，本页不再重复渲染）；两卡的全景投票票保留、口径不变</span><br><span style="color:var(--nav-blue,#2a4fd6))">✓ fw2_v716_del_cr_crowd：「成交集中度(前10大个股/全A)」「板块拥挤度(最热板块)」两卡删除（用户 2026-10-27 截图红框指定）；CR10 的全景投票票随卡删（同 v703h 行业情绪先例），总票数 9→8；数据层 cr10/sectorCrowd 保留</span><br><span style="color:var(--nav-blue,#2a4fd6))">✓ fw2_v717_todo_collapse：本卡改默认折叠（用户 2026-10-27 指定「默认不显示」），点标题展开</span><br><span style="color:var(--nav-blue,#2a4fd6))">✓ fw2_v718_magnet_noev：顶部合并磁贴右段证据栏（▲支持/▼反对+融资占比分位+全A成交额）删除（用户 2026-10-27 红框指定），磁贴只留全景投票判定+票型明细</span><br><span style="color:var(--nav-blue,#2a4fd6))">✓ fw2_v719_ovs_trim：海外宏观页减卡——康波长波定位/海外压力温度(引用)/LEI占位三卡删除+FSI 分项去重+us 磁贴去证据栏（用户指定「全部做」优化建议）；FRED 直连恢复，四周期+高频 8 卡数据刷新</span><br><span style="color:var(--nav-blue,#2a4fd6))">✓ fw2_v720_del_cyc：「美国宏观四周期（FRED）」卡删除（用户 2026-10-28 红框指定），d.wave 数据层与 gen_us_wave 管道保留</span><br><span style="color:var(--nav-blue,#2a4fd6))">✓ fw2_v721_del_bdi_pmi：海外景气页「全球航运与日本景气（BDI/日银短观）」缺源卡与「全球 PMI 合成口径」引用卡删除（用户 2026-10-28 红框指定），组 keys 悬空词同步清理</span><br><span style="color:var(--nav-blue,#2a4fd6))">✓ fw2_v722_buff_daily：巴菲特指数卡日频化——月频10年历史+日频跟踪拼接（东财全市场市值/理杏仁GDP TTM×K1.1712 标定，2026-10-27 对照衔接 v703i 月频自算口径；K 换季须重估）；mktcap 市值 sanity 下限 80 万亿+环比 15% 坏点剔除（2026-10-28 东财分页失败 21 万亿坏点防御）</span><br><span style="color:var(--slate-500,var(----slate-500))">◇ 序列积累中（无公开历史源，随数据层逐日累积、满 60 日度点自动出图，不编造）：破净率、巴菲特指数（当前各 4 点）<br>◇ 探测中/缺源：期权 PCR（东财报表名不存在、期权行情接口限流，通道待换）；北向成交活跃度（官方 2024-05-13 停更日度净买入，接口仅剩占位数据，无合规机读源）</span></div></div>';
   /* fw2_v713_fsi_cnn_move：FSI/CNN 两卡挪「海外宏观」页（用户 2026-10-27 指定「这两个指标放到海外宏观里，重复的保留一个」）
      ——本页 fsiCard 大卡删除（海外页原「FSI 历史走势」裸图卡升级为完整大卡接棒：磁贴+指向+图+分项指标组，图渲染 mcFsiChart 30/50/70 阈值线不变）；
      fsiSc 与 smReg 票保留（全景投票口径不变） */
@@ -12767,7 +12772,7 @@ function renderMacroUS(d, gblMag) {
     return !_indAll.some(function (it) { return it.key === p[0]; });
   }).map(function (p) { return p[1]; });
   const _missLine = _indMiss.length
-    ? '<div style="font-size:11px;color:var(----amber);margin-top:4px">本月 6 项口径缺 ' + _indMiss.length + ' 项：' + esc(_indMiss.join('、')) + '（按 ≥5 项可得分项合成，缺项留白不臆造）</div>'
+    ? '<div style="font-size:11px;color:var(--amber,#9a4708));margin-top:4px">本月 6 项口径缺 ' + _indMiss.length + ' 项：' + esc(_indMiss.join('、')) + '（按 ≥5 项可得分项合成，缺项留白不臆造）</div>'
     : '';
   /* fw2_v822_fsi_merge：一卡双判据结论行——上区水平 × 下区结构 → 同一个动作，
      不再由两张卡各出一份标签。供 chartCard 调用，真源仍是 fsi.score / fsi.indis。 */
@@ -12919,7 +12924,7 @@ function renderMacroUS(d, gblMag) {
     const vr = usNoteR(r.k);
     const lc = vr ? vr.color : CHART.badGray;
     const lb = vr ? vr.label : '—';
-    const warn = vr && vr.brk ? ' <b style="color:var(----up)">⚠</b>' : '';
+    const warn = vr && vr.brk ? ' <b style="color:var(--up,#b91c1c))">⚠</b>' : '';
     const btn = '<button type="button" class="us-fold-btn" data-us-fold="' + r.k + '"' +
       (r.chart ? ' data-us-chart="' + r.chart + '"' : '') + ' aria-expanded="false" ' +
       'style="font-size:11px;padding:3px 9px;border:1px solid var(--border,#d8dee6);border-radius:5px;background:var(--panel,#fff);color:var(--brand,var(----nav-blue));cursor:pointer">展开解读</button>';
@@ -13775,7 +13780,7 @@ function pxRowHtml(d, a, it, kl) {
   var _posTxt = _pe ? fmtNum(_pe.pct, 1) + '%' : _naHtml;
   var _posCol = _pe ? (_pe.pct >= 80 ? CHART.up : _pe.pct <= 20 ? CHART.green : 'var(--slate-700,#334155)') : 'var(--slate-400)';
   var _peDate = _pe ? '<span style="font-size:11px;color:var(--slate-400)">' + pxShortTime(_pe.date) +
-    (_pe.approx ? '<br><span style="color:var(----amber)" title="' + esc(_pe.note) + '">' + _pe.approx + '</span>' : '') +
+    (_pe.approx ? '<br><span style="color:var(--amber,#9a4708))" title="' + esc(_pe.note) + '">' + _pe.approx + '</span>' : '') +
     '</span>' : '';
   /* fw2_v447_px_long_ret：1/3/5/10/20 年收益列（pxRetN 月末序列口径，正红负绿同 v444） */
   var longRetHtml = [1, 3, 5, 10, 20].map(function (n) {
@@ -15586,7 +15591,7 @@ function btStatHtml() {
     return '<tr>'
       + '<td style="padding:5px 8px;font-size:11px"><b>' + esc(g.family) + '</b> <span style="color:' + lvlL[1] + ';font-size:11px">' + esc(lvlL[0]) + '</span></td>'
       + '<td style="padding:5px 8px;font-size:11px;text-align:right">' + g.n + '</td>'
-      + '<td style="padding:5px 8px;font-size:11px;text-align:right;font-family:var(--mono);' + (g.avgRetPct >= 0 ? 'color:var(----green)' : 'color:var(----up)') + '">' + fmt(g.avgRetPct, true) + '%</td>'
+      + '<td style="padding:5px 8px;font-size:11px;text-align:right;font-family:var(--mono);' + (g.avgRetPct >= 0 ? 'color:var(--green,#12693a))' : 'color:var(--up,#b91c1c))') + '">' + fmt(g.avgRetPct, true) + '%</td>'
       + '<td style="padding:5px 8px;font-size:11px;text-align:right;font-family:var(--mono)">' + fmt(g.medianRetPct, true) + '%</td>'
       + '<td style="padding:5px 8px;font-size:11px;text-align:right;font-family:var(--mono)">' + fmt(g.winRate) + '%</td>'
       + '<td style="padding:5px 8px;font-size:11px;text-align:right;font-family:var(--mono)">' + fmt(g.beatBenchRate) + '%</td>'
@@ -15640,7 +15645,7 @@ function v11SignalHtml() {
     return '<tr>'
       + '<td style="padding:5px 8px;font-size:11px"><b>' + esc(s.code) + '</b> <span style="color:var(--muted);font-size:11px">' + esc(s.name || '') + '</span></td>'
       + '<td style="padding:5px 8px;font-size:11px"><span style="display:inline-block;padding:1px 7px;border-radius:9px;background:' + col + '22;color:' + col + ';font-size:11px;font-weight:600">' + esc(st) + '</span></td>'
-      + '<td style="padding:5px 8px;font-size:11px;text-align:right;font-family:var(--mono);' + (s.odds >= s.odds_thr ? 'color:var(----up)' : 'color:var(--muted)') + '">' + pct(s.odds) + '</td>'
+      + '<td style="padding:5px 8px;font-size:11px;text-align:right;font-family:var(--mono);' + (s.odds >= s.odds_thr ? 'color:var(--up,#b91c1c))' : 'color:var(--muted)') + '">' + pct(s.odds) + '</td>'
       + '<td style="padding:5px 8px;font-size:11px;text-align:right;font-family:var(--mono);color:var(--muted)">≥' + (s.odds_thr != null ? s.odds_thr.toFixed(2) : '—') + '</td>'
       + '<td style="padding:5px 8px;font-size:11px;text-align:right;font-family:var(--mono)">' + pct(s.atr_pct) + '</td>'
       + '<td style="padding:5px 8px;font-size:11px;text-align:right;font-family:var(--mono)">' + pct(s.up_space) + '</td>'
@@ -15694,7 +15699,7 @@ function v11BtHtml() {
     return '<tr>'
       + '<td style="padding:5px 8px;font-size:11px"><b>' + esc(g.family) + '</b> <span style="color:' + lvlL[1] + ';font-size:11px">' + esc(lvlL[0]) + '</span></td>'
       + '<td style="padding:5px 8px;font-size:11px;text-align:right">' + g.n + '</td>'
-      + '<td style="padding:5px 8px;font-size:11px;text-align:right;font-family:var(--mono);' + (g.avgRetPct >= 0 ? 'color:var(----green)' : 'color:var(----up)') + '">' + fmt(g.avgRetPct, true) + '%</td>'
+      + '<td style="padding:5px 8px;font-size:11px;text-align:right;font-family:var(--mono);' + (g.avgRetPct >= 0 ? 'color:var(--green,#12693a))' : 'color:var(--up,#b91c1c))') + '">' + fmt(g.avgRetPct, true) + '%</td>'
       + '<td style="padding:5px 8px;font-size:11px;text-align:right;font-family:var(--mono)">' + fmt(g.medianRetPct, true) + '%</td>'
       + '<td style="padding:5px 8px;font-size:11px;text-align:right;font-family:var(--mono)">' + fmt(g.winRate) + '%</td>'
       + '<td style="padding:5px 8px;font-size:11px;text-align:right;font-family:var(--mono)">' + fmt(g.beatBenchRate) + '%</td>'
@@ -16000,7 +16005,7 @@ function renderSignalDash() {
           return 'other';
         };
         const PILE_LABEL = {
-          base: ['底仓/缓冲', '#EEF3FF', CHART.brand], off: ['进攻/主题', '#FFF5E8', CHART.orange2],
+          base: ['底仓/缓冲', '#EEF3FF', CHART.brand], off: ['进攻/主题', '#FFF5E8', CHART.amber],
           bond: ['安全垫', '#E9F9F1', '#047857'], hedge: ['对冲', '#F1EFE8', CHART.gray4], other: ['其他', '#F1EFE8', CHART.gray4]
         };
         const _pileRank = { base: 0, off: 1, bond: 2, hedge: 3, other: 4 };
@@ -16303,9 +16308,9 @@ function renderSignalDash() {
           var out = [];
           var srcTxt = a.srcs.map(function (s) { return (s.track || '主动基金') + '(' + s.n + '只)'; }).join('、');
           if (a.crowd >= CROWD_A) out.push('<span title="独立来源 ' + a.crowd + ': ' + esc(srcTxt) + '" style="font-size:11px;padding:1px 5px;border-radius:8px;background:#A32D2D;color:#fff;white-space:nowrap">P1拥挤·' + a.crowd + '源</span>');
-          else if (a.crowd >= CROWD_W) out.push('<span title="独立来源 ' + a.crowd + ': ' + esc(srcTxt) + '" style="font-size:11px;padding:1px 5px;border-radius:8px;background:var(----amber);color:#fff;white-space:nowrap">P1拥挤·' + a.crowd + '源</span>');
+          else if (a.crowd >= CROWD_W) out.push('<span title="独立来源 ' + a.crowd + ': ' + esc(srcTxt) + '" style="font-size:11px;padding:1px 5px;border-radius:8px;background:var(--amber,#9a4708));color:#fff;white-space:nowrap">P1拥挤·' + a.crowd + '源</span>');
           if (a.pctPort >= PCT_A) out.push('<span style="font-size:11px;padding:1px 5px;border-radius:8px;background:#A32D2D;color:#fff;white-space:nowrap">P2暴露' + a.pctPort.toFixed(1) + '%</span>');
-          else if (a.pctPort >= PCT_W) out.push('<span style="font-size:11px;padding:1px 5px;border-radius:8px;background:var(----amber);color:#fff;white-space:nowrap">P2暴露' + a.pctPort.toFixed(1) + '%</span>');
+          else if (a.pctPort >= PCT_W) out.push('<span style="font-size:11px;padding:1px 5px;border-radius:8px;background:var(--amber,#9a4708));color:#fff;white-space:nowrap">P2暴露' + a.pctPort.toFixed(1) + '%</span>');
           if (q && a.crowd >= CROWD_W && q.day != null && q.day <= -5) out.push('<span style="font-size:11px;padding:1px 5px;border-radius:8px;background:#A32D2D;color:#fff;white-space:nowrap">P6共振' + q.day.toFixed(1) + '%</span>');
           return out.length ? out.join(' ') : '<span style="color:var(--muted,#667085)">—</span>';
         }
@@ -16319,7 +16324,7 @@ function renderSignalDash() {
           var tName = tFull.length > 9 ? '<span title="' + esc(tFull) + '">' + esc(tFull.slice(0, 9)) + '…</span>' : esc(tFull);
           var out = [];
           if (a.pctPort >= PCT_A) out.push('<b style="color:#A32D2D">检视减仓</b> ' + tName + '<span style="color:var(--muted,#667085)">（单票敞口超5%）</span>');
-          else if (a.pctPort >= PCT_W) out.push('<span style="color:var(----amber)">调仓勿再加</span> ' + tName + '<span style="color:var(--muted,#667085)">（3–5%观察带）</span>');
+          else if (a.pctPort >= PCT_W) out.push('<span style="color:var(--amber,#9a4708))">调仓勿再加</span> ' + tName + '<span style="color:var(--muted,#667085)">（3–5%观察带）</span>');
           if (q && a.crowd >= CROWD_W && q.day != null && q.day <= -5) out.push('<b style="color:#A32D2D">共振急跌</b><span style="color:var(--muted,#667085)">：勿恐慌赎回，按回撤纪律执行</span>');
           if (q && q.rsi != null && q.rsi <= 30) out.push('超卖<span style="color:var(--muted,#667085)">：维持定投纪律</span>');
           if (q && q.rsi != null && q.rsi >= 70 && q.vs250 > 0) out.push('<span style="color:#c0392b">过热</span>：' + tName + ' 可分批止盈');
@@ -16483,7 +16488,7 @@ function renderSignalDash() {
               function tTxt(v, dp, obj) { return v != null ? '<span style="color:' + pctCls(v) + '">' + (v > 0 ? '+' : '') + v.toFixed(dp) + '%</span>' : (quotesReady ? '—' : '…'); }
               var c20 = tTxt(q && q.vs20, 1), c60 = tTxt(q && q.vs60, 1), c250 = tTxt(q && q.vs250, 1);
               var cAlign = (q && q.align) ? (q.align === '多头' ? '<span style="color:var(--up,#c0392b)">多头</span>' : q.align === '空头' ? '<span style="color:var(--down,var(----down))">空头</span>' : '<span style="color:var(--muted,#667085)">震荡</span>') : (quotesReady ? '—' : '…');
-              var cRsi = (q && q.rsi != null) ? (q.rsi <= 30 ? '<span style="color:var(----down)">' + q.rsi.toFixed(0) + ' 超卖</span>' : q.rsi >= 70 ? '<span style="color:#c0392b">' + q.rsi.toFixed(0) + ' 超买</span>' : q.rsi.toFixed(0)) : (quotesReady ? '—' : '…');
+              var cRsi = (q && q.rsi != null) ? (q.rsi <= 30 ? '<span style="color:var(--down,#047857))">' + q.rsi.toFixed(0) + ' 超卖</span>' : q.rsi >= 70 ? '<span style="color:#c0392b">' + q.rsi.toFixed(0) + ' 超买</span>' : q.rsi.toFixed(0)) : (quotesReady ? '—' : '…');
               var cMacd = (q && q.macd) ? (function () { var m = q.macd, col = m.v >= 0 ? 'var(--up,#c0392b)' : 'var(--down,#047857)'; return '<span style="color:' + col + '" title="MACD柱 ' + m.v.toFixed(3) + '">' + (m.v >= 0 ? '红柱' : '绿柱') + (m.up ? '↑' : '↓') + '</span>'; })() : (quotesReady ? '—' : '…');
               var cBoll = (q && q.boll != null) ? '<span style="color:' + pctCls(q.boll) + '">' + q.boll.toFixed(2) + '</span>' : (quotesReady ? '—' : '…');
               html += '<tr>'
@@ -16493,7 +16498,7 @@ function renderSignalDash() {
                 + '<td class="num" title="独立来源 ' + a.crowd + '（共 ' + a.fundN + ' 只基金）: ' + esc(a.srcs.map(function (s) { return (s.track || '主动基金') + '(' + s.n + '只)'; }).join('、')) + '">' + a.crowd + '</td>'
                 + '<td class="num">' + fmtMoney(a.mv) + '</td>'
                 + '<td class="num">' + maxPct.toFixed(2) + '%</td>'
-                + '<td class="num" style="color:' + (a.pctPort >= PCT_W ? 'var(----amber)' : 'inherit') + '">' + a.pctPort.toFixed(2) + '%</td>'
+                + '<td class="num" style="color:' + (a.pctPort >= PCT_W ? 'var(--amber,#9a4708))' : 'inherit') + '">' + a.pctPort.toFixed(2) + '%</td>'
                 + '<td class="num dtx" style="color:var(--muted,#667085);white-space:nowrap">' + dataDateTxt + '</td>'
                 + '<td class="num">' + dayTxt + '</td>'
                 + '<td class="num">' + d20Txt + '</td>'
@@ -16621,7 +16626,7 @@ function renderBarbell() {
   if (!el) return;
   const PILE = [
     { k: 'base', name: '底仓/缓冲', color: CHART.brand, desc: 'A500 / 沪深300增强 / 红利 / 现金流' },
-    { k: 'off', name: '进攻/主题', color: CHART.orange2, desc: '创业板50 / 日经225 / 全球成长 / 纳指100' },
+    { k: 'off', name: '进攻/主题', color: CHART.amber, desc: '创业板50 / 日经225 / 全球成长 / 纳指100' },
     { k: 'bond', name: '安全垫', color: '#047857', desc: '短融 · 债券（止盈资金第一落点）' },
     { k: 'hedge', name: '对冲', color: '#b45309', desc: '10年国债 / 黄金' },
   ];
@@ -17384,7 +17389,7 @@ setTimeout(() => { renderResearchChips(); if (!state.news.items.length) loadNews
   window.mcSopMagnet = function (gi) {
     return '<div class="mc-magnet sop" data-mg="' + gi + '">'
       + '<div class="mc-magnet-h"><span class="mc-magnet-q">研读驾驶舱 · 顺序 → 结论 → 动作</span>'
-      + '<span class="mc-geo" style="display:inline-block;font-size:11px;line-height:1.4;padding:1px 6px;border-radius:8px;background:#eef0f2;color:var(----flat);font-weight:600;margin-right:6px;white-space:nowrap">方法</span>'
+      + '<span class="mc-geo" style="display:inline-block;font-size:11px;line-height:1.4;padding:1px 6px;border-radius:8px;background:#eef0f2;color:var(--flat,#545b64));font-weight:600;margin-right:6px;white-space:nowrap">方法</span>'
       + '<b class="mc-magnet-v">三步：先磁铁 → 再证据 → 后阈值</b></div>'
       + '<div class="mc-magnet-ev">'
       + '<span class="mc-ev"><b class="z">①</b> 按组序读：A股估值 → 信用与增长 → 情绪温度 → 海外约束 → 美国周期 → 全球景气，任何一组「分歧」先放一放</span>'
@@ -18793,7 +18798,7 @@ setTimeout(() => { renderResearchChips(); if (!state.news.items.length) loadNews
       var rk = (p.rank!=null&&p.total)?(p.rank+'/'+p.total):'—';
       return '<tr>'
         +'<td style="padding:5px 8px;border-bottom:1px solid var(--line-2,#eef2f7);font-size:11px">'+esc(p.n||'—')+'<div style="font-size:11px;color:var(--muted)">'+esc(p.c||'')+' · '+esc(p.t||'')+' · '+d+'</div></td>'
-        +'<td style="padding:5px 8px;border-bottom:1px solid var(--line-2,#eef2f7);font-size:11px;text-align:right;font-family:var(--mono);color:'+(p.ret<0?'var(----up)':'var(----green)')+'">'+(p.ret!=null?Number(p.ret).toFixed(1)+'%':'—')+'</td>'
+        +'<td style="padding:5px 8px;border-bottom:1px solid var(--line-2,#eef2f7);font-size:11px;text-align:right;font-family:var(--mono);color:'+(p.ret<0?'var(--up,#b91c1c))':'var(--green,#12693a))')+'">'+(p.ret!=null?Number(p.ret).toFixed(1)+'%':'—')+'</td>'
         +'<td style="padding:5px 8px;border-bottom:1px solid var(--line-2,#eef2f7);font-size:11px;text-align:right;font-family:var(--mono);color:var(--muted)">'+(p.avg!=null?Number(p.avg).toFixed(1)+'%':'—')+'</td>'
         +'<td style="padding:5px 8px;border-bottom:1px solid var(--line-2,#eef2f7);font-size:11px;text-align:right;font-family:var(--mono);color:'+col+'">'+(ex>=0?'+':'')+Number(ex).toFixed(1)+'%</td>'
         +'<td style="padding:5px 8px;border-bottom:1px solid var(--line-2,#eef2f7);font-size:11px;text-align:right;font-family:var(--mono);color:var(--muted)">'+rk+'</td>'
@@ -18892,7 +18897,7 @@ setTimeout(() => { renderResearchChips(); if (!state.news.items.length) loadNews
         +'<td style="padding:6px 8px;border-bottom:1px solid var(--line-2,#eef2f7);font-size:11px">'+esc(b.name||c)+' <span style="color:var(--muted)">'+esc(String(c))+'</span></td>'
         +'<td style="padding:6px 8px;border-bottom:1px solid var(--line-2,#eef2f7);font-size:11px;text-align:center">'+esc(b.buyDate||'—')+'</td>'
         +'<td style="padding:6px 8px;border-bottom:1px solid var(--line-2,#eef2f7);font-size:11px;text-align:center">'+days+' 天</td>'
-        +'<td style="padding:6px 8px;border-bottom:1px solid var(--line-2,#eef2f7);font-size:11px;text-align:right;font-family:var(--mono);font-weight:600;'+(ret!=null?(ret>=0?'color:var(----green)':'color:var(----up)'):'color:var(--muted)')+'">'+(ret!=null?(ret>=0?'+':'')+(ret*100).toFixed(2)+'%':'—')+'</td>'
+        +'<td style="padding:6px 8px;border-bottom:1px solid var(--line-2,#eef2f7);font-size:11px;text-align:right;font-family:var(--mono);font-weight:600;'+(ret!=null?(ret>=0?'color:var(--green,#12693a))':'color:var(--up,#b91c1c))'):'color:var(--muted)')+'">'+(ret!=null?(ret>=0?'+':'')+(ret*100).toFixed(2)+'%':'—')+'</td>'
         +'<td style="padding:6px 8px;border-bottom:1px solid var(--line-2,#eef2f7);font-size:11px;text-align:right;color:var(--muted)">'+esc(dd||'—')+'</td>'
         +'</tr>';
     }).join('');
@@ -19260,7 +19265,7 @@ setTimeout(() => { renderResearchChips(); if (!state.news.items.length) loadNews
 #view-strategy .rev-ackb:hover{border-color:var(--brand-ink);color:var(--brand-ink)}
 #view-strategy .rev-ackb.on{border-color:var(--brand-ink);color:var(--brand-ink);font-weight:700;background:var(--brand-soft,#eef2ff)}
 #view-strategy .rev-chk{border:1px solid var(--line);border-radius:var(--r-6);padding:1px var(--sp-8);font-size:var(--fs-xs);background:var(--panel);color:var(--text-2);cursor:pointer;margin-left:var(--sp-6)}
-#view-strategy .rev-chk:hover{border-color:var(--brand-ink);color:var(--brand-ink)}@media (max-width:1150px){#view-strategy .rev-t1 .num,#view-strategy .rev-t2 .num{width:160px}#view-strategy .rev-t2 .rev-spacer{width:140px}} /* fw2_v683_t2_align_t1 窄视口：数字列 200→160，表2 spacer 220→140，两表前段同步 520→440（表1 120+160+160，表2 300+140），右侧两列仍精确对齐且 1024 视口（表宽736）末列余 136px 不溢出 */#view-strategy .bdg{display:inline-block;padding:2px var(--sp-9);border-radius:999px;font-size:var(--fs-xs);white-space:nowrap;font-weight:600}#view-strategy .bdg-ok{background:#E4F4EA;color:#1F7A4A} /* fw2_v679_review_legible：四档徽章前景加深，实测 2F9E63 于 #E4F4EA 仅 3.86；新值 1F7A4A/8A5F11/A32D2D/2C5AA0 均 >=4.6，背景不变 */#view-strategy .bdg-warn{background:#FAF0DC;color:#8A5F11}#view-strategy .bdg-risk{background:#F6E0DD;color:#A32D2D}#view-strategy .bdg-info{background:#E6F0FA;color:#2C5AA0}#view-strategy .pos-chip i{font-style:normal;font-weight:700;color:var(--brand-ink);margin-left:3px}
+#view-strategy .rev-chk:hover{border-color:var(--brand-ink);color:var(--brand-ink)}@media (max-width:1150px){#view-strategy .rev-t1 .num,#view-strategy .rev-t2 .num{width:160px}#view-strategy .rev-t2 .rev-spacer{width:140px}} /* fw2_v683_t2_align_t1 窄视口：数字列 200→160，表2 spacer 220→140，两表前段同步 520→440（表1 120+160+160，表2 300+140），右侧两列仍精确对齐且 1024 视口（表宽736）末列余 136px 不溢出 */#view-strategy .bdg{display:inline-block;padding:2px var(--sp-9);border-radius:999px;font-size:var(--fs-xs);white-space:nowrap;font-weight:600}#view-strategy .bdg-ok{background:#E4F4EA;color:#1A6C41} /* fw2_v679_review_legible：四档徽章前景加深，实测 2F9E63 于 #E4F4EA 仅 3.86；新值 1F7A4A/8A5F11/A32D2D/2C5AA0 均 >=4.6，背景不变 */#view-strategy .bdg-warn{background:#FAF0DC;color:#7D540E}#view-strategy .bdg-risk{background:#F6E0DD;color:#A32D2D}#view-strategy .bdg-info{background:#E6F0FA;color:#2C5AA0}#view-strategy .pos-chip i{font-style:normal;font-weight:700;color:var(--brand-ink);margin-left:3px}
 #view-strategy .st-pane .card{margin-bottom:var(--sp-10)}
 #view-strategy .st-pane .card:last-child{margin-bottom:0}
 @media (max-width:767px){#view-strategy .sh-grid{grid-template-columns:repeat(2,1fr)}#view-strategy .st-tbl,#view-capbal .st-tbl{font-size:var(--fs-xs)}#view-strategy .sc-grid{grid-template-columns:repeat(2,1fr)}}#view-holdings .disc-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(148px,1fr));gap:var(--sp-8)}#view-holdings .disc-tile{border:1px solid var(--line);border-radius:var(--radius);padding:var(--sp-8) var(--sp-10);background:var(--panel-2);text-align:center}#view-holdings .disc-t{display:flex;align-items:center;justify-content:center;gap:var(--sp-6);font-size:var(--fs-xs);color:var(--muted)}#view-holdings .disc-v{font-size:var(--fs-2xl);font-weight:700;font-family:var(--mono);margin-top:2px}#view-holdings .disc-r{font-size:var(--fs-2xs);color:var(--muted);margin-top:1px}#view-holdings .disc-s{font-size:var(--fs-xs);font-weight:600;margin-top:3px;line-height:1.4}#view-holdings .disc-dot{width:8px;height:8px;border-radius:var(--r-full);display:inline-block;flex:0 0 auto}#view-strategy .xmap-fold summary{cursor:pointer;font-size:var(--fs-md);font-weight:600;color:var(--text);list-style:none;display:flex;align-items:baseline;gap:var(--sp-8)}#view-strategy .xmap-fold summary::-webkit-details-marker{display:none}#view-strategy .xmap-fold summary::before{content:"▸";color:var(--muted);font-size:var(--fs-sm)}#view-strategy .xmap-fold[open] summary::before{content:"▾"}#view-strategy .xmap-fold #xmapBody{margin-top:var(--sp-8)}@media (max-width:767px){#view-holdings .disc-grid{grid-template-columns:repeat(2,1fr)}}
@@ -19323,7 +19328,7 @@ setTimeout(() => { renderResearchChips(); if (!state.news.items.length) loadNews
 #view-smartmoney .sm-radar-tbl .num { text-align: right; font-variant-numeric: tabular-nums; }
 #view-smartmoney .sm-mkt { border-radius: 4px; padding:1px var(--sp-6); font-size:var(--fs-xs); }
 #view-smartmoney .sm-mkt-a { background: #eef2f7; color: #33475b; }
-#view-smartmoney .sm-mkt-u { background: var(--brand-tint, var(----brand-tint)); color: var(--brand, var(----brand)); }
+#view-smartmoney .sm-mkt-u { background: var(--brand-tint, var(----brand-tint)); color: var(--brand-ink, var(--brand)); } /* v852：brand 作文字色于 brand-tint 底仅 3.82，brand-ink 6.09 */
 #view-smartmoney .sm-hit { background: var(--up-soft, rgba(220,38,38,.12)); color: var(--up, var(----up)); border-radius: 4px; padding:1px var(--sp-6); font-size:var(--fs-xs); font-weight: 600; }
 #view-smartmoney .sm-rd-hit { cursor: pointer; }
 #view-smartmoney .sm-rd-hit:hover td { background: rgba(77, 107, 254, .06); }
@@ -19352,7 +19357,7 @@ setTimeout(() => { renderResearchChips(); if (!state.news.items.length) loadNews
 #view-smartmoney #nhbEtfSharesBox .up{color:var(--up,var(----up))}
 #view-smartmoney #nhbEtfSharesBox .down{color:var(--down,var(----down))}
 
-#view-smartmoney .sm-mlab { font-size:var(--fs-sm); color: var(----flat); margin-right:2px; cursor: pointer; padding:2px var(--sp-6); border-radius: 6px; user-select: none; }
+#view-smartmoney .sm-mlab { font-size:var(--fs-sm); color: var(--flat,#545b64)); margin-right:2px; cursor: pointer; padding:2px var(--sp-6); border-radius: 6px; user-select: none; }
 #view-smartmoney .sm-mlab:hover { color: var(--brand-ink,var(----brand)); background: #eef4ff; }
 #view-smartmoney .sm-panel[hidden] { display: none !important; }
 #view-smartmoney .sm-xov[hidden] { display: none !important; }
@@ -19395,7 +19400,7 @@ setTimeout(() => { renderResearchChips(); if (!state.news.items.length) loadNews
 
 #view-smartmoney .sm-xov .xov-title { display: flex; align-items: baseline; gap:var(--sp-10); flex-wrap: wrap; }
 #view-smartmoney .sm-xov .xov-title h3 { margin:0; font-size:var(--fs-xl); font-weight: 700; }
-#view-smartmoney .sm-xov .xov-sub { font-size:var(--fs-sm); color: var(----flat); }
+#view-smartmoney .sm-xov .xov-sub { font-size:var(--fs-sm); color: var(--flat,#545b64)); }
 #view-smartmoney .sm-xov .xov-concl { margin:var(--sp-10) 0 var(--sp-4); }
 #view-smartmoney .sm-xov .xov-concl .xov-c { padding:var(--sp-8) var(--sp-12); border: 1px solid #e7eaf0; border-radius: 10px; background: #f7f8fa; line-height: 1.6; }
 #view-smartmoney .sm-xov .xov-concl .xov-c.b { background: #fff7ed; border-color: #f0d9a8; color: #7a5320; }
@@ -19411,7 +19416,7 @@ setTimeout(() => { renderResearchChips(); if (!state.news.items.length) loadNews
 .xov-details summary:hover { background: #f0f4ff; }
 .xov-details table { width: 100%; border-collapse: collapse; font-size:var(--fs-sm); }
 .xov-details th { background: #f5f6f8; color: #5b6472; font-weight: 600; font-size:var(--fs-sm); text-align: left; padding:var(--sp-7) var(--sp-12); border-bottom: 1px solid #e7eaf0; }
-.xov-details td { padding:var(--sp-7) var(--sp-12); border-bottom: 1px solid var(----line-2); vertical-align: middle; line-height: 1.5; }
+.xov-details td { padding:var(--sp-7) var(--sp-12); border-bottom: 1px solid var(--line-2,#f0f2f5)); vertical-align: middle; line-height: 1.5; }
 .xov-details tbody tr:nth-child(even) { background: #fafbfc; }
 .xov-details tbody tr:last-child td { border-bottom: 0; }
 .xov-details .xov-code { font-size:var(--fs-xs); color: #98a2b3; font-family: var(--mono, monospace); margin-top:1px; }
@@ -19425,7 +19430,7 @@ setTimeout(() => { renderResearchChips(); if (!state.news.items.length) loadNews
 /* fw2_v291_sm_xov_panel：明细移出表格 → 表格下方独立面板 */
 .xov-dtcell { padding:0 !important; border-top: 1px solid #eceff4 !important; background: #fafbfc !important; }
 .xov-dtcell:empty { display: none; }
-.xov-dtbtn { display: inline-flex; align-items: center; gap:var(--sp-5); margin:var(--sp-6) 0 0; padding:2px var(--sp-10); font-size:var(--fs-xs); font-weight: 600; color: #2563eb; background: #eff6ff; border: 1px solid #dbe4f5; border-radius: 999px; cursor: pointer; }
+.xov-dtbtn { display: inline-flex; align-items: center; gap:var(--sp-5); margin:var(--sp-6) 0 0; padding:2px var(--sp-10); font-size:var(--fs-xs); font-weight: 600; color: #1d4ed8; background: #eff6ff; border: 1px solid #dbe4f5; border-radius: 999px; cursor: pointer; }
 .xov-dtbtn:hover { background: #f0f4ff; }
 .xov-dtbtn i { font-style: normal; color: #98a2b3; font-weight: 500; }
 .xov-dpanel { margin-top:var(--sp-10); }
@@ -19481,13 +19486,13 @@ setTimeout(() => { renderResearchChips(); if (!state.news.items.length) loadNews
 #view-smartmoney .sm-xov .xov-funds { display: grid; grid-template-columns: repeat(auto-fill, minmax(330px, 1fr)); gap:var(--sp-12); }
 #view-smartmoney .sm-xov .xov-fund { border: 1px solid #e7eaf0; border-radius: 12px; padding:var(--sp-12) var(--sp-14); background: #fff; }
 #view-smartmoney .sm-xov .xov-fund h4 { margin:0 0 2px; font-size:var(--fs-lg); font-weight: 700; }
-#view-smartmoney .sm-xov .xov-fund .xov-fmeta { font-size:var(--fs-sm); color: var(----flat); margin-bottom:var(--sp-8); }
+#view-smartmoney .sm-xov .xov-fund .xov-fmeta { font-size:var(--fs-sm); color: var(--flat,#545b64)); margin-bottom:var(--sp-8); }
 #view-smartmoney .sm-xov .xov-fund table { width: 100%; border-collapse: collapse; table-layout: fixed; font-size:var(--fs-sm); }
-#view-smartmoney .sm-xov .xov-fund th { text-align: left; color: var(----flat); font-weight: 600; padding:var(--sp-4) var(--sp-6); border-bottom: 1px solid #eef0f4; }
+#view-smartmoney .sm-xov .xov-fund th { text-align: left; color: var(--flat,#545b64)); font-weight: 600; padding:var(--sp-4) var(--sp-6); border-bottom: 1px solid #eef0f4; }
 #view-smartmoney .sm-xov .xov-fund td { padding:var(--sp-4) var(--sp-6); border-bottom: 1px solid #f3f4f7; }
 #view-smartmoney .sm-xov .up { color: var(--up,var(----up)); font-weight: 600; }
 #view-smartmoney .sm-xov .down { color: var(--green,var(----green)); font-weight: 600; }
-#view-smartmoney .sm-xov .flat { color: var(----flat); }
+#view-smartmoney .sm-xov .flat { color: var(--flat,#545b64)); }
 #view-smartmoney .sm-xov .xov-foot { margin-top:var(--sp-12); font-size:var(--fs-xs); color: #9aa1ac; line-height: 1.7; }
 /* fw2_v283_sm_xov_flow：看板三层化（组合级结论 → 标的卡 → 溯源） */
 #view-smartmoney .sm-xov .xov-verdict { border: 1px solid #e7eaf0; border-left: 4px solid #2563eb; border-radius: 10px; background: #f7f9fc; padding:var(--sp-10) var(--sp-14); font-size:var(--fs-lg); line-height: 1.7; color: #1f2430; margin:var(--sp-10) 0 var(--sp-4); }
@@ -19522,8 +19527,8 @@ setTimeout(() => { renderResearchChips(); if (!state.news.items.length) loadNews
 .xov-table .c-sig .sig-line { margin-bottom:3px; }
 .xov-table .xov-lvchip { display: inline-block; padding:2px var(--sp-10); border-radius: 20px; font-size:var(--fs-xs); font-weight: 700; white-space: nowrap; }
 .xov-table .xov-lvchip.lv2 { background: #fdecec; color: var(--up,var(----up)); }
-.xov-table .xov-lvchip.lv1 { background: #fdf3e3; color: var(--gold,var(----gold)); }
-.xov-table .xov-lvchip.lv0 { background: #eef1f5; color: var(----flat); }
+.xov-table .xov-lvchip.lv1 { background: #fdf3e3; color: var(--gold-ink,#6b5417); } /* v852：gold 作软橙底文字仅 3.31，改 gold-ink 6.58 */
+.xov-table .xov-lvchip.lv0 { background: #eef1f5; color: var(--flat,#545b64)); }
 .xov-table .c-act { font-size:var(--fs-sm); color: #1f2430; }
 .xov-table .c-act .act-src { font-size:var(--fs-xs); color: #5f6675; margin-top:2px; }
 .xov-table .xov-drow td { background: #fafbfc; padding:var(--sp-6) var(--sp-12) var(--sp-12); }
@@ -19532,7 +19537,7 @@ setTimeout(() => { renderResearchChips(); if (!state.news.items.length) loadNews
 .xov-table .xov-chip { white-space: nowrap; }
 .xov-table .up { color: var(--up,var(----up)); font-weight: 600; }
 .xov-table .down { color: var(--green,var(----green)); font-weight: 600; }
-.xov-table .flat { color: var(----flat); }
+.xov-table .flat { color: var(--flat,#545b64)); }
 /* fw2_v287_sm_xov_redesign：结论块审美重构（白卡片 + 警示/链接一行 + 数据徽章组一行） */
 /* fw2_v202_sm_xov_full：跨市场速览完整版（A股完整卡 / QDII 温度计 / 重叠度 / 承压名单） */
 
@@ -19545,7 +19550,7 @@ setTimeout(() => { renderResearchChips(); if (!state.news.items.length) loadNews
 .xov-fhead h4{font-size:var(--fs-xl);font-weight:700;margin:0}
 .xov-role{font-size:var(--fs-xs);color:var(--txt2);background:var(--line);padding:2px var(--sp-8);border-radius:20px}
 .xov-chip{font-size:var(--fs-xs);color:var(--txt2);border:1px solid var(--line);padding:1px var(--sp-8);border-radius:20px;white-space:nowrap}
-.xov-chip-warn{color:var(--gold,var(----gold));border-color:#e9d5a0;background:#fdf6e7}
+.xov-chip-warn{color:var(--gold-ink,#6b5417);border-color:#e9d5a0;background:#fdf6e7} /* v852：3.38→6.72 */
 .xov-temp{font-size:var(--fs-md);font-weight:700}
 .xov-ratio{font-size:var(--fs-xs);color:var(--txt3)}
 .xov-mixgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:var(--sp-14)}
@@ -19558,7 +19563,7 @@ setTimeout(() => { renderResearchChips(); if (!state.news.items.length) loadNews
 .xov-act.lv0{background:#f8fafc;border:1px solid var(--line)}
 .act-lv{font-weight:800;font-size:var(--fs-md);padding:2px var(--sp-8);border-radius:6px;flex-shrink:0}
 .lv2 .act-lv{background:var(--up,var(----up));color:#fff}
-.lv1 .act-lv{background:var(--gold,var(----gold));color:#fff}
+.lv1 .act-lv{background:var(--gold-deep,#96600f);color:#fff} /* v852：gold 作底配白字仅 3.64，gold-deep 5.28 */
 .lv0 .act-lv{background:var(--slate-400,var(--slate-400));color:#fff}
 .act-body{min-width:0}
 .act-txt{color:var(--txt);font-weight:600}
@@ -19619,22 +19624,22 @@ setTimeout(() => { renderResearchChips(); if (!state.news.items.length) loadNews
 
 #view-smartmoney .sm-xov .xov-sec { display: flex; align-items: center; gap:var(--sp-8); margin:16px 0 var(--sp-10); font-size:var(--fs-lg); font-weight: 700; }
 #view-smartmoney .sm-xov .xov-sec .bar { width: 4px; height: 14px; border-radius: 2px; background: var(--up,var(----up)); display: inline-block; }
-#view-smartmoney .sm-xov .xov-sec .hint { font-size:var(--fs-sm); color: var(----flat); font-weight: 400; }
+#view-smartmoney .sm-xov .xov-sec .hint { font-size:var(--fs-sm); color: var(--flat,#545b64)); font-weight: 400; }
 #view-smartmoney .sm-xov .xov-vd { display: inline-block; padding:1px var(--sp-8); border-radius: 6px; font-size:var(--fs-sm); font-weight: 600; margin-left:var(--sp-6); }
 #view-smartmoney .sm-xov .xov-vd.up { background: #fef2f2; color: var(--up,var(----up)); }
 #view-smartmoney .sm-xov .xov-vd.down { background: #ecfdf5; color: var(--green,var(----green)); }
-#view-smartmoney .sm-xov .xov-vd.flat { background: #f3f4f6; color: var(----flat); }
-#view-smartmoney .sm-xov .xov-stats { display: flex; gap:var(--sp-14); flex-wrap: wrap; margin:var(--sp-6) 0 var(--sp-8); font-size:var(--fs-sm); color: var(----flat); }
+#view-smartmoney .sm-xov .xov-vd.flat { background: #f3f4f6; color: var(--flat,#545b64)); }
+#view-smartmoney .sm-xov .xov-stats { display: flex; gap:var(--sp-14); flex-wrap: wrap; margin:var(--sp-6) 0 var(--sp-8); font-size:var(--fs-sm); color: var(--flat,#545b64)); }
 #view-smartmoney .sm-xov .xov-stats b { color: #111827; }
 #view-smartmoney .sm-xov .xov-code { font-size:var(--fs-xs); color: #9aa1ac; }
 #view-smartmoney .sm-xov .xov-temp { font-size:var(--fs-md); font-weight: 700; margin-left:var(--sp-6); }
 #view-smartmoney .sm-xov .xov-ovkpi { display: grid; grid-template-columns: repeat(3, 1fr); gap:var(--sp-10); margin:var(--sp-10) 0; }
 #view-smartmoney .sm-xov .xov-ovkpi .c { border: 1px solid #e7eaf0; border-radius: 10px; padding:var(--sp-10) var(--sp-12); background: #fff; }
-#view-smartmoney .sm-xov .xov-ovkpi .lab { font-size:var(--fs-sm); color: var(----flat); }
+#view-smartmoney .sm-xov .xov-ovkpi .lab { font-size:var(--fs-sm); color: var(--flat,#545b64)); }
 #view-smartmoney .sm-xov .xov-ovkpi .val { font-size:var(--fs-2xl); font-weight: 700; margin-top:2px; }
 #view-smartmoney .sm-xov .xov-ovkpi .foot { font-size:var(--fs-xs); color: #9aa1ac; margin-top:2px; line-height: 1.5; }
 #view-smartmoney .sm-xov .xov-chip { display: inline-block; padding:1px var(--sp-6); margin:1px 2px; border-radius: 4px; font-size:var(--fs-xs); background: #f3f4f6; color: #374151; }
-#view-smartmoney .sm-xov .xov-note { font-size:var(--fs-sm); color: var(----flat); line-height: 1.8; margin-top:var(--sp-8); }
+#view-smartmoney .sm-xov .xov-note { font-size:var(--fs-sm); color: var(--flat,#545b64)); line-height: 1.8; margin-top:var(--sp-8); }
 /* fw2_v203.3_sm_decision_modules：聪明的钱子模块（决策看板 / 聪明钱共识 / 机构反查）——不再按 A股/美股 分市场 */
 #view-smartmoney .sm-conview, #view-smartmoney .sm-lookview { display: grid; gap:var(--sp-14); }
 #view-smartmoney .sm-conview[hidden], #view-smartmoney .sm-lookview[hidden] { display: none !important; }
@@ -20517,7 +20522,7 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
         if (!res) { out.innerHTML = '<div style="color:#A32D2D;padding:16px">无有效数据（区间内无标的覆盖）</div>'; return; }
         var S = res.stats, fmtN = function (x) { return (Math.round(x * 100) / 100).toFixed(2); };
         var card = function (name, s, h) {
-          return '<div style="flex:1;min-width:150px;background:#fff;border:1px solid #E8E6DF;border-radius:10px;padding:10px 12px"><div style="font-size:11px;color:var(--zinc-500,var(----zinc-500))">' + name + '</div><div style="font-size:16px;font-weight:700;color:#18181B;margin-top:2px">' + s + '</div><div style="font-size:11px;color:' + (h > 0 ? '#047857' : h < 0 ? CHART.bad : 'var(----zinc-500)') + ';margin-top:2px">' + (h >= 0 ? '+' : '') + fmtN(h) + ' pct</div></div>';
+          return '<div style="flex:1;min-width:150px;background:#fff;border:1px solid #E8E6DF;border-radius:10px;padding:10px 12px"><div style="font-size:11px;color:var(--zinc-500,var(----zinc-500))">' + name + '</div><div style="font-size:16px;font-weight:700;color:#18181B;margin-top:2px">' + s + '</div><div style="font-size:11px;color:' + (h > 0 ? '#047857' : h < 0 ? CHART.bad : 'var(--zinc-500,#66666f))') + ';margin-top:2px">' + (h >= 0 ? '+' : '') + fmtN(h) + ' pct</div></div>';
         };
         var statCards = '<div style="display:flex;flex-wrap:wrap;gap:8px;margin:10px 0">'
           + card('策略 · 期末市值', '¥' + fmtN(S.strat.end), S.strat.ret)
@@ -20828,7 +20833,7 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
     /* 档位再平衡（实盘四档，复用 barbellActual 持仓快照口径） */
     var PILE = [
       { k: 'base', name: '底仓/缓冲', color: CHART.brand },
-      { k: 'off', name: '进攻/主题', color: CHART.orange2 },
+      { k: 'off', name: '进攻/主题', color: CHART.amber },
       { k: 'bond', name: '安全垫', color: '#047857' },
       { k: 'hedge', name: '对冲', color: '#b45309' }
     ];
@@ -21057,7 +21062,7 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
       var _bcell = (p.code === '020712') ? '日定投 10/日（限额）' : ((_am != null) ? fmt(_am) : esc(p.build));
       /* Q5 fw2_v724_ddwarn_link_dca：回撤预警act级→定投表红色暂停标记 */
       var _ddw = (window.__DDWARN_ACT_CODES__ && window.__DDWARN_ACT_CODES__.has(p.code))
-        ? ' <span style="color:var(----up);font-size:11px;font-weight:600;margin-left:4px">⚠回撤预警·暂停加仓</span>'
+        ? ' <span style="color:var(--up,#b91c1c));font-size:11px;font-weight:600;margin-left:4px">⚠回撤预警·暂停加仓</span>'
         : (window.__DDWARN_NEAR_CODES__ && window.__DDWARN_NEAR_CODES__.has(p.code)
           ? ' <span style="color:#d97706;font-size:11px;margin-left:4px">△接近预警</span>' : '');
       html += '<tr><td><div class="nm"><b class="lk-rs" data-rscode="' + p.code + '">' + esc(p.name) + LXMAP.ic(LXMAP.fund(p.code), '理杏仁基金') + '</b>' + _ddw + '</div><div class="cd">' + p.code + '</div>' + info + '</td>' +
@@ -25406,7 +25411,7 @@ function _xovOverlap(fh) { /* 独立风险源 · 双基金重叠度（016452 × 
   var chainB = Object.keys(wb).reduce(function (s, k) { return s + (CHAIN[k] ? wb[k] : 0); }, 0);
   var interChips = inter.map(function (k) { return '<span class="xov-chip">' + k + '</span>'; }).join('');
   var warn = ov > 8 ? '高' : ov > 4 ? '中高' : ov > 2 ? '中' : '低';
-  var warnColor = ov > 8 ? 'var(--up,#dc2626)' : ov > 4 ? 'var(--orange,#e07a3b)' : ov > 2 ? 'var(--gold,#b7791f)' : 'var(--green,#16a34a)';
+  var warnColor = ov > 8 ? 'var(--up,#dc2626)' : ov > 4 ? 'var(--orange,#e07a3b)' : ov > 2 ? 'var(--gold,#b7791f)' : 'var(--green,#12693a)';
   return '<div class="xov-sec"><span class="bar" style="background:var(--gold,var(----gold))"></span>风险 · 双基金重叠度<span class="hint">——016452 与 012920 前十大是否重复下注（报告期 ' + a.period + '）</span></div>'
     + '<div class="xov-fund"><div class="xov-ovkpi">'
     + '<div class="c"><div class="lab">直接重叠（ticker 精确）</div><div class="val up">' + inter.length + ' 只</div><div class="foot">' + (interChips ? interChips + '<br>' : '') + 'Jaccard ' + (jaccard * 100).toFixed(0) + '%</div></div>'
