@@ -1,4 +1,4 @@
-/* 理财工作台 Service Worker（caifu 作用域） v40 */
+/* 理财工作台 Service Worker（caifu 作用域） v41 */
 /* ★v695 fw2_v695_sw_cache_bust：修复「线上已发布新版、浏览器长期停留在旧版」。
    病根两处——①CACHE 名写死 'caifu-v1'，install 时把**当时**的 index.html addAll 进缓存，
    该快照只在 fetch 失败（离线/断网）时被回退命中 ⇒ 用户一旦离线过一次，就可能被钉在旧快照上；
@@ -13,7 +13,7 @@
    修法：①fund-daily.json 一律不拦截（return 放行，走浏览器原生网络栈＝已验证可用路径）；
         ②其余响应 content-length > 2MB 不再写入缓存（防同族问题与缓存膨胀）；
         ③CACHE 名 v2→v3，激活时清掉旧缓存。前端 loader 同步加 json() 15s 超时兜底（fw2_v774_sw_bigbypass）。 */
-const CACHE = 'caifu-v3';
+const CACHE = 'caifu-v4';
 const INDEX = './index.html';
 
 self.addEventListener('install', (e) => {
@@ -40,7 +40,12 @@ self.addEventListener('fetch', (e) => {
   var url = req.url || '';
   /* v774：fund-daily.json（8MB 日频净值）不拦截——SW respondWith+caches.put 在线上会把
      响应体卡死（买入峰值/最大回撤恒「—」的根因），直接放行走原生栈。 */
-  if (/fund-daily\.json/.test(url)) return;
+  /* fw2_v849_sw_json_bypass：v774 只对 fund-daily.json 放行，但线上实证
+     meta-bundle(809KB) / nav-hold(1.6MB) 等仍走 respondWith 拦截；141 个请求里
+     数据 JSON 占多数，SW 每层拦截都会给大响应加一次流式中转。统一放行所有 JSON，
+     数据一律走浏览器原生网络栈（已由 v774 验证可用），SW 只服务 HTML/CSS/JS。
+     CACHE 升 v4 强制清旧缓存，避免旧快照残留。 */
+  if (/\.json(\?|$)/i.test(url)) return;
   e.respondWith(
     fetch(req)
       .then(function (res) {
