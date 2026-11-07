@@ -1,7 +1,7 @@
 {
   "_note": "数据源登记表（DAR: Data-source Authority Registry）。硬规则：任何输出数据必须在本表登记；每项数据至少 2 个渠道；渠道性质必须标注为「监管披露 / 持牌数据商 / 主流平台」。禁止使用未登记来源（含网页随笔、自媒体、搜索结果摘要）。",
   "version": "1.5",
-  "updated": "2026-10-17",
+  "updated": "2026-11-07",
   "tiers": {
     "T0": "监管/交易所/官方机构直属披露（最高权威，无加工）：美国财政部、CBOE、交易所、基金公司",
     "T1": "持牌金融数据商（Wind 万得、理杏仁等，专业授权数据）",
@@ -327,6 +327,66 @@
       "verifier": "verify_nky.py",
       "verified": "最新收盘三源完全一致（macro=新浪=东财=64011.34@2026-09-11）；开/高/低三源一致；CNBC 逐根自检 244/244。",
       "singleSourceDisclosed": "★ 日经**历史日线**在本环境可及的独立源实际只有 CNBC：Yahoo 403、stooq DNS 失败、WSJ 超时、百度股市通 403、腾讯全球指数 kline 返回 0 根、东财 push2his 已死（RemoteDisconnected）、push2delay kline 返回空、Wind 配额不足。→ 历史逐根为**单源**，已如实登记，不假装双源；最新收盘由 新浪+东财 三方独立确认。"
+    },
+    "fund_pe_percentile": {
+      "title": "基金跟踪指数 PE 10 年分位（pePct / peBench / peDate）",
+      "file": "holdings-data.json + screen-pool.json + fund-profiles.json + index.html 内嵌 HOLDINGS_SEED",
+      "generator": "fetch_pe_val.py（v846 重建，refresh_all SERIAL_AFTER pe-val 组）",
+      "primary": {
+        "id": "danjuan_eva",
+        "tier": "T2",
+        "name": "蛋卷基金 · 指数估值（djapi/index_eva/dj，pe_percentile 为 0–1 小数）",
+        "url": "https://danjuanfunds.com/djapi/index_eva/dj",
+        "ref": "https://danjuanfunds.com/djmodule/value-center",
+        "field": "pe_percentile（10 年分位）",
+        "note": "一次返回 63 指数；白名单制，主动基金/无覆盖品种留白，不贴代理指数（v625 用户拍板）"
+      },
+      "checkers": [],
+      "singleSourceDisclosed": "PE 10 年分位无同口径第二公开渠道（理杏仁 fundamental 端点需购买 Open API 时长包）。sources.json 既有 macro_snapshot.pe 条目的 Wind get_index_fundamentals 属宏观快照交叉渠道，本数据集未启用、不冒充双源；如实标注为单源。",
+      "verifier": "_audit_pe_chain_v846.py（四处 pePct 同值 + 反空 PASS + 链路四段接通）"
+    },
+    "index_bench_v846": {
+      "title": "指数日线基准 / 风格 ETF 长净值基准",
+      "file": "data/index-daily.json + data/bench-long.json",
+      "generator": "gen_index_bench.py + gen_index_bench_extra.py（v846 重建，refresh_all GROUPS index-bench 组）",
+      "channels": [
+        {
+          "field": "8 指数日K收盘",
+          "primary": {
+            "id": "qq_kline",
+            "tier": "T2",
+            "name": "腾讯财经 · ifzq 日K",
+            "url": "https://web.ifzq.gtimg.cn/appstock/app/fqkline/get"
+          },
+          "checkers": [
+            {
+              "id": "em_push2his",
+              "tier": "T2",
+              "name": "东方财富 · push2his 日K",
+              "url": "https://push2his.eastmoney.com/api/qt/stock/kline/get"
+            }
+          ],
+          "verified": "v846 实跑 8/8 指数、末 8 交易日逐值对拍全等（容差 0.011）"
+        },
+        {
+          "field": "4 风格 ETF 单位净值",
+          "primary": {
+            "id": "ttjj_pingzhongdata",
+            "tier": "T2",
+            "name": "天天基金 · pingzhongdata",
+            "url": "https://fund.eastmoney.com/pingzhongdata/{code}.js"
+          },
+          "checkers": [
+            {
+              "id": "em_lsjz",
+              "tier": "T2",
+              "name": "东方财富 · f10/lsjz 单位净值",
+              "url": "https://api.fund.eastmoney.com/f10/lsjz"
+            }
+          ],
+          "verified": "v846 实跑 4/4 基准、末 10 净值日逐值对拍全等（容差 0.0002）"
+        }
+      ]
     }
   },
   "incidents": [
@@ -465,6 +525,13 @@
       "fix": "新增 MC_CARD_OF（MC_DEFS 标识 → 卡片标题前缀）+ mcCardIndex()，渲染总览表时在**真实 DOM** 里按 data-title 前缀解析目标模块，卡片换序也不会再错位；确实没有对应卡片的指标不再挂 mc-jump 类（自动暴露漂移，而不是静默跳错），并在 console 打印无目标指标清单。",
       "verifiedBy": "headless DOM 断言 _test_v119_datafix.py C 组：总览 16 行**全部**可点击、逐行 data-mod 指向的模块标题与外部期望清单一致、逐行 click() 后唯一可见模块标题也一致、断言后能回到总览页；负向自测（对 index.html.bak_v118pre 跑同一探针）精确复现用户所述两类症状——7 行跳错模块 + 3 行可见模块数 0。",
       "version": "v119"
+    },
+    {
+      "id": "INC-2026-11-07-v846",
+      "dataset": "数据管理 / 估值分位与指数基准",
+      "severity": "中",
+      "found": "v845 审计判定「screen-pool 40 只与 fund-profiles 62 只 pePct 全空」，实为审计口径 bug：把 funds 字典当列表遍历，字典迭代得到字符串 key 导致恒空。实际 5/25、1/40、11/62 有值，日期停在 2026-10-30；真缺口是 fetch_pe_val.py / gen_index_bench.py / gen_index_bench_extra.py 本地已不存在却仍写在页面指令里，供给无法刷新。",
+      "fix": "v846 用户拍板 A：重建三脚本、挂进 refresh_all 日频链、四处数据同写、双渠道逐值对拍、新增 _audit_pe_chain_v846.py 静态硬卡；口径沿用 v625 白名单制未扩大。"
     }
   ]
 }
