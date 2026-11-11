@@ -388,13 +388,13 @@
    "file": "sources.json",
    "freq": "月",
    "track": "月轨",
-   "src": "数据源登记表 DAR（每项≥2 渠道·渠道性质分级·禁止未登记来源）",
+   "src": "数据源登记表 DAR（按数据集登记主源/校验源与双源口径；与数据管理条目粒度不同，单源例外显式披露）",
    "script": "sources.json 登记维护",
    "verifier": "—",
    "yellow": 15,
    "red": 45,
-   "lastUpdate": "2026-11-07",
-   "lagDays": 4,
+   "lastUpdate": "2026-11-11",
+   "lagDays": 0,
    "lagStatus": "ok",
    "refreshStatus": "ok",
    "refreshNote": ""
@@ -694,7 +694,7 @@
    "file": "data/fund-jjcc.json",
    "freq": "季·披露后",
    "track": "手动轨",
-   "src": "天天基金 F10 公开接口前十大重仓股（24 只持仓基金，货基/债基/QDII 按口径排除；000834 源站自身停更）",
+   "src": "天天基金 F10 公开接口前十大重仓股（24 只持仓基金，货基/债基/QDII 按口径排除；000834 源站自身停更）；季度披露，最后更新＝报告期 concDate 非刷新日，跨季滞后属正常",
    "script": "gen_fund_jjcc.py（v881d 重建，refresh_all SERIAL_AFTER jjcc 组）",
    "verifier": "—",
    "yellow": null,
@@ -707,29 +707,5 @@
   }
  },
  "refreshFailed": [],
- "refreshDegraded": [],
- "antiHalluc": {
-  "batch": "fw2_anti_halluc_p0",
-  "appliedAt": "2026-11-11",
-  "fields": {
-   "screen_pool": [
-    "mgrCovLong",
-    "scaleQoq",
-    "scaleQoqDate",
-    "crowdFlag"
-   ],
-   "manager_pool": [
-    "rankScoreRaw",
-    "rankAdj",
-    "fmScaleQoq",
-    "fmScaleQoqDate",
-    "limitFlag"
-   ]
-  },
-  "rules": {
-   "tenureCut": "长周期年化×（0.3+0.7×任职覆盖率），近3年任职<3年×任职/3（防前任业绩算现任头上）",
-   "crowd": "规模季增>30% / wStab1年q<0.05 / 限购 组合为拥挤标记",
-   "rankAdj": "同类分位>85 按 85+(p-85)×0.5 打折（排名太好=拥挤警惕）"
-  }
- }
+ "refreshDegraded": []
 }
