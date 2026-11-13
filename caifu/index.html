@@ -1504,7 +1504,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
            被移走的 5 个全局值以隐藏域保留供 go() 读取；自选组合的 customWMode 恒为 manual（等权改用「等权重排」按钮） --><!-- fw2_v927_bt_col_order：用户 2026-11-13「档位和来源应该放在标的名称后面，新增基金代码在标的名称后面，同时标的名称改成基金名称」——
            本表列序重排为 13 列：基金名称 / 基金代码 / 档位 / 来源 / 权重% / 止盈带宽% / 止损% / 网格步长% / 网格金额¥/档 / 投入¥ /
            实测波动·最深回撤 / 规则 / 操作；原「名称 + 代码副行」拆成两列，代码列的「· 无日频」提示保留在代码格内 -->
-<!-- fw2_v923_bt_page_cn_color：用户 2026-11-13「全页统一」——回测页配色全部改中式，把 v922 只动明细表的做法扩到整页：①摘要卡差值（dcol）②对照细节副表差值（rN）③净值图最深回撤区填充与标签 ④回撤水下面积图 ⑤月度收益正负柱 ⑥收益归因横条 ⑦按标的汇总「浮动/已实现」与流水「在仓浮动」通用色 _pColor ⑧过程风险条 chips（回撤/最差单日/最差单月→绿、正收益月→红）。规则统一为「正数/盈利＝红 CHART.up(#b91c1c)、负数/亏损/回撤＝绿 CHART.down(#047857)、零＝灰」。刻意不动：结论条「✓达标/✗未达标」与两条仪表（状态语义，达标非盈利）、流水「动作类型色」（建仓绿/网格蓝/止盈琥珀/止损红/再平衡紫，是分类标识不是盈亏）、报错与参数警告红字、图表系列线色（品牌蓝/灰/琥珀）。分年度表在 v9xx 已是中式（sr≥0?#b91c1c:#047857），本轮无需改。 --><!-- fw2_v922_bt_cn_color：明细表配色从国际惯例（正绿负红）改为中式（盈利/正数＝红 #b91c1c、亏损/负数＝绿 #047857），_oC 与回撤两列同步；「差」列语义随之表述为「红＝策略更好 · 绿＝策略更差」。仅本表，不含结论条状态色与其它表。 --><span id="verBadge" class="ver-badge">v933</span><!-- fw2_v916_bt_watchw：自选池纳入回测的权重口径改为「按只固定占总预算 X%」（drawer 输入 watchW，默认 5，上限 45），同档合计超该档目标 85% 按比例压缩并在摘要回显；「仅自选池」缺档预算不再摊入其余档、直接留现金（摘要写空置比例）；档位改「按基金类型判定」——债/货币→安全垫，QDII/海外→进攻，黄金/商品→对冲，宽基指数（A500/沪深300/中证500/800/上证50/红利/现金流/全指/MSCI/价值/成长）→底仓，行业主题/指数股票→进攻，类型缺失才回退画像 role。附带修 poolProfileE 懒加载：此前只有进过「基金数据」页才会 loadFundProfiles，直接在「策略执行」跑回测时 FUND_PROFILES 恒为 null → 类型/家族全空 → 所有自选标的都掉进进攻档（实测 004945 长信中证500 本该底仓却渲染进攻）。 --><!-- fw2_v913_watch_pool：基金数据新增「自选基金」子模块（排在资产配置之后）——恢复 pool-watch 入口并补「手动加入」（此前只有「筛选基金→加入自选」一条写入通道）；池子同源 watchlist-data.json + fw2_watch_added_v1，剔除 removed 与已持仓；同时把该池接成组合回测的标的池来源：参数抽屉新增「标的池」下拉（杠铃11只默认 / 杠铃+自选池 / 仅自选池），自选池按画像 role 映射杠铃四档（底仓/缓冲→base、进攻/主题→off、海外独立→off、安全垫→bond、对冲→hedge、未归类→off）同档等权，总仓位仍 100%，未知代码阈值回退全局 cfg；摘要行回显实际纳入只数与缺区间日频数据未纳入的代码。 --><!-- fw2_v912_bt_chart_titles：四图各加小标题与一句口径说明（①分标的持仓市值 ②回撤水下 ③月度收益 ④收益归因），替代原先挤在大标题下的长 hint。 --><!-- fw2_v911_chart_resize：mountChart 统一挂 ResizeObserver，容器宽度变化时重绘；修复 v910 四图 canvas 停在 init 宽度导致右侧被裁、标签重叠。 --><!-- fw2_v910_bt_process_charts：持仓过程四图——①分标的月频市值曲线（11 条，图例可点选）②日频距峰值回撤水下面积图 ③月度收益正负双色柱（逐月）④收益归因横条（贡献额＝期末在仓＋累计卖出−累计买入，合计等于总收益金额）。数据由 curve/trades/seriesBy 在渲染层现算。 --><!-- fw2_v909_bt_pos_timeline：回测补「持仓过程视图」——流水加「在仓(该标的)」列（市值 + 浮动盈亏%），新增按标的汇总表（买入/卖出/期末在仓/成本/浮动/已实现 + 合计行），新增过程风险条（年化波动 / 最大回撤与持续天数 / 最差单日 / 最差单月 / 正收益月占比）。全部由 trades·curve·seriesBy 在渲染层现算，未改回测核心。 --><!-- fw2_v908_bt_param_echo：回测摘要行补回显「本金 / 区间 / 备用金笔数与金额」——v907 前只回显止盈止损网格，用户改金额或年份时该行不变，视觉上等同于「参数没生效」，本轮据此排查确认笔数本身随参数真实变化（16/20/7/17 笔四组实测），故修的是回显缺失而非计算。 --><!-- fw2_v907_bt_grid_evidence：备用金动用加「笔数 + 逐笔明细（日期/标的/金额/合计）」、流水 hint 加来源汇总，直接证伪「每次固定 +10000」 --><!-- fw2_v906_bt_fund_unlimited：备用金上限 0＝不限额（默认，旧默认 10000 自动迁移）+ 余额不足一档可用零头买（修零头永久卡池）+ 主表加「累计买入 / 净投入」两行；uperce --><!-- fw2_v905_bt_cmp7_tp_rename：对照表改 7 行（本金/年限/期末/总收益率/年化/回撤/Calmar）+「减配」全页改称「止盈」| fw2_v904_bt_five_layers：组合回测页五层结构落地（结论条吸收仪表 / 对照 5 行+换算句 / 三规则卡含止损明写清仓 / 曲线 markArea 最深回撤+markPoint 减配止损点 / 分年度上提明面 / 流水类型筛选 / 参数区降运行条+抽屉） --><!-- fw2_v881_amt_pct120+amt_srcfix：P0 成交额双序列回补（amt 月频 366 月/amtD 日频 260 日）；当月分位改近120个完整月窗口（原按全序列算会把未完月当月抬到 69.9%，与卡面标注口径不符，实为 23.3%）；资金系数卡口径串改正（无理杏仁源） --><!-- fw2_v831_tab_rename3（套装三直述系，用户 2026-11-06 选定）：宏观周期→宏观环境（顶栏按钮+VIEW_META+数据管理 11 行模块标签+跨页引用文案）、tab 估值全景→估值分位与股债比/市场情绪→资金与杠杆情绪/海外宏观→海外景气与约束/资产价格→大类资产监控；VIEW_META 副标题同步更新（四周期嵌套已删失实）；px 页头与美元黄金卡/传导链/NOTES 内「资产价格监控」引用→「大类资产监控」；磁铁组名（估值全景/情绪温度等）非本页 tab 不在改名范围不动；fw2_v830_fix：v829 误将删除注释写入 body.innerHTML 模板字符串内部；fw2_v829_cycle_del：用户 2026-11-06「周期定位全部删除」——删 v-cycle tab+总览卡（v828 瘦身剩余唯一卡）+_syncNote 口径对拍块+renderMacroToolsHtml+CSS 死规则（v196/v197/v198/v201）；默认落点保持 v-val、旧 region 值(v-cycle/cn/sop/ov)归一 v-val；cycleLayer 四段注释迁「研读驾驶舱」活卡；引擎 cycleEngine+MACRO_PHASE 不动（REGIME-BEAR 风控仍读）。 fw2_v828_cycle_slim：周期定位视图瘦身（用户 2026-11-06 问"周期定位对投资没太大作用能否删"，选 B 瘦身留总览）：先实证两层——引擎层 cycleEngine 输出 MACRO_PHASE 喂持仓页 REGIME-BEAR 熊市 regime 风控行（美林衰退/主动去库/沪深300跌破年线→全组合定投硬降档，fw2_v702 拍板机制）动不得；UI 层 8 卡（总览/层1/层2/信用脉冲/层3/层4/美元黄金大宗死卡[恒隐藏 isDollar]/历史相似阶段回放；行业周期卡 v756 已删）对定投动作边际信息低，用户已连砍 6 刀同类卡（v697v/v700c/v715/v720/v734/v739）。改动：①删层1/层2/信用脉冲/层3/层4/美元黄金大宗死卡/renderReplayCard 调用与函数，只留总览卡（四层磁贴+综合定位+配置倾向/行业风格/纪律联动）；②默认落点 v-cycle→v-val 估值全景；③MC_CYCLE_KEYS 收敛 ['总览']、isDollar 死分支删；④MACRO_NOTES 迁移零丢失——cycleLayer.m→['总览']（四层框架注释挂总览卡）、cycPulse.m→['信用脉冲：社融']（迁 mi 页 mcCredit 活卡）；⑤导航别名表清 9 个死键；⑥引擎与 RB 风控行不动；gen_replay 数据层退役挂账（日频链改动属数据口径范畴须单独拍板）：韩国出口卡阈值四档化——用户 2026-11-06 问"能否删"：实证数据为真（FRED +67.76% 与韩国关税厅官方 +68.7%/芯片出口 +209% 两渠道互证）、97 天滞后＝FRED OECD 口径固有 2-3 月（非抓取坏），真病＝±5% 阈值在 +67.8% 下饱和恒「偏扩张」零增量。改动：①卡/磁铁 gbl/MACRO_NOTES.kor 三处标签同步四档化（≥30% 高热扩张＝周期极端段·警惕拥挤与晚期风险，联动 P 系/G 回落止盈；5%–30% 扩张；<−5% 收缩；中性）；②滞后口径入 note/thr/hint（结构慢信号非择时，asOf 为准）；③gen_kr_export.py 加量级校验硬卡（实测 fredgraph.csv 已返回原始美元，旧"百万美元"注释过时，防单位再漂移 100×）；换快源（韩国海关初值月后 1 日）挂账未做 --><!-- fw2_v766_ver_badge：最新版本号（与 README changelog / verChip 同步）；fw2_v788 起真正实现 #verBadge 元素（v766/v767 仅建 CSS 类未插节点，属宣称≠存在，此处补实） --><!-- fw2_v783_global_through：用户 2026-10-30 反馈「全球的股票没穿透进来」——QDII 底层纳入穿透：①解析器 _gen_jjcc_batch.py 代码正则放开 A股6位/港股4-5位/美股字母ticker（东财QDII表9列，cells[1]=代码、cells[6]=占净值比，列位与A股表一致）；②重刷后当期覆盖 6 A股 + 11 QDII 共 17 只，陈旧剔除 4 只（000834/008971@2023、012761@2024、160422@2019），货基/债基 3 只无明细；③P6 行情联动 symOf 扩展 sh/sz/hk/us（实测美股裸码可用带后缀反而 none_match，港股 5 位补零，美股/港股 f[32] 同为当日涨跌%，价为当地币种、涨跌幅不受汇率影响）；ifzq 近20日 K线同 symOf。 --><!-- fw2_v784_track_tech：用户 2026-10-30 两项反馈——①归属基金按指数聚合（同一指数如纳指100 十几只只显指数一枚 chip「纳指100 ×8 7.6%」，悬浮 title 列全明细；主动基金仍显单基金；track 数据＝东财 F10 jbgk「跟踪标的」，_refresh_held_jjcc.py 幂等富化进 fund-jjcc.json，纳斯达克100 别名纳指100）；②借鉴用户个股信号表字段新增 7 列技术指标：vsMA20/vsMA60/距年线(MA250)/排列(多空震荡=close 与三线同向)/RSI14(Wilder 全史平滑)/MACD(红绿柱+方向箭头，悬浮显柱值)/布林z((c-MA20)/std20)——K线请求 21→260 根自算，近20日列即 20日动量；说明行标注技术指标截至 kdate 与自算口径。 --><!-- fw2_v784b_qdii_full：用户 2026-10-30 反馈「易方达全球成长持仓的都没放进去」——双 bug：①012920 缓存为 v781 旧正则残留（仅 3 只 A股，TSM/NVDA 等 7 只美股被挡，v783 因非 None 跳过重抓、v784 track 富化也未重抓）；②解析器三雷全修：按表分组取当期（东财 QDII 返 3 表=近三期报告，全表混扫靠 top[:10] 截断碰巧保对）、pct 自适应（9列表 cells[6] / 7列表 cells[4]，取行内首个带 % 且 pct∈(0,100] 的 cell）、代码放宽至字母数字混合（285A=KIOXIA 东京码）。重抓后 012920 当期 10 只全球全齐（台积电8.28/英伟达7.05/英特尔5.54/中际旭创4.16/BLOOM4.03/超威3.94/新易盛3.40/LITE3.23/阿斯麦2.76/沪电2.41），与用户东财截图逐只一致；24 只持仓体检=当期 17 + 陈旧 4 + 货基债基 3。全量重抓顺带重建私有缓存（24→61 键=持仓24+筛选池37）。 --><!-- fw2_v784c_crowd_src：用户 2026-10-30 反馈「拥挤度也不对，其实就是买了一个指数，因为限额的原因买多只同指数基金而已」——P1 拥挤度从「归属基金只数」改为「独立持仓来源数」：同指数（track 相同）的多只基金算 1 来源（限额拆买≠拥挤），主动基金（track=None）各算 1 来源；来源 key=track||'主动:'+code。徽章文案 P1拥挤×N → P1拥挤·N源（悬浮列来源明细），磁贴「P1 多基拥挤」→「P1 多源拥挤」，表头「基金数」→「独立来源」（悬浮 title=来源明细+基金总只数），阈值 CROWD_W=3/CROWD_A=4 语义同数值套用来源口径，P6 共振判定自动跟随。 --><!-- fw2_v784d_eq_denom：用户 2026-10-30 拍板——P2 暴露与 P4 覆盖分母从「持仓总市值」改为「股票敞口市值」（剔除货基/债基：jjcc 无 topStocks＝无股票敞口不进分母；陈旧 equity 基金仍有敞口照算分母）。eqMv 在陈旧分类循环内累计，pctPort/coverPct 换分母，磁贴与说明行文案同步；数值影响：分母变小暴露变大（台积电 6.6% 约 8% 上下）。 --><!-- fw2_v784e_tfoot_sum：用户 2026-10-30 要求穿透市值与组合占比做合计——表尾 tfoot 加「Top20 合计」行：穿透市值 Σ求和、组合占比=Σ穿透市值/股票敞口市值（与行级同分母 eqMv，v784d 口径），基金内占比不可加（各行为多基金最高值）标 —，其余 10 列空。空态不渲染合计行。 --><!-- fw2_v784f_action_col：用户 2026-10-30 两项——①表头说明行（dc-note）整行删除不显示；②「数据日期」前加「行动参考」列：按触发的 P 系信号与技术指标给出对应基金操作建议（P2≥5%=检视减仓基金内占比最高基金；P2 3–5%=调仓勿再加；P6 共振急跌=勿恐慌赎回按回撤纪律；RSI≤30=维持定投纪律；RSI≥70 且站上年线=可分批止盈；其余=持有观察；最多取 2 条）。表格 17→18 列（空态 colspan 与 tfoot 同步）。 --><!-- fw2_v784g_through_wrap：用户 2026-10-30 截图——行动参考列覆盖后面列且自身显示不全。根因＝全局 .tb tbody td white-space:nowrap 强制单行 + 长基金名（易方达全球成长精选混合(QDII)人民币A）撑宽。修法＝新增本表专属类 tb-through（仅持仓穿透，不碰全局）：行动参考/归属基金/信号三列放开换行（word-break:break-word，chip 与徽章内部仍 nowrap 保完整）+ 列宽约束（advice max 180px、funds max 200px、th 宽度提示 信号104px/归属15%/行动参考180px）+ 行动参考内长基金名截断（超 9 字 + 省略号，全名进 title 悬浮）。 --><!-- fw2_v785_trend_advice：用户 2026-10-30 截图——趋势跟踪·个基趋势指标表新增「行动参考」列（数据日期后一列）。口径与磁贴/信号引擎同源：TREND-DN＝破MA60＋MACD绿柱→持仓显「该基减速/暂缓补仓」（筛选池标的改「破位·暂不买入」，筛选池不做定投）、TREND-UP＝多头排列(含年线)＋MACD红柱→持仓显「定投可加速一档」（筛选池改「趋势转多·关注」）；辅助提示＝RSI14≥70 超买勿追高 / ≤30 超卖维持定投、布林触上轨短线勿加 / 触下轨维持定投（最多 2 条、去重防超买与上轨重复）；无触发时持仓显「定投照常/持有观察·定投照常」、筛选显「观望」。单元格 white-space:normal 局部放开 tp-tbl 全表 nowrap；未就绪行 colspan 10→11、空态 colspan 11→12 同步。 --><!-- fw2_v785b_etf_date：用户 2026-10-30 问「聪明的钱·我的持仓ETF动向/国家队宽基ETF动向两张表数据是否严重滞后」——实测数据不滞后（etf-shares.json updatedAt=2026-10-29，交易所份额 T+1），但 10 月起采集断档（510300 最后 5 个 gap=7/2/6/7/8 天，此前基本每交易日）而 1日/3日 列按采集点数回退（chgN 按 hist 索引），跨周变化被标成 1日（如 510300「1日」实为 10-21→10-29 跨 8 天 −19.2%），视觉上既像滞后又像暴涨暴跌。本轮按用户要求：两表「规模(亿元)」后各新增「数据日期」列（每只 ETF 自己 hist 最后一个点 r.last.d / r.d，与整体「数据日 upd」可能不同的 ETF 逐行可见）；列宽 colgroup 12 列重排（18/8/8/8/6×5/8/9/11），无数据行 colspan 10→11、历史积累行 9→10 同步。采集断档根因与 1日/3日 列日历日化修正挂账待办。 --><!-- fw2_v787b_dm_sched：数据管理·日轨调度实录修正（用户 2026-10-30「统一排查 21:30 日频自动化」）——实证：WorkBuddy 自动化清单仅 2 条提醒类、Windows 计划任务无数据任务、GitHub 近 30 天提交无 21:30（UTC 13:30）窗口记录 ⇒ 历史宣称「cron_job 14013240823042 每晚自动」已死（CloudStudio 旧环境），页面照抄=虚假承诺。修正：①DMTRACKS 日轨 note 改指 WorkBuddy 自动化「投资工作台·日频数据统一刷新+发布」（本机执行，工作日 21:30，id 0920f58a-1c24-48ba-ba91-4405de199740，含显式失败报告禁静默）；②refresh_all.py SERIAL_AFTER 末位新增 bundle 组（fw2_v787b_bundle_sched）——_make_bundle.py 原为纯手动步骤（无任何调用点），夜刷漏打则 meta-bundle 内嵌 holdings/watchlist/macro/gold 停更，前端 mbGet 首屏读旧值；③34 数据集频次/数据源经逐项核对与 DMCONFIG 一致（v771 审计后无漂移）。 --><!-- fw2_v787_tday_align：用户拍板「1日=真·上一交易日」——聪明的钱两表变化列按A股交易日历回退：①fetch_etf_shares.py 随数据写入交易日历 tdays（东财上证指数日K 320天，失败沿用旧值）；②chgT 按日历回退，目标交易日缺采集点→顺延最近采集点并标≈（悬浮显实际对比日），表头 vs 日期=真交易日（1日=vs 10-29）；③连续申赎按交易日相邻判定，断档即断；④断档口径不触发行动参考，防跨8天变化被误读为单日暴涨。根因结论＝系统无任何采集定时自动化（仅2个提醒类automation），10月断档=手动跑全域链的频次。附带修 _tx 盘后模板字段后移坑：盘后88段 idx70/71 变涨跌幅小值，份额改取 idx70/71/72/73 首个量级合理值（1亿~10万亿份）＋份额×现价兜底市值（实测东财 push2 全程 RemoteDisconnected 走腾讯通道，旧解析器在盘后抓到 -0.00 亿份坏点，已用修复解析器重抓覆盖 10-30 全部17只）。--><!-- fw2_v786_unify：跨体系信号统一并入（用户拍板 B 方案 2026-10-30「全部接入，互斥需提示」）——signalEvalAll 引擎级并入四体系：①聪明的钱 XOV→持仓行（复用决策看板 _xovAct 同口径，019441 并入 016452 不重复评估）②V11 狙击→筛选池行（就绪=act/观望=near，独立体系不并档，环境过热/CAP 超限标 ⚠互斥）③持仓穿透 P 系→持仓行（P1 拥挤/P2 单票暴露/P3 集中度/P4 覆盖率，阈值同 v784c/v784d 口径，P6 需盘中行情仍留穿透页签）④筛选池趋势 S-TREND→筛选行（TREND-DN=破位暂不买入 act / TREND-UP=转多关注 near，货债金豁免）⑤互斥检测 pass：同标的一买一卖双向逐行标注 ⚠互斥（不自动降档，沿 fw2_v671 T7 教训），T3/T8 合并行按分位归族，筛选池 S-TREND 破位 vs S1/S2/S3 买入同触双向标注；缓存指纹加 V11 asOf/SM_XOV generated/jjcc updatedAt。今日待办自动覆盖新增 act/near 行。--><!-- fw2_v782_through_signals：持仓穿透统计表升级为 P 系信号（用户 2026-10-30 反馈「只是统计没信号」）——P1 多基拥挤（单股≥3/≥4 基共持，行级徽章+磁贴三档）、P2 隐性单票暴露（组合占比≥3/5%）、P3 Top5 底层集中度、P4 覆盖市值不足 50% 提示、P5 陈旧过滤（concDate 距今大于 180 天的基金不参与聚合与拥挤度判定，012761@2024/160422@2019 已剔除，结论不再被旧重仓污染）、P6 行情联动（腾讯 qt.gtimg 批量现价当日涨跌 + ifzq kline 21 根算近 20 日，两段渲染：信号表立现、行情到齐重绘；拥挤股单日跌超 5% 触发 P6 共振磁贴）。数据侧 _gen_jjcc_batch.py topStocks 补 c 代码字段 + _refresh_held_jjcc.py 旧缓存缺 c 自动重抓（fund-jjcc.json 已重生成随发布）。诚实边界：穿透为季报近似下界，P 系是结构性慢信号非择时；行情为时效性补充。--><!-- fw2_v781b_fix_scope：修复持仓穿透「加载中」卡死——①fetchJson 是 block10 IIFE 闭包内函数（22144 行），block7 侧 renderHoldThrough 调用即 ReferenceError 被 onclick try/catch 吞掉（v685/686/687 同型），改为函数内自带微型加载器（本地失败落 raw 兜底，失败不置 done 可重试）；②holdRows 同在 block10 闭包内（v697c 实证）window.holdRows=undefined → 静默渲染空表，在本块末尾 window.holdRows=holdRows 导出真源引用（fw2_v781b_hold_rows_export，只增不改）。修后经本地 HTTP+Edge CDP 完整交互链路实测：导航→点页签→Top20 表格渲染（20 行/覆盖 8 只/日期正确）。--><!-- fw2_v781_hold_through：交易信号视图新增「持仓穿透」子页签——穿透持仓基金底层前十大重仓股，按穿透市值聚合 Top20；配套数据集 data/fund-jjcc.json（东财 jjcc，24 只持仓基金仅 8 只 A股 equity 当期有数据，货基/债基/QDII美股正确排除）须随发布（v695 教训）。--><!-- fw2_v780_profiles_dim：修复基金数据页「收益/风险/经理/产品」四列全「—」（复发）——根因＝_gen_profiles.py 导出白名单漏写 scoreDim/scoreDimSub/scoreCov/scoreVeto（score_fund 内存里算好但没落盘），每次刷新重建 fund-profiles.json 即冲掉分；内联 FUND_PROFILES_MIRROR 又源自该 JSON 故同丢。修法＝①补白名单（根治，v697l 的 _backfill_profiles_dim.py 只是事后补）②离线重算回填 53/53 ③_embed_v186_assets.py 重嵌镜像 ④_audit_cross_module.py 新增 I 组断言（缺分即 FAIL）防复发。--> <!-- fw2_v779_collapse_min2：用户 2026-10-29 拍板，资产配置表同本质子组折叠阈值 6→2（TH_COLLAPSE_MIN）——标普500 两只存量（017641/096001）默认隐藏只显小计行，点「展开明细」按钮展示；规则收敛为「有小计行（≥2 只同本质）即默认折叠」。v778 visibility:collapse 已保 rowspan 占位，零布局风险；纯 JS 常量一行改动 --><!-- fw2_v778_rowspan_collapse：用户 2026-10-29 报「资产配置表全坏」（截图安全垫/对冲/合计列错位）。根因＝v773 主题子组默认折叠用 display:none，Chromium 中隐藏行不消耗上方 rowspan 占位 →「进攻/主题」档位格 rowspan=20 只覆盖 9 个可见行，剩余 11 格下渗把安全垫/对冲/合计全部顶错列（潜伏 5 版）。修法＝tr.th-hide 改 visibility:collapse（17086 行 CSS 注释含探针实测）；纯 CSS 一行，DOM/渲染/数据零改动 --><!-- fw2_v777_drop_ops：用户 2026-10-29 拍板，持仓表删「操作」列（研究/改/删 三按钮整列移除）。入口保全：①「研究」点名称 lk-rs 链接仍在（v172c 同口径）；②「改」openHoldingEditor 仍由研究页 #rsAddHold 调用；③「删」无 UI 入口属有意——持仓份额/成本以对账单+每晚 ttskill 刷新为权威，UI 手删易被覆盖；#hdTable 委托监听保留为空转守卫（data-act 无来源，留作日后重挂）；v776 居中说明见 279 行 CSS 注释 --></span><!-- fw2_v775_drop_cols：用户 2026-10-29 拍板，持仓表删「板块/资产类型」两列（存量全为 其他/基金 零信息量）；19→17 列同步：数据行/合计行/空态 colspan；sector 与 assetType 数据字段保留（编辑表单/筛选/研究链接仍在用） --></span><!-- fw2_v774_sw_bigbypass+fw2_v774_ldtimeout+fw2_v774_navhold：买入峰值/最大回撤线上恒「—」根因＝SW 拦截 8MB fund-daily.json 响应体卡死（Playwright 线上 A/B 实证：SW on → r.json() 永不落地、__NAV_SERIES__ 建不起来；SW off → 93 序列秒建；本地不复现）。
+<!-- fw2_v923_bt_page_cn_color：用户 2026-11-13「全页统一」——回测页配色全部改中式，把 v922 只动明细表的做法扩到整页：①摘要卡差值（dcol）②对照细节副表差值（rN）③净值图最深回撤区填充与标签 ④回撤水下面积图 ⑤月度收益正负柱 ⑥收益归因横条 ⑦按标的汇总「浮动/已实现」与流水「在仓浮动」通用色 _pColor ⑧过程风险条 chips（回撤/最差单日/最差单月→绿、正收益月→红）。规则统一为「正数/盈利＝红 CHART.up(#b91c1c)、负数/亏损/回撤＝绿 CHART.down(#047857)、零＝灰」。刻意不动：结论条「✓达标/✗未达标」与两条仪表（状态语义，达标非盈利）、流水「动作类型色」（建仓绿/网格蓝/止盈琥珀/止损红/再平衡紫，是分类标识不是盈亏）、报错与参数警告红字、图表系列线色（品牌蓝/灰/琥珀）。分年度表在 v9xx 已是中式（sr≥0?#b91c1c:#047857），本轮无需改。 --><!-- fw2_v922_bt_cn_color：明细表配色从国际惯例（正绿负红）改为中式（盈利/正数＝红 #b91c1c、亏损/负数＝绿 #047857），_oC 与回撤两列同步；「差」列语义随之表述为「红＝策略更好 · 绿＝策略更差」。仅本表，不含结论条状态色与其它表。 --><span id="verBadge" class="ver-badge">v934</span><!-- fw2_v916_bt_watchw：自选池纳入回测的权重口径改为「按只固定占总预算 X%」（drawer 输入 watchW，默认 5，上限 45），同档合计超该档目标 85% 按比例压缩并在摘要回显；「仅自选池」缺档预算不再摊入其余档、直接留现金（摘要写空置比例）；档位改「按基金类型判定」——债/货币→安全垫，QDII/海外→进攻，黄金/商品→对冲，宽基指数（A500/沪深300/中证500/800/上证50/红利/现金流/全指/MSCI/价值/成长）→底仓，行业主题/指数股票→进攻，类型缺失才回退画像 role。附带修 poolProfileE 懒加载：此前只有进过「基金数据」页才会 loadFundProfiles，直接在「策略执行」跑回测时 FUND_PROFILES 恒为 null → 类型/家族全空 → 所有自选标的都掉进进攻档（实测 004945 长信中证500 本该底仓却渲染进攻）。 --><!-- fw2_v913_watch_pool：基金数据新增「自选基金」子模块（排在资产配置之后）——恢复 pool-watch 入口并补「手动加入」（此前只有「筛选基金→加入自选」一条写入通道）；池子同源 watchlist-data.json + fw2_watch_added_v1，剔除 removed 与已持仓；同时把该池接成组合回测的标的池来源：参数抽屉新增「标的池」下拉（杠铃11只默认 / 杠铃+自选池 / 仅自选池），自选池按画像 role 映射杠铃四档（底仓/缓冲→base、进攻/主题→off、海外独立→off、安全垫→bond、对冲→hedge、未归类→off）同档等权，总仓位仍 100%，未知代码阈值回退全局 cfg；摘要行回显实际纳入只数与缺区间日频数据未纳入的代码。 --><!-- fw2_v912_bt_chart_titles：四图各加小标题与一句口径说明（①分标的持仓市值 ②回撤水下 ③月度收益 ④收益归因），替代原先挤在大标题下的长 hint。 --><!-- fw2_v911_chart_resize：mountChart 统一挂 ResizeObserver，容器宽度变化时重绘；修复 v910 四图 canvas 停在 init 宽度导致右侧被裁、标签重叠。 --><!-- fw2_v910_bt_process_charts：持仓过程四图——①分标的月频市值曲线（11 条，图例可点选）②日频距峰值回撤水下面积图 ③月度收益正负双色柱（逐月）④收益归因横条（贡献额＝期末在仓＋累计卖出−累计买入，合计等于总收益金额）。数据由 curve/trades/seriesBy 在渲染层现算。 --><!-- fw2_v909_bt_pos_timeline：回测补「持仓过程视图」——流水加「在仓(该标的)」列（市值 + 浮动盈亏%），新增按标的汇总表（买入/卖出/期末在仓/成本/浮动/已实现 + 合计行），新增过程风险条（年化波动 / 最大回撤与持续天数 / 最差单日 / 最差单月 / 正收益月占比）。全部由 trades·curve·seriesBy 在渲染层现算，未改回测核心。 --><!-- fw2_v908_bt_param_echo：回测摘要行补回显「本金 / 区间 / 备用金笔数与金额」——v907 前只回显止盈止损网格，用户改金额或年份时该行不变，视觉上等同于「参数没生效」，本轮据此排查确认笔数本身随参数真实变化（16/20/7/17 笔四组实测），故修的是回显缺失而非计算。 --><!-- fw2_v907_bt_grid_evidence：备用金动用加「笔数 + 逐笔明细（日期/标的/金额/合计）」、流水 hint 加来源汇总，直接证伪「每次固定 +10000」 --><!-- fw2_v906_bt_fund_unlimited：备用金上限 0＝不限额（默认，旧默认 10000 自动迁移）+ 余额不足一档可用零头买（修零头永久卡池）+ 主表加「累计买入 / 净投入」两行；uperce --><!-- fw2_v905_bt_cmp7_tp_rename：对照表改 7 行（本金/年限/期末/总收益率/年化/回撤/Calmar）+「减配」全页改称「止盈」| fw2_v904_bt_five_layers：组合回测页五层结构落地（结论条吸收仪表 / 对照 5 行+换算句 / 三规则卡含止损明写清仓 / 曲线 markArea 最深回撤+markPoint 减配止损点 / 分年度上提明面 / 流水类型筛选 / 参数区降运行条+抽屉） --><!-- fw2_v881_amt_pct120+amt_srcfix：P0 成交额双序列回补（amt 月频 366 月/amtD 日频 260 日）；当月分位改近120个完整月窗口（原按全序列算会把未完月当月抬到 69.9%，与卡面标注口径不符，实为 23.3%）；资金系数卡口径串改正（无理杏仁源） --><!-- fw2_v831_tab_rename3（套装三直述系，用户 2026-11-06 选定）：宏观周期→宏观环境（顶栏按钮+VIEW_META+数据管理 11 行模块标签+跨页引用文案）、tab 估值全景→估值分位与股债比/市场情绪→资金与杠杆情绪/海外宏观→海外景气与约束/资产价格→大类资产监控；VIEW_META 副标题同步更新（四周期嵌套已删失实）；px 页头与美元黄金卡/传导链/NOTES 内「资产价格监控」引用→「大类资产监控」；磁铁组名（估值全景/情绪温度等）非本页 tab 不在改名范围不动；fw2_v830_fix：v829 误将删除注释写入 body.innerHTML 模板字符串内部；fw2_v829_cycle_del：用户 2026-11-06「周期定位全部删除」——删 v-cycle tab+总览卡（v828 瘦身剩余唯一卡）+_syncNote 口径对拍块+renderMacroToolsHtml+CSS 死规则（v196/v197/v198/v201）；默认落点保持 v-val、旧 region 值(v-cycle/cn/sop/ov)归一 v-val；cycleLayer 四段注释迁「研读驾驶舱」活卡；引擎 cycleEngine+MACRO_PHASE 不动（REGIME-BEAR 风控仍读）。 fw2_v828_cycle_slim：周期定位视图瘦身（用户 2026-11-06 问"周期定位对投资没太大作用能否删"，选 B 瘦身留总览）：先实证两层——引擎层 cycleEngine 输出 MACRO_PHASE 喂持仓页 REGIME-BEAR 熊市 regime 风控行（美林衰退/主动去库/沪深300跌破年线→全组合定投硬降档，fw2_v702 拍板机制）动不得；UI 层 8 卡（总览/层1/层2/信用脉冲/层3/层4/美元黄金大宗死卡[恒隐藏 isDollar]/历史相似阶段回放；行业周期卡 v756 已删）对定投动作边际信息低，用户已连砍 6 刀同类卡（v697v/v700c/v715/v720/v734/v739）。改动：①删层1/层2/信用脉冲/层3/层4/美元黄金大宗死卡/renderReplayCard 调用与函数，只留总览卡（四层磁贴+综合定位+配置倾向/行业风格/纪律联动）；②默认落点 v-cycle→v-val 估值全景；③MC_CYCLE_KEYS 收敛 ['总览']、isDollar 死分支删；④MACRO_NOTES 迁移零丢失——cycleLayer.m→['总览']（四层框架注释挂总览卡）、cycPulse.m→['信用脉冲：社融']（迁 mi 页 mcCredit 活卡）；⑤导航别名表清 9 个死键；⑥引擎与 RB 风控行不动；gen_replay 数据层退役挂账（日频链改动属数据口径范畴须单独拍板）：韩国出口卡阈值四档化——用户 2026-11-06 问"能否删"：实证数据为真（FRED +67.76% 与韩国关税厅官方 +68.7%/芯片出口 +209% 两渠道互证）、97 天滞后＝FRED OECD 口径固有 2-3 月（非抓取坏），真病＝±5% 阈值在 +67.8% 下饱和恒「偏扩张」零增量。改动：①卡/磁铁 gbl/MACRO_NOTES.kor 三处标签同步四档化（≥30% 高热扩张＝周期极端段·警惕拥挤与晚期风险，联动 P 系/G 回落止盈；5%–30% 扩张；<−5% 收缩；中性）；②滞后口径入 note/thr/hint（结构慢信号非择时，asOf 为准）；③gen_kr_export.py 加量级校验硬卡（实测 fredgraph.csv 已返回原始美元，旧"百万美元"注释过时，防单位再漂移 100×）；换快源（韩国海关初值月后 1 日）挂账未做 --><!-- fw2_v766_ver_badge：最新版本号（与 README changelog / verChip 同步）；fw2_v788 起真正实现 #verBadge 元素（v766/v767 仅建 CSS 类未插节点，属宣称≠存在，此处补实） --><!-- fw2_v783_global_through：用户 2026-10-30 反馈「全球的股票没穿透进来」——QDII 底层纳入穿透：①解析器 _gen_jjcc_batch.py 代码正则放开 A股6位/港股4-5位/美股字母ticker（东财QDII表9列，cells[1]=代码、cells[6]=占净值比，列位与A股表一致）；②重刷后当期覆盖 6 A股 + 11 QDII 共 17 只，陈旧剔除 4 只（000834/008971@2023、012761@2024、160422@2019），货基/债基 3 只无明细；③P6 行情联动 symOf 扩展 sh/sz/hk/us（实测美股裸码可用带后缀反而 none_match，港股 5 位补零，美股/港股 f[32] 同为当日涨跌%，价为当地币种、涨跌幅不受汇率影响）；ifzq 近20日 K线同 symOf。 --><!-- fw2_v784_track_tech：用户 2026-10-30 两项反馈——①归属基金按指数聚合（同一指数如纳指100 十几只只显指数一枚 chip「纳指100 ×8 7.6%」，悬浮 title 列全明细；主动基金仍显单基金；track 数据＝东财 F10 jbgk「跟踪标的」，_refresh_held_jjcc.py 幂等富化进 fund-jjcc.json，纳斯达克100 别名纳指100）；②借鉴用户个股信号表字段新增 7 列技术指标：vsMA20/vsMA60/距年线(MA250)/排列(多空震荡=close 与三线同向)/RSI14(Wilder 全史平滑)/MACD(红绿柱+方向箭头，悬浮显柱值)/布林z((c-MA20)/std20)——K线请求 21→260 根自算，近20日列即 20日动量；说明行标注技术指标截至 kdate 与自算口径。 --><!-- fw2_v784b_qdii_full：用户 2026-10-30 反馈「易方达全球成长持仓的都没放进去」——双 bug：①012920 缓存为 v781 旧正则残留（仅 3 只 A股，TSM/NVDA 等 7 只美股被挡，v783 因非 None 跳过重抓、v784 track 富化也未重抓）；②解析器三雷全修：按表分组取当期（东财 QDII 返 3 表=近三期报告，全表混扫靠 top[:10] 截断碰巧保对）、pct 自适应（9列表 cells[6] / 7列表 cells[4]，取行内首个带 % 且 pct∈(0,100] 的 cell）、代码放宽至字母数字混合（285A=KIOXIA 东京码）。重抓后 012920 当期 10 只全球全齐（台积电8.28/英伟达7.05/英特尔5.54/中际旭创4.16/BLOOM4.03/超威3.94/新易盛3.40/LITE3.23/阿斯麦2.76/沪电2.41），与用户东财截图逐只一致；24 只持仓体检=当期 17 + 陈旧 4 + 货基债基 3。全量重抓顺带重建私有缓存（24→61 键=持仓24+筛选池37）。 --><!-- fw2_v784c_crowd_src：用户 2026-10-30 反馈「拥挤度也不对，其实就是买了一个指数，因为限额的原因买多只同指数基金而已」——P1 拥挤度从「归属基金只数」改为「独立持仓来源数」：同指数（track 相同）的多只基金算 1 来源（限额拆买≠拥挤），主动基金（track=None）各算 1 来源；来源 key=track||'主动:'+code。徽章文案 P1拥挤×N → P1拥挤·N源（悬浮列来源明细），磁贴「P1 多基拥挤」→「P1 多源拥挤」，表头「基金数」→「独立来源」（悬浮 title=来源明细+基金总只数），阈值 CROWD_W=3/CROWD_A=4 语义同数值套用来源口径，P6 共振判定自动跟随。 --><!-- fw2_v784d_eq_denom：用户 2026-10-30 拍板——P2 暴露与 P4 覆盖分母从「持仓总市值」改为「股票敞口市值」（剔除货基/债基：jjcc 无 topStocks＝无股票敞口不进分母；陈旧 equity 基金仍有敞口照算分母）。eqMv 在陈旧分类循环内累计，pctPort/coverPct 换分母，磁贴与说明行文案同步；数值影响：分母变小暴露变大（台积电 6.6% 约 8% 上下）。 --><!-- fw2_v784e_tfoot_sum：用户 2026-10-30 要求穿透市值与组合占比做合计——表尾 tfoot 加「Top20 合计」行：穿透市值 Σ求和、组合占比=Σ穿透市值/股票敞口市值（与行级同分母 eqMv，v784d 口径），基金内占比不可加（各行为多基金最高值）标 —，其余 10 列空。空态不渲染合计行。 --><!-- fw2_v784f_action_col：用户 2026-10-30 两项——①表头说明行（dc-note）整行删除不显示；②「数据日期」前加「行动参考」列：按触发的 P 系信号与技术指标给出对应基金操作建议（P2≥5%=检视减仓基金内占比最高基金；P2 3–5%=调仓勿再加；P6 共振急跌=勿恐慌赎回按回撤纪律；RSI≤30=维持定投纪律；RSI≥70 且站上年线=可分批止盈；其余=持有观察；最多取 2 条）。表格 17→18 列（空态 colspan 与 tfoot 同步）。 --><!-- fw2_v784g_through_wrap：用户 2026-10-30 截图——行动参考列覆盖后面列且自身显示不全。根因＝全局 .tb tbody td white-space:nowrap 强制单行 + 长基金名（易方达全球成长精选混合(QDII)人民币A）撑宽。修法＝新增本表专属类 tb-through（仅持仓穿透，不碰全局）：行动参考/归属基金/信号三列放开换行（word-break:break-word，chip 与徽章内部仍 nowrap 保完整）+ 列宽约束（advice max 180px、funds max 200px、th 宽度提示 信号104px/归属15%/行动参考180px）+ 行动参考内长基金名截断（超 9 字 + 省略号，全名进 title 悬浮）。 --><!-- fw2_v785_trend_advice：用户 2026-10-30 截图——趋势跟踪·个基趋势指标表新增「行动参考」列（数据日期后一列）。口径与磁贴/信号引擎同源：TREND-DN＝破MA60＋MACD绿柱→持仓显「该基减速/暂缓补仓」（筛选池标的改「破位·暂不买入」，筛选池不做定投）、TREND-UP＝多头排列(含年线)＋MACD红柱→持仓显「定投可加速一档」（筛选池改「趋势转多·关注」）；辅助提示＝RSI14≥70 超买勿追高 / ≤30 超卖维持定投、布林触上轨短线勿加 / 触下轨维持定投（最多 2 条、去重防超买与上轨重复）；无触发时持仓显「定投照常/持有观察·定投照常」、筛选显「观望」。单元格 white-space:normal 局部放开 tp-tbl 全表 nowrap；未就绪行 colspan 10→11、空态 colspan 11→12 同步。 --><!-- fw2_v785b_etf_date：用户 2026-10-30 问「聪明的钱·我的持仓ETF动向/国家队宽基ETF动向两张表数据是否严重滞后」——实测数据不滞后（etf-shares.json updatedAt=2026-10-29，交易所份额 T+1），但 10 月起采集断档（510300 最后 5 个 gap=7/2/6/7/8 天，此前基本每交易日）而 1日/3日 列按采集点数回退（chgN 按 hist 索引），跨周变化被标成 1日（如 510300「1日」实为 10-21→10-29 跨 8 天 −19.2%），视觉上既像滞后又像暴涨暴跌。本轮按用户要求：两表「规模(亿元)」后各新增「数据日期」列（每只 ETF 自己 hist 最后一个点 r.last.d / r.d，与整体「数据日 upd」可能不同的 ETF 逐行可见）；列宽 colgroup 12 列重排（18/8/8/8/6×5/8/9/11），无数据行 colspan 10→11、历史积累行 9→10 同步。采集断档根因与 1日/3日 列日历日化修正挂账待办。 --><!-- fw2_v787b_dm_sched：数据管理·日轨调度实录修正（用户 2026-10-30「统一排查 21:30 日频自动化」）——实证：WorkBuddy 自动化清单仅 2 条提醒类、Windows 计划任务无数据任务、GitHub 近 30 天提交无 21:30（UTC 13:30）窗口记录 ⇒ 历史宣称「cron_job 14013240823042 每晚自动」已死（CloudStudio 旧环境），页面照抄=虚假承诺。修正：①DMTRACKS 日轨 note 改指 WorkBuddy 自动化「投资工作台·日频数据统一刷新+发布」（本机执行，工作日 21:30，id 0920f58a-1c24-48ba-ba91-4405de199740，含显式失败报告禁静默）；②refresh_all.py SERIAL_AFTER 末位新增 bundle 组（fw2_v787b_bundle_sched）——_make_bundle.py 原为纯手动步骤（无任何调用点），夜刷漏打则 meta-bundle 内嵌 holdings/watchlist/macro/gold 停更，前端 mbGet 首屏读旧值；③34 数据集频次/数据源经逐项核对与 DMCONFIG 一致（v771 审计后无漂移）。 --><!-- fw2_v787_tday_align：用户拍板「1日=真·上一交易日」——聪明的钱两表变化列按A股交易日历回退：①fetch_etf_shares.py 随数据写入交易日历 tdays（东财上证指数日K 320天，失败沿用旧值）；②chgT 按日历回退，目标交易日缺采集点→顺延最近采集点并标≈（悬浮显实际对比日），表头 vs 日期=真交易日（1日=vs 10-29）；③连续申赎按交易日相邻判定，断档即断；④断档口径不触发行动参考，防跨8天变化被误读为单日暴涨。根因结论＝系统无任何采集定时自动化（仅2个提醒类automation），10月断档=手动跑全域链的频次。附带修 _tx 盘后模板字段后移坑：盘后88段 idx70/71 变涨跌幅小值，份额改取 idx70/71/72/73 首个量级合理值（1亿~10万亿份）＋份额×现价兜底市值（实测东财 push2 全程 RemoteDisconnected 走腾讯通道，旧解析器在盘后抓到 -0.00 亿份坏点，已用修复解析器重抓覆盖 10-30 全部17只）。--><!-- fw2_v786_unify：跨体系信号统一并入（用户拍板 B 方案 2026-10-30「全部接入，互斥需提示」）——signalEvalAll 引擎级并入四体系：①聪明的钱 XOV→持仓行（复用决策看板 _xovAct 同口径，019441 并入 016452 不重复评估）②V11 狙击→筛选池行（就绪=act/观望=near，独立体系不并档，环境过热/CAP 超限标 ⚠互斥）③持仓穿透 P 系→持仓行（P1 拥挤/P2 单票暴露/P3 集中度/P4 覆盖率，阈值同 v784c/v784d 口径，P6 需盘中行情仍留穿透页签）④筛选池趋势 S-TREND→筛选行（TREND-DN=破位暂不买入 act / TREND-UP=转多关注 near，货债金豁免）⑤互斥检测 pass：同标的一买一卖双向逐行标注 ⚠互斥（不自动降档，沿 fw2_v671 T7 教训），T3/T8 合并行按分位归族，筛选池 S-TREND 破位 vs S1/S2/S3 买入同触双向标注；缓存指纹加 V11 asOf/SM_XOV generated/jjcc updatedAt。今日待办自动覆盖新增 act/near 行。--><!-- fw2_v782_through_signals：持仓穿透统计表升级为 P 系信号（用户 2026-10-30 反馈「只是统计没信号」）——P1 多基拥挤（单股≥3/≥4 基共持，行级徽章+磁贴三档）、P2 隐性单票暴露（组合占比≥3/5%）、P3 Top5 底层集中度、P4 覆盖市值不足 50% 提示、P5 陈旧过滤（concDate 距今大于 180 天的基金不参与聚合与拥挤度判定，012761@2024/160422@2019 已剔除，结论不再被旧重仓污染）、P6 行情联动（腾讯 qt.gtimg 批量现价当日涨跌 + ifzq kline 21 根算近 20 日，两段渲染：信号表立现、行情到齐重绘；拥挤股单日跌超 5% 触发 P6 共振磁贴）。数据侧 _gen_jjcc_batch.py topStocks 补 c 代码字段 + _refresh_held_jjcc.py 旧缓存缺 c 自动重抓（fund-jjcc.json 已重生成随发布）。诚实边界：穿透为季报近似下界，P 系是结构性慢信号非择时；行情为时效性补充。--><!-- fw2_v781b_fix_scope：修复持仓穿透「加载中」卡死——①fetchJson 是 block10 IIFE 闭包内函数（22144 行），block7 侧 renderHoldThrough 调用即 ReferenceError 被 onclick try/catch 吞掉（v685/686/687 同型），改为函数内自带微型加载器（本地失败落 raw 兜底，失败不置 done 可重试）；②holdRows 同在 block10 闭包内（v697c 实证）window.holdRows=undefined → 静默渲染空表，在本块末尾 window.holdRows=holdRows 导出真源引用（fw2_v781b_hold_rows_export，只增不改）。修后经本地 HTTP+Edge CDP 完整交互链路实测：导航→点页签→Top20 表格渲染（20 行/覆盖 8 只/日期正确）。--><!-- fw2_v781_hold_through：交易信号视图新增「持仓穿透」子页签——穿透持仓基金底层前十大重仓股，按穿透市值聚合 Top20；配套数据集 data/fund-jjcc.json（东财 jjcc，24 只持仓基金仅 8 只 A股 equity 当期有数据，货基/债基/QDII美股正确排除）须随发布（v695 教训）。--><!-- fw2_v780_profiles_dim：修复基金数据页「收益/风险/经理/产品」四列全「—」（复发）——根因＝_gen_profiles.py 导出白名单漏写 scoreDim/scoreDimSub/scoreCov/scoreVeto（score_fund 内存里算好但没落盘），每次刷新重建 fund-profiles.json 即冲掉分；内联 FUND_PROFILES_MIRROR 又源自该 JSON 故同丢。修法＝①补白名单（根治，v697l 的 _backfill_profiles_dim.py 只是事后补）②离线重算回填 53/53 ③_embed_v186_assets.py 重嵌镜像 ④_audit_cross_module.py 新增 I 组断言（缺分即 FAIL）防复发。--> <!-- fw2_v779_collapse_min2：用户 2026-10-29 拍板，资产配置表同本质子组折叠阈值 6→2（TH_COLLAPSE_MIN）——标普500 两只存量（017641/096001）默认隐藏只显小计行，点「展开明细」按钮展示；规则收敛为「有小计行（≥2 只同本质）即默认折叠」。v778 visibility:collapse 已保 rowspan 占位，零布局风险；纯 JS 常量一行改动 --><!-- fw2_v778_rowspan_collapse：用户 2026-10-29 报「资产配置表全坏」（截图安全垫/对冲/合计列错位）。根因＝v773 主题子组默认折叠用 display:none，Chromium 中隐藏行不消耗上方 rowspan 占位 →「进攻/主题」档位格 rowspan=20 只覆盖 9 个可见行，剩余 11 格下渗把安全垫/对冲/合计全部顶错列（潜伏 5 版）。修法＝tr.th-hide 改 visibility:collapse（17086 行 CSS 注释含探针实测）；纯 CSS 一行，DOM/渲染/数据零改动 --><!-- fw2_v777_drop_ops：用户 2026-10-29 拍板，持仓表删「操作」列（研究/改/删 三按钮整列移除）。入口保全：①「研究」点名称 lk-rs 链接仍在（v172c 同口径）；②「改」openHoldingEditor 仍由研究页 #rsAddHold 调用；③「删」无 UI 入口属有意——持仓份额/成本以对账单+每晚 ttskill 刷新为权威，UI 手删易被覆盖；#hdTable 委托监听保留为空转守卫（data-act 无来源，留作日后重挂）；v776 居中说明见 279 行 CSS 注释 --></span><!-- fw2_v775_drop_cols：用户 2026-10-29 拍板，持仓表删「板块/资产类型」两列（存量全为 其他/基金 零信息量）；19→17 列同步：数据行/合计行/空态 colspan；sector 与 assetType 数据字段保留（编辑表单/筛选/研究链接仍在用） --></span><!-- fw2_v774_sw_bigbypass+fw2_v774_ldtimeout+fw2_v774_navhold：买入峰值/最大回撤线上恒「—」根因＝SW 拦截 8MB fund-daily.json 响应体卡死（Playwright 线上 A/B 实证：SW on → r.json() 永不落地、__NAV_SERIES__ 建不起来；SW off → 93 序列秒建；本地不复现）。
 修复＝sw.js v3 对 fund-daily.json 不拦截 + 大于2MB 响应不再写缓存 + CACHE v2→v3；前端两处 loader 加 json() 45s 超时（超时顺延下一源）。终判根因＝8MB fund-daily 在中国网络 20-35s+ 下载（content-length 为 gzip 1MB、body 完整），SW A/B 结论被沙箱代理慢速混淆；真修＝分层加载 fw2_v774_navhold：data/nav-hold.json（持仓 24 只迷你序列 1.6MB/gzip 170KB，gen_nav_hold.py 随 _make_bundle 重生成）先行秒级建序列，全量后台覆盖。 --><!-- fw2_v773_theme_collapse：资产配置表主题子组≥6行默认折叠只显小计（纳指100 11只存量），小计行「展开明细」按钮（allocThemeToggle 全局函数，免疫重渲染销毁监听）+ fw2_v773_widebase_off：022676 富国A500增强按宽基指数主题归「进攻/主题」档位（用户拍板 2026-10-29）；fw2_v773_spx_off：标普500存量（017641/096001）同归「进攻/主题」，计划外组清空 --></div>
         <div data-page-node-id="29etwgT4DhXWt50INGwSBu" class="b2"><!--pnid:abcwT00RaFu94EKr3WjV2J-->Personal Finance Desk</div>
       </div>
@@ -20691,7 +20691,7 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
     /* v913 fw2_v913_bt_pool：新增 pool 字段＝回测标的池来源。默认 'barbell' 完全等价 v912 行为（零回归）；
        'barbell_watch' = 杠铃 11 只 + 自选池（同档位内按 w 一起归一）；'watch' = 仅自选池（同档等权） */
     /* v916 fw2_v916_bt_watchw：watchW＝自选池每只固定占「总预算」的百分比（默认 5），用户拍板 C「指定固定权重」 */
-    var d = { budget: 50000, start: '2024-02-07', end: '2026-09-28', gridStep: 3, gridAmt: 500, tp1: 10, tp2: 20, sl: 8, drip: false, dripAmt: 500, dripDays: 5, investMode: 'lump', baseRatio: 30, investPeriods: 0, rebal: true, band: 25, mode: 'fixed', gridExt: false, gridFund: 0, tgtAnn: 10, ddBudget: 20, rf: 1.59, perFund: true, pool: 'barbell', watchW: 5, /* v918 fw2_v918_bt_custom：自选组合回测——用户从三池自由勾选基金，等权满仓（默认）或固定百分比 */ customCodes: [], customWMode: 'eq', /* v924：逐只参数 {code:{w,bd,sl,gs,on}}，用户可编辑；空＝沿用内置预设/抽屉全局 */ pf: {} };
+    var d = { budget: 50000, start: '2024-02-07', end: '2026-09-28', gridStep: 3, gridAmt: 500, tp1: 10, tp2: 20, sl: 8, drip: false, dripAmt: 500, dripDays: 5, investMode: 'lump', baseRatio: 30, investPeriods: 0, rebal: true, band: 25, mode: 'fixed', gridExt: false, gridFund: 0, tgtAnn: 10, ddBudget: 20, rf: 1.59, perFund: true, pool: 'barbell', watchW: 5, /* v918 fw2_v918_bt_custom：自选组合回测——用户从三池自由勾选基金，等权满仓（默认）或固定百分比 */ customCodes: [], customWMode: 'eq', /* v924：逐只参数 {code:{w,bd,sl,gs,on}}，用户可编辑；空＝沿用内置预设/抽屉全局 */ pf: {}, /* v934 fw2_v934_sig_year：年线信号联动开关（默认关＝v933 口径逐位不变） */ sigYear: false, sigMa: 200 };
     try { var raw = localStorage.getItem(BT_KEY); if (raw) { var c = JSON.parse(raw); for (var k in d) if (c[k] != null) d[k] = c[k]; } } catch (e) {}
     /* v919 fw2_v919_drop_real：真实持仓口径（台账买入驱动）已下线（用户 2026-11-13 要求删除）。
        mode 字段保留但值恒 fixed；旧配置里残留的 mode='real' 必须在合并后就地压回，
@@ -20702,6 +20702,9 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
     if (d.investMode !== 'drip' && d.investMode !== 'base') d.investMode = 'lump';
     if (!(+d.baseRatio >= 0) || +d.baseRatio > 100) d.baseRatio = 30;
     if (!(+d.investPeriods > 0)) d.investPeriods = 0;
+    /* v934：sigYear 只认布尔真 / 字符串 'true'，其余一律关——避免手工改库把 'false' 判成开 */
+    d.sigYear = (d.sigYear === true || d.sigYear === 'true');
+    if (!(+d.sigMa > 0)) d.sigMa = 200;
     /* fw2_v898_bt_ddbudget_migrate：旧出厂默认 35% 迁移为用户实际可忍 20%。
        只迁移「恰好等于旧默认 35」的存量配置（＝从未被主动改过），页面上给一行提示，输入框可随时改回。 */
     /* fw2_v903_bt_band_migrate：band 语义变了——v903 前是「档位占比偏离提示」带宽（默认 5pct），
@@ -21255,18 +21258,39 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
   function btRun(cfg, data) {
     var T = btTargets(cfg.budget, cfg);
     var seriesBy = {}, allDays = {}, start = cfg.start, end = cfg.end;
+    /* v934 fw2_v934_sig_year：C 组第一段「年线破位减半」——净值跌破 MA200 卖一半、跌破 MA20 清仓，
+       信号当日收盘后判定、次一交易日以当日净值成交（T+1）。关闭时整条链路不进入，v933 结果逐位不变。 */
+    var _SG = { on: !!cfg.sigYear, maL: (+cfg.sigMa > 0 ? Math.round(+cfg.sigMa) : 200), maS: 20, cut: 0.5, warm: 260 };
     /* v919 fw2_v919_drop_real：v351 的「真实持仓口径（台账买入驱动）」整体下线（用户 2026-11-13 要求删除）。
        历史实现：读 localStorage LEDGER_KEY（fw2_trade_ledger_v1）的买入流水，用区间内首笔买入的日期 + 金额建仓，
        台账未覆盖的标的回退按档位目标（混合口径，名实不符，2026-11-13 已向用户说明并被要求删除）。
        现统一按 btTargets 的档位目标金额在标的序列起点一笔建仓。台账文件仍由「交易台账」页维护，只是回测不再消费。 */
     T.funds.forEach(function (f) {
-      var rows = (data.rowsByCode[f.code] || []).filter(function (r) { return r.d >= start && r.d <= end; });
+      var _rowsAll = (data.rowsByCode[f.code] || []).filter(function (r) { return r.d <= end; });
+      var rows = _rowsAll.filter(function (r) { return r.d >= start; });
       if (!rows.length) return;
       var fund = data.funds[f.code] || {};
-      seriesBy[f.code] = { name: fund.name || f.name || f.code, pile: f.pile, w: f.w || 0, targetAmt: T.per[f.code] || 0, dataFrom: fund.dataFrom || rows[0].d, seq: btSeries(rows, fund), lastNav: 0 };
+      /* v934：年线需要 200 日均线的预热段——取区间起点之前最多 260 行参与序列与均线计算，
+         但 allDays 仍只收区间内日期（回测区间、净值曲线、收益分母一律不变）。 */
+      var _seqRows = (_SG.on ? _rowsAll.filter(function (r) { return r.d < start; }).slice(-_SG.warm) : []).concat(rows);
+      seriesBy[f.code] = { name: fund.name || f.name || f.code, pile: f.pile, w: f.w || 0, targetAmt: T.per[f.code] || 0, dataFrom: fund.dataFrom || rows[0].d, seq: btSeries(_seqRows, fund), lastNav: 0, ma: null };
       rows.forEach(function (r) { allDays[r.d] = 1; });
     });
     var days = Object.keys(allDays).sort();
+    /* v934：逐标的预计算 MA200 / MA20（前缀和，O(n)；39 个滚动窗口 × 80 只也只多几毫秒） */
+    if (_SG.on) Object.keys(seriesBy).forEach(function (_c) {
+      var _s = seriesBy[_c], _ks = Object.keys(_s.seq).sort(), _sum = [0], _n = 0, _mp = {};
+      for (var _j = 0; _j < _ks.length; _j++) {
+        var _row = _s.seq[_ks[_j]];
+        if (!_row || _row.nav == null) { _mp[_ks[_j]] = null; continue; }
+        _n++; _sum.push(_sum[_n - 1] + _row.nav);
+        _mp[_ks[_j]] = {
+          l: (_n >= _SG.maL) ? ((_sum[_n] - _sum[_n - _SG.maL]) / _SG.maL) : null,
+          s: (_n >= _SG.maS) ? ((_sum[_n] - _sum[_n - _SG.maS]) / _SG.maS) : null
+        };
+      }
+      _s.ma = _mp;
+    });
     /* v932 fw2_v932_bt_invest：投入方式参数（一次性 / 每月定投 / 底仓+定投）
        期数 N：优先 cfg.investPeriods（滚动窗口按持有年限 ×12 显式传入），否则按区间月数自动算。
        每月定投＝该月第一个「非周末」交易日投一期（货基在周末也有计提行，必须剔周六周日）。
@@ -21322,7 +21346,7 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
     T.funds.forEach(function (f) {
       if (!seriesBy[f.code]) return;
       /* v932：invested＝该标的累计投入（分批时逐期累加）、dripDone＝已投期数、lastMo＝最后一次投出的月份 */
-      P.pos[f.code] = { qty: 0, cost: 0, lastBuyNav: null, sellLvl: 0, entered: false, invested: 0, dripDone: 0, lastMo: '' };
+      P.pos[f.code] = { qty: 0, cost: 0, lastBuyNav: null, sellLvl: 0, entered: false, invested: 0, dripDone: 0, lastMo: '', maSt: 1, maPend: null, sigOff: false };
       B.pos[f.code] = { qty: 0, cost: 0, entered: false, invested: 0, dripDone: 0, lastMo: '' };
     });
     /* fw2_v902_bt_perfund：按标的分设止盈/止损/网格步长。
@@ -21423,6 +21447,16 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
         var s = seriesBy[code], row = s.seq[d];
         if (row && row.nav != null) s.lastNav = row.nav;
       });
+      /* v934 fw2_v934_sig_year：T+1 成交——昨天收盘算出的信号，今天按当日净值执行 */
+      if (_SG.on) Object.keys(P.pos).forEach(function (code) {
+        var pp = P.pos[code];
+        if (!pp.maPend) return;
+        var sq = seriesBy[code], rq = sq.seq[d];
+        if (!rq || rq.nav == null) return;
+        if (pp.maPend === 'exit') { if (pp.qty > 0) trySell(code, pp.qty * rq.nav, d, '年线清仓', P); pp.sigOff = true; }
+        else if (pp.maPend === 'half' && pp.qty > 0) { trySell(code, pp.qty * _SG.cut * rq.nav, d, '年线减半', P); }
+        pp.maPend = null;
+      });
       var futureRes = 0;
       Object.keys(seriesBy).forEach(function (c2) { if (seriesBy[c2].dataFrom > d) futureRes += seriesBy[c2].targetAmt; });
       Object.keys(P.pos).forEach(function (code) {
@@ -21434,6 +21468,8 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
         if (!row0 || row0.nav == null) return;
         if (!pp.entered && d >= s.dataFrom) {
           pp.entered = true;
+          /* v934：入场日按当天年线所处位置记初始状态——否则「入场即破线」会被当成刚跌破，买完次日就清仓 */
+          if (_SG.on) { var _ma0 = s.ma ? s.ma[d] : null; pp.maSt = (!_ma0 || _ma0.l == null) ? 1 : (row0.nav >= _ma0.l ? 1 : ((_ma0.s != null && row0.nav >= _ma0.s) ? 0 : -1)); }
           /* v919：一次性口径建仓额固定取档位目标；v932 分批口径首期＝目标/期数（底仓模式＝目标×底仓比例） */
           var amt = s.targetAmt;
           var first = (_IV.mode === 'lump') ? amt : (_IV.mode === 'drip' ? amt / _perOf(s.dataFrom) : amt * _IV.base);
@@ -21450,11 +21486,13 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
           }
         } else if (pp.entered && _IV.mode !== 'lump' && _mfByCode[code] && _mfByCode[code][d.slice(0, 7)] === d && pp.lastMo !== d.slice(0, 7)) {
           pp.lastMo = d.slice(0, 7);
+          /* v934：年线破线期间策略侧暂停补投（不接刀）；对照片区照常，保持「同节奏、不同规则」可比 */
+          var _sigMute = _SG.on && (pp.sigOff || pp.maSt <= 0);
           var pc = _perOf(s.dataFrom);
           var rest = s.targetAmt * (_IV.mode === 'base' ? (1 - _IV.base) : 1);
           var perN = (_IV.mode === 'base') ? Math.max(1, pc - 1) : pc;
           var perAmt = rest / perN;
-          if (pp.dripDone < pc && pp.invested < s.targetAmt - 1e-9) {
+          if (!_sigMute && pp.dripDone < pc && pp.invested < s.targetAmt - 1e-9) {
             var a2 = Math.min(perAmt, Math.max(0, s.targetAmt - pp.invested), Math.max(0, P.cash - futureRes));
             if (a2 > 0) { tryBuy(code, a2, d, '定投', P); pp.invested += a2; }
             pp.dripDone++;
@@ -21475,7 +21513,7 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
         /* v925：每档金额逐只化（pfg.ga），没填落回抽屉全局 —— 3 万多的仓位配 ¥500 一档本来就没意义 */
         var _ga = (pfg.ga != null && +pfg.ga > 0) ? +pfg.ga : +cfg.gridAmt;
         var gridOk = (P.gridFund === null) || (P.gridFund >= _ga) || (P.cash - futureRes >= _ga);
-        if (row.nav <= pp.lastBuyNav * (1 - pfg.gs / 100) && gridOk) {
+        if (row.nav <= pp.lastBuyNav * (1 - pfg.gs / 100) && gridOk && (!_SG.on || pp.maSt > 0)) {
           /* v906：不限额（gridFund=null）按整档买；设了上限时余额不足一档就用余额买——
              否则那点零头会永久卡在池里（每档至少买 gridAmt，余额永远不够），页面一直显示「备用金未用尽」却再也不动。 */
           var _gAmt;
@@ -21495,6 +21533,16 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
         if (pf.sl > 0 && gain <= -pf.sl / 100) { trySell(code, pp.qty * row.nav, d, '止损', P); pp.sellLvl = 0; }
         else if (pf.tp1 > 0 && gain >= pf.tp1 / 100 && pp.sellLvl < 1) { trySell(code, pp.qty * 0.25 * row.nav, d, '止盈1', P); pp.sellLvl = 1; }
         else if (pf.tp2 > 0 && gain >= pf.tp2 / 100 && pp.sellLvl < 2) { trySell(code, pp.qty * 0.25 * row.nav, d, '止盈2', P); pp.sellLvl = 2; }
+      });
+      /* v934：年线状态判定（收盘后算，T+1 执行）。跌破 MA20 直接清仓、不再先减半；回升不自动补回。 */
+      if (_SG.on) Object.keys(P.pos).forEach(function (code) {
+        var pp = P.pos[code];
+        if (!pp.entered || pp.sigOff) return;
+        var s3 = seriesBy[code], r3 = s3.seq[d], ma3 = s3.ma ? s3.ma[d] : null;
+        if (!r3 || r3.nav == null || !ma3 || ma3.l == null) return;
+        var st = (r3.nav >= ma3.l) ? 1 : ((ma3.s != null && r3.nav >= ma3.s) ? 0 : -1);
+        if (st < pp.maSt) pp.maPend = (st === -1) ? 'exit' : 'half';
+        pp.maSt = st;
       });
       if (cfg.rebal && qEnds[d]) btRebalance(P, d, futureRes);
       var pv = P.cash, bv = B.cash;
@@ -21541,7 +21589,11 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
       hold: { end: endB, ret: (_bRatio - 1) * 100, retBase: (endB / cfg.budget - 1) * 100, ann: annRet(_bRatio, calDays), mdd: maxDD(_vH), vol: annVol(_vH), trades: 0 },
       days: n, calDays: calDays, start: days[0], end: days[n - 1],
       invested: _invTot, unused: _unused, dripMode: _IV.mode, dripPeriods: _IV.periods, baseRatio: _IV.base, dripPeriodsFixed: _IV.explicit > 0,
-      gridUsed: addCap, gridFundLeft: P.gridFund || 0, gridUnlimited: P.gridFund === null, gridBuys: P.gridBuys || 0, gridAdds: P.gridAdds || [], buyAmt: _buyA, sellAmt: _sellA, capBase: capBase
+      gridUsed: addCap, gridFundLeft: P.gridFund || 0, gridUnlimited: P.gridFund === null, gridBuys: P.gridBuys || 0, gridAdds: P.gridAdds || [], buyAmt: _buyA, sellAmt: _sellA, capBase: capBase,
+      /* v934：年线信号口径与触发笔数（渲染端只读，不重算） */
+      sigOn: _SG.on, sigMa: _SG.maL, sigMaS: _SG.maS,
+      sigHalf: (function () { var _h = 0; P.trades.forEach(function (t) { if (t.type === '年线减半') _h++; }); return _h; })(),
+      sigExit: (function () { var _e = 0; P.trades.forEach(function (t) { if (t.type === '年线清仓') _e++; }); return _e; })()
     };
     stats.strat.calmar = stats.strat.mdd < 0 ? stats.strat.ann / Math.abs(stats.strat.mdd) : 0;
     stats.hold.calmar = stats.hold.mdd < 0 ? stats.hold.ann / Math.abs(stats.hold.mdd) : 0;
@@ -21648,6 +21700,9 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
         var annH = (Math.pow(1 + retH / 100, Math.min(365.25 / hDays1, 3)) - 1) * 100;
         var mddS = _dd(vS), mddH = _dd(vH), volS = _vol(vS), volH = _vol(vH);
         var why = [];
+        /* v934：年线信号两档单独列出——否则信号减半/清仓的标的在归因列显示「买入后未操作」，笔数与实际流水对不上 */
+        if (kinds['年线清仓']) why.push('年线清仓×' + kinds['年线清仓']);
+        if (kinds['年线减半']) why.push('年线减半×' + kinds['年线减半']);
         if (kinds['止损']) why.push('止损清仓');
         var tpN = (kinds['止盈1'] || 0) + (kinds['止盈2'] || 0);
         if (tpN) why.push('止盈减仓×' + tpN);
@@ -21845,6 +21900,9 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
       + sumLine('口径 B · 缺口同档重归一', roll.bSum)
       + sumLine('口径 C · 长历史代表池', roll.cSum)
       + '<div style="font-size:11px;color:#71717A;line-height:1.65;margin-top:5px">B：只用「该进场时点已存在」的杠铃标的，同档内按原权重重归一（档位目标 40 / 35 / 10 / 15 不变；整档 0 只则该档留现金，见「覆盖」列）。C：001015 / 160422 / 511260 / 000307 / 000912，四档齐、2019 起 5 只恒定。两版都按「预算内」跑（不启用备用金），避免额外资金让各窗口分母不同。滚动窗口固定按杠铃 11 只口径，与你上方当前所选组合无关；货基档（000912）在引擎里按恒 1 净值处理、不产生收益，属回测既有口径。'
+      + ((S.sigOn)
+          ? '<b>当前已开「年线信号联动」</b>，以上 39 个窗口同样按 T+1 执行「破 MA200 减半 / 破 MA20 清仓」（破线期间不补仓、清仓后不回补），与未开信号时<b>不可直接横向比较</b>；实测同配置下 C 口径胜率 40.0%→60.0%、B 口径跑赢买入持有 37.5%→29.2%。'
+          : '')
       + ((S.dripMode && S.dripMode !== 'lump')
           ? '<b>当前投入方式＝' + (S.dripMode === 'drip' ? '每月定投' : '底仓+定投') + '，以上 39 个窗口全部按「期末累计投入」计收益</b>（每窗期数＝持有年数 ×12，未投现金不进分母），与一次性口径的矩阵不可直接横向比较。'
           : '') + '</div>'
@@ -21909,6 +21967,12 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
       + '<div style="font-size:11px;color:#71717A;margin:0 0 6px">建仓口径：<b>固定预算</b>——按各档位目标金额建仓，即「5 万从零建仓」。</div>'
       + sel('investMode', '投入方式', [{ v: 'lump', t: '一次性（入场日全额）' }, { v: 'drip', t: '每月定投' }, { v: 'base', t: '底仓 + 定投' }])
       + inp('baseRatio', '底仓比例(%)', cfg.baseRatio, 62) + inp('investPeriods', '分摊期数(0=自动)', cfg.investPeriods, 62)
+      /* v934 fw2_v934_sig_year：年线信号联动开关（C 组第一段，默认关＝v933 口径） */
+      + '<div style="margin:4px 0 2px">' + chk('sigYear', '年线信号联动（净值破 MA200 减半 / 破 MA20 清仓，T+1 成交）', cfg.sigYear) + '</div>'
+      + '<div style="font-size:11px;color:#71717A;margin:0 0 8px;line-height:1.7">'
+      + '开启后：<b>破线期间暂停网格补仓与定投补投</b>（不接刀），<b>清仓后不再回补</b>；成交价取信号次一交易日的净值（T+1）。'
+      + '年线用<b>净值滚动 200 日均线</b>（不是 MA250），判据与页面「年线信号」同源；区间前 260 行日频数据参与均线预热（回测区间本身不变）。'
+      + '关闭＝纯规则口径，与 v933 完全一致。</div>'
       + '<div style="font-size:11px;color:#71717A;margin:2px 0 8px;line-height:1.7">'
       + '<b>每月定投</b>＝每只标的在「它自己当月第一个有净值的交易日」各投一期（各标的成立日不同，不会因货基节假日计提行而整月跳过），期数默认＝区间月数（滚动窗口按持有年数 ×12 显式传入：1 年 12 期 / 2 年 24 期 / 3 年 36 期）；'
       + '<b>底仓+定投</b>＝入场日先按底仓比例建仓，余下按月摊完。'
@@ -21961,6 +22025,10 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
       c.baseRatio = (!isNaN(_brE) && _brE >= 0 && _brE <= 100) ? _brE : 30;
       var _ipE = parseFloat((document.getElementById('btIn_investPeriods') || {}).value);
       c.investPeriods = (!isNaN(_ipE) && _ipE > 0) ? Math.round(_ipE) : 0;
+      /* v934：年线信号联动（默认关） */
+      var _syE = document.getElementById('btIn_sigYear');
+      c.sigYear = !!(_syE && _syE.checked);
+      c.sigMa = 200;
       var pmEl = document.getElementById('btIn_pool');
       if (pmEl && pmEl.value) c.pool = pmEl.value;
       /* v918 fw2_v918_bt_custom：自选组合的勾选清单与权重方式（面板写内存，这里并进 cfg 一起落 localStorage） */
@@ -22047,6 +22115,7 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
               ? '（已投口径；全预算口径 <b>' + fmtN(Math.abs(S.strat.mddFull) / (ddCap || 20) * 100) + '%</b>，最深回撤 ' + fmtN(S.strat.mddFull) + '%）'
               : '')
           + '</span></div>'
+          + (S.sigOn ? '<div style="font-size:12px;color:#3F3F46;margin-top:4px;line-height:1.6"><b>年线信号（C1）</b>：MA' + S.sigMa + ' 破线减半 / MA' + S.sigMaS + ' 破线清仓 · 触发 <b>' + (S.sigHalf || 0) + '</b> 笔减半 / <b>' + (S.sigExit || 0) + '</b> 笔清仓；破线期间网格与定投暂停、清仓后不回补，T+1 成交。</div>' : '')
           + '<div style="font-size:12px;color:#52525B;margin-top:6px;line-height:1.6">' + diag + '</div></div>';
         var gbar = function (label, valTxt, pct, color, note) {
           var w = Math.max(0, Math.min(100, pct));
@@ -22217,7 +22286,7 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
               : ' ＝ 本金 ¥' + fmtN(_btBg) + (S.gridUsed > 0 ? ' ＋ 备用金 ¥' + fmtN(S.gridUsed) : ''))
           + '；卖出 ¥' + fmtN(_sn.sell) + ' ＝ 全部卖出流水 ¥' + fmtN(_sellA) + '）；比率与风险列＝组合级真实值（组合回撤取自总资产曲线，逐只回撤相加无意义）。<br>'
           + '⑥ 年化＝(1＋总收益率)^(1/持有年数)−1，指数封顶 3 次方（与组合级同规则，避免短区间外推）。<br>'
-          + '⑦ 差异归因＝该标的实际触发的操作类型（止损清仓／止盈减仓／网格加仓／再平衡）；策略与对照的差主要由这些操作、备用金加仓的时点与金额、以及对照只按档位目标金额一笔买入这三件事造成。'
+          + '⑦ 差异归因＝该标的实际触发的操作类型（止损清仓／止盈减仓／网格加仓／再平衡／年线减半／年线清仓）；策略与对照的差主要由这些操作、备用金加仓的时点与金额、以及对照只按档位目标金额一笔买入这三件事造成。'
           + '</div>';
         var curve = res.curve;
         var step = Math.ceil(curve.length / 500);
@@ -22669,6 +22738,7 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
                 + (S.dripPeriodsFixed ? '' : '；晚成立的标的按其成立后剩余月数分摊、投满档位目标')
                 + '）'
               : ' · 投入方式 一次性')
+          + (cfg.sigYear ? ' · 年线信号 开（MA' + (S.sigMa || 200) + '：触发 减半 ' + (S.sigHalf || 0) + ' 笔 / 清仓 ' + (S.sigExit || 0) + ' 笔，T+1）' : ' · 年线信号 关')
           + (cfg.pool === 'custom' && String(cfg.customWMode) === 'manual'
               ? ' · 阈值逐只设定（面板逐只可改）'
               : (' · 止盈减仓 ±' + _num(cfg.band) + '% · 止损 ' + _num(cfg.sl) + '% · 网格 ' + _num(cfg.gridStep) + '%'))
