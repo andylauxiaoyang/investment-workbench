@@ -9178,8 +9178,8 @@ const DMCONFIG = [
   ['signals_backtest','交易信号样本外回测','交易信号','日','日轨','signals-hist.json × fund-daily 净值 × index-daily 沪深300（离线·防前视：数据日后首个净值日买入，持有20个净值日；pending 不计入）','gen_backtest.py（refresh_all fund-daily 组）','—',3,5],
   ['fund_jjcc','持仓穿透·前十大重仓股','交易信号','季·披露后','手动轨','天天基金 F10 公开接口前十大重仓股（24 只持仓基金，货基/债基/QDII 按口径排除；000834 源站自身停更）；季度披露，最后更新＝报告期 concDate 非刷新日，跨季滞后属正常','gen_fund_jjcc.py（v881d 重建，refresh_all SERIAL_AFTER jjcc 组）','—',null,null],
   /* v938：pe-hist / index-long 进了发布清单但两端 DMCONFIG 未登记 → _audit_dm_v845 报 unregistered、gate 拒发（v937 亦同坑）。手工轨，不判滞后。 */
-  ['pe_hist','指数10年分位序列','策略执行','低频·手工','手工轨（未挂链）','多源合成（理杏仁/中证/东财，gen_pe_hist.py）· 7 指数 10 年日频 points[date,value,pct]；pe_ttm=估值分位、price=动量分位','gen_pe_hist.py（手工跑，未挂 refresh_all）','—',null,null],
-  ['index_long','指数20年日线','策略执行','低频·手工','手工轨（未挂链）','指数日线 20 年（gen_index_long.py）· 9 指数 000510/000300/000015/000922/399673/NDX/N225/000985/SPX','gen_index_long.py（手工跑，未挂 refresh_all）','—',null,null],
+  ['pe_hist','指数10年分位序列','策略执行','低频','手工轨（未挂链）','多源合成（理杏仁/中证/东财）· 7 指数 10 年日频；pe_ttm＝估值分位、price＝动量分位','gen_pe_hist.py（手工）','—',null,null],
+  ['index_long','指数20年日线','策略执行','低频','手工轨（未挂链）','指数日线 20 年 · 9 只（沪深300/A500/红利/创业板50/日经/纳指等）','gen_index_long.py（手工）','—',null,null],
 ];
 /* v694 fw2_v694_dm_instr_fix：数据管理模块信息对齐 + 指令全书修订（用户 2026-10-24「数据管理是否最新/所有指令是否有用/全域是否覆盖所有信息」三问审计）。
    ① DMCONFIG 24→29 项：补 chain_extra/signals_hist/v11_signal/v11_signal_hist/v11_backtest（_gen_data_mgmt.py 早有、页面漏显）；
