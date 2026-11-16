@@ -17,6 +17,13 @@
 
 ## 待接手
 
+### 2026-11-16 · v950 修正 016452 / 020712 成本记错（69.8 归因）· **已发布 commit `2646371fdbf8`**
+- 改了什么：`edit_work/index.html`（徽标 **v950**，4,619,397 B，tag `fw2_v950_cost_2fix`）+ `edit_work/holdings-data.json`——用户「继续」。016452 `cost` 140.00→**60.96**（`unitCost` 5.2711→2.2943）、020712 `cost` 190.03→**200.99**（`unitCost` 1.3127→1.3884），两份文件同改并写 `costSrc`；说明行硬编码「约 69.8 / 约 1.2」改为语义化「舍入差，已逐只核对到 ±0.x 级」。**零公式改动**。
+- 新增资产：归因脚本 `D:\Temp\_attribute_6979.py`（逐只偏差排序）、`_pre_fix_cap.py`（CAP 阈值与修后 Σ 预演）、`_fix_cost_v950.py`（json + seed 对象级精确替换）、`_apply_v950.py`（徽标/注释/文案）、`_verify_v950_api2.py`（API 分块回读核验，绕过 raw CDN）、`_diff_online_local.py`；备份 `D:\Temp\index_v949_pre_v950.html`、`holdings_v949_pre_v950.json`；截图 `D:\Temp\v950_kpi.png`、`v950_hold.png`。
+- 未验证的假设：**「016452 / 020712 的账户隐含成本（mv − cp）就是真实已确认成本」**——依据是生成脚本 L397-398 的口径注释与 012920 流水法闭合（该只差 0.00），但这两只本身没有逐笔流水重放核对，属「按账户口径反推」而非「流水独立证实」；若要 100% 证死，需拉 016452（2026-03 卖出 13,426.72）与 020712 的全部 `trade_detail` 重放。
+- 下一步：①线上强刷 `https://andylauxiaoyang.github.io/investment-workbench/caifu/index.html?t=v950live` 确认徽标 v950、未实现 **+¥1,344.80**、在盘成本 **¥19,117.39**、累计 **+¥2,224.76**；②若要根治复发，改 `edit_work/refresh_holdings_ttskill.py`：对有 `pendingBuy` 的标的加「|cost −(marketValue−constantProfit)| > 5 元 时按账户值校准并写 `costSrc`」，改完必须跑 `refresh_holdings_ttskill.py --dry-run` 比对 24 只 cost 不误伤。
+- 别碰：其余 21 只 0.68 的舍入（不要再逐只凑）；`constantProfit` 的收益率分母含在途（平台口径，别自作主张去掉）；`holdProfitRate` 优先取账户值的逻辑（T1/T4/T5 依赖它）。
+
 ### 2026-11-16 · v949 累计总盈亏改走账户权威累计（实盘流水闭合）· **已发布 commit `164b581f20e8`**
 - 改了什么：`edit_work/index.html`（徽标 **v949**，4,646,563 B，tag `fw2_v949_pnl_acct`）——用户「按照你建议改」。①新增 `calcAcctHoldCount()`；②`pnlSum` 改 `acctHpN > 0 ? acctHp : (realizedNet + unreal)`，累计卡从此等于账户 Σ`holdProfit`（含已实现）；③累计卡副标按口径切「账户累计收益 · 含已实现」/「已实现 + 未实现 · 估算」；④说明行把 68.63 拆成「成本口径差约 69.8 − 已实现口径差约 1.2」。其余五卡与全部 `calc*` 未动。
 - 新增资产：**实盘核实脚本** `D:\Temp\_audit_012920.py`（拉 `ACCOUNT_HOLDING` 字段 + `TRADE_QUERY` 全量流水并逐笔 `trade_detail`）、`_audit_012920_calc.py`（流水法闭合计算）、`_audit_realized_all.py`（全账户卖出核实）、`_probe_trades.py`（确认 `trade_list` 是否自带金额）；明细落盘 `D:\Temp\_audit_012920_trades.json`、`_all_trades_v948.json`；备份 `D:\Temp\index_v948_pre_v949.html`；截图 `D:\Temp\v949_kpi.png`。
