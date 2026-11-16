@@ -17,6 +17,13 @@
 
 ## 待接手
 
+### 2026-11-16 · v943 资产配置主表置顶 · **已发布 commit `56ec72415949`**
+- 改了什么：`edit_work/index.html`（徽标 **v943**，4,593,441 B，tag `fw2_v943_alloc_first`）——**只调拼装顺序，卡内逻辑零改动**。`renderStratAlloc()` 里 `var html = renderStratTodo() + brakeCardHtml() + peCardHtml();` 改为 `var html = renderStratTodo();`，主表 `st-card` 提到最前；末尾 `html += renderStratPlan();` 之后再补 `html += brakeCardHtml() + peCardHtml();`（两张诊断卡下移）。新顺序：**待办条（一行，仍置顶）→ 资产配置主表（口径行 + 11 行明细 + 合计）→ 策略参数存档卡 → 单只刹车卡 → 分位卡**。
+- 新增资产：截图 `D:\Temp\v943_top2.png`（顶部：待办条 → 资产配置表 + 口径行）、`v943_after_table.png`（表尾：合计行 → 存档条 → 刹车卡 11 行）、`v943_alloc_zoom.png`（zoom 0.55 全表）；备份 `D:\Temp\index_v943_pre_pub.html`（4,593,441 B，回滚首选）。
+- 未验证的假设：①**已实证**——合计行改前（线上 v942）与改后（本地 v943）逐位一致：`合计 | 100.00% | 50,000 | 100.00% | 3,335 | 6,670 | 20,724 | +14,054 | 41.45% | +29,276 | +58.6%`；主表 14 列 14 可见行几何断言 `misaligned=0`；块顺序实测 y/h＝待办 308/64、主表 380/1795、存档 2185/64、刹车卡 2248/691、分位卡 2952/711。②**待核实**——只在本机 538×643 视口与 zoom 0.55 下核过；用户 2048 宽屏的列宽表现未直接截屏（窄视口下 colgroup 百分比会挤压折行，属 v942 既有行为）。③**未做**——「月度复盘」tab 的卡片顺序未动（本轮只动资产配置页）。
+- 下一步：①线上核验——raw 回读 `caifu/index.html` 应 BYTE_MATCH（4,593,441 B）+ 锚点命中 `verBadge v943` / `fw2_v943_alloc_first` / `html += brakeCardHtml() + peCardHtml();`；线上 `caifu/` 真渲染资产配置页应见「待办条 → 资产配置表」在最上，合计行数字同上表；②文档单推（README + INBOX），复用 `edit_work/_push_docs_v942.py` 改 message 即可；③若要回滚：`Copy-Item -LiteralPath "D:\Temp\index_v943_pre_pub.html" -Destination "edit_work\index.html" -Force`。
+- 别碰：①`brakeCardHtml()` 与 `peCardHtml()` 的**定义**与会话状态不要动（本轮只动调用位置）；②`el.innerHTML` 之后那段 `.na` 打标 → 折叠态恢复的**顺序不能插新代码**（`_audit_alloc_color_v873.py` A13 卡「`classList.add('na')` 距 `el.innerHTML` < 900 字符」）；③主表 14 列 colgroup 与 `.strat-note` 口径行文案别顺手改（本轮只搬位置）；④若有人想把待办条也挪到表后——先问用户，v895「待办条置顶」是先前拍板。
+
 ### 2026-11-16 · v942 破线冻结留痕 · **已发布 commit `32262da7c1bb`**
 - 改了什么：`edit_work/index.html`（徽标 **v942**，4,591,013 B，tag `fw2_v942_bk_freeze_log`）——只加计量与展示、**不改交易行为**。①引擎判定期 freeze 分支：`if (!pp.bkFrozen) { P.bkFreezeN = (P.bkFreezeN||0)+1; pp.bkFzFrom = d; pp.bkFzDays = 0; }` → `pp.bkFrozen = true`；②解冻块（重站连 3 日）命中时 push `{code,name,from,to,days,open:false}` 到 `P.bkFreezeLog` 并清 `bkFzFrom/bkFzDays`，**未命中时**在 `else` 分支 `pp.bkFzDays++` 与 `P.bkFreezeDays++`（＝「每个处于冻结的交易日」计 1）；③`curve` 构建完成后，对区间末仍冻结的标的补一段（`to`＝区间最后一日、`open:true`）；④`res.stats` 新增 `bkFreezeN` / `bkFreezeDays` / `bkFreezeFund` / `bkFreezeLog`；⑤结论条 freeze 分支「（破线冻结 N 次 · K 只标的 · 合计 M 只·日，不产生清仓成交）」、运行条「减半 X 笔 / 冻结 N 次（M 只·日）」、触发明细表头「· 冻结 N 次 / M 只·日」；⑥明细下新增可折叠「破线冻结记录（N 次 · K 只 · 合计 M 只·日）」表（标的 / 冻结起 / 解冻日 / 天数 / 结束方式）+ 脚注；⑦exit 口径的共用句从「停加与破线冻结期间…」改为「停加与清仓锁定期…」。
 - 新增资产：截图 `D:\Temp\v942_concl2.png`（结论条 36 次/10 只/1003 只·日）、`v942_fzlog2.png`（冻结记录表终版）、`v942_fzlog.png`（改版前对照）；备份 `D:\Temp\index_v942_pre_pub.html`（4,591,013 B）；脚本 `D:\Temp\upd_readme_v942.py`。
