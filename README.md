@@ -21,6 +21,7 @@ updated: 2026-11-16
   - **自检**：`check_js` 20 块 **ALL OK**、`check_html_comments` **218 处 0 隐患**（v942 的 217 + 本轮 1）、`verify_strategy_sync` SYNC=PASS、`verify_manifest` MANIFEST=PASS 36（1 项已知告警）、`_audit_dm_v845` FAIL=False、体积 **4,593,441 B**；真渲染已核 `D:\Temp\v943_top2.png`（顶部：待办条 → 资产配置表 + 口径行）、`v943_after_table.png`（表尾：合计行 → 策略参数存档 → 单只刹车卡 11 行）、`v943_alloc_zoom.png`（zoom 0.55 全表列对齐）。
   - **已知边界**：窄视口（容器 479px）下主表按 colgroup 百分比分列会挤压折行（如「A500 指数」折三行），属 v942 就有的既有行为，与线上同窄视口表现一致；宽屏（用户截图 2048）正常。
   - **备份**：`D:\Temp\index_v943_pre_pub.html`（4,593,441 B，回滚首选）。
+  - **闸门脚本同步（重要）**：`edit_work/_audit_plan_merge_v895.py` 的 **B02** 断言原本写死 `'var html = renderStratTodo() + '`，本次合法重排（改为 `var html = renderStratTodo();` + 诊断卡后置）被它判 FAIL 并**阻断发布**（首次发布在 gate 阶段 `!!! v895 定投执行融合结构审计 FAIL，拒绝发布 !!!`）。改法：B02 改成正则 `var html = renderStratTodo\(\)`（仍要求待办条由 `renderStratAlloc` 拼进同一 html 串，只放开「紧跟 +」的写法），并新增 **B02b**（要求 `html += renderStratPlan();` 之后确实接 `html += brakeCardHtml() + peCardHtml();`，防有人改顺序却没拼回去）；审计由 35 项变 36 项，`PASS=36 FAIL=0`，`gate.py --check` 复跑 **GATE=PASS**。
   - **发布**：commit `56ec72415949`（页面只改 `caifu/index.html`）。
 
 - **v942 破线冻结留痕（2026-11-16，已发布）**：补齐 INBOX 里记的唯一缺口——v941 只改了行为没留痕，页面上只剩「减半 N 笔」，看不出破线冻结**发生几次、冻了哪几只、多少天、多久解冻**。
