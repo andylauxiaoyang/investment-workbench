@@ -17,6 +17,12 @@
 
 ## 待接手
 
+### 2026-11-17 · v951 回测页「按标的明细」提到刹车卡上面 · **已发布**
+- 改了什么：`edit_work/index.html`（徽标 **v951**，4,620,759 B，tag `fw2_v951_bt_brake_below_cmp`）——纯显示顺序调整、零计算改动。①面板层（运行条之后）删除 `brakeCardHtml({ctx:'bt'})`，原位留说明注释；②结果区 `out.innerHTML` 改成 `… + cmpHtml + brakeCardHtml({ctx:'bt'}) + gridListHtml + ruleHtml + …`，即 结论条 → **策略 vs 对照明细表 → 单只刹车卡** → 备用金明细 → 当前生效的规则 → 四图 → 明细；③`if (!res)` 无有效数据分支同样追加该卡（静态阈值表不因回测失败消失）；④卡内副标题「勾选下面的刹车开关」改为「勾选上方参数抽屉里的刹车开关」；⑤徽标 v951 + 长注释。
+- 新增资产：补丁脚本 `D:\Temp\_apply_v951.py`（5 处精确替换，命中数不符即 abort）；备份 `D:\Temp\index_v950_pre_v951.html`（回滚首选）；截图 `D:\Temp\v951_bt_order_local.png`。
+- 未验证的假设：①刹车卡改为「结果渲染时才出现」——**首屏在「正在跑组合模拟…」那一瞬没有这张卡**，本轮只在跑完后断言过，未为「未运行/跑挂了」另加占位（`if (!res)` 分支已兜住）；②自选回测是用临时勾入 012920 + 016452 两只验的（`top=1208/1724`），未验「自选池为空以外的极端组合」（0 只时无结果区，属既有行为）；③窄视口（538×643）下刹车卡 6 列仍会折行（与改前同一窄视口一致，属既有行为）。
+- 下一步 + 别碰：接手跑 `check_js.py`（期望 20 块 ALL OK）与 `check_html_comments.py`（期望 228 处 0 隐患）；线上强刷 `?t=v951live` 进「策略执行 → 持仓回测 / 自选回测」核 明细表在刹车卡之上、副标题写「上方参数抽屉」。**别碰**：①`brakeCardHtml` 只接受 `ctx`，阈值只在 `BRAKE_T` 一处，别把数字抄进卡里；②别在面板层再插第二份（会双份）；③资产配置页的 `brakeCardHtml() + peCardHtml()` 卡序是另一套，改回测页不要顺手动它。
+
 ### 2026-11-16 · v950 修正 016452 / 020712 成本记错（69.8 归因）· **已发布 commit `2646371fdbf8`**
 - 改了什么：`edit_work/index.html`（徽标 **v950**，4,619,397 B，tag `fw2_v950_cost_2fix`）+ `edit_work/holdings-data.json`——用户「继续」。016452 `cost` 140.00→**60.96**（`unitCost` 5.2711→2.2943）、020712 `cost` 190.03→**200.99**（`unitCost` 1.3127→1.3884），两份文件同改并写 `costSrc`；说明行硬编码「约 69.8 / 约 1.2」改为语义化「舍入差，已逐只核对到 ±0.x 级」。**零公式改动**。
 - 新增资产：归因脚本 `D:\Temp\_attribute_6979.py`（逐只偏差排序）、`_pre_fix_cap.py`（CAP 阈值与修后 Σ 预演）、`_fix_cost_v950.py`（json + seed 对象级精确替换）、`_apply_v950.py`（徽标/注释/文案）、`_verify_v950_api2.py`（API 分块回读核验，绕过 raw CDN）、`_diff_online_local.py`；备份 `D:\Temp\index_v949_pre_v950.html`、`holdings_v949_pre_v950.json`；截图 `D:\Temp\v950_kpi.png`、`v950_hold.png`。
