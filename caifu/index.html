@@ -20904,7 +20904,7 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
     /* v913 fw2_v913_bt_pool：新增 pool 字段＝回测标的池来源。默认 'barbell' 完全等价 v912 行为（零回归）；
        'barbell_watch' = 杠铃 11 只 + 自选池（同档位内按 w 一起归一）；'watch' = 仅自选池（同档等权） */
     /* v916 fw2_v916_bt_watchw：watchW＝自选池每只固定占「总预算」的百分比（默认 5），用户拍板 C「指定固定权重」 */
-    var d = { budget: 0, /* v973 fw2_v973_start3y：默认 3 年区间从 2024-02-07 起改为 2023-07-03 起（原起点距牛3 拐点 2024-02-02 仅 3 个交易日＝纯牛段，选择偏差；新起点从熊B 段中段起，含 2023-10 熊转牛与牛3，Calmar 1.99 vs 原 2.20 更保守但更贴近典型 3 年） */ start: '2023-07-03', end: '2026-07-03', gridStep: 3, gridAmt: 500, tp1: 10, tp2: 20, sl: 8, drip: false, dripAmt: 500, dripDays: 5, investMode: 'lump', baseRatio: 30, investPeriods: 0, rebal: true, band: 25, mode: 'fixed', gridExt: false, gridFund: 0, tgtAnn: 10, ddBudget: 20, rf: 1.59, perFund: true, pool: 'barbell', watchW: 5, /* v918 fw2_v918_bt_custom：自选组合回测——用户从三池自由勾选基金，等权满仓（默认）或固定百分比 */ customCodes: [], customWMode: 'eq', /* v924：逐只参数 {code:{w,bd,sl,gs,on}}，用户可编辑；空＝沿用内置预设/抽屉全局 */ pf: {}, /* v934 fw2_v934_sig_year：年线信号联动开关（默认关＝v933 口径逐位不变） */ sigYear: false, sigMa: 200, /* v938 fw2_v938_sig_brake：策略 v2.0 执行层——单只峰值刹车（达 0.3×mdd 停加、0.6×mdd 减半）+ 破 MA200 清仓 + 重站 MA200 连 3 日复位。默认关＝v937 口径逐位不变 */ sigBrake: false, /* v940 fw2_v940_bk_exit_n：清仓判据——bkExitN＝需连续多少个交易日收在 MA200 下方才清仓（默认 2＝v940 起的策略口径，1＝v939 旧口径「单日破线」）；bkExitOff＝本次回测干脆不清仓（只保留停加/减半）。两者都只在勾了刹车时才有意义。 */ bkExitN: 2, bkExitOff: false, /* v941 fw2_v941_bk_factorial：停加关 / 减半关（默认 false＝策略口径，与 v940 逐位一致） */ bkStopOff: false, bkHalfOff: false, /* v941 fw2_v941b_bk_cool：清仓后冷却交易日数（0＝不冷却，策略口径） */ bkCoolN: 0, /* v941c fw2_v941c_bk_freeze：破 MA200 达标后的动作——'freeze'＝只冻结买入不卖出（策略口径，2026-11-16 用户拍板 A），'exit'＝清仓卖出（v940 旧口径，实验用） */ bkExitAct: 'freeze', /* v953 fw2_v953_discipline：批 1 五条纪律的实验开关（全部默认关＝v952 口径逐位不变；每条单独开关，便于一条一条量边际贡献）——tpPeak/T2 峰值回撤止盈、addDD/T7 回撤补仓、postSellHalf/T16 卖出后破位减半、capOn/T9 组合投入封顶、rebalSlot/T10 四档 5pp 再平衡 */ tpPeak: false, tpPeakArm: 20, tpPeakDD: 8, addDD: true, addDD1: 20, addDD2: 30, addAmt: 20, /* v975 fw2_v975_t16_off：T16 卖出后破位减半 2026-11-18 用户「关」——v974 六段实测：牛A −1.45pct（关 10.35% → 开 8.90%，回撤只 +0.06pp）、熊A/熊B/熊尾/牛B 全未触发、熊转牛 −0.07pct；原「两区间同向改善」只成立于 2024 起的窗口。 */ postSellHalf: false, postSellLo: 10, postSellWin: 90, rebalSlot: false, slotBand: 5, feeBps: 0, /* v977 fw2_v977_trend_regime：W3/S4 趋势确认 条件化——trendBearOnly=true 时只在「熊市判定」成立时才启用该 gate（牛市不拦买入）。trendBearMode='ma200'（市场代理=001015 华夏沪深300指数增强A，净值 < 自身 MA200）或 'ma60'（更快翻转）。默认关＝口径与 v976 逐位一致。 */ trendBearOnly: false, trendBearMode: 'ma200', trendGate: false, stGate: false, v1Gate: false, /* v971 fw2_v971_v11_p10：2026-11-18 三项实验（补测成本 / 二维确认 / 回撤拆解）后重定——V11 参数池 10%·赔率 2.5·单注 25%·最多 4 仓；并修复「买入日仓位按前一日净值估值」导致的假回撤（见 fw2_v971_nav_today）。
+    var d = { budget: 0, /* v973 fw2_v973_start3y：默认 3 年区间从 2024-02-07 起改为 2023-07-03 起（原起点距牛3 拐点 2024-02-02 仅 3 个交易日＝纯牛段，选择偏差；新起点从熊B 段中段起，含 2023-10 熊转牛与牛3，Calmar 1.99 vs 原 2.20 更保守但更贴近典型 3 年） */ start: '2023-07-03', end: '2026-07-03', gridStep: 3, gridAmt: 500, tp1: 10, tp2: 20, sl: 8, drip: false, dripAmt: 500, dripDays: 5, investMode: 'lump', baseRatio: 30, investPeriods: 0, rebal: true, band: 25, mode: 'fixed', gridExt: false, gridFund: 0, tgtAnn: 10, ddBudget: 20, rf: 1.59, perFund: true, pool: 'barbell', watchW: 5, /* v918 fw2_v918_bt_custom：自选组合回测——用户从三池自由勾选基金，等权满仓（默认）或固定百分比 */ customCodes: [], customWMode: 'eq', /* v924：逐只参数 {code:{w,bd,sl,gs,on}}，用户可编辑；空＝沿用内置预设/抽屉全局 */ pf: {}, /* v934 fw2_v934_sig_year：年线信号联动开关（默认关＝v933 口径逐位不变） */ sigYear: false, sigMa: 200, /* v938 fw2_v938_sig_brake：策略 v2.0 执行层——单只峰值刹车（达 0.3×mdd 停加、0.6×mdd 减半）+ 破 MA200 清仓 + 重站 MA200 连 3 日复位。默认关＝v937 口径逐位不变 */ sigBrake: false, /* v940 fw2_v940_bk_exit_n：清仓判据——bkExitN＝需连续多少个交易日收在 MA200 下方才清仓（默认 2＝v940 起的策略口径，1＝v939 旧口径「单日破线」）；bkExitOff＝本次回测干脆不清仓（只保留停加/减半）。两者都只在勾了刹车时才有意义。 */ bkExitN: 2, bkExitOff: false, /* v941 fw2_v941_bk_factorial：停加关 / 减半关（默认 false＝策略口径，与 v940 逐位一致） */ bkStopOff: false, bkHalfOff: false, /* v941 fw2_v941b_bk_cool：清仓后冷却交易日数（0＝不冷却，策略口径） */ bkCoolN: 0, /* v941c fw2_v941c_bk_freeze：破 MA200 达标后的动作——'freeze'＝只冻结买入不卖出（策略口径，2026-11-16 用户拍板 A），'exit'＝清仓卖出（v940 旧口径，实验用） */ bkExitAct: 'freeze', /* v953 fw2_v953_discipline：批 1 五条纪律的实验开关（全部默认关＝v952 口径逐位不变；每条单独开关，便于一条一条量边际贡献）——tpPeak/T2 峰值回撤止盈、addDD/T7 回撤补仓、postSellHalf/T16 卖出后破位减半、capOn/T9 组合投入封顶、rebalSlot/T10 四档 5pp 再平衡 */ tpPeak: false, tpPeakArm: 20, tpPeakDD: 8, addDD: true, addDD1: 20, addDD2: 30, addAmt: 20, /* v975 fw2_v975_t16_off：T16 卖出后破位减半 2026-11-18 用户「关」——v974 六段实测：牛A −1.45pct（关 10.35% → 开 8.90%，回撤只 +0.06pp）、熊A/熊B/熊尾/牛B 全未触发、熊转牛 −0.07pct；原「两区间同向改善」只成立于 2024 起的窗口。 */ postSellHalf: false, postSellLo: 10, postSellWin: 90, rebalSlot: false, slotBand: 5, feeBps: 0, /* v977 fw2_v977_trend_regime：W3/S4 趋势确认 条件化——trendBearOnly=true 时只在「熊市判定」成立时才启用该 gate（牛市不拦买入）。trendBearMode='ma200'（市场代理=001015 华夏沪深300指数增强A，净值 < 自身 MA200）或 'ma60'（更快翻转）。默认关＝口径与 v976 逐位一致。 */ trendBearOnly: false, trendBearMode: 'ma200', trendBearScope: 'all', trendGate: false, stGate: false, v1Gate: false, /* v971 fw2_v971_v11_p10：2026-11-18 三项实验（补测成本 / 二维确认 / 回撤拆解）后重定——V11 参数池 10%·赔率 2.5·单注 25%·最多 4 仓；并修复「买入日仓位按前一日净值估值」导致的假回撤（见 fw2_v971_nav_today）。
        v972 fw2_v972_v11_p5：2026-11-18 用户「按照你建议继续」——区间代表性三层矩阵（docs/SIGNAL_INVENTORY.md 第 14 节）显示池 10% 只在牛市段占优，6 个三年滚动窗口里池 5% 的 Calmar 胜 5/6、最坏回撤更低 5/6，故默认回落到池 5%。 */ v11Gate: true, v11Pct: 5, v11Odd: 2.5, v11Bet: 25, v11Max: 4, v11Den: 'atr', v11Once: false };
     try { var raw = localStorage.getItem(BT_KEY); if (raw) { var c = JSON.parse(raw); for (var k in d) if (c[k] != null) d[k] = c[k]; } } catch (e) {}
     /* fw2_v954_t16_on：2026-11-17 用户「开」——T16 卖出后破位减半升为策略默认开。
@@ -20982,7 +20982,8 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
     if (!(+d.sigMa > 0)) d.sigMa = 200;
     /* v953：五条纪律开关归一——布尔只认 true / 'true'；阈值给合法区间，非法回落出厂值（不改行为，只防手改库写坏） */
     ['tpPeak', 'addDD', 'postSellHalf', 'rebalSlot', 'trendBearOnly'].forEach(function (k) { d[k] = (d[k] === true || d[k] === 'true'); });
-    d.trendBearMode = (d.trendBearMode === 'ma60') ? 'ma60' : 'ma200';
+    d.trendBearMode = (d.trendBearMode === 'ma60') ? 'ma60' : ((d.trendBearMode === 'own') ? 'own' : 'ma200');
+    d.trendBearScope = (d.trendBearScope === 'addon') ? 'addon' : 'all';
     d.tpPeakArm = (function (v) { var n = +v; return (n > 0 && n <= 500) ? n : 20; })(d.tpPeakArm);
     d.tpPeakDD = (function (v) { var n = +v; return (n > 0 && n <= 100) ? n : 8; })(d.tpPeakDD);
     d.addDD1 = (function (v) { var n = +v; return (n > 0 && n <= 90) ? n : 20; })(d.addDD1);
@@ -21675,14 +21676,16 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
        cfg.trendGate（W3/S4）：必须净值同时站上 MA20、MA60；
        cfg.stGate（S-TREND）：只要「净值破 MA60 且 MACD 柱为绿」就暂不买入，破位解除即可补建。
        两个开关都关 → 恒 true，口径与 v962 逐位一致。 */
-    function _gateOK(_s, _d, _nav) {
+    function _gateOK(_s, _d, _nav, _isAddon) {
       var _m = _s.ma ? _s.ma[_d] : null;
-      if (cfg.trendGate) {
-        /* v977：trendBearOnly 时先问「今天是不是熊市」——牛市直接放行（不拦买入），熊市才执行右侧确认 */
+      if (cfg.trendGate && !(cfg.trendBearOnly && cfg.trendBearScope === 'addon' && !_isAddon)) {
+        /* v977：trendBearOnly 时先问「今天是不是熊市」——牛市直接放行（不拦买入），熊市才执行右侧确认。
+           trendBearMode：ma200/ma60＝市场代理（001015）破线；own＝逐标的自身破 MA200（年线）。
+           trendBearScope：all＝拦所有买入；addon＝只拦定投/网格/T7 补仓（首次建仓不受影响）。 */
         var _bear = true;
         if (cfg.trendBearOnly) {
-          _bear = (_regBear[_d] === true);
-          if (_regBear[_d] == null) _bear = !(_m && _m.l != null && _nav >= _m.l);
+          if (cfg.trendBearMode === 'own') _bear = !!(_m && _m.l != null && _nav < _m.l);
+          else { _bear = (_regBear[_d] === true); if (_regBear[_d] == null) _bear = !(_m && _m.l != null && _nav >= _m.l); }
         }
         if (_bear) {
           if (!(_m && _m.s != null && _m.m60 != null && _nav >= _m.s && _nav >= _m.m60)) return false;
@@ -22102,7 +22105,7 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
           var perAmt = rest / perN;
           if (!_sigMute && pp.dripDone < pc && pp.invested < s.targetAmt - 1e-9) {
             var a2 = Math.min(perAmt, Math.max(0, s.targetAmt - pp.invested), Math.max(0, P.cash - futureRes));
-            if (a2 > 0 && _gateOK(s, d, (s.seq[d] || {}).nav)) { tryBuy(code, a2, d, '定投', P); pp.invested += a2; }
+            if (a2 > 0 && _gateOK(s, d, (s.seq[d] || {}).nav, true)) { tryBuy(code, a2, d, '定投', P); pp.invested += a2; }
             pp.dripDone++;
           }
           if (bp.entered && bp.dripDone < pc && bp.invested < s.targetAmt - 1e-9) {
@@ -22128,7 +22131,7 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
           if (P.gridFund === null) _gAmt = _ga;
           else if (+P.gridFund > 0 && +P.gridFund < _ga) _gAmt = +P.gridFund;
           else _gAmt = Math.min(_ga, Math.max(P.gridFund, P.cash - futureRes));
-          if (_gateOK(s, d, row.nav)) tryBuy(code, _gAmt, d, '网格', P, 'grid');
+          if (_gateOK(s, d, row.nav, true)) tryBuy(code, _gAmt, d, '网格', P, 'grid');
         }
       });
       Object.keys(P.pos).forEach(function (code) {
@@ -22194,7 +22197,7 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
         var lvl = (1 - row.nav / pk >= +cfg.addDD2 / 100) ? 2 : ((1 - row.nav / pk >= +cfg.addDD1 / 100) ? 1 : 0);
         if (lvl > pp.t7Lvl) {
           var amt7 = Math.min(s.targetAmt * (+cfg.addAmt / 100), Math.max(0, P.cash - futureRes));
-          if (amt7 > 0 && _gateOK(s, d, row.nav) && _v1OK(s, d, row.nav) && tryBuy(code, amt7, d, 'T7 回撤补仓', P)) pp.t7Lvl = lvl;
+          if (amt7 > 0 && _gateOK(s, d, row.nav, true) && _v1OK(s, d, row.nav) && tryBuy(code, amt7, d, 'T7 回撤补仓', P)) pp.t7Lvl = lvl;
         }
       });
       /* v934：年线状态判定（收盘后算，T+1 执行）。跌破 MA20 直接清仓、不再先减半；回升不自动补回。 */
@@ -22745,7 +22748,7 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
       + '<div style="margin:2px 0">' + chk('tpPeak', 'T2 峰值回撤止盈（峰涨≥20% 后自峰值回吐 8pp → 卖一半，每持仓一次）', cfg.tpPeak) + '</div>'
       + '<div style="margin:2px 0 6px;font-size:11px;color:#52525B">单边交易成本 <input id="btIn_feeBps" type="number" min="0" max="200" step="1" value="' + (cfg.feeBps || 0) + '" style="width:58px;padding:2px 5px;border:1px solid #D4D4D8;border-radius:5px;font-size:11px"> bps（申购/赎回费＋滑点合计；0＝不计成本）</div>'
       + '<div style="margin:2px 0">' + chk('trendGate', 'W3/S4 趋势确认（建仓需净值同时站上 MA20、MA60；未满足则延后建仓）', cfg.trendGate) + '</div>'
-      + '<div style="margin:0 0 2px 18px;font-size:11px;color:#71717A">仅熊市生效：' + chk('trendBearOnly', '只在熊市判定成立时才拦买入（牛市不拦）', cfg.trendBearOnly) + ' <select id="btIn_trendBearMode" style="margin-left:6px;padding:2px 4px;border:1px solid #D4D4D8;border-radius:5px;font-size:11px"><option value="ma200"' + ((cfg.trendBearMode || 'ma200') === 'ma200' ? ' selected' : '') + '>市场代理破 MA200</option><option value="ma60"' + (cfg.trendBearMode === 'ma60' ? ' selected' : '') + '>市场代理破 MA60（更快翻转）</option></select></div>'
+      + '<div style="margin:0 0 2px 18px;font-size:11px;color:#71717A">仅熊市生效：' + chk('trendBearOnly', '只在熊市判定成立时才拦买入（牛市不拦）', cfg.trendBearOnly) + ' <select id="btIn_trendBearMode" style="margin-left:6px;padding:2px 4px;border:1px solid #D4D4D8;border-radius:5px;font-size:11px"><option value="ma200"' + ((cfg.trendBearMode || 'ma200') === 'ma200' ? ' selected' : '') + '>市场代理破 MA200</option><option value="ma60"' + (cfg.trendBearMode === 'ma60' ? ' selected' : '') + '>市场代理破 MA60（更快翻转）</option><option value="own"' + (cfg.trendBearMode === 'own' ? ' selected' : '') + '>逐标的自身破年线</option></select> <select id="btIn_trendBearScope" style="margin-left:6px;padding:2px 4px;border:1px solid #D4D4D8;border-radius:5px;font-size:11px"><option value="all"' + ((cfg.trendBearScope || 'all') === 'all' ? ' selected' : '') + '>拦全部买入</option><option value="addon"' + (cfg.trendBearScope === 'addon' ? ' selected' : '') + '>只拦补仓</option></select></div>'
       + '<div style="margin:2px 0">' + chk('stGate', 'S-TREND 破位拦截（净值破 MA60 且 MACD 绿柱 → 暂不买入，破位解除即补建）', cfg.stGate) + '</div>'
       + '<div style="margin:2px 0">' + chk('v1Gate', 'V1 波动赶底过滤（T7 补仓只在 250 日回撤 ≥25% 且波动率 ≥80 分位时才补）', cfg.v1Gate) + '</div>'
       + '<div style="margin:2px 0">' + chk('v11Gate', 'V11 狙击（筛选池独立仓位池：赔率＝前高空间/3×ATR14 ≥ 门限才买一注，单注＝池 25%、最多 4 仓，止损 3×ATR、浮盈 20% 后启用吊灯＝峰值×0.85）', cfg.v11Gate) + '</div>'
@@ -22843,7 +22846,8 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
       c.feeBps = +((document.getElementById('btIn_feeBps') || {}).value) || 0;
       c.trendGate = !!((document.getElementById('btIn_trendGate') || {}).checked);
       c.trendBearOnly = !!((document.getElementById('btIn_trendBearOnly') || {}).checked);
-      c.trendBearMode = ((document.getElementById('btIn_trendBearMode') || {}).value === 'ma60') ? 'ma60' : 'ma200';
+      c.trendBearMode = (function(){var v=((document.getElementById('btIn_trendBearMode')||{}).value);return (v==='ma60'||v==='own')?v:'ma200';})();
+      c.trendBearScope = ((document.getElementById('btIn_trendBearScope') || {}).value === 'addon') ? 'addon' : 'all';
       c.stGate = !!((document.getElementById('btIn_stGate') || {}).checked);
       c.v1Gate = !!((document.getElementById('btIn_v1Gate') || {}).checked);
       c.v11Gate = !!((document.getElementById('btIn_v11Gate') || {}).checked);
