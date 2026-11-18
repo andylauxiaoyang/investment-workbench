@@ -21686,11 +21686,17 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
     /* v978 fw2_v978_bear_slow：熊市减速系数——熊市判定成立时补仓金额乘 bearSlowPct%，牛市返回 1。
        与 _gateOK 的区别是「不拦」：买入照做，只是金额变小；这样牛市收益不会被整段砍掉，
        熊市里少接一半刀。判据统一走 _regBear（trendBearMode），own 档按市场级近似。 */
-    function _slowMul(_d) {
+    function _slowMul(_d, _s, _nav) {
       var _k = (+cfg.bearSlowPct || 50) / 100;
-      if (!cfg.bearSlow) return 1;
-      if (_k >= 1) return 1;
-      return (_regBear[_d] === true) ? _k : 1;
+      if (!cfg.bearSlow || _k >= 1) return 1;
+      /* v978b：_regBear 为空时（市场代理缺日频或 MA 未足 200）按「逐标的自身破年线」兜底，
+         与 _gateOK 的兜底口径一致——否则减速会静默失效（首版就踩了这个坑：数字与对照逐位相同）。 */
+      var _ma = (_s && _s.ma) ? _s.ma[_d] : null;
+      var _own = !!(_ma && _ma.l != null && _nav != null && _nav < _ma.l);
+      if (cfg.trendBearMode === 'own') return _own ? _k : 1;
+      var _bear = (_regBear[_d] === true);
+      if (_regBear[_d] == null) _bear = _own;
+      return _bear ? _k : 1;
     }
     /* fw2_v964_st_gate：买入侧 gate 统一入口。
        cfg.trendGate（W3/S4）：必须净值同时站上 MA20、MA60；
@@ -22125,7 +22131,7 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
           var perAmt = rest / perN;
           if (!_sigMute && pp.dripDone < pc && pp.invested < s.targetAmt - 1e-9) {
             var a2 = Math.min(perAmt, Math.max(0, s.targetAmt - pp.invested), Math.max(0, P.cash - futureRes));
-            var a2s = a2 * _slowMul(d);
+            var a2s = a2 * _slowMul(d, s, (s.seq[d] || {}).nav);
             if (a2 > 0 && a2s > 0 && _gateOK(s, d, (s.seq[d] || {}).nav, true)) { tryBuy(code, a2s, d, (a2s < a2 ? '定投（熊市减速）' : '定投'), P); pp.invested += a2s; }
             pp.dripDone++;
           }
@@ -22152,7 +22158,7 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
           if (P.gridFund === null) _gAmt = _ga;
           else if (+P.gridFund > 0 && +P.gridFund < _ga) _gAmt = +P.gridFund;
           else _gAmt = Math.min(_ga, Math.max(P.gridFund, P.cash - futureRes));
-          var _gAmt2 = _gAmt * _slowMul(d);
+          var _gAmt2 = _gAmt * _slowMul(d, s, row.nav);
           if (_gAmt2 > 0 && _gateOK(s, d, row.nav, true)) tryBuy(code, _gAmt2, d, (_gAmt2 < _gAmt ? '网格（熊市减速）' : '网格'), P, 'grid');
         }
       });
@@ -22219,7 +22225,7 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
         var lvl = (1 - row.nav / pk >= +cfg.addDD2 / 100) ? 2 : ((1 - row.nav / pk >= +cfg.addDD1 / 100) ? 1 : 0);
         if (lvl > pp.t7Lvl) {
           var amt7 = Math.min(s.targetAmt * (+cfg.addAmt / 100), Math.max(0, P.cash - futureRes));
-          var amt7s = amt7 * _slowMul(d);
+          var amt7s = amt7 * _slowMul(d, s, row.nav);
           if (amt7s > 0 && _gateOK(s, d, row.nav, true) && _v1OK(s, d, row.nav) && tryBuy(code, amt7s, d, (amt7s < amt7 ? 'T7 回撤补仓（熊市减速）' : 'T7 回撤补仓'), P)) pp.t7Lvl = lvl;
         }
       });
