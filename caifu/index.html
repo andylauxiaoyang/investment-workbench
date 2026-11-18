@@ -21620,19 +21620,6 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
       });
     }
     var days = Object.keys(allDays).sort();
-    /* v977 fw2_v977_trend_regime：「熊市判定」表。市场代理固定取 001015（华夏沪深300指数增强A，杠铃底仓 10%、
-       2019 起有全区间日频），口径＝当日净值 vs 自身 MA200（mode='ma200'）或 MA60（mode='ma60'）。
-       代理缺数据时逐标的回落「自身净值 < 自身 MA200」，宁可当熊市（只在熊市开 gate，等于保守）。 */
-    var _regBear = {};
-    if (cfg.trendBearOnly) {
-      var _mkt = seriesBy['001015'], _mMode = (cfg.trendBearMode === 'ma60') ? 'm60' : 'l';
-      days.forEach(function (_d) {
-        var _mm = (_mkt && _mkt.ma) ? _mkt.ma[_d] : null;
-        var _mn = (_mkt && _mkt.seq[_d]) ? _mkt.seq[_d].nav : null;
-        var _mv = (_mm && _mm[_mMode] != null) ? _mm[_mMode] : null;
-        _regBear[_d] = (_mn != null && _mv != null) ? (_mn < _mv) : null;
-      });
-    }
     /* v934：逐标的预计算 MA200 / MA20（前缀和，O(n)；39 个滚动窗口 × 80 只也只多几毫秒） */
     /* v963：趋势确认 gate 也要 MA20/MA60，年线与刹车都关时同样建表（否则 s.ma 为 null、gate 恒 false） */
     if (_SG.on || _SG.bk || cfg.trendGate || cfg.stGate || cfg.v1Gate || cfg.trendBearOnly) Object.keys(seriesBy).forEach(function (_c) {
@@ -21670,6 +21657,20 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
       }
       _s.ma = _mp; _s.macd = _macd; _s.vol = _vol; _s.vrk = _vrk;
     });
+    /* v977 fw2_v977_trend_regime：「熊市判定」表——必须在 MA 表建好之后才算（v977 首版放在 days 之后，
+       seriesBy[].ma 还是 undefined，整表 null，条件化实际退化成「逐标的年线」；见 v977b 修正）。
+       市场代理固定 001015（华夏沪深300指数增强A，杠铃底仓 10%、2019 起全区间日频），
+       口径＝当日净值 < 自身 MA200（mode='ma200'）或 MA60（mode='ma60'）；代理缺数据时回落逐标的 MA200。 */
+    var _regBear = {};
+    if (cfg.trendBearOnly) {
+      var _mkt = seriesBy['001015'], _mMode = (cfg.trendBearMode === 'ma60') ? 'm60' : 'l';
+      days.forEach(function (_d) {
+        var _mm = (_mkt && _mkt.ma) ? _mkt.ma[_d] : null;
+        var _mn = (_mkt && _mkt.seq && _mkt.seq[_d]) ? _mkt.seq[_d].nav : null;
+        var _mv = (_mm && _mm[_mMode] != null) ? _mm[_mMode] : null;
+        _regBear[_d] = (_mn != null && _mv != null) ? (_mn < _mv) : null;
+      });
+    }
     /* fw2_v964_st_gate：买入侧 gate 统一入口。
        cfg.trendGate（W3/S4）：必须净值同时站上 MA20、MA60；
        cfg.stGate（S-TREND）：只要「净值破 MA60 且 MACD 柱为绿」就暂不买入，破位解除即可补建。
