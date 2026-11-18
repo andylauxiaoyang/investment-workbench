@@ -21688,10 +21688,6 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
        熊市里少接一半刀。判据统一走 _regBear（trendBearMode），own 档按市场级近似。 */
     function _slowMul(_d, _s, _nav) {
       var _k = (+cfg.bearSlowPct || 50) / 100;
-      /* v978 DBG 临时探针（发布后立即撤） */
-      try { var _pr = JSON.parse(localStorage.getItem('fw2_slow_probe') || '{"n":0,"on":0,"ma":0,"own":0,"k":0}');
-        _pr.n++; if (cfg.bearSlow) _pr.on++; if (_s && _s.ma && _s.ma[_d]) _pr.ma++; if (_s && _s.ma && _s.ma[_d] && _s.ma[_d].l != null && _nav < _s.ma[_d].l) _pr.own++; if (_k < 1) _pr.k++;
-        localStorage.setItem('fw2_slow_probe', JSON.stringify(_pr)); } catch (ePr) {}
       if (!cfg.bearSlow || _k >= 1) return 1;
       /* v978b：_regBear 为空时（市场代理缺日频或 MA 未足 200）按「逐标的自身破年线」兜底，
          与 _gateOK 的兜底口径一致——否则减速会静默失效（首版就踩了这个坑：数字与对照逐位相同）。 */
