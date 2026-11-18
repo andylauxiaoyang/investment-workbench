@@ -20982,7 +20982,7 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
     if (!(+d.sigMa > 0)) d.sigMa = 200;
     /* v953：五条纪律开关归一——布尔只认 true / 'true'；阈值给合法区间，非法回落出厂值（不改行为，只防手改库写坏） */
     ['tpPeak', 'addDD', 'postSellHalf', 'rebalSlot', 'trendBearOnly'].forEach(function (k) { d[k] = (d[k] === true || d[k] === 'true'); });
-    d.trendBearMode = (d.trendBearMode === 'ma60') ? 'ma60' : ((d.trendBearMode === 'own') ? 'own' : 'ma200');
+    d.trendBearMode = (d.trendBearMode === 'ma60') ? 'ma60' : ((d.trendBearMode === 'own') ? 'own' : ((d.trendBearMode === 'dead') ? 'dead' : 'ma200'));
     d.trendBearScope = (d.trendBearScope === 'addon') ? 'addon' : 'all';
     d.tpPeakArm = (function (v) { var n = +v; return (n > 0 && n <= 500) ? n : 20; })(d.tpPeakArm);
     d.tpPeakDD = (function (v) { var n = +v; return (n > 0 && n <= 100) ? n : 8; })(d.tpPeakDD);
@@ -21665,11 +21665,18 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
     var _regBear = {};
     if (cfg.trendBearOnly) {
       var _mkt = seriesBy['001015'], _mMode = (cfg.trendBearMode === 'ma60') ? 'm60' : 'l';
+      var _deadMode = (cfg.trendBearMode === 'dead');
       days.forEach(function (_d) {
         var _mm = (_mkt && _mkt.ma) ? _mkt.ma[_d] : null;
         var _mn = (_mkt && _mkt.seq && _mkt.seq[_d]) ? _mkt.seq[_d].nav : null;
         var _mv = (_mm && _mm[_mMode] != null) ? _mm[_mMode] : null;
-        _regBear[_d] = (_mn != null && _mv != null) ? (_mn < _mv) : null;
+        if (_deadMode) {
+          /* dead＝慢速判据：市场代理 MA60 < MA200（死叉期＝趋势已走坏），不做「当日破线」判断，
+             免得把牛市里的正常回调当成熊市（v977 实测破 MA200/MA60 在 2019-2026 常年成立）。 */
+          _regBear[_d] = (_mm && _mm.m60 != null && _mm.l != null) ? (_mm.m60 < _mm.l) : null;
+        } else {
+          _regBear[_d] = (_mn != null && _mv != null) ? (_mn < _mv) : null;
+        }
       });
     }
     /* fw2_v964_st_gate：买入侧 gate 统一入口。
@@ -22748,7 +22755,7 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
       + '<div style="margin:2px 0">' + chk('tpPeak', 'T2 峰值回撤止盈（峰涨≥20% 后自峰值回吐 8pp → 卖一半，每持仓一次）', cfg.tpPeak) + '</div>'
       + '<div style="margin:2px 0 6px;font-size:11px;color:#52525B">单边交易成本 <input id="btIn_feeBps" type="number" min="0" max="200" step="1" value="' + (cfg.feeBps || 0) + '" style="width:58px;padding:2px 5px;border:1px solid #D4D4D8;border-radius:5px;font-size:11px"> bps（申购/赎回费＋滑点合计；0＝不计成本）</div>'
       + '<div style="margin:2px 0">' + chk('trendGate', 'W3/S4 趋势确认（建仓需净值同时站上 MA20、MA60；未满足则延后建仓）', cfg.trendGate) + '</div>'
-      + '<div style="margin:0 0 2px 18px;font-size:11px;color:#71717A">仅熊市生效：' + chk('trendBearOnly', '只在熊市判定成立时才拦买入（牛市不拦）', cfg.trendBearOnly) + ' <select id="btIn_trendBearMode" style="margin-left:6px;padding:2px 4px;border:1px solid #D4D4D8;border-radius:5px;font-size:11px"><option value="ma200"' + ((cfg.trendBearMode || 'ma200') === 'ma200' ? ' selected' : '') + '>市场代理破 MA200</option><option value="ma60"' + (cfg.trendBearMode === 'ma60' ? ' selected' : '') + '>市场代理破 MA60（更快翻转）</option><option value="own"' + (cfg.trendBearMode === 'own' ? ' selected' : '') + '>逐标的自身破年线</option></select> <select id="btIn_trendBearScope" style="margin-left:6px;padding:2px 4px;border:1px solid #D4D4D8;border-radius:5px;font-size:11px"><option value="all"' + ((cfg.trendBearScope || 'all') === 'all' ? ' selected' : '') + '>拦全部买入</option><option value="addon"' + (cfg.trendBearScope === 'addon' ? ' selected' : '') + '>只拦补仓</option></select></div>'
+      + '<div style="margin:0 0 2px 18px;font-size:11px;color:#71717A">仅熊市生效：' + chk('trendBearOnly', '只在熊市判定成立时才拦买入（牛市不拦）', cfg.trendBearOnly) + ' <select id="btIn_trendBearMode" style="margin-left:6px;padding:2px 4px;border:1px solid #D4D4D8;border-radius:5px;font-size:11px"><option value="ma200"' + ((cfg.trendBearMode || 'ma200') === 'ma200' ? ' selected' : '') + '>市场代理破 MA200</option><option value="ma60"' + (cfg.trendBearMode === 'ma60' ? ' selected' : '') + '>市场代理破 MA60（更快翻转）</option><option value="own"' + (cfg.trendBearMode === 'own' ? ' selected' : '') + '>逐标的自身破年线</option><option value="dead"' + (cfg.trendBearMode === 'dead' ? ' selected' : '') + '>市场代理 MA60 死叉 MA200</option></select> <select id="btIn_trendBearScope" style="margin-left:6px;padding:2px 4px;border:1px solid #D4D4D8;border-radius:5px;font-size:11px"><option value="all"' + ((cfg.trendBearScope || 'all') === 'all' ? ' selected' : '') + '>拦全部买入</option><option value="addon"' + (cfg.trendBearScope === 'addon' ? ' selected' : '') + '>只拦补仓</option></select></div>'
       + '<div style="margin:2px 0">' + chk('stGate', 'S-TREND 破位拦截（净值破 MA60 且 MACD 绿柱 → 暂不买入，破位解除即补建）', cfg.stGate) + '</div>'
       + '<div style="margin:2px 0">' + chk('v1Gate', 'V1 波动赶底过滤（T7 补仓只在 250 日回撤 ≥25% 且波动率 ≥80 分位时才补）', cfg.v1Gate) + '</div>'
       + '<div style="margin:2px 0">' + chk('v11Gate', 'V11 狙击（筛选池独立仓位池：赔率＝前高空间/3×ATR14 ≥ 门限才买一注，单注＝池 25%、最多 4 仓，止损 3×ATR、浮盈 20% 后启用吊灯＝峰值×0.85）', cfg.v11Gate) + '</div>'
@@ -22846,7 +22853,7 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
       c.feeBps = +((document.getElementById('btIn_feeBps') || {}).value) || 0;
       c.trendGate = !!((document.getElementById('btIn_trendGate') || {}).checked);
       c.trendBearOnly = !!((document.getElementById('btIn_trendBearOnly') || {}).checked);
-      c.trendBearMode = (function(){var v=((document.getElementById('btIn_trendBearMode')||{}).value);return (v==='ma60'||v==='own')?v:'ma200';})();
+      c.trendBearMode = (function(){var v=((document.getElementById('btIn_trendBearMode')||{}).value);return (v==='ma60'||v==='own'||v==='dead')?v:'ma200';})();
       c.trendBearScope = ((document.getElementById('btIn_trendBearScope') || {}).value === 'addon') ? 'addon' : 'all';
       c.stGate = !!((document.getElementById('btIn_stGate') || {}).checked);
       c.v1Gate = !!((document.getElementById('btIn_v1Gate') || {}).checked);
