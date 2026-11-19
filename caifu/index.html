@@ -1529,7 +1529,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 ④效果：Σ(市值−成本) 1,276.73 → **1,344.81**，与账户 ΣconstantProfit 1,346.52 只差 **1.71**（其余 21 只舍入）；「净资产 − 在盘成本」= 20,462.19 − 19,117.42 = 1,344.77 ≈ 未实现 1,344.81（差 0.04）；「已实现＋未实现」= 2,224.25，与账户累计 2,224.76 差 **0.51**。原 68.63 的口径差基本消解。
 ⑤影响面已核：T9 CAP 组合投入 19,185.50 → 19,117.42，阈值 C.cap=100000，档位不变；T1/T4/T5 收益率优先走 holdProfitRate，不受 cost 影响；T13 网格优先 lastBuyNav。
 ★仍未修：其余 21 只合计 0.68 的舍入差（不再追）；`constantProfit` 的收益率分母含在途金额（App 显示 016452 −1.9%，而已确认部分真实收益率是 −6.1%），属平台口径，不跟。 -->
-<!-- fw2_v951_bt_brake_below_cmp（用户 2026-11-17「策略执行模块中子模块持仓回测和自选回测中策略 vs 对照 · 按标的明细放在单只刹车 · 10 年峰值回撤上面显示」）：纯显示顺序调整，零计算改动。①原顺序（v939 起）：面板头 → 自选逐只参数 → 运行条 → **刹车卡** → 参数抽屉 → 结果区（结论条 → **策略 vs 对照明细表** → 备用金明细 → 关键规则卡 → 四图 → 明细）。②新顺序：刹车卡从面板层移除，改在结果区紧随明细表之后渲染 —— 面板头 → 运行条 → 抽屉 → 结果区（结论条 → **明细表 → 刹车卡** → 备用金明细 → 规则卡 → 四图 → 明细）。两处篇幅与内容一字未改（BRAKE_T 仍单源）。③兼容处理：回测「无有效数据」分支同样追加该卡（它是静态阈值参考表，不该因回测失败消失）；卡内「本页只读…勾选下面的刹车开关」文案随位置改为「勾选上方参数抽屉里的刹车开关」。④持仓回测与自选回测共用同一块 stp-bt 面板，两处同时生效。 --><!-- fw2_v952_signal_registry（用户 2026-11-17「交易信号和回测信号最终必须保持一致，我遵循一套投资逻辑不能乱，要变都一起变」+「止盈定乙」）：B1 只读层落地，零计算改动。①新增 `window.SIGNAL_REGISTRY`（紧随 SIGNALS_CFG，键＝信号 ID，字段 name/layer/obj/dir/ev/def/modeled/thr/act/code），三层共 59 条（持仓 T1–T16+32 条 P/XOV、自选 W1–W9（W4 已删）、筛选 S1–S7+S-TREND+V1/V2/V11、回测 R1–R11、宏观 M1–M6+RB/BW）；阈值一律从 `SIGNALS_CFG` 拼串引用、不复制字面数字。②`signalRegOf(sig)` 由行名（'T1 阶梯止盈'）取条目。③**止盈定乙**：T1 文案「卖1/3」→「减1/4，+20% 再减1/4」，与 R4/R5、XOV 三处同口径，证据等级 C→A。④回测页「当前生效的规则」原来只写 3 条（止盈减仓/止损/网格）→ 改为 **R1–R11 全量清单**（含默认关项），每行带「本次开/关（按当前参数实时算）」与「证据 A/B/C」徽标，标题改「本次回测执行的规则」，底部注明 R4/R5 的 25% 写死、R2 仅定投/底仓生效、R8/R9 互斥。⑤旧 `ruleCard` 保留未删（无引用，留待将来分组用）。**未动**：回测引擎逐位不变、BRAKE_T 仍单源、SIGNALS_CFG 值未改。 --><!-- fw2_v953_batch1（用户 2026-11-17「直接做和上批 1 剩下的 5 条（T2/T7/T16/T9/T10）一起做完」）：把五条 C 级纪律真正建进回测引擎，一条一条量边际贡献。①cfg 新增 14 个键（tpPeak/tpPeakArm/tpPeakDD、addDD/addDD1/addDD2/addAmt、postSellHalf/postSellLo/postSellWin、rebalSlot/slotBand），默认全关＝v952 逐位不变，归一化段对 5 个布尔只认 true/'true'、9 个阈值给合法区间。②引擎：T2 逐日记「入场以来峰值浮盈」，峰涨≥20% 且自峰回吐≥8pp 卖一半（每持仓一次，成本未知跳过）；T7 逐日拉 250 个交易日滚动峰值（单调队列预计算 s.p250），−20%/−30% 各补一档（每档＝目标额 20%，只从预算现金出，破线/冻结/封顶不补）；T16 在 trySell 里记最近一次卖出成交净值与日期，再跌 10% 且 90 日内卖剩余一半（同一基准只触发一次）；T9 逐日算 Σ持仓成本，≥capAmt 当日禁买（建仓/定投/网格三处守卫）；T10 新增 btSlotRebal（季末按 pile 汇总市值对 base40/off35/bond10/hedge15，偏离≥5pp 才动手，超配档卖出、低配档用现金补）。③参数抽屉加「纪律开关（批 1 实验 · 默认关）」5 个勾选框；收参段补齐 5 个布尔**与 9 个阈值**——不收阈值会让引擎拿到 undefined，判定恒为 false（本轮实测踩到，表现为「勾了开关、数字一位不变」）。④两区间实测（¥50,000 / 杠铃 11 只 / 一次性 / 2024-02-07~2026-09-28 与 2019-01-01~2026-09-28，格式＝年化/Calmar/回撤预算使用率）：全关 15.38/1.74/39.66 与 7.53/0.87/34.30（v952 一致）；T2 11.82/1.63/31.31 与 6.05/0.69/32.08（劣）；T7 16.20/1.89/38.70 与 7.83/0.87/35.71（弱正）；T16 15.78/2.02/35.17 与 7.32/0.97/29.55（唯一两区间同向改善）；T9（预算抬到 ¥200,000）关 15.28/1.76/38.93、开 14.39/1.79/35.73 与关 7.50/0.87/33.83、开 6.12/0.71/32.10（等价砍半本金）；T10 19.63/1.86/48.39 与 12.43/0.48/113.12（长区间总回撤 22.62%＞预算 20%，周期依赖）。⑤规则卡从 R1–R11 扩到 16 行（补 T2/T7/T16/T9/T10，证据 C→A 并写明实测数字）；R8 三小步落地：默认关、注册表 act 注明「四档实测均负、保留仅供研究」、T14 文案补「仅提示，不触发成交」。**未动**：R1–R11 计算、BRAKE_T、SIGNALS_CFG。 --><!-- fw2_v988i_bt_param_single_source（用户 2026-11-19「回测参数只在一个地方展示和选择，就是回测验证；持仓回测/自选回测只出干净结果」）：回测参数单点化落地。①参数渲染段抽成全局 `btParamsHtml(cfg)`（回测页与⑧层共用同一份渲染代码，杜绝两处各改一遍）。②三层存储：`fw2_bt_plan`（⑧-A 流程参数＝母版，全量）+ `fw2_bt_hold`/`fw2_bt_custom`（⑧-B/⑧-C 只存与母版的 diff）；旧单份键 `fw2_bt_cfg_v1` 首次只读迁移进母版后不再写。③继承规则：⑧-B/⑧-C 默认继承母版，改一项即记一条覆盖（页面标「覆盖」橙字），母版再改会自动传给未覆盖项——标准统一、允许单项偏离。④`go()` 不再从输入框读参（原 40 个 `btIn_*` 读 DOM），改为 `btCfg(scope)` 存储驱动；回测页参数控件归零，只留只读口径条（口径/继承/覆盖项数/区间/本金/投入方式/网格/门槛 + 运行 + 「修改参数 →」跳转⑧层）。⑤⑧ 层加二级视图「准入规则（BT1–BT6）/ 回测口径（参数）」，参数区三卡 ⑧-A/⑧-B/⑧-C 切换，控件 47 个。⑥收参 bug 修复：`btCollectDom` 只收母版已有键并按母版原值类型还原（此前渲染出的辅助控件会把 diff 污染成 `gridExt:"false"` 假覆盖）。⑦等价性实测：同参数下结论条与 v988h 逐字一致（年化 3.26% / Calmar 0.23 / 回撤预算 36.49%）；覆盖实测：⑧-B 预算改 ¥50,000 → 回测变 3.19%/0.22/36.51%，母版仍 ¥62,000；母版改 ¥55,000 → ⑧-C 跟到 55,000、⑧-B 保持 50,000（覆盖 1 项）。未动：回测引擎逐位不变、18 层信号注册表与三态逻辑不动。 --><span id="verBadge" class="ver-badge">v993</span><!-- fw2_v989_renumber（用户 2026-11-19「988 后应该按 989 往上升级，为什么加字母」）：版本号规则自本条起改为整数单调递增（v989 → v990 → …），不再使用字母后缀。历史 v988a–v988l 是「把 v988 当大版本框、其下增量用字母」的旧编法，已发布不可回改，仅在此说明对应关系：v988a 规则代码带中文名 / v988b·c T13 网格跟踪升「开」+ 备用金降级 / v988d 备用金摘出复核 / v988e 持仓「卖后涨跌」列 / v988f 投资逻辑大脑 / v988g 八层·思想总纲（已废）/ v988h ⑧ 层改「回测验证 · 逻辑准入」/ v988i 回测参数单点化 / v988j 四条边界 / v988k 波动三项客观量 / v988l 胜率赔率 + 入场质量因子分档（即本版 v989）。 --><!-- fw2_v988k_vol_three（用户 2026-11-19「开始 ②」）：回测结论区新增「波动与耐受力（客观量 · 不设阈值）」卡。
+<!-- fw2_v951_bt_brake_below_cmp（用户 2026-11-17「策略执行模块中子模块持仓回测和自选回测中策略 vs 对照 · 按标的明细放在单只刹车 · 10 年峰值回撤上面显示」）：纯显示顺序调整，零计算改动。①原顺序（v939 起）：面板头 → 自选逐只参数 → 运行条 → **刹车卡** → 参数抽屉 → 结果区（结论条 → **策略 vs 对照明细表** → 备用金明细 → 关键规则卡 → 四图 → 明细）。②新顺序：刹车卡从面板层移除，改在结果区紧随明细表之后渲染 —— 面板头 → 运行条 → 抽屉 → 结果区（结论条 → **明细表 → 刹车卡** → 备用金明细 → 规则卡 → 四图 → 明细）。两处篇幅与内容一字未改（BRAKE_T 仍单源）。③兼容处理：回测「无有效数据」分支同样追加该卡（它是静态阈值参考表，不该因回测失败消失）；卡内「本页只读…勾选下面的刹车开关」文案随位置改为「勾选上方参数抽屉里的刹车开关」。④持仓回测与自选回测共用同一块 stp-bt 面板，两处同时生效。 --><!-- fw2_v952_signal_registry（用户 2026-11-17「交易信号和回测信号最终必须保持一致，我遵循一套投资逻辑不能乱，要变都一起变」+「止盈定乙」）：B1 只读层落地，零计算改动。①新增 `window.SIGNAL_REGISTRY`（紧随 SIGNALS_CFG，键＝信号 ID，字段 name/layer/obj/dir/ev/def/modeled/thr/act/code），三层共 59 条（持仓 T1–T16+32 条 P/XOV、自选 W1–W9（W4 已删）、筛选 S1–S7+S-TREND+V1/V2/V11、回测 R1–R11、宏观 M1–M6+RB/BW）；阈值一律从 `SIGNALS_CFG` 拼串引用、不复制字面数字。②`signalRegOf(sig)` 由行名（'T1 阶梯止盈'）取条目。③**止盈定乙**：T1 文案「卖1/3」→「减1/4，+20% 再减1/4」，与 R4/R5、XOV 三处同口径，证据等级 C→A。④回测页「当前生效的规则」原来只写 3 条（止盈减仓/止损/网格）→ 改为 **R1–R11 全量清单**（含默认关项），每行带「本次开/关（按当前参数实时算）」与「证据 A/B/C」徽标，标题改「本次回测执行的规则」，底部注明 R4/R5 的 25% 写死、R2 仅定投/底仓生效、R8/R9 互斥。⑤旧 `ruleCard` 保留未删（无引用，留待将来分组用）。**未动**：回测引擎逐位不变、BRAKE_T 仍单源、SIGNALS_CFG 值未改。 --><!-- fw2_v953_batch1（用户 2026-11-17「直接做和上批 1 剩下的 5 条（T2/T7/T16/T9/T10）一起做完」）：把五条 C 级纪律真正建进回测引擎，一条一条量边际贡献。①cfg 新增 14 个键（tpPeak/tpPeakArm/tpPeakDD、addDD/addDD1/addDD2/addAmt、postSellHalf/postSellLo/postSellWin、rebalSlot/slotBand），默认全关＝v952 逐位不变，归一化段对 5 个布尔只认 true/'true'、9 个阈值给合法区间。②引擎：T2 逐日记「入场以来峰值浮盈」，峰涨≥20% 且自峰回吐≥8pp 卖一半（每持仓一次，成本未知跳过）；T7 逐日拉 250 个交易日滚动峰值（单调队列预计算 s.p250），−20%/−30% 各补一档（每档＝目标额 20%，只从预算现金出，破线/冻结/封顶不补）；T16 在 trySell 里记最近一次卖出成交净值与日期，再跌 10% 且 90 日内卖剩余一半（同一基准只触发一次）；T9 逐日算 Σ持仓成本，≥capAmt 当日禁买（建仓/定投/网格三处守卫）；T10 新增 btSlotRebal（季末按 pile 汇总市值对 base40/off35/bond10/hedge15，偏离≥5pp 才动手，超配档卖出、低配档用现金补）。③参数抽屉加「纪律开关（批 1 实验 · 默认关）」5 个勾选框；收参段补齐 5 个布尔**与 9 个阈值**——不收阈值会让引擎拿到 undefined，判定恒为 false（本轮实测踩到，表现为「勾了开关、数字一位不变」）。④两区间实测（¥50,000 / 杠铃 11 只 / 一次性 / 2024-02-07~2026-09-28 与 2019-01-01~2026-09-28，格式＝年化/Calmar/回撤预算使用率）：全关 15.38/1.74/39.66 与 7.53/0.87/34.30（v952 一致）；T2 11.82/1.63/31.31 与 6.05/0.69/32.08（劣）；T7 16.20/1.89/38.70 与 7.83/0.87/35.71（弱正）；T16 15.78/2.02/35.17 与 7.32/0.97/29.55（唯一两区间同向改善）；T9（预算抬到 ¥200,000）关 15.28/1.76/38.93、开 14.39/1.79/35.73 与关 7.50/0.87/33.83、开 6.12/0.71/32.10（等价砍半本金）；T10 19.63/1.86/48.39 与 12.43/0.48/113.12（长区间总回撤 22.62%＞预算 20%，周期依赖）。⑤规则卡从 R1–R11 扩到 16 行（补 T2/T7/T16/T9/T10，证据 C→A 并写明实测数字）；R8 三小步落地：默认关、注册表 act 注明「四档实测均负、保留仅供研究」、T14 文案补「仅提示，不触发成交」。**未动**：R1–R11 计算、BRAKE_T、SIGNALS_CFG。 --><!-- fw2_v988i_bt_param_single_source（用户 2026-11-19「回测参数只在一个地方展示和选择，就是回测验证；持仓回测/自选回测只出干净结果」）：回测参数单点化落地。①参数渲染段抽成全局 `btParamsHtml(cfg)`（回测页与⑧层共用同一份渲染代码，杜绝两处各改一遍）。②三层存储：`fw2_bt_plan`（⑧-A 流程参数＝母版，全量）+ `fw2_bt_hold`/`fw2_bt_custom`（⑧-B/⑧-C 只存与母版的 diff）；旧单份键 `fw2_bt_cfg_v1` 首次只读迁移进母版后不再写。③继承规则：⑧-B/⑧-C 默认继承母版，改一项即记一条覆盖（页面标「覆盖」橙字），母版再改会自动传给未覆盖项——标准统一、允许单项偏离。④`go()` 不再从输入框读参（原 40 个 `btIn_*` 读 DOM），改为 `btCfg(scope)` 存储驱动；回测页参数控件归零，只留只读口径条（口径/继承/覆盖项数/区间/本金/投入方式/网格/门槛 + 运行 + 「修改参数 →」跳转⑧层）。⑤⑧ 层加二级视图「准入规则（BT1–BT6）/ 回测口径（参数）」，参数区三卡 ⑧-A/⑧-B/⑧-C 切换，控件 47 个。⑥收参 bug 修复：`btCollectDom` 只收母版已有键并按母版原值类型还原（此前渲染出的辅助控件会把 diff 污染成 `gridExt:"false"` 假覆盖）。⑦等价性实测：同参数下结论条与 v988h 逐字一致（年化 3.26% / Calmar 0.23 / 回撤预算 36.49%）；覆盖实测：⑧-B 预算改 ¥50,000 → 回测变 3.19%/0.22/36.51%，母版仍 ¥62,000；母版改 ¥55,000 → ⑧-C 跟到 55,000、⑧-B 保持 50,000（覆盖 1 项）。未动：回测引擎逐位不变、18 层信号注册表与三态逻辑不动。 --><span id="verBadge" class="ver-badge">v994</span><!-- fw2_v989_renumber（用户 2026-11-19「988 后应该按 989 往上升级，为什么加字母」）：版本号规则自本条起改为整数单调递增（v989 → v990 → …），不再使用字母后缀。历史 v988a–v988l 是「把 v988 当大版本框、其下增量用字母」的旧编法，已发布不可回改，仅在此说明对应关系：v988a 规则代码带中文名 / v988b·c T13 网格跟踪升「开」+ 备用金降级 / v988d 备用金摘出复核 / v988e 持仓「卖后涨跌」列 / v988f 投资逻辑大脑 / v988g 八层·思想总纲（已废）/ v988h ⑧ 层改「回测验证 · 逻辑准入」/ v988i 回测参数单点化 / v988j 四条边界 / v988k 波动三项客观量 / v988l 胜率赔率 + 入场质量因子分档（即本版 v989）。 --><!-- fw2_v988k_vol_three（用户 2026-11-19「开始 ②」）：回测结论区新增「波动与耐受力（客观量 · 不设阈值）」卡。
  ① 回本所需涨幅＝最深回撤谷底回到该峰值所需涨幅（= 1/(1+最大回撤)−1，用权益直接算）；
  ② 最长水下天数＝连续「权益低于区间内历史峰值」的最长日历天数（期末仍水下算到期末并标注）；
  ③ 最深回撤回本用时＝最深回撤峰值日 → 首次回到该峰值的日历天数（未回本则记到期末）。
@@ -20498,6 +20498,30 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
      T7 回撤补仓、T13 网格跟踪、R3 网格、V11 狙击都各有自己的实测，不纳入，避免把不同证据混在一起。 */
   var LOGIC_SIG_KEY = 'fw2_bt_sig_latest';
   var LOGIC_ENTRYBAND_IDS = ['T8', 'T15'];
+  /* v994 fw2_v994_gate_ids：纳入清单从硬编码改成 ⑧ 层可勾选（存 fw2_bt_gate_ids）。
+     默认仍是 T8 / T15；候选只放「买点依据落在四因子维度上」的六条，名字取 SIGNAL_REGISTRY，不手写。 */
+  var LOGIC_GATE_KEY = 'fw2_bt_gate_ids';
+  var LOGIC_GATE_CAND = ['T7', 'T8', 'T13', 'T15', 'R3', 'V11'];
+  function logicGateIds() {
+    try {
+      var raw = localStorage.getItem(LOGIC_GATE_KEY);
+      if (raw) {
+        var a = JSON.parse(raw);
+        if (a && typeof a.length === 'number') {
+          return a.filter(function (x) { return LOGIC_GATE_CAND.indexOf(x) >= 0; });
+        }
+      }
+    } catch (e) {}
+    return LOGIC_ENTRYBAND_IDS.slice();
+  }
+  function logicGateToggle(id) {
+    if (LOGIC_GATE_CAND.indexOf(id) < 0) return;
+    var cur = logicGateIds(), i = cur.indexOf(id);
+    if (i >= 0) cur.splice(i, 1); else cur.push(id);
+    try { localStorage.setItem(LOGIC_GATE_KEY, JSON.stringify(cur)); } catch (e) {}
+    try { renderLogicView(); } catch (e2) {}
+  }
+  window.logicGateToggle = logicGateToggle;
   function logicSigLatest() {
     try { var r = localStorage.getItem(LOGIC_SIG_KEY); return r ? JSON.parse(r) : null; } catch (e) { return null; }
   }
@@ -20515,8 +20539,23 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
     if (j.st === 'pass') txt = '通过 · ' + j.n + ' 档最小 p=' + fm4(j.minP) + ' ≤ α=' + fm4(j.alpha) + ' · ' + (j.win || '') + ' · ' + (j.at || '');
     else if (j.st === 'deny') txt = '否决 · ' + j.n + ' 档最小 p=' + fm4(j.minP) + ' > α=' + fm4(j.alpha) + ' · ' + (j.win || '') + ' · ' + (j.at || '');
     else txt = '未检验 · 去「持仓回测」跑一次（结束会自动记一条，不用手填）';
+    var ids = logicGateIds();
+    var chip = function (id) {
+      var on = ids.indexOf(id) >= 0;
+      var nm = '';
+      try { nm = (window.SIGNAL_REGISTRY && window.SIGNAL_REGISTRY[id] && window.SIGNAL_REGISTRY[id].name) || ''; } catch (e) {}
+      return '<button onclick="logicGateToggle(\'' + id + '\')" title="点一下切换是否纳入拦截" '
+        + 'style="margin:3px 4px 0 0;padding:1px 7px;border-radius:3px;cursor:pointer;font-size:10px;'
+        + 'border:1px solid ' + (on ? '#991B1B' : '#E7E5E0') + ';background:' + (on ? '#FEF2F2' : '#fff') + ';'
+        + 'color:' + (on ? '#991B1B' : '#71717A') + ';font-weight:' + (on ? '600' : '400') + '">'
+        + id + ' ' + logicEsc(nm) + '</button>';
+    };
     return '<div style="margin-top:3px;font-size:11px;line-height:1.6;color:' + col + '"><b>闸门</b> ' + logicEsc(txt)
-      + '<span style="color:#A1A1AA"> · 纳入拦截：T8 估值加仓、T15 跟踪指数 PE 分位（都靠估值分位挑买点，正是分档检验判为分不出的维度）</span></div>';
+      + '</div>'
+      + '<div style="display:flex;flex-wrap:wrap;align-items:center;margin-top:1px">'
+      + '<span style="font-size:10px;color:#A1A1AA;margin-right:2px">纳入拦截（点一下切换）</span>'
+      + LOGIC_GATE_CAND.map(chip).join('') + '</div>'
+      + '<div style="font-size:10px;color:#A1A1AA;margin-top:2px">只有「买点依据落在四因子某个维度上」的规则才该纳入：估值分位、距 250 日高点、相对 200 日均线、波动分位。各条都有自己的实测，别一股脑全勾。</div>';
   }
   var LOGIC_VIEW = 'fw2_logic_view';
   var LOGIC_VER = 'L1';
@@ -20622,7 +20661,7 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
     var d = logicLoad();
     if (d.rules[id] === st) return;
     /* v992：买点闸硬拦——证据取自 fw2_bt_sig_latest（最近一次回测），未通过就只能停在「观察」 */
-    if (st === 'on' && LOGIC_ENTRYBAND_IDS.indexOf(id) >= 0) {
+    if (st === 'on' && logicGateIds().indexOf(id) >= 0) {
       var jg = logicSigJudge(logicSigLatest());
       if (jg.st !== 'pass') {
         var _t = new Date(), _p = function (x) { return ('0' + x).slice(-2); };
@@ -23039,7 +23078,7 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
        每次再跑 2,000 次块重抽 × 15 档纯属浪费，而且矩阵只用 strat/hold 汇总，不需要入场分档与显著性。
        主回测（opt 为空）照常计算，⑧ 层买点闸依赖的就是它。 */
     if (!(opt && opt.skipFac)) {
-      try { stats.ent = btEntryStats(data, P.trades, cfg, 120); } catch (eE) { try { console.warn('btEntryStats', eE); } catch (e3) {} }
+      try { stats.ent = btEntryStats(data, P.trades, cfg, btEntWin()); } catch (eE) { try { console.warn('btEntryStats', eE); } catch (e3) {} }
       try { stats.sig = btEntrySig(stats.ent, 2000); } catch (eS) { try { console.warn('btEntrySig', eS); } catch (e4) {} }
     }
     return { cfg: cfg, curve: curve, trades: P.trades, stats: stats, endPiles: endPiles, target: T.target, seriesBy: seriesBy, pfTable: pfTable, poolInfo: _poolInfo, perFund: perFund };
@@ -23074,6 +23113,98 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
     var volPct = (cv == null || !vols.length) ? null : vols.filter(function (x) { return x < cv; }).length / vols.length * 100;
     return { nav: cur, pct: pct, dd250: dd250, relMa: relMa, vol: cv, volPct: volPct, histN: navs.length };
   }
+
+  /* v994 fw2_v994_entwin：观察窗（「其后 N 个交易日净值涨跌」的 N）改成可选 60 / 120 / 250。
+     为什么单存一个键、不进 cfg：观察窗只改统计口径（入场质量、分档显著性用同一窗口），
+     不改任何成交，进 cfg 会让 btParamHash 指纹随一个非策略参数变，历史证据台账就没法按指纹对照了。
+     口径照样落进证据记录（ewin 字段），台账上看得到「这次是什么窗口测的」。 */
+  var ENT_WIN_KEY = 'fw2_bt_entwin';
+  var ENT_WIN_ALLOW = [60, 120, 250];
+  function btEntWin() {
+    try {
+      var v = +localStorage.getItem(ENT_WIN_KEY);
+      if (ENT_WIN_ALLOW.indexOf(v) >= 0) return v;
+    } catch (e) {}
+    return 120;
+  }
+  window.btEntWin = btEntWin;
+  /* 换窗口：不重跑引擎，只拿上一次的成交重算分档与块重抽，再重写那两张卡 */
+  function btFacWin(w) {
+    w = +w;
+    if (ENT_WIN_ALLOW.indexOf(w) < 0) return;
+    try { localStorage.setItem(ENT_WIN_KEY, String(w)); } catch (e) {}
+    var last = window.__btLast, wrap = document.getElementById('btFacWrap');
+    if (!last || !last.res || !wrap) return;
+    var st = last.res.stats || {};
+    try {
+      st.ent = btEntryStats(last.data, last.res.trades, last.res.cfg, w);
+      st.sig = btEntrySig(st.ent, 2000);
+    } catch (e) { try { console.warn('btFacWin', e); } catch (e2) {} return; }
+    window.__sigPersistedRef = null;      /* 换窗口要重写证据记录（ewin 会变） */
+    wrap.innerHTML = btEntCardHtml(st, last.res.cfg) + btSigCardHtml(st, last.res.cfg);
+    var pw = document.getElementById('btPoolWrap');
+    if (pw) pw.innerHTML = btPoolCardHtml(last.data, last.res.cfg);   /* 池全量卡跟着换窗口 */
+  }
+  window.btFacWin = btFacWin;
+  /* v994 fw2_v994_pool_fac：池全量分档（扩样本）。
+     为什么这么做：我的买入笔一个窗口只有 54–117 笔，分三档后每档十几笔，统计上本来就薄；
+     把筛选池 40 只 × 区间内每月首个交易日当「假买入笔」交给同一个 btEntryStats，
+     分档、两维交叉、基准校准全部复用一套代码——口径不会和「入场质量」卡漂移，样本量放大到 3,000+。
+     注意：这 40 只是 2026-11 的筛选结果，用它回溯历史自带选择偏差，卡片里必须写明，不能拿它给策略买点记功。 */
+  var POOL_CODES = null, POOL_LOADING = false;
+  function btPoolLoad(cb) {
+    if (POOL_CODES) { if (cb) cb(POOL_CODES); return; }
+    if (POOL_LOADING) return;
+    POOL_LOADING = true;
+    fetch('./screen-pool.json', { cache: 'no-cache' })
+      .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+      .then(function (j) { POOL_CODES = Object.keys((j && j.funds) || {}); POOL_LOADING = false; if (cb) cb(POOL_CODES); })
+      .catch(function (e) { POOL_LOADING = false; try { console.warn('screen-pool', e); } catch (e2) {} });
+  }
+  function btPoolSamples(data, cfg) {
+    if (!POOL_CODES || !POOL_CODES.length || !data) return null;
+    var start = (cfg && cfg.start) || '2016-01-01', end = (cfg && cfg.end) || '9999-12-31';
+    var out = [];
+    POOL_CODES.forEach(function (c) {
+      var all = (data.rowsByCode[c] || []).filter(function (r) { return +r.nav > 0 && r.d <= end; });
+      if (all.length < 200) return;
+      var lastM = '';
+      for (var i = 59; i < all.length - 1; i++) {
+        var d0 = all[i].d;
+        if (d0 < start) continue;
+        var mk = d0.slice(0, 7);
+        if (mk === lastM) continue;
+        lastM = mk;
+        out.push({ side: 'buy', code: c, d: d0, type: '池抽样' });
+      }
+    });
+    return out;
+  }
+  function btPoolCardHtml(data, cfg) {
+    if (!data) return '<div style="font-size:11px;color:#A32D2D;padding:8px 2px">池全量分档：回测数据未就绪</div>';
+    var smp = btPoolSamples(data, cfg);
+    if (!smp) {
+      btPoolLoad(function () {
+        var w = document.getElementById('btPoolWrap');
+        var last = window.__btLast;
+        if (w && last && last.res) w.innerHTML = btPoolCardHtml(last.data, last.res.cfg);
+      });
+      return '<div style="font-size:11px;color:#A1A1AA;padding:8px 2px">池全量分档：正在读取筛选池清单…</div>';
+    }
+    if (!smp.length) return '<div style="font-size:11px;color:#A32D2D;padding:8px 2px">池全量分档：抽样为 0（池 ' + (POOL_CODES ? POOL_CODES.length : 'null') + ' 只 · 净值库 ' + Object.keys((data && data.rowsByCode) || {}).length + ' 只 · 区间 ' + ((cfg && cfg.start) || '-') + ' → ' + ((cfg && cfg.end) || '-') + '）</div>';
+    var E = null, err = '';
+    try { E = btEntryStats(data, smp, cfg, btEntWin()); }
+    catch (e) { err = (e && e.message) ? e.message : String(e); }
+    /* v994：池卡失败要看得见，不许静默留白——否则「没出现」会被当成「没问题」。 */
+    if (err) return '<div style="font-size:11px;color:#A32D2D;padding:8px 2px">池全量分档计算失败：' + err + '（样本 ' + smp.length + ' 个）</div>';
+    if (!E) return '<div style="font-size:11px;color:#A32D2D;padding:8px 2px">池全量分档：无结果（样本 ' + smp.length + ' 个）</div>';
+    if (!E.items.length) return '<div style="font-size:11px;color:#A32D2D;padding:8px 2px">池全量分档：' + smp.length + ' 个抽样全部被跳过（净值行缺失或历史不足 60 日），检查筛选池代码是否都在日净值库里</div>';
+    var SG = null;
+    try { SG = btEntrySig(E, 2000); } catch (e2) { try { console.warn('btPoolSig', e2); } catch (e3) {} }
+    return btEntCardHtml({ ent: E }, cfg, { pool: true, nCodes: (POOL_CODES || []).length })
+      + (SG ? btSigCardHtml({ sig: SG }, cfg, { noPersist: true, pool: true }) : '');
+  }
+  window.btPoolCardHtml = btPoolCardHtml;
 
   /* v989 fw2_v989_entry：入场质量——逐笔「买入」看成立后 N 个交易日的净值涨跌，再按买入当日因子分档。
      为什么用买入笔数而不是回合数：杠铃 11 只一个窗口只有 11 个回合，分三档后每档 3~4 个，没有统计意义；
@@ -23287,21 +23418,32 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
           var s0 = document.getElementById('btIn_start'), e0 = document.getElementById('btIn_end');
           if (s0 && e0 && s0.value && e0.value) return s0.value + '→' + e0.value;
         } catch (e) {}
+        /* v994：⑧ 层口径面板不在当前视图时那两个输入框读不到（换 tab 后 win 会写成空串），
+           回退到本次主回测的 cfg 起止——那是用户点的「起始日 / 截止日」，不是矩阵改写的临时值。 */
+        try {
+          var last = window.__btLast;
+          if (last && last.res && last.res.cfg && last.res.cfg.start && last.res.cfg.end) {
+            return last.res.cfg.start + '→' + last.res.cfg.end;
+          }
+        } catch (e2) {}
         return '';
       })();
       localStorage.setItem('fw2_bt_sig_latest', JSON.stringify({
         at: at, win: win, blocks: g.blocks, B: g.B, n: g.rows.length,
-        minP: minP, alpha: a, pass: pass, sigN: g.sigN, src: 'main'
+        minP: minP, alpha: a, pass: pass, sigN: g.sigN, src: 'main',
+        ewin: btEntWin()
       }));
     } catch (e) {}
   }
-  function btSigCardHtml(S, cfg) {
-    btSigPersist(S);
+  function btSigCardHtml(S, cfg, opt) {
+    /* v994：池全量卡也跑同一套块重抽，但它的样本是「池里随便挑的日子」，
+       不能覆盖 fw2_bt_sig_latest（那是买点闸的判据，只能来自我的实际成交）。 */
+    if (!(opt && opt.noPersist)) btSigPersist(S);
     var g = S && S.sig;
     if (!g) return '';
     var fmt2 = function (x) { return (Math.round(x * 100) / 100).toFixed(2); };
     var head = '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px">'
-      + '<div style="font-size:13px;font-weight:700;color:#18181B">分档显著性 · 块重抽检验</div>'
+      + '<div style="font-size:13px;font-weight:700;color:#18181B">分档显著性 · 块重抽检验' + ((opt && opt.pool) ? '（池全量抽样）' : '') + '</div>'
       + '<span style="font-size:10px;padding:1px 6px;border-radius:3px;background:#F4F2EC;color:#78716C;white-space:nowrap">月份块 ' + g.blocks + ' 个 · 重抽 ' + g.B + ' 次 · 固定种子 · Bonferroni α=' + (0.05 / Math.max(1, (g.rows || []).length)).toFixed(4) + '</span></div>';
     if (g.tooFew) {
       return '<div style="margin-top:12px;padding:10px 12px;border:1px solid #E7E5E0;border-radius:8px;background:#FAFAF8">' + head
@@ -23343,7 +23485,7 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
       + '</div>';
   }
 
-  function btEntCardHtml(S, cfg) {
+  function btEntCardHtml(S, cfg, opt) {
     var e = S && S.ent;
     if (!e || !e.items.length) return '';
     var fmt2 = function (x) { return (Math.round(x * 100) / 100).toFixed(2); };
@@ -23373,7 +23515,7 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
         + '<th style="padding:5px 6px;text-align:left;color:#52525B;white-space:nowrap">档位</th>'
         + '<th style="padding:5px 6px;text-align:right;color:#52525B;white-space:nowrap">笔数</th>'
         + '<th style="padding:5px 6px;text-align:right;color:#52525B;white-space:nowrap">胜率</th>'
-        + '<th style="padding:5px 6px;text-align:right;color:#52525B;white-space:nowrap">平均 120 日</th>'
+        + '<th style="padding:5px 6px;text-align:right;color:#52525B;white-space:nowrap">平均 ' + e.win + ' 日</th>'
         + '<th style="padding:5px 6px;text-align:right;color:#52525B;white-space:nowrap">赔率</th></tr></thead>'
         + '<tbody>' + d.bands.map(function (b) { return rowh(b.nm, b.st); }).join('') + '</tbody></table></div>';
     }).join('');
@@ -23384,13 +23526,29 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
     var truncN = e.items.filter(function (x) { return x.trunc; }).length;
     return '<div style="background:#fff;border:1px solid #E8E6DF;border-radius:10px;padding:12px;margin-bottom:12px">'
       + '<div style="display:flex;align-items:baseline;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:6px">'
-      + '<div style="font-size:13px;font-weight:700;color:#18181B">入场质量 · 因子分档（按买入笔）</div>'
-      + '<div style="font-size:11px;color:#A1A1AA">每笔买入 → 其后 ' + e.win + ' 个交易日净值涨跌</div></div>'
+      + '<div style="font-size:13px;font-weight:700;color:#18181B">' + ((opt && opt.pool) ? '池全量分档 · 扩样本对照' : '入场质量 · 因子分档（按买入笔）') + '</div>'
+      + '<div style="font-size:11px;color:#A1A1AA">' + ((opt && opt.pool) ? ('筛选池 ' + (opt.nCodes || 0) + ' 只 · 每月首个交易日当买点 · 其后 ' + e.win + ' 日') : ('每笔买入 → 其后 ' + e.win + ' 个交易日净值涨跌')) + '</div></div>'
+      + '<div style="display:flex;flex-wrap:wrap;align-items:center;gap:4px;margin:0 0 8px">'
+      + '<span style="font-size:11px;color:#71717A;margin-right:2px">观察窗</span>'
+      + ENT_WIN_ALLOW.map(function (w) {
+          var on = (w === e.win);
+          return '<button onclick="btFacWin(' + w + ')" style="padding:1px 8px;border-radius:3px;border:1px solid ' + (on ? '#18181B' : '#E7E5E0') + ';background:' + (on ? '#18181B' : '#fff') + ';color:' + (on ? '#fff' : '#52525B') + ';font-size:11px;cursor:pointer">' + w + ' 日</button>';
+        }).join('')
+      + '<span style="font-size:10px;color:#A1A1AA;margin-left:auto">换窗口只重算统计，不改成交</span></div>'
       + '<div style="font-size:11px;color:#52525B;line-height:1.7;margin-bottom:4px">'
-      + '统计口径：本区间共 <b>' + e.n + '</b> 笔买入（首建＋网格加仓 T13 网格跟踪＋定投＋T7 回撤补仓等），'
-      + '每笔按「买入当日就能看到」的因子取档（净值分位／距 250 日高点回撤／相对 200 日均线／波动分位），再看其后 ' + e.win + ' 个交易日涨跌。'
+      + ((opt && opt.pool)
+        ? ('统计口径：筛选池 <b>' + (opt.nCodes || 0) + '</b> 只 × 区间内每月首个交易日，共 <b>' + e.n + '</b> 个抽样买点；'
+          + '因子与分档规则和「入场质量」卡是同一套（33%/67% 分位切档），只是样本从「我的买入笔」换成「池里随便挑的日子」。')
+        : ('统计口径：本区间共 <b>' + e.n + '</b> 笔买入（首建＋网格加仓 T13 网格跟踪＋定投＋T7 回撤补仓等），'
+          + '每笔按「买入当日就能看到」的因子取档（净值分位／距 250 日高点回撤／相对 200 日均线／波动分位），再看其后 ' + e.win + ' 个交易日涨跌。'))
       + (truncN ? ('其中 ' + truncN + ' 笔距区间末不足 ' + e.win + ' 日，按区间末截断。') : '')
       + '</div>'
+      + ((opt && opt.pool)
+        ? ('<div style="font-size:11px;color:#991B1B;line-height:1.7;margin:2px 0 8px;padding:6px 8px;background:#FEF2F2;border-radius:6px">'
+          + '口径注意：这 40 只是 2026-11 的筛选结果，是<b>事后挑出来的池</b>，用它回溯历史天生带选择偏差——胜率与赔率都会比「当时真实可选的池」好看。'
+          + '它只回答一个问题：<b>这四类因子在池内随便挑日子时还有没有区分度</b>；不能拿来给策略买点记功。'
+          + '同一只标的不同月的样本共享同一段行情，独立信息量低于样本数。</div>')
+        : '')
       + ((e.base && e.base.avg != null && e.overall && e.overall.n)
         ? ('<div style="font-size:11px;color:#52525B;line-height:1.7;margin-bottom:2px;padding:6px 8px;background:#FAFAF7;border-radius:6px">'
           + '基准校准：同期「任一天买入并持有 ' + e.win + ' 日」共 ' + e.base.n + ' 个结果，胜率 <b>' + fmt2(e.base.winRate) + '%</b>、平均 <b>' + (e.base.avg > 0 ? '+' : '') + fmt2(e.base.avg) + '%</b>；'
@@ -23406,7 +23564,7 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
       + '<th style="padding:5px 6px;text-align:left;color:#52525B">组合</th>'
       + '<th style="padding:5px 6px;text-align:right;color:#52525B;white-space:nowrap">笔数</th>'
       + '<th style="padding:5px 6px;text-align:right;color:#52525B;white-space:nowrap">胜率</th>'
-      + '<th style="padding:5px 6px;text-align:right;color:#52525B;white-space:nowrap">平均 120 日</th>'
+      + '<th style="padding:5px 6px;text-align:right;color:#52525B;white-space:nowrap">平均 ' + e.win + ' 日</th>'
       + '<th style="padding:5px 6px;text-align:right;color:#52525B;white-space:nowrap">赔率</th></tr></thead>'
       + '<tbody>' + crossRows + '</tbody></table></div>'
       + '<div style="font-size:11px;color:#3F3F46;margin-top:8px;line-height:1.7">' + pkTxt + '</div>'
@@ -24407,6 +24565,7 @@ function renderBacktest() {
         /* fw2_v897b_bt_date_max：数据到齐后把截止日上限对齐 asOf（首屏渲染时 BT_CACHE 尚为空，只能落占位值） */
         try { var eEnd = document.getElementById('btIn_end'); if (eEnd && data && data.meta && data.meta.asOf) eEnd.setAttribute('max', String(data.meta.asOf)); } catch (eErr) {}
         var res = btRun(c, data);
+        window.__btLast = { res: res, data: data };   /* v994：换观察窗时不重跑，用这份成交重算 */
         try { if (res) btEvidenceWrite(c, res); } catch (eEvi) {}
         if (!res) { out.innerHTML = '<div style="color:#A32D2D;padding:16px">无有效数据（区间内无标的覆盖）</div>' + (typeof brakeCardHtml === 'function' ? brakeCardHtml({ ctx: 'bt' }) : ''); return; }
         /* v932：首屏渲染时 BT_CACHE 为空、hint 停在「加载中…」，数据到齐后要回填 */
@@ -25260,7 +25419,7 @@ function renderBacktest() {
           return '';
         })();
         var _rs = document.getElementById('btRunSum'); if (_rs) _rs.textContent = runSum;
-        out.innerHTML = conclBar + argWarn + endWarn + lagWarn + gridWarn + cmpHtml + btVolCardHtml(S, cfg) + btWrCardHtml(S, cfg) + btEntCardHtml(S, cfg) + btSigCardHtml(S, cfg) + (typeof brakeCardHtml === 'function' ? brakeCardHtml({ ctx: 'bt' }) : '') + gridListHtml + ruleHtml
+        out.innerHTML = conclBar + argWarn + endWarn + lagWarn + gridWarn + cmpHtml + btVolCardHtml(S, cfg) + btWrCardHtml(S, cfg) + '<div id="btFacWrap">' + btEntCardHtml(S, cfg) + btSigCardHtml(S, cfg) + '</div>' + '<div id="btPoolWrap">' + btPoolCardHtml(data, cfg) + '</div>' + (typeof brakeCardHtml === 'function' ? brakeCardHtml({ ctx: 'bt' }) : '') + gridListHtml + ruleHtml
           + '<div class="card-h" style="margin-top:12px"><h3 style="white-space:nowrap">净值曲线</h3><span class="hint">1 = 起点可投资金 · 区间 ' + S.start + ' → ' + S.end + ' · ' + S.days + ' 个净值日期 · 红区＝最深回撤段，▲＝止盈减仓/止损触发</span></div>' + riskChips + '<div id="btChart" style="width:100%;height:300px"></div>'
           + '<div class="card-h" style="margin-top:16px"><h3 style="white-space:nowrap">持仓过程</h3><span class="hint">四张图连看：谁在长 · 跌多深 · 哪个月难受 · 谁在撑</span></div>'
           + '<div style="font-size:13px;font-weight:600;color:#3F3F46;margin:14px 0 1px">① 分标的持仓市值</div>'
