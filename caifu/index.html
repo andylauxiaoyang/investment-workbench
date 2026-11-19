@@ -1529,7 +1529,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 ④效果：Σ(市值−成本) 1,276.73 → **1,344.81**，与账户 ΣconstantProfit 1,346.52 只差 **1.71**（其余 21 只舍入）；「净资产 − 在盘成本」= 20,462.19 − 19,117.42 = 1,344.77 ≈ 未实现 1,344.81（差 0.04）；「已实现＋未实现」= 2,224.25，与账户累计 2,224.76 差 **0.51**。原 68.63 的口径差基本消解。
 ⑤影响面已核：T9 CAP 组合投入 19,185.50 → 19,117.42，阈值 C.cap=100000，档位不变；T1/T4/T5 收益率优先走 holdProfitRate，不受 cost 影响；T13 网格优先 lastBuyNav。
 ★仍未修：其余 21 只合计 0.68 的舍入差（不再追）；`constantProfit` 的收益率分母含在途金额（App 显示 016452 −1.9%，而已确认部分真实收益率是 −6.1%），属平台口径，不跟。 -->
-<!-- fw2_v951_bt_brake_below_cmp（用户 2026-11-17「策略执行模块中子模块持仓回测和自选回测中策略 vs 对照 · 按标的明细放在单只刹车 · 10 年峰值回撤上面显示」）：纯显示顺序调整，零计算改动。①原顺序（v939 起）：面板头 → 自选逐只参数 → 运行条 → **刹车卡** → 参数抽屉 → 结果区（结论条 → **策略 vs 对照明细表** → 备用金明细 → 关键规则卡 → 四图 → 明细）。②新顺序：刹车卡从面板层移除，改在结果区紧随明细表之后渲染 —— 面板头 → 运行条 → 抽屉 → 结果区（结论条 → **明细表 → 刹车卡** → 备用金明细 → 规则卡 → 四图 → 明细）。两处篇幅与内容一字未改（BRAKE_T 仍单源）。③兼容处理：回测「无有效数据」分支同样追加该卡（它是静态阈值参考表，不该因回测失败消失）；卡内「本页只读…勾选下面的刹车开关」文案随位置改为「勾选上方参数抽屉里的刹车开关」。④持仓回测与自选回测共用同一块 stp-bt 面板，两处同时生效。 --><!-- fw2_v952_signal_registry（用户 2026-11-17「交易信号和回测信号最终必须保持一致，我遵循一套投资逻辑不能乱，要变都一起变」+「止盈定乙」）：B1 只读层落地，零计算改动。①新增 `window.SIGNAL_REGISTRY`（紧随 SIGNALS_CFG，键＝信号 ID，字段 name/layer/obj/dir/ev/def/modeled/thr/act/code），三层共 59 条（持仓 T1–T16+32 条 P/XOV、自选 W1–W9（W4 已删）、筛选 S1–S7+S-TREND+V1/V2/V11、回测 R1–R11、宏观 M1–M6+RB/BW）；阈值一律从 `SIGNALS_CFG` 拼串引用、不复制字面数字。②`signalRegOf(sig)` 由行名（'T1 阶梯止盈'）取条目。③**止盈定乙**：T1 文案「卖1/3」→「减1/4，+20% 再减1/4」，与 R4/R5、XOV 三处同口径，证据等级 C→A。④回测页「当前生效的规则」原来只写 3 条（止盈减仓/止损/网格）→ 改为 **R1–R11 全量清单**（含默认关项），每行带「本次开/关（按当前参数实时算）」与「证据 A/B/C」徽标，标题改「本次回测执行的规则」，底部注明 R4/R5 的 25% 写死、R2 仅定投/底仓生效、R8/R9 互斥。⑤旧 `ruleCard` 保留未删（无引用，留待将来分组用）。**未动**：回测引擎逐位不变、BRAKE_T 仍单源、SIGNALS_CFG 值未改。 --><!-- fw2_v953_batch1（用户 2026-11-17「直接做和上批 1 剩下的 5 条（T2/T7/T16/T9/T10）一起做完」）：把五条 C 级纪律真正建进回测引擎，一条一条量边际贡献。①cfg 新增 14 个键（tpPeak/tpPeakArm/tpPeakDD、addDD/addDD1/addDD2/addAmt、postSellHalf/postSellLo/postSellWin、rebalSlot/slotBand），默认全关＝v952 逐位不变，归一化段对 5 个布尔只认 true/'true'、9 个阈值给合法区间。②引擎：T2 逐日记「入场以来峰值浮盈」，峰涨≥20% 且自峰回吐≥8pp 卖一半（每持仓一次，成本未知跳过）；T7 逐日拉 250 个交易日滚动峰值（单调队列预计算 s.p250），−20%/−30% 各补一档（每档＝目标额 20%，只从预算现金出，破线/冻结/封顶不补）；T16 在 trySell 里记最近一次卖出成交净值与日期，再跌 10% 且 90 日内卖剩余一半（同一基准只触发一次）；T9 逐日算 Σ持仓成本，≥capAmt 当日禁买（建仓/定投/网格三处守卫）；T10 新增 btSlotRebal（季末按 pile 汇总市值对 base40/off35/bond10/hedge15，偏离≥5pp 才动手，超配档卖出、低配档用现金补）。③参数抽屉加「纪律开关（批 1 实验 · 默认关）」5 个勾选框；收参段补齐 5 个布尔**与 9 个阈值**——不收阈值会让引擎拿到 undefined，判定恒为 false（本轮实测踩到，表现为「勾了开关、数字一位不变」）。④两区间实测（¥50,000 / 杠铃 11 只 / 一次性 / 2024-02-07~2026-09-28 与 2019-01-01~2026-09-28，格式＝年化/Calmar/回撤预算使用率）：全关 15.38/1.74/39.66 与 7.53/0.87/34.30（v952 一致）；T2 11.82/1.63/31.31 与 6.05/0.69/32.08（劣）；T7 16.20/1.89/38.70 与 7.83/0.87/35.71（弱正）；T16 15.78/2.02/35.17 与 7.32/0.97/29.55（唯一两区间同向改善）；T9（预算抬到 ¥200,000）关 15.28/1.76/38.93、开 14.39/1.79/35.73 与关 7.50/0.87/33.83、开 6.12/0.71/32.10（等价砍半本金）；T10 19.63/1.86/48.39 与 12.43/0.48/113.12（长区间总回撤 22.62%＞预算 20%，周期依赖）。⑤规则卡从 R1–R11 扩到 16 行（补 T2/T7/T16/T9/T10，证据 C→A 并写明实测数字）；R8 三小步落地：默认关、注册表 act 注明「四档实测均负、保留仅供研究」、T14 文案补「仅提示，不触发成交」。**未动**：R1–R11 计算、BRAKE_T、SIGNALS_CFG。 --><!-- fw2_v988i_bt_param_single_source（用户 2026-11-19「回测参数只在一个地方展示和选择，就是回测验证；持仓回测/自选回测只出干净结果」）：回测参数单点化落地。①参数渲染段抽成全局 `btParamsHtml(cfg)`（回测页与⑧层共用同一份渲染代码，杜绝两处各改一遍）。②三层存储：`fw2_bt_plan`（⑧-A 流程参数＝母版，全量）+ `fw2_bt_hold`/`fw2_bt_custom`（⑧-B/⑧-C 只存与母版的 diff）；旧单份键 `fw2_bt_cfg_v1` 首次只读迁移进母版后不再写。③继承规则：⑧-B/⑧-C 默认继承母版，改一项即记一条覆盖（页面标「覆盖」橙字），母版再改会自动传给未覆盖项——标准统一、允许单项偏离。④`go()` 不再从输入框读参（原 40 个 `btIn_*` 读 DOM），改为 `btCfg(scope)` 存储驱动；回测页参数控件归零，只留只读口径条（口径/继承/覆盖项数/区间/本金/投入方式/网格/门槛 + 运行 + 「修改参数 →」跳转⑧层）。⑤⑧ 层加二级视图「准入规则（BT1–BT6）/ 回测口径（参数）」，参数区三卡 ⑧-A/⑧-B/⑧-C 切换，控件 47 个。⑥收参 bug 修复：`btCollectDom` 只收母版已有键并按母版原值类型还原（此前渲染出的辅助控件会把 diff 污染成 `gridExt:"false"` 假覆盖）。⑦等价性实测：同参数下结论条与 v988h 逐字一致（年化 3.26% / Calmar 0.23 / 回撤预算 36.49%）；覆盖实测：⑧-B 预算改 ¥50,000 → 回测变 3.19%/0.22/36.51%，母版仍 ¥62,000；母版改 ¥55,000 → ⑧-C 跟到 55,000、⑧-B 保持 50,000（覆盖 1 项）。未动：回测引擎逐位不变、18 层信号注册表与三态逻辑不动。 --><span id="verBadge" class="ver-badge">v999</span><!-- fw2_v989_renumber（用户 2026-11-19「988 后应该按 989 往上升级，为什么加字母」）：版本号规则自本条起改为整数单调递增（v989 → v990 → …），不再使用字母后缀。历史 v988a–v988l 是「把 v988 当大版本框、其下增量用字母」的旧编法，已发布不可回改，仅在此说明对应关系：v988a 规则代码带中文名 / v988b·c T13 网格跟踪升「开」+ 备用金降级 / v988d 备用金摘出复核 / v988e 持仓「卖后涨跌」列 / v988f 投资逻辑大脑 / v988g 八层·思想总纲（已废）/ v988h ⑧ 层改「回测验证 · 逻辑准入」/ v988i 回测参数单点化 / v988j 四条边界 / v988k 波动三项客观量 / v988l 胜率赔率 + 入场质量因子分档（即本版 v989）。 --><!-- fw2_v988k_vol_three（用户 2026-11-19「开始 ②」）：回测结论区新增「波动与耐受力（客观量 · 不设阈值）」卡。
+<!-- fw2_v951_bt_brake_below_cmp（用户 2026-11-17「策略执行模块中子模块持仓回测和自选回测中策略 vs 对照 · 按标的明细放在单只刹车 · 10 年峰值回撤上面显示」）：纯显示顺序调整，零计算改动。①原顺序（v939 起）：面板头 → 自选逐只参数 → 运行条 → **刹车卡** → 参数抽屉 → 结果区（结论条 → **策略 vs 对照明细表** → 备用金明细 → 关键规则卡 → 四图 → 明细）。②新顺序：刹车卡从面板层移除，改在结果区紧随明细表之后渲染 —— 面板头 → 运行条 → 抽屉 → 结果区（结论条 → **明细表 → 刹车卡** → 备用金明细 → 规则卡 → 四图 → 明细）。两处篇幅与内容一字未改（BRAKE_T 仍单源）。③兼容处理：回测「无有效数据」分支同样追加该卡（它是静态阈值参考表，不该因回测失败消失）；卡内「本页只读…勾选下面的刹车开关」文案随位置改为「勾选上方参数抽屉里的刹车开关」。④持仓回测与自选回测共用同一块 stp-bt 面板，两处同时生效。 --><!-- fw2_v952_signal_registry（用户 2026-11-17「交易信号和回测信号最终必须保持一致，我遵循一套投资逻辑不能乱，要变都一起变」+「止盈定乙」）：B1 只读层落地，零计算改动。①新增 `window.SIGNAL_REGISTRY`（紧随 SIGNALS_CFG，键＝信号 ID，字段 name/layer/obj/dir/ev/def/modeled/thr/act/code），三层共 59 条（持仓 T1–T16+32 条 P/XOV、自选 W1–W9（W4 已删）、筛选 S1–S7+S-TREND+V1/V2/V11、回测 R1–R11、宏观 M1–M6+RB/BW）；阈值一律从 `SIGNALS_CFG` 拼串引用、不复制字面数字。②`signalRegOf(sig)` 由行名（'T1 阶梯止盈'）取条目。③**止盈定乙**：T1 文案「卖1/3」→「减1/4，+20% 再减1/4」，与 R4/R5、XOV 三处同口径，证据等级 C→A。④回测页「当前生效的规则」原来只写 3 条（止盈减仓/止损/网格）→ 改为 **R1–R11 全量清单**（含默认关项），每行带「本次开/关（按当前参数实时算）」与「证据 A/B/C」徽标，标题改「本次回测执行的规则」，底部注明 R4/R5 的 25% 写死、R2 仅定投/底仓生效、R8/R9 互斥。⑤旧 `ruleCard` 保留未删（无引用，留待将来分组用）。**未动**：回测引擎逐位不变、BRAKE_T 仍单源、SIGNALS_CFG 值未改。 --><!-- fw2_v953_batch1（用户 2026-11-17「直接做和上批 1 剩下的 5 条（T2/T7/T16/T9/T10）一起做完」）：把五条 C 级纪律真正建进回测引擎，一条一条量边际贡献。①cfg 新增 14 个键（tpPeak/tpPeakArm/tpPeakDD、addDD/addDD1/addDD2/addAmt、postSellHalf/postSellLo/postSellWin、rebalSlot/slotBand），默认全关＝v952 逐位不变，归一化段对 5 个布尔只认 true/'true'、9 个阈值给合法区间。②引擎：T2 逐日记「入场以来峰值浮盈」，峰涨≥20% 且自峰回吐≥8pp 卖一半（每持仓一次，成本未知跳过）；T7 逐日拉 250 个交易日滚动峰值（单调队列预计算 s.p250），−20%/−30% 各补一档（每档＝目标额 20%，只从预算现金出，破线/冻结/封顶不补）；T16 在 trySell 里记最近一次卖出成交净值与日期，再跌 10% 且 90 日内卖剩余一半（同一基准只触发一次）；T9 逐日算 Σ持仓成本，≥capAmt 当日禁买（建仓/定投/网格三处守卫）；T10 新增 btSlotRebal（季末按 pile 汇总市值对 base40/off35/bond10/hedge15，偏离≥5pp 才动手，超配档卖出、低配档用现金补）。③参数抽屉加「纪律开关（批 1 实验 · 默认关）」5 个勾选框；收参段补齐 5 个布尔**与 9 个阈值**——不收阈值会让引擎拿到 undefined，判定恒为 false（本轮实测踩到，表现为「勾了开关、数字一位不变」）。④两区间实测（¥50,000 / 杠铃 11 只 / 一次性 / 2024-02-07~2026-09-28 与 2019-01-01~2026-09-28，格式＝年化/Calmar/回撤预算使用率）：全关 15.38/1.74/39.66 与 7.53/0.87/34.30（v952 一致）；T2 11.82/1.63/31.31 与 6.05/0.69/32.08（劣）；T7 16.20/1.89/38.70 与 7.83/0.87/35.71（弱正）；T16 15.78/2.02/35.17 与 7.32/0.97/29.55（唯一两区间同向改善）；T9（预算抬到 ¥200,000）关 15.28/1.76/38.93、开 14.39/1.79/35.73 与关 7.50/0.87/33.83、开 6.12/0.71/32.10（等价砍半本金）；T10 19.63/1.86/48.39 与 12.43/0.48/113.12（长区间总回撤 22.62%＞预算 20%，周期依赖）。⑤规则卡从 R1–R11 扩到 16 行（补 T2/T7/T16/T9/T10，证据 C→A 并写明实测数字）；R8 三小步落地：默认关、注册表 act 注明「四档实测均负、保留仅供研究」、T14 文案补「仅提示，不触发成交」。**未动**：R1–R11 计算、BRAKE_T、SIGNALS_CFG。 --><!-- fw2_v988i_bt_param_single_source（用户 2026-11-19「回测参数只在一个地方展示和选择，就是回测验证；持仓回测/自选回测只出干净结果」）：回测参数单点化落地。①参数渲染段抽成全局 `btParamsHtml(cfg)`（回测页与⑧层共用同一份渲染代码，杜绝两处各改一遍）。②三层存储：`fw2_bt_plan`（⑧-A 流程参数＝母版，全量）+ `fw2_bt_hold`/`fw2_bt_custom`（⑧-B/⑧-C 只存与母版的 diff）；旧单份键 `fw2_bt_cfg_v1` 首次只读迁移进母版后不再写。③继承规则：⑧-B/⑧-C 默认继承母版，改一项即记一条覆盖（页面标「覆盖」橙字），母版再改会自动传给未覆盖项——标准统一、允许单项偏离。④`go()` 不再从输入框读参（原 40 个 `btIn_*` 读 DOM），改为 `btCfg(scope)` 存储驱动；回测页参数控件归零，只留只读口径条（口径/继承/覆盖项数/区间/本金/投入方式/网格/门槛 + 运行 + 「修改参数 →」跳转⑧层）。⑤⑧ 层加二级视图「准入规则（BT1–BT6）/ 回测口径（参数）」，参数区三卡 ⑧-A/⑧-B/⑧-C 切换，控件 47 个。⑥收参 bug 修复：`btCollectDom` 只收母版已有键并按母版原值类型还原（此前渲染出的辅助控件会把 diff 污染成 `gridExt:"false"` 假覆盖）。⑦等价性实测：同参数下结论条与 v988h 逐字一致（年化 3.26% / Calmar 0.23 / 回撤预算 36.49%）；覆盖实测：⑧-B 预算改 ¥50,000 → 回测变 3.19%/0.22/36.51%，母版仍 ¥62,000；母版改 ¥55,000 → ⑧-C 跟到 55,000、⑧-B 保持 50,000（覆盖 1 项）。未动：回测引擎逐位不变、18 层信号注册表与三态逻辑不动。 --><span id="verBadge" class="ver-badge">v1000</span><!-- fw2_v989_renumber（用户 2026-11-19「988 后应该按 989 往上升级，为什么加字母」）：版本号规则自本条起改为整数单调递增（v989 → v990 → …），不再使用字母后缀。历史 v988a–v988l 是「把 v988 当大版本框、其下增量用字母」的旧编法，已发布不可回改，仅在此说明对应关系：v988a 规则代码带中文名 / v988b·c T13 网格跟踪升「开」+ 备用金降级 / v988d 备用金摘出复核 / v988e 持仓「卖后涨跌」列 / v988f 投资逻辑大脑 / v988g 八层·思想总纲（已废）/ v988h ⑧ 层改「回测验证 · 逻辑准入」/ v988i 回测参数单点化 / v988j 四条边界 / v988k 波动三项客观量 / v988l 胜率赔率 + 入场质量因子分档（即本版 v989）。 --><!-- fw2_v988k_vol_three（用户 2026-11-19「开始 ②」）：回测结论区新增「波动与耐受力（客观量 · 不设阈值）」卡。
  ① 回本所需涨幅＝最深回撤谷底回到该峰值所需涨幅（= 1/(1+最大回撤)−1，用权益直接算）；
  ② 最长水下天数＝连续「权益低于区间内历史峰值」的最长日历天数（期末仍水下算到期末并标注）；
  ③ 最深回撤回本用时＝最深回撤峰值日 → 首次回到该峰值的日历天数（未回本则记到期末）。
@@ -21432,6 +21432,14 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
         if (_dfRaw) { var _df = JSON.parse(_dfRaw); for (var kd in d) if (_df[kd] != null) d[kd] = _df[kd]; }
       }
     } catch (e3) {}
+    /* v1000 fw2_v1000_custom_pool：⑧-C 自选回测的池固定＝自选组合。
+       不能依赖存储里的 pool：btSave() 有意跳过 pool（不写进 diff），所以切到自选 tab 后
+       btCfg('custom') 仍返回母版的 pool='barbell' —— 标题写「持仓回测」、口径条写 ⑧-B，
+       而引擎实际按 __BT_POOL_MODE 跑自选池，用户看到的就是「tab 换了、标题没换、内容对不上」。 */
+    try {
+      var _scnP = (typeof scope === 'string' && scope) ? scope : (window.__btScopeName || BT_SCOPE_CUR);
+      if (_scnP === 'custom') d.pool = 'custom';
+    } catch (eP) {}
     /* fw2_v954_t16_on：2026-11-17 用户「开」——T16 卖出后破位减半升为策略默认开。
        旧 localStorage 里的 postSellHalf:false 是批 1 A/B 实验留下的残留（不是用户选择），
        首次加载强制改回 true 并打标记；此后用户主动取消勾选会照常保存为 false，不再被覆盖。 */
@@ -24728,34 +24736,55 @@ var btMax = (BT_CACHE && BT_CACHE.meta && BT_CACHE.meta.asOf) ? String(BT_CACHE.
   /* v997：页面加载后把上次的回测结果（key/cfg/res）从 IndexedDB 读回内存缓存。
      这样刷新后第一次点进「持仓回测」也能立刻出结果，不用重跑、不会只看到一句提示。 */
   (function () {
+    var _sync = function () {
+      try {
+        var o = document.getElementById('btOut');
+        if (o && o.innerText.length < 3000 && typeof renderBacktest === 'function') renderBacktest();
+      } catch (e) {}
+    };
+    var _poolOfKey = function (k) { var p = String(k || '').split('|'); return (p[1] === 'custom') ? 'custom' : 'barbell'; };
     var _run = function () {
+      /* v1000：持仓 / 自选各读一套（结果 + 整页快照），互不覆盖 */
+      ['barbell', 'custom'].forEach(function (p) {
+        _idbGet('lastResult:' + p).then(function (rec) {
+          if (!rec || !rec.res || !rec.key) return;
+          if (window.__btCacheByPool[p] && window.__btCacheByPool[p].res) return;
+          window.__btCacheByPool[p] = { key: rec.key, res: rec.res, cfg: rec.cfg || null, ts: rec.savedAt || 0 };
+          if (_btCurPool() === p) { window.__btCache = window.__btCacheByPool[p]; window.__btLast = { res: rec.res, data: BT_CACHE || null }; }
+          _sync();
+        });
+        _idbGet('lastHtml:' + p).then(function (rec2) {
+          try {
+            if (!rec2 || !rec2.html) return;
+            if (window.__btHtmlByPool[p] && window.__btHtmlByPool[p].html) return;
+            window.__btHtmlByPool[p] = { key: rec2.key || '', html: rec2.html, ts: rec2.savedAt || 0 };
+            if (_btCurPool() === p) window.__btHtml = window.__btHtmlByPool[p];
+            _sync();
+          } catch (e2) {}
+        });
+      });
+      /* 兼容 v997–v999 的单份键：按 key 里的 pool 归类（旧键格式 指纹|pool|asOf|窗） */
       _idbGet('lastResult').then(function (rec) {
         if (!rec || !rec.res || !rec.key) return;
-        if (window.__btCache && window.__btCache.res) return;   /* 本次会话已经跑过，别覆盖 */
-        window.__btCache = { key: rec.key, res: rec.res, cfg: rec.cfg || null, ts: rec.savedAt || 0 };
-        window.__btLast = { res: rec.res, data: BT_CACHE || null };
-        /* 占位文案同步：有缓存就别再摆「加载中」 */
-        try {
-          var o = document.getElementById('btOut');
-          if (o && o.innerText.length < 120 && typeof renderBacktest === 'function') renderBacktest();
-        } catch (e) {}
-      });
-      /* v999：把上次渲染好的整页结果也从本地库读回——刷新后第一次点进回测页
-         直接用快照铺上（几十毫秒），图表由随后的 go() 补齐。 */
-      _idbGet('lastHtml').then(function (rec) {
-        try {
-          if (!rec || !rec.html) return;
-          if (window.__btHtml && window.__btHtml.html) return;
-          window.__btHtml = { key: rec.key || '', html: rec.html, ts: rec.savedAt || 0 };
-          var o = document.getElementById('btOut');
-          if (o && o.innerText.length < 3000 && typeof renderBacktest === 'function') renderBacktest();
-        } catch (e2) {}
+        var p = _poolOfKey(rec.key);
+        if (window.__btCacheByPool[p] && window.__btCacheByPool[p].res) return;
+        window.__btCacheByPool[p] = { key: rec.key, res: rec.res, cfg: rec.cfg || null, ts: rec.savedAt || 0 };
+        window.__btCache = window.__btCacheByPool[p];
+        _sync();
       });
     };
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function () { setTimeout(_run, 1200); });
     else setTimeout(_run, 1200);
   })();
 
+  /* v1000 fw2_v1000_pool_cache：持仓回测（barbell）与自选回测（custom）共用一套面板、两条口径，
+     原来只有一份结果缓存（window.__btCache），两个 tab 来回切必然互相覆盖：
+     切到自选时「命中」不了、又拿持仓的旧结果冒充，用户看到的画面是「点了 tab、内容还是另一个组合的」。
+     改成按 pool 各存一份（结果 + 整页快照），并且「这个组合没算过」时不再自动起跑 60–90 秒。 */
+  window.__btCacheByPool = window.__btCacheByPool || {};
+  window.__btHtmlByPool = window.__btHtmlByPool || {};
+  function _btPoolKey(c) { return (c && c.pool === 'custom') ? 'custom' : 'barbell'; }
+  function _btCurPool() { try { return _btPoolKey(btCfg(window.__btScopeName || 'hold')); } catch (e) { return 'barbell'; } }
   function btOutKey(cfg, data) {
     var h = '', as = '', pl = '';
     try { h = btParamHash(cfg) || ''; } catch (e) {}
@@ -24807,9 +24836,9 @@ function renderBacktest() {
       + '<div id="btOut">' + (function () {
           /* v996：有缓存结果时不再摆「加载中」——切到本页会直接复用那份结果（几十毫秒），
              用户看到的应该是「已有结果」，而不是一块假装在等的空白。 */
-          var _h = window.__btHtml;
-          if (_h && _h.html) return _h.html;   /* v999：上次渲染好的整页结果直接铺上 */
-          var _c = window.__btCache;
+          var _h = window.__btHtmlByPool[_btCurPool()] || window.__btHtml;
+          if (_h && _h.html) return _h.html;   /* v999：上次渲染好的整页结果直接铺上（v1000：按 pool 分取） */
+          var _c = window.__btCacheByPool[_btCurPool()] || window.__btCache;
           if (_c && _c.res) {
             return '<div style="color:#52525B;font-size:12.5px;padding:18px;text-align:center;line-height:1.9">'
               + '上次结果已缓存（指纹 <code style="font-size:11px;background:#F4F2EC;padding:0 3px;border-radius:3px">' + ((_c.key || '').split('|')[0] || '') + '</code>'
@@ -24837,10 +24866,14 @@ function renderBacktest() {
          否则面板文案读的仍是 renderBacktest 入口时的旧 cfg（表现为「输入框改了、结论条不跟」） */
       cfg = btCfg();
       var out = document.getElementById('btOut');
-      var _hadCache = !!(window.__btCache && window.__btCache.res);
+      /* v1000：只看当前 pool 自己那一份缓存，绝不拿另一个组合的结果顶替 */
+      var _pool = _btPoolKey(c);
+      var _calc = window.__btCacheByPool[_pool] || null;
+      var _hadCache = !!(_calc && _calc.res);
+      var _snap = window.__btHtmlByPool[_pool] || null;
       /* v999：已有结果快照且不是手点重算时，不覆盖内容——让上次的结果一直留在页面上，
          后台默默把图表补齐。原来的「正在复用上次结果…」会把刚铺好的内容换成一行提示。 */
-      if (force || !(window.__btHtml && window.__btHtml.html)) {
+      if (force || !(_snap && _snap.html)) {
         out.innerHTML = '<div style="color:var(--zinc-500,var(----zinc-500));font-size:14px;padding:20px;text-align:center">'
           + (force || !_hadCache ? '正在跑组合模拟…（首次运行约 60–90 秒，这期间页面会卡住，是引擎在算，不是故障）' : '正在复用上次结果…') + '</div>';
       }
@@ -24851,19 +24884,32 @@ function renderBacktest() {
         /* v996 fw2_v996_tab_fast：命中缓存 → 复用上次结果（只重建视图）；不命中且已有旧结果 → 只出提示不重跑。
            原来这里无条件 btRun，等于「每点一次回测 tab 就跑一遍 30–90 秒的引擎」，用户感受到的就是整页卡死。 */
         var _k = btOutKey(c, data);
-        var _hit = !!(window.__btCache && window.__btCache.key === _k && window.__btCache.res);
+        var _calc2 = window.__btCacheByPool[_pool] || null;   /* v1000：预热可能刚灌进来，重查一次 */
+        var _hit = !!(_calc2 && _calc2.key === _k && _calc2.res);
         /* v997：口径不一致时不再只丢一块黄框——直接按「上次的口径」把上次结果渲染出来，
            顶部加一条差异横幅（含「用当前口径重算」按钮）。这样点进回测 tab 永远立刻有内容，
            既不空白、也不重跑、也不卡。 */
         var _stale = false;
-        if (!_hit && window.__btCache && window.__btCache.res && !force) {
+        if (!_hit && _calc2 && _calc2.res && !force) {
           _stale = true;
-          if (window.__btCache.cfg) cfg = window.__btCache.cfg;   /* 用旧口径渲染，避免新参数配旧结果算出矛盾数字 */
+          if (_calc2.cfg) cfg = _calc2.cfg;   /* 用旧口径渲染，避免新参数配旧结果算出矛盾数字 */
         }
-        var res = (_hit || _stale) ? window.__btCache.res : btRun(c, data);
+        /* v1000：这个组合从未算过、也不是手点重算 → 不再自动起跑。
+           原来这里直接 btRun（60–90 秒同步阻塞），表现就是「点一下自选回测，整页卡死」。 */
+        if (!_hit && !_stale && !force) {
+          out.innerHTML = '<div style="padding:18px;font-size:13px;color:#3F3F46;line-height:1.9">'
+            + '「' + (_pool === 'custom' ? '自选回测' : '持仓回测') + '」这个组合还没有算过。<br>'
+            + '<span style="color:#71717A;font-size:12px">页面不会自己起跑（跑一次约 60–90 秒，期间会占满主线程）。需要结果时点下面这个按钮。</span>'
+            + '<div style="margin-top:12px"><button onclick="window.__btGo(true)" style="background:#18181B;color:#fff;border:0;border-radius:8px;padding:8px 16px;font-size:13px;cursor:pointer">用当前口径运行回测</button>'
+            + '<span style="margin-left:10px;color:#71717A;font-size:12px">另一个 tab 的结果不受影响</span></div></div>';
+          return;
+        }
+        var res = (_hit || _stale) ? _calc2.res : btRun(c, data);
         if (!_hit && !_stale) {
-          window.__btCache = { key: _k, res: res, data: data, cfg: c, ts: Date.now() };
-          try { _idbPut('lastResult', { key: _k, res: res, cfg: c, savedAt: Date.now() }); } catch (eZ2) {}
+          var _rec = { key: _k, res: res, data: data, cfg: c, ts: Date.now() };
+          window.__btCacheByPool[_pool] = _rec;
+          window.__btCache = _rec;
+          try { _idbPut('lastResult:' + _pool, { key: _k, res: res, cfg: c, savedAt: Date.now() }); } catch (eZ2) {}
         }
         window.__btLast = { res: res, data: data };   /* v994：换观察窗时不重跑，用这份成交重算 */
         try { if (!_hit && !_stale && res) btEvidenceWrite(c, res); } catch (eEvi) {}   /* v996/v997：复用不重复记账 */
@@ -25722,7 +25768,7 @@ function renderBacktest() {
         /* v997：口径变了但仍复用上次结果时，顶部说明「这是哪一版的结果」，并给出重算入口 */
         var _staleBar = '';
         if (_stale) {
-          var _oc = (window.__btCache && window.__btCache.cfg) || {};
+          var _oc = ((window.__btCacheByPool[_pool] || {}).cfg) || (window.__btCache && window.__btCache.cfg) || {};
           var _brief = function (x) {
             var bud = isFinite(+x.budget) ? (+x.budget).toLocaleString('zh-CN') : '—';
             return '区间 ' + (x.start || '—') + '→' + (x.end || '—') + ' · 本金 ¥' + bud + ' · ' + (String(x.pool) === 'custom' ? '自选组合池' : '杠铃持仓池');
@@ -25754,9 +25800,11 @@ function renderBacktest() {
            下次点进「持仓回测 / 自选回测」，先用这份快照把内容铺上（几十毫秒可见），
            图表与后续精修由 go() 在后台补齐——用户感知就是「点进去立刻有东西」。 */
         try {
-          window.__btHtml = { key: (window.__btCache && window.__btCache.key) || '', html: out.innerHTML, ts: Date.now() };
+          var _snapRec = { key: ((window.__btCacheByPool[_pool] || {}).key) || '', html: out.innerHTML, ts: Date.now() };
+          window.__btHtmlByPool[_pool] = _snapRec;
+          window.__btHtml = _snapRec;
           /* 同一份快照落本地库：刷新后第一次点进回测页也能立刻看到上次结果（不必等 go() 渲染 2 秒） */
-          _idbPut('lastHtml', { key: window.__btHtml.key, html: window.__btHtml.html, savedAt: window.__btHtml.ts });
+          _idbPut('lastHtml:' + _pool, { key: _snapRec.key, html: _snapRec.html, savedAt: _snapRec.ts });
         } catch (eSnap) {}
       }).catch(function (e) { out.innerHTML = '<div style="color:#A32D2D;padding:16px">回测失败：' + esc(String(e && e.message || e)) + '</div>'; });
       };
