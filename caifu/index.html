@@ -23139,16 +23139,16 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
     };
     var blocks = e.dims.map(function (d) {
       if (!d.bands.length) return '<div style="font-size:11px;color:#A1A1AA;margin-top:8px">' + d.name + '：样本不足 8 笔，不做分档</div>';
-      return '<div style="margin-top:10px">'
+      return '<div style="margin-top:10px;overflow-x:auto">'
         + '<div style="font-size:12px;font-weight:600;color:#3F3F46;margin-bottom:4px">' + d.name
         + '<span style="font-weight:400;color:#A1A1AA;margin-left:6px">按样本 33%/67% 分位切档</span></div>'
         + '<table style="width:100%;border-collapse:collapse;font-size:12px">'
         + '<thead><tr style="background:#FAFAFA">'
-        + '<th style="padding:5px 6px;text-align:left;color:#52525B">档位</th>'
-        + '<th style="padding:5px 6px;text-align:right;color:#52525B">笔数</th>'
-        + '<th style="padding:5px 6px;text-align:right;color:#52525B">胜率</th>'
-        + '<th style="padding:5px 6px;text-align:right;color:#52525B">平均 120 日</th>'
-        + '<th style="padding:5px 6px;text-align:right;color:#52525B">赔率</th></tr></thead>'
+        + '<th style="padding:5px 6px;text-align:left;color:#52525B;white-space:nowrap">档位</th>'
+        + '<th style="padding:5px 6px;text-align:right;color:#52525B;white-space:nowrap">笔数</th>'
+        + '<th style="padding:5px 6px;text-align:right;color:#52525B;white-space:nowrap">胜率</th>'
+        + '<th style="padding:5px 6px;text-align:right;color:#52525B;white-space:nowrap">平均 120 日</th>'
+        + '<th style="padding:5px 6px;text-align:right;color:#52525B;white-space:nowrap">赔率</th></tr></thead>'
         + '<tbody>' + d.bands.map(function (b) { return rowh(b.nm, b.st); }).join('') + '</tbody></table></div>';
     }).join('');
     var crossRows = e.cross.bands.map(function (b) { return rowh(b.nm, b.st); }).join('');
@@ -23173,15 +23173,15 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
           + '两者接近就说明：各档之间的差异大多来自行情 beta，而不是买入位置本身。</div>')
         : '')
       + blocks
-      + '<div style="margin-top:12px">'
+      + '<div style="margin-top:12px;overflow-x:auto">'
       + '<div style="font-size:12px;font-weight:600;color:#3F3F46;margin-bottom:4px">两维交叉<span style="font-weight:400;color:#A1A1AA;margin-left:6px">估值分位×距高点回撤，各按中位数切</span></div>'
       + '<table style="width:100%;border-collapse:collapse;font-size:12px">'
       + '<thead><tr style="background:#FAFAFA">'
       + '<th style="padding:5px 6px;text-align:left;color:#52525B">组合</th>'
-      + '<th style="padding:5px 6px;text-align:right;color:#52525B">笔数</th>'
-      + '<th style="padding:5px 6px;text-align:right;color:#52525B">胜率</th>'
-      + '<th style="padding:5px 6px;text-align:right;color:#52525B">平均 120 日</th>'
-      + '<th style="padding:5px 6px;text-align:right;color:#52525B">赔率</th></tr></thead>'
+      + '<th style="padding:5px 6px;text-align:right;color:#52525B;white-space:nowrap">笔数</th>'
+      + '<th style="padding:5px 6px;text-align:right;color:#52525B;white-space:nowrap">胜率</th>'
+      + '<th style="padding:5px 6px;text-align:right;color:#52525B;white-space:nowrap">平均 120 日</th>'
+      + '<th style="padding:5px 6px;text-align:right;color:#52525B;white-space:nowrap">赔率</th></tr></thead>'
       + '<tbody>' + crossRows + '</tbody></table></div>'
       + '<div style="font-size:11px;color:#3F3F46;margin-top:8px;line-height:1.7">' + pkTxt + '</div>'
       + '<div style="font-size:11px;color:#A1A1AA;margin-top:4px;line-height:1.7">'
@@ -23247,17 +23247,15 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
         ? '期望为负：按回合算整体是亏的，抬胜率或抬赔率才有意义'
         : '胜率过半且期望为正：信号兑现率较高');
     var row = function (label, o, isMain) {
-      if (!o) return '<tr><td style="padding:4px 6px">' + label + '</td><td colspan="7" style="padding:4px 6px;color:#A1A1AA">无样本</td></tr>';
+      if (!o) return '<tr><td colspan="7" style="padding:4px 6px;color:#A1A1AA">' + label + ' · 无样本</td></tr>';
       return '<tr' + (isMain ? ' style="background:#FBFBF8"' : '') + '>'
-        + '<td style="padding:4px 6px;white-space:nowrap">' + label + '</td>'
-        + '<td style="padding:4px 6px;text-align:right">' + o.n + '</td>'
-        + '<td style="padding:4px 6px;text-align:right">' + o.winN + ' / ' + o.loseN + '</td>'
-        + '<td style="padding:4px 6px;text-align:right;font-weight:600">' + fmt2(o.winRate) + '%</td>'
-        + '<td style="padding:4px 6px;text-align:right;color:' + up + '">+' + fmt2(o.avgW) + '%</td>'
-        + '<td style="padding:4px 6px;text-align:right;color:' + dn + '">' + fmt2(o.avgL) + '%</td>'
-        + '<td style="padding:4px 6px;text-align:right">' + (o.payoff == null ? '—' : fmt2(o.payoff)) + '</td>'
-        + '<td style="padding:4px 6px;text-align:right;font-weight:600;color:' + (o.expect > 0 ? up : dn) + '">' + (o.expect > 0 ? '+' : '') + fmt2(o.expect) + '%</td>'
-        + '<td style="padding:4px 6px;text-align:right">' + (o.pfAmt == null ? '—' : fmt2(o.pfAmt)) + '</td></tr>';
+        + '<td style="padding:4px 4px;white-space:nowrap;font-size:11px">' + label + '</td>'
+        + '<td style="padding:4px 4px;text-align:right;white-space:nowrap">' + o.n + '<span style="display:block;font-size:10px;color:#A1A1AA">' + o.winN + '胜' + o.loseN + '负</span></td>'
+        + '<td style="padding:4px 4px;text-align:right;font-weight:600;white-space:nowrap">' + fmt2(o.winRate) + '%</td>'
+        + '<td style="padding:4px 4px;text-align:right;white-space:nowrap"><span style="color:' + up + '">+' + fmt2(o.avgW) + '%</span><br><span style="color:' + dn + '">' + fmt2(o.avgL) + '%</span></td>'
+        + '<td style="padding:4px 4px;text-align:right;white-space:nowrap">' + (o.payoff == null ? '—' : fmt2(o.payoff)) + '</td>'
+        + '<td style="padding:4px 4px;text-align:right;font-weight:600;white-space:nowrap;color:' + (o.expect > 0 ? up : dn) + '">' + (o.expect > 0 ? '+' : '') + fmt2(o.expect) + '%</td>'
+        + '<td style="padding:4px 4px;text-align:right;white-space:nowrap">' + (o.pfAmt == null ? '—' : fmt2(o.pfAmt)) + '</td></tr>';
     };
     return '<div style="background:#fff;border:1px solid #E8E6DF;border-radius:10px;padding:12px;margin-bottom:12px' + dim + '">'
       + '<div style="display:flex;align-items:baseline;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:8px">'
@@ -23274,15 +23272,13 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
       + '</div>'
       + '<table style="width:100%;border-collapse:collapse;font-size:12px;margin-top:10px">'
       + '<thead><tr style="background:#FAFAFA">'
-      + '<th style="padding:5px 6px;text-align:left;color:#52525B">口径</th>'
-      + '<th style="padding:5px 6px;text-align:right;color:#52525B">回合</th>'
-      + '<th style="padding:5px 6px;text-align:right;color:#52525B">胜/负</th>'
-      + '<th style="padding:5px 6px;text-align:right;color:#52525B">胜率</th>'
-      + '<th style="padding:5px 6px;text-align:right;color:#52525B">平均盈利</th>'
-      + '<th style="padding:5px 6px;text-align:right;color:#52525B">平均亏损</th>'
-      + '<th style="padding:5px 6px;text-align:right;color:#52525B">赔率</th>'
-      + '<th style="padding:5px 6px;text-align:right;color:#52525B">期望/回合</th>'
-      + '<th style="padding:5px 6px;text-align:right;color:#52525B">金额PF</th></tr></thead>'
+      + '<th style="padding:5px 4px;text-align:left;color:#52525B;white-space:nowrap">口径</th>'
+      + '<th style="padding:5px 4px;text-align:right;color:#52525B;white-space:nowrap">回合</th>'
+      + '<th style="padding:5px 4px;text-align:right;color:#52525B;white-space:nowrap">胜率</th>'
+      + '<th style="padding:5px 4px;text-align:right;color:#52525B;white-space:nowrap">均盈 · 均亏</th>'
+      + '<th style="padding:5px 4px;text-align:right;color:#52525B;white-space:nowrap">赔率</th>'
+      + '<th style="padding:5px 4px;text-align:right;color:#52525B;white-space:nowrap">期望</th>'
+      + '<th style="padding:5px 4px;text-align:right;color:#52525B;white-space:nowrap">金额 PF</th></tr></thead>'
       + '<tbody>' + row('主口径 · 含期末在仓', a, true) + row('对照 · 仅已平仓', c, false) + '</tbody></table>'
       + '<div style="font-size:11px;color:' + noteCol + ';margin-top:8px;line-height:1.7">' + note + '</div>'
       + '<div style="font-size:11px;color:#A1A1AA;margin-top:4px;line-height:1.7">'
