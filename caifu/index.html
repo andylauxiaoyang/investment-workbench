@@ -1529,7 +1529,17 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 ④效果：Σ(市值−成本) 1,276.73 → **1,344.81**，与账户 ΣconstantProfit 1,346.52 只差 **1.71**（其余 21 只舍入）；「净资产 − 在盘成本」= 20,462.19 − 19,117.42 = 1,344.77 ≈ 未实现 1,344.81（差 0.04）；「已实现＋未实现」= 2,224.25，与账户累计 2,224.76 差 **0.51**。原 68.63 的口径差基本消解。
 ⑤影响面已核：T9 CAP 组合投入 19,185.50 → 19,117.42，阈值 C.cap=100000，档位不变；T1/T4/T5 收益率优先走 holdProfitRate，不受 cost 影响；T13 网格优先 lastBuyNav。
 ★仍未修：其余 21 只合计 0.68 的舍入差（不再追）；`constantProfit` 的收益率分母含在途金额（App 显示 016452 −1.9%，而已确认部分真实收益率是 −6.1%），属平台口径，不跟。 -->
-<!-- fw2_v951_bt_brake_below_cmp（用户 2026-11-17「策略执行模块中子模块持仓回测和自选回测中策略 vs 对照 · 按标的明细放在单只刹车 · 10 年峰值回撤上面显示」）：纯显示顺序调整，零计算改动。①原顺序（v939 起）：面板头 → 自选逐只参数 → 运行条 → **刹车卡** → 参数抽屉 → 结果区（结论条 → **策略 vs 对照明细表** → 备用金明细 → 关键规则卡 → 四图 → 明细）。②新顺序：刹车卡从面板层移除，改在结果区紧随明细表之后渲染 —— 面板头 → 运行条 → 抽屉 → 结果区（结论条 → **明细表 → 刹车卡** → 备用金明细 → 规则卡 → 四图 → 明细）。两处篇幅与内容一字未改（BRAKE_T 仍单源）。③兼容处理：回测「无有效数据」分支同样追加该卡（它是静态阈值参考表，不该因回测失败消失）；卡内「本页只读…勾选下面的刹车开关」文案随位置改为「勾选上方参数抽屉里的刹车开关」。④持仓回测与自选回测共用同一块 stp-bt 面板，两处同时生效。 --><!-- fw2_v952_signal_registry（用户 2026-11-17「交易信号和回测信号最终必须保持一致，我遵循一套投资逻辑不能乱，要变都一起变」+「止盈定乙」）：B1 只读层落地，零计算改动。①新增 `window.SIGNAL_REGISTRY`（紧随 SIGNALS_CFG，键＝信号 ID，字段 name/layer/obj/dir/ev/def/modeled/thr/act/code），三层共 59 条（持仓 T1–T16+32 条 P/XOV、自选 W1–W9（W4 已删）、筛选 S1–S7+S-TREND+V1/V2/V11、回测 R1–R11、宏观 M1–M6+RB/BW）；阈值一律从 `SIGNALS_CFG` 拼串引用、不复制字面数字。②`signalRegOf(sig)` 由行名（'T1 阶梯止盈'）取条目。③**止盈定乙**：T1 文案「卖1/3」→「减1/4，+20% 再减1/4」，与 R4/R5、XOV 三处同口径，证据等级 C→A。④回测页「当前生效的规则」原来只写 3 条（止盈减仓/止损/网格）→ 改为 **R1–R11 全量清单**（含默认关项），每行带「本次开/关（按当前参数实时算）」与「证据 A/B/C」徽标，标题改「本次回测执行的规则」，底部注明 R4/R5 的 25% 写死、R2 仅定投/底仓生效、R8/R9 互斥。⑤旧 `ruleCard` 保留未删（无引用，留待将来分组用）。**未动**：回测引擎逐位不变、BRAKE_T 仍单源、SIGNALS_CFG 值未改。 --><!-- fw2_v953_batch1（用户 2026-11-17「直接做和上批 1 剩下的 5 条（T2/T7/T16/T9/T10）一起做完」）：把五条 C 级纪律真正建进回测引擎，一条一条量边际贡献。①cfg 新增 14 个键（tpPeak/tpPeakArm/tpPeakDD、addDD/addDD1/addDD2/addAmt、postSellHalf/postSellLo/postSellWin、rebalSlot/slotBand），默认全关＝v952 逐位不变，归一化段对 5 个布尔只认 true/'true'、9 个阈值给合法区间。②引擎：T2 逐日记「入场以来峰值浮盈」，峰涨≥20% 且自峰回吐≥8pp 卖一半（每持仓一次，成本未知跳过）；T7 逐日拉 250 个交易日滚动峰值（单调队列预计算 s.p250），−20%/−30% 各补一档（每档＝目标额 20%，只从预算现金出，破线/冻结/封顶不补）；T16 在 trySell 里记最近一次卖出成交净值与日期，再跌 10% 且 90 日内卖剩余一半（同一基准只触发一次）；T9 逐日算 Σ持仓成本，≥capAmt 当日禁买（建仓/定投/网格三处守卫）；T10 新增 btSlotRebal（季末按 pile 汇总市值对 base40/off35/bond10/hedge15，偏离≥5pp 才动手，超配档卖出、低配档用现金补）。③参数抽屉加「纪律开关（批 1 实验 · 默认关）」5 个勾选框；收参段补齐 5 个布尔**与 9 个阈值**——不收阈值会让引擎拿到 undefined，判定恒为 false（本轮实测踩到，表现为「勾了开关、数字一位不变」）。④两区间实测（¥50,000 / 杠铃 11 只 / 一次性 / 2024-02-07~2026-09-28 与 2019-01-01~2026-09-28，格式＝年化/Calmar/回撤预算使用率）：全关 15.38/1.74/39.66 与 7.53/0.87/34.30（v952 一致）；T2 11.82/1.63/31.31 与 6.05/0.69/32.08（劣）；T7 16.20/1.89/38.70 与 7.83/0.87/35.71（弱正）；T16 15.78/2.02/35.17 与 7.32/0.97/29.55（唯一两区间同向改善）；T9（预算抬到 ¥200,000）关 15.28/1.76/38.93、开 14.39/1.79/35.73 与关 7.50/0.87/33.83、开 6.12/0.71/32.10（等价砍半本金）；T10 19.63/1.86/48.39 与 12.43/0.48/113.12（长区间总回撤 22.62%＞预算 20%，周期依赖）。⑤规则卡从 R1–R11 扩到 16 行（补 T2/T7/T16/T9/T10，证据 C→A 并写明实测数字）；R8 三小步落地：默认关、注册表 act 注明「四档实测均负、保留仅供研究」、T14 文案补「仅提示，不触发成交」。**未动**：R1–R11 计算、BRAKE_T、SIGNALS_CFG。 --><!-- fw2_v988i_bt_param_single_source（用户 2026-11-19「回测参数只在一个地方展示和选择，就是回测验证；持仓回测/自选回测只出干净结果」）：回测参数单点化落地。①参数渲染段抽成全局 `btParamsHtml(cfg)`（回测页与⑧层共用同一份渲染代码，杜绝两处各改一遍）。②三层存储：`fw2_bt_plan`（⑧-A 流程参数＝母版，全量）+ `fw2_bt_hold`/`fw2_bt_custom`（⑧-B/⑧-C 只存与母版的 diff）；旧单份键 `fw2_bt_cfg_v1` 首次只读迁移进母版后不再写。③继承规则：⑧-B/⑧-C 默认继承母版，改一项即记一条覆盖（页面标「覆盖」橙字），母版再改会自动传给未覆盖项——标准统一、允许单项偏离。④`go()` 不再从输入框读参（原 40 个 `btIn_*` 读 DOM），改为 `btCfg(scope)` 存储驱动；回测页参数控件归零，只留只读口径条（口径/继承/覆盖项数/区间/本金/投入方式/网格/门槛 + 运行 + 「修改参数 →」跳转⑧层）。⑤⑧ 层加二级视图「准入规则（BT1–BT6）/ 回测口径（参数）」，参数区三卡 ⑧-A/⑧-B/⑧-C 切换，控件 47 个。⑥收参 bug 修复：`btCollectDom` 只收母版已有键并按母版原值类型还原（此前渲染出的辅助控件会把 diff 污染成 `gridExt:"false"` 假覆盖）。⑦等价性实测：同参数下结论条与 v988h 逐字一致（年化 3.26% / Calmar 0.23 / 回撤预算 36.49%）；覆盖实测：⑧-B 预算改 ¥50,000 → 回测变 3.19%/0.22/36.51%，母版仍 ¥62,000；母版改 ¥55,000 → ⑧-C 跟到 55,000、⑧-B 保持 50,000（覆盖 1 项）。未动：回测引擎逐位不变、18 层信号注册表与三态逻辑不动。 --><span id="verBadge" class="ver-badge">v988j</span><!-- fw2_v988j_bt_boundary（用户 2026-11-19「留着的边界，别当已完成」——四条边界全部落地）：
+<!-- fw2_v951_bt_brake_below_cmp（用户 2026-11-17「策略执行模块中子模块持仓回测和自选回测中策略 vs 对照 · 按标的明细放在单只刹车 · 10 年峰值回撤上面显示」）：纯显示顺序调整，零计算改动。①原顺序（v939 起）：面板头 → 自选逐只参数 → 运行条 → **刹车卡** → 参数抽屉 → 结果区（结论条 → **策略 vs 对照明细表** → 备用金明细 → 关键规则卡 → 四图 → 明细）。②新顺序：刹车卡从面板层移除，改在结果区紧随明细表之后渲染 —— 面板头 → 运行条 → 抽屉 → 结果区（结论条 → **明细表 → 刹车卡** → 备用金明细 → 规则卡 → 四图 → 明细）。两处篇幅与内容一字未改（BRAKE_T 仍单源）。③兼容处理：回测「无有效数据」分支同样追加该卡（它是静态阈值参考表，不该因回测失败消失）；卡内「本页只读…勾选下面的刹车开关」文案随位置改为「勾选上方参数抽屉里的刹车开关」。④持仓回测与自选回测共用同一块 stp-bt 面板，两处同时生效。 --><!-- fw2_v952_signal_registry（用户 2026-11-17「交易信号和回测信号最终必须保持一致，我遵循一套投资逻辑不能乱，要变都一起变」+「止盈定乙」）：B1 只读层落地，零计算改动。①新增 `window.SIGNAL_REGISTRY`（紧随 SIGNALS_CFG，键＝信号 ID，字段 name/layer/obj/dir/ev/def/modeled/thr/act/code），三层共 59 条（持仓 T1–T16+32 条 P/XOV、自选 W1–W9（W4 已删）、筛选 S1–S7+S-TREND+V1/V2/V11、回测 R1–R11、宏观 M1–M6+RB/BW）；阈值一律从 `SIGNALS_CFG` 拼串引用、不复制字面数字。②`signalRegOf(sig)` 由行名（'T1 阶梯止盈'）取条目。③**止盈定乙**：T1 文案「卖1/3」→「减1/4，+20% 再减1/4」，与 R4/R5、XOV 三处同口径，证据等级 C→A。④回测页「当前生效的规则」原来只写 3 条（止盈减仓/止损/网格）→ 改为 **R1–R11 全量清单**（含默认关项），每行带「本次开/关（按当前参数实时算）」与「证据 A/B/C」徽标，标题改「本次回测执行的规则」，底部注明 R4/R5 的 25% 写死、R2 仅定投/底仓生效、R8/R9 互斥。⑤旧 `ruleCard` 保留未删（无引用，留待将来分组用）。**未动**：回测引擎逐位不变、BRAKE_T 仍单源、SIGNALS_CFG 值未改。 --><!-- fw2_v953_batch1（用户 2026-11-17「直接做和上批 1 剩下的 5 条（T2/T7/T16/T9/T10）一起做完」）：把五条 C 级纪律真正建进回测引擎，一条一条量边际贡献。①cfg 新增 14 个键（tpPeak/tpPeakArm/tpPeakDD、addDD/addDD1/addDD2/addAmt、postSellHalf/postSellLo/postSellWin、rebalSlot/slotBand），默认全关＝v952 逐位不变，归一化段对 5 个布尔只认 true/'true'、9 个阈值给合法区间。②引擎：T2 逐日记「入场以来峰值浮盈」，峰涨≥20% 且自峰回吐≥8pp 卖一半（每持仓一次，成本未知跳过）；T7 逐日拉 250 个交易日滚动峰值（单调队列预计算 s.p250），−20%/−30% 各补一档（每档＝目标额 20%，只从预算现金出，破线/冻结/封顶不补）；T16 在 trySell 里记最近一次卖出成交净值与日期，再跌 10% 且 90 日内卖剩余一半（同一基准只触发一次）；T9 逐日算 Σ持仓成本，≥capAmt 当日禁买（建仓/定投/网格三处守卫）；T10 新增 btSlotRebal（季末按 pile 汇总市值对 base40/off35/bond10/hedge15，偏离≥5pp 才动手，超配档卖出、低配档用现金补）。③参数抽屉加「纪律开关（批 1 实验 · 默认关）」5 个勾选框；收参段补齐 5 个布尔**与 9 个阈值**——不收阈值会让引擎拿到 undefined，判定恒为 false（本轮实测踩到，表现为「勾了开关、数字一位不变」）。④两区间实测（¥50,000 / 杠铃 11 只 / 一次性 / 2024-02-07~2026-09-28 与 2019-01-01~2026-09-28，格式＝年化/Calmar/回撤预算使用率）：全关 15.38/1.74/39.66 与 7.53/0.87/34.30（v952 一致）；T2 11.82/1.63/31.31 与 6.05/0.69/32.08（劣）；T7 16.20/1.89/38.70 与 7.83/0.87/35.71（弱正）；T16 15.78/2.02/35.17 与 7.32/0.97/29.55（唯一两区间同向改善）；T9（预算抬到 ¥200,000）关 15.28/1.76/38.93、开 14.39/1.79/35.73 与关 7.50/0.87/33.83、开 6.12/0.71/32.10（等价砍半本金）；T10 19.63/1.86/48.39 与 12.43/0.48/113.12（长区间总回撤 22.62%＞预算 20%，周期依赖）。⑤规则卡从 R1–R11 扩到 16 行（补 T2/T7/T16/T9/T10，证据 C→A 并写明实测数字）；R8 三小步落地：默认关、注册表 act 注明「四档实测均负、保留仅供研究」、T14 文案补「仅提示，不触发成交」。**未动**：R1–R11 计算、BRAKE_T、SIGNALS_CFG。 --><!-- fw2_v988i_bt_param_single_source（用户 2026-11-19「回测参数只在一个地方展示和选择，就是回测验证；持仓回测/自选回测只出干净结果」）：回测参数单点化落地。①参数渲染段抽成全局 `btParamsHtml(cfg)`（回测页与⑧层共用同一份渲染代码，杜绝两处各改一遍）。②三层存储：`fw2_bt_plan`（⑧-A 流程参数＝母版，全量）+ `fw2_bt_hold`/`fw2_bt_custom`（⑧-B/⑧-C 只存与母版的 diff）；旧单份键 `fw2_bt_cfg_v1` 首次只读迁移进母版后不再写。③继承规则：⑧-B/⑧-C 默认继承母版，改一项即记一条覆盖（页面标「覆盖」橙字），母版再改会自动传给未覆盖项——标准统一、允许单项偏离。④`go()` 不再从输入框读参（原 40 个 `btIn_*` 读 DOM），改为 `btCfg(scope)` 存储驱动；回测页参数控件归零，只留只读口径条（口径/继承/覆盖项数/区间/本金/投入方式/网格/门槛 + 运行 + 「修改参数 →」跳转⑧层）。⑤⑧ 层加二级视图「准入规则（BT1–BT6）/ 回测口径（参数）」，参数区三卡 ⑧-A/⑧-B/⑧-C 切换，控件 47 个。⑥收参 bug 修复：`btCollectDom` 只收母版已有键并按母版原值类型还原（此前渲染出的辅助控件会把 diff 污染成 `gridExt:"false"` 假覆盖）。⑦等价性实测：同参数下结论条与 v988h 逐字一致（年化 3.26% / Calmar 0.23 / 回撤预算 36.49%）；覆盖实测：⑧-B 预算改 ¥50,000 → 回测变 3.19%/0.22/36.51%，母版仍 ¥62,000；母版改 ¥55,000 → ⑧-C 跟到 55,000、⑧-B 保持 50,000（覆盖 1 项）。未动：回测引擎逐位不变、18 层信号注册表与三态逻辑不动。 --><span id="verBadge" class="ver-badge">v988k</span><!-- fw2_v988k_vol_three（用户 2026-11-19「开始 ②」）：回测结论区新增「波动与耐受力（客观量 · 不设阈值）」卡。
+ ① 回本所需涨幅＝最深回撤谷底回到该峰值所需涨幅（= 1/(1+最大回撤)−1，用权益直接算）；
+ ② 最长水下天数＝连续「权益低于区间内历史峰值」的最长日历天数（期末仍水下算到期末并标注）；
+ ③ 最深回撤回本用时＝最深回撤峰值日 → 首次回到该峰值的日历天数（未回本则记到期末）。
+ 三项都只回答「要熬多久、要涨多少才回本」，**不设「拿不住」阈值**——阈值由用户按自己的持仓周期定（用户 2026-11-19 明确表态）。
+ 另加波动分档：日收益 20 日滚动年化波动的 33%/67% 分位切低/中/高三档，各档出交易日占比、该档复合年化、
+ 该档回撤（均值/最深）、20 日波动区间；文案注明「各档日期间不连续，只作状态对照，不代表某一段连续持有体验」。
+ 同轮修一个回归 bug：`applyStd` 原只定义在 renderBacktest 内 → ⑧ 层参数区重新渲染出的「3/5/10 年」「重置为标准口径」
+ 按钮没有 onclick、点了没反应；已提为模块级 `btApplyStd` 并在 renderBtCfgHost 里补绑。
+ 未动：回测引擎逐位不变（3 年窗 13.67/−5.91/2.04/103、5 年窗 9.25/−5.74/1.33/193 逐位复现）。 -->
+<!-- fw2_v988j_bt_boundary（用户 2026-11-19「留着的边界，别当已完成」——四条边界全部落地）：
  ① ⑧-A「自动化选标的按它跑」不再是文案：新增选品消费端真读 fw2_bt_plan 的 pool / watchW / budget，
     容量 N=floor(100/watchW)（5%→20 只），按筛选池既有顺序取前 N，单只额度=预算×每只占比，结果落 fw2_pick_snapshot；
     页面声明「排序＝筛选池后端既有顺序，本页不重排、不改规则」。
@@ -22911,7 +22921,144 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
       });
       return arr;
     })();
+    /* v988k fw2_v988k_vol_three：波动与耐受力三项客观量 + 波动分档。
+       只给客观量（要熬多久、要涨多少才回本），不设「拿不住」阈值——阈值该由人按自己的持仓周期定。 */
+    try { stats.vol3 = btVolMetrics(curve, cfg); } catch (eV3) { try { console.warn('btVolMetrics', eV3); } catch (e2) {} }
     return { cfg: cfg, curve: curve, trades: P.trades, stats: stats, endPiles: endPiles, target: T.target, seriesBy: seriesBy, pfTable: pfTable, poolInfo: _poolInfo, perFund: perFund };
+  }
+
+  /* v988k fw2_v988k_vol_three（实现）：curve → 三项客观量 + 波动分档。
+     ①回本所需涨幅＝最深回撤谷底回到该峰值所需涨幅（= 1/(1+mdd)−1，用权益直接算，不受金额量级影响）；
+     ②最长水下天数＝连续「权益低于区间内历史峰值」的最长日历天数（期末仍水下则算到期末并标 open）；
+     ③最深回撤回本用时＝该峰值日 → 首次回到该峰值的日历天数（未回本则记到期末）。
+     分档：日收益 20 日滚动年化波动的 33%/67% 分位切低/中/高三档，各档给交易日占比、复合年化、档内相对峰值最深回撤、波动区间。 */
+  function btVolMetrics(curve, cfg) {
+    if (!curve || curve.length < 25) return null;
+    var vs = curve.map(function (x) { return +x.v || 0; });
+    var ds = curve.map(function (x) { return x.d; });
+    var N = vs.length;
+    var gd = function (a, b) { return Math.round((Date.parse(b + 'T00:00:00Z') - Date.parse(a + 'T00:00:00Z')) / 86400000); };
+    var i;
+    /* 历史峰值 / 水下期 / 最深回撤 */
+    var memPeak = vs[0], memPeakI = 0, underStart = 0;
+    var uw = { days: 0, from: ds[0], to: ds[0], open: false };
+    var deep = { dd: 0, pi: 0, ti: 0 };
+    for (i = 0; i < N; i++) {
+      if (vs[i] >= memPeak) {
+        if (underStart < i) {
+          var sp = gd(ds[underStart], ds[i]);
+          if (sp > uw.days) uw = { days: sp, from: ds[underStart], to: ds[i], open: false };
+        }
+        memPeak = vs[i]; memPeakI = i; underStart = i;
+      }
+      var dd0 = memPeak > 0 ? vs[i] / memPeak - 1 : 0;
+      if (dd0 < deep.dd) deep = { dd: dd0, pi: memPeakI, ti: i };
+    }
+    if (underStart < N - 1) {
+      var sp2 = gd(ds[underStart], ds[N - 1]);
+      if (sp2 > uw.days) uw = { days: sp2, from: ds[underStart], to: ds[N - 1], open: true };
+    }
+    /* 最深回撤：回本所需涨幅 + 回本用时 */
+    var need = deep.dd < 0 ? (vs[deep.pi] / vs[deep.ti] - 1) * 100 : 0;
+    var backI = -1;
+    for (i = deep.ti + 1; i < N; i++) { if (vs[i] >= vs[deep.pi]) { backI = i; break; } }
+    var rec = {
+      back: backI >= 0,
+      days: backI >= 0 ? gd(ds[deep.pi], ds[backI]) : gd(ds[deep.pi], ds[N - 1]),
+      from: ds[deep.pi], to: backI >= 0 ? ds[backI] : ds[N - 1]
+    };
+    /* 波动分档：20 日滚动年化波动（与 annVol 同口径：总体方差、√252） */
+    var rs = [];
+    for (i = 1; i < N; i++) rs.push(vs[i] / vs[i - 1] - 1);
+    var W = 20, vols = [];
+    for (i = W; i < rs.length; i++) {
+      var seg = rs.slice(i - W, i);
+      var m = seg.reduce(function (a, b) { return a + b; }, 0) / W;
+      var v = seg.reduce(function (a, b) { return a + (b - m) * (b - m); }, 0) / W;
+      vols.push({ idx: i + 1, v: Math.sqrt(v) * Math.sqrt(252) * 100 });
+    }
+    if (!vols.length) return { need: need, needFrom: ds[deep.ti], needTo: ds[deep.pi], deepDD: deep.dd * 100, uw: uw, rec: rec, bands: [], bandQ: [0, 0], volN: 0 };
+    var sorted = vols.map(function (x) { return x.v; }).sort(function (a, b) { return a - b; });
+    var q33 = sorted[Math.floor(sorted.length * 0.33)], q67 = sorted[Math.floor(sorted.length * 0.67)];
+    /* 逐日历史峰值（「该档相对峰值最深回撤」用） */
+    var hp = [], pk = -Infinity;
+    for (i = 0; i < N; i++) { if (vs[i] > pk) pk = vs[i]; hp.push(pk); }
+    var bands = {
+      low: { k: '低波动', n: 0, comp: 1, dd: 0, ddSum: 0, lo: Infinity, hi: -Infinity },
+      mid: { k: '中波动', n: 0, comp: 1, dd: 0, ddSum: 0, lo: Infinity, hi: -Infinity },
+      high: { k: '高波动', n: 0, comp: 1, dd: 0, ddSum: 0, lo: Infinity, hi: -Infinity }
+    };
+    vols.forEach(function (x) {
+      var ix = x.idx;
+      if (ix >= N) return;
+      var b = x.v <= q33 ? bands.low : (x.v <= q67 ? bands.mid : bands.high);
+      b.n++;
+      b.comp *= (1 + rs[ix - 1]);
+      var ddB = hp[ix] > 0 ? (vs[ix] / hp[ix] - 1) * 100 : 0;
+      b.ddSum += ddB;
+      if (ddB < b.dd) b.dd = ddB;
+      if (x.v < b.lo) b.lo = x.v;
+      if (x.v > b.hi) b.hi = x.v;
+    });
+    var out = ['low', 'mid', 'high'].map(function (k) {
+      var b = bands[k];
+      if (!b.n) return null;
+      var ann = (Math.pow(Math.max(b.comp, 1e-9), 252 / b.n) - 1) * 100;
+      return { k: b.k, n: b.n, share: b.n / vols.length * 100, ann: ann, dd: b.dd, avgDD: b.ddSum / b.n, lo: b.lo, hi: b.hi };
+    }).filter(Boolean);
+    return {
+      need: need, needFrom: ds[deep.ti], needTo: ds[deep.pi], deepDD: deep.dd * 100,
+      uw: uw, rec: rec, bandQ: [q33, q67], bands: out, volN: vols.length
+    };
+  }
+  /* v988k：波动与耐受力卡片（回测结论区，语言只说客观量，不给「能不能拿住」的判定） */
+  function btVolCardHtml(S, cfg) {
+    var v3 = S && S.vol3;
+    if (!v3) return '';
+    var fmt2 = function (x) { return (Math.round(x * 100) / 100).toFixed(2); };
+    var ann = +S.strat.ann || 0, vol = +S.strat.vol || 0, tgt = +cfg.tgtAnn || 0;
+    var ratio = (ann > 0 && vol > 0) ? vol / ann : 0;
+    var up = (typeof CHART !== 'undefined' && CHART.up) ? CHART.up : '#A32D2D';
+    var dn = (typeof CHART !== 'undefined' && CHART.down) ? CHART.down : '#047857';
+    var box = function (name, big, sub) {
+      return '<div style="flex:1;min-width:150px;background:#fff;border:1px solid #E8E6DF;border-radius:10px;padding:10px 12px">'
+        + '<div style="font-size:11px;color:#71717A">' + name + '</div>'
+        + '<div style="font-size:16px;font-weight:700;color:#18181B;margin-top:2px">' + big + '</div>'
+        + '<div style="font-size:11px;color:#52525B;margin-top:2px;line-height:1.5">' + sub + '</div></div>';
+    };
+    var rows = v3.bands.map(function (b) {
+      return '<tr>'
+        + '<td style="padding:4px 6px;white-space:nowrap">' + b.k + '</td>'
+        + '<td style="padding:4px 6px;text-align:right">' + fmt2(b.share) + '%</td>'
+        + '<td style="padding:4px 6px;text-align:right;color:' + (b.ann >= 0 ? up : dn) + '">' + fmt2(b.ann) + '%</td>'
+        + '<td style="padding:4px 6px;text-align:right;white-space:nowrap">' + fmt2(b.avgDD) + '% / ' + fmt2(b.dd) + '%</td>'
+        + '<td style="padding:4px 6px;text-align:right;white-space:nowrap">' + fmt2(b.lo) + '~' + fmt2(b.hi) + '%</td></tr>';
+    }).join('');
+    return '<div style="background:#fff;border:1px solid #E8E6DF;border-radius:10px;padding:12px;margin-bottom:12px">'
+      + '<div style="display:flex;align-items:baseline;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:8px">'
+      + '<div style="font-size:13px;font-weight:700;color:#18181B">波动与耐受力（客观量 · 不设阈值）</div>'
+      + '<div style="font-size:11px;color:#A1A1AA">本区间权益曲线 · 波动档＝20 日滚动年化波动三分位</div></div>'
+      + '<div style="display:flex;gap:8px;flex-wrap:wrap">'
+      + box('回本所需涨幅', '+' + fmt2(v3.need) + '%', '谷底 ' + v3.needFrom + ' → 峰值 ' + v3.needTo + '；最深回撤 ' + fmt2(v3.deepDD) + '%')
+      + box('最长水下天数', v3.uw.days + ' 天', v3.uw.from + ' → ' + v3.uw.to + (v3.uw.open ? '（期末仍未回本）' : ''))
+      + box('最深回撤回本用时', v3.rec.back ? v3.rec.days + ' 天' : '未回本 · 已 ' + v3.rec.days + ' 天', v3.rec.from + ' → ' + v3.rec.to)
+      + '</div>'
+      + '<div style="font-size:11px;color:#71717A;margin-top:10px;line-height:1.7">'
+      + '当前口径：年化 <b>' + fmt2(ann) + '%</b> · 年化波动 <b>' + fmt2(vol) + '%</b>'
+      + (ratio > 0 && tgt > 0 ? ('；每 1% 年化对应 ' + fmt2(ratio) + '% 波动，按同比例把年化做到目标 ' + fmt2(tgt) + '% 时波动约 ' + fmt2(ratio * tgt) + '%（线性外推，仅供参考）') : '')
+      + '。这三项只回答「要熬多久、要涨多少才回本」，能不能拿住由你自己的持仓周期决定。</div>'
+      + '<table style="width:100%;border-collapse:collapse;font-size:12px;margin-top:10px">'
+      + '<thead><tr style="background:#FAFAFA">'
+      + '<th style="padding:5px 6px;text-align:left;color:#52525B">波动档</th>'
+      + '<th style="padding:5px 6px;text-align:right;color:#52525B">交易日占比</th>'
+      + '<th style="padding:5px 6px;text-align:right;color:#52525B">该档复合年化</th>'
+      + '<th style="padding:5px 6px;text-align:right;color:#52525B">该档回撤（均/最深）</th>'
+      + '<th style="padding:5px 6px;text-align:right;color:#52525B">20 日波动区间</th></tr></thead>'
+      + '<tbody>' + rows + '</tbody></table>'
+      + '<div style="font-size:11px;color:#A1A1AA;margin-top:6px;line-height:1.6">'
+      + '分档阈值：低 ≤ ' + fmt2(v3.bandQ[0]) + '%、中 ' + fmt2(v3.bandQ[0]) + '~' + fmt2(v3.bandQ[1]) + '%、高 > ' + fmt2(v3.bandQ[1]) + '%（年化波动）。'
+      + '该档复合年化＝档内各交易日收益连乘后按档内天数折算到 252 天；该档回撤＝档内每个交易日权益相对历史峰值的回撤，取均值与最深（各档日期间不连续，只作状态对照，不代表某一段连续持有体验）。</div>'
+      + '</div>';
   }
   /* ===== v928 fw2_v928_bt_roll：滚动窗口测试——「每年 1 月进场、持有 1/2/3 年」 =====
      目的：回答「在任意一个时点进去，这套策略会怎样」，而不是只看一个起止区间。
@@ -23519,6 +23666,31 @@ var btMax = (BT_CACHE && BT_CACHE.meta && BT_CACHE.meta.asOf) ? String(BT_CACHE.
     }
     return out;
   }
+  /* v988k fw2_v988k_bt_std_global：标准口径还原提到模块级。
+     原先只定义在 renderBacktest 内 → ⑧ 层参数区重新渲染出的「3/5/10 年」「重置为标准口径」按钮没有 onclick，点了没反应。 */
+  function btApplyStd(win) {
+    var cur = btCfg();
+    var cc = BT_DEFAULTS ? JSON.parse(JSON.stringify(BT_DEFAULTS)) : {};
+    cc.pool = cur.pool || 'barbell';
+    cc.customCodes = cur.customCodes || [];
+    cc.pf = {};
+    cc.budget = 62000;
+    cc.feeBps = 0;
+    cc.investMode = 'lump';
+    cc.baseRatio = 30;
+    cc.start = (win && win.s) || '2023-07-03';
+    cc.end = (win && win.e) || '2026-07-03';
+    cc.addDD = true;        /* T7 回撤补仓 开 */
+    cc.postSellHalf = false;/* T16 卖出后破位减半 关 */
+    cc.v11Gate = true; cc.v11Pct = 5; cc.v11Odd = 2.5; cc.v11Bet = 25; cc.v11Max = 4;
+    cc.trendGate = false; cc.trendBearOnly = false; cc.trendBearMode = 'ma200'; cc.trendBearScope = 'all';
+    cc.bearSlow = false; cc.bearSlowB = false; cc.bearBuildGate = false; cc.bearSlowPct = 50;
+    btSave(cc);
+    try { renderBacktest(); } catch (eR) {}
+    setTimeout(function () { try { window.__btGo(); } catch (e0) {} }, 80);
+    try { if (typeof renderLogicView === 'function') renderLogicView(); } catch (eL) {}
+  }
+  window.btApplyStd = btApplyStd;
   function renderBtCfgHost() {
     var host = document.getElementById('btCfgHost');
     if (!host) return;
@@ -23567,6 +23739,16 @@ var btMax = (BT_CACHE && BT_CACHE.meta && BT_CACHE.meta.asOf) ? String(BT_CACHE.
     }
     var sum = document.getElementById('btCfgSum');
     if (sum) sum.textContent = (sc === 'plan' ? '母版：全量参数（改动会传递到 ⑧-B / ⑧-C 未覆盖项）' : '当前 ' + (sc === 'custom' ? '⑧-C 自选回测' : '⑧-B 持仓回测') + '：继承 ⑧-A，' + btScopeCount(sc));
+    /* v988k：⑧ 层参数区的口径预设 / 重置按钮要能点——这里补绑（回测页由 renderBacktest 自行绑定） */
+    try {
+      BT_WIN.forEach(function (w) {
+        var b = document.getElementById(w.id);
+        if (b && !b.onclick) b.onclick = function () { btApplyStd(w); };
+      });
+      var _rs = document.getElementById('btResetStd');
+      if (_rs && !_rs.onclick) _rs.onclick = function () { btApplyStd(null); };
+    } catch (eBT) {}
+
   }
   window.btCfgGo = function (scope) {
     window.__btCfgScope = scope;
@@ -24492,7 +24674,7 @@ function renderBacktest() {
           return '';
         })();
         var _rs = document.getElementById('btRunSum'); if (_rs) _rs.textContent = runSum;
-        out.innerHTML = conclBar + argWarn + endWarn + lagWarn + gridWarn + cmpHtml + (typeof brakeCardHtml === 'function' ? brakeCardHtml({ ctx: 'bt' }) : '') + gridListHtml + ruleHtml
+        out.innerHTML = conclBar + argWarn + endWarn + lagWarn + gridWarn + cmpHtml + btVolCardHtml(S, cfg) + (typeof brakeCardHtml === 'function' ? brakeCardHtml({ ctx: 'bt' }) : '') + gridListHtml + ruleHtml
           + '<div class="card-h" style="margin-top:12px"><h3 style="white-space:nowrap">净值曲线</h3><span class="hint">1 = 起点可投资金 · 区间 ' + S.start + ' → ' + S.end + ' · ' + S.days + ' 个净值日期 · 红区＝最深回撤段，▲＝止盈减仓/止损触发</span></div>' + riskChips + '<div id="btChart" style="width:100%;height:300px"></div>'
           + '<div class="card-h" style="margin-top:16px"><h3 style="white-space:nowrap">持仓过程</h3><span class="hint">四张图连看：谁在长 · 跌多深 · 哪个月难受 · 谁在撑</span></div>'
           + '<div style="font-size:13px;font-weight:600;color:#3F3F46;margin:14px 0 1px">① 分标的持仓市值</div>'
@@ -24516,28 +24698,7 @@ function renderBacktest() {
        applyStd(win)＝还原出厂默认 → 叠加会话标准覆盖 → （可选）切到指定窗口 → 存盘 → 重渲染 → 立即重跑。
        目的：任何一次跑批都不依赖「上一轮残留」；三个窗口按钮只是「重置 + 换区间」的语法糖。
        口径漂移教训见 docs/PITFALLS.md，窗口定义见 docs/SIGNAL_INVENTORY.md 14.17。 */
-    var applyStd = function (win) {
-      var cur = btCfg();
-      var cc = BT_DEFAULTS ? JSON.parse(JSON.stringify(BT_DEFAULTS)) : {};
-      /* 保留用户选择的池模式，其余一律回标准 */
-      cc.pool = cur.pool || 'barbell';
-      cc.customCodes = cur.customCodes || [];
-      cc.pf = {};
-      cc.budget = 62000;
-      cc.feeBps = 0;
-      cc.investMode = 'lump';
-      cc.baseRatio = 30;
-      cc.start = (win && win.s) || '2023-07-03';
-      cc.end = (win && win.e) || '2026-07-03';
-      cc.addDD = true;        /* T7 回撤补仓 开 */
-      cc.postSellHalf = false;/* T16 卖出后破位减半 关 */
-      cc.v11Gate = true; cc.v11Pct = 5; cc.v11Odd = 2.5; cc.v11Bet = 25; cc.v11Max = 4;
-      cc.trendGate = false; cc.trendBearOnly = false; cc.trendBearMode = 'ma200'; cc.trendBearScope = 'all';
-      cc.bearSlow = false; cc.bearSlowB = false; cc.bearBuildGate = false; cc.bearSlowPct = 50;
-      btSave(cc);
-      renderBacktest();
-      setTimeout(function () { try { window.__btGo(); } catch (e0) {} }, 80);
-    };
+    var applyStd = btApplyStd;   /* v988k：实现提到模块级，⑧ 层与回测页共用 */
     var rsBtn = document.getElementById('btResetStd');
     if (rsBtn) rsBtn.onclick = function () { applyStd(null); };
     BT_WIN.forEach(function (w) {
