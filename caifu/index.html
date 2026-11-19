@@ -24455,8 +24455,8 @@ var btMax = (BT_CACHE && BT_CACHE.meta && BT_CACHE.meta.asOf) ? String(BT_CACHE.
       + inp('start', '起始日', cfg.start, 60, 'date') + inp('end', '截止日', cfg.end, 60, 'date') + inp('budget', '可投资金(¥)', (cfg.budget > 0 ? cfg.budget : ''))
       /* v1003：参数页不放「运行回测」——① 它属于跑数，不属于参数；② 它的 id 与回测页那个重名，
          getElementById 只认第一个，会把回测页按钮的点击绑到 ⑧ 层这个上（点了没反应）。 */
-      + '<span style="font-size:11px;color:#71717A;margin-left:4px">改完即存；要出数字去「持仓回测 / 自选回测」点运行</span>' + '<button id="btResetStd" title="把所有参数与区间写回标准口径（一次性买入·¥62,000·「T16 卖出后破位减半」关·「T7 回撤补仓」开·「V11 狙击」池 5%／赔率 2.5／单注 25%／最多 4 仓·「W3／S4 趋势闸门（净值对 MA20/MA60）」与熊市三开关全关）并立即重跑" style="padding:6px 12px;background:#fff;color:#3F3F46;border:1px solid var(--line-mid,#D4D4D8);border-radius:8px;font-size:13px;cursor:pointer;margin-left:6px">重置为标准口径</button>'
-      + '<button id="btParamBtn" style="padding:6px 12px;background:#fff;color:#3F3F46;border:1px solid var(--line-mid,#D4D4D8);border-radius:8px;font-size:13px;cursor:pointer;margin-left:8px">' + (cfg.pool === 'custom' ? '模式与说明 ⚙' : '全部参数 ⚙') + '</button>'
+      + '<span style="font-size:11px;color:#71717A;margin-left:4px">改完即存；要出数字去「持仓回测 / 自选回测」点运行</span>' + '<button id="btResetStd" onclick="window.__btStd(null)" title="把所有参数与区间写回标准口径（一次性买入·¥62,000·「T16 卖出后破位减半」关·「T7 回撤补仓」开·「V11 狙击」池 5%／赔率 2.5／单注 25%／最多 4 仓·「W3／S4 趋势闸门（净值对 MA20/MA60）」与熊市三开关全关）并立即重跑" style="padding:6px 12px;background:#fff;color:#3F3F46;border:1px solid var(--line-mid,#D4D4D8);border-radius:8px;font-size:13px;cursor:pointer;margin-left:6px">重置为标准口径</button>'
+      + '<button id="btParamBtn" onclick="window.__btDrawerToggle(this)" style="padding:6px 12px;background:#fff;color:#3F3F46;border:1px solid var(--line-mid,#D4D4D8);border-radius:8px;font-size:13px;cursor:pointer;margin-left:8px">' + (cfg.pool === 'custom' ? '模式与说明 ⚙' : '全部参数 ⚙') + '</button>'
       + '<div id="btWinRow" style="margin-top:8px;font-size:11px;color:#71717A;display:flex;align-items:center;gap:6px;flex-wrap:wrap">'
       + '<span style="margin-right:2px">口径预设</span>' + btWinBtn(BT_WIN[0], cfg) + btWinBtn(BT_WIN[1], cfg) + btWinBtn(BT_WIN[2], cfg)
       + '<span style="margin-left:2px">点一下＝回标准口径＋切区间＋自动重跑（3 年即默认窗）</span></div>'
@@ -24759,7 +24759,7 @@ var btMax = (BT_CACHE && BT_CACHE.meta && BT_CACHE.meta.asOf) ? String(BT_CACHE.
       + '<span style="font-family:monospace;color:#0F766E" title="整份参数指纹：改任何一项都会变，同一指纹＝同一份参数">· 指纹 ' + btParamHash(cfg) + '</span>'
       + '</div>'
       + '<div style="margin-top:8px;display:flex;gap:8px;align-items:center;flex-wrap:wrap">'
-      + '<button id="btRunBtn" style="padding:6px 18px;background:var(--brand-ink,var(----brand));color:#fff;border:none;border-radius:8px;font-size:14px;cursor:pointer">运行回测</button>'
+      + '<button id="btRunBtn" onclick="window.__btGo(true)" style="padding:6px 18px;background:var(--brand-ink,var(----brand));color:#fff;border:none;border-radius:8px;font-size:14px;cursor:pointer">运行回测</button>'
       + '<button type="button" onclick="window.btCfgGo(\'' + sc + '\');return false" style="padding:6px 12px;background:#fff;color:#3F3F46;border:1px solid var(--line-mid,#D4D4D8);border-radius:8px;font-size:13px;cursor:pointer">修改参数 → 投资逻辑 ⑧ 回测口径</button>'
       + '<span style="font-size:11px;color:#A1A1AA">参数已集中到「策略执行 → 投资逻辑 → ⑧ 回测验证 · 回测口径」</span>'
       + '</div>'
@@ -24871,6 +24871,17 @@ var btMax = (BT_CACHE && BT_CACHE.meta && BT_CACHE.meta.asOf) ? String(BT_CACHE.
     try { if (typeof renderLogicView === 'function') renderLogicView(); } catch (eL) {}
   }
   window.btApplyStd = btApplyStd;
+  /* v1003：模块级暴露——回测面板走 out.innerHTML 快照回填后 JS 绑定会丢，
+     快照里的按钮只能靠内联 onclick 调这些全局入口。 */
+  window.__btStd = btApplyStd;
+  window.__btDrawerToggle = function (btn) {
+    var d = document.getElementById('btDrawer');
+    if (!d) return null;
+    var closed = (d.style.display === 'none');
+    d.style.display = closed ? '' : 'none';
+    if (btn) btn.textContent = closed ? '收起参数 ⚙' : '全部参数 ⚙';
+    return null;
+  };
   function renderBtCfgHost() {
     var host = document.getElementById('btCfgHost');
     if (!host) return;
@@ -26034,6 +26045,17 @@ function renderBacktest() {
          原来提示和 btRun 在同一帧，用户根本看不到它，只觉得点了没反应。 */
       requestAnimationFrame(function () { setTimeout(_kick, 0); });
     };
+    /* v1003：以下三个入口同时以 window 函数 + 内联 onclick 暴露——
+       v999 起回测面板走 out.innerHTML 快照回填，快照里的按钮拿不到 JS 绑定，
+       只有内联属性还活着。 */
+    window.__btStd = btApplyStd;
+    window.__btDrawerToggle = function (btn) {
+      var d = document.getElementById('btDrawer');
+      if (!d) return;
+      var closed = (d.style.display === 'none');
+      d.style.display = closed ? '' : 'none';
+      if (btn) btn.textContent = closed ? '收起参数 ⚙' : '全部参数 ⚙';
+    };
     var runBtn = document.getElementById('btRunBtn');
     if (runBtn) runBtn.onclick = function () { go(true); };   /* v996：手点运行＝强制重算；切 tab 调 __btGo() 走复用 */
     /* v984/v985 fw2_v984_bt_std_reset / fw2_v985_bt_window_presets：
@@ -26067,13 +26089,7 @@ function renderBacktest() {
     })();
     /* fw2_v904_bt_drawer_btn：抽屉开关（默认收起；改完任一字段仍由 change 监听自动重跑） */
     var pBtn = document.getElementById('btParamBtn');
-    if (pBtn) pBtn.onclick = function () {
-      var d = document.getElementById('btDrawer');
-      if (!d) return;
-      var closed = d.style.display === 'none';
-      d.style.display = closed ? '' : 'none';
-      pBtn.textContent = closed ? '收起参数 ⚙' : '全部参数 ⚙';
-    };
+    if (pBtn) pBtn.onclick = function () { window.__btDrawerToggle(pBtn); };
     /* v351f：参数改动即时生效——start/end 等任一表单变化自动保存并重跑，无需再点「运行回测」 */
     window.__btGo = go;
     if (!window.__btAutoBound) {
