@@ -1529,7 +1529,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 ④效果：Σ(市值−成本) 1,276.73 → **1,344.81**，与账户 ΣconstantProfit 1,346.52 只差 **1.71**（其余 21 只舍入）；「净资产 − 在盘成本」= 20,462.19 − 19,117.42 = 1,344.77 ≈ 未实现 1,344.81（差 0.04）；「已实现＋未实现」= 2,224.25，与账户累计 2,224.76 差 **0.51**。原 68.63 的口径差基本消解。
 ⑤影响面已核：T9 CAP 组合投入 19,185.50 → 19,117.42，阈值 C.cap=100000，档位不变；T1/T4/T5 收益率优先走 holdProfitRate，不受 cost 影响；T13 网格优先 lastBuyNav。
 ★仍未修：其余 21 只合计 0.68 的舍入差（不再追）；`constantProfit` 的收益率分母含在途金额（App 显示 016452 −1.9%，而已确认部分真实收益率是 −6.1%），属平台口径，不跟。 -->
-<!-- fw2_v951_bt_brake_below_cmp（用户 2026-11-17「策略执行模块中子模块持仓回测和自选回测中策略 vs 对照 · 按标的明细放在单只刹车 · 10 年峰值回撤上面显示」）：纯显示顺序调整，零计算改动。①原顺序（v939 起）：面板头 → 自选逐只参数 → 运行条 → **刹车卡** → 参数抽屉 → 结果区（结论条 → **策略 vs 对照明细表** → 备用金明细 → 关键规则卡 → 四图 → 明细）。②新顺序：刹车卡从面板层移除，改在结果区紧随明细表之后渲染 —— 面板头 → 运行条 → 抽屉 → 结果区（结论条 → **明细表 → 刹车卡** → 备用金明细 → 规则卡 → 四图 → 明细）。两处篇幅与内容一字未改（BRAKE_T 仍单源）。③兼容处理：回测「无有效数据」分支同样追加该卡（它是静态阈值参考表，不该因回测失败消失）；卡内「本页只读…勾选下面的刹车开关」文案随位置改为「勾选上方参数抽屉里的刹车开关」。④持仓回测与自选回测共用同一块 stp-bt 面板，两处同时生效。 --><!-- fw2_v952_signal_registry（用户 2026-11-17「交易信号和回测信号最终必须保持一致，我遵循一套投资逻辑不能乱，要变都一起变」+「止盈定乙」）：B1 只读层落地，零计算改动。①新增 `window.SIGNAL_REGISTRY`（紧随 SIGNALS_CFG，键＝信号 ID，字段 name/layer/obj/dir/ev/def/modeled/thr/act/code），三层共 59 条（持仓 T1–T16+32 条 P/XOV、自选 W1–W9（W4 已删）、筛选 S1–S7+S-TREND+V1/V2/V11、回测 R1–R11、宏观 M1–M6+RB/BW）；阈值一律从 `SIGNALS_CFG` 拼串引用、不复制字面数字。②`signalRegOf(sig)` 由行名（'T1 阶梯止盈'）取条目。③**止盈定乙**：T1 文案「卖1/3」→「减1/4，+20% 再减1/4」，与 R4/R5、XOV 三处同口径，证据等级 C→A。④回测页「当前生效的规则」原来只写 3 条（止盈减仓/止损/网格）→ 改为 **R1–R11 全量清单**（含默认关项），每行带「本次开/关（按当前参数实时算）」与「证据 A/B/C」徽标，标题改「本次回测执行的规则」，底部注明 R4/R5 的 25% 写死、R2 仅定投/底仓生效、R8/R9 互斥。⑤旧 `ruleCard` 保留未删（无引用，留待将来分组用）。**未动**：回测引擎逐位不变、BRAKE_T 仍单源、SIGNALS_CFG 值未改。 --><!-- fw2_v953_batch1（用户 2026-11-17「直接做和上批 1 剩下的 5 条（T2/T7/T16/T9/T10）一起做完」）：把五条 C 级纪律真正建进回测引擎，一条一条量边际贡献。①cfg 新增 14 个键（tpPeak/tpPeakArm/tpPeakDD、addDD/addDD1/addDD2/addAmt、postSellHalf/postSellLo/postSellWin、rebalSlot/slotBand），默认全关＝v952 逐位不变，归一化段对 5 个布尔只认 true/'true'、9 个阈值给合法区间。②引擎：T2 逐日记「入场以来峰值浮盈」，峰涨≥20% 且自峰回吐≥8pp 卖一半（每持仓一次，成本未知跳过）；T7 逐日拉 250 个交易日滚动峰值（单调队列预计算 s.p250），−20%/−30% 各补一档（每档＝目标额 20%，只从预算现金出，破线/冻结/封顶不补）；T16 在 trySell 里记最近一次卖出成交净值与日期，再跌 10% 且 90 日内卖剩余一半（同一基准只触发一次）；T9 逐日算 Σ持仓成本，≥capAmt 当日禁买（建仓/定投/网格三处守卫）；T10 新增 btSlotRebal（季末按 pile 汇总市值对 base40/off35/bond10/hedge15，偏离≥5pp 才动手，超配档卖出、低配档用现金补）。③参数抽屉加「纪律开关（批 1 实验 · 默认关）」5 个勾选框；收参段补齐 5 个布尔**与 9 个阈值**——不收阈值会让引擎拿到 undefined，判定恒为 false（本轮实测踩到，表现为「勾了开关、数字一位不变」）。④两区间实测（¥50,000 / 杠铃 11 只 / 一次性 / 2024-02-07~2026-09-28 与 2019-01-01~2026-09-28，格式＝年化/Calmar/回撤预算使用率）：全关 15.38/1.74/39.66 与 7.53/0.87/34.30（v952 一致）；T2 11.82/1.63/31.31 与 6.05/0.69/32.08（劣）；T7 16.20/1.89/38.70 与 7.83/0.87/35.71（弱正）；T16 15.78/2.02/35.17 与 7.32/0.97/29.55（唯一两区间同向改善）；T9（预算抬到 ¥200,000）关 15.28/1.76/38.93、开 14.39/1.79/35.73 与关 7.50/0.87/33.83、开 6.12/0.71/32.10（等价砍半本金）；T10 19.63/1.86/48.39 与 12.43/0.48/113.12（长区间总回撤 22.62%＞预算 20%，周期依赖）。⑤规则卡从 R1–R11 扩到 16 行（补 T2/T7/T16/T9/T10，证据 C→A 并写明实测数字）；R8 三小步落地：默认关、注册表 act 注明「四档实测均负、保留仅供研究」、T14 文案补「仅提示，不触发成交」。**未动**：R1–R11 计算、BRAKE_T、SIGNALS_CFG。 --><!-- fw2_v988i_bt_param_single_source（用户 2026-11-19「回测参数只在一个地方展示和选择，就是回测验证；持仓回测/自选回测只出干净结果」）：回测参数单点化落地。①参数渲染段抽成全局 `btParamsHtml(cfg)`（回测页与⑧层共用同一份渲染代码，杜绝两处各改一遍）。②三层存储：`fw2_bt_plan`（⑧-A 流程参数＝母版，全量）+ `fw2_bt_hold`/`fw2_bt_custom`（⑧-B/⑧-C 只存与母版的 diff）；旧单份键 `fw2_bt_cfg_v1` 首次只读迁移进母版后不再写。③继承规则：⑧-B/⑧-C 默认继承母版，改一项即记一条覆盖（页面标「覆盖」橙字），母版再改会自动传给未覆盖项——标准统一、允许单项偏离。④`go()` 不再从输入框读参（原 40 个 `btIn_*` 读 DOM），改为 `btCfg(scope)` 存储驱动；回测页参数控件归零，只留只读口径条（口径/继承/覆盖项数/区间/本金/投入方式/网格/门槛 + 运行 + 「修改参数 →」跳转⑧层）。⑤⑧ 层加二级视图「准入规则（BT1–BT6）/ 回测口径（参数）」，参数区三卡 ⑧-A/⑧-B/⑧-C 切换，控件 47 个。⑥收参 bug 修复：`btCollectDom` 只收母版已有键并按母版原值类型还原（此前渲染出的辅助控件会把 diff 污染成 `gridExt:"false"` 假覆盖）。⑦等价性实测：同参数下结论条与 v988h 逐字一致（年化 3.26% / Calmar 0.23 / 回撤预算 36.49%）；覆盖实测：⑧-B 预算改 ¥50,000 → 回测变 3.19%/0.22/36.51%，母版仍 ¥62,000；母版改 ¥55,000 → ⑧-C 跟到 55,000、⑧-B 保持 50,000（覆盖 1 项）。未动：回测引擎逐位不变、18 层信号注册表与三态逻辑不动。 --><span id="verBadge" class="ver-badge">v1005</span><!-- fw2_v989_renumber（用户 2026-11-19「988 后应该按 989 往上升级，为什么加字母」）：版本号规则自本条起改为整数单调递增（v989 → v990 → …），不再使用字母后缀。历史 v988a–v988l 是「把 v988 当大版本框、其下增量用字母」的旧编法，已发布不可回改，仅在此说明对应关系：v988a 规则代码带中文名 / v988b·c T13 网格跟踪升「开」+ 备用金降级 / v988d 备用金摘出复核 / v988e 持仓「卖后涨跌」列 / v988f 投资逻辑大脑 / v988g 八层·思想总纲（已废）/ v988h ⑧ 层改「回测验证 · 逻辑准入」/ v988i 回测参数单点化 / v988j 四条边界 / v988k 波动三项客观量 / v988l 胜率赔率 + 入场质量因子分档（即本版 v989）。 --><!-- fw2_v988k_vol_three（用户 2026-11-19「开始 ②」）：回测结论区新增「波动与耐受力（客观量 · 不设阈值）」卡。
+<!-- fw2_v951_bt_brake_below_cmp（用户 2026-11-17「策略执行模块中子模块持仓回测和自选回测中策略 vs 对照 · 按标的明细放在单只刹车 · 10 年峰值回撤上面显示」）：纯显示顺序调整，零计算改动。①原顺序（v939 起）：面板头 → 自选逐只参数 → 运行条 → **刹车卡** → 参数抽屉 → 结果区（结论条 → **策略 vs 对照明细表** → 备用金明细 → 关键规则卡 → 四图 → 明细）。②新顺序：刹车卡从面板层移除，改在结果区紧随明细表之后渲染 —— 面板头 → 运行条 → 抽屉 → 结果区（结论条 → **明细表 → 刹车卡** → 备用金明细 → 规则卡 → 四图 → 明细）。两处篇幅与内容一字未改（BRAKE_T 仍单源）。③兼容处理：回测「无有效数据」分支同样追加该卡（它是静态阈值参考表，不该因回测失败消失）；卡内「本页只读…勾选下面的刹车开关」文案随位置改为「勾选上方参数抽屉里的刹车开关」。④持仓回测与自选回测共用同一块 stp-bt 面板，两处同时生效。 --><!-- fw2_v952_signal_registry（用户 2026-11-17「交易信号和回测信号最终必须保持一致，我遵循一套投资逻辑不能乱，要变都一起变」+「止盈定乙」）：B1 只读层落地，零计算改动。①新增 `window.SIGNAL_REGISTRY`（紧随 SIGNALS_CFG，键＝信号 ID，字段 name/layer/obj/dir/ev/def/modeled/thr/act/code），三层共 59 条（持仓 T1–T16+32 条 P/XOV、自选 W1–W9（W4 已删）、筛选 S1–S7+S-TREND+V1/V2/V11、回测 R1–R11、宏观 M1–M6+RB/BW）；阈值一律从 `SIGNALS_CFG` 拼串引用、不复制字面数字。②`signalRegOf(sig)` 由行名（'T1 阶梯止盈'）取条目。③**止盈定乙**：T1 文案「卖1/3」→「减1/4，+20% 再减1/4」，与 R4/R5、XOV 三处同口径，证据等级 C→A。④回测页「当前生效的规则」原来只写 3 条（止盈减仓/止损/网格）→ 改为 **R1–R11 全量清单**（含默认关项），每行带「本次开/关（按当前参数实时算）」与「证据 A/B/C」徽标，标题改「本次回测执行的规则」，底部注明 R4/R5 的 25% 写死、R2 仅定投/底仓生效、R8/R9 互斥。⑤旧 `ruleCard` 保留未删（无引用，留待将来分组用）。**未动**：回测引擎逐位不变、BRAKE_T 仍单源、SIGNALS_CFG 值未改。 --><!-- fw2_v953_batch1（用户 2026-11-17「直接做和上批 1 剩下的 5 条（T2/T7/T16/T9/T10）一起做完」）：把五条 C 级纪律真正建进回测引擎，一条一条量边际贡献。①cfg 新增 14 个键（tpPeak/tpPeakArm/tpPeakDD、addDD/addDD1/addDD2/addAmt、postSellHalf/postSellLo/postSellWin、rebalSlot/slotBand），默认全关＝v952 逐位不变，归一化段对 5 个布尔只认 true/'true'、9 个阈值给合法区间。②引擎：T2 逐日记「入场以来峰值浮盈」，峰涨≥20% 且自峰回吐≥8pp 卖一半（每持仓一次，成本未知跳过）；T7 逐日拉 250 个交易日滚动峰值（单调队列预计算 s.p250），−20%/−30% 各补一档（每档＝目标额 20%，只从预算现金出，破线/冻结/封顶不补）；T16 在 trySell 里记最近一次卖出成交净值与日期，再跌 10% 且 90 日内卖剩余一半（同一基准只触发一次）；T9 逐日算 Σ持仓成本，≥capAmt 当日禁买（建仓/定投/网格三处守卫）；T10 新增 btSlotRebal（季末按 pile 汇总市值对 base40/off35/bond10/hedge15，偏离≥5pp 才动手，超配档卖出、低配档用现金补）。③参数抽屉加「纪律开关（批 1 实验 · 默认关）」5 个勾选框；收参段补齐 5 个布尔**与 9 个阈值**——不收阈值会让引擎拿到 undefined，判定恒为 false（本轮实测踩到，表现为「勾了开关、数字一位不变」）。④两区间实测（¥50,000 / 杠铃 11 只 / 一次性 / 2024-02-07~2026-09-28 与 2019-01-01~2026-09-28，格式＝年化/Calmar/回撤预算使用率）：全关 15.38/1.74/39.66 与 7.53/0.87/34.30（v952 一致）；T2 11.82/1.63/31.31 与 6.05/0.69/32.08（劣）；T7 16.20/1.89/38.70 与 7.83/0.87/35.71（弱正）；T16 15.78/2.02/35.17 与 7.32/0.97/29.55（唯一两区间同向改善）；T9（预算抬到 ¥200,000）关 15.28/1.76/38.93、开 14.39/1.79/35.73 与关 7.50/0.87/33.83、开 6.12/0.71/32.10（等价砍半本金）；T10 19.63/1.86/48.39 与 12.43/0.48/113.12（长区间总回撤 22.62%＞预算 20%，周期依赖）。⑤规则卡从 R1–R11 扩到 16 行（补 T2/T7/T16/T9/T10，证据 C→A 并写明实测数字）；R8 三小步落地：默认关、注册表 act 注明「四档实测均负、保留仅供研究」、T14 文案补「仅提示，不触发成交」。**未动**：R1–R11 计算、BRAKE_T、SIGNALS_CFG。 --><!-- fw2_v988i_bt_param_single_source（用户 2026-11-19「回测参数只在一个地方展示和选择，就是回测验证；持仓回测/自选回测只出干净结果」）：回测参数单点化落地。①参数渲染段抽成全局 `btParamsHtml(cfg)`（回测页与⑧层共用同一份渲染代码，杜绝两处各改一遍）。②三层存储：`fw2_bt_plan`（⑧-A 流程参数＝母版，全量）+ `fw2_bt_hold`/`fw2_bt_custom`（⑧-B/⑧-C 只存与母版的 diff）；旧单份键 `fw2_bt_cfg_v1` 首次只读迁移进母版后不再写。③继承规则：⑧-B/⑧-C 默认继承母版，改一项即记一条覆盖（页面标「覆盖」橙字），母版再改会自动传给未覆盖项——标准统一、允许单项偏离。④`go()` 不再从输入框读参（原 40 个 `btIn_*` 读 DOM），改为 `btCfg(scope)` 存储驱动；回测页参数控件归零，只留只读口径条（口径/继承/覆盖项数/区间/本金/投入方式/网格/门槛 + 运行 + 「修改参数 →」跳转⑧层）。⑤⑧ 层加二级视图「准入规则（BT1–BT6）/ 回测口径（参数）」，参数区三卡 ⑧-A/⑧-B/⑧-C 切换，控件 47 个。⑥收参 bug 修复：`btCollectDom` 只收母版已有键并按母版原值类型还原（此前渲染出的辅助控件会把 diff 污染成 `gridExt:"false"` 假覆盖）。⑦等价性实测：同参数下结论条与 v988h 逐字一致（年化 3.26% / Calmar 0.23 / 回撤预算 36.49%）；覆盖实测：⑧-B 预算改 ¥50,000 → 回测变 3.19%/0.22/36.51%，母版仍 ¥62,000；母版改 ¥55,000 → ⑧-C 跟到 55,000、⑧-B 保持 50,000（覆盖 1 项）。未动：回测引擎逐位不变、18 层信号注册表与三态逻辑不动。 --><span id="verBadge" class="ver-badge">v1006</span><!-- fw2_v989_renumber（用户 2026-11-19「988 后应该按 989 往上升级，为什么加字母」）：版本号规则自本条起改为整数单调递增（v989 → v990 → …），不再使用字母后缀。历史 v988a–v988l 是「把 v988 当大版本框、其下增量用字母」的旧编法，已发布不可回改，仅在此说明对应关系：v988a 规则代码带中文名 / v988b·c T13 网格跟踪升「开」+ 备用金降级 / v988d 备用金摘出复核 / v988e 持仓「卖后涨跌」列 / v988f 投资逻辑大脑 / v988g 八层·思想总纲（已废）/ v988h ⑧ 层改「回测验证 · 逻辑准入」/ v988i 回测参数单点化 / v988j 四条边界 / v988k 波动三项客观量 / v988l 胜率赔率 + 入场质量因子分档（即本版 v989）。 --><!-- fw2_v988k_vol_three（用户 2026-11-19「开始 ②」）：回测结论区新增「波动与耐受力（客观量 · 不设阈值）」卡。
  ① 回本所需涨幅＝最深回撤谷底回到该峰值所需涨幅（= 1/(1+最大回撤)−1，用权益直接算）；
  ② 最长水下天数＝连续「权益低于区间内历史峰值」的最长日历天数（期末仍水下算到期末并标注）；
  ③ 最深回撤回本用时＝最深回撤峰值日 → 首次回到该峰值的日历天数（未回本则记到期末）。
@@ -20562,8 +20562,10 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
     var a = g.alpha || (0.05 / Math.max(1, g.n));
     return { st: (g.pass ? 'pass' : 'deny'), alpha: a, minP: g.minP, at: g.at, win: g.win, n: g.n, blocks: g.blocks };
   }
-  function logicGateLine(r) {
-    if (r.id !== 'BT4') return '';
+  /* v1006 fw2_v1006_bt_table（B 段）：买点闸的「纳入拦截」chips 是配置项（决定哪些买点类规则参与分档显著性检验），
+     原来塞在 BT4 的备注单元格里，把该行撑到 200px 以上、中间留大片空白，且放在「证据页」容易被误当成要在这里勾。
+     改为表格下方独立折叠块，默认收起；表格里 BT4 只留一句「最近一次判定」。 */
+  function btGateChipsHtml() {
     var j = logicSigJudge(logicSigLatest());
     var col = j.st === 'pass' ? '#047857' : (j.st === 'deny' ? '#A32D2D' : '#B45309');
     var fm4 = function (x) { return (Math.round(x * 10000) / 10000).toFixed(4); };
@@ -20582,12 +20584,17 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
         + 'color:' + (on ? '#991B1B' : '#71717A') + ';font-weight:' + (on ? '600' : '400') + '">'
         + id + ' ' + logicEsc(nm) + '</button>';
     };
-    return '<div style="margin-top:3px;font-size:11px;line-height:1.6;color:' + col + '"><b>闸门</b> ' + logicEsc(txt)
-      + '</div>'
-      + '<div style="display:flex;flex-wrap:wrap;align-items:center;margin-top:1px">'
+    return '<details style="margin-top:8px;border-top:1px dashed #E8E6DF;padding-top:7px">'
+      + '<summary style="cursor:pointer;font-size:11px;color:#71717A;list-style:none">'
+      + '<span style="color:#18181B;font-weight:600">买点类规则 · 纳入显著性检验清单</span>'
+      + '<span style="margin-left:6px">当前纳入 ' + ids.length + ' / ' + LOGIC_GATE_CAND.length + ' 项 · 点这里展开勾选</span></summary>'
+      + '<div style="margin-top:6px;font-size:11px;line-height:1.6;color:' + col + '"><b>闸门</b> ' + logicEsc(txt) + '</div>'
+      + '<div style="display:flex;flex-wrap:wrap;align-items:center;margin-top:3px">'
       + '<span style="font-size:10px;color:#A1A1AA;margin-right:2px">纳入拦截（点一下切换）</span>'
       + LOGIC_GATE_CAND.map(chip).join('') + '</div>'
-      + '<div style="font-size:10px;color:#A1A1AA;margin-top:2px">只有「买点依据落在四因子某个维度上」的规则才该纳入：估值分位、距 250 日高点、相对 200 日均线、波动分位。各条都有自己的实测，别一股脑全勾。</div>';
+      + '<div style="font-size:10px;color:#A1A1AA;margin-top:3px;line-height:1.7">只有「买点依据落在四因子某个维度上」的规则才该纳入：估值分位、距 250 日高点、相对 200 日均线、波动分位。各条都有自己的实测，别一股脑全勾。'
+      + '<br>勾选只影响「买点类规则升生效前要不要过分档显著性」，不影响任何回测数字。</div>'
+      + '</details>';
   }
   var LOGIC_VIEW = 'fw2_logic_view';
   var LOGIC_VER = 'L1';
@@ -20746,7 +20753,41 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
   /* 单行 = 八列：代码/中文名 | 作用·方向 | 三态 | 引擎 | 实测 | 口径 | 动作 | 备注
      v1005 fw2_v1005_logic_cols：口径与动作从「第二行灰字备注」提成独立列（用户 2026-11-19 要求
      「口径、动作作为表格字段，内容在字段下显示」）；备注列只放闸门判定与引擎警告这类附加信息。 */
+  /* v1006 fw2_v1006_bt_table（A 段）：BT1–BT6 是元规则（manual:true、不进信号注册表、无引擎分支、
+     不产任何回测数字），原来套用「三态 / 引擎 / 实测」三列——这三列对 BT 全是常量（准入规则 / 方法论 / 生效），
+     点三态只改标签、还会写进「变更记录」（2026-11-19 截图里 BT1→生效→观察→生效 三条噪音即此），
+     故 BT 行改用专用四列：判定什么（条件） / 不通过怎么办（处置） / 附注。①–⑦ 仍走八列。 */
+  function logicSigText() {
+    var j = logicSigJudge(logicSigLatest());
+    if (j.st === 'none') return '未检验 · 去「持仓回测」跑一次';
+    var f4 = function (x) { return (Math.round(x * 10000) / 10000).toFixed(4); };
+    return '最近一次：' + (j.st === 'pass' ? '通过 · ' : '否决 · ') + j.n + ' 档最小 p=' + f4(j.minP)
+      + (j.st === 'pass' ? ' ≤ ' : ' > ') + 'α=' + f4(j.alpha)
+      + (j.win ? ' · ' + logicEsc(j.win) : '') + (j.at ? ' · ' + logicEsc(j.at) : '');
+  }
+  function btRowNote(r) {
+    if (r.id === 'BT1') return '窗：3 年 / 5 年 / 10 年滚动';
+    if (r.id === 'BT2') return '另跑 24 窗（6 月 / 9 月起点各 12 窗）';
+    if (r.id === 'BT3') return '读回测页结论条（年化 / 最大回撤 / Calmar），不读单点数字';
+    if (r.id === 'BT4') return '<span style="color:' + (logicSigJudge(logicSigLatest()).st === 'deny' ? '#A32D2D' : '#71717A') + '">' + logicSigText() + '</span>';
+    if (r.id === 'BT5') return '落地为下方「证据台账」：每次跑数自动挂一条';
+    if (r.id === 'BT6') return '「采纳」按钮在版本条上，规则改动默认只进草稿';
+    return '';
+  }
   function logicRowHtml(r, d) {
+    if (LOGIC_BT.indexOf(r) >= 0) {
+      var cpB = 'padding:6px 7px;vertical-align:top;';
+      var thrB = String(r.thr || '').replace(/<[^>]+>/g, '');
+      var actB = String(r.act || '').replace(/<[^>]+>/g, '');
+      var noteB = btRowNote(r);
+      return '<tr style="border-bottom:1px solid #F2F0EA">'
+        + '<td style="' + cpB + 'white-space:normal;line-height:1.45"><b style="font-size:12px">' + logicEsc(r.id) + '</b> <span style="color:#3F3F46;font-size:12px">' + logicEsc(r.name) + '</span>'
+        + '<div style="font-size:10px;color:#A1A1AA;margin-top:2px">元规则 · 恒启用</div></td>'
+        + '<td style="' + cpB + 'font-size:11px;line-height:1.6;color:#52525B;word-break:break-word">' + (thrB ? logicEsc(thrB) : '<span style="color:#B4B4BB">—</span>') + '</td>'
+        + '<td style="' + cpB + 'font-size:11px;line-height:1.6;color:#3F3F46;word-break:break-word">' + (actB ? logicEsc(actB) : '<span style="color:#B4B4BB">—</span>') + '</td>'
+        + '<td style="' + cpB + 'font-size:11px;line-height:1.55;color:#71717A;word-break:break-word">' + (noteB || '<span style="color:#D4D4D8">—</span>') + '</td>'
+        + '</tr>';
+    }
     var st = d.rules[r.id] || 'off';
     var objMap = { '单只持仓': '单只', '自选标的': '自选', '筛选池': '筛选', '组合': '组合', '市场': '市场' };
     var role = (objMap[r.obj] || r.obj || '—') + ' · ' + (r.dir || '—');
@@ -20768,7 +20809,7 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
       var cur = (k === st);
       return '<button type="button" onclick="logicSet(\'' + r.id + '\',\'' + k + '\')" style="cursor:pointer;font-size:11px;padding:2px 7px;border-radius:6px;border:1px solid ' + (cur ? col : '#E4E4E7') + ';background:' + (cur ? col : '#fff') + ';color:' + (cur ? '#fff' : '#71717A') + ';font-weight:' + (cur ? '700' : '400') + '">' + LOGIC_ST_TXT[k] + '</button>';
     }).join(' ');
-    var note = logicGateLine(r) || '';
+    var note = '';
     if (st === 'on' && eng !== '可开关' && eng !== '已建模' && eng !== '准入规则') {
       note += (note ? '<br>' : '') + '\u26a0 引擎' + logicEsc(eng) + '，设为\u300c生效\u300d也不会改变回测';
     }
@@ -20788,21 +20829,35 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
     var s = logicLayerStat(L, d);
     var rows = logicLayerRows(L);
     var body = rows.map(function (r) { return logicRowHtml(r, d); }).join('');
+    var isBT = !!L.manual;
+    var statTxt = isBT
+      ? ('共 ' + s.total + ' 条 · <b style="color:#18181B">元规则</b> · 恒启用 · 不可开关')
+      : ('共 ' + s.total + ' 条 · <span style="color:#0F766E;font-weight:700">生效 ' + s.on + '</span> · <span style="color:#B45309">观察 ' + s.obs + '</span> · <span style="color:#A1A1AA">关 ' + s.off + '</span>');
     var head = '<div style="display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;margin-bottom:2px">'
       + '<b style="font-size:14px;color:#18181B">' + L.no + ' ' + L.name + '</b>'
       + '<span style="font-size:11px;color:#71717A">' + L.sub + '</span>'
-      + '<span style="margin-left:auto;font-size:11px;color:#71717A">共 ' + s.total + ' 条 · <span style="color:#0F766E;font-weight:700">生效 ' + s.on + '</span> · <span style="color:#B45309">观察 ' + s.obs + '</span> · <span style="color:#A1A1AA">关 ' + s.off + '</span></span>'
+      + '<span style="margin-left:auto;font-size:11px;color:#71717A">' + statTxt + '</span>'
       + '</div>'
       + '<div style="font-size:11px;color:#A1A1AA;margin-bottom:6px">对应模块：' + L.mod + '</div>';
     var th = 'padding:5px 7px;font-weight:600';
+    var tbl;
+    if (isBT) {
+      tbl = '<div style="overflow-x:auto;-webkit-overflow-scrolling:touch">'
+        + '<table style="width:100%;min-width:1110px;border-collapse:collapse;table-layout:fixed">'
+        + '<colgroup><col style="width:150px"><col style="width:400px"><col style="width:330px"><col style="width:260px"></colgroup>'
+        + '<thead><tr style="border-bottom:1px solid #E8E6DF;color:#71717A;font-size:11px;text-align:left">'
+        + '<th style="' + th + '">代码 / 中文名</th><th style="' + th + '">判定什么（条件）</th><th style="' + th + '">不通过怎么办（处置）</th><th style="' + th + '">附注</th></tr></thead>'
+        + '<tbody>' + body + '</tbody></table></div>';
+    } else {
+      tbl = '<div style="overflow-x:auto;-webkit-overflow-scrolling:touch">'
+        + '<table style="width:100%;min-width:1300px;border-collapse:collapse;table-layout:fixed">'
+        + '<colgroup><col style="width:146px"><col style="width:92px"><col style="width:136px"><col style="width:78px"><col style="width:76px"><col style="width:300px"><col style="width:240px"><col style="width:240px"></colgroup>'
+        + '<thead><tr style="border-bottom:1px solid #E8E6DF;color:#71717A;font-size:11px;text-align:left">'
+        + '<th style="' + th + '">代码 / 中文名</th><th style="' + th + '">作用 · 方向</th><th style="' + th + '">三态</th><th style="' + th + '">引擎</th><th style="' + th + '">实测</th><th style="' + th + '">口径</th><th style="' + th + '">动作</th><th style="' + th + '">备注</th></tr></thead>'
+        + '<tbody>' + body + '</tbody></table></div>';
+    }
     return '<div style="background:#fff;border:1px solid #E8E6DF;border-radius:10px;padding:10px 12px;margin-bottom:10px">'
-      + head
-      + '<div style="overflow-x:auto;-webkit-overflow-scrolling:touch">'
-      + '<table style="width:100%;min-width:1180px;border-collapse:collapse;table-layout:fixed">'
-      + '<colgroup><col style="width:146px"><col style="width:92px"><col style="width:136px"><col style="width:78px"><col style="width:76px"><col style="width:300px"><col style="width:240px"><col style="width:240px"></colgroup>'
-      + '<thead><tr style="border-bottom:1px solid #E8E6DF;color:#71717A;font-size:11px;text-align:left">'
-      + '<th style="' + th + '">代码 / 中文名</th><th style="' + th + '">作用 · 方向</th><th style="' + th + '">三态</th><th style="' + th + '">引擎</th><th style="' + th + '">实测</th><th style="' + th + '">口径</th><th style="' + th + '">动作</th><th style="' + th + '">备注</th></tr></thead>'
-      + '<tbody>' + body + '</tbody></table></div></div>';
+      + head + tbl + (isBT ? btGateChipsHtml() : '') + '</div>';
   }
 
   function renderLogicView() {
@@ -20815,6 +20870,8 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
     var L = LOGIC_LAYERS.filter(function (x) { return x.k === curK; })[0] || LOGIC_LAYERS[0];
     var on = logicSeen(d, 'on'), obs = logicSeen(d, 'obs'), off = logicSeen(d, 'off');
     var dirty = !!d.dirty;
+    /* v1006：⑧ 层 BT1–BT6 已改为「元规则 · 恒启用 · 不可开关」，顶部三态计数不再把它们算成「生效」 */
+    var _btOn = LOGIC_BT.filter(function (b) { return (d.rules[b.id] || 'off') === 'on'; }).length;
     /* A 核心思想条 */
     var a = '<div style="background:#fff;border:1px solid #E8E6DF;border-left:4px solid #0F766E;border-radius:10px;padding:12px 14px;margin-bottom:10px">'
       + '<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">'
@@ -20823,7 +20880,7 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
       + '<span style="margin-left:auto;background:' + (dirty ? '#FDF6E7' : '#E4F4EA') + ';color:' + (dirty ? '#7A4B07' : '#1F7A4A') + ';font-weight:700;padding:2px 8px;border-radius:6px;font-size:12px">' + logicEsc(d.ver) + (dirty ? ' · 草稿未采纳' : ' · 基准（未改动）') + '</span>'
       + '</div>'
       + '<div style="margin-top:8px;font-size:13px;color:#3F3F46;line-height:1.9">用规则化的杠铃仓位换 10% 年化 / ≤20% 回撤：<b>不预测市场，只按纪律应对</b>——先选池、再分钱、过闸才进、按节奏加、按纪律出，只看得见的不猜。</div>'
-      + '<div style="margin-top:6px;font-size:11px;color:#A1A1AA">规则合计 ' + all.length + ' 条（①–⑦ 59 条可执行 + ⑧ 6 条准入验证）：<span style="color:#0F766E;font-weight:700">生效 ' + on + '</span> · <span style="color:#B45309">观察 ' + obs + '</span> · <span style="color:#A1A1AA">关 ' + off + '</span>' + (d.updatedAt ? ' · 最近改动 ' + logicEsc(d.updatedAt) : '') + '</div>'
+      + '<div style="margin-top:6px;font-size:11px;color:#A1A1AA">规则合计 ' + all.length + ' 条（①–⑦ 59 条可执行 + ⑧ 6 条准入验证 · 元规则恒启用，不计三态）：<span style="color:#0F766E;font-weight:700">生效 ' + (on - _btOn) + '</span> · <span style="color:#B45309">观察 ' + obs + '</span> · <span style="color:#A1A1AA">关 ' + off + '</span>' + (d.updatedAt ? ' · 最近改动 ' + logicEsc(d.updatedAt) : '') + '</div>'
       + '</div>';
     /* B 层导航：点哪层看哪层（当前层高亮） */
     var b = '<div style="font-size:11px;color:#71717A;margin:0 2px 6px">八层 · 点一层看一层（不在一页平铺全部）</div>'
@@ -20834,7 +20891,7 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
       b += '<button type="button" onclick="logicGo(\'' + x.k + '\')" style="cursor:pointer;text-align:left;padding:8px 10px;border-radius:10px;border:1px solid ' + (act ? '#0F766E' : '#E8E6DF') + ';background:' + (act ? '#0F766E' : '#fff') + ';color:' + (act ? '#fff' : '#18181B') + '">'
         + '<div style="font-size:11px;opacity:' + (act ? '0.9' : '0.55') + '">' + x.no + '</div>'
         + '<div style="font-size:13px;font-weight:700;margin-top:1px">' + x.name.split(' · ')[0] + '</div>'
-        + '<div style="font-size:11px;margin-top:2px;opacity:' + (act ? '0.95' : '0.7') + '">共 ' + s.total + ' · 生效 ' + s.on + '</div>'
+        + '<div style="font-size:11px;margin-top:2px;opacity:' + (act ? '0.95' : '0.7') + '">共 ' + s.total + (x.manual ? ' · 元规则' : (' · 生效 ' + s.on)) + '</div>'
         + '</button>';
     });
     b += '</div>';
@@ -20863,15 +20920,24 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
       + '<button type="button" onclick="logicGo(\'' + next.k + '\')" style="cursor:pointer;font-size:11px;padding:4px 10px;border:1px solid #E4E4E7;border-radius:8px;background:#fff;color:#52525B">' + next.no + ' ' + next.name.split(' · ')[0] + ' →</button>'
       + '</div>';
     /* D 版本 · 证据 · 闸门 */
+    /* v1006（D 段）：三行散文改三行字段（字段名 / 值），变更记录只取最近 3 条并注明总条数 */
+    var _logN = (d.log && d.log.length) ? d.log.length : 0;
+    var _logT = _logN ? logicEsc(d.log.slice(-3).map(function (x) { return x.t + ' ' + x.id + '→' + (LOGIC_ST_TXT[x.st] || x.st || '—'); }).join(' / ')) : '<span style="color:#A1A1AA">暂无</span>';
+    var _evN = btEvidCount();
+    var _kv = function (k, v) {
+      return '<tr style="border-top:1px solid #F1F0EC"><td style="padding:5px 0;width:96px;color:#71717A;font-size:11px;white-space:nowrap">' + k + '</td>'
+        + '<td style="padding:5px 8px;font-size:12px;color:#3F3F46;line-height:1.7">' + v + '</td></tr>';
+    };
     var dhtml = '<div style="background:#fff;border:1px solid #E8E6DF;border-radius:10px;padding:10px 12px;margin-bottom:10px">'
-      + '<div style="font-size:13px;font-weight:700;color:#18181B;margin-bottom:6px">版本与证据</div>'
-      + '<div style="font-size:12px;color:#3F3F46;line-height:1.9">'
-      + '· 当前版本 <b>' + logicEsc(d.ver) + '</b>：' + all.length + ' 条规则的军规快照（三态 + 档位）；改动记为草稿，需「采纳」才升版本（P3）。<br>'
-      + '· 证据台账：' + (btEvidCount() > 0
-        ? ('<b style="color:#0F766E">已挂 ' + btEvidCount() + ' 条</b>（每次跑数自动记一条，按时间倒序，下表显示最新 5 条；参数指纹可与回测页口径条反查）')
-        : '<span style="color:#A1A1AA">还没有证据 —— 到「持仓回测 / 自选回测」按当前参数跑一次，系统会自动挂一条（scope + 参数指纹 + 区间 + 年化/回撤/波动/笔数）</span>') + '<br>'
-      + '· 变更记录：' + ((d.log && d.log.length) ? logicEsc(d.log.slice(-3).map(function (x) { return x.t + ' ' + x.id + '→' + (LOGIC_ST_TXT[x.st] || x.st || '—'); }).join(' / ')) : '<span style="color:#A1A1AA">暂无</span>') + '</div>'
-      + '</div>';
+      + '<div style="font-size:13px;font-weight:700;color:#18181B;margin-bottom:4px">版本与证据</div>'
+      + '<table style="width:100%;border-collapse:collapse;table-layout:fixed">'
+      + _kv('当前版本', '<b>' + logicEsc(d.ver) + '</b> · ' + (dirty ? '<span style="color:#7A4B07">草稿未采纳</span>' : '<span style="color:#1F7A4A">基准（未改动）</span>')
+        + ' · ' + all.length + ' 条规则的军规快照（三态 + 档位），改动记草稿，点「采纳」才升版本')
+      + _kv('证据台账', (_evN > 0
+        ? ('<b style="color:#0F766E">已挂 ' + _evN + ' 条</b> · 下表显示最新 5 条 · 每次跑数自动记一条（参数指纹 + 区间 + 年化 / 回撤 / Calmar / 笔数）')
+        : '<span style="color:#A1A1AA">还没有证据 —— 到「持仓回测 / 自选回测」按当前参数跑一次，系统会自动挂一条</span>'))
+      + _kv('变更记录', _logT + (_logN > 3 ? ('　<span style="color:#A1A1AA">（共 ' + _logN + ' 条，显示最近 3 条）</span>') : ''))
+      + '</table></div>';
     var note = '<div style="background:#FDF6E7;border:1px solid #F0DDB4;border-radius:10px;padding:9px 12px;margin-bottom:10px;font-size:12px;color:#7A4B07;line-height:1.8">'
       + '<b>本期范围（P1）：</b>只读展示 + 三态存档。此页的改动只记录在本机 <code style="font-size:11px">' + LOGIC_KEY + '</code>，'
       + '<b>尚未下发</b>给回测抽屉、交易信号页与持仓表——「大脑 → 执行面」的接管和一致性闸门在 P2 接通。'
@@ -24686,8 +24752,17 @@ var btMax = (BT_CACHE && BT_CACHE.meta && BT_CACHE.meta.asOf) ? String(BT_CACHE.
     var at = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0')
       + ' ' + String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
     var sc = window.__btScopeName || 'hold';
+    /* v1006 fw2_v1006_bt_evidence（C 段）：补「标的数」——原来口径列只写 ⑧-B / ⑧-C，
+       自选组合为空时也照挂一条（年化 0.88%＝只剩备用金），与杠铃 9.21% 并列却看不出原因。 */
+    var nFund = null;
+    try {
+      if (cfg.pool === 'custom') {
+        var _cc = cfg.customCodes || [];
+        nFund = _cc.length ? _cc.length : Object.keys(cfg.pf || {}).length;
+      }
+    } catch (eNF) {}
     var ev = {
-      at: at, scope: sc, hash: btParamHash(cfg),
+      at: at, scope: sc, hash: btParamHash(cfg), nFund: nFund, 
       asOf: (BT_CACHE && BT_CACHE.meta && BT_CACHE.meta.asOf) || '',
       start: cfg.start, end: cfg.end, budget: cfg.budget, pool: cfg.pool, investMode: cfg.investMode,
       ann: (sp.ann == null ? null : Math.round(sp.ann * 100) / 100),
@@ -24717,16 +24792,34 @@ var btMax = (BT_CACHE && BT_CACHE.meta && BT_CACHE.meta.asOf) ? String(BT_CACHE.
         + '<div style="margin-top:5px;font-size:11px;color:#A1A1AA;line-height:1.8">还没有记录。到「持仓回测 / 自选回测」点一次「运行回测」，这里会自动挂入一条：'
         + '参数指纹 + 数据日 + 区间 + 年化 / 回撤 / 波动 / 笔数，任何数都能反查是哪份参数跑出来的。</div></div>';
     }
-    var rows = arr.slice(0, 5).map(function (x) {
-      var scTxt = (x.scope === 'custom') ? '⑧-C' : '⑧-B';
+    /* v1006（C 段）：口径列带上池与标的数、补 Calmar、给每行标「当前口径 / 旧口径」。
+       数据本身早就在写（mdd / vol / trades / budget / pool），只是没显示出来。 */
+    var curHash = {};
+    try { curHash.hold = btParamHash(btCfg('hold')); } catch (eH) {}
+    try { curHash.custom = btParamHash(btCfg('custom')); } catch (eC) {}
+    var kwan = function (x) { return '¥' + Math.round(x).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','); };
+    var rows = arr.slice(0, 5).map(function (x, i) {
+      var sc = (x.scope === 'custom') ? 'custom' : 'hold';
+      var scTxt = (sc === 'custom') ? '⑧-C 自选' : '⑧-B 杠铃';
+      var empty = (sc === 'custom' && (!x.nFund));
+      var sub = (x.nFund ? (x.nFund + ' 只') : (sc === 'custom' ? '空组合 · 无标的' : '—'))
+        + (x.budget ? ' · ' + kwan(x.budget) : '')
+        + (x.over ? (' · 覆盖 ' + x.over + ' 项') : '');
+      var same = (x.hash && curHash[sc] && x.hash === curHash[sc]);
+      var tag = same
+        ? '<span style="color:#1F7A4A;font-weight:600">当前口径</span>'
+        : '<span style="color:#A1A1AA">旧口径</span>';
+      var calmar = (x.ann != null && x.mdd) ? (Math.round((x.ann / Math.abs(x.mdd)) * 100) / 100) : null;
       return '<tr style="border-top:1px solid #F1F0EC">'
-        + '<td style="padding:3px 6px;color:#71717A">' + esc(x.at || '') + '</td>'
-        + '<td style="padding:3px 6px">' + scTxt + (x.over ? (' · 覆盖' + x.over) : ' · 继承') + '</td>'
-        + '<td style="padding:3px 6px;font-family:monospace;color:#0F766E">' + esc(x.hash || '') + '</td>'
-        + '<td style="padding:3px 6px;color:#71717A">' + esc((x.start || '') + '→' + (x.end || '')) + '</td>'
+        + '<td style="padding:3px 6px;color:#71717A;white-space:nowrap">' + esc(x.at || '') + '</td>'
+        + '<td style="padding:3px 6px;color:' + (empty ? '#A1A1AA' : '#3F3F46') + '">' + scTxt
+        + '<div style="font-size:10px;color:#A1A1AA">' + logicEsc(sub) + '</div></td>'
+        + '<td style="padding:3px 6px;font-family:monospace;color:#0F766E;white-space:nowrap">' + esc(x.hash || '')
+        + '<div style="font-size:10px;margin-top:1px">' + tag + '</div></td>'
+        + '<td style="padding:3px 6px;color:#71717A;white-space:nowrap">' + esc((x.start || '') + '→' + (x.end || '')) + '</td>'
         + '<td style="padding:3px 6px;text-align:right">' + (x.ann == null ? '—' : (fmtN(x.ann) + '%')) + '</td>'
         + '<td style="padding:3px 6px;text-align:right">' + (x.mdd == null ? '—' : (fmtN(x.mdd) + '%')) + '</td>'
-        + '<td style="padding:3px 6px;text-align:right">' + (x.vol == null ? '—' : (fmtN(x.vol) + '%')) + '</td>'
+        + '<td style="padding:3px 6px;text-align:right">' + (calmar == null ? '—' : calmar.toFixed(2)) + '</td>'
         + '<td style="padding:3px 6px;text-align:right">' + (x.trades == null ? '—' : x.trades) + '</td>'
         + '</tr>';
     }).join('');
@@ -24735,19 +24828,22 @@ var btMax = (BT_CACHE && BT_CACHE.meta && BT_CACHE.meta.asOf) ? String(BT_CACHE.
       + '<b style="font-size:12px;color:#18181B">证据台账 · BT5 证据绑定快照</b>'
       + '<span style="font-size:11px;color:#71717A">每次跑数自动记一条（保留最近 20 条，这里显示 5 条）</span>'
       + '</div>'
-      + '<table style="width:100%;border-collapse:collapse;margin-top:6px;font-size:11px">'
+      + '<div style="overflow-x:auto;-webkit-overflow-scrolling:touch">'
+      + '<table style="width:100%;min-width:1080px;border-collapse:collapse;margin-top:6px;font-size:11px;table-layout:fixed">'
+      + '<colgroup><col style="width:120px"><col style="width:200px"><col style="width:150px"><col style="width:170px"><col style="width:80px"><col style="width:90px"><col style="width:70px"><col style="width:60px"></colgroup>'
       + '<thead><tr style="color:#71717A">'
       + '<th style="text-align:left;padding:3px 6px;font-weight:600">时间</th>'
-      + '<th style="text-align:left;padding:3px 6px;font-weight:600">口径</th>'
+      + '<th style="text-align:left;padding:3px 6px;font-weight:600">口径 · 池 / 本金</th>'
       + '<th style="text-align:left;padding:3px 6px;font-weight:600">参数指纹</th>'
       + '<th style="text-align:left;padding:3px 6px;font-weight:600">区间</th>'
       + '<th style="text-align:right;padding:3px 6px;font-weight:600">年化</th>'
       + '<th style="text-align:right;padding:3px 6px;font-weight:600">最大回撤</th>'
-      + '<th style="text-align:right;padding:3px 6px;font-weight:600">年化波动</th>'
+      + '<th style="text-align:right;padding:3px 6px;font-weight:600">Calmar</th>'
       + '<th style="text-align:right;padding:3px 6px;font-weight:600">笔数</th>'
-      + '</tr></thead><tbody>' + rows + '</tbody></table>'
-      + '<div style="margin-top:5px;font-size:11px;color:#A1A1AA;line-height:1.7">指纹＝整份参数的键排序后哈希：改任何一项参数（含 ⑧-B 的单项覆盖）指纹就变，'
-      + '所以「同一个指纹＝同一份参数」，可用来判断两次结果是否可比。</div></div>';
+      + '</tr></thead><tbody>' + rows + '</tbody></table></div>'
+      + '<div style="margin-top:5px;font-size:11px;color:#A1A1AA;line-height:1.7">「当前口径」＝该条指纹与 ⑧-B / ⑧-C 当前参数一致，能直接当证据用；「旧口径」＝参数已改过，只能看不能引。'
+      + '指纹＝整份参数的键排序后哈希：改任何一项参数（含 ⑧-B 的单项覆盖）指纹就变，所以「同一个指纹＝同一份参数」。'
+      + '空组合（⑧-C 没选标的、只剩备用金）的单条年化不代表策略表现，别混在一起读。</div></div>';
   }
   window.btEvidenceHtml = btEvidenceHtml;
   window.btParamsHtml = btParamsHtml;
