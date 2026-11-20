@@ -1529,7 +1529,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 ④效果：Σ(市值−成本) 1,276.73 → **1,344.81**，与账户 ΣconstantProfit 1,346.52 只差 **1.71**（其余 21 只舍入）；「净资产 − 在盘成本」= 20,462.19 − 19,117.42 = 1,344.77 ≈ 未实现 1,344.81（差 0.04）；「已实现＋未实现」= 2,224.25，与账户累计 2,224.76 差 **0.51**。原 68.63 的口径差基本消解。
 ⑤影响面已核：T9 CAP 组合投入 19,185.50 → 19,117.42，阈值 C.cap=100000，档位不变；T1/T4/T5 收益率优先走 holdProfitRate，不受 cost 影响；T13 网格优先 lastBuyNav。
 ★仍未修：其余 21 只合计 0.68 的舍入差（不再追）；`constantProfit` 的收益率分母含在途金额（App 显示 016452 −1.9%，而已确认部分真实收益率是 −6.1%），属平台口径，不跟。 -->
-<!-- fw2_v951_bt_brake_below_cmp（用户 2026-11-17「策略执行模块中子模块持仓回测和自选回测中策略 vs 对照 · 按标的明细放在单只刹车 · 10 年峰值回撤上面显示」）：纯显示顺序调整，零计算改动。①原顺序（v939 起）：面板头 → 自选逐只参数 → 运行条 → **刹车卡** → 参数抽屉 → 结果区（结论条 → **策略 vs 对照明细表** → 备用金明细 → 关键规则卡 → 四图 → 明细）。②新顺序：刹车卡从面板层移除，改在结果区紧随明细表之后渲染 —— 面板头 → 运行条 → 抽屉 → 结果区（结论条 → **明细表 → 刹车卡** → 备用金明细 → 规则卡 → 四图 → 明细）。两处篇幅与内容一字未改（BRAKE_T 仍单源）。③兼容处理：回测「无有效数据」分支同样追加该卡（它是静态阈值参考表，不该因回测失败消失）；卡内「本页只读…勾选下面的刹车开关」文案随位置改为「勾选上方参数抽屉里的刹车开关」。④持仓回测与自选回测共用同一块 stp-bt 面板，两处同时生效。 --><!-- fw2_v952_signal_registry（用户 2026-11-17「交易信号和回测信号最终必须保持一致，我遵循一套投资逻辑不能乱，要变都一起变」+「止盈定乙」）：B1 只读层落地，零计算改动。①新增 `window.SIGNAL_REGISTRY`（紧随 SIGNALS_CFG，键＝信号 ID，字段 name/layer/obj/dir/ev/def/modeled/thr/act/code），三层共 59 条（持仓 T1–T16+32 条 P/XOV、自选 W1–W9（W4 已删）、筛选 S1–S7+S-TREND+V1/V2/V11、回测 R1–R11、宏观 M1–M6+RB/BW）；阈值一律从 `SIGNALS_CFG` 拼串引用、不复制字面数字。②`signalRegOf(sig)` 由行名（'T1 阶梯止盈'）取条目。③**止盈定乙**：T1 文案「卖1/3」→「减1/4，+20% 再减1/4」，与 R4/R5、XOV 三处同口径，证据等级 C→A。④回测页「当前生效的规则」原来只写 3 条（止盈减仓/止损/网格）→ 改为 **R1–R11 全量清单**（含默认关项），每行带「本次开/关（按当前参数实时算）」与「证据 A/B/C」徽标，标题改「本次回测执行的规则」，底部注明 R4/R5 的 25% 写死、R2 仅定投/底仓生效、R8/R9 互斥。⑤旧 `ruleCard` 保留未删（无引用，留待将来分组用）。**未动**：回测引擎逐位不变、BRAKE_T 仍单源、SIGNALS_CFG 值未改。 --><!-- fw2_v953_batch1（用户 2026-11-17「直接做和上批 1 剩下的 5 条（T2/T7/T16/T9/T10）一起做完」）：把五条 C 级纪律真正建进回测引擎，一条一条量边际贡献。①cfg 新增 14 个键（tpPeak/tpPeakArm/tpPeakDD、addDD/addDD1/addDD2/addAmt、postSellHalf/postSellLo/postSellWin、rebalSlot/slotBand），默认全关＝v952 逐位不变，归一化段对 5 个布尔只认 true/'true'、9 个阈值给合法区间。②引擎：T2 逐日记「入场以来峰值浮盈」，峰涨≥20% 且自峰回吐≥8pp 卖一半（每持仓一次，成本未知跳过）；T7 逐日拉 250 个交易日滚动峰值（单调队列预计算 s.p250），−20%/−30% 各补一档（每档＝目标额 20%，只从预算现金出，破线/冻结/封顶不补）；T16 在 trySell 里记最近一次卖出成交净值与日期，再跌 10% 且 90 日内卖剩余一半（同一基准只触发一次）；T9 逐日算 Σ持仓成本，≥capAmt 当日禁买（建仓/定投/网格三处守卫）；T10 新增 btSlotRebal（季末按 pile 汇总市值对 base40/off35/bond10/hedge15，偏离≥5pp 才动手，超配档卖出、低配档用现金补）。③参数抽屉加「纪律开关（批 1 实验 · 默认关）」5 个勾选框；收参段补齐 5 个布尔**与 9 个阈值**——不收阈值会让引擎拿到 undefined，判定恒为 false（本轮实测踩到，表现为「勾了开关、数字一位不变」）。④两区间实测（¥50,000 / 杠铃 11 只 / 一次性 / 2024-02-07~2026-09-28 与 2019-01-01~2026-09-28，格式＝年化/Calmar/回撤预算使用率）：全关 15.38/1.74/39.66 与 7.53/0.87/34.30（v952 一致）；T2 11.82/1.63/31.31 与 6.05/0.69/32.08（劣）；T7 16.20/1.89/38.70 与 7.83/0.87/35.71（弱正）；T16 15.78/2.02/35.17 与 7.32/0.97/29.55（唯一两区间同向改善）；T9（预算抬到 ¥200,000）关 15.28/1.76/38.93、开 14.39/1.79/35.73 与关 7.50/0.87/33.83、开 6.12/0.71/32.10（等价砍半本金）；T10 19.63/1.86/48.39 与 12.43/0.48/113.12（长区间总回撤 22.62%＞预算 20%，周期依赖）。⑤规则卡从 R1–R11 扩到 16 行（补 T2/T7/T16/T9/T10，证据 C→A 并写明实测数字）；R8 三小步落地：默认关、注册表 act 注明「四档实测均负、保留仅供研究」、T14 文案补「仅提示，不触发成交」。**未动**：R1–R11 计算、BRAKE_T、SIGNALS_CFG。 --><!-- fw2_v988i_bt_param_single_source（用户 2026-11-19「回测参数只在一个地方展示和选择，就是回测验证；持仓回测/自选回测只出干净结果」）：回测参数单点化落地。①参数渲染段抽成全局 `btParamsHtml(cfg)`（回测页与⑧层共用同一份渲染代码，杜绝两处各改一遍）。②三层存储：`fw2_bt_plan`（⑧-A 流程参数＝母版，全量）+ `fw2_bt_hold`/`fw2_bt_custom`（⑧-B/⑧-C 只存与母版的 diff）；旧单份键 `fw2_bt_cfg_v1` 首次只读迁移进母版后不再写。③继承规则：⑧-B/⑧-C 默认继承母版，改一项即记一条覆盖（页面标「覆盖」橙字），母版再改会自动传给未覆盖项——标准统一、允许单项偏离。④`go()` 不再从输入框读参（原 40 个 `btIn_*` 读 DOM），改为 `btCfg(scope)` 存储驱动；回测页参数控件归零，只留只读口径条（口径/继承/覆盖项数/区间/本金/投入方式/网格/门槛 + 运行 + 「修改参数 →」跳转⑧层）。⑤⑧ 层加二级视图「准入规则（BT1–BT6）/ 回测口径（参数）」，参数区三卡 ⑧-A/⑧-B/⑧-C 切换，控件 47 个。⑥收参 bug 修复：`btCollectDom` 只收母版已有键并按母版原值类型还原（此前渲染出的辅助控件会把 diff 污染成 `gridExt:"false"` 假覆盖）。⑦等价性实测：同参数下结论条与 v988h 逐字一致（年化 3.26% / Calmar 0.23 / 回撤预算 36.49%）；覆盖实测：⑧-B 预算改 ¥50,000 → 回测变 3.19%/0.22/36.51%，母版仍 ¥62,000；母版改 ¥55,000 → ⑧-C 跟到 55,000、⑧-B 保持 50,000（覆盖 1 项）。未动：回测引擎逐位不变、18 层信号注册表与三态逻辑不动。 --><!-- fw2_v1019_brand_en+fw2_v1019_alloc_slim（用户 2026-11-20 两条：「直接用英文名，不显示中文」+「继续下一个项目」＝清单 P1「资产配置表 14 列过宽」）：①品牌改英文名——title 标签、apple-mobile-web-app-title、侧栏 `.b1` 主标题统一为 `Personal Finance Desk`（沿用页面自己的英文副标题，不另起新名）；`.b2` 原本是同名英文行，现 `display:none` 隐藏（DOM 保留防样式/脚本引用）；logo 方块「理」与八个模块中文名未动。②资产配置表列收敛——不删列、不错位：给「定投金额（月）/ 累计应投 / 进度滞后 / 标的占比 / 目标偏移」5 列的 col、th、td 挂同一组 class（c-dm/c-dpr/c-lag/c-sh/c-off），默认精简 9 列，表头右侧一枚「列：精简 9 列（显示全部 14 列）」开关可切回；选择存 localStorage `fw2_alloc_colmode_v1`。五类行模板（主动权益明细 / 指数家族 / 计划外明细 / 计划外指数 / 合计）逐处补 class，列数、rowspan、取数与数值零改动；col 用 visibility:collapse（与 v778 行折叠同思路），th/td 用 display:none，三者同进同退。 --><!-- fw2_v1020_bt_kpi_sticky（用户 2026-11-20「继续」＝策略执行优化清单 P2「回测结果页过长，结论埋在中间」）：回测结果区最顶部加一条吸顶小结 `bt-kpi-bar`——左侧「✓ 达标 / ✗ 未达标」徽标，右侧三组判定「年化（目标）· 最深回撤（预算与用量）· Calmar(严格)（达标线）」。`position:sticky; top:0`，滚动看明细表、四图、交易流水时仍在视口顶部；空态、运行中、失败分支都不插入它，只在有结果的 out.innerHTML 最前拼接。数值全部复用结论条那几个变量（S.strat.ann / S.strat.mdd / S.strat.calmarS / ddUse / tgt / ddCap / calmarLine），不重算、不新增口径、引擎与三段判定逻辑零改动。 --><!-- fw2_v1021_alloc_idx_badge（用户 2026-11-20「继续」＝策略执行优化清单 P1 第 3 条「『2 只同指数』这类备注改角标，不要再挤在名称格里」）：资产配置表指数家族聚合行（主动权益明细聚合 + 计划外指数聚合，两处同一模板）原本在指数名下方用 div.gsub 独占一行写「N 只同指数」，把该行行高撑高、并与名称一起挤在 24% 宽的名称格里。改为紧贴名称右侧的 inline 角标 `×N`（11px、灰底圆角、title 悬浮写「同指数 N 只基金合并为这一行」），单行显示、不再撑高行高。取数、列数、数值、rowspan、排序、颜色类零改动；精简 7 列与完整 14 列两套 colgroup/thead 均未动。 --><!-- fw2_v1022_logic_h3_radio（用户 2026-11-20「继续」＝策略执行优化清单 P2「投资逻辑页没有语义标题、按钮过密」）：①语义标题——页头「投资逻辑」与当前层卡片标题（「① 选品 …」）由带样式的 b 改为真实 h3，「版本与证据」区块由 div 改为 h4（全局只有 `h1,h2,h3{margin:0}` 重置、h4 无重置，故 h4 显式写 margin），读屏与后续检索能拿到层级；②三态收敛——每行原 3 个描边按钮（生效｜观察｜关）改为一组单选：一个 1px 边框外壳内三段 label + 3 个视觉隐藏的 radio（`aria-label` + role=radiogroup 由外壳承担），当前段填色加粗、其余灰字，点击仍调 `logicSet(id, st)`，买点闸拦截、存档、重渲染路径一字未改。绑定与状态判定不变，只改 DOM 结构与视觉重量。 --><span id="verBadge" class="ver-badge">v1022</span><!-- fw2_v1018_bt_chunk（用户 2026-11-20「继续按照顺序走」＝策略执行优化清单 P1「回测同步阻塞 60 至 90 秒」）：回测引擎改分片运行，页面不再整段冻结。①btRun 本体改成 generator 函数，主循环每 16 个交易日 yield 一次进度（0 至 1），进循环前先 yield 一次好让进度提示画出来；同步语义由 btDrain（一直 next 到结束、返回值与原函数完全相同）承接，异步语义由 btPump（每片 setTimeout 0 让出一帧、跑完 resolve 结果）承接。②滚动窗口矩阵 btRoll 改 async：它内部最多 48 次 btRun（2016 至 2023 共 8 年、持有 1/2/3 年、B 池与 C 池各一遍），是原来 60 至 90 秒的主要来源；现在每次 btRun 都走 btPump 分片，窗口之间也 await 让出，并回报「已完成窗口/总窗口」进度。③go 的取数段拆成「算」与「渲染」两段：渲染整段收进 _after，命中缓存（_hit）时照旧同步调用 _after、与旧版同一路径；要算的时候先 btPump 跑主回测再写 __btCacheByPool 与 _idbPut、最后调 _after。④结果区在多出一行真实进度：「正在跑主回测 37% · 已用 12 秒」→「正在跑滚动窗口矩阵（12/48 个窗口）」，带已用秒数与「页面可正常操作，别重复点运行」。⑤滚动矩阵结果加内存缓存 __btRollCacheByPool（键＝口径指纹 + roll），同一口径第二次进页秒出；跑的过程里换了口径则用 __btRunTok 令牌丢弃旧结果，不写进新池缓存。未动：逐日成交规则、统计口径、结论条数值、参数单点化与 ⑧ 层任何控件。 --><!-- fw2_v1017_lazy_panes（用户 2026-11-20「继续下一项」＝策略执行优化清单 P1「切页四面板全量重绘」）：进入「策略执行」只画当前激活的那个子 tab，其余面板等第一次切过去再画。原实现 renderStrategyView 无条件依次调用 回测 / 资产配置 / 月度复盘 / 投资逻辑 四块渲染，实测「别的模块 → 策略执行」往返 117ms，而默认停在投资逻辑，另外三块当前页看不见；现按 active 子 tab 分流，只画一块（约 5ms），其余由 switchStratTab 首次切过去时补画，画过就沿用。回测页仍由 v997 的每次切 tab 重建骨架负责、投资逻辑仍由 v1004 的逻辑分支负责，两处语义未改。四块面板的渲染函数、内容、取数零改动。 --><!-- fw2_v1016_note_fold+fw2_v1016_one_run_btn（用户 2026-11-20「按照顺序做」＝按策略执行优化清单的展示层收敛顺序）：①资产配置首屏口径说明（实测 700 余字、把表格压到第二屏）只留首句「目标 = 计划配置 / 实际市值 = 份额×最新净值 / 调仓金额 = 目标 − 实际」，其余（定投金额·月、累计应投、进度滞后、目标偏移、颜色口径）收进同卡内 details 折叠块「展开：定投 / 累计应投 / 进度滞后 / 目标偏移 / 颜色口径」，默认收起；文字一字未删，只改默认可见性，表格数值/列结构与取数零改动。②配置回测空态的两个「运行回测」收敛为一个：删掉空态块内那颗按钮（及「口径已变」分支里那颗），改为一句「点上方『运行回测』开始（约 20–90 秒）」，顶部运行条仍为唯一入口——两个按钮名字近似、按哪个都一样，用户已多次嫌页面重复。未动：btRun 引擎、结论条、参数单点化、⑧ 层任何控件。 --><!-- fw2_v1015_review_dc+fw2_v1015_pool_warm（用户 2026-11-20「开始」＝承接策略执行优化清单 P0/P1）：①月度复盘月报口径自愈——v676 的迁移重放只挂在资金平衡页 renderMonthly 里，只进「策略执行→月度复盘」时月报仍是 init 首跑的 latest-fallback（最新净值回退）口径，期初/期末都按当前净值估值，净资产变动与利润必然对不上，页面却把它写成「数据自洽：…先修数据再看结论」的假告警（实测旧会话读到上月净资产 17,641.93、利润 6,035.83、差额 -17,641.93，同一页资金平衡现算是 21,057.12 / -2,969.17 且完全自洽）。现复盘页首次渲染即 ensure 月末净值索引，就绪后调 window.__rptSync 重放存量月报并重渲染；口径未就绪时差额标「口径待重放」而非「校验差」。②回测第三池预热与归池补全——v1013 新增 strategy 池后，启动预热仍只读 barbell/custom，重开浏览器进配置回测永远空态、必重跑 60–90 秒；_poolOfKey 也只认 custom/else，旧单键 `...|strategy|...` 会被归进 barbell。未动：btRun 引擎、月报计算式、⑧ 参数、缓存 key 格式。 --><!-- fw2_v1014_a_cfg_rename+fw2_v1014_b_no_runsum（用户 2026-11-20 同日第二轮两条）：①「策略回测」再改名「配置回测」——tab、面板标题、⑧-B 口径条、⑧ 层三卡、证据台账提示、空态、保存提示、tooltip 与全部指路文案一并改，共 35 处；内部池名仍是 strategy（data-pool 与缓存键不变，避免历史缓存与存档失配）。②结果页运行条那行「本次回测：本金 ¥X · 区间 A → B · 投入方式 · 刹车 · 年线 · 止盈止损 · 网格 · 备用金 · 标的池 …」整段退役：用户判「它属于你之前嫌过的『参数在回测页展示』」，要求删除。删的是参数回显，不删两类风险提示——※实验口径（破线动作关 / 连N日破线 / 破线清仓 / 停加关 / 减半关 / 清仓冷却）与 ⚠ 区间代表性（牛3 近似纯牛市 / 2019 滚动拼接 / 熊B 中段），两条提示仍在同一位置显示，两条都没有时该行 display:none 不留空白。未动：btRun 计算、结论条、对照表、曲线与明细；#btRunSum 元素保留（仅承载提示）。 --><!-- fw2_v1013_a_stale_off+fw2_v1013_b_strategy_pool+fw2_v1013_c_no_html_snap（用户 2026-11-20 两条并行诉求，一次版三个独立 tag 可定向回滚）：①「上次结果口径不同」黄色差异横幅整体退役（用户原话「之前不是要求别显示吗，怎么又出来了呢，麻烦删除，别在显示了，没有任何用」）。根源：横幅只把「区间/本金/池/观察窗/数据日」五项写进两行，五项逐字相同时仍因参数指纹不同触发，两行一模一样却写「差在：回测参数不同」；现改为参数不匹配就不铺旧结果，只给一句「口径已变，上次结果不再展示」加运行按钮，旧数字绝不冒充新口径。②「策略执行 · 持仓回测」改名「配置回测」（data pool 由 barbell 改为 strategy），内容固定＝目标配置 11 只（V2c 合并版：纳指碎片并为 016452、A500 并为 022438、QDII 止损 15% 改 20%），权重 10/10/10/10/10/5/10/10/10/5/10、逐只止损与网格档距内建；区间与本金仍跟随 ⑧-B。引擎入口把 pool=strategy 归一为 custom+manual 权重（btStrategyCodes/btStrategyPf），UI 层保留 strategy 用于标题、口径条与分池缓存。实测同参数下 3 年窗 14.34% / 6.37% / 2.00 / 40 笔，与 100,000 预算版报告逐位一致；页面按当前可投资金 62,000 跑为 16.00% / 6.53% / 2.21（网格单档 500 元在更小预算下占比更低）。③结果整页 HTML 快照（__btHtmlByPool）不再回填：实测出现「配置回测页铺出杠铃结果、标的池说明写杠铃档位」，现只保留结果对象缓存用于命中后秒出图。未动：btRun 计算逻辑、⑧ 层参数单点化、证据台账写入口径。 --><!-- fw2_v1012_a_dd_gate+fw2_v1012_b_r45_retired+fw2_v1012_c_bt4_bh+fw2_v1012_d_bt3_line+fw2_v1012_e_bt6_adopt（用户 2026-11-20「按照你建议修」，一次版五条，各带独立 tag 可定向回滚）：①结论条补回撤判定——passAll 原＝「年化≥目标 && Calmar≥预算线」，漏判回撤（年化 25% / 回撤 45% 时 Calmar 0.52＞0.4205 仍打「✓ 达标」，同一行却写「回撤预算用 225%」）；现 passDD＝|mdd|≤ddBudget，三项全过才达标，并新增「年化达标但回撤超预算」诊断与超支红字。②R4 止盈①/R5 止盈② 如实标退役——v903 起 `_pfOf` 三处返回 tp1:0/tp2:0、触发条件 `pf.tp1>0` 恒假，两档永不成交（减仓实由 R7 带宽止盈执行），但注册表 def='on'、规则卡显示「● 开」，虚增「开 N 条」；现注册表改 off（引擎已退役）、规则卡第 4 列 false、脚注改写，旧存档做一次性 R4/R5 降级迁移（`__r45Retired`，只降这两条）。③BT4 判据 Bonferroni→BH-FDR——旧 α=0.05/m（15 档 0.0033）在 3/5/10 年窗实测全灭、买点类规则永久升不了生效；现按 p 升序取最大 k 使 p(k)≤k/m·0.05，判据＝k≥3 且主导档≤0.05 且 95% 区间不跨 0；存档新增 alphaBonf/passK/drop='bh'，旧记录仍按旧口径展示（不冒充新结论）。④BT3 三项门槛与 R11 统一——旧「Calmar≥0.5」与「回撤≤20%」自相矛盾（rf 1.59、预算 20% 时预算线仅 0.42，卡 0.5 等于变相要求回撤≤16.82%，「年化≥10%」反成空条件）；改为「年化≥目标 / 最深回撤≤预算 / Calmar≥预算线」。⑤BT5 文案「20 个 cfg 全参」→「全部 cfg + btParamHash 8 位 FNV-1a 指纹」（实现本就覆盖全字段，文案过时）。⑥BT6 补「采纳」按钮——此前只有「草稿未采纳」徽章，`adopted` 字段无人读写、`d.ver` 恒 L1，页面两处却承诺「点采纳才升版本」；现新增 `logicNextVer`/`window.logicAdopt`（ver 递增 + dirty 清零 + 记日志），按钮在版本条、无草稿时 disabled。未动：回测引擎逐位不变（本版只改结论判定、准入层文案与买点闸判据）。 --><!-- fw2_v1011_c_align：⑧-C 参数分组与 ⑧-A/⑧-B 对齐——①「资金与建仓」三行（投入方式 / 底仓比例 / 分摊期数）在 ⑧-C 也直接可改（此前被整组隐藏，自选组合只能继承母版的定投口径，引擎其实按 cfg.investMode 生效，属真缺口）；②「标的池与口径」组在 ⑧-C 改为三条指路行（标的池固定＝自选组合 / 组合级 7 项见下方「组合级参数」/ 逐只 5 项见下方逐只表），不再复制同 id 控件——btComboBarHtml 已用 btIn_gridExt|gridFund|tgtAnn|ddBudget|rf|rebal|perFund 承载组合级 7 项，重复渲染会出现两份同 id、改了串值（v1002 踩过）。 --><!-- fw2_v989_renumber（用户 2026-11-19「988 后应该按 989 往上升级，为什么加字母」）：版本号规则自本条起改为整数单调递增（v989 → v990 → …），不再使用字母后缀。历史 v988a–v988l 是「把 v988 当大版本框、其下增量用字母」的旧编法，已发布不可回改，仅在此说明对应关系：v988a 规则代码带中文名 / v988b·c T13 网格跟踪升「开」+ 备用金降级 / v988d 备用金摘出复核 / v988e 持仓「卖后涨跌」列 / v988f 投资逻辑大脑 / v988g 八层·思想总纲（已废）/ v988h ⑧ 层改「回测验证 · 逻辑准入」/ v988i 回测参数单点化 / v988j 四条边界 / v988k 波动三项客观量 / v988l 胜率赔率 + 入场质量因子分档（即本版 v989）。 --><!-- fw2_v988k_vol_three（用户 2026-11-19「开始 ②」）：回测结论区新增「波动与耐受力（客观量 · 不设阈值）」卡。
+<!-- fw2_v951_bt_brake_below_cmp（用户 2026-11-17「策略执行模块中子模块持仓回测和自选回测中策略 vs 对照 · 按标的明细放在单只刹车 · 10 年峰值回撤上面显示」）：纯显示顺序调整，零计算改动。①原顺序（v939 起）：面板头 → 自选逐只参数 → 运行条 → **刹车卡** → 参数抽屉 → 结果区（结论条 → **策略 vs 对照明细表** → 备用金明细 → 关键规则卡 → 四图 → 明细）。②新顺序：刹车卡从面板层移除，改在结果区紧随明细表之后渲染 —— 面板头 → 运行条 → 抽屉 → 结果区（结论条 → **明细表 → 刹车卡** → 备用金明细 → 规则卡 → 四图 → 明细）。两处篇幅与内容一字未改（BRAKE_T 仍单源）。③兼容处理：回测「无有效数据」分支同样追加该卡（它是静态阈值参考表，不该因回测失败消失）；卡内「本页只读…勾选下面的刹车开关」文案随位置改为「勾选上方参数抽屉里的刹车开关」。④持仓回测与自选回测共用同一块 stp-bt 面板，两处同时生效。 --><!-- fw2_v952_signal_registry（用户 2026-11-17「交易信号和回测信号最终必须保持一致，我遵循一套投资逻辑不能乱，要变都一起变」+「止盈定乙」）：B1 只读层落地，零计算改动。①新增 `window.SIGNAL_REGISTRY`（紧随 SIGNALS_CFG，键＝信号 ID，字段 name/layer/obj/dir/ev/def/modeled/thr/act/code），三层共 59 条（持仓 T1–T16+32 条 P/XOV、自选 W1–W9（W4 已删）、筛选 S1–S7+S-TREND+V1/V2/V11、回测 R1–R11、宏观 M1–M6+RB/BW）；阈值一律从 `SIGNALS_CFG` 拼串引用、不复制字面数字。②`signalRegOf(sig)` 由行名（'T1 阶梯止盈'）取条目。③**止盈定乙**：T1 文案「卖1/3」→「减1/4，+20% 再减1/4」，与 R4/R5、XOV 三处同口径，证据等级 C→A。④回测页「当前生效的规则」原来只写 3 条（止盈减仓/止损/网格）→ 改为 **R1–R11 全量清单**（含默认关项），每行带「本次开/关（按当前参数实时算）」与「证据 A/B/C」徽标，标题改「本次回测执行的规则」，底部注明 R4/R5 的 25% 写死、R2 仅定投/底仓生效、R8/R9 互斥。⑤旧 `ruleCard` 保留未删（无引用，留待将来分组用）。**未动**：回测引擎逐位不变、BRAKE_T 仍单源、SIGNALS_CFG 值未改。 --><!-- fw2_v953_batch1（用户 2026-11-17「直接做和上批 1 剩下的 5 条（T2/T7/T16/T9/T10）一起做完」）：把五条 C 级纪律真正建进回测引擎，一条一条量边际贡献。①cfg 新增 14 个键（tpPeak/tpPeakArm/tpPeakDD、addDD/addDD1/addDD2/addAmt、postSellHalf/postSellLo/postSellWin、rebalSlot/slotBand），默认全关＝v952 逐位不变，归一化段对 5 个布尔只认 true/'true'、9 个阈值给合法区间。②引擎：T2 逐日记「入场以来峰值浮盈」，峰涨≥20% 且自峰回吐≥8pp 卖一半（每持仓一次，成本未知跳过）；T7 逐日拉 250 个交易日滚动峰值（单调队列预计算 s.p250），−20%/−30% 各补一档（每档＝目标额 20%，只从预算现金出，破线/冻结/封顶不补）；T16 在 trySell 里记最近一次卖出成交净值与日期，再跌 10% 且 90 日内卖剩余一半（同一基准只触发一次）；T9 逐日算 Σ持仓成本，≥capAmt 当日禁买（建仓/定投/网格三处守卫）；T10 新增 btSlotRebal（季末按 pile 汇总市值对 base40/off35/bond10/hedge15，偏离≥5pp 才动手，超配档卖出、低配档用现金补）。③参数抽屉加「纪律开关（批 1 实验 · 默认关）」5 个勾选框；收参段补齐 5 个布尔**与 9 个阈值**——不收阈值会让引擎拿到 undefined，判定恒为 false（本轮实测踩到，表现为「勾了开关、数字一位不变」）。④两区间实测（¥50,000 / 杠铃 11 只 / 一次性 / 2024-02-07~2026-09-28 与 2019-01-01~2026-09-28，格式＝年化/Calmar/回撤预算使用率）：全关 15.38/1.74/39.66 与 7.53/0.87/34.30（v952 一致）；T2 11.82/1.63/31.31 与 6.05/0.69/32.08（劣）；T7 16.20/1.89/38.70 与 7.83/0.87/35.71（弱正）；T16 15.78/2.02/35.17 与 7.32/0.97/29.55（唯一两区间同向改善）；T9（预算抬到 ¥200,000）关 15.28/1.76/38.93、开 14.39/1.79/35.73 与关 7.50/0.87/33.83、开 6.12/0.71/32.10（等价砍半本金）；T10 19.63/1.86/48.39 与 12.43/0.48/113.12（长区间总回撤 22.62%＞预算 20%，周期依赖）。⑤规则卡从 R1–R11 扩到 16 行（补 T2/T7/T16/T9/T10，证据 C→A 并写明实测数字）；R8 三小步落地：默认关、注册表 act 注明「四档实测均负、保留仅供研究」、T14 文案补「仅提示，不触发成交」。**未动**：R1–R11 计算、BRAKE_T、SIGNALS_CFG。 --><!-- fw2_v988i_bt_param_single_source（用户 2026-11-19「回测参数只在一个地方展示和选择，就是回测验证；持仓回测/自选回测只出干净结果」）：回测参数单点化落地。①参数渲染段抽成全局 `btParamsHtml(cfg)`（回测页与⑧层共用同一份渲染代码，杜绝两处各改一遍）。②三层存储：`fw2_bt_plan`（⑧-A 流程参数＝母版，全量）+ `fw2_bt_hold`/`fw2_bt_custom`（⑧-B/⑧-C 只存与母版的 diff）；旧单份键 `fw2_bt_cfg_v1` 首次只读迁移进母版后不再写。③继承规则：⑧-B/⑧-C 默认继承母版，改一项即记一条覆盖（页面标「覆盖」橙字），母版再改会自动传给未覆盖项——标准统一、允许单项偏离。④`go()` 不再从输入框读参（原 40 个 `btIn_*` 读 DOM），改为 `btCfg(scope)` 存储驱动；回测页参数控件归零，只留只读口径条（口径/继承/覆盖项数/区间/本金/投入方式/网格/门槛 + 运行 + 「修改参数 →」跳转⑧层）。⑤⑧ 层加二级视图「准入规则（BT1–BT6）/ 回测口径（参数）」，参数区三卡 ⑧-A/⑧-B/⑧-C 切换，控件 47 个。⑥收参 bug 修复：`btCollectDom` 只收母版已有键并按母版原值类型还原（此前渲染出的辅助控件会把 diff 污染成 `gridExt:"false"` 假覆盖）。⑦等价性实测：同参数下结论条与 v988h 逐字一致（年化 3.26% / Calmar 0.23 / 回撤预算 36.49%）；覆盖实测：⑧-B 预算改 ¥50,000 → 回测变 3.19%/0.22/36.51%，母版仍 ¥62,000；母版改 ¥55,000 → ⑧-C 跟到 55,000、⑧-B 保持 50,000（覆盖 1 项）。未动：回测引擎逐位不变、18 层信号注册表与三态逻辑不动。 --><!-- fw2_v1019_brand_en+fw2_v1019_alloc_slim（用户 2026-11-20 两条：「直接用英文名，不显示中文」+「继续下一个项目」＝清单 P1「资产配置表 14 列过宽」）：①品牌改英文名——title 标签、apple-mobile-web-app-title、侧栏 `.b1` 主标题统一为 `Personal Finance Desk`（沿用页面自己的英文副标题，不另起新名）；`.b2` 原本是同名英文行，现 `display:none` 隐藏（DOM 保留防样式/脚本引用）；logo 方块「理」与八个模块中文名未动。②资产配置表列收敛——不删列、不错位：给「定投金额（月）/ 累计应投 / 进度滞后 / 标的占比 / 目标偏移」5 列的 col、th、td 挂同一组 class（c-dm/c-dpr/c-lag/c-sh/c-off），默认精简 9 列，表头右侧一枚「列：精简 9 列（显示全部 14 列）」开关可切回；选择存 localStorage `fw2_alloc_colmode_v1`。五类行模板（主动权益明细 / 指数家族 / 计划外明细 / 计划外指数 / 合计）逐处补 class，列数、rowspan、取数与数值零改动；col 用 visibility:collapse（与 v778 行折叠同思路），th/td 用 display:none，三者同进同退。 --><!-- fw2_v1020_bt_kpi_sticky（用户 2026-11-20「继续」＝策略执行优化清单 P2「回测结果页过长，结论埋在中间」）：回测结果区最顶部加一条吸顶小结 `bt-kpi-bar`——左侧「✓ 达标 / ✗ 未达标」徽标，右侧三组判定「年化（目标）· 最深回撤（预算与用量）· Calmar(严格)（达标线）」。`position:sticky; top:0`，滚动看明细表、四图、交易流水时仍在视口顶部；空态、运行中、失败分支都不插入它，只在有结果的 out.innerHTML 最前拼接。数值全部复用结论条那几个变量（S.strat.ann / S.strat.mdd / S.strat.calmarS / ddUse / tgt / ddCap / calmarLine），不重算、不新增口径、引擎与三段判定逻辑零改动。 --><!-- fw2_v1021_alloc_idx_badge（用户 2026-11-20「继续」＝策略执行优化清单 P1 第 3 条「『2 只同指数』这类备注改角标，不要再挤在名称格里」）：资产配置表指数家族聚合行（主动权益明细聚合 + 计划外指数聚合，两处同一模板）原本在指数名下方用 div.gsub 独占一行写「N 只同指数」，把该行行高撑高、并与名称一起挤在 24% 宽的名称格里。改为紧贴名称右侧的 inline 角标 `×N`（11px、灰底圆角、title 悬浮写「同指数 N 只基金合并为这一行」），单行显示、不再撑高行高。取数、列数、数值、rowspan、排序、颜色类零改动；精简 7 列与完整 14 列两套 colgroup/thead 均未动。 --><!-- fw2_v1022_logic_h3_radio（用户 2026-11-20「继续」＝策略执行优化清单 P2「投资逻辑页没有语义标题、按钮过密」）：①语义标题——页头「投资逻辑」与当前层卡片标题（「① 选品 …」）由带样式的 b 改为真实 h3，「版本与证据」区块由 div 改为 h4（全局只有 `h1,h2,h3{margin:0}` 重置、h4 无重置，故 h4 显式写 margin），读屏与后续检索能拿到层级；②三态收敛——每行原 3 个描边按钮（生效｜观察｜关）改为一组单选：一个 1px 边框外壳内三段 label + 3 个视觉隐藏的 radio（`aria-label` + role=radiogroup 由外壳承担），当前段填色加粗、其余灰字，点击仍调 `logicSet(id, st)`，买点闸拦截、存档、重渲染路径一字未改。绑定与状态判定不变，只改 DOM 结构与视觉重量。 --><span id="verBadge" class="ver-badge">v1023</span><!-- fw2_v1023_dead_code（用户 2026-11-20「继续」＝策略执行优化清单 P3 工程债第 1 条「死代码」）：按「函数名在全文件作为标识符只出现 1 次（仅定义处、无调用/无 window 导出/无字符串引用）」这一可复算的判据，整段删除 28 个无引用函数（清单原估 31 个，本轮逐名复核命中 28，差 3 个未纳入：扫描只认行首或两空格缩进的 function 声明，var/箭头形式与动态拼接调用一律不碰，宁留勿误删）；合计 341 行函数体 + 2 行孤立分节注释。删除清单（函数名 · 原行号区间）：_xovFmt 31974-31980、_xovUsAct 31955-31960、_xovGroupHtml 32026-32034、_xovGrow 32372-32375（决策看板 v298 改版后的残留辅助）、bindRecForm 27587-27611、recForm 27578-27586（记一笔表单被新版取代）、btCuState 22134-22137、btScopePanelHtml 25243-25254、doneMonths 26616-26620（建仓 hero 退役残留）、drawBreadthGauge 6268-6288、drawSectorHeatMarket 6289-6300、sectorHeatHtml 6249-6263、drawSectorBar 6403-6423、drawPie 6388-6402、renderContrib 6349-6363（市场情绪/板块热力图组被新版取代）、evStatus 28585-28589、initSmLook 31688-31697、initSmFast 31698-31703（数据抽屉拉平后改由 SM13F 直挂）、isRole 26702、openBatchNavForm 30126-30146、openLiabilityForm 30149-30163、poolMgrBits 19557-19570、pxById 13937-13940、rankHtml 7483-7489、renderConA 31121-31190、scoreTo100 18472-18477、signCls 28825、trendRev 11107。**未动**：任何有调用点的函数、任何常量/注册表/阈值、任何 CSS、任何渲染路径与取数逻辑；删除前后逐页渲染核对（八个模块 + 研究页股票/场外基金两种页头）与门禁均需重跑。 --><!-- fw2_v1018_bt_chunk（用户 2026-11-20「继续按照顺序走」＝策略执行优化清单 P1「回测同步阻塞 60 至 90 秒」）：回测引擎改分片运行，页面不再整段冻结。①btRun 本体改成 generator 函数，主循环每 16 个交易日 yield 一次进度（0 至 1），进循环前先 yield 一次好让进度提示画出来；同步语义由 btDrain（一直 next 到结束、返回值与原函数完全相同）承接，异步语义由 btPump（每片 setTimeout 0 让出一帧、跑完 resolve 结果）承接。②滚动窗口矩阵 btRoll 改 async：它内部最多 48 次 btRun（2016 至 2023 共 8 年、持有 1/2/3 年、B 池与 C 池各一遍），是原来 60 至 90 秒的主要来源；现在每次 btRun 都走 btPump 分片，窗口之间也 await 让出，并回报「已完成窗口/总窗口」进度。③go 的取数段拆成「算」与「渲染」两段：渲染整段收进 _after，命中缓存（_hit）时照旧同步调用 _after、与旧版同一路径；要算的时候先 btPump 跑主回测再写 __btCacheByPool 与 _idbPut、最后调 _after。④结果区在多出一行真实进度：「正在跑主回测 37% · 已用 12 秒」→「正在跑滚动窗口矩阵（12/48 个窗口）」，带已用秒数与「页面可正常操作，别重复点运行」。⑤滚动矩阵结果加内存缓存 __btRollCacheByPool（键＝口径指纹 + roll），同一口径第二次进页秒出；跑的过程里换了口径则用 __btRunTok 令牌丢弃旧结果，不写进新池缓存。未动：逐日成交规则、统计口径、结论条数值、参数单点化与 ⑧ 层任何控件。 --><!-- fw2_v1017_lazy_panes（用户 2026-11-20「继续下一项」＝策略执行优化清单 P1「切页四面板全量重绘」）：进入「策略执行」只画当前激活的那个子 tab，其余面板等第一次切过去再画。原实现 renderStrategyView 无条件依次调用 回测 / 资产配置 / 月度复盘 / 投资逻辑 四块渲染，实测「别的模块 → 策略执行」往返 117ms，而默认停在投资逻辑，另外三块当前页看不见；现按 active 子 tab 分流，只画一块（约 5ms），其余由 switchStratTab 首次切过去时补画，画过就沿用。回测页仍由 v997 的每次切 tab 重建骨架负责、投资逻辑仍由 v1004 的逻辑分支负责，两处语义未改。四块面板的渲染函数、内容、取数零改动。 --><!-- fw2_v1016_note_fold+fw2_v1016_one_run_btn（用户 2026-11-20「按照顺序做」＝按策略执行优化清单的展示层收敛顺序）：①资产配置首屏口径说明（实测 700 余字、把表格压到第二屏）只留首句「目标 = 计划配置 / 实际市值 = 份额×最新净值 / 调仓金额 = 目标 − 实际」，其余（定投金额·月、累计应投、进度滞后、目标偏移、颜色口径）收进同卡内 details 折叠块「展开：定投 / 累计应投 / 进度滞后 / 目标偏移 / 颜色口径」，默认收起；文字一字未删，只改默认可见性，表格数值/列结构与取数零改动。②配置回测空态的两个「运行回测」收敛为一个：删掉空态块内那颗按钮（及「口径已变」分支里那颗），改为一句「点上方『运行回测』开始（约 20–90 秒）」，顶部运行条仍为唯一入口——两个按钮名字近似、按哪个都一样，用户已多次嫌页面重复。未动：btRun 引擎、结论条、参数单点化、⑧ 层任何控件。 --><!-- fw2_v1015_review_dc+fw2_v1015_pool_warm（用户 2026-11-20「开始」＝承接策略执行优化清单 P0/P1）：①月度复盘月报口径自愈——v676 的迁移重放只挂在资金平衡页 renderMonthly 里，只进「策略执行→月度复盘」时月报仍是 init 首跑的 latest-fallback（最新净值回退）口径，期初/期末都按当前净值估值，净资产变动与利润必然对不上，页面却把它写成「数据自洽：…先修数据再看结论」的假告警（实测旧会话读到上月净资产 17,641.93、利润 6,035.83、差额 -17,641.93，同一页资金平衡现算是 21,057.12 / -2,969.17 且完全自洽）。现复盘页首次渲染即 ensure 月末净值索引，就绪后调 window.__rptSync 重放存量月报并重渲染；口径未就绪时差额标「口径待重放」而非「校验差」。②回测第三池预热与归池补全——v1013 新增 strategy 池后，启动预热仍只读 barbell/custom，重开浏览器进配置回测永远空态、必重跑 60–90 秒；_poolOfKey 也只认 custom/else，旧单键 `...|strategy|...` 会被归进 barbell。未动：btRun 引擎、月报计算式、⑧ 参数、缓存 key 格式。 --><!-- fw2_v1014_a_cfg_rename+fw2_v1014_b_no_runsum（用户 2026-11-20 同日第二轮两条）：①「策略回测」再改名「配置回测」——tab、面板标题、⑧-B 口径条、⑧ 层三卡、证据台账提示、空态、保存提示、tooltip 与全部指路文案一并改，共 35 处；内部池名仍是 strategy（data-pool 与缓存键不变，避免历史缓存与存档失配）。②结果页运行条那行「本次回测：本金 ¥X · 区间 A → B · 投入方式 · 刹车 · 年线 · 止盈止损 · 网格 · 备用金 · 标的池 …」整段退役：用户判「它属于你之前嫌过的『参数在回测页展示』」，要求删除。删的是参数回显，不删两类风险提示——※实验口径（破线动作关 / 连N日破线 / 破线清仓 / 停加关 / 减半关 / 清仓冷却）与 ⚠ 区间代表性（牛3 近似纯牛市 / 2019 滚动拼接 / 熊B 中段），两条提示仍在同一位置显示，两条都没有时该行 display:none 不留空白。未动：btRun 计算、结论条、对照表、曲线与明细；#btRunSum 元素保留（仅承载提示）。 --><!-- fw2_v1013_a_stale_off+fw2_v1013_b_strategy_pool+fw2_v1013_c_no_html_snap（用户 2026-11-20 两条并行诉求，一次版三个独立 tag 可定向回滚）：①「上次结果口径不同」黄色差异横幅整体退役（用户原话「之前不是要求别显示吗，怎么又出来了呢，麻烦删除，别在显示了，没有任何用」）。根源：横幅只把「区间/本金/池/观察窗/数据日」五项写进两行，五项逐字相同时仍因参数指纹不同触发，两行一模一样却写「差在：回测参数不同」；现改为参数不匹配就不铺旧结果，只给一句「口径已变，上次结果不再展示」加运行按钮，旧数字绝不冒充新口径。②「策略执行 · 持仓回测」改名「配置回测」（data pool 由 barbell 改为 strategy），内容固定＝目标配置 11 只（V2c 合并版：纳指碎片并为 016452、A500 并为 022438、QDII 止损 15% 改 20%），权重 10/10/10/10/10/5/10/10/10/5/10、逐只止损与网格档距内建；区间与本金仍跟随 ⑧-B。引擎入口把 pool=strategy 归一为 custom+manual 权重（btStrategyCodes/btStrategyPf），UI 层保留 strategy 用于标题、口径条与分池缓存。实测同参数下 3 年窗 14.34% / 6.37% / 2.00 / 40 笔，与 100,000 预算版报告逐位一致；页面按当前可投资金 62,000 跑为 16.00% / 6.53% / 2.21（网格单档 500 元在更小预算下占比更低）。③结果整页 HTML 快照（__btHtmlByPool）不再回填：实测出现「配置回测页铺出杠铃结果、标的池说明写杠铃档位」，现只保留结果对象缓存用于命中后秒出图。未动：btRun 计算逻辑、⑧ 层参数单点化、证据台账写入口径。 --><!-- fw2_v1012_a_dd_gate+fw2_v1012_b_r45_retired+fw2_v1012_c_bt4_bh+fw2_v1012_d_bt3_line+fw2_v1012_e_bt6_adopt（用户 2026-11-20「按照你建议修」，一次版五条，各带独立 tag 可定向回滚）：①结论条补回撤判定——passAll 原＝「年化≥目标 && Calmar≥预算线」，漏判回撤（年化 25% / 回撤 45% 时 Calmar 0.52＞0.4205 仍打「✓ 达标」，同一行却写「回撤预算用 225%」）；现 passDD＝|mdd|≤ddBudget，三项全过才达标，并新增「年化达标但回撤超预算」诊断与超支红字。②R4 止盈①/R5 止盈② 如实标退役——v903 起 `_pfOf` 三处返回 tp1:0/tp2:0、触发条件 `pf.tp1>0` 恒假，两档永不成交（减仓实由 R7 带宽止盈执行），但注册表 def='on'、规则卡显示「● 开」，虚增「开 N 条」；现注册表改 off（引擎已退役）、规则卡第 4 列 false、脚注改写，旧存档做一次性 R4/R5 降级迁移（`__r45Retired`，只降这两条）。③BT4 判据 Bonferroni→BH-FDR——旧 α=0.05/m（15 档 0.0033）在 3/5/10 年窗实测全灭、买点类规则永久升不了生效；现按 p 升序取最大 k 使 p(k)≤k/m·0.05，判据＝k≥3 且主导档≤0.05 且 95% 区间不跨 0；存档新增 alphaBonf/passK/drop='bh'，旧记录仍按旧口径展示（不冒充新结论）。④BT3 三项门槛与 R11 统一——旧「Calmar≥0.5」与「回撤≤20%」自相矛盾（rf 1.59、预算 20% 时预算线仅 0.42，卡 0.5 等于变相要求回撤≤16.82%，「年化≥10%」反成空条件）；改为「年化≥目标 / 最深回撤≤预算 / Calmar≥预算线」。⑤BT5 文案「20 个 cfg 全参」→「全部 cfg + btParamHash 8 位 FNV-1a 指纹」（实现本就覆盖全字段，文案过时）。⑥BT6 补「采纳」按钮——此前只有「草稿未采纳」徽章，`adopted` 字段无人读写、`d.ver` 恒 L1，页面两处却承诺「点采纳才升版本」；现新增 `logicNextVer`/`window.logicAdopt`（ver 递增 + dirty 清零 + 记日志），按钮在版本条、无草稿时 disabled。未动：回测引擎逐位不变（本版只改结论判定、准入层文案与买点闸判据）。 --><!-- fw2_v1011_c_align：⑧-C 参数分组与 ⑧-A/⑧-B 对齐——①「资金与建仓」三行（投入方式 / 底仓比例 / 分摊期数）在 ⑧-C 也直接可改（此前被整组隐藏，自选组合只能继承母版的定投口径，引擎其实按 cfg.investMode 生效，属真缺口）；②「标的池与口径」组在 ⑧-C 改为三条指路行（标的池固定＝自选组合 / 组合级 7 项见下方「组合级参数」/ 逐只 5 项见下方逐只表），不再复制同 id 控件——btComboBarHtml 已用 btIn_gridExt|gridFund|tgtAnn|ddBudget|rf|rebal|perFund 承载组合级 7 项，重复渲染会出现两份同 id、改了串值（v1002 踩过）。 --><!-- fw2_v989_renumber（用户 2026-11-19「988 后应该按 989 往上升级，为什么加字母」）：版本号规则自本条起改为整数单调递增（v989 → v990 → …），不再使用字母后缀。历史 v988a–v988l 是「把 v988 当大版本框、其下增量用字母」的旧编法，已发布不可回改，仅在此说明对应关系：v988a 规则代码带中文名 / v988b·c T13 网格跟踪升「开」+ 备用金降级 / v988d 备用金摘出复核 / v988e 持仓「卖后涨跌」列 / v988f 投资逻辑大脑 / v988g 八层·思想总纲（已废）/ v988h ⑧ 层改「回测验证 · 逻辑准入」/ v988i 回测参数单点化 / v988j 四条边界 / v988k 波动三项客观量 / v988l 胜率赔率 + 入场质量因子分档（即本版 v989）。 --><!-- fw2_v988k_vol_three（用户 2026-11-19「开始 ②」）：回测结论区新增「波动与耐受力（客观量 · 不设阈值）」卡。
  ① 回本所需涨幅＝最深回撤谷底回到该峰值所需涨幅（= 1/(1+最大回撤)−1，用权益直接算）；
  ② 最长水下天数＝连续「权益低于区间内历史峰值」的最长日历天数（期末仍水下算到期末并标注）；
  ③ 最深回撤回本用时＝最深回撤峰值日 → 首次回到该峰值的日历天数（未回本则记到期末）。
@@ -6246,58 +6246,10 @@ function drawHoldingsTreemap() {
     }
   } catch (e) {}
 }
-function sectorHeatHtml(rows) {
-  const map = {};
-  rows.forEach((r) => {
-    const s = r.sector || '其他';
-    if (!map[s]) map[s] = { sum: 0, w: 0, pctw: 0 };
-    map[s].sum += (r.mvCny || 0); map[s].w += 1; map[s].pctw += (r.pct || 0);
-  });
-  const arr = Object.entries(map).sort((a, b) => b[1].sum - a[1].sum);
-  return arr.map(([s, v]) => {
-    const avg = v.pctw / v.w;
-    const color = avg > 0 ? 'rgba(255,59,48,' + Math.min(.55, .12 + avg / 10) + ')' : avg < 0 ? 'rgba(0,214,143,' + Math.min(.55, .12 + Math.abs(avg) / 10) + ')' : 'rgba(138,151,166,.18)';
-    return `<div class="heat-tile" style="background:${color};border-color:${avg >= 0 ? 'rgba(255,59,48,.25)' : 'rgba(0,214,143,.25)'}">
-      <div class="ht-n">${esc(s)}</div><div class="ht-v ${cls(avg)}">${fmtPct(avg)}</div></div>`;
-  }).join('') || '<div class="empty st st-empty">暂无数据</div>';
-}
 
 /* ==========================================================
  *  市场情绪仪表 + 板块热力
  * ========================================================== */
-function drawBreadthGauge() {
-  const c = chartOf('mkBreadthGauge'); if (!c) return;
-  const m = state.snapshot.market;
-  if (!m) { c.clear(); return; }
-  const up = m.up || 0, down = m.down || 0, total = (up + down) || 1;
-  const ratio = +(up / total * 100).toFixed(1);
-  c.setOption({
-    series: [{
-      type: 'gauge', startAngle: 200, endAngle: -20, min: 0, max: 100, radius: '92%', center: ['50%', '62%'],
-      progress: { show: false },
-      axisLine: { lineStyle: { width: 14, color: [[ratio / 100, ratio >= 50 ? CHART.down : CHART.up], [1, CHART.line]] } },
-      pointer: { width: 4, length: '60%', itemStyle: { color: CHART.brand } },
-      axisTick: { show: false }, splitLine: { show: false }, axisLabel: { show: false },
-      anchor: { show: true, size: 9, itemStyle: { color: CHART.brand } },
-      detail: { valueAnimation: true, fontSize: 25, fontFamily: 'monospace', color: '#0f172a', offsetCenter: [0, '30%'], formatter: '{value}%' },
-      title: { show: true, offsetCenter: [0, '64%'], color: CHART.slate600, fontSize: 10 },
-      data: [{ value: ratio, name: `上涨占比 ${up}/${total}` }],
-    }],
-  }, true);
-  c.resize();
-}
-function drawSectorHeatMarket() {
-  const el = $('#mkSectorHeat'); if (!el) return;
-  const m = state.snapshot.market;
-  if (!m) { el.innerHTML = '<div class="empty st st-err">市场统计暂不可用</div>'; return; }
-  const arr = (m.boardsTop || []).concat(m.boardsBottom || []);
-  if (!arr.length) { el.innerHTML = '<div class="empty st st-empty">暂无板块数据</div>'; return; }
-  el.innerHTML = arr.map((b) => {
-    const color = b.pct > 0 ? 'rgba(255,59,48,' + Math.min(.62, .12 + b.pct / 8) + ')' : 'rgba(0,214,143,' + Math.min(.62, .12 + Math.abs(b.pct) / 8) + ')';
-    return `<div class="heat-tile" style="background:${color};border-color:${b.pct >= 0 ? 'rgba(255,59,48,.25)' : 'rgba(0,214,143,.25)'}">
-      <div class="ht-n">${esc(b.name)}</div><div class="ht-v ${cls(b.pct)}">${fmtPct(b.pct)}</div></div>`;
-  }).join('');
-}
 
 /* ---------- 迷你走势（Sparkline） ---------- */
 const sparkCache = {};
@@ -6346,21 +6298,6 @@ function kpi(k, v, s, klass, hl) {
   return `<div class="kpi ${hl ? 'hl' : ''}"><div class="k">${k}</div>
     <div class="v ${klass || ''}">${v}</div><div class="s">${s || ''}</div></div>`;
 }
-function renderContrib(id, rows, field) {
-  const list = rows.filter((r) => r[field] != null).sort((a, b) => b[field] - a[field]);
-  const show = list.length > 8 ? list.slice(0, 4).concat(list.slice(-4)) : list;
-  const max = Math.max(1, ...show.map((r) => Math.abs(r[field])));
-  $('#' + id).innerHTML = show.map((r) => {
-    const v = r[field];
-    const w = Math.abs(v) / max * 100;
-    const color = v >= 0 ? 'var(--up)' : 'var(--down)';
-    return `<div class="cb-row">
-      <div class="cb-name" title="${esc(r.name)}">${esc(r.name)} <span class="muted">${r.marketLabel}</span></div>
-      <div class="cb-track"><div class="cb-fill" style="width:${w.toFixed(1)}%;background:${color};${v >= 0 ? 'left:0' : 'right:0'}"></div></div>
-      <div class="cb-val ${cls(v)}">${fmtMoney(v, true)}</div>
-    </div>`;
-  }).join('') || '<div class="empty st st-empty">暂无持仓数据</div>';
-}
 
 /* ---------- 图表 ---------- */
 function chartOf(id) {
@@ -6385,42 +6322,6 @@ const C_UP = CHART.up, C_DOWN = CHART.down; // 红涨绿跌（A股惯例）
 
 /* v48 Hero 迷你走势线已删：与「组合收益走势」卡同源重复（renderHeroSpark 复用 drawPortCurve 的同一串 pS） */
 
-function drawPie(id, data) {
-  const c = chartOf(id); if (!c) return;
-  if (!data.length) { c.clear(); return; }
-  c.setOption({
-    tooltip: { trigger: 'item', backgroundColor: CHART.white, borderColor: CHART.line, textStyle: { color: '#0f172a', fontSize: 12 }, formatter: (p) => `${p.name}<br/>¥${fmtMoney(p.value)} (${p.percent}%)` },
-    legend: { bottom: 0, type: 'scroll', textStyle: { fontSize: 11, color: CHART.slate600 }, pageIconColor: CHART.slate600, pageTextStyle: { color: CHART.slate600 } },
-    series: [{
-      type: 'pie', radius: ['42%', '68%'], center: ['50%', '44%'], data,
-      itemStyle: { borderColor: CHART.white, borderWidth: 2 },
-      label: { fontSize: 11, color: '#0f172a', formatter: '{b} {d}%' },
-    }],
-    color: PIE_COLORS,
-  }, true);
-  c.resize();
-}
-function drawSectorBar(id, bySector) {
-  const c = chartOf(id); if (!c) return;
-  const arr = Object.entries(bySector).sort((a, b) => b[1] - a[1]);
-  const top = arr.slice(0, 9);
-  const other = arr.slice(9).reduce((a, x) => a + x[1], 0);
-  if (other > 0) top.push(['其他', other]);
-  if (!top.length) { c.clear(); return; }
-  const total = top.reduce((a, x) => a + x[1], 0) || 1;
-  c.setOption({
-    grid: { left: 96, right: 56, top: 10, bottom: 10 },
-    tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' }, backgroundColor: CHART.white, borderColor: CHART.line, textStyle: { color: '#0f172a', fontSize: 12 }, formatter: (p) => `${p[0].name}<br/>¥${fmtMoney(p[0].value)} (${(p[0].value / total * 100).toFixed(1)}%)` },
-    xAxis: { type: 'value', show: false },
-    yAxis: { type: 'category', data: top.map((x) => x[0]).reverse(), axisLine: { show: false }, axisTick: { show: false }, axisLabel: { fontSize: 11, color: '#0f172a' } },
-    series: [{
-      type: 'bar', data: top.map((x) => +x[1].toFixed(2)).reverse(), barWidth: 13,
-      itemStyle: { color: CHART.brand, borderRadius: [0, 4, 4, 0] },
-      label: { show: true, position: 'right', fontSize: 10.5, color: CHART.slate600, formatter: (p) => (p.value / total * 100).toFixed(1) + '%' },
-    }],
-  }, true);
-  c.resize();
-}
 /* ============ 统一口径（v25）：全站自算「近 1 年」＝自然日 365 天 ============
    历史不一致的根因：QDII 净值发布频率低于 A 股交易日，「250 个交易日 / 250 个净值日」在不同标的
    上落到的自然日起点不同（相差可达 3 周），同一只基金在两张卡上算出 89% 与 81% 两个数。
@@ -7479,13 +7380,6 @@ function diagnoseSignals(rows, totals) {
   const seen = new Set();
   const uniq = (arr) => arr.filter((a) => { const k = a.code + '|' + a.txt; if (seen.has(k)) return false; seen.add(k); return true; });
   return { risks: uniq(risks), opps: uniq(opps) };
-}
-function rankHtml(arr, isBoard) {
-  return (arr || []).map((it) => `
-    <div class="rank-item">
-      <div class="l"><b>${esc(it.name)}</b>${isBoard && it.lead ? `<span class="s">领涨 ${esc(it.lead)}</span>` : `<span class="s">${esc(it.code || '')}${it.price ? ' · ' + fmtNum(it.price, 2) : ''}</span>`}</div>
-      <div class="r ${cls(it.pct)}">${fmtPct(it.pct)}</div>
-    </div>`).join('');
 }
 
 /* ==========================================================
@@ -11104,7 +10998,6 @@ function renderChainBody(d) {
   var f = function (v, n) { return v == null ? '—' : fmtNum(v, (n == null ? 1 : n)); };
   var pctv = function (v) { return v == null ? '—' : f(v, 1) + '%'; };
   var cnV = function (k) { var v = cnM[k]; if (!v || v.value == null) return null; if (v.pct) return (v.value * v.scale).toFixed(1) + '%'; return (v.value * v.scale).toFixed(1); };
-  function trendRev(points, back) { var p = points && points.slice(); if (!p) return null; p.reverse(); return trend(p, back); }
   function trendRevDelta(points, back) {
     var p = points && points.slice(); if (!p) return null; p.reverse();
     var n = p.length; if (n < 3) return null;
@@ -13934,10 +13827,6 @@ function pxSeq(d, a) {
 /* ============ fw2_v438_px_rel：长期趋势 + 相关性（磁贴/时点表移除） ============ */
 var PX_DAILY = ['szi', 'hs300', 'zz500', 'cyb', 'kc50', 'zz1000', 'nq', 'spx', 'hsi', 'nky'];
 var PX_MONTHLY = ['ust10', 'cn10', 'gold', 'wti', 'cu', 'usdx', 'usdcnh', 'vix'];
-function pxById(id) {
-  for (var i = 0; i < PX_ASSETS.length; i++) { if (PX_ASSETS[i].id === id) return PX_ASSETS[i]; }
-  return null;
-}
 function pxLabelShort(id) {
   var m = { szi: '上证指数', hs300: '沪深300', zz500: '中证500', cyb: '创业板', kc50: '科创50', zz1000: '中证1000', nq: '纳斯达克', spx: '标普500', hsi: '恒生', nky: '日经225', ust10: '10年美债', cn10: '中债10Y', gold: '伦敦金', wti: 'WTI原油', cu: 'COMEX铜', usdx: '美元指数', usdcnh: 'USD/CNH', vix: 'VIX', rzye: '两融', amt: '全A成交' };
   return m[id] || id;
@@ -18469,12 +18358,6 @@ setTimeout(() => { renderResearchChips(); if (!state.news.items.length) loadNews
       + w('holder', 1) + 0.3                 /* 持有人结构 + 内部持有自购（硬编码 +0.3） */
       + w('valuation', 1.5) + w('feeLow', 0.5) + w('scaleFit', 0.5) + w('qdiiLimit', 0);
   }
-  function scoreTo100(s){
-    if (s == null || s === '') return null;
-    var full = scoreFullMarks() || SCORE_FULL_FALLBACK;
-    var v = Math.round(Number(s) / full * 100);
-    return Math.max(0, Math.min(100, v));
-  }
   /* fw2_v386_dimscore：维度分单元格 —— 颜色分级 + 本基最高/最低标记 + 权重悬浮。
      60=及格（warn 锚点）、80=优秀；阈值与权重取自用户《基金投资逻辑》/《fund-analyst技能全解》。
      ★配色避开红绿：中国语境红=涨=好，用红色标「最低分」会被误读成「表现好」，
@@ -19554,20 +19437,6 @@ setTimeout(() => { renderResearchChips(); if (!state.news.items.length) loadNews
     })();
   }
   /* fw2_v365_mgr_career：经理能力小字增强（季度/6月胜率 + 生涯踩雷红黄警示 + 生涯曲线弹层入口），数据字段缺失时自然省略 */
-  function poolMgrBits(e, code){
-    if(!e) return '';
-    var parts=[];
-    if(e.mgrWinQ!=null) parts.push('季度胜率 '+Math.round(e.mgrWinQ*100)+'%');
-    if(e.mgrWin6!=null) parts.push('6月胜率 '+Math.round(e.mgrWin6*100)+'%');
-    var s=parts.join(' · ');
-    var warn='';
-    var w=e.mgrBlowupProd;
-    if(e.mgrBlowup==='severe') warn='<div style="font-size:11px;color:var(--up,var(----up));font-weight:600;line-height:1.5">✕ 生涯踩雷（红牌）：'+esc((w&&w.n)||'—')+' 任职 '+(w&&w.ret!=null?Number(w.ret).toFixed(1)+'%':'—')+' / 同类 '+(w&&w.avg!=null?Number(w.avg).toFixed(1)+'%':'—')+'</div>';
-    else if(e.mgrBlowup==='career') warn='<div style="font-size:11px;color:var(--warn,#d97706);font-weight:600;line-height:1.5">⚠ 生涯跑输（标黄）：'+esc((w&&w.n)||'—')+' 超额 '+(w&&w.ret!=null&&w.avg!=null?Number(w.ret-w.avg).toFixed(1)+'%':'—')+'</div>';
-    var lnk='';
-    if(e.mgrProducts && e.mgrProducts.length) lnk='<a href="javascript:void(0)" data-mgr-career="'+esc(code||'')+'" style="font-size:11px;color:var(--brand-ink,var(----brand));text-decoration:underline;margin-top:1px;display:inline-block">生涯曲线 →</a>';
-    return (s?'<div style="font-size:11px;color:var(--muted);line-height:1.5;margin-top:2px">'+s+'</div>':'')+warn+(lnk?'<div style="line-height:1.5">'+lnk+'</div>':'');
-  }
   function openMgrCareer(code){
     var e=poolProfileE(code);
     if(!e){ toast('经理数据未就绪'); return; }
@@ -22130,10 +21999,6 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
       Object.keys(sp).forEach(function (c) { push(c, 'screen'); });
     } catch (e3) {}
     return out;
-  }
-  function btCuState() {
-    if (!window.__BT_CU_STATE) window.__BT_CU_STATE = { src: 'all', kw: '' };
-    return window.__BT_CU_STATE;
   }
   function btCuSelected() {
     if (window.__BT_CUSTOM_CODES == null) {
@@ -25240,18 +25105,6 @@ return '<div id="btRunBar" style="background:#FAFAF9;border:1px solid #E8E6DF;bo
     try { localStorage.removeItem(BT_SCOPE_KEY[scope]); } catch (e) {}
     if (typeof renderLogicView === 'function') renderLogicView();
   };
-  function btScopePanelHtml() {
-    return '<div style="display:flex;gap:6px;flex-wrap:wrap;margin:0 0 8px">'
-      + btScopeCard('plan', '⑧-A', '流程参数', '自动化选标的按它跑')
-      + btScopeCard('hold', '⑧-B', '配置回测', '跟随母版，可覆盖')
-      + btScopeCard('custom', '⑧-C', '自选回测', '跟随母版，可覆盖')
-      + '</div>'
-      + '<div style="background:#F4F4F2;border-radius:8px;padding:7px 10px;font-size:11px;color:#52525B;line-height:1.8;margin-bottom:8px">'
-      + '这里是回测参数的唯一入口：<b>⑧-A</b> 是母版，⑧-B / ⑧-C 默认继承、只存你改过的那几项（页面上会标「覆盖」）。'
-      + '「配置回测 / 自选回测」两页只跑数、不出参数。'
-      + '</div>'
-;
-  }
   function btCollectDom() {
     /* 从当前 btIn_* 控件收集一份参数补丁。
        v988i fix：① 只收母版已有的键（否则渲染出来的辅助控件会把 diff 污染成
@@ -26613,11 +26466,6 @@ function renderBacktest() {
   window.renderBacktest = renderBacktest;
 
   /* fw2_v663_hero_retire：renderStratHero（含可投资金 rulesBudget 输入格与绑定）与仅其使用的 nextDrip 随建仓 hero 退役整段删除 */
-  function doneMonths() {
-    var recs = lsGet(STRAT_LS_REC, []), out = {};
-    recs.forEach(function (r) { if (r && r.date) out[String(r.date).slice(0, 7)] = 1; });
-    return Object.keys(out);
-  }
 
   function renderStratCards() {
   var el = document.getElementById('stp-cards');
@@ -26699,7 +26547,6 @@ function renderBacktest() {
     for (var i = 0; i < S.assets.length; i++) if (S.assets[i].code === code) return S.assets[i];
     return null;
   }
-  function isRole(code, rk) { return (roleCodes[rk] || []).indexOf(code) >= 0; }
 
   function heldBadge(code) {
     var h = heldOf(code);
@@ -27574,40 +27421,6 @@ function brakeCardHtml(opts) {
         body +
       '</div>' +
     '</details>';
-  }
-  function recForm() {
-    return '<div class="rec-form"><input id="recDate" type="date" value="' + todayStr() + '">' +
-      '<select id="recCode">' + S.assets.map(function (a) { return '<option value="' + a.code + '">' + a.code + ' ' + a.name + '</option>'; }).join('') + '</select>' +
-      '<select id="recDir"><option value="买">买</option><option value="卖">卖</option><option value="止盈">止盈</option><option value="调仓">调仓</option></select>' +
-      '<input id="recAmt" type="number" placeholder="金额" style="width:90px">' +
-      '<input id="recSrc" placeholder="资金源（工资/L1/止盈）" style="width:130px">' +
-      '<button class="btn btn-sm btn-primary" id="recAdd">记一笔</button>' +
-      '<button class="btn btn-sm" id="recCopyMd">复制 Markdown</button></div>';
-  }
-  function bindRecForm() {
-    var add = document.getElementById('recAdd');
-    if (add) add.addEventListener('click', function () {
-      var recs = lsGet(STRAT_LS_REC, []);
-      var code = document.getElementById('recCode').value;
-      var a = assetOf(code);
-      recs.unshift({
-        date: document.getElementById('recDate').value || todayStr(),
-        code: code, name: a ? a.name : code,
-        dir: document.getElementById('recDir').value,
-        amt: Math.round(+document.getElementById('recAmt').value || 0),
-        src: document.getElementById('recSrc').value || '',
-        at: new Date().toISOString()
-      });
-      lsSet(STRAT_LS_REC, recs);
-      renderRecList();
-    });
-    var cp = document.getElementById('recCopyMd');
-    if (cp) cp.addEventListener('click', function () {
-      var recs = lsGet(STRAT_LS_REC, []);
-      var md = '| 日期 | 代码 | 标的 | 方向 | 金额 | 资金源 |\n|---|---|---|---|---|---|\n' +
-        recs.map(function (r) { return '| ' + r.date + ' | ' + r.code + ' | ' + r.name + ' | ' + r.dir + ' | ' + (r.amt || '') + ' | ' + r.src + ' |'; }).join('\n');
-      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(md).then(function () { if (cp) cp.textContent = '✓ 已复制'; setTimeout(function () { if (cp) cp.textContent = '复制 Markdown'; }, 1500); });
-    });
   }
   function renderRecList() {
     var el = document.getElementById('stratRecList');
@@ -28582,11 +28395,6 @@ function brakeCardHtml(opts) {
     }
     return { key: 'man', text: '手动核对', cls: 'man' };
   }
-  function evStatus(e) {
-    var s = evState(e);
-    var col = { ok: CHART.greenBr, near: CHART.amber, act: CHART.upCss, man: CHART.badGray }[s.cls];
-    return '<span style="font-size:11px;color:' + col + ';font-weight:' + (s.cls === 'act' ? '600' : '400') + '">' + s.text + '</span>';
-  }
 
   /* ---- tab 切换 ---- */
   function switchStratTab(name, pool) {
@@ -28822,7 +28630,6 @@ function fmtPct(n, d) {
   const v = Number(n) || 0;
   return (v * 100).toFixed(d == null ? 2 : d) + "%";
 }
-function signCls(v) { return v > 0 ? "up" : (v < 0 ? "down" : "flat"); }
 function pnlCls(v) { return v > 0 ? "up" : (v < 0 ? "down" : "flat"); }
 function esc(s) {
   return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
@@ -30123,44 +29930,7 @@ function openNavForm(tid) {
     toast("净值已更新：" + t.name + " → " + fmt(t.nav, 4));
   };
 }
-function openBatchNavForm() {
-  const onTargets = DB.targets.filter(function (t) { return t.status === "on" && calcTargetStats(t.id).shares > 0; });
-  if (!onTargets.length) { toast("没有在盘且持有份额的标的"); return; }
-  const rows = onTargets.map(function (t) {
-    return '<div class="cb-fld" style="display:flex;align-items:center;gap:8px">' +
-      '<label style="flex:1;margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(t.name) + "</label>" +
-      '<input data-bnav="' + t.id + '" type="number" step="0.0001" min="0" value="' + (t.nav || "") + '" style="width:130px">' +
-      "</div>";
-  }).join("");
-  openModal('<div class="cb-frm" style="grid-template-columns:1fr">' + rows + "</div>", "批量更新净值");
-  document.getElementById("modalOk").onclick = function () {
-    let n = 0;
-    onTargets.forEach(function (t) {
-      const el = document.querySelector('[data-bnav="' + t.id + '"]');
-      const nav = Number(el.value);
-      if (nav > 0) { t.nav = Math.round(nav * 10000) / 10000; n++; }
-    });
-    saveDB(); closeModal(); render(curView);
-    toast("已更新 " + n + " 个标的净值");
-  };
-}
 
-/* ---------- 负债设置 ---------- */
-function openLiabilityForm() {
-  openModal(
-    '<div class="cb-frm" style="grid-template-columns:1fr">' +
-    '<div class="cb-fld"><label>外部借款 / 负债<span class="unit">元</span></label><input id="liab" type="number" step="0.01" min="0" value="' + (DB.liability || "") + '"></div>' +
-    '<div class="cb-fld"><label>说明</label><textarea id="liabNote" placeholder="如：家庭借款、融资余额等">' + esc(DB.liabNote || "") + "</textarea></div>" +
-    "</div>",
-    "设置负债"
-  );
-  document.getElementById("modalOk").onclick = function () {
-    DB.liability = Number(document.getElementById("liab").value) || 0;
-    DB.liabNote = document.getElementById("liabNote").value.trim();
-    saveDB(); closeModal(); render(curView);
-    toast("负债已更新");
-  };
-}
 
 /* ---------- 删除 ---------- */
 function delTarget(id) {
@@ -31117,77 +30887,6 @@ function _smMoney(v) {
 function _smInstLast(it) { var qs = it.q || []; return qs.length ? qs[qs.length - 1] : null; }
 function _smInstPrev(it) { var qs = it.q || []; return qs.length > 1 ? qs[qs.length - 2] : null; }
 
-/* ---------- 共识页 · A股区块 ---------- */
-function renderConA() {
-  var host = document.getElementById('smConA'); if (!host || !window.SM_ASHARE) return;
-  var D = window.SM_ASHARE, s = D.summary || {}, cons = D.consensus || [];
-  var add = cons.filter(function (c) { return (c.net || 0) > 0; }).sort(function (a, b) { return b.net - a.net; }).slice(0, 10);
-  var trim = cons.filter(function (c) { return (c.net || 0) < 0; }).sort(function (a, b) { return a.net - b.net; }).slice(0, 10);
-  function tbl(rows) {
-    if (!rows.length) return '<div class="xov-note">本季无该方向信号</div>';
-    var h = '<table><colgroup><col style="width:30%"><col style="width:10%"><col style="width:14%"><col style="width:11%"><col style="width:11%"><col style="width:12%"><col style="width:12%"></colgroup><thead><tr><th>标的</th><th>行业</th><th>持有机构</th><th>加仓</th><th>减仓</th><th>净变化</th><th>信号</th></tr></thead><tbody>';
-    rows.forEach(function (c) {
-      var net = c.net || 0;
-      h += '<tr><td><span class="name">' + c.name + '</span><div class="xov-code">' + c.code + '</div></td><td class="small">' + c.sector + '</td>'
-        + '<td class="num">' + c.nHolders + '</td><td class="num up">' + (c.add || 0) + '</td><td class="num down">' + (c.dec || 0) + '</td>'
-        + '<td class="num"><span class="' + (net > 0 ? 'up' : 'down') + '">' + (net > 0 ? '+' : '') + net + '</span></td>'
-        + '<td><span class="' + (net > 0 ? 'up' : 'down') + '">' + (c.sign || '') + '</span></td></tr>';
-    });
-    return h + '</tbody></table>';
-  }
-  var h = '<div class="sm-sec-hd"><span class="bar"></span>A股 · 聪明钱共识<span class="hint">——' + (D.meta.universeNote || '') + ' · 报告期 ' + (s.latest || '') + '</span></div>';
-  h += '<div class="xov-concl"><div class="xov-c b">本季集中加仓机构：' + ((s.addFocused || []).join(' / ') || '—') + '</div><div class="xov-c b">本季集中减仓机构：' + ((s.trimFocused || []).join(' / ') || '—') + '</div></div>';
-  h += '<div class="sm-2col"><div class="xov-fund"><div class="xov-mixh">共识净加仓 Top ' + (add.length || 0) + '</div>' + tbl(add) + '</div>'
-    + '<div class="xov-fund"><div class="xov-mixh">共识净减仓 Top ' + (trim.length || 0) + '</div>' + tbl(trim) + '</div></div>';
-  var etfs = (D.nh && D.nh.etfs) || [];
-  if (etfs.length) {
-    h += '<div class="sm-sec-hd"><span class="bar" style="background:var(--gold,var(----gold))"></span>国家队 · 宽基 ETF 具名持有人<span class="hint">——' + (D.nh.etfReport || '') + '</span></div>';
-    h += '<div class="ctl"><span class="sortbtn on" data-s="p1">按第一大持有人占比排序</span><span class="sortbtn" data-s="sum">按前二合计占比排序</span><input class="inp" id="smA-etfQ" placeholder="搜索 ETF / 指数 / 持有人…" style="margin-left:auto"><span class="res-count" id="smA-etfCount"></span></div>';
-    h += '<div class="inst-grid" id="smA-etfGrid"></div>';
-    h += '<div class="xov-note">' + (D.nh.note || '') + '</div>';
-  }
-  host.innerHTML = h;
-  if (etfs.length) {
-    var etfQ = '', etfSort = 'p1';
-    function p1v(e) { var t = e.top25 || []; return t[0] && t[0].pct != null ? t[0].pct : -1; }
-    function sumv(e) { var t = e.top25 || []; var a = t[0] && t[0].pct != null ? t[0].pct : 0, b = t[1] && t[1].pct != null ? t[1].pct : 0; return a + b; }
-    function etfCard(e) {
-      var t = e.top25 || [];
-      var p1 = t[0] && t[0].pct != null ? t[0].pct : null;
-      var p2 = t[1] && t[1].pct != null ? t[1].pct : null;
-      var sum = (p1 != null ? p1 : 0) + (p2 != null ? p2 : 0);
-      var rows = t.slice(0, 2).map(function (x) {
-        return '<div class="row"><span>' + ((x.name || '—') + '').slice(0, 26) + '</span><span class="num mut">' + (x.pct != null ? x.pct + '%' : '—') + '</span></div>';
-      }).join('');
-      if (t.length > 2) rows += '<div class="row"><span class="mut">…另有 ' + (t.length - 2) + ' 位具名持有人</span></div>';
-      var bar = '';
-      if (p1 != null) {
-        var w1 = Math.min(100, p1), w2 = Math.min(100 - w1, p2 != null ? p2 : 0);
-        bar = '<div style="display:flex;height:8px;border-radius:4px;overflow:hidden;background:#eef0f3;margin-top:10px"><div style="width:' + w1 + '%;background:var(--gold,var(----gold))"></div><div style="width:' + w2 + '%;background:#8aa0b8"></div></div>'
-          + '<div style="display:flex;gap:14px;font-size:11px;color:var(--muted);margin-top:6px"><span><i style="display:inline-block;width:8px;height:8px;border-radius:2px;background:var(--gold,var(----gold));margin-right:4px"></i>第一大 ' + (p1 != null ? p1 + '%' : '—') + '</span><span><i style="display:inline-block;width:8px;height:8px;border-radius:2px;background:#8aa0b8;margin-right:4px"></i>第二大 ' + (p2 != null ? p2 + '%' : '—') + '</span></div>';
-      }
-      return '<div class="card pad inst"><div class="top"><div class="who"><h3>' + e.name + '</h3><div class="person">' + (e.code || '') + '</div></div><span class="style">' + (e.index || '宽基') + '</span></div>'
-        + '<div class="stats"><div><div class="k">第一大持有人</div><div class="v">' + (p1 != null ? p1 + '%' : '—') + '</div></div><div><div class="k">前二合计</div><div class="v">' + (sum > 0 ? sum + '%' : '—') + '</div></div></div>'
-        + bar
-        + '<div class="mini-t">' + (rows || '<div class="row"><span class="mut">无持有人数据</span></div>') + '</div></div>';
-    }
-    function renderEtfs() {
-      var a = etfs.filter(function (e) {
-        return !etfQ || (e.name + ' ' + (e.code || '') + ' ' + (e.index || '') + ' ' + ((e.top25 || []).map(function (x) { return x.name || ''; }).join(' '))).toLowerCase().indexOf(etfQ) >= 0;
-      });
-      a = a.slice().sort(function (x, y) { return etfSort === 'sum' ? (sumv(y) - sumv(x)) : (p1v(y) - p1v(x)); });
-      var g = document.getElementById('smA-etfGrid');
-      g.innerHTML = a.map(etfCard).join('') || '<div class="empty">无匹配 ETF</div>';
-      var c = document.getElementById('smA-etfCount');
-      if (c) c.textContent = '共 ' + a.length + ' 只';
-    }
-    renderEtfs();
-    host.querySelectorAll('.sortbtn').forEach(function (b) {
-      b.onclick = function () { host.querySelectorAll('.sortbtn').forEach(function (x) { x.classList.remove('on'); }); b.classList.add('on'); etfSort = b.getAttribute('data-s'); renderEtfs(); };
-    });
-    document.getElementById('smA-etfQ').oninput = function (e) { etfQ = (e.target.value || '').trim().toLowerCase(); renderEtfs(); };
-  }
-}
 
 /* ---------- 反查页 · A股区块 ---------- */
 var _smIdx = null;
@@ -31685,22 +31384,6 @@ function renderNhbView() { /* fw2_v519_sm_merge：国家队 = ①ETF每日份额
   loadEtfShares();
 }
 /* v282：数据抽屉拉平——机构反查 / 更快信号直挂主容器（与看板/雷达/国家队并列） */
-function initSmLook() { /* 机构反查 */
-  renderLookA();
-  if (window.SM13F && window.SM13F.mount) {
-    var h2 = document.getElementById('sm13f-look-inst');
-    if (h2 && !h2.dataset.built) { SM13F.renderModeBox(h2); SM13F.mount('institutions', h2); }
-    SM13F.renderMeta(h2, true);
-    var h3 = document.getElementById('sm13f-look-lookup');
-    if (h3 && !h3.dataset.built) { SM13F.mount('lookup', h3); SM13F.renderFooter(h3); }
-  }
-}
-function initSmFast() { /* 更快信号 */
-  if (window.SM13F && window.SM13F.mount) {
-    var h4 = document.getElementById('sm13f-fast-root');
-    if (h4 && !h4.dataset.built) { SM13F.renderMeta(h4); SM13F.mount('fast', h4); SM13F.renderFooter(h4); }
-  }
-}
 
 /* ---------- 子模块切换（v203.3） ---------- */
 function renderSmartMoney() {
@@ -31952,12 +31635,6 @@ function renderEtfFlows() {
 /* fw2_v203.2_sm_xov_decision：速览按「决策逻辑」分组（用户拍板）——不再按市场/单列平铺；
    顶部 tab「跨市场速览」更名「决策看板」；卡流按 行动 → 观察 → 维持 三档分组（复用动作条 lv2/lv1/lv0 判定，
    不新增口径）；A股/美股 tab 保留为纯市场研究入口；重叠度风险卡仍在本页（决策信息） */
-function _xovUsAct(st) {
-  if (!st) return null;
-  var ni = st.ni || 0, nd = st.nd || 0, dlt = st.dlt || 0;
-  var dir = 'flat'; if (ni > nd) dir = 'up'; else if (nd > ni) dir = 'down';
-  return { dir: dir, ni: ni, nd: nd, dlt: dlt };
-}
 function _xovFindStock(D, ticker, name) {
   if (!D || !D.stocks) return null;
   var cand = null;
@@ -31970,13 +31647,6 @@ function _xovFindStock(D, ticker, name) {
     else if (nmUp && iss.indexOf(nmUp) >= 0) cand = s;
   });
   return cand;
-}
-function _xovFmt(v) {
-  if (v == null) return '—';
-  var a = Math.abs(v), s = v < 0 ? '-' : '+';
-  if (a >= 1e9) return s + (a / 1e9).toFixed(1) + 'B';
-  if (a >= 1e6) return s + (a / 1e6).toFixed(0) + 'M';
-  return s + Math.round(v);
 }
 function _xovUsStats(D, ticker, name) { /* 全部机构口径：nh 为 4 季数组取 [3]，ni/nd 为标量（最新季） */
   var st = _xovFindStock(D, ticker, name); if (!st) return null;
@@ -32022,15 +31692,6 @@ function _xovTemp(sc) {
   if (sc == null) return null;
   var t = sc > 0.35 ? ['拥挤升温', 'var(--up,#dc2626)'] : sc > 0.1 ? ['温和偏多', 'var(--orange,#e07a3b)'] : sc < -0.35 ? ['降温/拐点预警', 'var(--down,#047857)'] : sc < -0.1 ? ['偏冷', '#1e8a6f'] : ['中性', 'var(--muted,#667085)'];
   return { label: t[0], color: t[1], score: sc };
-}
-function _xovGroupHtml(lv, title, desc, arr, gsum, open) { /* v203.2/v283：决策分组容器（行动/观察/维持），details 默认折叠 */
-  if (!arr || !arr.length) return '';
-  var color = lv === 2 ? 'var(--up,#dc2626)' : lv === 1 ? 'var(--gold,#b7791f)' : 'var(--slate-400)';
-  return '<details class="xov-group"' + (open ? ' open' : '') + '><summary class="xov-gh"><span class="xov-gbar" style="background:' + color + '"></span>'
-    + '<span class="xov-gtitle">' + title + ' <b class="xov-gn" style="background:' + color + '">' + arr.length + '</b></span>'
-    + '<span class="xov-gdesc">' + desc + '</span></summary>'
-    + (gsum ? '<div class="xov-gsum">' + gsum + '</div>' : '')
-    + '<div class="xov-gcards">' + arr.join('') + '</div></details>';
 }
 function _xovOverlap(fh) { /* 独立风险源 · 双基金重叠度（016452 × 012920） */
   var a = fh['016452'], b = fh['012920'];
@@ -32369,10 +32030,6 @@ function renderXOverview() {
     + '<div class="dc-vevid">依据链：' + evid.join(' → ') + '</div>'
     + '</div></div>'; /* v288：复用决策总览 dc-verdict 卡（主结论 + 依据链）；v298：删除重复导航入口（smMarketBar 已有雷达/国家队/机构反查/更快信号） */
   var secOV = _xovOverlap(fh);
-  function _xovGrow(lv, title, gsum, n) {
-    var color = lv === 2 ? 'var(--up,#dc2626)' : lv === 1 ? 'var(--gold,#b7791f)' : 'var(--slate-400)';
-    return '<tr class="xov-grow"><td colspan="4"><span class="gbar" style="background:' + color + '"></span>' + title + ' · <b>' + n + ' 只</b>' + (gsum ? '<span class="hint">—— ' + gsum + '</span>' : '') + '</td></tr>';
-  }
   var gHtml = '<table class="xov-table"><thead><tr><th style="min-width:70px">策略</th><th style="min-width:150px">基金名称</th><th style="min-width:90px">基金代码</th><th style="min-width:260px">行动</th><th style="min-width:100px">角色</th><th style="min-width:110px">市场</th><th style="min-width:200px">聪明钱信号</th></tr></thead><tbody>'
     + (gRows[2].length ? gRows[2].join('') : '')
     + (gRows[1].length ? gRows[1].join('') : '')
