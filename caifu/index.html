@@ -1529,7 +1529,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 ④效果：Σ(市值−成本) 1,276.73 → **1,344.81**，与账户 ΣconstantProfit 1,346.52 只差 **1.71**（其余 21 只舍入）；「净资产 − 在盘成本」= 20,462.19 − 19,117.42 = 1,344.77 ≈ 未实现 1,344.81（差 0.04）；「已实现＋未实现」= 2,224.25，与账户累计 2,224.76 差 **0.51**。原 68.63 的口径差基本消解。
 ⑤影响面已核：T9 CAP 组合投入 19,185.50 → 19,117.42，阈值 C.cap=100000，档位不变；T1/T4/T5 收益率优先走 holdProfitRate，不受 cost 影响；T13 网格优先 lastBuyNav。
 ★仍未修：其余 21 只合计 0.68 的舍入差（不再追）；`constantProfit` 的收益率分母含在途金额（App 显示 016452 −1.9%，而已确认部分真实收益率是 −6.1%），属平台口径，不跟。 -->
-<!-- fw2_v951_bt_brake_below_cmp（用户 2026-11-17「策略执行模块中子模块持仓回测和自选回测中策略 vs 对照 · 按标的明细放在单只刹车 · 10 年峰值回撤上面显示」）：纯显示顺序调整，零计算改动。①原顺序（v939 起）：面板头 → 自选逐只参数 → 运行条 → **刹车卡** → 参数抽屉 → 结果区（结论条 → **策略 vs 对照明细表** → 备用金明细 → 关键规则卡 → 四图 → 明细）。②新顺序：刹车卡从面板层移除，改在结果区紧随明细表之后渲染 —— 面板头 → 运行条 → 抽屉 → 结果区（结论条 → **明细表 → 刹车卡** → 备用金明细 → 规则卡 → 四图 → 明细）。两处篇幅与内容一字未改（BRAKE_T 仍单源）。③兼容处理：回测「无有效数据」分支同样追加该卡（它是静态阈值参考表，不该因回测失败消失）；卡内「本页只读…勾选下面的刹车开关」文案随位置改为「勾选上方参数抽屉里的刹车开关」。④持仓回测与自选回测共用同一块 stp-bt 面板，两处同时生效。 --><!-- fw2_v952_signal_registry（用户 2026-11-17「交易信号和回测信号最终必须保持一致，我遵循一套投资逻辑不能乱，要变都一起变」+「止盈定乙」）：B1 只读层落地，零计算改动。①新增 `window.SIGNAL_REGISTRY`（紧随 SIGNALS_CFG，键＝信号 ID，字段 name/layer/obj/dir/ev/def/modeled/thr/act/code），三层共 59 条（持仓 T1–T16+32 条 P/XOV、自选 W1–W9（W4 已删）、筛选 S1–S7+S-TREND+V1/V2/V11、回测 R1–R11、宏观 M1–M6+RB/BW）；阈值一律从 `SIGNALS_CFG` 拼串引用、不复制字面数字。②`signalRegOf(sig)` 由行名（'T1 阶梯止盈'）取条目。③**止盈定乙**：T1 文案「卖1/3」→「减1/4，+20% 再减1/4」，与 R4/R5、XOV 三处同口径，证据等级 C→A。④回测页「当前生效的规则」原来只写 3 条（止盈减仓/止损/网格）→ 改为 **R1–R11 全量清单**（含默认关项），每行带「本次开/关（按当前参数实时算）」与「证据 A/B/C」徽标，标题改「本次回测执行的规则」，底部注明 R4/R5 的 25% 写死、R2 仅定投/底仓生效、R8/R9 互斥。⑤旧 `ruleCard` 保留未删（无引用，留待将来分组用）。**未动**：回测引擎逐位不变、BRAKE_T 仍单源、SIGNALS_CFG 值未改。 --><!-- fw2_v953_batch1（用户 2026-11-17「直接做和上批 1 剩下的 5 条（T2/T7/T16/T9/T10）一起做完」）：把五条 C 级纪律真正建进回测引擎，一条一条量边际贡献。①cfg 新增 14 个键（tpPeak/tpPeakArm/tpPeakDD、addDD/addDD1/addDD2/addAmt、postSellHalf/postSellLo/postSellWin、rebalSlot/slotBand），默认全关＝v952 逐位不变，归一化段对 5 个布尔只认 true/'true'、9 个阈值给合法区间。②引擎：T2 逐日记「入场以来峰值浮盈」，峰涨≥20% 且自峰回吐≥8pp 卖一半（每持仓一次，成本未知跳过）；T7 逐日拉 250 个交易日滚动峰值（单调队列预计算 s.p250），−20%/−30% 各补一档（每档＝目标额 20%，只从预算现金出，破线/冻结/封顶不补）；T16 在 trySell 里记最近一次卖出成交净值与日期，再跌 10% 且 90 日内卖剩余一半（同一基准只触发一次）；T9 逐日算 Σ持仓成本，≥capAmt 当日禁买（建仓/定投/网格三处守卫）；T10 新增 btSlotRebal（季末按 pile 汇总市值对 base40/off35/bond10/hedge15，偏离≥5pp 才动手，超配档卖出、低配档用现金补）。③参数抽屉加「纪律开关（批 1 实验 · 默认关）」5 个勾选框；收参段补齐 5 个布尔**与 9 个阈值**——不收阈值会让引擎拿到 undefined，判定恒为 false（本轮实测踩到，表现为「勾了开关、数字一位不变」）。④两区间实测（¥50,000 / 杠铃 11 只 / 一次性 / 2024-02-07~2026-09-28 与 2019-01-01~2026-09-28，格式＝年化/Calmar/回撤预算使用率）：全关 15.38/1.74/39.66 与 7.53/0.87/34.30（v952 一致）；T2 11.82/1.63/31.31 与 6.05/0.69/32.08（劣）；T7 16.20/1.89/38.70 与 7.83/0.87/35.71（弱正）；T16 15.78/2.02/35.17 与 7.32/0.97/29.55（唯一两区间同向改善）；T9（预算抬到 ¥200,000）关 15.28/1.76/38.93、开 14.39/1.79/35.73 与关 7.50/0.87/33.83、开 6.12/0.71/32.10（等价砍半本金）；T10 19.63/1.86/48.39 与 12.43/0.48/113.12（长区间总回撤 22.62%＞预算 20%，周期依赖）。⑤规则卡从 R1–R11 扩到 16 行（补 T2/T7/T16/T9/T10，证据 C→A 并写明实测数字）；R8 三小步落地：默认关、注册表 act 注明「四档实测均负、保留仅供研究」、T14 文案补「仅提示，不触发成交」。**未动**：R1–R11 计算、BRAKE_T、SIGNALS_CFG。 --><!-- fw2_v988i_bt_param_single_source（用户 2026-11-19「回测参数只在一个地方展示和选择，就是回测验证；持仓回测/自选回测只出干净结果」）：回测参数单点化落地。①参数渲染段抽成全局 `btParamsHtml(cfg)`（回测页与⑧层共用同一份渲染代码，杜绝两处各改一遍）。②三层存储：`fw2_bt_plan`（⑧-A 流程参数＝母版，全量）+ `fw2_bt_hold`/`fw2_bt_custom`（⑧-B/⑧-C 只存与母版的 diff）；旧单份键 `fw2_bt_cfg_v1` 首次只读迁移进母版后不再写。③继承规则：⑧-B/⑧-C 默认继承母版，改一项即记一条覆盖（页面标「覆盖」橙字），母版再改会自动传给未覆盖项——标准统一、允许单项偏离。④`go()` 不再从输入框读参（原 40 个 `btIn_*` 读 DOM），改为 `btCfg(scope)` 存储驱动；回测页参数控件归零，只留只读口径条（口径/继承/覆盖项数/区间/本金/投入方式/网格/门槛 + 运行 + 「修改参数 →」跳转⑧层）。⑤⑧ 层加二级视图「准入规则（BT1–BT6）/ 回测口径（参数）」，参数区三卡 ⑧-A/⑧-B/⑧-C 切换，控件 47 个。⑥收参 bug 修复：`btCollectDom` 只收母版已有键并按母版原值类型还原（此前渲染出的辅助控件会把 diff 污染成 `gridExt:"false"` 假覆盖）。⑦等价性实测：同参数下结论条与 v988h 逐字一致（年化 3.26% / Calmar 0.23 / 回撤预算 36.49%）；覆盖实测：⑧-B 预算改 ¥50,000 → 回测变 3.19%/0.22/36.51%，母版仍 ¥62,000；母版改 ¥55,000 → ⑧-C 跟到 55,000、⑧-B 保持 50,000（覆盖 1 项）。未动：回测引擎逐位不变、18 层信号注册表与三态逻辑不动。 --><span id="verBadge" class="ver-badge">v1009</span><!-- fw2_v989_renumber（用户 2026-11-19「988 后应该按 989 往上升级，为什么加字母」）：版本号规则自本条起改为整数单调递增（v989 → v990 → …），不再使用字母后缀。历史 v988a–v988l 是「把 v988 当大版本框、其下增量用字母」的旧编法，已发布不可回改，仅在此说明对应关系：v988a 规则代码带中文名 / v988b·c T13 网格跟踪升「开」+ 备用金降级 / v988d 备用金摘出复核 / v988e 持仓「卖后涨跌」列 / v988f 投资逻辑大脑 / v988g 八层·思想总纲（已废）/ v988h ⑧ 层改「回测验证 · 逻辑准入」/ v988i 回测参数单点化 / v988j 四条边界 / v988k 波动三项客观量 / v988l 胜率赔率 + 入场质量因子分档（即本版 v989）。 --><!-- fw2_v988k_vol_three（用户 2026-11-19「开始 ②」）：回测结论区新增「波动与耐受力（客观量 · 不设阈值）」卡。
+<!-- fw2_v951_bt_brake_below_cmp（用户 2026-11-17「策略执行模块中子模块持仓回测和自选回测中策略 vs 对照 · 按标的明细放在单只刹车 · 10 年峰值回撤上面显示」）：纯显示顺序调整，零计算改动。①原顺序（v939 起）：面板头 → 自选逐只参数 → 运行条 → **刹车卡** → 参数抽屉 → 结果区（结论条 → **策略 vs 对照明细表** → 备用金明细 → 关键规则卡 → 四图 → 明细）。②新顺序：刹车卡从面板层移除，改在结果区紧随明细表之后渲染 —— 面板头 → 运行条 → 抽屉 → 结果区（结论条 → **明细表 → 刹车卡** → 备用金明细 → 规则卡 → 四图 → 明细）。两处篇幅与内容一字未改（BRAKE_T 仍单源）。③兼容处理：回测「无有效数据」分支同样追加该卡（它是静态阈值参考表，不该因回测失败消失）；卡内「本页只读…勾选下面的刹车开关」文案随位置改为「勾选上方参数抽屉里的刹车开关」。④持仓回测与自选回测共用同一块 stp-bt 面板，两处同时生效。 --><!-- fw2_v952_signal_registry（用户 2026-11-17「交易信号和回测信号最终必须保持一致，我遵循一套投资逻辑不能乱，要变都一起变」+「止盈定乙」）：B1 只读层落地，零计算改动。①新增 `window.SIGNAL_REGISTRY`（紧随 SIGNALS_CFG，键＝信号 ID，字段 name/layer/obj/dir/ev/def/modeled/thr/act/code），三层共 59 条（持仓 T1–T16+32 条 P/XOV、自选 W1–W9（W4 已删）、筛选 S1–S7+S-TREND+V1/V2/V11、回测 R1–R11、宏观 M1–M6+RB/BW）；阈值一律从 `SIGNALS_CFG` 拼串引用、不复制字面数字。②`signalRegOf(sig)` 由行名（'T1 阶梯止盈'）取条目。③**止盈定乙**：T1 文案「卖1/3」→「减1/4，+20% 再减1/4」，与 R4/R5、XOV 三处同口径，证据等级 C→A。④回测页「当前生效的规则」原来只写 3 条（止盈减仓/止损/网格）→ 改为 **R1–R11 全量清单**（含默认关项），每行带「本次开/关（按当前参数实时算）」与「证据 A/B/C」徽标，标题改「本次回测执行的规则」，底部注明 R4/R5 的 25% 写死、R2 仅定投/底仓生效、R8/R9 互斥。⑤旧 `ruleCard` 保留未删（无引用，留待将来分组用）。**未动**：回测引擎逐位不变、BRAKE_T 仍单源、SIGNALS_CFG 值未改。 --><!-- fw2_v953_batch1（用户 2026-11-17「直接做和上批 1 剩下的 5 条（T2/T7/T16/T9/T10）一起做完」）：把五条 C 级纪律真正建进回测引擎，一条一条量边际贡献。①cfg 新增 14 个键（tpPeak/tpPeakArm/tpPeakDD、addDD/addDD1/addDD2/addAmt、postSellHalf/postSellLo/postSellWin、rebalSlot/slotBand），默认全关＝v952 逐位不变，归一化段对 5 个布尔只认 true/'true'、9 个阈值给合法区间。②引擎：T2 逐日记「入场以来峰值浮盈」，峰涨≥20% 且自峰回吐≥8pp 卖一半（每持仓一次，成本未知跳过）；T7 逐日拉 250 个交易日滚动峰值（单调队列预计算 s.p250），−20%/−30% 各补一档（每档＝目标额 20%，只从预算现金出，破线/冻结/封顶不补）；T16 在 trySell 里记最近一次卖出成交净值与日期，再跌 10% 且 90 日内卖剩余一半（同一基准只触发一次）；T9 逐日算 Σ持仓成本，≥capAmt 当日禁买（建仓/定投/网格三处守卫）；T10 新增 btSlotRebal（季末按 pile 汇总市值对 base40/off35/bond10/hedge15，偏离≥5pp 才动手，超配档卖出、低配档用现金补）。③参数抽屉加「纪律开关（批 1 实验 · 默认关）」5 个勾选框；收参段补齐 5 个布尔**与 9 个阈值**——不收阈值会让引擎拿到 undefined，判定恒为 false（本轮实测踩到，表现为「勾了开关、数字一位不变」）。④两区间实测（¥50,000 / 杠铃 11 只 / 一次性 / 2024-02-07~2026-09-28 与 2019-01-01~2026-09-28，格式＝年化/Calmar/回撤预算使用率）：全关 15.38/1.74/39.66 与 7.53/0.87/34.30（v952 一致）；T2 11.82/1.63/31.31 与 6.05/0.69/32.08（劣）；T7 16.20/1.89/38.70 与 7.83/0.87/35.71（弱正）；T16 15.78/2.02/35.17 与 7.32/0.97/29.55（唯一两区间同向改善）；T9（预算抬到 ¥200,000）关 15.28/1.76/38.93、开 14.39/1.79/35.73 与关 7.50/0.87/33.83、开 6.12/0.71/32.10（等价砍半本金）；T10 19.63/1.86/48.39 与 12.43/0.48/113.12（长区间总回撤 22.62%＞预算 20%，周期依赖）。⑤规则卡从 R1–R11 扩到 16 行（补 T2/T7/T16/T9/T10，证据 C→A 并写明实测数字）；R8 三小步落地：默认关、注册表 act 注明「四档实测均负、保留仅供研究」、T14 文案补「仅提示，不触发成交」。**未动**：R1–R11 计算、BRAKE_T、SIGNALS_CFG。 --><!-- fw2_v988i_bt_param_single_source（用户 2026-11-19「回测参数只在一个地方展示和选择，就是回测验证；持仓回测/自选回测只出干净结果」）：回测参数单点化落地。①参数渲染段抽成全局 `btParamsHtml(cfg)`（回测页与⑧层共用同一份渲染代码，杜绝两处各改一遍）。②三层存储：`fw2_bt_plan`（⑧-A 流程参数＝母版，全量）+ `fw2_bt_hold`/`fw2_bt_custom`（⑧-B/⑧-C 只存与母版的 diff）；旧单份键 `fw2_bt_cfg_v1` 首次只读迁移进母版后不再写。③继承规则：⑧-B/⑧-C 默认继承母版，改一项即记一条覆盖（页面标「覆盖」橙字），母版再改会自动传给未覆盖项——标准统一、允许单项偏离。④`go()` 不再从输入框读参（原 40 个 `btIn_*` 读 DOM），改为 `btCfg(scope)` 存储驱动；回测页参数控件归零，只留只读口径条（口径/继承/覆盖项数/区间/本金/投入方式/网格/门槛 + 运行 + 「修改参数 →」跳转⑧层）。⑤⑧ 层加二级视图「准入规则（BT1–BT6）/ 回测口径（参数）」，参数区三卡 ⑧-A/⑧-B/⑧-C 切换，控件 47 个。⑥收参 bug 修复：`btCollectDom` 只收母版已有键并按母版原值类型还原（此前渲染出的辅助控件会把 diff 污染成 `gridExt:"false"` 假覆盖）。⑦等价性实测：同参数下结论条与 v988h 逐字一致（年化 3.26% / Calmar 0.23 / 回撤预算 36.49%）；覆盖实测：⑧-B 预算改 ¥50,000 → 回测变 3.19%/0.22/36.51%，母版仍 ¥62,000；母版改 ¥55,000 → ⑧-C 跟到 55,000、⑧-B 保持 50,000（覆盖 1 项）。未动：回测引擎逐位不变、18 层信号注册表与三态逻辑不动。 --><span id="verBadge" class="ver-badge">v1010</span><!-- fw2_v989_renumber（用户 2026-11-19「988 后应该按 989 往上升级，为什么加字母」）：版本号规则自本条起改为整数单调递增（v989 → v990 → …），不再使用字母后缀。历史 v988a–v988l 是「把 v988 当大版本框、其下增量用字母」的旧编法，已发布不可回改，仅在此说明对应关系：v988a 规则代码带中文名 / v988b·c T13 网格跟踪升「开」+ 备用金降级 / v988d 备用金摘出复核 / v988e 持仓「卖后涨跌」列 / v988f 投资逻辑大脑 / v988g 八层·思想总纲（已废）/ v988h ⑧ 层改「回测验证 · 逻辑准入」/ v988i 回测参数单点化 / v988j 四条边界 / v988k 波动三项客观量 / v988l 胜率赔率 + 入场质量因子分档（即本版 v989）。 --><!-- fw2_v988k_vol_three（用户 2026-11-19「开始 ②」）：回测结论区新增「波动与耐受力（客观量 · 不设阈值）」卡。
  ① 回本所需涨幅＝最深回撤谷底回到该峰值所需涨幅（= 1/(1+最大回撤)−1，用权益直接算）；
  ② 最长水下天数＝连续「权益低于区间内历史峰值」的最长日历天数（期末仍水下算到期末并标注）；
  ③ 最深回撤回本用时＝最深回撤峰值日 → 首次回到该峰值的日历天数（未回本则记到期末）。
@@ -24629,12 +24629,46 @@ var btMax = (BT_CACHE && BT_CACHE.meta && BT_CACHE.meta.asOf) ? String(BT_CACHE.
       opts.forEach(function (x) { o += '<option value="' + x.v + '"' + (String(cfg[key]) === x.v ? ' selected' : '') + '>' + x.t + '</option>'; });
       return '<label style="display:inline-flex;align-items:center;gap:6px;font-size:11px;color:var(--zinc-700,var(----zinc-700));margin:2px 10px 2px 0"><span style="min-width:46px">' + label + '</span><select id="btIn_' + key + '" style="padding:4px 6px;border:1px solid var(--line-mid,#D4D4D8);border-radius:6px;font-size:14px;background:#fff">' + o + '</select></label>';
     };
-        return '<div id="btRunBar" style="background:#FAFAF9;border:1px solid #E8E6DF;border-radius:10px;padding:10px 12px;margin:8px 0 6px">'
+            /* v1010 fw2_v1010_bt_param_table：表格版控件与行渲染。
+       三列固定表头「参数 / 当前取值 / 可选与说明」，table-layout:fixed 防列错位；
+       控件 id 仍是 btIn_*，change 监听与 btCollectDom 一字不用改。 */
+    var _i = function (key, val, w, type) {
+      var t = type || 'number';
+      return '<input id="btIn_' + key + '" type="' + t + '" value="' + esc(val) + '"'
+        + (t === 'date' ? ' min="2007-01-01" max="' + btMax + '"' : ' min="0" step="any"')
+        + ' style="width:' + (w || 110) + 'px;padding:4px 6px;border:1px solid #D4D4D8;border-radius:6px;font-size:13px;color-scheme:light">';
+    };
+    var _c = function (key, val) {
+      /* v1010b：勾选框旁补「开 / 关」文字，显隐由 #btDrawer 内 CSS 按 :checked 驱动，
+         不依赖重渲染，避免点了之后文字与框状态不一致。 */
+      return '<label class="cbx" style="display:inline-flex;align-items:center;gap:6px;cursor:pointer">'
+        + '<input id="btIn_' + key + '" type="checkbox"' + (val ? ' checked' : '') + ' style="width:15px;height:15px;margin:0;cursor:pointer">'
+        + '<span data-sw="on" style="font-size:11px;font-weight:600;color:#0F766E">开</span>'
+        + '<span data-sw="off" style="font-size:11px;color:#A1A1AA">关</span></label>';
+    };
+    var _s = function (key, opts) {
+      var o = '';
+      opts.forEach(function (x) { o += '<option value="' + x.v + '"' + (String(cfg[key]) === x.v ? ' selected' : '') + '>' + x.t + '</option>'; });
+      return '<select id="btIn_' + key + '" style="max-width:100%;padding:4px 6px;border:1px solid #D4D4D8;border-radius:6px;font-size:12.5px;background:#fff">' + o + '</select>';
+    };
+    var _pg = function (t) {
+      return '<tr><td colspan="3" style="padding:9px 8px 4px;font-size:11px;font-weight:700;color:#0F766E;background:#F7FBF9;border-top:1px solid #E8E6DF">' + t + '</td></tr>';
+    };
+    var _pd = function (name, code, ctrl, note) {
+      return '<tr>'
+        + '<td style="padding:7px 8px;border-top:1px solid #F1F0EC;vertical-align:top">'
+        + '<div style="font-size:12px;font-weight:600;color:#18181B;line-height:1.5">' + name + '</div>'
+        + (code ? '<div style="font-size:10.5px;color:#A1A1AA;font-family:ui-monospace,monospace;line-height:1.4">' + code + '</div>' : '')
+        + '</td>'
+        + '<td style="padding:7px 8px;border-top:1px solid #F1F0EC;vertical-align:top">' + ctrl + '</td>'
+        + '<td style="padding:7px 8px;border-top:1px solid #F1F0EC;vertical-align:top;font-size:11px;color:#52525B;line-height:1.75">' + note + '</td>'
+        + '</tr>';
+    };
+return '<div id="btRunBar" style="background:#FAFAF9;border:1px solid #E8E6DF;border-radius:10px;padding:10px 12px;margin:8px 0 6px">'
       + inp('start', '起始日', cfg.start, 60, 'date') + inp('end', '截止日', cfg.end, 60, 'date') + inp('budget', '可投资金(¥)', (cfg.budget > 0 ? cfg.budget : ''))
       /* v1003：参数页不放「运行回测」——① 它属于跑数，不属于参数；② 它的 id 与回测页那个重名，
          getElementById 只认第一个，会把回测页按钮的点击绑到 ⑧ 层这个上（点了没反应）。 */
       + '<span style="font-size:11px;color:#71717A;margin-left:4px">改完即存；要出数字去「持仓回测 / 自选回测」点运行</span>' + '<button id="btResetStd" onclick="window.__btStd(null)" title="把所有参数与区间写回标准口径（一次性买入·¥62,000·「T16 卖出后破位减半」关·「T7 回撤补仓」开·「V11 狙击」池 5%／赔率 2.5／单注 25%／最多 4 仓·「W3／S4 趋势闸门（净值对 MA20/MA60）」与熊市三开关全关）并立即重跑" style="padding:6px 12px;background:#fff;color:#3F3F46;border:1px solid var(--line-mid,#D4D4D8);border-radius:8px;font-size:13px;cursor:pointer;margin-left:6px">重置为标准口径</button>'
-      + '<button id="btParamBtn" onclick="window.__btDrawerToggle(this)" style="padding:6px 12px;background:#fff;color:#3F3F46;border:1px solid var(--line-mid,#D4D4D8);border-radius:8px;font-size:13px;cursor:pointer;margin-left:8px">' + (cfg.pool === 'custom' ? '模式与说明 ⚙' : '全部参数 ⚙') + '</button>'
       + '<div id="btWinRow" style="margin-top:8px;font-size:11px;color:#71717A;display:flex;align-items:center;gap:6px;flex-wrap:wrap">'
       + '<span style="margin-right:2px">口径预设</span>' + btWinBtn(BT_WIN[0], cfg) + btWinBtn(BT_WIN[1], cfg) + btWinBtn(BT_WIN[2], cfg)
       + '<span style="margin-left:2px">点一下＝回标准口径＋切区间＋自动重跑（3 年即默认窗）</span></div>'
@@ -24647,89 +24681,89 @@ var btMax = (BT_CACHE && BT_CACHE.meta && BT_CACHE.meta.asOf) ? String(BT_CACHE.
       /* fw2_v951_bt_brake_below_cmp：v939 原把刹车卡放在运行条之后、结果区之前；用户 2026-11-17 要求
          「策略 vs 对照 · 按标的明细」显示在「单只刹车 · 10 年峰值回撤」上面，故本卡改由结果区在明细表之后渲染
          （见下方 out.innerHTML 拼装），面板层不再插入。阈值仍单源于 BRAKE_T，卡内容一字未改。 */
-      + '<div id="btDrawer" style="display:none;background:#FAFAF9;border:1px solid #E8E6DF;border-radius:10px;padding:10px 12px;margin:0 0 12px">'
-      + '<div style="font-size:11px;color:#71717A;margin:0 0 6px">资金与区间</div>'
-      /* v919 fw2_v919_drop_real：「模式」下拉（固定预算 / 真实持仓口径）已删除，只留固定预算口径的静态说明 */
-      + '<div style="font-size:11px;color:#71717A;margin:0 0 6px">建仓口径：<b>固定预算</b>——按各档位目标金额建仓，即「可投资金从零建仓」。</div>'
-      + sel('investMode', '投入方式', [{ v: 'lump', t: '一次性（入场日全额）' }, { v: 'drip', t: '每月定投' }, { v: 'base', t: '底仓 + 定投' }])
-      + inp('baseRatio', '底仓比例(%)', cfg.baseRatio, 62) + inp('investPeriods', '分摊期数(0=自动)', cfg.investPeriods, 62)
-      /* v934 fw2_v934_sig_year：年线信号联动开关（C 组第一段，默认关＝v933 口径） */
-      + '<div style="margin:4px 0 2px">' + chk('sigYear', '年线信号联动（净值破 MA200 减半 / 破 MA20 清仓，T+1 成交）', cfg.sigYear) + '</div>'
-      + '<div style="font-size:11px;color:#71717A;margin:0 0 8px;line-height:1.7">'
-      + '开启后：<b>破线期间暂停网格补仓与定投补投</b>（不接刀），<b>清仓后不再回补</b>；成交价取信号次一交易日的净值（T+1）。'
-      + '年线用<b>净值滚动 200 日均线</b>（不是 MA250），判据与页面「年线信号」同源；区间前 260 行日频数据参与均线预热（回测区间本身不变）。'
-      + '关闭＝纯规则口径，与 v933 完全一致。</div>'
-      /* v938 fw2_v938_sig_brake：策略 v2.0 刹车（与上一行年线信号二选一，勾本项时以本项为准） */
-      + '<div style="margin:4px 0 2px">' + chk('sigBrake', '策略 v2.0 刹车（峰值回撤停加/减半 + 连 2 日破 MA200 冻结买入 · 重站连 3 日解冻）', cfg.sigBrake) + '</div>'
-      + '<div style="font-size:11px;color:#71717A;margin:0 0 8px;line-height:1.7">'
-      + '按<b>策略 v2.0 第 4 节</b>执行，与上面的年线信号<b>二选一</b>（两项同时勾选时以本项为准）：'
-      + '<b>①峰值刹车</b>——单只回撤达 <b>0.3×10 年 mdd</b> 停止定投与网格（仓位不动），达 <b>0.6×mdd</b> 一次性卖出 50%（同档不重复卖）；'
-      + '阈值与「资产配置」页「单只刹车」卡同一张表（国债、活期宝豁免）。'
-      + '<b>②破线动作</b>——净值连续 2 个交易日收在 MA200 下方：策略口径＝<b>冻结买入、不卖出</b>（仓位不动，定投与网格停；重站 MA200 连 3 日自动解冻）；国债 511260 豁免。<b>③减半</b>——达 0.6×mdd 一次性卖出一半（同档不重复卖）。'
-      + '信号同样 T+1 成交；区间前 2600 行日频数据参与 10 年窗口与均线预热（回测区间本身不变）。</div>'
-      /* v953 fw2_v953_discipline：批 1 五条纪律开关（默认全关＝v952 口径逐位不变）。
-         之所以做成勾选框而不是写死：这五条的历史结论都是「信号层在用、执行层没建过」，
-         要判定它们值不值得进引擎，只能一条一条开、一条一条比。 */
-      + '<div style="font-size:11px;color:#71717A;margin:8px 0 4px">纪律开关（T16 卖出后破位减半 自 v954 起默认开、v975 起改回默认关（v974 六段实测牛A −1.45pct、熊段全未触发）；T2 峰值回撤止盈 自 v958 起默认关；T9 组合投入封顶已于 v959 取消；T7 回撤补仓 自 v962 起默认开（含成本两区间同向为正）；T10 杠铃再平衡 仍默认关；W3/S4 趋势确认为 v963 新增实验开关（默认关，实测为负）；S-TREND 破位拦截为 v964 新增实验开关（默认关，实测弱负）；V1 波动赶底过滤为 v966 新增实验开关（默认关，实测为负）；V11 狙击（筛选池独立仓位池）自 v970 起默认开；v972 起参数改为池 5%·赔率 2.5·单注 25%·最多 4 仓（v971 曾为池 10%，因区间代表性三层矩阵显示 10% 只在牛市段占优、6 个三年滚动窗口 Calmar 输 5/6，故回落至 5%。默认口径（零成本）短 13.74/2.03/29.94、长 8.13/1.11/29.52，含 20bps 成本短 13.55/1.99/30.08、长 8.06/1.09/29.68（「短」＝v973 起的默认 3 年区间 2023-07-03→2026-07-03）；v971 修掉「买入日按前一日净值估值」造成的假回撤——此前池 10%/15% 长区间回撤预算使用率 50.00%/75.00% 即由此而来，修复后为 32.91%/35.04%）；v969 起「最多 4 仓」已真正进引擎，v968 报的 20.74/67.92 作废）</div>'
-      + '<div style="margin:2px 0">' + chk('tpPeak', 'T2 峰值回撤止盈（峰涨≥20% 后自峰值回吐 8pp → 卖一半，每持仓一次）', cfg.tpPeak) + '</div>'
-      + '<div style="margin:2px 0 6px;font-size:11px;color:#52525B">单边交易成本 <input id="btIn_feeBps" type="number" min="0" max="200" step="1" value="' + (cfg.feeBps || 0) + '" style="width:58px;padding:2px 5px;border:1px solid #D4D4D8;border-radius:5px;font-size:11px"> bps（申购/赎回费＋滑点合计；0＝不计成本）</div>'
-      + '<div style="margin:2px 0">' + chk('trendGate', 'W3/S4 趋势确认（建仓需净值同时站上 MA20、MA60；未满足则延后建仓）', cfg.trendGate) + '</div>'
-      + '<div style="margin:0 0 2px 18px;font-size:11px;color:#71717A">仅熊市生效：' + chk('trendBearOnly', '只在熊市判定成立时才拦买入（牛市不拦）', cfg.trendBearOnly) + ' <select id="btIn_trendBearMode" style="margin-left:6px;padding:2px 4px;border:1px solid #D4D4D8;border-radius:5px;font-size:11px"><option value="ma200"' + ((cfg.trendBearMode || 'ma200') === 'ma200' ? ' selected' : '') + '>市场代理破 MA200</option><option value="ma60"' + (cfg.trendBearMode === 'ma60' ? ' selected' : '') + '>市场代理破 MA60（更快翻转）</option><option value="own"' + (cfg.trendBearMode === 'own' ? ' selected' : '') + '>逐标的自身破年线</option><option value="dead"' + (cfg.trendBearMode === 'dead' ? ' selected' : '') + '>市场代理 MA60 死叉 MA200</option></select> <select id="btIn_trendBearScope" style="margin-left:6px;padding:2px 4px;border:1px solid #D4D4D8;border-radius:5px;font-size:11px"><option value="all"' + ((cfg.trendBearScope || 'all') === 'all' ? ' selected' : '') + '>拦全部买入</option><option value="addon"' + (cfg.trendBearScope === 'addon' ? ' selected' : '') + '>只拦补仓</option></select></div>'
-      + '<div style="margin:2px 0 2px 18px;font-size:11px;color:#71717A">' + chk('bearSlow', '熊市减速：补仓金额打折（不拦买入，判据同上）', cfg.bearSlow) + ' ×<input id="btIn_bearSlowPct" type="number" min="10" max="100" step="5" value="' + (cfg.bearSlowPct || 50) + '" style="width:48px;padding:2px 4px;border:1px solid #D4D4D8;border-radius:5px;font-size:11px">%</div>'
-            + '<div style="margin:2px 0">' + chk('bearSlowB', '熊市减速·建仓侧：熊市首笔只投一半（剩余现金留场，不自动补）', cfg.bearSlowB) + '</div>'
-            + '<div style="margin:2px 0">' + chk('bearBuildGate', '熊市减速·只拦建仓：熊市期首笔不建、挂到转牛再建（不拦补仓/网格/狙击）', cfg.bearBuildGate) + '</div>'
-      + '<div style="margin:2px 0">' + chk('stGate', 'S-TREND 破位拦截（净值破 MA60 且 MACD 绿柱 → 暂不买入，破位解除即补建）', cfg.stGate) + '</div>'
-      + '<div style="margin:2px 0">' + chk('v1Gate', 'V1 波动赶底 · 赶底过滤（只允许 T7 回撤补仓：250 日回撤 ≥25% 且波动率 ≥80 分位时才补）', cfg.v1Gate) + '</div>'
-      + '<div style="margin:2px 0">' + chk('v11Gate', 'V11 狙击（筛选池独立仓位池：赔率＝前高空间/3×ATR14 ≥ 门限才买一注，单注＝池 25%、最多 4 仓，止损 3×ATR、浮盈 20% 后启用吊灯＝峰值×0.85）', cfg.v11Gate) + '</div>'
-      + '<div style="margin:2px 0;font-size:10.5px;color:#52525B">狙击池占预算 <input id="btIn_v11Pct" type="number" min="0" max="30" step="1" value="' + (cfg.v11Pct != null ? cfg.v11Pct : 5) + '" style="width:52px;padding:1px 4px;border:1px solid #E8E6DF;border-radius:4px"> % · 赔率门限 <input id="btIn_v11Odd" type="number" min="1" max="6" step="0.5" value="' + (cfg.v11Odd != null ? cfg.v11Odd : 2.5) + '" style="width:46px;padding:1px 4px;border:1px solid #E8E6DF;border-radius:4px"> （单注＝池 25%、最多 4 仓）</div>'
-      + '<div style="margin:2px 0">' + chk('addDD', 'T7 回撤补仓（距 250 日峰 −20% / −30% 各补一档，每档＝目标额 ' + cfg.addAmt + '%）', cfg.addDD) + '</div>'
-      + '<div style="margin:2px 0">' + chk('postSellHalf', 'T16 卖出后破位减半（较最近卖出成交净值再跌 10%、90 日内 → 卖剩余的一半）', cfg.postSellHalf) + '</div>'
-      + '<div style="margin:2px 0 6px">' + chk('rebalSlot', 'T10 杠铃再平衡·四档 5pp（季末，base40/off35/bond10/hedge15 偏离 ≥' + cfg.slotBand + 'pp 才调）', cfg.rebalSlot) + '</div>'
-      /* v940 fw2_v940_bk_exit_n：清仓判据实验口径（非策略）——用户 2026-11-16 要求「跑对照」后落地的控件，
-         只在勾了上面的刹车开关时生效；默认值（单日破线 + 不清仓关闭）逐位等于 v939。 */
-      + '<div style="margin:4px 0 2px">' + sel('bkExitN', '破线阈值', [{ v: '1', t: '单日破 MA200 即动手（v939 旧口径）' }, { v: '2', t: '连续 2 日破线才动手（策略默认）' }, { v: '3', t: '连续 3 日破线才动手' }, { v: '5', t: '连续 5 日破线才动手' }]) + '</div>'
-      + '<div style="margin:2px 0 2px">' + chk('bkExitOff', '本次回测关闭破线动作（只保留停加 + 减半，用来单独摘出「破线这一档」的贡献）', cfg.bkExitOff) + '</div>'
-      /* v941 fw2_v941_bk_factorial：三档分解——把「停加」「减半」也各给一个独立开关，与上一行的清仓开关组合出 2×2×2 全因子表 */
-      + '<div style="margin:2px 0 2px">' + chk('bkStopOff', '本次回测不「停加」（峰值 0.3×mdd 不冻结定投与网格，减半/清仓照旧）', cfg.bkStopOff) + '</div>'
-      + '<div style="margin:2px 0 2px">' + chk('bkHalfOff', '本次回测不「减半」（峰值 0.6×mdd 只按停加处理、不卖一半，清仓照旧）', cfg.bkHalfOff) + '</div>'
-      + '<div style="margin:4px 0 2px">' + sel('bkExitAct', '破线动作', [{ v: 'freeze', t: '冻结买入（策略默认，不卖出）' }, { v: 'exit', t: '清仓卖出（v940 旧口径）' }]) + '</div>'
-      /* v941b fw2_v941b_bk_cool：清仓冷却期——清仓后禁止买回 N 个交易日，用于检验「清仓负贡献是否来自砍完立刻买回」 */
-      + '<div style="margin:4px 0 2px">' + sel('bkCoolN', '清仓冷却', [{ v: '0', t: '不冷却（策略默认）' }, { v: '20', t: '20 个交易日内不买回' }, { v: '40', t: '40 个交易日内不买回' }, { v: '60', t: '60 个交易日内不买回' }, { v: '120', t: '120 个交易日内不买回' }]) + '</div>'
-      + '<div style="font-size:11px;color:#A1A1AA;margin:0 0 8px;line-height:1.7">策略 v2.0 默认＝<b>连续 2 日破线后冻结买入、不卖出</b>（国债 511260 豁免）+ 停加 + 减半全开；改这里属<b>实验口径（非策略）</b>，只影响本次回测结果。三个开关可组合（停加与减半都关＝只剩破线一档）；「清仓冷却」只在「破线动作＝清仓卖出」时生效（清仓后 N 个交易日内禁止买回，且要重站 MA200 连 3 日才解锁）。</div>'
-      + '<div style="font-size:11px;color:#71717A;margin:2px 0 8px;line-height:1.7">'
-      + '<b>每月定投</b>＝每只标的在「它自己当月第一个有净值的交易日」各投一期（各标的成立日不同，不会因货基节假日计提行而整月跳过），期数默认＝区间月数（滚动窗口按持有年数 ×12 显式传入：1 年 12 期 / 2 年 24 期 / 3 年 36 期）；'
-      + '<b>底仓+定投</b>＝入场日先按底仓比例建仓，余下按月摊完。'
-      + '<b>收益分母＝期末累计投入</b>——没投出去的现金留在账上，既不计入分子也不计入分母；'
-      + '对照「买入持有」按同样的节奏分批买入、只是不执行任何规则，两边同分母才可比。'
-      + '一次性口径下分母≈全额预算，与 v931 以前完全一致。</div>'
-      + sel('pool', '标的池', [{ v: 'barbell', t: '持仓组合（杠铃档位）' }, { v: 'custom', t: '自选组合（面板勾选）' }, { v: 'barbell_watch', t: '杠铃 + 自选池' }, { v: 'watch', t: '仅自选池' }])
+      /* v1010 fw2_v1010_bt_param_table：参数不再折叠——去掉 display:none 与「收起参数」按钮，
+         整块改成三列表格（参数 / 当前取值 / 可选与说明）。控件 id 仍为 btIn_*，存取逻辑不变。
+         ⑧-C（自选组合）只隐藏「逐只/组合级」那两组（它们在上方逐只表里），其余照常可直接改。 */
+      + '<div id="btDrawer" style="background:#FAFAF9;border:1px solid #E8E6DF;border-radius:10px;padding:10px 12px;margin:0 0 12px">'
+      + '<style>#btDrawer label.cbx input:not(:checked) ~ span[data-sw="on"]{display:none}#btDrawer label.cbx input:not(:checked) ~ span[data-sw="off"]{display:inline}#btDrawer label.cbx input:checked ~ span[data-sw="on"]{display:inline}#btDrawer label.cbx input:checked ~ span[data-sw="off"]{display:none}</style>'
+      + '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:0 0 6px">'
+      + '<b style="font-size:12.5px;color:#18181B">全部参数</b>'
+      + '<span style="font-size:11px;color:#71717A">当前值可直接改、改完即存；要出数字去「持仓回测 / 自选回测」点运行</span>'
+      + '</div>'
       + (cfg.pool === 'custom'
-        /* v926：自选组合的全部参数已并进上方那张表（逐只 5 项 + 首行 7 个组合级），抽屉只留模式切换。
-           被移走的 5 个全局值仍以隐藏域留在这里，供 go() 读取与「未单填时的兜底」，但不再重复展示。 */
-        ? '<div style="font-size:11px;color:#71717A;margin:0 0 8px;line-height:1.7">'
-            + '<b>自选组合的参数都在上方「标的与逐只参数」表里</b>：逐只有 权重 / 止盈带宽 / 止损 / 网格步长 / 网格金额，'
-            + '组合级有 备用金、目标年化、回撤预算、无风险利率、季度再平衡、按标的分设阈值；本金与起止日在运行条上。'
-            + '本抽屉只留模式切换，不再重复放同一批参数。</div>'
+        ? '<div style="background:#fff;border:1px solid #E8E6DF;border-radius:8px;padding:8px 11px;font-size:11.5px;color:#52525B;line-height:1.9;margin:0 0 8px">'
+            + '<b style="color:#18181B">逐只与组合级参数在「标的与逐只参数」表里</b>：逐只有 权重 / 止盈带宽 / 止损 / 网格步长 / 网格金额，组合级有 备用金 / 目标年化 / 回撤预算 / 无风险利率 / 季度再平衡 / 按标的分设阈值；本金与起止日在上面运行条。'
+            + '下面这张表是<b>本次回测的联动与纪律开关</b>，改哪项就只覆盖哪项。</div>'
             + '<input id="btIn_gridStep" type="hidden" value="' + esc(cfg.gridStep) + '">'
             + '<input id="btIn_gridAmt" type="hidden" value="' + esc(cfg.gridAmt) + '">'
             + '<input id="btIn_sl" type="hidden" value="' + esc(cfg.sl) + '">'
             + '<input id="btIn_band" type="hidden" value="' + esc(cfg.band) + '">'
             + '<input id="btIn_watchW" type="hidden" value="' + esc(cfg.watchW) + '">'
-        : '<div style="font-size:11px;color:#71717A;margin:0 0 8px;line-height:1.7">标的池口径：档位目标固定 底仓 40% / 进攻 35% / 安全垫 10% / 对冲 15%。'
-            + '<b>自选权重＝每只自选基金固定占总预算 X%</b>（默认 5，上限 45；同档合计超该档目标 85% 时按比例压缩）。'
-            + '「杠铃+自选池」＝原杠铃标的 + 自选池里未重叠的，原标的只分该档扣掉自选后的剩余预算。'
-            + '「仅自选池」＝只用自选池，<b>缺档预算不再摊入其余档</b>，直接留现金（摘要行会写出空置比例）——自选只有进攻类时就只投进攻档那部分，不假装满仓。'
-            + '<b>档位按基金类型判定</b>（债/货币→安全垫，QDII/海外→进攻，黄金/商品→对冲，宽基指数→底仓，行业主题/创业板/科创→进攻；类型缺失才回退画像 role）。</div>'
-            + '<span id="btBlockPoolW">'
-            + sel('customWMode', '自选权重', [{ v: 'manual', t: '逐只手动（面板逐只填）' }, { v: 'eq', t: '等权满仓 1/N' }, { v: 'fixed', t: '每只固定(%)' }])
-            + inp('watchW', '每只固定占总预算(%)', cfg.watchW, 52)
-            + '</span>'
-            + sel('gridExt', '网格资金', [{ v: 'false', t: '预算内' }, { v: 'true', t: '预算外备用金（降级）' }]) + inp('gridFund', '备用金上限(¥，0＝不限额；降级项，实测 −0.20)', cfg.gridFund)
-            + '<div style="font-size:11px;color:#71717A;margin:8px 0 6px">规则阈值 <span style="color:#8A5F11">（这里的数只在「那只有没有单填」时当默认）</span></div>'
-            + inp('gridStep', '网格比例(%)', cfg.gridStep) + inp('gridAmt', '网格额(¥)', cfg.gridAmt) + inp('sl', '止损(%)', cfg.sl) + inp('band', '止盈减仓带宽(%)', cfg.band)
-            + '<div style="font-size:11px;color:#71717A;margin:8px 0 6px">目标与口径</div>'
-            + inp('tgtAnn', '目标年化(%)', cfg.tgtAnn) + inp('ddBudget', '回撤预算(%)', cfg.ddBudget) + inp('rf', '无风险(%)', cfg.rf) + chk('rebal', '季度再平衡', cfg.rebal) + chk('perFund', '按标的分设阈值', cfg.perFund))
+        : '')
+      + '<div style="overflow-x:auto">'
+      + '<table style="width:100%;min-width:780px;border-collapse:collapse;table-layout:fixed;font-size:11.5px">'
+      + '<colgroup><col style="width:196px"><col style="width:200px"><col></colgroup>'
+      + '<thead><tr style="color:#71717A;background:#fff">'
+      + '<th style="text-align:left;padding:6px 8px;font-weight:600;border-bottom:1px solid #E8E6DF">参数</th>'
+      + '<th style="text-align:left;padding:6px 8px;font-weight:600;border-bottom:1px solid #E8E6DF">当前取值（可直接改）</th>'
+      + '<th style="text-align:left;padding:6px 8px;font-weight:600;border-bottom:1px solid #E8E6DF">可选值 · 说明</th>'
+      + '</tr></thead><tbody>'
+      + (cfg.pool === 'custom' ? ''
+        : _pg('资金与建仓')
+          + _pd('投入方式', 'investMode', _s('investMode', [{ v: 'lump', t: '一次性（入场日全额）' }, { v: 'drip', t: '每月定投' }, { v: 'base', t: '底仓 + 定投' }]), '一次性＝入场日按各档目标全额建仓；每月定投＝每只标的在它自己当月第一个净值日各投一期；底仓＋定投＝先建底仓、余下按月摊完。')
+          + _pd('底仓比例', 'baseRatio', _i('baseRatio', cfg.baseRatio, 56) + ' %', '仅「底仓 + 定投」用：入场日先按此比例建这一档，余下按月摊完。')
+          + _pd('分摊期数', 'investPeriods', _i('investPeriods', cfg.investPeriods, 56), '0＝自动按区间月数（1/2/3 年＝12/24/36 期）；填正整数则按此期数摊。'))
+      + _pg('市况联动（勾本项时以本项为准）')
+      + _pd('年线信号联动', 'sigYear', _c('sigYear', cfg.sigYear), '净值破 MA200 减半、破 MA20 清仓（T+1 成交）；破线期间暂停网格与定投补投，清仓后不再回补。年线用净值滚动 200 日均线，不是 MA250。')
+      + _pd('策略 v2.0 刹车', 'sigBrake', _c('sigBrake', cfg.sigBrake), '①单只回撤达 0.3×10 年 mdd 停止定投与网格（仓位不动）；②净值连续 2 日收在 MA200 下方 → 冻结买入、不卖出，重站连 3 日解冻；③达 0.6×mdd 一次性卖一半（同档不重复）。国债 511260 豁免。')
+      + _pg('纪律开关（括号内为默认态）')
+      + _pd('T2 峰值回撤止盈', 'tpPeak', _c('tpPeak', cfg.tpPeak), '峰涨 ≥20% 后自峰值回吐 8pp → 卖一半，每持仓一次（默认关；v974 六段实测牛A −1.45pct、熊段全未触发）。')
+      + _pd('W3/S4 趋势确认', 'trendGate', _c('trendGate', cfg.trendGate), '建仓需净值同时站上 MA20、MA60，未满足则延后建仓（默认关，实测为负）。')
+      + _pd('↳ 仅熊市生效', 'trendBearOnly', _c('trendBearOnly', cfg.trendBearOnly), '牛市不拦，只在熊市判定成立时拦买入。')
+      + _pd('↳ 熊市判定', 'trendBearMode', _s('trendBearMode', [{ v: 'ma200', t: '市场代理破 MA200（默认）' }, { v: 'ma60', t: '市场代理破 MA60（更快翻转）' }, { v: 'own', t: '逐标的自身破年线' }, { v: 'dead', t: '市场代理 MA60 死叉 MA200' }]), '决定「熊市」怎么判。')
+      + _pd('↳ 拦截范围', 'trendBearScope', _s('trendBearScope', [{ v: 'all', t: '拦全部买入（默认）' }, { v: 'addon', t: '只拦补仓' }]), '只拦补仓＝建仓不受此闸门限制。')
+      + _pd('熊市减速·补仓打折', 'bearSlow', _c('bearSlow', cfg.bearSlow) + ' × ' + _i('bearSlowPct', (cfg.bearSlowPct || 50), 52) + ' %', '补仓金额按此比例打折，不拦买入，判据同上（默认关）。')
+      + _pd('熊市减速·建仓首笔减半', 'bearSlowB', _c('bearSlowB', cfg.bearSlowB), '熊市首笔只投一半，剩余现金留场、不自动补（默认关）。')
+      + _pd('熊市减速·只拦建仓', 'bearBuildGate', _c('bearBuildGate', cfg.bearBuildGate), '熊市期首笔不建、挂到转牛再建，不拦补仓 / 网格 / 狙击（默认关）。')
+      + _pd('S-TREND 破位拦截', 'stGate', _c('stGate', cfg.stGate), '净值破 MA60 且 MACD 绿柱 → 暂不买入，破位解除即补建（默认关，实测弱负）。')
+      + _pd('V1 波动赶底过滤', 'v1Gate', _c('v1Gate', cfg.v1Gate), '只允许 T7 回撤补仓：250 日回撤 ≥25% 且波动率 ≥80 分位时才补（默认关，实测为负）。')
+      + _pd('V11 狙击', 'v11Gate', _c('v11Gate', cfg.v11Gate), '筛选池独立仓位池：赔率＝前高空间 / 3×ATR14 ≥ 门限才买一注；单注＝池 25%、最多 4 仓；止损 3×ATR、浮盈 20% 后吊灯＝峰值×0.85（默认开）。')
+      + _pd('↳ 狙击池占预算', 'v11Pct', _i('v11Pct', (cfg.v11Pct != null ? cfg.v11Pct : 5), 52) + ' %', 'v972 起为 5%（v971 曾 10%，因 6 个三年滚动窗口 Calmar 输 5/6 回落）。')
+      + _pd('↳ 赔率门限', 'v11Odd', _i('v11Odd', (cfg.v11Odd != null ? cfg.v11Odd : 2.5), 52), '前高空间 / 3×ATR14 的下限；单注＝池 25%、最多 4 仓。')
+      + _pd('T7 回撤补仓', 'addDD', _c('addDD', cfg.addDD), '距 250 日峰 −20% / −30% 各补一档，每档＝目标额 ' + cfg.addAmt + '%（默认开，两区间同向为正）。')
+      + _pd('T16 卖出后破位减半', 'postSellHalf', _c('postSellHalf', cfg.postSellHalf), '较最近一次卖出成交净值再跌 10%、90 日内 → 卖剩余的一半，同一基准只触发一次（默认关）。')
+      + _pd('T10 杠铃再平衡·四档', 'rebalSlot', _c('rebalSlot', cfg.rebalSlot), '季末按 底仓40% / 进攻35% / 安全垫10% / 对冲15% 汇总，偏离 ≥' + cfg.slotBand + 'pp 才动手（默认关，周期依赖）。')
+      + _pg('实验口径（只影响本次回测，不改策略）')
+      + _pd('破线阈值', 'bkExitN', _s('bkExitN', [{ v: '1', t: '单日破 MA200 即动手（v939 旧口径）' }, { v: '2', t: '连续 2 日破线才动手（策略默认）' }, { v: '3', t: '连续 3 日破线才动手' }, { v: '5', t: '连续 5 日破线才动手' }]), '只在勾了「策略 v2.0 刹车」时生效。')
+      + _pd('本次关闭破线动作', 'bkExitOff', _c('bkExitOff', cfg.bkExitOff), '只保留停加 + 减半，把「破线这一档」单独摘出来看贡献。')
+      + _pd('本次不「停加」', 'bkStopOff', _c('bkStopOff', cfg.bkStopOff), '峰值 0.3×mdd 不冻结定投与网格（减半、清仓照旧）。')
+      + _pd('本次不「减半」', 'bkHalfOff', _c('bkHalfOff', cfg.bkHalfOff), '峰值 0.6×mdd 只按停加处理、不卖一半（清仓照旧）。')
+      + _pd('破线动作', 'bkExitAct', _s('bkExitAct', [{ v: 'freeze', t: '冻结买入（策略默认，不卖出）' }, { v: 'exit', t: '清仓卖出（v940 旧口径）' }]), '停加与减半都关＝只剩破线一档。')
+      + _pd('清仓冷却', 'bkCoolN', _s('bkCoolN', [{ v: '0', t: '不冷却（策略默认）' }, { v: '20', t: '20 个交易日内不买回' }, { v: '40', t: '40 个交易日内不买回' }, { v: '60', t: '60 个交易日内不买回' }, { v: '120', t: '120 个交易日内不买回' }]), '只在「破线动作＝清仓卖出」时生效；且要重站 MA200 连 3 日才解锁。')
+      + _pg('成本')
+      + _pd('单边交易成本', 'feeBps', _i('feeBps', (cfg.feeBps || 0), 58) + ' bps', '申购/赎回费＋滑点合计；0＝不计成本。')
+      + (cfg.pool === 'custom' ? ''
+        : _pg('标的池与口径')
+          + _pd('标的池', 'pool', _s('pool', [{ v: 'barbell', t: '持仓组合（杠铃档位）' }, { v: 'custom', t: '自选组合（面板勾选）' }, { v: 'barbell_watch', t: '杠铃 + 自选池' }, { v: 'watch', t: '仅自选池' }]), '档位目标固定 底仓40% / 进攻35% / 安全垫10% / 对冲15%；「仅自选池」缺档预算不摊入其余档、直接留现金。档位按基金类型判定（债/货币→安全垫，QDII/海外→进攻，黄金/商品→对冲，宽基→底仓，行业主题/创业板/科创→进攻）。')
+          + _pd('自选权重', 'customWMode', '<span id="btBlockPoolW">' + _s('customWMode', [{ v: 'manual', t: '逐只手动（面板逐只填）' }, { v: 'eq', t: '等权满仓 1/N' }, { v: 'fixed', t: '每只固定(%)' }]) + '</span>', '「每只固定」＝每只自选固定占总预算 X%（默认 5，上限 45；同档合计超该档目标 85% 时按比例压缩）。')
+          + _pd('每只固定占总预算', 'watchW', _i('watchW', cfg.watchW, 52) + ' %', '上限 45%；容量 ＝ 100 / 该比例。')
+          + _pd('网格资金', 'gridExt', _s('gridExt', [{ v: 'false', t: '预算内' }, { v: 'true', t: '预算外备用金（降级）' }]), '预算外备用金为降级项，实测 −0.20。')
+          + _pd('备用金上限', 'gridFund', _i('gridFund', cfg.gridFund, 90) + ' 元', '0＝不限额。')
+          + _pd('网格比例', 'gridStep', _i('gridStep', cfg.gridStep, 52) + ' %', '默认阈值；那只有单填时以单填为准。')
+          + _pd('网格额', 'gridAmt', _i('gridAmt', cfg.gridAmt, 72) + ' 元', '每格补仓金额。')
+          + _pd('止损', 'sl', _i('sl', cfg.sl, 52) + ' %', 'R6 止损（浮亏触发清仓）的默认阈值。')
+          + _pd('止盈减仓带宽', 'band', _i('band', cfg.band, 52) + ' %', 'R4/R5 止盈减仓的档距。')
+          + _pd('目标年化', 'tgtAnn', _i('tgtAnn', cfg.tgtAnn, 52) + ' %', '结论条「达标 / 未达标」的对照目标。')
+          + _pd('回撤预算', 'ddBudget', _i('ddBudget', cfg.ddBudget, 52) + ' %', 'Calmar 严格达标线 ＝（目标年化 − 无风险）/ 回撤预算。')
+          + _pd('无风险利率', 'rf', _i('rf', cfg.rf, 52) + ' %', '用于计算超额收益与 Calmar 达标线。')
+          + _pd('季度再平衡', 'rebal', _c('rebal', cfg.rebal), '每季末把各档拉回目标权重（与 T10 四档再平衡是两个开关）。')
+          + _pd('按标的分设阈值', 'perFund', _c('perFund', cfg.perFund), '勾上后逐只阈值走「标的阈值」表，不勾用上面的默认值。'))
+      + '</tbody></table></div>'
+      + '<div style="font-size:11px;color:#71717A;line-height:1.8;margin:8px 2px 0">'
+      + '<b>口径细则</b>：收益分母＝期末累计投入（没投出去的现金留在账上，既不计分子也不计分母；对照「买入持有」按同样节奏分批买入、不执行任何规则，两边同分母才可比）。一次性口径分母≈全额预算，与 v931 以前完全一致。'
       + '</div>'
+      + '</div>'
+
       + btScopeExtraHtml();
   }
 
@@ -25158,9 +25192,30 @@ var btMax = (BT_CACHE && BT_CACHE.meta && BT_CACHE.meta.asOf) ? String(BT_CACHE.
     } catch (eBT) {}
 
   }
+  /* v1010 fw2_v1010_bt_cfg_jump：回测页那个「修改参数 →」以前只改 __btCfgScope + 重渲染，
+     当前页停在「持仓回测」时根本没有可见变化（用户感知＝点了没反应）。现在一次做全：
+     ① 切到「投资逻辑」主 tab；② ⑧ 层二级页签同步到对应参数页（⑧-B / ⑧-C），
+     不落在「准入规则与证据」；③ 重渲染；④ 滚到参数区顶部。 */
   window.btCfgGo = function (scope) {
-    window.__btCfgScope = scope;
-    if (typeof renderLogicView === 'function') renderLogicView();
+    window.__btCfgScope = (scope === 'custom') ? 'custom' : 'hold';
+    window.__logicBtTab = window.__btCfgScope;
+    try {
+      var tab = document.querySelector('#view-strategy [data-st="logic"]');
+      if (tab) tab.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
+    } catch (eT) {}
+    /* v1010b：只 renderLogicView 不够——它按「当前选中层 L.k」决定画什么，
+       若用户上次停在 ①–⑦ 任一层的层卡列表，重渲染出来仍是层卡列表、⑧ 参数页根本不出现。
+       必须同时把 ⑧ 层设为选中层（logicGo('trace') 写 localStorage 再重渲染）。 */
+    try {
+      if (typeof logicGo === 'function') logicGo('trace');
+      else if (typeof renderLogicView === 'function') renderLogicView();
+    } catch (eR) {}
+    setTimeout(function () {
+      try {
+        var h = document.getElementById('btCfgHost');
+        if (h) h.scrollIntoView({ block: 'start' });
+      } catch (eS) {}
+    }, 120);
   };
   window.renderBtCfgHost = renderBtCfgHost;
   /* v996 fw2_v996_tab_fast：回测结果缓存键＝参数指纹 + 池 + 数据日 + 观察窗。
