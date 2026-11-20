@@ -1529,7 +1529,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 ④效果：Σ(市值−成本) 1,276.73 → **1,344.81**，与账户 ΣconstantProfit 1,346.52 只差 **1.71**（其余 21 只舍入）；「净资产 − 在盘成本」= 20,462.19 − 19,117.42 = 1,344.77 ≈ 未实现 1,344.81（差 0.04）；「已实现＋未实现」= 2,224.25，与账户累计 2,224.76 差 **0.51**。原 68.63 的口径差基本消解。
 ⑤影响面已核：T9 CAP 组合投入 19,185.50 → 19,117.42，阈值 C.cap=100000，档位不变；T1/T4/T5 收益率优先走 holdProfitRate，不受 cost 影响；T13 网格优先 lastBuyNav。
 ★仍未修：其余 21 只合计 0.68 的舍入差（不再追）；`constantProfit` 的收益率分母含在途金额（App 显示 016452 −1.9%，而已确认部分真实收益率是 −6.1%），属平台口径，不跟。 -->
-<!-- fw2_v951_bt_brake_below_cmp（用户 2026-11-17「策略执行模块中子模块持仓回测和自选回测中策略 vs 对照 · 按标的明细放在单只刹车 · 10 年峰值回撤上面显示」）：纯显示顺序调整，零计算改动。①原顺序（v939 起）：面板头 → 自选逐只参数 → 运行条 → **刹车卡** → 参数抽屉 → 结果区（结论条 → **策略 vs 对照明细表** → 备用金明细 → 关键规则卡 → 四图 → 明细）。②新顺序：刹车卡从面板层移除，改在结果区紧随明细表之后渲染 —— 面板头 → 运行条 → 抽屉 → 结果区（结论条 → **明细表 → 刹车卡** → 备用金明细 → 规则卡 → 四图 → 明细）。两处篇幅与内容一字未改（BRAKE_T 仍单源）。③兼容处理：回测「无有效数据」分支同样追加该卡（它是静态阈值参考表，不该因回测失败消失）；卡内「本页只读…勾选下面的刹车开关」文案随位置改为「勾选上方参数抽屉里的刹车开关」。④持仓回测与自选回测共用同一块 stp-bt 面板，两处同时生效。 --><!-- fw2_v952_signal_registry（用户 2026-11-17「交易信号和回测信号最终必须保持一致，我遵循一套投资逻辑不能乱，要变都一起变」+「止盈定乙」）：B1 只读层落地，零计算改动。①新增 `window.SIGNAL_REGISTRY`（紧随 SIGNALS_CFG，键＝信号 ID，字段 name/layer/obj/dir/ev/def/modeled/thr/act/code），三层共 59 条（持仓 T1–T16+32 条 P/XOV、自选 W1–W9（W4 已删）、筛选 S1–S7+S-TREND+V1/V2/V11、回测 R1–R11、宏观 M1–M6+RB/BW）；阈值一律从 `SIGNALS_CFG` 拼串引用、不复制字面数字。②`signalRegOf(sig)` 由行名（'T1 阶梯止盈'）取条目。③**止盈定乙**：T1 文案「卖1/3」→「减1/4，+20% 再减1/4」，与 R4/R5、XOV 三处同口径，证据等级 C→A。④回测页「当前生效的规则」原来只写 3 条（止盈减仓/止损/网格）→ 改为 **R1–R11 全量清单**（含默认关项），每行带「本次开/关（按当前参数实时算）」与「证据 A/B/C」徽标，标题改「本次回测执行的规则」，底部注明 R4/R5 的 25% 写死、R2 仅定投/底仓生效、R8/R9 互斥。⑤旧 `ruleCard` 保留未删（无引用，留待将来分组用）。**未动**：回测引擎逐位不变、BRAKE_T 仍单源、SIGNALS_CFG 值未改。 --><!-- fw2_v953_batch1（用户 2026-11-17「直接做和上批 1 剩下的 5 条（T2/T7/T16/T9/T10）一起做完」）：把五条 C 级纪律真正建进回测引擎，一条一条量边际贡献。①cfg 新增 14 个键（tpPeak/tpPeakArm/tpPeakDD、addDD/addDD1/addDD2/addAmt、postSellHalf/postSellLo/postSellWin、rebalSlot/slotBand），默认全关＝v952 逐位不变，归一化段对 5 个布尔只认 true/'true'、9 个阈值给合法区间。②引擎：T2 逐日记「入场以来峰值浮盈」，峰涨≥20% 且自峰回吐≥8pp 卖一半（每持仓一次，成本未知跳过）；T7 逐日拉 250 个交易日滚动峰值（单调队列预计算 s.p250），−20%/−30% 各补一档（每档＝目标额 20%，只从预算现金出，破线/冻结/封顶不补）；T16 在 trySell 里记最近一次卖出成交净值与日期，再跌 10% 且 90 日内卖剩余一半（同一基准只触发一次）；T9 逐日算 Σ持仓成本，≥capAmt 当日禁买（建仓/定投/网格三处守卫）；T10 新增 btSlotRebal（季末按 pile 汇总市值对 base40/off35/bond10/hedge15，偏离≥5pp 才动手，超配档卖出、低配档用现金补）。③参数抽屉加「纪律开关（批 1 实验 · 默认关）」5 个勾选框；收参段补齐 5 个布尔**与 9 个阈值**——不收阈值会让引擎拿到 undefined，判定恒为 false（本轮实测踩到，表现为「勾了开关、数字一位不变」）。④两区间实测（¥50,000 / 杠铃 11 只 / 一次性 / 2024-02-07~2026-09-28 与 2019-01-01~2026-09-28，格式＝年化/Calmar/回撤预算使用率）：全关 15.38/1.74/39.66 与 7.53/0.87/34.30（v952 一致）；T2 11.82/1.63/31.31 与 6.05/0.69/32.08（劣）；T7 16.20/1.89/38.70 与 7.83/0.87/35.71（弱正）；T16 15.78/2.02/35.17 与 7.32/0.97/29.55（唯一两区间同向改善）；T9（预算抬到 ¥200,000）关 15.28/1.76/38.93、开 14.39/1.79/35.73 与关 7.50/0.87/33.83、开 6.12/0.71/32.10（等价砍半本金）；T10 19.63/1.86/48.39 与 12.43/0.48/113.12（长区间总回撤 22.62%＞预算 20%，周期依赖）。⑤规则卡从 R1–R11 扩到 16 行（补 T2/T7/T16/T9/T10，证据 C→A 并写明实测数字）；R8 三小步落地：默认关、注册表 act 注明「四档实测均负、保留仅供研究」、T14 文案补「仅提示，不触发成交」。**未动**：R1–R11 计算、BRAKE_T、SIGNALS_CFG。 --><!-- fw2_v988i_bt_param_single_source（用户 2026-11-19「回测参数只在一个地方展示和选择，就是回测验证；持仓回测/自选回测只出干净结果」）：回测参数单点化落地。①参数渲染段抽成全局 `btParamsHtml(cfg)`（回测页与⑧层共用同一份渲染代码，杜绝两处各改一遍）。②三层存储：`fw2_bt_plan`（⑧-A 流程参数＝母版，全量）+ `fw2_bt_hold`/`fw2_bt_custom`（⑧-B/⑧-C 只存与母版的 diff）；旧单份键 `fw2_bt_cfg_v1` 首次只读迁移进母版后不再写。③继承规则：⑧-B/⑧-C 默认继承母版，改一项即记一条覆盖（页面标「覆盖」橙字），母版再改会自动传给未覆盖项——标准统一、允许单项偏离。④`go()` 不再从输入框读参（原 40 个 `btIn_*` 读 DOM），改为 `btCfg(scope)` 存储驱动；回测页参数控件归零，只留只读口径条（口径/继承/覆盖项数/区间/本金/投入方式/网格/门槛 + 运行 + 「修改参数 →」跳转⑧层）。⑤⑧ 层加二级视图「准入规则（BT1–BT6）/ 回测口径（参数）」，参数区三卡 ⑧-A/⑧-B/⑧-C 切换，控件 47 个。⑥收参 bug 修复：`btCollectDom` 只收母版已有键并按母版原值类型还原（此前渲染出的辅助控件会把 diff 污染成 `gridExt:"false"` 假覆盖）。⑦等价性实测：同参数下结论条与 v988h 逐字一致（年化 3.26% / Calmar 0.23 / 回撤预算 36.49%）；覆盖实测：⑧-B 预算改 ¥50,000 → 回测变 3.19%/0.22/36.51%，母版仍 ¥62,000；母版改 ¥55,000 → ⑧-C 跟到 55,000、⑧-B 保持 50,000（覆盖 1 项）。未动：回测引擎逐位不变、18 层信号注册表与三态逻辑不动。 --><span id="verBadge" class="ver-badge">v1011</span><!-- fw2_v1011_c_align：⑧-C 参数分组与 ⑧-A/⑧-B 对齐——①「资金与建仓」三行（投入方式 / 底仓比例 / 分摊期数）在 ⑧-C 也直接可改（此前被整组隐藏，自选组合只能继承母版的定投口径，引擎其实按 cfg.investMode 生效，属真缺口）；②「标的池与口径」组在 ⑧-C 改为三条指路行（标的池固定＝自选组合 / 组合级 7 项见下方「组合级参数」/ 逐只 5 项见下方逐只表），不再复制同 id 控件——btComboBarHtml 已用 btIn_gridExt|gridFund|tgtAnn|ddBudget|rf|rebal|perFund 承载组合级 7 项，重复渲染会出现两份同 id、改了串值（v1002 踩过）。 --><!-- fw2_v989_renumber（用户 2026-11-19「988 后应该按 989 往上升级，为什么加字母」）：版本号规则自本条起改为整数单调递增（v989 → v990 → …），不再使用字母后缀。历史 v988a–v988l 是「把 v988 当大版本框、其下增量用字母」的旧编法，已发布不可回改，仅在此说明对应关系：v988a 规则代码带中文名 / v988b·c T13 网格跟踪升「开」+ 备用金降级 / v988d 备用金摘出复核 / v988e 持仓「卖后涨跌」列 / v988f 投资逻辑大脑 / v988g 八层·思想总纲（已废）/ v988h ⑧ 层改「回测验证 · 逻辑准入」/ v988i 回测参数单点化 / v988j 四条边界 / v988k 波动三项客观量 / v988l 胜率赔率 + 入场质量因子分档（即本版 v989）。 --><!-- fw2_v988k_vol_three（用户 2026-11-19「开始 ②」）：回测结论区新增「波动与耐受力（客观量 · 不设阈值）」卡。
+<!-- fw2_v951_bt_brake_below_cmp（用户 2026-11-17「策略执行模块中子模块持仓回测和自选回测中策略 vs 对照 · 按标的明细放在单只刹车 · 10 年峰值回撤上面显示」）：纯显示顺序调整，零计算改动。①原顺序（v939 起）：面板头 → 自选逐只参数 → 运行条 → **刹车卡** → 参数抽屉 → 结果区（结论条 → **策略 vs 对照明细表** → 备用金明细 → 关键规则卡 → 四图 → 明细）。②新顺序：刹车卡从面板层移除，改在结果区紧随明细表之后渲染 —— 面板头 → 运行条 → 抽屉 → 结果区（结论条 → **明细表 → 刹车卡** → 备用金明细 → 规则卡 → 四图 → 明细）。两处篇幅与内容一字未改（BRAKE_T 仍单源）。③兼容处理：回测「无有效数据」分支同样追加该卡（它是静态阈值参考表，不该因回测失败消失）；卡内「本页只读…勾选下面的刹车开关」文案随位置改为「勾选上方参数抽屉里的刹车开关」。④持仓回测与自选回测共用同一块 stp-bt 面板，两处同时生效。 --><!-- fw2_v952_signal_registry（用户 2026-11-17「交易信号和回测信号最终必须保持一致，我遵循一套投资逻辑不能乱，要变都一起变」+「止盈定乙」）：B1 只读层落地，零计算改动。①新增 `window.SIGNAL_REGISTRY`（紧随 SIGNALS_CFG，键＝信号 ID，字段 name/layer/obj/dir/ev/def/modeled/thr/act/code），三层共 59 条（持仓 T1–T16+32 条 P/XOV、自选 W1–W9（W4 已删）、筛选 S1–S7+S-TREND+V1/V2/V11、回测 R1–R11、宏观 M1–M6+RB/BW）；阈值一律从 `SIGNALS_CFG` 拼串引用、不复制字面数字。②`signalRegOf(sig)` 由行名（'T1 阶梯止盈'）取条目。③**止盈定乙**：T1 文案「卖1/3」→「减1/4，+20% 再减1/4」，与 R4/R5、XOV 三处同口径，证据等级 C→A。④回测页「当前生效的规则」原来只写 3 条（止盈减仓/止损/网格）→ 改为 **R1–R11 全量清单**（含默认关项），每行带「本次开/关（按当前参数实时算）」与「证据 A/B/C」徽标，标题改「本次回测执行的规则」，底部注明 R4/R5 的 25% 写死、R2 仅定投/底仓生效、R8/R9 互斥。⑤旧 `ruleCard` 保留未删（无引用，留待将来分组用）。**未动**：回测引擎逐位不变、BRAKE_T 仍单源、SIGNALS_CFG 值未改。 --><!-- fw2_v953_batch1（用户 2026-11-17「直接做和上批 1 剩下的 5 条（T2/T7/T16/T9/T10）一起做完」）：把五条 C 级纪律真正建进回测引擎，一条一条量边际贡献。①cfg 新增 14 个键（tpPeak/tpPeakArm/tpPeakDD、addDD/addDD1/addDD2/addAmt、postSellHalf/postSellLo/postSellWin、rebalSlot/slotBand），默认全关＝v952 逐位不变，归一化段对 5 个布尔只认 true/'true'、9 个阈值给合法区间。②引擎：T2 逐日记「入场以来峰值浮盈」，峰涨≥20% 且自峰回吐≥8pp 卖一半（每持仓一次，成本未知跳过）；T7 逐日拉 250 个交易日滚动峰值（单调队列预计算 s.p250），−20%/−30% 各补一档（每档＝目标额 20%，只从预算现金出，破线/冻结/封顶不补）；T16 在 trySell 里记最近一次卖出成交净值与日期，再跌 10% 且 90 日内卖剩余一半（同一基准只触发一次）；T9 逐日算 Σ持仓成本，≥capAmt 当日禁买（建仓/定投/网格三处守卫）；T10 新增 btSlotRebal（季末按 pile 汇总市值对 base40/off35/bond10/hedge15，偏离≥5pp 才动手，超配档卖出、低配档用现金补）。③参数抽屉加「纪律开关（批 1 实验 · 默认关）」5 个勾选框；收参段补齐 5 个布尔**与 9 个阈值**——不收阈值会让引擎拿到 undefined，判定恒为 false（本轮实测踩到，表现为「勾了开关、数字一位不变」）。④两区间实测（¥50,000 / 杠铃 11 只 / 一次性 / 2024-02-07~2026-09-28 与 2019-01-01~2026-09-28，格式＝年化/Calmar/回撤预算使用率）：全关 15.38/1.74/39.66 与 7.53/0.87/34.30（v952 一致）；T2 11.82/1.63/31.31 与 6.05/0.69/32.08（劣）；T7 16.20/1.89/38.70 与 7.83/0.87/35.71（弱正）；T16 15.78/2.02/35.17 与 7.32/0.97/29.55（唯一两区间同向改善）；T9（预算抬到 ¥200,000）关 15.28/1.76/38.93、开 14.39/1.79/35.73 与关 7.50/0.87/33.83、开 6.12/0.71/32.10（等价砍半本金）；T10 19.63/1.86/48.39 与 12.43/0.48/113.12（长区间总回撤 22.62%＞预算 20%，周期依赖）。⑤规则卡从 R1–R11 扩到 16 行（补 T2/T7/T16/T9/T10，证据 C→A 并写明实测数字）；R8 三小步落地：默认关、注册表 act 注明「四档实测均负、保留仅供研究」、T14 文案补「仅提示，不触发成交」。**未动**：R1–R11 计算、BRAKE_T、SIGNALS_CFG。 --><!-- fw2_v988i_bt_param_single_source（用户 2026-11-19「回测参数只在一个地方展示和选择，就是回测验证；持仓回测/自选回测只出干净结果」）：回测参数单点化落地。①参数渲染段抽成全局 `btParamsHtml(cfg)`（回测页与⑧层共用同一份渲染代码，杜绝两处各改一遍）。②三层存储：`fw2_bt_plan`（⑧-A 流程参数＝母版，全量）+ `fw2_bt_hold`/`fw2_bt_custom`（⑧-B/⑧-C 只存与母版的 diff）；旧单份键 `fw2_bt_cfg_v1` 首次只读迁移进母版后不再写。③继承规则：⑧-B/⑧-C 默认继承母版，改一项即记一条覆盖（页面标「覆盖」橙字），母版再改会自动传给未覆盖项——标准统一、允许单项偏离。④`go()` 不再从输入框读参（原 40 个 `btIn_*` 读 DOM），改为 `btCfg(scope)` 存储驱动；回测页参数控件归零，只留只读口径条（口径/继承/覆盖项数/区间/本金/投入方式/网格/门槛 + 运行 + 「修改参数 →」跳转⑧层）。⑤⑧ 层加二级视图「准入规则（BT1–BT6）/ 回测口径（参数）」，参数区三卡 ⑧-A/⑧-B/⑧-C 切换，控件 47 个。⑥收参 bug 修复：`btCollectDom` 只收母版已有键并按母版原值类型还原（此前渲染出的辅助控件会把 diff 污染成 `gridExt:"false"` 假覆盖）。⑦等价性实测：同参数下结论条与 v988h 逐字一致（年化 3.26% / Calmar 0.23 / 回撤预算 36.49%）；覆盖实测：⑧-B 预算改 ¥50,000 → 回测变 3.19%/0.22/36.51%，母版仍 ¥62,000；母版改 ¥55,000 → ⑧-C 跟到 55,000、⑧-B 保持 50,000（覆盖 1 项）。未动：回测引擎逐位不变、18 层信号注册表与三态逻辑不动。 --><span id="verBadge" class="ver-badge">v1012</span><!-- fw2_v1012_a_dd_gate+fw2_v1012_b_r45_retired+fw2_v1012_c_bt4_bh+fw2_v1012_d_bt3_line+fw2_v1012_e_bt6_adopt（用户 2026-11-20「按照你建议修」，一次版五条，各带独立 tag 可定向回滚）：①结论条补回撤判定——passAll 原＝「年化≥目标 && Calmar≥预算线」，漏判回撤（年化 25% / 回撤 45% 时 Calmar 0.52＞0.4205 仍打「✓ 达标」，同一行却写「回撤预算用 225%」）；现 passDD＝|mdd|≤ddBudget，三项全过才达标，并新增「年化达标但回撤超预算」诊断与超支红字。②R4 止盈①/R5 止盈② 如实标退役——v903 起 `_pfOf` 三处返回 tp1:0/tp2:0、触发条件 `pf.tp1>0` 恒假，两档永不成交（减仓实由 R7 带宽止盈执行），但注册表 def='on'、规则卡显示「● 开」，虚增「开 N 条」；现注册表改 off（引擎已退役）、规则卡第 4 列 false、脚注改写，旧存档做一次性 R4/R5 降级迁移（`__r45Retired`，只降这两条）。③BT4 判据 Bonferroni→BH-FDR——旧 α=0.05/m（15 档 0.0033）在 3/5/10 年窗实测全灭、买点类规则永久升不了生效；现按 p 升序取最大 k 使 p(k)≤k/m·0.05，判据＝k≥3 且主导档≤0.05 且 95% 区间不跨 0；存档新增 alphaBonf/passK/drop='bh'，旧记录仍按旧口径展示（不冒充新结论）。④BT3 三项门槛与 R11 统一——旧「Calmar≥0.5」与「回撤≤20%」自相矛盾（rf 1.59、预算 20% 时预算线仅 0.42，卡 0.5 等于变相要求回撤≤16.82%，「年化≥10%」反成空条件）；改为「年化≥目标 / 最深回撤≤预算 / Calmar≥预算线」。⑤BT5 文案「20 个 cfg 全参」→「全部 cfg + btParamHash 8 位 FNV-1a 指纹」（实现本就覆盖全字段，文案过时）。⑥BT6 补「采纳」按钮——此前只有「草稿未采纳」徽章，`adopted` 字段无人读写、`d.ver` 恒 L1，页面两处却承诺「点采纳才升版本」；现新增 `logicNextVer`/`window.logicAdopt`（ver 递增 + dirty 清零 + 记日志），按钮在版本条、无草稿时 disabled。未动：回测引擎逐位不变（本版只改结论判定、准入层文案与买点闸判据）。 --><!-- fw2_v1011_c_align：⑧-C 参数分组与 ⑧-A/⑧-B 对齐——①「资金与建仓」三行（投入方式 / 底仓比例 / 分摊期数）在 ⑧-C 也直接可改（此前被整组隐藏，自选组合只能继承母版的定投口径，引擎其实按 cfg.investMode 生效，属真缺口）；②「标的池与口径」组在 ⑧-C 改为三条指路行（标的池固定＝自选组合 / 组合级 7 项见下方「组合级参数」/ 逐只 5 项见下方逐只表），不再复制同 id 控件——btComboBarHtml 已用 btIn_gridExt|gridFund|tgtAnn|ddBudget|rf|rebal|perFund 承载组合级 7 项，重复渲染会出现两份同 id、改了串值（v1002 踩过）。 --><!-- fw2_v989_renumber（用户 2026-11-19「988 后应该按 989 往上升级，为什么加字母」）：版本号规则自本条起改为整数单调递增（v989 → v990 → …），不再使用字母后缀。历史 v988a–v988l 是「把 v988 当大版本框、其下增量用字母」的旧编法，已发布不可回改，仅在此说明对应关系：v988a 规则代码带中文名 / v988b·c T13 网格跟踪升「开」+ 备用金降级 / v988d 备用金摘出复核 / v988e 持仓「卖后涨跌」列 / v988f 投资逻辑大脑 / v988g 八层·思想总纲（已废）/ v988h ⑧ 层改「回测验证 · 逻辑准入」/ v988i 回测参数单点化 / v988j 四条边界 / v988k 波动三项客观量 / v988l 胜率赔率 + 入场质量因子分档（即本版 v989）。 --><!-- fw2_v988k_vol_three（用户 2026-11-19「开始 ②」）：回测结论区新增「波动与耐受力（客观量 · 不设阈值）」卡。
  ① 回本所需涨幅＝最深回撤谷底回到该峰值所需涨幅（= 1/(1+最大回撤)−1，用权益直接算）；
  ② 最长水下天数＝连续「权益低于区间内历史峰值」的最长日历天数（期末仍水下算到期末并标注）；
  ③ 最深回撤回本用时＝最深回撤峰值日 → 首次回到该峰值的日历天数（未回本则记到期末）。
@@ -3903,8 +3903,8 @@ window.SIGNAL_REGISTRY = (function () {
       { id: 'R1', name: '建仓 / 投入方式', layer: '回测信号', obj: '组合', dir: '买', ev: 'A', def: 'on', modeled: '已建模', thr: '一次性 lump / 每月定投 drip / 底仓+定投 base（底仓 30%）', act: '按目标权重建仓', code: '20821–20865' },
       { id: 'R2', name: '定投', layer: '回测信号', obj: '组合', dir: '买', ev: 'A', def: 'off', modeled: '已建模（仅 drip/base）', thr: '每月首个净值日投一次；每期＝剩余目标额 ÷ 期数', act: '买入', code: '21699–21715' },
       { id: 'R3', name: '网格', layer: '回测信号', obj: '单只持仓', dir: '买', ev: 'A', def: 'on', modeled: '已建模', thr: '每跌 gridStep=3%（逐只可配）', act: '买 gridAmt=¥500/档', code: '21701–21744' },
-      { id: 'R4', name: '止盈 1', layer: '回测信号', obj: '单只持仓', dir: '卖', ev: 'A', def: 'on', modeled: '已建模（比例写死 0.25，不可配）', thr: '浮盈 ≥tp1=10%', act: '卖当日剩余份额的 25%', code: '21746' },
-      { id: 'R5', name: '止盈 2', layer: '回测信号', obj: '单只持仓', dir: '卖', ev: 'A', def: 'on', modeled: '已建模', thr: '浮盈 ≥tp2=20%', act: '再卖剩余 25%（累计原仓 43.75%）', code: '21747' },
+      { id: 'R4', name: '止盈 1', layer: '回测信号', obj: '单只持仓', dir: '卖', ev: 'A', def: 'off（引擎已退役 · v1012 校正）', modeled: '已退役（v903 起 tp1/tp2 恒 0；减仓由 R7 带宽止盈执行）', thr: '原口径：浮盈 ≥tp1=10%（引擎不再触发）', act: '原口径卖当日剩余 25%；现由 R7 再平衡（band 默认 25%）执行减仓', code: '21746' },
+      { id: 'R5', name: '止盈 2', layer: '回测信号', obj: '单只持仓', dir: '卖', ev: 'A', def: 'off（引擎已退役 · v1012 校正）', modeled: '已退役（v903 起 tp1/tp2 恒 0；减仓由 R7 带宽止盈执行）', thr: '原口径：浮盈 ≥tp2=20%（引擎不再触发）', act: '原口径再卖剩余 25%（累计原仓 43.75%）；现由 R7 再平衡执行减仓', code: '21747' },
       { id: 'R6', name: '止损', layer: '回测信号', obj: '单只持仓', dir: '卖', ev: 'A', def: 'on', modeled: '已建模（逐只可覆盖）', thr: '浮亏 ≥sl=8%', act: '清仓该标的全部，之后网格可买回', code: '21745' },
       { id: 'R7', name: '再平衡 / 减配', layer: '回测信号', obj: '单只持仓', dir: '卖', ev: 'A', def: 'on', modeled: '已建模（季末执行）', thr: '单只市值 > 目标市值 ×(1+band 25%)', act: '卖回目标市值，跌破不补，资金停现金', code: '21613–21633 / 21820' },
       { id: 'R8', name: '年线信号 sigYear', layer: '回测信号', obj: '单只持仓', dir: '卖', ev: 'A', def: 'off（默认关）', modeled: '已建模（MA200/MA20，T+1）', thr: '跌破 MA200 减半；跌破 MA20 清仓', act: 'T+1 成交，回升不自动补回。四档实测（只减半 / 现口径清仓 / 清仓+回补 / 不用）两区间均为负，保留仅供研究，不建议开', code: '21642–21649 / 21749–21758' },
@@ -20658,8 +20658,11 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
   }
   function logicSigJudge(g) {
     if (!g || !g.n) return { st: 'none' };
-    var a = g.alpha || (0.05 / Math.max(1, g.n));
-    return { st: (g.pass ? 'pass' : 'deny'), alpha: a, minP: g.minP, at: g.at, win: g.win, n: g.n, blocks: g.blocks };
+    /* fw2_v1012_c_bt4_bh：兼容旧存档——v1012 前写入的 alpha 是 Bonferroni 值（15 档时 0.0033），无 drop 字段；
+       新记录 drop='bh'、alpha=0.05、passK=通过档数。展示与判定都按各自口径说，不混用。 */
+    var bh = (g.drop === 'bh');
+    var a = bh ? (g.alpha || 0.05) : (g.alpha || (0.05 / Math.max(1, g.n)));
+    return { st: (g.pass ? 'pass' : 'deny'), alpha: a, bh: bh, kPass: (g.passK != null ? g.passK : null), minP: g.minP, at: g.at, win: g.win, n: g.n, blocks: g.blocks };
   }
   /* v1006 fw2_v1006_bt_table（B 段）：买点闸的「纳入拦截」chips 是配置项（决定哪些买点类规则参与分档显著性检验），
      原来塞在 BT4 的备注单元格里，把该行撑到 200px 以上、中间留大片空白，且放在「证据页」容易被误当成要在这里勾。
@@ -20669,8 +20672,9 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
     var col = j.st === 'pass' ? '#047857' : (j.st === 'deny' ? '#A32D2D' : '#B45309');
     var fm4 = function (x) { return (Math.round(x * 10000) / 10000).toFixed(4); };
     var txt;
-    if (j.st === 'pass') txt = '通过 · ' + j.n + ' 档最小 p=' + fm4(j.minP) + ' ≤ α=' + fm4(j.alpha) + ' · ' + (j.win || '') + ' · ' + (j.at || '');
-    else if (j.st === 'deny') txt = '否决 · ' + j.n + ' 档最小 p=' + fm4(j.minP) + ' > α=' + fm4(j.alpha) + ' · ' + (j.win || '') + ' · ' + (j.at || '');
+    var _sigLbl = j.bh ? ('BH-FDR α=0.05' + (j.kPass != null ? (' · 通过 ' + j.kPass + ' 档（需 ≥3）') : '')) : ('Bonferroni α=' + fm4(j.alpha) + '（v1012 前旧口径）');
+    if (j.st === 'pass') txt = '通过 · ' + j.n + ' 档最小 p=' + fm4(j.minP) + ' · ' + _sigLbl + ' · ' + (j.win || '') + ' · ' + (j.at || '');
+    else if (j.st === 'deny') txt = '否决 · ' + j.n + ' 档最小 p=' + fm4(j.minP) + ' · ' + _sigLbl + ' · ' + (j.win || '') + ' · ' + (j.at || '');
     else txt = '未检验 · 去「持仓回测」跑一次（结束会自动记一条，不用手填）';
     var ids = logicGateIds();
     var chip = function (id) {
@@ -20724,15 +20728,16 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
     { id: 'BT2', name: '起点错位复核', obj: '组合', dir: '准入', def: 'on', modeled: '准入规则（无引擎分支）',
       thr: '主结论之外再跑 6 月 / 9 月起点各 12 窗，看胜率与均值方向', act: '起点一换方向就翻 → 判为拟合，不采纳' },
     { id: 'BT3', name: '三项门槛', obj: '组合', dir: '准入', def: 'on', modeled: '准入规则（无引擎分支）',
-      thr: '年化 ≥10% ／ 最大回撤 ≤20% ／ Calmar ≥0.5，读回测结论条而不是单点数字', act: '任一项破线 → 该版本不升级' },
-    /* v991 fw2_v991_bt4_gate：BT4 增加「买点分档闸」——2026-11-19 v990 实测 3/5/10 年窗 15 档经块重抽 + Bonferroni 校正后
-       全部不显著（5 年窗净值中间档 p=0.03 亦过不了 α=0.0033），故买点类规则在通过显著性之前一律「证据不足 · 暂不启用」，
-       不允许凭分档表里的高低直接写进准入。 */
+      thr: '①年化 ≥ 目标（默认 10%）②最深回撤 ≤ 回撤预算（默认 20%）③Calmar ≥ 预算线 =(目标−rf)/回撤预算（rf 1.59 / 预算 20 时为 0.42），读回测页结论条的三项判定，不看单点数字',
+      act: '任一项破线 → 该版本不升级。v1012 校正：旧文案写「Calmar ≥0.5」，与 ②③ 自相矛盾——rf 1.59、回撤 20% 时预算线只有 0.42，卡 0.5 等于变相要求回撤 ≤16.82%，「年化≥10%」反成空条件' },
+    /* v1012 fw2_v1012_c_bt4_bh：BT4 判据从 Bonferroni（α=0.05/m）改为 BH-FDR（α=0.05）。
+       v991 的 Bonferroni 在 3/5/10 年窗 15 档实测全部未达标（5 年窗净值中间档 p=0.03 也过不了 0.0033），
+       等于把买点类规则永久锁死；BH-FDR 只放宽「多重比较的惩罚方式」，方向性要求（区间不跨 0）不变。 */
     { id: 'BT4', name: '单规则 A/B', obj: '组合', dir: '准入', def: 'on', modeled: '准入规则（无引擎分支）',
-      thr: '【买点闸】一次只改一条，开 / 关两版各跑一次，记 Δ年化 / Δ回撤 / Δ笔数；改的是买点类规则（自身净值分位 / 距 250 日高点回撤 / 相对 200 日均线 / 波动分位）时，还要过「分档显著性」＝按买入月份块重抽 2,000 次 ＋ Bonferroni 校正（α＝0.05/15＝0.0033）',
-      act: '两条以上一起改 → 结果不可归因，退回重跑；买点分档任一档 95% 区间跨 0、或过不了校正阈值 → 判「证据不足 · 暂不启用」（2026-11-19 实测 3 / 5 / 10 年窗 15 档全部未达标）' },
+      thr: '【买点闸】一次只改一条，开 / 关两版各跑一次，记 Δ年化 / Δ回撤 / Δ笔数；改的是买点类规则（自身净值分位 / 距 250 日高点回撤 / 相对 200 日均线 / 波动分位）时，还要过「分档显著性」＝按买入月份块重抽 2,000 次 ＋ BH-FDR 校正（α=0.05；15 档按 p 升序逐个比 k/m·α，取最大通过的 k）',
+      act: '两条以上一起改 → 结果不可归因，退回重跑；买点分档判据＝通过档数 k ≥3、且主导档（最小 p）≤0.05 且区间不跨 0，否则「证据不足 · 暂不启用」。v1012 起旧 Bonferroni 判据（α=0.0033）停用——它在 3/5/10 年窗 15 档实测全灭' },
     { id: 'BT5', name: '证据绑定快照', obj: '组合', dir: '准入', def: 'on', modeled: '准入规则（无引擎分支）',
-      thr: '每个结果必须绑定「逻辑版本 + 20 个 cfg 全参 + 起止日 + 数据 asOf」', act: '裸数字不进台账；缺任一字段视为无效证据' },
+      thr: '每个结果必须绑定「逻辑版本 + 全部 cfg 参数 + 起止日 + 数据 asOf」；参数用 btParamHash 的 8 位 FNV-1a 指纹（排序后覆盖 cfg 全部字段，不是固定 20 个）', act: '裸数字不进台账；缺任一字段视为无效证据（注：v1012 前文案写「20 个 cfg 全参」，与实现不符，已改）' },
     { id: 'BT6', name: '草稿不等于采纳', obj: '组合', dir: '准入', def: 'on', modeled: '准入规则（无引擎分支）',
       thr: '试跑只产出草稿 Δ（Ln→Ln′），不写回规则；点「采纳」才升版本', act: '草稿状态下，其它模块读到的仍是已采纳版本' }
   ];
@@ -20780,9 +20785,45 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
     rows.forEach(function (r) { ids[r.id] = 1; if (!d.rules[r.id]) d.rules[r.id] = logicDefaultState(r); });
     /* v988h：清掉已下线/改名的条目（如旧 ⑧ 层 I1–I6），避免存档越积越脏 */
     Object.keys(d.rules || {}).forEach(function (k) { if (!ids[k]) delete d.rules[k]; });
+    /* fw2_v1012_b_r45_retired：一次性迁移——R4/R5 在 v903 已退役（tp 恒 0，不成交），
+       但旧存档里它们多半是「生效」，⑤ 层统计与「生效 N 条」会一直虚增。这里只降这两条，
+       不碰其它；flag 写进存档后只跑一次，用户此后手改仍以存档为准。 */
+    if (!d.__r45Retired) {
+      var _r45chg = [];
+      ['R4', 'R5'].forEach(function (k) { if (d.rules[k] === 'on' || d.rules[k] === 'obs') { d.rules[k] = 'off'; _r45chg.push(k); } });
+      d.__r45Retired = true;
+      if (_r45chg.length) {
+        d.log = (d.log || []).slice(-19);
+        d.log.push({ t: '2026-11-20 迁移', id: _r45chg.join('/'), st: 'off（引擎已退役）' });
+      }
+      try { localStorage.setItem(LOGIC_KEY, JSON.stringify(d)); } catch (e0) {}
+    }
     return d;
   }
   function logicSave(d) { try { localStorage.setItem(LOGIC_KEY, JSON.stringify(d)); } catch (e) {} }
+  /* fw2_v1012_e_bt6_adopt：BT6「草稿不等于采纳」此前只有徽章、没有动作——`adopted` 字段无人读写、
+     d.ver 恒为 L1，页面两处却承诺「点『采纳』才升版本」，属虚假承诺。这里补最小实现：
+     采纳＝版本号递增（L1→L2）+ dirty 清零 + 记一条日志；草稿态本身仍由 logicSet 置 dirty 产生。
+     注意它只改本机规则存档，不改任何回测参数（P2 未接，回测数字不受影响）。 */
+  function logicNextVer(v) {
+    var n = parseInt(String(v || 'L1').replace(/[^0-9]/g, ''), 10);
+    if (!n || n < 1) n = 1;
+    return 'L' + (n + 1);
+  }
+  window.logicAdopt = function () {
+    var d = logicLoad();
+    if (!d.dirty) return;
+    var t = new Date(), p2 = function (x) { return ('0' + x).slice(-2); };
+    var at = t.getFullYear() + '-' + p2(t.getMonth() + 1) + '-' + p2(t.getDate()) + ' ' + p2(t.getHours()) + ':' + p2(t.getMinutes());
+    d.ver = logicNextVer(d.ver);
+    d.dirty = false;
+    d.adopted = true;
+    d.adoptedAt = at;
+    d.log = (d.log || []).slice(-19);
+    d.log.push({ t: at, id: '全部草稿', st: '已采纳 → ' + d.ver });
+    logicSave(d);
+    renderLogicView();
+  };
   function logicCur() {
     /* v1004：进页面默认落 ① 选品，不继承上次看的那层（用户 2026-11-19 指出「进入页面直接停留在 ⑦」）。
        同一次会话内点层卡仍会记住，刷新 / 重新进入才回 ①。 */
@@ -20810,7 +20851,7 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
         var _t = new Date(), _p = function (x) { return ('0' + x).slice(-2); };
         var _at = _t.getFullYear() + '-' + _p(_t.getMonth() + 1) + '-' + _p(_t.getDate()) + ' ' + _p(_t.getHours()) + ':' + _p(_t.getMinutes());
         /* 保持原状态不动（多数情况本来就是「关」或「观察」），只记一次拦截，避免「点一下反而被改状态」 */
-        d.gateMsg = { id: id, at: _at, st: jg.st, minP: jg.minP, alpha: jg.alpha, win: jg.win, n: jg.n, blocks: jg.blocks, latAt: jg.at, kept: (d.rules[id] || 'off') };
+        d.gateMsg = { id: id, at: _at, st: jg.st, minP: jg.minP, alpha: jg.alpha, bh: jg.bh, kPass: jg.kPass, win: jg.win, n: jg.n, blocks: jg.blocks, latAt: jg.at, kept: (d.rules[id] || 'off') };
         /* 拦截不碰 dirty / updatedAt：规则没变，页面不该显示「最近改动」——否则像是改动已写进存档 */
         d.dirty = !!d.dirty;
         d.log = (d.log || []).slice(-19);
@@ -20867,7 +20908,7 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
   function btRowNote(r) {
     if (r.id === 'BT1') return '窗：3 年 / 5 年 / 10 年滚动';
     if (r.id === 'BT2') return '另跑 24 窗（6 月 / 9 月起点各 12 窗）';
-    if (r.id === 'BT3') return '读回测页结论条（年化 / 最大回撤 / Calmar），不读单点数字';
+    if (r.id === 'BT3') return '读结论条三项判定（年化 / 回撤是否超预算 / Calmar 是否过预算线）；预算线随 ⑧ 参数里的目标与回撤预算实时变';
     if (r.id === 'BT4') return '<span style="color:' + (logicSigJudge(logicSigLatest()).st === 'deny' ? '#A32D2D' : '#71717A') + '">' + logicSigText() + '</span>';
     if (r.id === 'BT5') return '落地为下方「证据台账」：每次跑数自动挂一条';
     if (r.id === 'BT6') return '「采纳」按钮在版本条上，规则改动默认只进草稿';
@@ -20976,7 +21017,8 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
       + '<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">'
       + '<b style="font-size:15px;color:#18181B">投资逻辑</b>'
       + '<span style="font-size:11px;color:#71717A">本工作台唯一的大脑 · 规则唯一写入口</span>'
-      + '<span style="margin-left:auto;background:' + (dirty ? '#FDF6E7' : '#E4F4EA') + ';color:' + (dirty ? '#7A4B07' : '#1F7A4A') + ';font-weight:700;padding:2px 8px;border-radius:6px;font-size:12px">' + logicEsc(d.ver) + (dirty ? ' · 草稿未采纳' : ' · 基准（未改动）') + '</span>'
+      + '<button type="button" onclick="logicAdopt()" ' + (dirty ? '' : 'disabled ') + 'title="' + (dirty ? '把当前草稿固化为新版本号' : '当前就是基准，没有待采纳的草稿') + '" style="margin-left:auto;cursor:' + (dirty ? 'pointer' : 'not-allowed') + ';font-size:11px;padding:3px 10px;border-radius:6px;border:1px solid ' + (dirty ? '#0F766E' : '#E4E4E7') + ';background:' + (dirty ? '#0F766E' : '#F4F4F2') + ';color:' + (dirty ? '#fff' : '#A1A1AA') + '">采纳草稿 → ' + logicNextVer(d.ver) + '</button>'
+      + '<span style="background:' + (dirty ? '#FDF6E7' : '#E4F4EA') + ';color:' + (dirty ? '#7A4B07' : '#1F7A4A') + ';font-weight:700;padding:2px 8px;border-radius:6px;font-size:12px">' + logicEsc(d.ver) + (dirty ? ' · 草稿未采纳' : ' · 基准（未改动）') + '</span>'
       + '</div>'
       + '<div style="margin-top:8px;font-size:13px;color:#3F3F46;line-height:1.9">用规则化的杠铃仓位换 10% 年化 / ≤20% 回撤：<b>不预测市场，只按纪律应对</b>——先选池、再分钱、过闸才进、按节奏加、按纪律出，只看得见的不猜。</div>'
       + '<div style="margin-top:6px;font-size:11px;color:#A1A1AA">规则合计 ' + all.length + ' 条（①–⑦ 59 条可执行 + ⑧ 6 条准入验证 · 元规则恒启用，不计三态）：<span style="color:#0F766E;font-weight:700">生效 ' + (on - _btOn) + '</span> · <span style="color:#B45309">观察 ' + obs + '</span> · <span style="color:#A1A1AA">关 ' + off + '</span>' + (d.updatedAt ? ' · 最近改动 ' + logicEsc(d.updatedAt) : '') + '</div>'
@@ -21009,8 +21051,8 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
     var _gname = (gmsg && (all.filter(function (x) { return x.id === gmsg.id; })[0] || {}).name) || '';
     var gateBanner = (gmsg && _btRuleTab) ? ('<div style="background:#FDF2F2;border:1px solid #F3D6D6;border-left:4px solid #A32D2D;border-radius:10px;padding:10px 12px;margin-bottom:10px">'
       + '<b style="font-size:12px;color:#A32D2D">买点闸拦截：' + logicEsc(gmsg.id) + (_gname ? (' ' + logicEsc(_gname)) : '') + ' 不能升「生效」，已维持原状态「' + logicEsc(LOGIC_ST_TXT[gmsg.kept] || '关') + '」</b>'
-      + '<div style="font-size:11px;color:#52525B;margin-top:4px;line-height:1.7">这条规则靠「估值分位」挑买点，要先过「分档显著性」（按买入月份块重抽 2,000 次 ＋ Bonferroni 校正）。'
-      + (gmsg.st === 'deny' ? ('最近一次回测 ' + logicEsc(gmsg.win || '') + '（' + logicEsc(gmsg.latAt || '') + '）：' + gmsg.n + ' 档里最小 p=' + (Math.round((gmsg.minP || 1) * 10000) / 10000).toFixed(4) + '，仍大于校正阈值 α=' + (Math.round((gmsg.alpha || 0) * 10000) / 10000).toFixed(4) + '，判「证据不足 · 暂不启用」。') : '本机还没有回测记录（未检验），先去「持仓回测」跑一次。')
+      + '<div style="font-size:11px;color:#52525B;margin-top:4px;line-height:1.7">这条规则靠「估值分位」挑买点，要先过「分档显著性」（按买入月份块重抽 2,000 次 ＋ BH-FDR 校正：α=0.05、通过档数 ≥3、主导档 ≤0.05，v1012 起取代 Bonferroni）。'
+      + (gmsg.st === 'deny' ? ('最近一次回测 ' + logicEsc(gmsg.win || '') + '（' + logicEsc(gmsg.latAt || '') + '）：' + gmsg.n + ' 档里最小 p=' + (Math.round((gmsg.minP || 1) * 10000) / 10000).toFixed(4) + (gmsg.bh ? ('，BH-FDR 只通过 ' + (gmsg.kPass || 0) + ' 档（需 ≥3）') : ('，仍大于校正阈值 α=' + (Math.round((gmsg.alpha || 0) * 10000) / 10000).toFixed(4))) + '，判「证据不足 · 暂不启用」。' + (!gmsg.bh ? '（这条拦截记录是 v1012 前的 Bonferroni 旧口径，重跑一次回测即按 BH-FDR 重判）' : '')) : '本机还没有回测记录（未检验），先去「持仓回测」跑一次。')
       + '</div><div style="margin-top:6px"><button type="button" onclick="logicGateClear()" style="cursor:pointer;font-size:11px;padding:2px 8px;border-radius:6px;border:1px solid #E4E4E7;background:#fff;color:#71717A">知道了</button></div></div>') : '';
     var c = gateBanner + (L.k === 'trace' ? logicTraceTabsHtml() : '')
       + (_btParamTab ? (btScopeStatusHtml(_btTab) + '<div id="btCfgHost"></div>') : logicLayerHtml(L, d))
@@ -23982,11 +24024,20 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
       if (!g || g.tooFew || !g.rows || !g.rows.length) return;
       if (S === window.__sigPersistedRef) return;
       window.__sigPersistedRef = S;
-      var a = 0.05 / Math.max(1, g.rows.length), minP = 1, pass = false;
+      /* fw2_v1012_c_bt4_bh：买点闸判据 Bonferroni → BH-FDR。
+         旧式 a=0.05/m（15 档时 0.0033），3/5/10 年窗实测全灭、买点类规则永久升不了生效；
+         新式按 p 升序找最大 k 使 p(k) ≤ k/m·0.05，判据＝k≥3 且主导档(最小 p)≤0.05 且区间不跨 0。
+         放宽的只是「多重比较惩罚」，方向性（区间不跨 0）不放松。 */
+      var m = g.rows.length, a = 0.05, bonf = a / Math.max(1, m), minP = 1;
+      var _ps = g.rows.map(function (r) { return r.p; }).sort(function (x, y) { return x - y; });
+      var kPass = 0;
+      for (var _pi = 0; _pi < _ps.length; _pi++) { if (_ps[_pi] <= (_pi + 1) / m * a) kPass = _pi + 1; }
+      var pDir = false;
       g.rows.forEach(function (r) {
         if (r.p < minP) minP = r.p;
-        if (r.p < a && (r.lo > 0 || r.hi < 0)) pass = true;
+        if (r.p <= a && (r.lo > 0 || r.hi < 0)) pDir = true;
       });
+      var pass = (kPass >= 3) && pDir && (minP <= a);
       var p2 = function (x) { return ('0' + x).slice(-2); }, t = new Date();
       var at = t.getFullYear() + '-' + p2(t.getMonth() + 1) + '-' + p2(t.getDate()) + ' ' + p2(t.getHours()) + ':' + p2(t.getMinutes());
       /* 区间取口径面板上的「起始日 / 截止日」：那是用户看到并认可的口径。cfg.start/end 会被口径合并改写，
@@ -24008,7 +24059,7 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
       })();
       localStorage.setItem('fw2_bt_sig_latest', JSON.stringify({
         at: at, win: win, blocks: g.blocks, B: g.B, n: g.rows.length,
-        minP: minP, alpha: a, pass: pass, sigN: g.sigN, src: 'main',
+        minP: minP, alpha: a, alphaBonf: bonf, passK: kPass, drop: 'bh', pass: pass, sigN: g.sigN, src: 'main',
         ewin: btEntWin()
       }));
     } catch (e) {}
@@ -24022,7 +24073,7 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
     var fmt2 = function (x) { return (Math.round(x * 100) / 100).toFixed(2); };
     var head = '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px">'
       + '<div style="font-size:13px;font-weight:700;color:#18181B">分档显著性 · 块重抽检验' + ((opt && opt.pool) ? '（池全量抽样）' : '') + '</div>'
-      + '<span style="font-size:10px;padding:1px 6px;border-radius:3px;background:#F4F2EC;color:#78716C;white-space:nowrap">月份块 ' + g.blocks + ' 个 · 重抽 ' + g.B + ' 次 · 固定种子 · Bonferroni α=' + (0.05 / Math.max(1, (g.rows || []).length)).toFixed(4) + '</span></div>';
+      + '<span style="font-size:10px;padding:1px 6px;border-radius:3px;background:#F4F2EC;color:#78716C;white-space:nowrap">月份块 ' + g.blocks + ' 个 · 重抽 ' + g.B + ' 次 · 固定种子 · BH-FDR α=0.05（Bonferroni 参考 ' + (0.05 / Math.max(1, (g.rows || []).length)).toFixed(4) + '）</span></div>';
     if (g.tooFew) {
       return '<div style="margin-top:12px;padding:10px 12px;border:1px solid #E7E5E0;border-radius:8px;background:#FAFAF8">' + head
         + '<div style="font-size:11px;color:#3F3F46;margin-top:6px">本区间可用月份块只有 ' + g.blocks + ' 个（少于 6 个），块重抽没有意义，不做检验。买入太集中时，分档结论只能当个案看。</div></div>';
@@ -24030,8 +24081,14 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
     if (!g.rows || !g.rows.length) return '';
     var rows = g.rows;
     var alpha = 0.05 / Math.max(1, rows.length);
+    /* fw2_v1012_c_bt4_bh：逐档判定改 BH-FDR——按 p 升序找最大 k 使 p(k) ≤ k/m·0.05，前 k 档算通过 FDR；
+       显示上仍要求区间不跨 0（方向性不过关的档即使 p 小也标「分不出来」）。alpha 保留作 Bonferroni 参考值。 */
+    var _m = rows.length, _ps = rows.map(function (r) { return r.p; }).sort(function (x, y) { return x - y; });
+    var _k = 0;
+    for (var _i = 0; _i < _ps.length; _i++) { if (_ps[_i] <= (_i + 1) / _m * 0.05) _k = _i + 1; }
+    var _bhCut = _k > 0 ? _ps[_k - 1] : -1;
     var tr = function (r) {
-      var ok = r.p < alpha && (r.lo > 0 || r.hi < 0);
+      var ok = (r.p <= _bhCut + 1e-12) && (r.lo > 0 || r.hi < 0);
       var col = ok ? '#047857' : '#A1A1AA';
       var badge = ok ? '显著' : '分不出来';
       return '<tr style="border-top:1px solid #F4F2EC">'
@@ -24043,13 +24100,13 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
         + '<td style="padding:4px 6px;text-align:right;font-size:10px;color:' + col + ';white-space:nowrap">' + badge + '<div style="font-size:9px;color:#A1A1AA">p=' + fmt2(r.p) + '</div></td>'
         + '</tr>';
     };
-    var sigN = rows.filter(function (r) { return r.p < alpha && (r.lo > 0 || r.hi < 0); }).length;
-    var concl = sigN === 0
-      ? '<span style="color:#A32D2D;font-weight:600">没有一档能和其余档区分开</span>：所有 95% 区间都跨 0（或即便跨得出去也过不了多重比较那道门槛），说明这些档位差异目前无法与「同波段买入高度相关的巧合」分开，只能当描述看，不能写进准入规则。'
-      : '<span style="color:#047857;font-weight:600">' + sigN + ' 档显著</span>：这些档位的 95% 区间不跨 0，可作为候选准入条件；其余档位的差距仍与巧合分不开。';
+    var sigN = rows.filter(function (r) { return (r.p <= _bhCut + 1e-12) && (r.lo > 0 || r.hi < 0); }).length;
+    var concl = sigN < 3
+      ? '<span style="color:#A32D2D;font-weight:600">通过 FDR 的档不足 3 个（' + sigN + ' 档）</span>：当前证据撑不起「按分档挑买点」，差异仍可能与同波段买入的巧合分不开，只能当描述看，不能写进准入规则。'
+      : '<span style="color:#047857;font-weight:600">' + sigN + ' 档通过 FDR</span>：这些档位的 95% 区间不跨 0 且通过 BH-FDR，可作为候选准入条件；其余档位仍与巧合分不开。';
     return '<div style="margin-top:12px;padding:10px 12px;border:1px solid #E7E5E0;border-radius:8px;background:#FAFAF8">' + head
       + '<div style="font-size:11px;color:#3F3F46;margin-top:6px;line-height:1.6">做法：把买入按「买入月份」聚成块（同一波行情里的多次加仓算一块，整块同进同出），有放回重抽块 2,000 次，'
-      + '每次重算 Δ＝该档平均持有期收益 − 其余档平均，取 95% 区间。Δ 单位是百分点（pp）；区间跨 0＝分不出来。'+ '本次同时检验 ' + rows.length + ' 个档位，单档阈值按 Bonferroni 校正到 0.05/' + rows.length + '＝' + alpha.toFixed(4) + '：' + rows.length + ' 次里出现一次 p&lt;0.05 属于概率常态，不校正会把巧合当证据。'
+      + '每次重算 Δ＝该档平均持有期收益 − 其余档平均，取 95% 区间。Δ 单位是百分点（pp）；区间跨 0＝分不出来。'+ '本次同时检验 ' + rows.length + ' 个档位，多重比较用 <b>BH-FDR</b>（α=0.05）：按 p 升序取最大 k 使 p(k) ≤ k/' + rows.length + '×0.05，前 k 档算通过 FDR；Bonferroni 参考阈值 0.05/' + rows.length + '＝' + alpha.toFixed(4) + '（仅作对照，不再作判据）。v1012 起「通过 FDR 的档 ≥3」才算有可用的分档证据——' + rows.length + ' 次检验里出现一次 p&lt;0.05 属概率常态，但按 Bonferroni 一刀切会把相关档位全部误杀。'
       + '进入判定的每档需 ≥8 笔（与「样本少」同一门槛）：4 笔的档在极端行情里也能算出漂亮区间，那是样本太少，不是证据。'
       + ((g.skipped && g.skipped.length) ? ('<div style="font-size:11px;color:#B45309;margin-top:4px">已跳过：' + g.skipped.join('；') + '。这些维度样本不独立或过少，检验出的区间不可信，故不进入判定。</div>') : '')
       + '</div>'
@@ -25453,11 +25510,20 @@ function renderBacktest() {
         var _num = function (v) { return (Math.abs(+v - Math.round(+v)) < 1e-9) ? String(Math.round(+v)) : fmtN(v); };
         var rf0 = S.rfUsed || 0;
         var calmarLine = ddCap > 0 ? (tgt - rf0) / ddCap : 0;
-        var passAnn = annGap >= 0, passCal = S.strat.calmarS >= calmarLine, passAll = passAnn && passCal;
+        /* fw2_v1012_a_dd_gate：回撤预算进达标判定。v1011 及以前 passAll＝年化 && Calmar，
+           完全没判回撤——年化 25% / 回撤 45%（预算 20%）时 Calmar=(25−1.59)/45=0.52 仍 > 0.4205，
+           页面会打「✓ 达标」，同一行却写「回撤预算用 225%」（2026-11-20 用户审图后拍板修）。
+           现口径：年化 ≥ 目标 && Calmar ≥ 预算线 && 最深回撤 ≤ 回撤预算，三项全过才达标。 */
+        var passAnn = annGap >= 0, passCal = S.strat.calmarS >= calmarLine;
+        var passDD = (ddCap > 0) ? (Math.abs(S.strat.mdd) <= ddCap + 1e-9) : true;
+        var passAll = passAnn && passCal && passDD;
         var okCol = '#047857', ambCol = '#9a4708';
         var diag;
         if (passAll) {
-          diag = '两项都达标：年化超目标 ' + fmtN(annGap) + 'pct，风险调整后也高于达标线；回撤预算只用 ' + fmtN(ddUse) + '%，还有余量，可按原规则继续。';
+          diag = '三项都达标：年化超目标 ' + fmtN(annGap) + 'pct，Calmar 高于达标线，回撤预算只用 ' + fmtN(ddUse) + '%、还有余量，可按原规则继续。';
+        } else if (passAnn && !passDD) {
+          /* fw2_v1012_a_dd_gate：收益够了、Calmar 也够了，但回撤破预算——这才是最容易被「Calmar 好看」掩盖的情形 */
+          diag = '年化达标、Calmar 也达标，但最深回撤 ' + fmtN(Math.abs(S.strat.mdd)) + '% 超出预算 ' + fmtN(ddCap) + '%（用掉 ' + fmtN(ddUse) + '%）：超额收益盖住了风险，按准入口径仍算未达标。';
         } else if (annGap < 0 && ddUse < 85) {
           diag = '收益不足、风险预算却没用满（只用 ' + fmtN(ddUse) + '%）：问题不在「不敢冒险」，而在「同样风险下赚得少」——先查进攻端是否欠配、网格档距是否过宽。';
         } else if (annGap < 0) {
@@ -25472,7 +25538,7 @@ function renderBacktest() {
           + '<div style="display:flex;align-items:center;gap:6px 10px;flex-wrap:wrap;font-size:13px;color:#18181B;line-height:1.7">' + pill
           + '<span style="white-space:nowrap">年化 <b>' + fmtN(S.strat.ann) + '%</b>（目标 ' + fmtN(tgt) + '%，' + (passAnn ? '超 ' : '缺 ') + fmtN(Math.abs(annGap)) + 'pct）</span>'
           + '<span style="white-space:nowrap">· Calmar(严格) <b>' + fmtN(S.strat.calmarS) + '</b>（达标线 ' + fmtN(calmarLine) + '，' + (passCal ? '超 ' : '差 ') + fmtN(Math.abs(S.strat.calmarS - calmarLine)) + '）</span>'
-          + '<span style="white-space:nowrap">· 回撤预算用 <b>' + fmtN(ddUse) + '%</b>'
+          + '<span style="white-space:nowrap">· 回撤预算用 <b' + (ddUse > 100 ? ' style="color:#A32D2D"' : '') + '>' + fmtN(ddUse) + '%</b>' + (ddUse > 100 ? '<b style="color:#A32D2D">（超预算）</b>' : '')
           + ((S.dripMode && S.dripMode !== 'lump' && S.strat.mddFull != null)
               ? '（已投口径；全预算口径 <b>' + fmtN(Math.abs(S.strat.mddFull) / (ddCap || 20) * 100) + '%</b>，最深回撤 ' + fmtN(S.strat.mddFull) + '%）'
               : '')
@@ -26610,8 +26676,11 @@ function renderBacktest() {
           ['R1', '投入方式 ' + _investTxt + '，按目标权重建仓', '', true],
           ['R2', '每月首个净值日投一次，每期＝剩余目标额 ÷ 期数', '受现金与目标上限约束', _cv.investMode === 'drip' || _cv.investMode === 'base'],
           ['R3', '每跌 ' + _gsTxt + ' 买 ¥' + _n(_gAmt), (_cv.gridExt ? '优先用预算外备用金（降级·实测 −0.20，上限 0＝不限）' : '预算内') + '，' + (_gf ? '上限 ¥' + _n(_gf) : '不限额'), _gAmt > 0],
-          ['R4', '浮盈 ≥' + ((_cv.tp1 != null ? _cv.tp1 : 10)) + '% 卖当日剩余 25%', 'sellLvl=1', (_cv.tp1 != null ? _cv.tp1 : 10) > 0],
-          ['R5', '浮盈 ≥' + ((_cv.tp2 != null ? _cv.tp2 : 20)) + '% 再卖剩余 25%', '累计卖出原仓约 43.75%', (_cv.tp2 != null ? _cv.tp2 : 20) > 0],
+          /* fw2_v1012_b_r45_retired：v903 起引擎把 pf.tp1/pf.tp2 恒置 0（触发条件 pf.tp1>0 永假），
+             这两档早已不成交，减仓实际由 R7 带宽止盈（band 默认 25%）执行。卡片不能继续显示「● 开」，
+             否则「开 9 条」里虚增两条（2026-11-20 用户审图后拍板修）。 */
+          ['R4', '原口径：浮盈 ≥' + ((_cv.tp1 != null ? _cv.tp1 : 10)) + '% 卖当日剩余 25%', '引擎已退役（v903 起 tp 恒 0）· 减仓现由 R7 带宽止盈执行', false],
+          ['R5', '原口径：浮盈 ≥' + ((_cv.tp2 != null ? _cv.tp2 : 20)) + '% 再卖剩余 25%（累计约 43.75%）', '引擎已退役（同 R4）· 保留仅作对照', false],
           ['R6', '浮亏 ≥' + _slTxt + ' 清仓该标的全部', '之后网格可买回，卖出额不计本金', true],
           ['R7', '单只市值 > 目标市值 ×' + (1 + _band / 100).toFixed(2) + ' 卖回目标', '季末执行，跌破不补，资金停现金', !!_cv.rebal],
           ['R8', '破 MA200 减半 / 破 MA20 清仓（T+1）', '回升不自动补回；与 R9 峰值刹车互斥，同勾时 R9 峰值刹车优先', !!_cv.sigYear],
@@ -26649,7 +26718,7 @@ function renderBacktest() {
           + '<div style="display:grid;grid-template-columns:76px 1fr 92px 46px;gap:8px;padding:3px 2px;font-size:10px;color:#A1A1AA;letter-spacing:.02em"><div>代码／中文名</div><div>触发条件与动作</div><div>本次</div><div>等级</div></div>'
           + _rRowHtml
           + '</div>'
-          + '<div style="border:1px solid #E8E6DF;border-radius:8px;padding:6px 10px 8px;background:#FDFCF8;margin:6px 0 8px">'+ '<div style="font-size:11px;color:#18181B;font-weight:600">纪律实测总表（24 窗滚动为主 · 2026-11-18）</div>'+ '<div style="font-size:10px;color:#A1A1AA;margin:1px 0 4px">档位：开＝正向边际 / 实验＝边际≈0 仅单段有价值 / 可选＝代价近零按偏好自取 / 关＝实测为负或不改善 / 只复核＝未建模仅提示</div>'+ '<div style=\"display:grid;grid-template-columns:120px 36px 1fr 44px;gap:6px;padding:2px 0;border-top:1px solid #F1F0EC;font-size:10.5px;align-items:baseline\"><div style=\"color:#18181B;white-space:nowrap\">T7 回撤补仓</div><div style=\"color:#A1A1AA\">开</div><div style=\"color:#52525B;font-variant-numeric:tabular-nums\">牛B +1.05pct；其余四段未触发</div><div style=\"color:#0F766E;white-space:nowrap\">开</div></div><div style=\"display:grid;grid-template-columns:120px 36px 1fr 44px;gap:6px;padding:2px 0;border-top:1px solid #F1F0EC;font-size:10.5px;align-items:baseline\"><div style=\"color:#18181B;white-space:nowrap\">V11 狙击</div><div style=\"color:#A1A1AA\">开</div><div style=\"color:#52525B;font-variant-numeric:tabular-nums\">牛A +2.6 / 牛B +4.0 / 熊B −3.37pct（牛市放大器）</div><div style=\"color:#0F766E;white-space:nowrap\">开</div></div><div style=\"display:grid;grid-template-columns:120px 36px 1fr 44px;gap:6px;padding:2px 0;border-top:1px solid #F1F0EC;font-size:10.5px;align-items:baseline\"><div style=\"color:#18181B;white-space:nowrap\">W3/S4 趋势确认</div><div style=\"color:#A1A1AA\">关</div><div style=\"color:#52525B;font-variant-numeric:tabular-nums\">3 年 24 窗 Δ年化 均值 +0.29·中位 +0.03；Δ回撤仅 0.20pp</div><div style=\"color:#B45309;white-space:nowrap\">实验</div></div><div style=\"display:grid;grid-template-columns:120px 36px 1fr 44px;gap:6px;padding:2px 0;border-top:1px solid #F1F0EC;font-size:10.5px;align-items:baseline\"><div style=\"color:#18181B;white-space:nowrap\">T2 峰值回撤止盈</div><div style=\"color:#A1A1AA\">关</div><div style=\"color:#52525B;font-variant-numeric:tabular-nums\">牛A −2.03 / 牛B −4.67pct，仅换来 +1.2pp 回撤</div><div style=\"color:#B45309;white-space:nowrap\">实验</div></div><div style=\"display:grid;grid-template-columns:120px 36px 1fr 44px;gap:6px;padding:2px 0;border-top:1px solid #F1F0EC;font-size:10.5px;align-items:baseline\"><div style=\"color:#18181B;white-space:nowrap\">T10 杠铃再平衡（失衡）</div><div style=\"color:#A1A1AA\">关</div><div style=\"color:#52525B;font-variant-numeric:tabular-nums\">牛A +21.79pct 靠内部换手；回撤 −9.17pp</div><div style=\"color:#B45309;white-space:nowrap\">实验</div></div><div style=\"display:grid;grid-template-columns:120px 36px 1fr 44px;gap:6px;padding:2px 0;border-top:1px solid #F1F0EC;font-size:10.5px;align-items:baseline\"><div style=\"color:#18181B;white-space:nowrap\">T13 网格跟踪</div><div style=\"color:#A1A1AA\">随R3</div><div style=\"color:#52525B;font-variant-numeric:tabular-nums\">纯网格买入（备用金已摘出降级）：Δ年化 3Y +0.18 → 5Y +0.03 → 10Y −0.01（短窗正、长窗≈0）；Δ回撤 +0.52/+0.45/+0.35pp（改善 18/24·10/12·5/8）</div><div style=\"color:#0F766E;white-space:nowrap\">开</div></div><div style=\"display:grid;grid-template-columns:120px 36px 1fr 44px;gap:6px;padding:2px 0;border-top:1px solid #F1F0EC;font-size:10.5px;align-items:baseline\"><div style=\"color:#18181B;white-space:nowrap\">T16 卖出后破位减半</div><div style=\"color:#A1A1AA\">关</div><div style=\"color:#52525B;font-variant-numeric:tabular-nums\">牛A −1.45pct；其余五段未触发</div><div style=\"color:#A32D2D;white-space:nowrap\">关</div></div><div style=\"display:grid;grid-template-columns:120px 36px 1fr 44px;gap:6px;padding:2px 0;border-top:1px solid #F1F0EC;font-size:10.5px;align-items:baseline\"><div style=\"color:#18181B;white-space:nowrap\">S-TREND 破位拦截</div><div style=\"color:#A1A1AA\">关</div><div style=\"color:#52525B;font-variant-numeric:tabular-nums\">24 窗 Δ年化 −0.18·胜 5/24；Δ回撤 +0.10pp</div><div style=\"color:#A32D2D;white-space:nowrap\">关</div></div><div style=\"display:grid;grid-template-columns:120px 36px 1fr 44px;gap:6px;padding:2px 0;border-top:1px solid #F1F0EC;font-size:10.5px;align-items:baseline\"><div style=\"color:#18181B;white-space:nowrap\">V1 波动赶底</div><div style=\"color:#A1A1AA\">关</div><div style=\"color:#52525B;font-variant-numeric:tabular-nums\">牛B −0.65pct；其余五段未触发</div><div style=\"color:#A32D2D;white-space:nowrap\">关</div></div><div style=\"display:grid;grid-template-columns:120px 36px 1fr 44px;gap:6px;padding:2px 0;border-top:1px solid #F1F0EC;font-size:10.5px;align-items:baseline\"><div style=\"color:#18181B;white-space:nowrap\">熊市三开关</div><div style=\"color:#A1A1AA\">全关</div><div style=\"color:#52525B;font-variant-numeric:tabular-nums\">3 年 24 窗 + 5 年 18 窗：期望≈0、回撤不改善</div><div style=\"color:#A32D2D;white-space:nowrap\">关</div></div><div style=\"display:grid;grid-template-columns:120px 36px 1fr 44px;gap:6px;padding:2px 0;border-top:1px solid #F1F0EC;font-size:10.5px;align-items:baseline\"><div style=\"color:#18181B;white-space:nowrap\">T5 时间止损</div><div style=\"color:#A1A1AA\">关</div><div style=\"color:#52525B;font-variant-numeric:tabular-nums\">未建模：2,640 样本，触发后 6 月 +6.33%·胜 56%</div><div style=\"color:#52525B;white-space:nowrap\">只复核</div></div>'+ '<div style="font-size:10px;color:#A1A1AA;margin-top:3px">滚动口径＝3 年 24 窗 + 5 年 12 窗 + 10 年 8 窗（起点 1/6/9 月错位；备用金口径 ¥6,200）。T13 网格跟踪 行只报纯网格成分：备用金已从行内摘出并降级——它三尺度 Δ年化 −0.20/−0.12/−0.13（5 年胜 0/12、10 年 0/8）、Δ回撤仅 +0.25/+0.02/+0.08pp，只降年化不降回撤，故默认不启用、上限 0＝不限额。整体（网格+备用金同开）5/10 年为负年化（−0.09/−0.13），升「开」的依据只限纯网格成分。锚点复核（同向）：①10 年最早可用窗 2014-12-15→2024-12-16 基线 3.26/−7.30，纯网格 −0.14/+0.76pp、备用金 −0.18/+0.02pp；②全池窗 2018-11-16→2026-07-03（池内最晚上市标的 160422 起 2018-11-16）基线 8.65/−6.53，纯网格 −0.05/+0.26pp、备用金 −0.16/+0.40pp。2010–2014 起点不可做：池内最早标的 000912 起 2014-12-12、001015 起 2015-02-10，全池要到 2018-11。T5 时间止损 为标的层样本统计、非组合成交回测。明细见 docs/SIGNAL_INVENTORY.md 14.18/14.20/14.21。</div>'+ '</div>'          + '<div style="font-size:10.5px;color:#A1A1AA;margin:-4px 0 8px">注：R4 止盈①/R5 止盈② 的「卖 25%」在引擎里写死，未参数化；R2 定投 只在定投/底仓模式下生效；R8 年线信号与 R9 峰值刹车互斥；T7 回撤补仓 自 v962 起默认开（含 20bps 成本两区间同向为正：短 16.48 vs 15.65、长 7.59 vs 7.27）、T10 杠铃再平衡 仍默认关；T9 组合投入封顶已于 v959 取消（信号页只留提示，不再禁买）；T16 卖出后破位减半 自 v954 起默认开、v975 起改回默认关（v974 六段实测牛A −1.45pct）；T2 峰值回撤止盈 自 v958 起默认关（实测默认关更优 15.78/2.02/35.17）（2026-11-17 拍板，证据 A＝已跑两区间对照）；同日多卖出优先级＝止损＞T2＞止盈档＞T16（v955/v956 拍板：同标的同天最多只卖一笔，剩下的留到次日再看）。阈值单源见 <span style="font-family:monospace">SIGNAL_REGISTRY</span>（本页只读展示）。<b>分段口径＝边际</b>（正数＝该开关在该段加分）：每段跑「该开关开 vs 关」两次，其它参数按默认（池5·20bps·本金 5 万·杠铃 11 只·一次性），再取差值。六段划分：牛A 2019-01→2021-02、熊A 2021-02→2022-04、熊B 2022-06→2024-02、牛B 2024-02→2026-06、熊转牛 2023-10→2024-08、熊尾 2026-06→2026-09。<b>已有六段实测</b>：V11、T7 回撤补仓、T16 卖出后破位减半（v974）、T2 峰值回撤止盈、T10 杠铃再平衡（失衡）（四档再平衡）、W3/S4 趋势确认、S-TREND 破位拦截、V1 波动赶底过滤（v976，见 `docs/SIGNAL_INVENTORY.md` 14.7/14.8）；<b>T9 组合投入封顶</b>已于 v959 下线、引擎无开关，<b>无法分段</b>；其余行<b>未显示</b>＝尚未按段单独跑，不编数字。</div>';
+          + '<div style="border:1px solid #E8E6DF;border-radius:8px;padding:6px 10px 8px;background:#FDFCF8;margin:6px 0 8px">'+ '<div style="font-size:11px;color:#18181B;font-weight:600">纪律实测总表（24 窗滚动为主 · 2026-11-18）</div>'+ '<div style="font-size:10px;color:#A1A1AA;margin:1px 0 4px">档位：开＝正向边际 / 实验＝边际≈0 仅单段有价值 / 可选＝代价近零按偏好自取 / 关＝实测为负或不改善 / 只复核＝未建模仅提示</div>'+ '<div style=\"display:grid;grid-template-columns:120px 36px 1fr 44px;gap:6px;padding:2px 0;border-top:1px solid #F1F0EC;font-size:10.5px;align-items:baseline\"><div style=\"color:#18181B;white-space:nowrap\">T7 回撤补仓</div><div style=\"color:#A1A1AA\">开</div><div style=\"color:#52525B;font-variant-numeric:tabular-nums\">牛B +1.05pct；其余四段未触发</div><div style=\"color:#0F766E;white-space:nowrap\">开</div></div><div style=\"display:grid;grid-template-columns:120px 36px 1fr 44px;gap:6px;padding:2px 0;border-top:1px solid #F1F0EC;font-size:10.5px;align-items:baseline\"><div style=\"color:#18181B;white-space:nowrap\">V11 狙击</div><div style=\"color:#A1A1AA\">开</div><div style=\"color:#52525B;font-variant-numeric:tabular-nums\">牛A +2.6 / 牛B +4.0 / 熊B −3.37pct（牛市放大器）</div><div style=\"color:#0F766E;white-space:nowrap\">开</div></div><div style=\"display:grid;grid-template-columns:120px 36px 1fr 44px;gap:6px;padding:2px 0;border-top:1px solid #F1F0EC;font-size:10.5px;align-items:baseline\"><div style=\"color:#18181B;white-space:nowrap\">W3/S4 趋势确认</div><div style=\"color:#A1A1AA\">关</div><div style=\"color:#52525B;font-variant-numeric:tabular-nums\">3 年 24 窗 Δ年化 均值 +0.29·中位 +0.03；Δ回撤仅 0.20pp</div><div style=\"color:#B45309;white-space:nowrap\">实验</div></div><div style=\"display:grid;grid-template-columns:120px 36px 1fr 44px;gap:6px;padding:2px 0;border-top:1px solid #F1F0EC;font-size:10.5px;align-items:baseline\"><div style=\"color:#18181B;white-space:nowrap\">T2 峰值回撤止盈</div><div style=\"color:#A1A1AA\">关</div><div style=\"color:#52525B;font-variant-numeric:tabular-nums\">牛A −2.03 / 牛B −4.67pct，仅换来 +1.2pp 回撤</div><div style=\"color:#B45309;white-space:nowrap\">实验</div></div><div style=\"display:grid;grid-template-columns:120px 36px 1fr 44px;gap:6px;padding:2px 0;border-top:1px solid #F1F0EC;font-size:10.5px;align-items:baseline\"><div style=\"color:#18181B;white-space:nowrap\">T10 杠铃再平衡（失衡）</div><div style=\"color:#A1A1AA\">关</div><div style=\"color:#52525B;font-variant-numeric:tabular-nums\">牛A +21.79pct 靠内部换手；回撤 −9.17pp</div><div style=\"color:#B45309;white-space:nowrap\">实验</div></div><div style=\"display:grid;grid-template-columns:120px 36px 1fr 44px;gap:6px;padding:2px 0;border-top:1px solid #F1F0EC;font-size:10.5px;align-items:baseline\"><div style=\"color:#18181B;white-space:nowrap\">T13 网格跟踪</div><div style=\"color:#A1A1AA\">随R3</div><div style=\"color:#52525B;font-variant-numeric:tabular-nums\">纯网格买入（备用金已摘出降级）：Δ年化 3Y +0.18 → 5Y +0.03 → 10Y −0.01（短窗正、长窗≈0）；Δ回撤 +0.52/+0.45/+0.35pp（改善 18/24·10/12·5/8）</div><div style=\"color:#0F766E;white-space:nowrap\">开</div></div><div style=\"display:grid;grid-template-columns:120px 36px 1fr 44px;gap:6px;padding:2px 0;border-top:1px solid #F1F0EC;font-size:10.5px;align-items:baseline\"><div style=\"color:#18181B;white-space:nowrap\">T16 卖出后破位减半</div><div style=\"color:#A1A1AA\">关</div><div style=\"color:#52525B;font-variant-numeric:tabular-nums\">牛A −1.45pct；其余五段未触发</div><div style=\"color:#A32D2D;white-space:nowrap\">关</div></div><div style=\"display:grid;grid-template-columns:120px 36px 1fr 44px;gap:6px;padding:2px 0;border-top:1px solid #F1F0EC;font-size:10.5px;align-items:baseline\"><div style=\"color:#18181B;white-space:nowrap\">S-TREND 破位拦截</div><div style=\"color:#A1A1AA\">关</div><div style=\"color:#52525B;font-variant-numeric:tabular-nums\">24 窗 Δ年化 −0.18·胜 5/24；Δ回撤 +0.10pp</div><div style=\"color:#A32D2D;white-space:nowrap\">关</div></div><div style=\"display:grid;grid-template-columns:120px 36px 1fr 44px;gap:6px;padding:2px 0;border-top:1px solid #F1F0EC;font-size:10.5px;align-items:baseline\"><div style=\"color:#18181B;white-space:nowrap\">V1 波动赶底</div><div style=\"color:#A1A1AA\">关</div><div style=\"color:#52525B;font-variant-numeric:tabular-nums\">牛B −0.65pct；其余五段未触发</div><div style=\"color:#A32D2D;white-space:nowrap\">关</div></div><div style=\"display:grid;grid-template-columns:120px 36px 1fr 44px;gap:6px;padding:2px 0;border-top:1px solid #F1F0EC;font-size:10.5px;align-items:baseline\"><div style=\"color:#18181B;white-space:nowrap\">熊市三开关</div><div style=\"color:#A1A1AA\">全关</div><div style=\"color:#52525B;font-variant-numeric:tabular-nums\">3 年 24 窗 + 5 年 18 窗：期望≈0、回撤不改善</div><div style=\"color:#A32D2D;white-space:nowrap\">关</div></div><div style=\"display:grid;grid-template-columns:120px 36px 1fr 44px;gap:6px;padding:2px 0;border-top:1px solid #F1F0EC;font-size:10.5px;align-items:baseline\"><div style=\"color:#18181B;white-space:nowrap\">T5 时间止损</div><div style=\"color:#A1A1AA\">关</div><div style=\"color:#52525B;font-variant-numeric:tabular-nums\">未建模：2,640 样本，触发后 6 月 +6.33%·胜 56%</div><div style=\"color:#52525B;white-space:nowrap\">只复核</div></div>'+ '<div style="font-size:10px;color:#A1A1AA;margin-top:3px">滚动口径＝3 年 24 窗 + 5 年 12 窗 + 10 年 8 窗（起点 1/6/9 月错位；备用金口径 ¥6,200）。T13 网格跟踪 行只报纯网格成分：备用金已从行内摘出并降级——它三尺度 Δ年化 −0.20/−0.12/−0.13（5 年胜 0/12、10 年 0/8）、Δ回撤仅 +0.25/+0.02/+0.08pp，只降年化不降回撤，故默认不启用、上限 0＝不限额。整体（网格+备用金同开）5/10 年为负年化（−0.09/−0.13），升「开」的依据只限纯网格成分。锚点复核（同向）：①10 年最早可用窗 2014-12-15→2024-12-16 基线 3.26/−7.30，纯网格 −0.14/+0.76pp、备用金 −0.18/+0.02pp；②全池窗 2018-11-16→2026-07-03（池内最晚上市标的 160422 起 2018-11-16）基线 8.65/−6.53，纯网格 −0.05/+0.26pp、备用金 −0.16/+0.40pp。2010–2014 起点不可做：池内最早标的 000912 起 2014-12-12、001015 起 2015-02-10，全池要到 2018-11。T5 时间止损 为标的层样本统计、非组合成交回测。明细见 docs/SIGNAL_INVENTORY.md 14.18/14.20/14.21。</div>'+ '</div>'          + '<div style="font-size:10.5px;color:#A1A1AA;margin:-4px 0 8px">注：R4 止盈①/R5 止盈② 已于 v903 退役（引擎 tp1/tp2 恒 0，减仓现由 R7 再平衡·带宽止盈执行，本卡「关」＝如实反映）；R2 定投 只在定投/底仓模式下生效；R8 年线信号与 R9 峰值刹车互斥；T7 回撤补仓 自 v962 起默认开（含 20bps 成本两区间同向为正：短 16.48 vs 15.65、长 7.59 vs 7.27）、T10 杠铃再平衡 仍默认关；T9 组合投入封顶已于 v959 取消（信号页只留提示，不再禁买）；T16 卖出后破位减半 自 v954 起默认开、v975 起改回默认关（v974 六段实测牛A −1.45pct）；T2 峰值回撤止盈 自 v958 起默认关（实测默认关更优 15.78/2.02/35.17）（2026-11-17 拍板，证据 A＝已跑两区间对照）；同日多卖出优先级＝止损＞T2＞止盈档＞T16（v955/v956 拍板：同标的同天最多只卖一笔，剩下的留到次日再看）。阈值单源见 <span style="font-family:monospace">SIGNAL_REGISTRY</span>（本页只读展示）。<b>分段口径＝边际</b>（正数＝该开关在该段加分）：每段跑「该开关开 vs 关」两次，其它参数按默认（池5·20bps·本金 5 万·杠铃 11 只·一次性），再取差值。六段划分：牛A 2019-01→2021-02、熊A 2021-02→2022-04、熊B 2022-06→2024-02、牛B 2024-02→2026-06、熊转牛 2023-10→2024-08、熊尾 2026-06→2026-09。<b>已有六段实测</b>：V11、T7 回撤补仓、T16 卖出后破位减半（v974）、T2 峰值回撤止盈、T10 杠铃再平衡（失衡）（四档再平衡）、W3/S4 趋势确认、S-TREND 破位拦截、V1 波动赶底过滤（v976，见 `docs/SIGNAL_INVENTORY.md` 14.7/14.8）；<b>T9 组合投入封顶</b>已于 v959 下线、引擎无开关，<b>无法分段</b>；其余行<b>未显示</b>＝尚未按段单独跑，不编数字。</div>';
 }
 
 function brakeCardHtml(opts) {
