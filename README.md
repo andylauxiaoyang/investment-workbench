@@ -1,6 +1,6 @@
 ---
-next:  **v1032→v1033 已发布：修复回测页图表全部不绘制（既有缺陷），五张图恢复绘制（2026-11-20，徽标 v1033，index 4,942,462 B / SHA256 `3a4a273d04e5c3a73f5d11c4e7b48d8d411d81f784f37ba6a397c0540e12396d` / master `93657016ef8b` / BYTE_MATCH True）**——根因是挂图 `setTimeout` 抢在 `await btRoll` 与 `innerHTML` 插入之前执行，数据与容器都没就绪；改为 `_mountBtCharts` 在结果入 DOM 后调用，图表参数零改动。本地与线上五图 canvas 各 1、0 告警，主图「区间最大回撤 -6.53%」标注实拍可见。下一步见「## 下一步」首条。
-ver: v1033
+next:  **v1033→v1034 已发布：补齐 verify_sync 长期 FAIL，双端校验首次全绿（2026-11-20，徽标 v1034，index 4,943,162 B / SHA256 `386f4985160ceb7cbf6da84a4a2d2a9ff37c4e8cb520a4ea5c91a76f8badab5f` / master `021c12d679ea` / BYTE_MATCH True）**——三层问题：①19 条陈旧 marker（16 改现役原文 / 3 删并留清账注释）；②比对器 cmp_lib.py 缺件导致「cmp 未 PASS: 」空报错，已重建并给 lib_check 补诊断；③资料库节点停在旧版，旧 op_ token 过期 10034，改用插件 `import_html.py --node-block-id` 内部通道覆盖。顺带清掉 hero 区两处孤立 span 闭合标签。`verify_sync.py` 全量 PASS。下一步见「## 下一步」首条。
+ver: v1034
 updated: 2026-11-20
 tracks: 交易信号 / 回测口径 / 前端工作台
 
@@ -16,6 +16,15 @@ tracks: 交易信号 / 回测口径 / 前端工作台
 个人投资管理项目。
 
 ## 当前进度
+
+- **v1034：补齐 verify_sync 长期 FAIL（v1022 起），双端校验首次全绿（2026-11-20，index 4,943,162 B，master `021c12d679ea`，线上字节一致 SHA256 `386f4985…`）**：v1033 收尾时我挂了一条「`verify_sync.py` 仍 FAIL（≥10 条既存缺标记，v1022 起就缺）」，用户回「补齐」。查下来是**三层问题，没有一层是页面 bug**。
+  **① marker 陈旧 19 条**：16 条有现役等价字面——`'净值' + m[2] + '/' + m[3]` 变量名 m 改成了 n；`--fs-6xl: 24px;` / `--fs-2xs: 10px;` 字号层收敛后是 `24px;` / `11px;`（无空格）；表头 `text-align:center">当前值` 在 v627 列重排后是 `当前值` 现役 th；`thrAct: '卖1/3'` 随 v952 止盈定乙改「减1/4」；`'禁补'` 随 v959 取消封顶改「仅提示（封顶已于 v959 取消）」；`数据管理（34 数据集…` 改「按 DMCONFIG 条数动态展示」；复盘表灰 `#7d8799` 加深为 `#5f6675`；策略卡左色条 `--bc,#94a3b8` 改 `--bc,var(--slate-400)`。逐条换成现役原文。3 条已随历史清理消失（`fw2_v317_plan_alloc`、`fw2_v318_base410`、待办四态色 `var col = {ok/near/act/man}` 字面，P3 色 token 化后不存在），摘除并在原位留 `# ★v1034 清账` 注释。
+  **② 比对器缺件**：`lib_check` 一直在调 `edit_work\cmp_lib.py`，文件早已丢失 → subprocess rc=2、stdout 空，报错只剩一句「cmp 未 PASS: 」（看不出是比对器没了还是页面真不一样）。重建比对器：剥平台注入的 `inject.js` 脚本、`pnid` 注释与节点号属性，开始标签属性按名排序，空白归一，再逐块（以 `>`/`;` 切分）比对；同时把 `lib_check` 的报错补上 rc、两端字节数与 stderr。
+  **③ 资料库节点停在旧版 + 上传通道换代**：回拉的库页只有 4,444,899 B（本地 4.94 MB），说明库轨很久没更新；旧 `_lib_import_v152.py` 走 `op_` token，`.lib_tok_tmp` 停留在 2026-11-17、API 直接报 `10034 TOKEN_EXPIRED`；且 skill-library 升到 5.11.3 后 `import_html._file_meta` 已拆成 `_file_size` / `_read_file`，老脚本一跑就 AttributeError。处理：①老脚本加兼容分支（保留 curl 通道，token 有效时仍可用）；②实测插件自带的 `import_html.py --node-block-id` 走平台内部请求通道即可覆盖节点，不依赖 `op_` token；③覆盖后回拉比对。
+  **顺带修一处本地畸形**：hero 区有两处孤立的 span 闭合标签（历史从资料库回拉时平台删掉了配对的开标签，浏览器一直忽略，所以多年没人发现）。清掉后 span 开 1124 / 闭 1123（余 1 处未闭合是 v7xx 既有、库端同形态），渲染零变化。
+  **结果**：`verify_sync.py` 全量 **PASS**（GitHub 六文件字节一致 + 资料库语义等价），自 v1022 以来第一次；`--gh-only` 亦 PASS；判别力自测——拿 v1031 备份比仍判 FAIL 并精确抓出「最深回撤 → 区间最大回撤」，说明新比对器不是靠放宽口径混过。
+  **门禁**：`check_js` ALL OK（21 块）· `check_html_comments` **265 处 / 0 隐患** · `check_globals` PASS（新增 0 / 消失 0）· plan_merge 38 PASS · alloc_cols 50 PASS · hold_consistency PASS · manifest PASS（36 数据集，1 项既存告警）。文件 +700 B（4,942,462 → 4,943,162）。
+  **线上**：`?t=v1034live` 徽标 v1034、持仓 29 行、KPI 18,520.72 / 17,397.79 / +1,969.27（+11.32%）/ 当日 +68.40 与 v1033 逐位一致、控制台 0 错误；`BYTE_MATCH True`（4,943,162 B / SHA256 `386f4985160ceb7cbf6da84a4a2d2a9ff37c4e8cb520a4ea5c91a76f8badab5f`）。
 
 - **v1033：修复回测页图表全部不绘制（既有缺陷），五张图恢复绘制（2026-11-20，index 4,942,462 B，master `93657016ef8b`，线上字节一致 SHA256 `3a4a273d…`）**：v1031 收尾时我如实记了一条未取证项——净值图里的「区间最大回撤」markArea 标注看不到，因为**整块图表 canvas 不生成**。本轮查根因并修好。
   **根因**：回测结果渲染函数 `_after` 是 **async**（约 L25599），旧实现把挂图包在 `setTimeout(function(){…}, 0)`（约 L25941–26026）。该函数构造 HTML 后会 `await btRoll(cfg, data, …)`（约 L26061，滚动窗口矩阵，首跑 1–2 秒）让出事件循环，0ms 回调抢先执行——此时数据准备段（`_posB`/`_balOrder`、`_posSeries`、`_posTotVals`、`_ddSeries`、`_monRet2`、`_attrRows`，约 L26090–26223）还没跑，四个 `.map` 全落在 undefined；且 `out.innerHTML` 插入 DOM 在约 L26445，`mountChart` 拿不到容器宽度。所以主图与四小图全空，控制台亮 `Cannot read properties of undefined (reading 'map')`。
@@ -1768,6 +1777,7 @@ Python 3.13.14（managed，python/python3 均可调用）；Node v22.22.2 / v24.
 
 ## 关键文件（枢纽，按需 Read）
 > ⚠ 以下条目是**按版本倒序的版本史**（v879 → v613），用于查「某个功能/某次事故落在哪个文件」，**不是当前口径真源**；口径与生产者一律以上方「关键入口」`docs/DATA_LEDGER.md` 为准。历史条目里的数量、日期只代表当时。
+- **v1034 同步校验补齐（已发布 `021c12d679ea`）**：`edit_work/index.html` 徽标 `v1034` + 注释块 `fw2_v1034_orphan_span`（删 hero 区两处孤立 span 闭合标签，改点见注释）；`edit_work/verify_sync.py` marker 19 条清账（16 改 / 3 删，原位留 `# ★v1034 清账`）+ `lib_check` 报错补 rc/两端字节/stderr；`edit_work/cmp_lib.py` 重建（语义等价口径：剥 `inject.js` + pnid 注释 + 节点号属性、属性排序、空白归一、逐块比）；`edit_work/_lib_import_v152.py` 兼容 5.11.x 的 `_file_meta` 拆分。文件 4,943,162 B。回滚备份 `D:\Temp\index_v1033_before_v1034.html`（4,942,462 B）、`D:\Temp\verify_sync_before_v1034.py`。
 - **v1033 回测图表挂载修复（已发布 `93657016ef8b`）**：`edit_work/index.html` 徽标 `v1033` + 注释块 `fw2_v1033_bt_chart_mount`（L1532 长行内，紧跟 `fw2_v1032_diag_mdd_label`）。落点：`setTimeout(function () {`（约 L25941）→ `var _mountBtCharts = function () {`；`}, 0);`（约 L26026）→ `};`；调用插在 `out.innerHTML = …;` 之后（约 L26460）。`_after` async 定义 L25599、`await btRoll` L26061、数据准备段 L26090–26223、容器 `#btChart` 等 L26446–26459。文件 4,942,462 B。回滚备份 `D:\Temp\index_v1032_before_v1033.html`（4,940,790 B）。
 - **v1032 回撤诊断区标签（已发布 `dfdc4ceeebfb`）**：`edit_work/index.html` 徽标 `v1032` + 注释块 `fw2_v1032_diag_mdd_label`（L1532 长行内，紧跟 `fw2_v1031_range_mdd_label` 之后）。落点 3 处：回本所需涨幅副行（约 L24514）、box 标题（约 L24516）、口径 B 表标题（约 L24727）。`v3.deepDD` / `v3.rec.days` / `roll.b` 未动。文件 4,940,790 B。回滚备份 `D:\Temp\index_v1031_before_v1032.html`（4,939,908 B）。
 - **v1031 研究页/回测页「区间最大回撤」标签（已发布 `46779fab1e69`）**：`edit_work/index.html` 徽标 `v1031` + 注释块 `fw2_v1031_range_mdd_label`（L1532 长行内，紧跟 `fw2_v1030_buy_mdd_label` 之后）。落点 6 处：研究页风险速览 `metric('区间最大回撤（近500净值日）'`（约 L8213）；回测页吸顶小结（约 L25678）、未达标诊断句（约 L25640）、过程风险 chip（约 L26176）、净值图 formatter（约 L25924）、图注 + hint 折行（约 L26446）。**计算链与 `S.strat.mdd` / `st.mdd` 未动**。文件 4,939,908 B。回滚备份 `D:\Temp\index_v1030_before_v1031.html`（4,938,354 B）。
@@ -1883,6 +1893,7 @@ Python 3.13.14（managed，python/python3 均可调用）；Node v22.22.2 / v24.
 
 ## 下一步
 
+- **[2026-11-20 · v1034 已发布·待验收]** 双端校验现在随时可复跑：`cd edit_work; python verify_sync.py` 期望 `PASS —— 双端同步正常（GitHub 六文件字节一致 + 资料库语义等价）`；只验 GitHub 用 `--gh-only`（无需 token）。资料库覆盖命令换成新通道：`python "<skill-library>\page\import_html.py" index.html --node-block-id I5QXvst27sR4FsxFbQi2ai`（不再需要 `op_` token；老 `_lib_import_v152.py` 留作 token 有效时的备路）。**别碰**：①`cmp_lib.py` 的归一化口径别放宽到「忽略内容差异」——判别力基线是「对 v1031 备份必须仍判 FAIL」；②hero 区那两处孤立 span 已删，别再加回来；③marker 里 3 条清账项不要恢复（对象已不存在）。
 - **[2026-11-20 · v1033 已发布·待验收]** 强刷 `?t=v1033live`：策略执行 → 配置回测 → 跑完看五张图（净值曲线 / ①分标的持仓市值 / ②回撤水下 / ③月度收益 / ④收益归因）**是否每张都画出来**——修前全空、控制台报 `reading 'map'`，修后应各有坐标轴与曲线，且净值图顶部有绿底「区间最大回撤 -6.53%」标注。**别碰**：①图表 ECharts 配置与 `btRoll` 口径（本轮一字未改）；②把挂图再挪回更早时机（会重现数据未就绪）；③四小图是懒加载，滚进视口才 init，直接读 DOM 判空会误判为坏。
 - **[2026-11-20 · v1032 已发布·待验收]** 强刷 `?t=v1032live`：策略执行 → 配置回测 → 滚到「波动与耐受力」卡——第二张卡标题应为「**区间最大回撤回本用时**」（值 77 天）、第一张卡副行应写「谷底 2025-04-07 → 峰值 2025-02-19；**区间最大回撤 −6.53%**」；再往下「滚动/分年度」区标题应为「**口径 B · 年化 / 区间最大回撤**」。数值一处都不该变。**别碰**：①`v3.deepDD` / `v3.rec.days` / `roll.b` 算法；②「回撤预算（已用 / 上限）」故意保留预算口径，别改成「区间最大回撤预算」；③分档表列头「该档回撤（均 / 最深）」未在本轮范围。
 - **[2026-11-20 · v1031 已发布·待验收]** 强刷 `?t=v1031live`：①研究页（基金数据 → 基金透视 → 选 012920）「风险速览」第二格应为「**区间最大回撤（近500净值日）**」，值仍 −42.90%；②策略执行 → 配置回测，吸顶条写「区间最大回撤 6.53%（预算 20.00%，用 32.63%）」、过程风险条 chip 写「区间最大回撤 -6.53%（最长水下 204 天）」、净值曲线图注「红区＝区间最大回撤段」应两行完整不出省略号。数值一处都不该变。**别碰**：①`S.strat.mdd` / `st.mdd` 的算法（改它会动所有历史数值）；②「回撤预算（已用/上限）」与诊断卡里的「最深回撤回本用时」「口径 B · 年化 / 最深回撤」是本轮刻意保留的旧词（不是漏改）；③`pfHtml` 那张按标的阈值表已是死变量，别为它调 colgroup；④图注那行 hint 的 `white-space:normal` 别删，删了 548px 下会截断。
