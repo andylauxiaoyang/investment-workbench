@@ -23110,7 +23110,13 @@ function logicRowHtml(r, d) {
     } else if (name === 'param') {
       try { if (typeof window.renderBtParamPane === 'function') window.renderBtParamPane(); } catch (e) { console.error('PARAM_RENDER_ERR', e && e.message); }
     } else if (name === 'dd') {
-      try { if (typeof window.renderDdModule === 'function') window.renderDdModule(); } catch (e) { console.error('DD_RENDER_ERR', e && e.message); }
+      /* v1101：页面脚本还没解析完就点「回撤档位」时，window.renderDdModule 尚未定义；旧写法会静默跳过并把
+         __stratPaneDone 置 1，导致这一页永久空白（线上首屏实测踩到）。改为短延迟重试，未就绪时不标记完成。 */
+      if (typeof window.renderDdModule !== 'function') {
+        setTimeout(function () { __stratPaneDone[name] = 0; __stratPaneRender(name); }, 400);
+        return;
+      }
+      try { window.renderDdModule(); } catch (e) { console.error('DD_RENDER_ERR', e && e.message); }
     }
     __stratPaneDone[name] = 1;
   }
