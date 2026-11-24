@@ -1564,7 +1564,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
    仍靠灰底 + disabled + cursor:not-allowed 表达「不可改」。
 全部只改颜色字面量，结构 / 文案 / 判定逻辑零改动；徽标 v1076 → v1077。 -->
 <!-- fw2_v1079_dca_row_unify（用户 2026-11-24「这个表的数据有问题，你排查下逻辑」）：资产配置表「定投金额（月）/累计应投」由「逐只基金 _dcaFirst/_dcaMonthly 相加」改为「按本行目标金额 + 本行实际市值（mvMap 份额×净值）现算」（_rowMonthlyT / _rowProgT / _mColTxt）。修掉两个实测错值：① 同指数多只基金只有主基金带目标、其余 target=0，逐只相加漏掉同族其它基金持仓（A500 ×2 累计应投 4,548、真实缺口 4,160；纳指100 ×12 4,946、真实 4,768）；② _dcaFirst 缺口走 gapOf() 的昨收(preclose)估值，与本表「实际市值」结算净值不同源，单只行也差几十元（沪深300 2,903 vs 2,893、黄金 4,649 vs 4,642）。一次性(lump，R2 定投＝关)口径下 累计应投＝max(0, 目标−市值)＝调仓金额同缺口，合计首笔 33,115→37,342；日限额标的(020712)不再被抹成「—」；月投列改为灰「0」明示「一次性口径非缺数据」；口径说明同步重写。未动：mvMap 取数、offOf、调仓金额、目标偏移、列结构、合计行累加方式。徽标 v1078 → v1079。 --><!-- fw2_v1080_dca_plan_basis（用户 2026-11-24 两条口径「1、月定投金额不是为零 2、累计应投是开始定投日到现在累计应该投资的金额」）：资产配置表「定投金额（月）/累计应投」改回**计划口径**，与持仓缺口、已达标、日限额、R2 三态全部解耦：月投＝目标(已 scale)×(1−底仓比例)÷总期数（纲领 investMode=base）／目标÷总期数（drip）／0（lump）；累计应投＝首笔(目标×底仓比例, 仅 base)＋月投×已过期数。根因是 v1076 的 `_planCfg()` 遇 R2＝关会把 mode 折成 lump，v1079 又用它算这两列，于是「计划月投」被实盘开关抹成 0。做法：`_planCfg()` 增加 `d.plan`（折叠前原值），新增 `_planCfgPlan()`，`_rowMonthlyT/_rowProgT` 去掉 mv 参数、只吃目标金额；表尾口径行改按计划口径出「首笔合计/月投合计」，R2＝关时追加「实盘暂不按月投（计划口径不受影响）」。未动：mvMap、offOf、调仓金额、目标偏移、列结构。徽标 v1079 → v1080。 --><!-- fw2_v1081_bt_param_labels（用户 2026-11-24 三张截图）：①「策略执行」tab 条上的「回测参数（全量底稿）」→「回测参数」（图三圈的就是这个 tab）；②配置回测页 / 自选回测页里的「修改参数 → 回测参数（全量底稿）」按口径分别改为「配置回测参数」「自选回测参数」，其后副文案「参数在『策略执行 → 回测参数』」同步补 ⑧-B / ⑧-C 子页签名；③其余指路文案里「策略执行 → 回测参数（全量底稿）」统一改成「策略执行 → 回测参数」（⑧-A 子页签名「⑧-A 回测参数（全量底稿）」保持不变，它是母版底稿的正式名）。零逻辑改动。 -->
-<!-- fw2_v1084_bt_a_label（用户 2026-11-24「同意」）：⑧-A 子页签由「⑧-A 回测参数（全量底稿）」改为「⑧-A 回测参数」，卡头 / 保存提示 / v1083 重置按钮 tooltip 三处同名文案同步（纯可见文案，零逻辑改动；代码注释与历史注释里的旧名保留）。 --><!-- fw2_v1094_dd_allidx（用户 2026-11-24「全指数回撤监测名字保留。要不要真做成全指数？需要」）：回撤档位由 13 只自选扩成 45 只 A 股指数（宽基 18 / 行业 16 / 主题 11），数据源改为新浪日K（6000 根到当日）为主；中证官网 index-perf 当日整段 403、腾讯 fqkline 501，故 931775/931637/000811 沿用存量（前两只 stale 2025-12-31）。①监测卡恢复「全指数回撤监测」+ 类别筛选（全部/宽基/行业/主题）+ 分档筛选（均可点，可叠加）；②跨档提醒默认只列「跨档 + 距下档 ≤2pp」，可展开全部 45 只；③估值卡只列公开源有 PE/PB 的 8 只，明确写「另 37 只无源不列」；④组合参与指数默认勾选 18 只宽基，存量 13 只 pick 自动迁移（失效代码剔除）。 --><span id="verBadge" class="ver-badge">v1094</span><!-- fw2_v1076_conflicts（用户 2026-11-23「按照你顺序修」——修掉体检出的 5 处纲领冲突）：
+<!-- fw2_v1084_bt_a_label（用户 2026-11-24「同意」）：⑧-A 子页签由「⑧-A 回测参数（全量底稿）」改为「⑧-A 回测参数」，卡头 / 保存提示 / v1083 重置按钮 tooltip 三处同名文案同步（纯可见文案，零逻辑改动；代码注释与历史注释里的旧名保留）。 --><!-- fw2_v1094_dd_allidx（用户 2026-11-24「全指数回撤监测名字保留。要不要真做成全指数？需要」）：回撤档位由 13 只自选扩成 45 只 A 股指数（宽基 18 / 行业 16 / 主题 11），数据源改为新浪日K（6000 根到当日）为主；中证官网 index-perf 当日整段 403、腾讯 fqkline 501，故 931775/931637/000811 沿用存量（前两只 stale 2025-12-31）。①监测卡恢复「全指数回撤监测」+ 类别筛选（全部/宽基/行业/主题）+ 分档筛选（均可点，可叠加）；②跨档提醒默认只列「跨档 + 距下档 ≤2pp」，可展开全部 45 只；③估值卡只列公开源有 PE/PB 的 8 只，明确写「另 37 只无源不列」；④组合参与指数默认勾选 18 只宽基，存量 13 只 pick 自动迁移（失效代码剔除）。 --><!-- fw2_v1095_dd_overseas（用户 2026-11-24「三个继续」）：①池 45→63 只：补境外 4 只（恒生指数/恒生科技/纳指100/标普500，雪球日K 6000 根，恒指回溯到 2002-10、纳指 2003-01）；②补此前断尾或无源的 14 只 A 股指数（中证官网 index-perf 深历史 + 雪球日K 近段合并，重叠日逐日校验后才拼）；③估值卡从「只列有源 13 只」放开到全 63 只（PE 有源 56 / PB 有源 24，其余只给价格分位并标「无源」）；④新增「境外」类别 chip；⑤境外不进组合池（港元/美元点数与 A 股不同币种，混算会把汇率当涨跌）。 --><span id="verBadge" class="ver-badge">v1095</span><!-- fw2_v1076_conflicts（用户 2026-11-23「按照你顺序修」——修掉体检出的 5 处纲领冲突）：
 ①R7 带宽：撤销 v1067 的 `o.band = o.slotBand` 强镜像；band 只喂 R7（单只超配 25% 减配，SIG_THR_DEF 5→25、与回测 cfg.band 同值），slotBand 只喂 T10 四档；sigThrApply 分别写 C.barbell.band / C.barbell.slotBand，T10 文案改读 slotBand，R7 行 threshold 由硬编码「band 25%」改为动态读纲领值。
 ②R2 假开关：`_planCfg()` 读 `window.logicStateEff('R2')`——生效按 investMode，观察/关一律 lump（月投 0）；建仓步文案在一次性时追加「R2 定投＝关/观察」。
 ③T4 与 R6 双份：T4 行 modeled 改「与 R6 止损同一执行（同一 slHard）」，def 标「= R6 止损，同一动作」，阈值表 slHard 口径写「T4 / R6 · 同一执行」。
@@ -30976,7 +30976,7 @@ function brakeCardHtml(opts) {
 <!-- fw2_v1086_dd：策略执行新增「回撤档位」子页签（用户 2026-11-24 三张截图「指数跟踪 + 高点回撤 70% 起分批买入」）。
      落点：①#stratTabs 第 5 颗按钮 data-st=dd；②#stp-dd 面板；③__stratActiveTab/__stratPaneRender/switchStratTab 三处分支；
      ④模块本体（下方独立脚本块，window.renderDdModule / __ddRun / __ddSet / __ddReset / __ddMount / __ddChartInst）。
-     数据：data/index-dd.json（gen_index_dd.py 产，45 只 A 股指数日收盘 + 逐日回撤，v1094 起）。不写 localStorage，不接实盘下单。 -->
+     数据：data/index-dd.json（gen_index_dd.py 产，63 只指数（A 股 58 + 境外 4）日收盘 + 逐日回撤，v1095 起）。不写 localStorage，不接实盘下单。 -->
 <script>
 /* fw2_v1086_dd（2026-11-24 用户「这是一个指数跟踪和回撤的模型，大概意思是跟踪指数，指数回撤70%以上就跟进买入。这个能否复刻一个。作为投资方案的一种。可以放在策略执行中」）
    独立模块：策略执行 →「回撤档位」子页签。
@@ -31132,8 +31132,11 @@ function brakeCardHtml(opts) {
     return Math.round((d2 - d1) / 86400000);
   }
   function runPoolBT(p) {
-    var picks = (p.pick || []).map(idxOf).filter(Boolean);
-    if (picks.length < 2) return { err: '组合回测至少选 2 只指数（当前 ' + picks.length + ' 只）' };
+    var picksAll = (p.pick || []).map(idxOf).filter(Boolean);
+    /* v1095：境外指数按当地点数（港元/美元）计价，与 A 股混算会把汇率当成涨跌 → 组合池一律剔除 */
+    var fxN = picksAll.filter(function (x) { return x.cat === '境外'; }).length;
+    var picks = picksAll.filter(function (x) { return x.cat !== '境外'; });
+    if (picks.length < 2) return { err: '组合回测至少选 2 只境内指数（当前可用 ' + picks.length + ' 只' + (fxN ? '，已剔除境外 ' + fxN + ' 只' : '') + '）' };
     var f0 = dnum(p.from), t0 = dnum(p.to);
     var gap = Math.max(0.5, +p.gap || 5);
     var startDD = Math.max(1, +p.startDD || 70);
@@ -31252,7 +31255,7 @@ function brakeCardHtml(opts) {
       avgPos: avgPos * 100, maxPos: maxPos * 100, years: years,
       from: axis[0], to: axis[axis.length - 1],
       openLots: lotsAll.filter(function (x) { return !x.sold; }).length,
-      pickN: sel.length, trigN: Object.keys(trig).length, skipN: skipN, byCode: byCode
+      pickN: sel.length, trigN: Object.keys(trig).length, skipN: skipN, byCode: byCode, fxN: fxN
     };
   }
 
@@ -31327,7 +31330,7 @@ function brakeCardHtml(opts) {
     catArr.forEach(function (x) { var b = bucketOf(x.dd); buckets[b] = (buckets[b] || 0) + 1; });
     var arr = fbk ? catArr.filter(function (x) { return bucketOf(x.dd) === fbk; }) : catArr;
     var cnt = (D && D.count) || {};
-    var catLine = ['全部', '宽基', '行业', '主题'].map(function (c) {
+    var catLine = ['全部', '宽基', '行业', '主题', '境外'].map(function (c) {
       var n = c === '全部' ? all.length : all.filter(function (x) { return x.cat === c; }).length;
       var on = (c === fcat) || (c === '全部' && !fcat);
       return '<button type="button" class="dd-bk dd-cat' + (on ? ' act' : '') + '" data-dd-fcat="' + c + '">'
@@ -31351,7 +31354,7 @@ function brakeCardHtml(opts) {
       var stale = x.stale ? '<span class="dd-stale" title="数据只到 ' + ymd(x.stale) + '">⚠</span>' : '';
       return '<tr data-dd-code="' + x.code + '"' + (ST.code === x.code ? ' class="on"' : '') + '>'
         + '<td><b>' + x.name + '</b></td>'
-        + '<td style="color:#71717A">' + x.code + ' · ' + (x.cat || x.market) + stale + '</td>'
+        + '<td style="color:#71717A">' + x.code + ' · ' + (x.cat || x.market) + (x.market && x.market !== 'A股' ? ' · ' + x.market : '') + stale + '</td>'
         + '<td class="r">' + nf(x.last, 2) + '<div class="dd-vsub">' + ymd(x.end).slice(5) + '</div></td>'
         + '<td class="r"><b style="color:' + (ddAbs >= start ? '#b91c1c' : (ddAbs >= start - 10 ? '#A9630B' : '#6B6B74')) + '">' + ddAbs.toFixed(2) + '%</b></td>'
         + '<td class="r">' + (ddAbs >= start ? '<b>' + cur + '%</b>' : cur + '%') + '</td>'
@@ -31364,8 +31367,10 @@ function brakeCardHtml(opts) {
     var empty = '<tr><td colspan="10" style="color:#71717A">当前筛选下没有指数（'
       + (fcat || '全部') + (fbk ? ' · ' + fbk : '') + '）</td></tr>';
     return '<div class="st-card"><h4 style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">全指数回撤监测'
-      + '<span style="font-weight:400;font-size:11px;color:#71717A">共 ' + all.length + ' 只 A 股指数（宽基 ' + (cnt['宽基'] || 0)
-      + ' · 行业 ' + (cnt['行业'] || 0) + ' · 主题 ' + (cnt['主题'] || 0) + '）· 回撤＝距历史最高收盘 · 点一行选它做回测</span></h4>'
+      + '<span style="font-weight:400;font-size:11px;color:#71717A">共 ' + all.length + ' 只（A 股 ' + (cnt['A股'] || 0)
+      + ' · 港股 ' + (cnt['港股'] || 0) + ' · 美股 ' + (cnt['美股'] || 0) + '）· 宽基 ' + (cnt['宽基'] || 0)
+      + ' · 行业 ' + (cnt['行业'] || 0) + ' · 主题 ' + (cnt['主题'] || 0) + ' · 境外 ' + (cnt['境外'] || 0)
+      + ' · 回撤＝距历史最高收盘（境外为当地收盘）· 点一行选它做回测</span></h4>'
       + '<div class="dd-flts"><span class="dd-flthd">类别</span>' + catLine + '</div>'
       + '<div class="dd-flts"><span class="dd-flthd">回撤分档</span>' + bucketLine + '</div>'
       + ddTbl([['指数', 176], ['代码 · 类别', 192], ['现价', 110], ['回撤', 94], ['档位', 72],
@@ -31374,7 +31379,8 @@ function brakeCardHtml(opts) {
       + '<div class="strat-note" style="margin:8px 0 0">显示 <b>' + arr.length + '</b> / ' + all.length + ' 只'
       + (fcat ? '（类别：' + fcat + '）' : '') + (fbk ? '（分档：' + fbk + '）' : '') + '；'
       + '档位＝floor(回撤 / 间距)，对所有行都算（未进买入区的行灰色显示，仅表示再跌多少就进区）；'
-      + '标 <b>粗体</b> 的才是已进入 ' + start + '% 买入区的行。数据 ' + (D ? D.updatedAt : '—') + ' · ' + (D ? D.src : '') + '</div></div>';
+      + '标 <b>粗体</b> 的才是已进入 ' + start + '% 买入区的行。'
+      + '境外 4 只（恒生指数 / 恒生科技 / 纳指100 / 标普500）只做单指数回测，不进组合池（当地点数币种不同）。数据 ' + (D ? D.updatedAt : '—') + ' · ' + (D ? D.src : '') + '</div></div>';
   }
 
   function start0() { return +ST.startDD || 70; }
@@ -31390,7 +31396,9 @@ function brakeCardHtml(opts) {
   }
 
   function pickHtml() {
-    var arr = (D && D.indices) || [];
+    var all = (D && D.indices) || [];
+    var arr = all.filter(function (x) { return x.cat !== '境外'; });   /* v1095：境外不进组合池 */
+    var fxN = all.length - arr.length;
     var pk = ST.pick || [];
     var chips = arr.map(function (x) {
       var on = pk.indexOf(x.code) >= 0;
@@ -31398,7 +31406,8 @@ function brakeCardHtml(opts) {
         + '<span>' + (-x.dd).toFixed(1) + '%' + (x.stale ? ' ⚠' : '') + '</span></button>';
     }).join('');
     return '<div class="dd-pickwrap"><div class="dd-pickhd">参与组合的指数（点选切换，括号内为当前回撤；默认勾选宽基）'
-      + '<span style="color:#63636B"> · 已选 <b>' + pk.length + '</b> / ' + arr.length + ' 只</span></div><div class="dd-picks">' + chips + '</div></div>';
+      + '<span style="color:#63636B"> · 已选 <b>' + pk.length + '</b> / ' + arr.length + ' 只境内指数'
+      + (fxN ? '（另 ' + fxN + ' 只境外只做单指数回测，不进组合池）' : '') + '</span></div><div class="dd-picks">' + chips + '</div></div>';
   }
 
   /* ---------- 估值参考（v1089：PE/PB 双分位；来源分层见卡下注） ---------- */
@@ -31408,8 +31417,8 @@ function brakeCardHtml(opts) {
   function valCardHtml() {
     if (!VAL || !VAL.indices) return '';
     var rowsAll = ((D && D.indices) || []).slice().sort(function (a, b) { return a.dd - b.dd; });
-    var arr = rowsAll.filter(function (x) { var v = VAL.indices[x.code]; return v && (v.pe != null || v.pb != null); });
-    var noSrc = rowsAll.length - arr.length;
+    var arr = rowsAll;   /* v1095：63 只全列；没有 PE/PB 源的只给价格分位并标「无源」 */
+    var noSrc = rowsAll.filter(function (x) { var v = VAL.indices[x.code] || {}; return v.pe == null && v.pb == null; });
     var rows = arr.map(function (x) {
       var v = VAL.indices[x.code] || {};
       var mark = (v.peSrc && v.peSrc.indexOf('中证') === 0) ? '<span class="dd-xwarn"> ※</span>' : '';
@@ -31417,24 +31426,32 @@ function brakeCardHtml(opts) {
       var pbMain = v.pb != null ? nf(v.pb, 2) : '—';
       var dv = v.div != null ? v.div.toFixed(2) + '%' : '—';
       var pp = v.pricePct != null ? (v.pricePct * 100).toFixed(1) + '%' : '—';
-      return '<tr><td>' + x.name + mark + '</td>'
+      var noS = (v.pe == null && v.pb == null);
+      return '<tr><td' + (noS ? ' style="color:#A1A1AA"' : '') + '>' + x.name + mark
+        + (noS ? '<div class="dd-vsub">无 PE/PB 源</div>' : '') + '</td>'
         + '<td class="r">' + peMain + '</td>'
         + '<td class="r">' + (v.pePct != null ? (v.pePct * 100).toFixed(1) + '%' : '—') + '</td>'
         + '<td class="r">' + pbMain + '</td>'
         + '<td class="r">' + (v.pbPct != null ? (v.pbPct * 100).toFixed(1) + '%' : '—') + '</td>'
         + '<td class="r">' + dv + '</td>'
         + '<td class="r">' + pp + '</td>'
-        + '<td style="color:#71717A">' + ((v.peSrc && v.peSrc.indexOf('中证') === 0) ? '中证官网市盈率2' : '蛋卷估值中心')
+        + '<td style="color:#71717A">' + (noS ? '无源（只给价格分位）'
+              : ((v.peSrc && v.peSrc.indexOf('中证') === 0) ? '中证官网市盈率2' : '蛋卷估值中心'))
         + '<div class="dd-vsub">' + (v.asof || VAL.updatedAt || '—') + '</div></td></tr>';
     }).join('');
     return '<div class="st-card"><h4 style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">估值参考'
-      + '<span style="font-weight:400;font-size:11px;color:#71717A">只列公开源有 PE / PB 的 ' + arr.length + ' 只 · 当前值 + 10 年分位 · 来源分层见下注</span></h4>'
+      + '<span style="font-weight:400;font-size:11px;color:#71717A">共 ' + arr.length + ' 只全列 · PE 有源 ' + (VAL.hasPe || 0)
+      + ' 只 · PB 有源 ' + (VAL.hasPb || 0) + ' 只 · 其余只给价格分位（不猜）</span></h4>'
       + ddTbl([['指数', 182], ['PE 现值', 88], ['PE 分位', 86], ['PB 现值', 88], ['PB 分位', 86],
                 ['股息率', 84], ['价格分位', 92], ['口径 · 数据日', 210]], 916, rows)
       + '<div class="strat-note" style="margin:6px 0 0">PE / PB 及分位取<b>蛋卷估值中心</b>（8 只，10 年分位口径；与本项目乐咕月频对拍沪深300 PE 65.6% vs 64.5%、PB 19.5% vs 20.7%）。'
       + '带 <span class="dd-xwarn">※</span> 的 5 只蛋卷未覆盖：PE 取<b>中证官网市盈率2（计算用股本口径，最近 20 个交易日快照）</b>、股息率同源，'
       + '<b>没有 PE/PB 分位与 PB</b>。两种 PE 口径不同（蛋卷 vs 中证市盈率2），<b>不要横向比较具体倍数</b>，只看同一只的分位高低。'
-      + '「价格 10 年分位」＝点位在近 10 年区间的位置，<b>不是估值分位</b>。本卡只列有公开源的 ' + arr.length + ' 只，另 ' + noSrc + ' 只在蛋卷估值中心与中证官网都没有可用 PE/PB 分位（不列、不猜）。数据 ' + (VAL.updatedAt || '—') + ' · 生成器 gen_index_val.py</div></div>';
+      + '「价格 10 年分位」＝点位在近 10 年区间的位置，<b>不是估值分位</b>。本卡把 ' + arr.length + ' 只全部列出：'
+      + 'PE 有源 ' + (VAL.hasPe || 0) + ' 只、PB 有源 ' + (VAL.hasPb || 0) + ' 只；另 ' + noSrc.length + ' 只（'
+      + noSrc.map(function (x) { return x.name; }).join('、') + '）在蛋卷估值中心与中证官网都没有 PE/PB 源，'
+      + '只给价格分位、<b>不填不猜</b>。境外 3 只的 PE/PB 同样来自蛋卷，但会计准则与 A 股不同，<b>倍数不要与 A 股横比</b>。'
+      + '数据 ' + (VAL.updatedAt || '—') + ' · 生成器 gen_index_val.py</div></div>';
   }
 
   /* ---------- 今日跨档提醒（v1090）：全部 13 只列表，投资总纲表格形态 ---------- */
@@ -31491,6 +31508,10 @@ function brakeCardHtml(opts) {
     var head = nCross
       ? '<b>' + lastAll + '</b> 全 ' + list.length + ' 只中 <b>' + nCross + '</b> 只跨档，另有 ' + nNear + ' 只距下档 ≤2pp（下表按跨档幅度、距下档排序）'
       : '<b>' + lastAll + '</b> 全 ' + list.length + ' 只当日档位均未跨档，其中 ' + nNear + ' 只距下档 ≤2pp（下表只列这些）';
+    var staleArr = ((D.indices) || []).filter(function (x) { return x.stale; });
+    var staleTxt = staleArr.length
+      ? (staleArr.length + ' 只标 ⚠ 的数据陈旧：' + staleArr.map(function (x) { return x.name + '（' + ymd(x.stale) + '）'; }).join('、') + '。')
+      : ('全部 ' + list.length + ' 只均有新数据（A 股到 ' + (D && D.updatedAt ? D.updatedAt : '—') + '，境外为当地上一交易日收盘）。');
     return '<div class="st-card"><h4 style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">今日跨档提醒'
       + '<span style="font-weight:400;font-size:11px;color:#71717A">按当前「起始回撤 ' + base + '% · 档位间距 ' + gap + 'pp」判定，对比上一交易日</span></h4>'
       + '<div class="strat-note" style="margin:0 0 6px">' + head + '</div>'
@@ -31500,7 +31521,7 @@ function brakeCardHtml(opts) {
       + '<div style="margin:6px 0 0;display:flex;gap:12px;align-items:center;flex-wrap:wrap">'
       + '<button type="button" class="dd-lnk" data-dd-crossall="1">' + (allOn ? '收起，只看跨档与 ≤2pp' : '展开全部 ' + list.length + ' 只') + '</button>'
       + '<span style="font-size:11px;color:#71717A">档位＝floor(回撤 / 间距)，深一档＝回撤又跌过一个间距、该档可再买一次；'
-      + '「回升」只表示回撤收窄，不代表卖出；2 只 93xxxx 标 ⚠ 的数据止于 2025-12-31。</span></div></div>';
+      + '「回升」只表示回撤收窄，不代表卖出；' + staleTxt + '</span></div></div>';
   }
 
   function loadVal() {
@@ -31545,7 +31566,8 @@ function brakeCardHtml(opts) {
       + (pool ? pickHtml() : '')
       + '<div class="strat-note" style="margin:6px 0 8px">'
       + (pool ? '组合口径：所有参与指数<b>共用同一笔总资金</b>，谁先触及档位谁先买（每档固定金额）；现金不足时该档跳过并计数。卖出规则与单指数相同：每笔独立观察、反弹 ' + (+ST.obs || 2) + ' 档转入观察、从观察位回落 ' + (+ST.back || 1) + ' 档卖出该笔。回撤仍按<b>各指数自身历史最高收盘</b>计。'
-              : '档位以<b>历史高点回撤</b>计：' + (+ST.startDD) + '% → ' + (+ST.startDD - (+ST.gap || 5)) + '% 是「反弹一档」（间距 ' + (+ST.gap || 5) + ' 个百分点），不是产品上涨 ' + (+ST.gap || 5) + '%。每笔独立观察，触发后卖出该笔全部持仓；不含手续费与分红。')
+              : ('档位以<b>历史高点回撤</b>计：' + (+ST.startDD) + '% → ' + (+ST.startDD - (+ST.gap || 5)) + '% 是「反弹一档」（间距 ' + (+ST.gap || 5) + ' 个百分点），不是产品上涨 ' + (+ST.gap || 5) + '%。每笔独立观察，触发后卖出该笔全部持仓；不含手续费与分红。'
+                 + (cur().cat === '境外' ? ' <b>境外指数</b>按当地点位（' + ((cur().market === '美股') ? '美元' : '港元') + '）计价、未折汇率：这里的「金额」是按点数折算的名义金额，只用于验证规则。' : '')))
       + '</div>'
       + '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><button class="dd-run" data-dd-run="1">▷ 运行回测</button>'
       + '<span id="ddRunMsg" style="font-size:12px;color:#71717A">区间 ' + (ST.from || '—') + ' → ' + (ST.to || '—') + '</span></div></div>';
@@ -31604,7 +31626,9 @@ function brakeCardHtml(opts) {
       + '<th>买入日</th><th class="num">档位</th><th class="num">买入点位</th><th class="num">金额</th><th>卖出日</th><th class="num">卖出点位</th><th class="num">盈亏</th><th class="num">天数</th></tr></thead><tbody>'
       + tds + '</tbody></table></div>'
       + '<div class="strat-note" style="margin:6px 0 0">独立历史实验：不读取、不合并任何真实买卖记录，也不代表实盘收益。指数回撤深并不等于会回归（结构性衰退的板块可能长期不反弹），回测只给规则一个参照。'
-      + (pool ? ' 组合口径下各指数共用资金，结果对「谁先跌到档位」这一时序很敏感，换区间或换成分会明显变化。' : '') + '</div></div>';
+      + (pool ? ' 组合口径下各指数共用资金，结果对「谁先跌到档位」这一时序很敏感，换区间或换成分会明显变化。' : '')
+      + (pool && R.fxN ? ' 已剔除境外 ' + R.fxN + ' 只：港元/美元点数与 A 股不同币种，混算会把汇率当涨跌。' : '')
+      + '</div></div>';
   }
 
   function shellHtml() {
@@ -31724,10 +31748,10 @@ function brakeCardHtml(opts) {
     var arr2 = (D && D.indices) || [];
     var codesAll = arr2.map(function (x) { return x.code; });
     var pickWide = arr2.filter(function (x) { return x.cat === '宽基' && !x.stale; }).map(function (x) { return x.code; });
-    if (!pickWide.length) pickWide = arr2.filter(function (x) { return !x.stale; }).map(function (x) { return x.code; });
+    if (!pickWide.length) pickWide = arr2.filter(function (x) { return x.cat !== '境外' && !x.stale; }).map(function (x) { return x.code; });
     if (ST.pick && ST.pick.length) {
       /* v1094：池子从 13 只扩到 45 只——存量 pick 里已失效的代码剔掉，剩下的保留用户选择 */
-      ST.pick = ST.pick.filter(function (c) { return codesAll.indexOf(c) >= 0; });
+      ST.pick = ST.pick.filter(function (c) { return codesAll.indexOf(c) >= 0 && idxOf(c) && idxOf(c).cat !== '境外'; });
     }
     if (!ST.pick || ST.pick.length < 2) ST.pick = pickWide.slice();
   }
