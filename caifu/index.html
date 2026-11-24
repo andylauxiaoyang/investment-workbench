@@ -1564,7 +1564,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
    仍靠灰底 + disabled + cursor:not-allowed 表达「不可改」。
 全部只改颜色字面量，结构 / 文案 / 判定逻辑零改动；徽标 v1076 → v1077。 -->
 <!-- fw2_v1079_dca_row_unify（用户 2026-11-24「这个表的数据有问题，你排查下逻辑」）：资产配置表「定投金额（月）/累计应投」由「逐只基金 _dcaFirst/_dcaMonthly 相加」改为「按本行目标金额 + 本行实际市值（mvMap 份额×净值）现算」（_rowMonthlyT / _rowProgT / _mColTxt）。修掉两个实测错值：① 同指数多只基金只有主基金带目标、其余 target=0，逐只相加漏掉同族其它基金持仓（A500 ×2 累计应投 4,548、真实缺口 4,160；纳指100 ×12 4,946、真实 4,768）；② _dcaFirst 缺口走 gapOf() 的昨收(preclose)估值，与本表「实际市值」结算净值不同源，单只行也差几十元（沪深300 2,903 vs 2,893、黄金 4,649 vs 4,642）。一次性(lump，R2 定投＝关)口径下 累计应投＝max(0, 目标−市值)＝调仓金额同缺口，合计首笔 33,115→37,342；日限额标的(020712)不再被抹成「—」；月投列改为灰「0」明示「一次性口径非缺数据」；口径说明同步重写。未动：mvMap 取数、offOf、调仓金额、目标偏移、列结构、合计行累加方式。徽标 v1078 → v1079。 --><!-- fw2_v1080_dca_plan_basis（用户 2026-11-24 两条口径「1、月定投金额不是为零 2、累计应投是开始定投日到现在累计应该投资的金额」）：资产配置表「定投金额（月）/累计应投」改回**计划口径**，与持仓缺口、已达标、日限额、R2 三态全部解耦：月投＝目标(已 scale)×(1−底仓比例)÷总期数（纲领 investMode=base）／目标÷总期数（drip）／0（lump）；累计应投＝首笔(目标×底仓比例, 仅 base)＋月投×已过期数。根因是 v1076 的 `_planCfg()` 遇 R2＝关会把 mode 折成 lump，v1079 又用它算这两列，于是「计划月投」被实盘开关抹成 0。做法：`_planCfg()` 增加 `d.plan`（折叠前原值），新增 `_planCfgPlan()`，`_rowMonthlyT/_rowProgT` 去掉 mv 参数、只吃目标金额；表尾口径行改按计划口径出「首笔合计/月投合计」，R2＝关时追加「实盘暂不按月投（计划口径不受影响）」。未动：mvMap、offOf、调仓金额、目标偏移、列结构。徽标 v1079 → v1080。 --><!-- fw2_v1081_bt_param_labels（用户 2026-11-24 三张截图）：①「策略执行」tab 条上的「回测参数（全量底稿）」→「回测参数」（图三圈的就是这个 tab）；②配置回测页 / 自选回测页里的「修改参数 → 回测参数（全量底稿）」按口径分别改为「配置回测参数」「自选回测参数」，其后副文案「参数在『策略执行 → 回测参数』」同步补 ⑧-B / ⑧-C 子页签名；③其余指路文案里「策略执行 → 回测参数（全量底稿）」统一改成「策略执行 → 回测参数」（⑧-A 子页签名「⑧-A 回测参数（全量底稿）」保持不变，它是母版底稿的正式名）。零逻辑改动。 -->
-<!-- fw2_v1084_bt_a_label（用户 2026-11-24「同意」）：⑧-A 子页签由「⑧-A 回测参数（全量底稿）」改为「⑧-A 回测参数」，卡头 / 保存提示 / v1083 重置按钮 tooltip 三处同名文案同步（纯可见文案，零逻辑改动；代码注释与历史注释里的旧名保留）。 --><span id="verBadge" class="ver-badge">v1091</span><!-- fw2_v1076_conflicts（用户 2026-11-23「按照你顺序修」——修掉体检出的 5 处纲领冲突）：
+<!-- fw2_v1084_bt_a_label（用户 2026-11-24「同意」）：⑧-A 子页签由「⑧-A 回测参数（全量底稿）」改为「⑧-A 回测参数」，卡头 / 保存提示 / v1083 重置按钮 tooltip 三处同名文案同步（纯可见文案，零逻辑改动；代码注释与历史注释里的旧名保留）。 --><span id="verBadge" class="ver-badge">v1092</span><!-- fw2_v1076_conflicts（用户 2026-11-23「按照你顺序修」——修掉体检出的 5 处纲领冲突）：
 ①R7 带宽：撤销 v1067 的 `o.band = o.slotBand` 强镜像；band 只喂 R7（单只超配 25% 减配，SIG_THR_DEF 5→25、与回测 cfg.band 同值），slotBand 只喂 T10 四档；sigThrApply 分别写 C.barbell.band / C.barbell.slotBand，T10 文案改读 slotBand，R7 行 threshold 由硬编码「band 25%」改为动态读纲领值。
 ②R2 假开关：`_planCfg()` 读 `window.logicStateEff('R2')`——生效按 investMode，观察/关一律 lump（月投 0）；建仓步文案在一次性时追加「R2 定投＝关/观察」。
 ③T4 与 R6 双份：T4 行 modeled 改「与 R6 止损同一执行（同一 slHard）」，def 标「= R6 止损，同一动作」，阈值表 slHard 口径写「T4 / R6 · 同一执行」。
@@ -30932,9 +30932,9 @@ function brakeCardHtml(opts) {
 /* v1090：与「投资总纲」表格同一形态（固定列宽 / 表头底纹 #F4F4F2 / 细分隔线 / 最宽 1180px） */
 #stp-dd .dd-tbl--tg{border-collapse:collapse;font-size:11.5px;color:#18181B}
 #stp-dd .dd-tbl--tg th{padding:6px 8px;font-weight:700;font-size:11px;color:#52525B;background:#F4F4F2;border-bottom:1px solid #E4E4E7;white-space:nowrap;text-align:left}
-#stp-dd .dd-tbl--tg th.r{text-align:right}
+#stp-dd .dd-tbl--tg th.r{text-align:left}
 #stp-dd .dd-tbl--tg td{padding:6px 8px;border-bottom:1px solid #F1EFE9;vertical-align:middle;white-space:nowrap}
-#stp-dd .dd-tbl--tg td.r{text-align:right;font-family:var(--mono)}
+#stp-dd .dd-tbl--tg td.r{text-align:left;font-family:var(--mono)}
 #stp-dd .dd-tbl--tg td.wrap{white-space:normal;line-height:1.6}
 #stp-dd .dd-tbl--tg tr.on{background:#FFFDF5}
 #stp-dd .dd-tbl--tg tr[data-dd-code]{cursor:pointer}
@@ -30945,7 +30945,7 @@ function brakeCardHtml(opts) {
 #stp-dd .dd-tbl{min-width:640px;width:100%;border-collapse:collapse;font-size:11.5px}
 #stp-dd .dd-tbl th{background:#F4F4F2;color:#52525B;font-weight:700;font-size:11px;text-align:left;padding:6px 8px;border-bottom:1px solid #E4E4E7;white-space:nowrap}
 #stp-dd .dd-tbl td{padding:6px 8px;border-bottom:1px solid #F1EFE9;white-space:nowrap}
-#stp-dd .dd-tbl .num{text-align:right;font-family:var(--mono)}
+#stp-dd .dd-tbl .num{text-align:left;font-family:var(--mono)}
 @media (max-width:560px){
   #stp-dd .dd-plan-head{flex-direction:column}
   #stp-dd .dd-plan-head>div{flex:0 0 auto !important;width:100%}
@@ -30983,6 +30983,7 @@ function brakeCardHtml(opts) {
    v1088（2026-11-24 继续）：监测列表下新增「估值参考」卡（数据 data/index-val.json / gen_index_val.py；PE 取中证官网 20 日快照，价格分位自算，PE 10 年分位仅 3 只有月频源）。
    v1089（2026-11-24「全部做」）：①估值卡升级 PE/PB 双列 + 10 年分位（蛋卷估值中心覆盖 8 只，5 只用中证官网 20 日快照并标 ※）；②新增「今日跨档提醒」卡（对比上一交易日档位，参数改动只重画该卡）。
    v1090（2026-11-24 用户：「参照投资总纲里表格的形式展示」）：方案卡 / 全指数回撤监测 / 今日跨档提醒 / 估值参考 四块统一改用投资总纲表格形态（table-layout:fixed + colgroup 固定列宽 + 表头 #F4F4F2 底纹 + #F1EFE9 分隔线），公共骨架函数 ddTbl(cols,minW,rows,cls)。
+ v1092（2026-11-24 用户：「表格的字段和内容显示全部居左」）：dd 模块内所有表格的表头与单元格统一左对齐（原先数值列右对齐）——改 `#stp-dd .dd-tbl--tg th.r / td.r` 与 `#stp-dd .dd-tbl .num` 三处 text-align 为 left，数字仍走等宽字体，不再靠右。
  v1091（2026-11-24 用户：「投资总纲是铺满屏幕。这个也铺满全屏，但是可以加入更多的列字段」）：去掉 max-width:1180px 上限（表随卡片铺满），靠加列填满宽度——策略口径 3→4 列（加「在哪里改」）、买入区 7→10 列（加距下档 / 历史最高收盘+日期 / 数据日）、回撤监测 7→10 列（同上 + 距下档）、跨档提醒 5→10 列（加现价 / 今日档位 / 昨日档位 / 距下档 / 对比日）、估值参考 5→8 列（PE、PB 现值与分位拆开 + 口径·数据日）；新增 hiOf(ix) 算历史最高收盘及其日期。 */
 (function () {
   var ST = window.__DD_STATE = window.__DD_STATE || {
