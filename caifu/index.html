@@ -1563,7 +1563,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 ③ 阈值表 T9 CAP（已下线 · 仅存档）输入框文字 #9A968C 压退役灰底 #F1F0EC 只有 2.59 → 加深到 #6E6A60 = 4.73，
    仍靠灰底 + disabled + cursor:not-allowed 表达「不可改」。
 全部只改颜色字面量，结构 / 文案 / 判定逻辑零改动；徽标 v1076 → v1077。 -->
-<span id="verBadge" class="ver-badge">v1077</span><!-- fw2_v1076_conflicts（用户 2026-11-23「按照你顺序修」——修掉体检出的 5 处纲领冲突）：
+<span id="verBadge" class="ver-badge">v1078</span><!-- fw2_v1076_conflicts（用户 2026-11-23「按照你顺序修」——修掉体检出的 5 处纲领冲突）：
 ①R7 带宽：撤销 v1067 的 `o.band = o.slotBand` 强镜像；band 只喂 R7（单只超配 25% 减配，SIG_THR_DEF 5→25、与回测 cfg.band 同值），slotBand 只喂 T10 四档；sigThrApply 分别写 C.barbell.band / C.barbell.slotBand，T10 文案改读 slotBand，R7 行 threshold 由硬编码「band 25%」改为动态读纲领值。
 ②R2 假开关：`_planCfg()` 读 `window.logicStateEff('R2')`——生效按 investMode，观察/关一律 lump（月投 0）；建仓步文案在一次性时追加「R2 定投＝关/观察」。
 ③T4 与 R6 双份：T4 行 modeled 改「与 R6 止损同一执行（同一 slHard）」，def 标「= R6 止损，同一动作」，阈值表 slHard 口径写「T4 / R6 · 同一执行」。
@@ -19878,6 +19878,9 @@ setTimeout(() => { renderResearchChips(); if (!state.news.items.length) loadNews
       +(cust?'<button class="btn-mini" id="srResetBtn" style="color:var(--warn,#d97706)">恢复默认</button>':'')
       +'</div></div>'
       +'<div style="font-size:11px;color:var(--muted);margin-top:4px;line-height:1.6">'+srcLine+'</div>'
+      +'<div style="margin-top:6px;font-size:11px;line-height:1.6;color:#3F3F46;background:#FEF6E9;border-left:3px solid #96560A;padding:5px 8px;border-radius:0 6px 6px 0">'
+      +'本页参数同时约束 <b>① 选品 · 标的池</b> 的 S1 估值分位（提示阈值）/ S5 风险（进池门槛）/ S7 跟踪指数 PE 分位（同族去重）：数值只在这里改，三态开关在投资总纲。'
+      +'<a href="javascript:void(0)" onclick="selParamGoTotal()" style="color:#2563EB;text-decoration:underline;margin-left:6px">去投资总纲 ①</a></div>'
       +'<div id="srEditWrap" style="display:none;margin-top:10px;border-top:1px dashed var(--line,#e2e8f0);padding-top:10px"></div>'
       +'</div>';
     /* ---- 定位基线（fw2_v366_mw：手册第〇层） ---- */
@@ -21840,8 +21843,8 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
      「生效作用」列末行加蓝色「生效信号显示位置」——点「生效」后信号真的出现在哪，不出行的如实写「不出行」。
      两条映射都以页面实测 + 渲染代码为准（2026-11-21 实测持仓/筛选/市场/V11/趋势/聪明钱 6 个 tab 的码集合），不凭印象编。 */
   var LOGIC_MEAN = {
-    S1: '筛选池的估值门槛：PE 分位 ≤30%（35% 内出「接近」）才提示关注买入，更高的只留在筛选画像里、不追高。它决定「先看谁」，不产生买卖动作。',
-    S5: '进池前的风险门槛：规模 <5000 万、经理任职现基金 <1 年、经理生涯 <3 年，命中任一条就直接挡在候选池外（最多给到「接近」），避免清盘或换经理风险。',
+    S1: '筛选池的估值提示阈值（不是进池淘汰）：PE 分位 ≤30%（35% 内出「接近」）才在筛选池建议关注，更高的只留在画像里、不追高。筛选规则的硬门槛没有估值项，估值只在打分（bonus.valuation）里加分——所以它是「先看谁」，不是「筛掉谁」。',
+    S5: '进池淘汰由筛选规则负责：规模下限与成立年限读 screen-rules.json 现算（当前见本行「参数出处」），本层不自带数量级。本信号只管风险提示——规模逼近 5000 万清盘线、经理现基金任职 <1 年、经理生涯 <3 年时，标「先别加仓」（最多给到「接近」），不参与成交。',
     S7: '同指数比价：同一跟踪指数有多只候选基金时，用该指数的 PE 分位挑便宜的那只，避免同指数里专挑涨得最猛/费率最高的。',
     W1: '自选池的估值买入提示：分位 ≤30%（35% 内出「接近」）才提示「可以考虑买」，分位高的不追。是提示，不是自动下单。',
     W5: '自选池的风险提示：规模、经理任职年限不达标时标红，含义是「先别加仓」，把风险来源查清再谈。',
@@ -22345,7 +22348,58 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
     if (r.id === 'BT6') return '「采纳」按钮在版本条上，规则改动默认只进草稿';
     return '';
   }
-  function logicRowHtml(r, d) {
+  /* fw2_v1078_sel_params（用户 2026-11-24「① 选品·标的池 与 基金数据·筛选规则 是不是应该一致或合并」→ 选 B 不合并、统一口径）：
+   ①选品层是「信号 + 三态开关」，筛选规则是「产池参数 + 文档」；两者生命周期不同，不合并。
+   但同一维度只能有一个数字：进池门槛（规模/成立年限/同族上限）一律读 SCREEN_RULES 现算，
+   本层只写「这个数从哪来」，不再复制字面值——写死即被 _audit_screen_consistency.py 判 FAIL。 */
+function _srVal(path, dft){
+  try{
+    var o = (typeof SCREEN_RULES !== 'undefined' && SCREEN_RULES) || null;
+    if(!o) return dft;
+    var ks = String(path).split('.'), cur = o;
+    for(var i=0;i<ks.length;i++){ if(cur==null) return dft; cur = cur[ks[i]]; }
+    return (cur==null || cur==='') ? dft : cur;
+  }catch(e){ return dft; }
+}
+var SEL_PARAM_SRC = {
+  S1: function(){
+    return '提示阈值（不淘汰）：PE 分位 ≤30%（35% 内出「接近」）；筛选规则的硬门槛里没有估值项，估值只作打分（bonus.valuation）';
+  },
+  S5: function(){
+    var sc = _srVal('hardGates.scaleMin.value', 2), fy = _srVal('hardGates.estabMinYears.value', 3);
+    return '进池淘汰：规模 ≥' + sc + ' 亿 / 成立 ≥' + fy + ' 年（筛选规则 · 硬门槛，改这里才生效）；风险提示：<5000 万清盘线、经理现基金任职 <1 年、生涯 <3 年 → 只标「先别加仓」';
+  },
+  S7: function(){
+    var tb = _srVal('batch.tribeMax', 2);
+    return '同指数比价用指数 PE 分位；同族去重上限 ' + tb + ' 只写在筛选规则（batch.tribeMax），本层只负责「挑便宜的那只」';
+  }
+};
+function selParamNote(id){
+  var f = SEL_PARAM_SRC[id];
+  if(!f) return '';
+  var txt = '';
+  try{ txt = f(); }catch(e){ txt = ''; }
+  if(!txt) return '';
+  return '<div style="margin-top:3px;font-size:10px;line-height:1.5;color:#96560A">参数出处：' + logicEsc(txt)
+    + ' <a href="javascript:void(0)" onclick="selParamGo()" style="color:#2563EB;text-decoration:underline">打开筛选规则 →</a></div>';
+}
+function selParamGo(){
+  try{
+    if(typeof showView === 'function') showView('data');
+    var tb = document.querySelector('.dc-tab[data-dc="pool-rules"]');
+    if(tb) tb.click();
+  }catch(e){}
+}
+function selParamGoTotal(){
+  try{
+    if(typeof showView === 'function') showView('tg');
+    if(typeof logicGo === 'function') logicGo('sel');
+  }catch(e){}
+}
+window.selParamGo = selParamGo;
+window.selParamGoTotal = selParamGoTotal;
+
+function logicRowHtml(r, d) {
     if (LOGIC_BT.indexOf(r) >= 0) {
       var cpB = 'padding:6px 7px;vertical-align:top;';
       var thrB = String(r.thr || '').replace(/<[^>]+>/g, '');
@@ -22397,7 +22451,8 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
     return '<tr style="border-bottom:1px solid #F2F0EA">'
       + '<td style="' + cp + 'white-space:normal;line-height:1.45"><b style="font-size:12px">' + logicEsc(r.id) + '</b> <span style="color:#3F3F46;font-size:12px">' + logicEsc(r.name) + '</span></td>'
       + '<td style="' + cp + 'font-size:11px;line-height:1.55;color:#3F3F46;word-break:break-word">'
-        + (LOGIC_MEAN[r.id] ? logicEsc(LOGIC_MEAN[r.id]) : '<span style="color:#B4B4BB">（未登记含义）</span>') + '</td>'
+        + (LOGIC_MEAN[r.id] ? logicEsc(LOGIC_MEAN[r.id]) : '<span style="color:#B4B4BB">（未登记含义）</span>')
+        + selParamNote(r.id) + '</td>'
       + '<td style="' + cp + 'color:#71717A;font-size:11px;line-height:1.45">' + logicEsc(role) + '</td>'
       + '<td style="' + cp + 'white-space:nowrap"><span class="lg-seg" role="radiogroup" aria-label="' + logicEsc(r.id + ' ' + r.name) + ' 三态">' + btn + '</span></td>'
       + logicEffTd(r, knob)
