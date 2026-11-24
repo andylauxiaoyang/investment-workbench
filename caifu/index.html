@@ -1564,7 +1564,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
    仍靠灰底 + disabled + cursor:not-allowed 表达「不可改」。
 全部只改颜色字面量，结构 / 文案 / 判定逻辑零改动；徽标 v1076 → v1077。 -->
 <!-- fw2_v1079_dca_row_unify（用户 2026-11-24「这个表的数据有问题，你排查下逻辑」）：资产配置表「定投金额（月）/累计应投」由「逐只基金 _dcaFirst/_dcaMonthly 相加」改为「按本行目标金额 + 本行实际市值（mvMap 份额×净值）现算」（_rowMonthlyT / _rowProgT / _mColTxt）。修掉两个实测错值：① 同指数多只基金只有主基金带目标、其余 target=0，逐只相加漏掉同族其它基金持仓（A500 ×2 累计应投 4,548、真实缺口 4,160；纳指100 ×12 4,946、真实 4,768）；② _dcaFirst 缺口走 gapOf() 的昨收(preclose)估值，与本表「实际市值」结算净值不同源，单只行也差几十元（沪深300 2,903 vs 2,893、黄金 4,649 vs 4,642）。一次性(lump，R2 定投＝关)口径下 累计应投＝max(0, 目标−市值)＝调仓金额同缺口，合计首笔 33,115→37,342；日限额标的(020712)不再被抹成「—」；月投列改为灰「0」明示「一次性口径非缺数据」；口径说明同步重写。未动：mvMap 取数、offOf、调仓金额、目标偏移、列结构、合计行累加方式。徽标 v1078 → v1079。 --><!-- fw2_v1080_dca_plan_basis（用户 2026-11-24 两条口径「1、月定投金额不是为零 2、累计应投是开始定投日到现在累计应该投资的金额」）：资产配置表「定投金额（月）/累计应投」改回**计划口径**，与持仓缺口、已达标、日限额、R2 三态全部解耦：月投＝目标(已 scale)×(1−底仓比例)÷总期数（纲领 investMode=base）／目标÷总期数（drip）／0（lump）；累计应投＝首笔(目标×底仓比例, 仅 base)＋月投×已过期数。根因是 v1076 的 `_planCfg()` 遇 R2＝关会把 mode 折成 lump，v1079 又用它算这两列，于是「计划月投」被实盘开关抹成 0。做法：`_planCfg()` 增加 `d.plan`（折叠前原值），新增 `_planCfgPlan()`，`_rowMonthlyT/_rowProgT` 去掉 mv 参数、只吃目标金额；表尾口径行改按计划口径出「首笔合计/月投合计」，R2＝关时追加「实盘暂不按月投（计划口径不受影响）」。未动：mvMap、offOf、调仓金额、目标偏移、列结构。徽标 v1079 → v1080。 --><!-- fw2_v1081_bt_param_labels（用户 2026-11-24 三张截图）：①「策略执行」tab 条上的「回测参数（全量底稿）」→「回测参数」（图三圈的就是这个 tab）；②配置回测页 / 自选回测页里的「修改参数 → 回测参数（全量底稿）」按口径分别改为「配置回测参数」「自选回测参数」，其后副文案「参数在『策略执行 → 回测参数』」同步补 ⑧-B / ⑧-C 子页签名；③其余指路文案里「策略执行 → 回测参数（全量底稿）」统一改成「策略执行 → 回测参数」（⑧-A 子页签名「⑧-A 回测参数（全量底稿）」保持不变，它是母版底稿的正式名）。零逻辑改动。 -->
-<!-- fw2_v1084_bt_a_label（用户 2026-11-24「同意」）：⑧-A 子页签由「⑧-A 回测参数（全量底稿）」改为「⑧-A 回测参数」，卡头 / 保存提示 / v1083 重置按钮 tooltip 三处同名文案同步（纯可见文案，零逻辑改动；代码注释与历史注释里的旧名保留）。 --><span id="verBadge" class="ver-badge">v1086</span><!-- fw2_v1076_conflicts（用户 2026-11-23「按照你顺序修」——修掉体检出的 5 处纲领冲突）：
+<!-- fw2_v1084_bt_a_label（用户 2026-11-24「同意」）：⑧-A 子页签由「⑧-A 回测参数（全量底稿）」改为「⑧-A 回测参数」，卡头 / 保存提示 / v1083 重置按钮 tooltip 三处同名文案同步（纯可见文案，零逻辑改动；代码注释与历史注释里的旧名保留）。 --><span id="verBadge" class="ver-badge">v1087</span><!-- fw2_v1076_conflicts（用户 2026-11-23「按照你顺序修」——修掉体检出的 5 处纲领冲突）：
 ①R7 带宽：撤销 v1067 的 `o.band = o.slotBand` 强镜像；band 只喂 R7（单只超配 25% 减配，SIG_THR_DEF 5→25、与回测 cfg.band 同值），slotBand 只喂 T10 四档；sigThrApply 分别写 C.barbell.band / C.barbell.slotBand，T10 文案改读 slotBand，R7 行 threshold 由硬编码「band 25%」改为动态读纲领值。
 ②R2 假开关：`_planCfg()` 读 `window.logicStateEff('R2')`——生效按 investMode，观察/关一律 lump（月投 0）；建仓步文案在一次性时追加「R2 定投＝关/观察」。
 ③T4 与 R6 双份：T4 行 modeled 改「与 R6 止损同一执行（同一 slHard）」，def 标「= R6 止损，同一动作」，阈值表 slHard 口径写「T4 / R6 · 同一执行」。
@@ -30937,6 +30937,14 @@ function brakeCardHtml(opts) {
   #stp-dd .dd-form{grid-template-columns:repeat(auto-fill,minmax(140px,1fr))}
   #stp-dd .dd-form input,#stp-dd .dd-form select{font-size:11px}
 }
+.dd-pickwrap{margin:2px 0 8px}
+.dd-pickhd{font-size:12px;color:#52525B;margin-bottom:6px;line-height:1.6}
+.dd-picks{display:flex;flex-wrap:wrap;gap:6px}
+.dd-pick{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border:1px solid #E4E4E7;border-radius:999px;background:#fff;font-size:12px;color:#3F3F46;cursor:pointer;line-height:1.35;font-family:inherit}
+.dd-pick > span{font-family:var(--mono);font-size:11px;color:#63636B}
+.dd-pick.on{border-color:#E0A88A;background:#FFF3EC;color:#8A3A16;font-weight:600}
+.dd-pick.on > span{color:#8A3A16}
+@media (max-width:560px){.dd-picks{gap:5px}.dd-pick{padding:4px 8px;font-size:11px}}
 </style>
 <!-- fw2_v1086_dd：策略执行新增「回撤档位」子页签（用户 2026-11-24 三张截图「指数跟踪 + 高点回撤 70% 起分批买入」）。
      落点：①#stratTabs 第 5 颗按钮 data-st=dd；②#stp-dd 面板；③__stratActiveTab/__stratPaneRender/switchStratTab 三处分支；
@@ -30949,11 +30957,13 @@ function brakeCardHtml(opts) {
      ① 回撤＝收盘/历史最高收盘-1，档位按回撤百分点等距切（默认 70% 起、间距 5pp：70/75/80…）
      ② 每触及一个新档位买入固定金额（每档独立，不受后续档位影响）
      ③ 卖出＝反弹 N 档后进入观察，再从观察位回落 M 档 → 卖出该笔全部（默认 反弹2档观察 / 回落1档卖出）
-   数据：data/index-dd.json（gen_index_dd.py 产），懒加载；不写 localStorage（纯视图态 + 参数在页面内）。 */
+   数据：data/index-dd.json（gen_index_dd.py 产），懒加载；不写 localStorage（纯视图态 + 参数在页面内）。
+   v1087（2026-11-24 用户「继续往下做」）：新增「多指数组合（共享资金池）」回测方式（ST.scope/pick + runPoolBT），单指数口径不变。 */
 (function () {
   var ST = window.__DD_STATE = window.__DD_STATE || {
     code: '', capital: 10000, perBuy: 500, startDD: 70, gap: 5,
-    mode: 'rebound', obs: 2, back: 1, from: '', to: ''
+    mode: 'rebound', obs: 2, back: 1, from: '', to: '',
+    scope: 'one', pick: null
   };
   var D = window.__DD_DATA = window.__DD_DATA || null;
   var loadP = null;
@@ -30968,7 +30978,10 @@ function brakeCardHtml(opts) {
   }
   function money(v) { return '¥' + nf(v, 2); }
   function pct(v, d) { var x = +v; if (!isFinite(x)) return '—'; return (x > 0 ? '+' : '') + x.toFixed(d == null ? 2 : d) + '%'; }
-  function ymd(s) { return (s && s.length === 8) ? (s.slice(0, 4) + '-' + s.slice(4, 6) + '-' + s.slice(6, 8)) : (s || '—'); }
+  function ymd(s) {
+    var t = String(s == null ? '' : s);
+    return t.length === 8 ? (t.slice(0, 4) + '-' + t.slice(4, 6) + '-' + t.slice(6, 8)) : (t || '—');
+  }
   function dnum(s) { return +String(s).replace(/-/g, ''); }
   function today() { if (D && D.updatedAt) return D.updatedAt; var t = new Date(); return t.toISOString().slice(0, 10); }
   function isoAddYears(s, y) { var d = new Date(s + 'T00:00:00'); d.setFullYear(d.getFullYear() + y); return d.toISOString().slice(0, 10); }
@@ -31076,7 +31089,139 @@ function brakeCardHtml(opts) {
     };
   }
 
-  /* ---------- 视图 ---------- */
+  /* ---------- 组合回测引擎（多指数、共享资金池、逐笔独立卖出） ---------- */
+  function dgap(a2, b2) {
+    var x = String(a2), y = String(b2);
+    if (x.length !== 8 || y.length !== 8) return 0;
+    var d1 = Date.UTC(+x.slice(0, 4), +x.slice(4, 6) - 1, +x.slice(6, 8));
+    var d2 = Date.UTC(+y.slice(0, 4), +y.slice(4, 6) - 1, +y.slice(6, 8));
+    return Math.round((d2 - d1) / 86400000);
+  }
+  function runPoolBT(p) {
+    var picks = (p.pick || []).map(idxOf).filter(Boolean);
+    if (picks.length < 2) return { err: '组合回测至少选 2 只指数（当前 ' + picks.length + ' 只）' };
+    var f0 = dnum(p.from), t0 = dnum(p.to);
+    var gap = Math.max(0.5, +p.gap || 5);
+    var startDD = Math.max(1, +p.startDD || 70);
+    var perBuy = Math.max(0, +p.perBuy || 0);
+    if (perBuy <= 0) return { err: '每档买入金额必须大于 0' };
+    var capital = Math.max(0, +p.capital || 0);
+
+    var sel = [], maps = [];
+    picks.forEach(function (ix) {
+      ddArrOf(ix);
+      var m = {}, i;
+      for (i = 0; i < ix.d.length; i++) m[ix.d[i]] = i;
+      sel.push(ix); maps.push(m);
+    });
+
+    /* 并集交易日轴（只用区间内日期） */
+    var seen = {}, axis = [], q;
+    for (q = 0; q < sel.length; q++) {
+      var dl = sel[q].d;
+      for (var w = 0; w < dl.length; w++) {
+        var dv = dl[w];
+        if (dv >= f0 && dv <= t0 && !seen[dv]) { seen[dv] = 1; axis.push(dv); }
+      }
+    }
+    axis.sort(function (u, v) { return u - v; });
+    if (axis.length < 30) return { err: '区间内交易日不足（' + axis.length + ' 天），请放宽区间' };
+
+    var cash = capital, lotsAll = [], trades = [], curve = [];
+    var lastPx = [], nextTier = [], trig = {}, skipN = 0, s;
+    for (s = 0; s < sel.length; s++) { lastPx.push(null); nextTier.push(null); }
+
+    for (var k = 0; k < axis.length; k++) {
+      var d = axis[k];
+      for (s = 0; s < sel.length; s++) {
+        var ix = sel[s], at = maps[s][d];
+        if (at === undefined) continue;              /* 该指数当日无交易：沿用上一次收盘估值 */
+        var c = ix.c[at];
+        lastPx[s] = c;
+        var ddAbs = -(ix.ddArr[at] || 0);
+        if (ddAbs >= startDD + 1e-9) {
+          if (nextTier[s] === null) nextTier[s] = Math.max(startDD, Math.floor((ddAbs + 1e-9) / gap) * gap);
+          while (ddAbs + 1e-9 >= nextTier[s]) {
+            if (cash + 1e-9 < perBuy) { skipN++; break; }
+            var amt = perBuy, qty = amt / c;
+            cash -= amt;
+            lotsAll.push({ s: s, code: ix.code, name: ix.name, d: d, tier: nextTier[s], px: c, amt: amt, qty: qty, peakDD: nextTier[s], armed: false, armDD: null, sold: false, li: trades.length });
+            trades.push({ code: ix.code, name: ix.name, bd: d, tier: nextTier[s], bpx: c, amt: amt, sd: '', spx: 0, pnl: null, days: 0 });
+            trig[ix.code] = 1;
+            nextTier[s] = nextTier[s] + gap;
+          }
+        }
+        if (p.mode === 'rebound') {
+          for (var li = 0; li < lotsAll.length; li++) {
+            var lo = lotsAll[li];
+            if (lo.s !== s || lo.sold) continue;
+            if (ddAbs >= lo.peakDD) lo.peakDD = ddAbs;
+            if (!lo.armed) {
+              if (ddAbs <= lo.peakDD - (+p.obs || 0) * gap) { lo.armed = true; lo.armDD = ddAbs; }
+            } else {
+              if (ddAbs < lo.armDD) lo.armDD = ddAbs;
+              if (ddAbs >= lo.armDD + (+p.back || 0) * gap) {
+                cash += lo.qty * c;
+                lo.sold = true;
+                var tr = trades[lo.li];
+                tr.sd = d; tr.spx = c; tr.pnl = lo.qty * c - lo.amt; tr.days = dgap(lo.d, d);
+              }
+            }
+          }
+        }
+      }
+      var mv = 0;
+      for (var q2 = 0; q2 < lotsAll.length; q2++) {
+        var l2 = lotsAll[q2];
+        if (!l2.sold) mv += l2.qty * (lastPx[l2.s] != null ? lastPx[l2.s] : l2.px);
+      }
+      curve.push({ d: d, eq: cash + mv, pos: mv });
+    }
+
+    var sold = trades.filter(function (t3) { return t3.sd; });
+    var wins = sold.filter(function (t3) { return t3.pnl > 0; }).length;
+    var final = curve.length ? curve[curve.length - 1].eq : capital;
+    var pnl = final - capital;
+    var years = dgap(axis[0], axis[axis.length - 1]) / 365.25;
+    var cagr = (final > 0 && capital > 0 && years > 0.25) ? (Math.pow(final / capital, 1 / years) - 1) * 100 : 0;
+    var peak = -1e18, mdd = 0;
+    for (var ci = 0; ci < curve.length; ci++) {
+      if (curve[ci].eq > peak) peak = curve[ci].eq;
+      if (peak > 0) mdd = Math.max(mdd, (peak - curve[ci].eq) / peak * 100);
+    }
+    var avgPos = 0, maxPos = 0;
+    for (var pi = 0; pi < curve.length; pi++) {
+      var rr = curve[pi].eq > 0 ? curve[pi].pos / curve[pi].eq : 0;
+      avgPos += rr; if (rr > maxPos) maxPos = rr;
+    }
+    avgPos = curve.length ? avgPos / curve.length : 0;
+
+    /* 分指数汇总 */
+    var byCode = {};
+    for (var bi = 0; bi < sel.length; bi++) {
+      byCode[sel[bi].code] = { code: sel[bi].code, name: sel[bi].name, buy: 0, amt: 0, soldPn: 0, soldN: 0, openN: 0, openMv: 0, dd: -(sel[bi].dd || 0) };
+    }
+    trades.forEach(function (t4) {
+      var b = byCode[t4.code]; if (!b) return;
+      b.buy++; b.amt += t4.amt;
+      if (t4.sd) { b.soldN++; b.soldPn += (t4.pnl || 0); }
+    });
+    lotsAll.forEach(function (l3) {
+      var b2 = byCode[l3.code]; if (!b2 || l3.sold) return;
+      b2.openN++; b2.openMv += l3.qty * (lastPx[l3.s] != null ? lastPx[l3.s] : l3.px);
+    });
+
+    return {
+      ok: 1, scope: 'pool', curve: curve, trades: trades, capital: capital, final: final, pnl: pnl,
+      ret: capital > 0 ? pnl / capital * 100 : 0, cagr: cagr, mdd: mdd,
+      win: sold.length ? wins / sold.length * 100 : 0, soldN: sold.length, buyN: trades.length,
+      avgPos: avgPos * 100, maxPos: maxPos * 100, years: years,
+      from: axis[0], to: axis[axis.length - 1],
+      openLots: lotsAll.filter(function (x) { return !x.sold; }).length,
+      pickN: sel.length, trigN: Object.keys(trig).length, skipN: skipN, byCode: byCode
+    };
+  }
+
   function planCardHtml() {
     var arr = (D && D.indices) || [];
     var hit = arr.filter(function (x) { return -x.dd >= 70; }).sort(function (a, b) { return a.dd - b.dd; });
@@ -31145,15 +31290,33 @@ function brakeCardHtml(opts) {
     return t.slice(0, 4) + '-' + t.slice(4, 6) + '-' + t.slice(6, 8);
   }
 
+  function pickHtml() {
+    var arr = (D && D.indices) || [];
+    var pk = ST.pick || [];
+    var chips = arr.map(function (x) {
+      var on = pk.indexOf(x.code) >= 0;
+      return '<button type="button" class="dd-pick' + (on ? ' on' : '') + '" data-dd-pick="' + x.code + '">' + x.name
+        + '<span>' + (-x.dd).toFixed(1) + '%' + (x.stale ? ' ⚠' : '') + '</span></button>';
+    }).join('');
+    return '<div class="dd-pickwrap"><div class="dd-pickhd">参与组合的指数（点选切换，括号内为当前回撤）'
+      + '<span style="color:#63636B"> · 已选 <b>' + pk.length + '</b> 只</span></div><div class="dd-picks">' + chips + '</div></div>';
+  }
+
   function paramHtml() {
+    var pool = ST.scope === 'pool';
     var sel = ((D && D.indices) || []).map(function (x) {
       return '<option value="' + x.code + '"' + (String(ST.code) === String(x.code) ? ' selected' : '') + '>' + x.name + '（' + x.code + '）</option>';
     }).join('');
-    return '<div class="st-card"><h4>档位回测 <span style="font-weight:400;font-size:11px;color:#71717A">单指数 · 档位网格买入 · 逐笔独立卖出</span></h4>'
+    return '<div class="st-card"><h4>档位回测 <span style="font-weight:400;font-size:11px;color:#71717A">'
+      + (pool ? '多指数组合 · 共享资金池 · 逐笔独立卖出' : '单指数 · 档位网格买入 · 逐笔独立卖出') + '</span></h4>'
       + '<div class="dd-form">'
-      + '<label>指数<select data-dd="code">' + sel + '</select></label>'
-      + '<label>总资金（元）<input data-dd="capital" type="number" min="0" step="100" value="' + (+ST.capital) + '"></label>'
-      + '<label>每档买入金额（元）<input data-dd="perBuy" type="number" min="0" step="50" value="' + (+ST.perBuy) + '"></label>'
+      + '<label>回测方式<select data-dd="scope">'
+      + '<option value="one"' + (pool ? '' : ' selected') + '>单指数</option>'
+      + '<option value="pool"' + (pool ? ' selected' : '') + '>多指数组合（共用资金）</option>'
+      + '</select></label>'
+      + (pool ? '' : '<label>指数<select data-dd="code">' + sel + '</select></label>')
+      + '<label>总资金（元）<input data-dd="capital" type="number" min="0" step="1000" value="' + (+ST.capital) + '"></label>'
+      + '<label>每档买入金额（元）<input data-dd="perBuy" type="number" min="0" step="100" value="' + (+ST.perBuy) + '"></label>'
       + '<label>开始买入的回撤（%）<input data-dd="startDD" type="number" min="1" max="95" step="1" value="' + (+ST.startDD) + '"></label>'
       + '<label>档位间距（百分点）<input data-dd="gap" type="number" min="1" max="20" step="1" value="' + (+ST.gap) + '"></label>'
       + '<label>卖出方式<select data-dd="mode">'
@@ -31165,7 +31328,11 @@ function brakeCardHtml(opts) {
       + '<label>开始日期<input data-dd="from" type="date" value="' + (ST.from || isoOf(cur().start)) + '"></label>'
       + '<label>结束日期<input data-dd="to" type="date" value="' + (ST.to || isoOf(cur().end)) + '"></label>'
       + '</div>'
-      + '<div class="strat-note" style="margin:6px 0 8px">档位以<b>历史高点回撤</b>计：70% → 65% 是「反弹一档」（间距 ' + (+ST.gap || 5) + ' 个百分点），不是产品上涨 ' + (+ST.gap || 5) + '%。每笔独立观察，触发后卖出该笔全部持仓；不含手续费与分红。</div>'
+      + (pool ? pickHtml() : '')
+      + '<div class="strat-note" style="margin:6px 0 8px">'
+      + (pool ? '组合口径：所有参与指数<b>共用同一笔总资金</b>，谁先触及档位谁先买（每档固定金额）；现金不足时该档跳过并计数。卖出规则与单指数相同：每笔独立观察、反弹 ' + (+ST.obs || 2) + ' 档转入观察、从观察位回落 ' + (+ST.back || 1) + ' 档卖出该笔。回撤仍按<b>各指数自身历史最高收盘</b>计。'
+              : '档位以<b>历史高点回撤</b>计：' + (+ST.startDD) + '% → ' + (+ST.startDD - (+ST.gap || 5)) + '% 是「反弹一档」（间距 ' + (+ST.gap || 5) + ' 个百分点），不是产品上涨 ' + (+ST.gap || 5) + '%。每笔独立观察，触发后卖出该笔全部持仓；不含手续费与分红。')
+      + '</div>'
       + '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><button class="dd-run" data-dd-run="1">▷ 运行回测</button>'
       + '<span id="ddRunMsg" style="font-size:12px;color:#71717A">区间 ' + (ST.from || '—') + ' → ' + (ST.to || '—') + '</span></div></div>';
   }
@@ -31175,19 +31342,36 @@ function brakeCardHtml(opts) {
   }
 
   function resultHtml(R) {
-    if (!R) return '<div class="st-card" id="ddResultCard"><h4>回测结果</h4><div class="strat-note" style="margin:0">点「▷ 运行回测」出结果；默认 70% 起买、每档 ¥500、反弹 2 档观察后回落 1 档卖出。</div></div>';
+    if (!R) return '<div class="st-card" id="ddResultCard"><h4>回测结果</h4><div class="strat-note" style="margin:0">点「▷ 运行回测」出结果；默认 70% 起买、每档 ¥500、反弹 2 档观察后回落 1 档卖出。切到「多指数组合」则所有选中指数共用同一笔资金。</div></div>';
     if (R.err) return '<div class="st-card" id="ddResultCard"><h4>回测结果</h4><div style="color:#A32D2D;font-size:12px">' + R.err + '</div></div>';
+    var pool = R.scope === 'pool';
     var cagrTxt = (R.years || 0) < 1 ? '<span style="font-size:11px;color:#71717A">不足一年，不折算年化</span>' : pct(R.cagr, 2);
-    var trades = R.trades.map(function (t) {
+    var tds = R.trades.map(function (t) {
       var pnlCls = t.pnl == null ? '' : (t.pnl >= 0 ? 'color:#b91c1c' : 'color:#047857');
-      return '<tr><td>' + ymd(t.bd) + '</td><td class="num">' + t.tier + '%</td><td class="num">' + nf(t.bpx, 2) + '</td>'
+      return '<tr>' + (pool ? '<td>' + t.name + '</td>' : '')
+        + '<td>' + ymd(t.bd) + '</td><td class="num">' + t.tier + '%</td><td class="num">' + nf(t.bpx, 2) + '</td>'
         + '<td class="num">' + money(t.amt) + '</td><td>' + (t.sd ? ymd(t.sd) : '持有中') + '</td>'
         + '<td class="num">' + (t.spx ? nf(t.spx, 2) : '—') + '</td>'
         + '<td class="num" style="' + pnlCls + '">' + (t.pnl == null ? '—' : (t.pnl >= 0 ? '+' : '') + nf(t.pnl, 2)) + '</td>'
         + '<td class="num">' + (t.sd ? t.days : '—') + '</td></tr>';
     }).join('');
+    var byTbl = '';
+    if (pool && R.byCode) {
+      var rows = Object.keys(R.byCode).map(function (k) { return R.byCode[k]; })
+        .sort(function (a, b) { return b.amt - a.amt; })
+        .map(function (b) {
+          var pnlTxt = b.soldN ? ((b.soldPn >= 0 ? '+' : '') + nf(b.soldPn, 2)) : '—';
+          var cls = b.soldPn >= 0 ? 'color:#b91c1c' : 'color:#047857';
+          return '<tr><td>' + b.name + '</td><td class="num">' + b.dd.toFixed(2) + '%</td><td class="num">' + b.buy + '</td>'
+            + '<td class="num">' + money(b.amt) + '</td><td class="num" style="' + cls + '">' + pnlTxt + '</td>'
+            + '<td class="num">' + b.openN + '</td><td class="num">' + money(b.openMv) + '</td></tr>';
+        }).join('');
+      byTbl = '<div class="dd-tblwrap" style="margin-top:2px"><table class="dd-tbl"><thead><tr><th>指数</th><th class="num">当前回撤</th><th class="num">买入笔数</th><th class="num">投入金额</th><th class="num">已实现盈亏</th><th class="num">在仓笔数</th><th class="num">在仓市值</th></tr></thead><tbody>'
+        + rows + '</tbody></table></div>';
+    }
     return '<div class="st-card" id="ddResultCard"><h4 style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">回测结果'
-      + '<span style="font-weight:400;font-size:11px;color:#71717A">' + dstr(R.from) + ' → ' + dstr(R.to) + ' · 每档 ' + money(+ST.perBuy) + ' · 起始 ' + (+ST.startDD) + '%</span></h4>'
+      + '<span style="font-weight:400;font-size:11px;color:#71717A">' + dstr(R.from) + ' → ' + dstr(R.to) + ' · '
+      + (pool ? '组合 ' + R.pickN + ' 只 · 触发 ' + R.trigN + ' 只' : '单指数') + ' · 每档 ' + money(+ST.perBuy) + ' · 起始 ' + (+ST.startDD) + '%</span></h4>'
       + '<div class="dd-kpis">'
       + kpi('期末总资产', money(R.final), '本金 ' + money(R.capital) + ' · 期末在仓 ' + R.openLots + ' 笔', '#b91c1c')
       + kpi('累计盈亏', (R.pnl >= 0 ? '+' : '') + money(R.pnl), '账户收益率 ' + pct(R.ret), R.pnl >= 0 ? '#b91c1c' : '#047857')
@@ -31196,13 +31380,17 @@ function brakeCardHtml(opts) {
       + kpi('已结束交易胜率', R.soldN ? R.win.toFixed(1) + '%' : '—', R.soldN + ' 笔已卖出', '')
       + kpi('平均仓位', R.avgPos.toFixed(2) + '%', '最高 ' + R.maxPos.toFixed(2) + '%', '')
       + kpi('买入 / 卖出', R.buyN + ' / ' + R.soldN, '在仓 ' + R.openLots + ' 笔', '')
-      + kpi('手续费', '¥0.00', '指数点位回测，不计费用', '')
+      + (pool ? kpi('参与 / 触发', R.pickN + ' / ' + R.trigN, '资金不足跳过 ' + R.skipN + ' 档', '')
+              : kpi('手续费', '¥0.00', '指数点位回测，不计费用', ''))
       + '</div>'
       + '<div id="ddChart" style="height:230px;margin:8px 0 4px"></div>'
       + '<div class="strat-note" style="margin:0 0 6px">账户总资产（蓝）与持仓市值（浅蓝面积）；仓位＝持仓市值/总资产。</div>'
-      + '<div class="dd-tblwrap"><table class="dd-tbl"><thead><tr><th>买入日</th><th class="num">档位</th><th class="num">买入点位</th><th class="num">金额</th><th>卖出日</th><th class="num">卖出点位</th><th class="num">盈亏</th><th class="num">天数</th></tr></thead><tbody>'
-      + trades + '</tbody></table></div>'
-      + '<div class="strat-note" style="margin:6px 0 0">独立历史实验：不读取、不合并任何真实买卖记录，也不代表实盘收益。指数回撤深并不等于会回归（结构性衰退的板块可能长期不反弹），回测只给规则一个参照。</div></div>';
+      + (byTbl ? '<div style="font-size:12px;color:#52525B;margin:4px 0 2px">分指数投入与盈亏</div>' + byTbl : '')
+      + '<div class="dd-tblwrap"><table class="dd-tbl"><thead><tr>' + (pool ? '<th>指数</th>' : '')
+      + '<th>买入日</th><th class="num">档位</th><th class="num">买入点位</th><th class="num">金额</th><th>卖出日</th><th class="num">卖出点位</th><th class="num">盈亏</th><th class="num">天数</th></tr></thead><tbody>'
+      + tds + '</tbody></table></div>'
+      + '<div class="strat-note" style="margin:6px 0 0">独立历史实验：不读取、不合并任何真实买卖记录，也不代表实盘收益。指数回撤深并不等于会回归（结构性衰退的板块可能长期不反弹），回测只给规则一个参照。'
+      + (pool ? ' 组合口径下各指数共用资金，结果对「谁先跌到档位」这一时序很敏感，换区间或换成分会明显变化。' : '') + '</div></div>';
   }
 
   function shellHtml() {
@@ -31318,6 +31506,11 @@ function brakeCardHtml(opts) {
     }
     if (!ST.to) ST.to = today();
     if (!ST.from) ST.from = isoAddYears(ST.to, -10);
+    if (!ST.pick) {
+      var arr2 = (D && D.indices) || [];
+      ST.pick = arr2.filter(function (x) { return !x.stale; }).map(function (x) { return x.code; });
+      if (ST.pick.length < 2) ST.pick = arr2.map(function (x) { return x.code; });
+    }
   }
 
   /* 回撤序列：由收盘 + 序列内历史最高收盘现算（与数据文件同口径） */
@@ -31335,12 +31528,18 @@ function brakeCardHtml(opts) {
   function doRun() {
     if (!D) { load(function () { doRun(); }); return; }
     ensureDefaults();
-    var ix = idxOf(ST.code);
-    if (!ix) { return; }
-    ddArrOf(ix);
     var msg = document.getElementById('ddRunMsg');
-    if (msg) msg.textContent = '正在回测 ' + ix.name + ' …';
-    var R = runBT(ix, ST);
+    var R;
+    if (ST.scope === 'pool') {
+      if (msg) msg.textContent = '正在回测组合（' + ((ST.pick || []).length) + ' 只）…';
+      R = runPoolBT(ST);
+    } else {
+      var ix = idxOf(ST.code);
+      if (!ix) return;
+      ddArrOf(ix);
+      if (msg) msg.textContent = '正在回测 ' + ix.name + ' …';
+      R = runBT(ix, ST);
+    }
     window.__DD_RES = R;
     var card = document.getElementById('ddResultCard');
     if (card) {
@@ -31349,7 +31548,17 @@ function brakeCardHtml(opts) {
       card.parentNode.replaceChild(wrap.firstChild, card);
       drawChart(R);
     }
-    if (msg) msg.textContent = ix.name + ' · ' + ymd(ST.from) + ' → ' + ymd(ST.to) + (R.err ? ' · 参数有误' : ' · 已出结果');
+    if (msg) {
+      var nm = (ST.scope === 'pool') ? ('组合 ' + ((ST.pick || []).length) + ' 只') : ((idxOf(ST.code) || {}).name || '');
+      msg.textContent = nm + ' · ' + ymd(ST.from) + ' → ' + ymd(ST.to) + (R.err ? ' · 参数有误' : ' · 已出结果');
+    }
+  }
+
+  function togglePick(code) {
+    if (!ST.pick) ST.pick = [];
+    var i = ST.pick.indexOf(code);
+    if (i >= 0) ST.pick.splice(i, 1); else ST.pick.push(code);
+    window.renderDdModule();
   }
 
   /* ---------- window 出口 ---------- */
@@ -31357,8 +31566,7 @@ function brakeCardHtml(opts) {
   window.__ddLoad = load;
   window.__ddRun = doRun;
   window.__ddSet = function (k, v) {
-    if (k === 'mode') ST[k] = v;
-    else if (k === 'code') ST[k] = v;
+    if (k === 'mode' || k === 'scope' || k === 'code') ST[k] = v;
     else if (k === 'from' || k === 'to') ST[k] = v;
     else { var x = +v; if (isFinite(x)) ST[k] = x; }
     if (k === 'code') {
@@ -31369,10 +31577,19 @@ function brakeCardHtml(opts) {
         if (ix.start && ymd(ix.start) > ST.from) ST.from = ymd(ix.start);
       }
     }
+    if (k === 'scope' && v === 'pool') {
+      var arr = (D && D.indices) || [], latest = '';
+      (ST.pick || []).forEach(function (cd) {
+        var x2 = idxOf(cd);
+        if (x2 && ymd(x2.end) > latest) latest = ymd(x2.end);
+      });
+      if (latest) ST.to = latest;
+    }
   };
   window.__ddReset = function () {
     var d = deepest();
     ST.capital = 10000; ST.perBuy = 500; ST.startDD = 70; ST.gap = 5; ST.mode = 'rebound'; ST.obs = 2; ST.back = 1;
+    ST.scope = 'one'; ST.pick = null;
     if (d) { ST.code = d.code; ST.to = ymd(d.end); ST.from = isoAddYears(ST.to, -10); }
     window.__DD_RES = null;
     window.renderDdModule();
@@ -31387,15 +31604,27 @@ function brakeCardHtml(opts) {
     host.addEventListener('change', function (e) {
       var t = e.target; if (!t || !t.getAttribute) return;
       var k = t.getAttribute('data-dd');
-      if (k) { window.__ddSet(k, t.value); }
+      if (k) {
+        window.__ddSet(k, t.value);
+        /* fw2_v1087_dd：切换「回测方式」要重画参数区（指数下拉/参与指数 chips 互换），否则界面停在旧布局 */
+        if (k === 'scope') window.renderDdModule();
+      }
     });
     host.addEventListener('click', function (e) {
       var t = e.target; if (!t) return;
       if (t.getAttribute && t.getAttribute('data-dd-run')) { doRun(); return; }
+      var pk = t.closest && t.closest('[data-dd-pick]');
+      if (pk) {
+        var pc = pk.getAttribute('data-dd-pick');
+        if (pc) togglePick(pc);
+        return;
+      }
       var row = t.closest && t.closest('[data-dd-code]');
       if (row) {
         var code = row.getAttribute('data-dd-code');
-        if (code && code !== ST.code) {
+        if (!code) return;
+        if (ST.scope === 'pool') { togglePick(code); return; }
+        if (code !== ST.code) {
           window.__ddSet('code', code);
           window.renderDdModule();
         }
