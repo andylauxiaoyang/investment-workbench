@@ -1564,7 +1564,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
    仍靠灰底 + disabled + cursor:not-allowed 表达「不可改」。
 全部只改颜色字面量，结构 / 文案 / 判定逻辑零改动；徽标 v1076 → v1077。 -->
 <!-- fw2_v1079_dca_row_unify（用户 2026-11-24「这个表的数据有问题，你排查下逻辑」）：资产配置表「定投金额（月）/累计应投」由「逐只基金 _dcaFirst/_dcaMonthly 相加」改为「按本行目标金额 + 本行实际市值（mvMap 份额×净值）现算」（_rowMonthlyT / _rowProgT / _mColTxt）。修掉两个实测错值：① 同指数多只基金只有主基金带目标、其余 target=0，逐只相加漏掉同族其它基金持仓（A500 ×2 累计应投 4,548、真实缺口 4,160；纳指100 ×12 4,946、真实 4,768）；② _dcaFirst 缺口走 gapOf() 的昨收(preclose)估值，与本表「实际市值」结算净值不同源，单只行也差几十元（沪深300 2,903 vs 2,893、黄金 4,649 vs 4,642）。一次性(lump，R2 定投＝关)口径下 累计应投＝max(0, 目标−市值)＝调仓金额同缺口，合计首笔 33,115→37,342；日限额标的(020712)不再被抹成「—」；月投列改为灰「0」明示「一次性口径非缺数据」；口径说明同步重写。未动：mvMap 取数、offOf、调仓金额、目标偏移、列结构、合计行累加方式。徽标 v1078 → v1079。 --><!-- fw2_v1080_dca_plan_basis（用户 2026-11-24 两条口径「1、月定投金额不是为零 2、累计应投是开始定投日到现在累计应该投资的金额」）：资产配置表「定投金额（月）/累计应投」改回**计划口径**，与持仓缺口、已达标、日限额、R2 三态全部解耦：月投＝目标(已 scale)×(1−底仓比例)÷总期数（纲领 investMode=base）／目标÷总期数（drip）／0（lump）；累计应投＝首笔(目标×底仓比例, 仅 base)＋月投×已过期数。根因是 v1076 的 `_planCfg()` 遇 R2＝关会把 mode 折成 lump，v1079 又用它算这两列，于是「计划月投」被实盘开关抹成 0。做法：`_planCfg()` 增加 `d.plan`（折叠前原值），新增 `_planCfgPlan()`，`_rowMonthlyT/_rowProgT` 去掉 mv 参数、只吃目标金额；表尾口径行改按计划口径出「首笔合计/月投合计」，R2＝关时追加「实盘暂不按月投（计划口径不受影响）」。未动：mvMap、offOf、调仓金额、目标偏移、列结构。徽标 v1079 → v1080。 --><!-- fw2_v1081_bt_param_labels（用户 2026-11-24 三张截图）：①「策略执行」tab 条上的「回测参数（全量底稿）」→「回测参数」（图三圈的就是这个 tab）；②配置回测页 / 自选回测页里的「修改参数 → 回测参数（全量底稿）」按口径分别改为「配置回测参数」「自选回测参数」，其后副文案「参数在『策略执行 → 回测参数』」同步补 ⑧-B / ⑧-C 子页签名；③其余指路文案里「策略执行 → 回测参数（全量底稿）」统一改成「策略执行 → 回测参数」（⑧-A 子页签名「⑧-A 回测参数（全量底稿）」保持不变，它是母版底稿的正式名）。零逻辑改动。 -->
-<!-- fw2_v1084_bt_a_label（用户 2026-11-24「同意」）：⑧-A 子页签由「⑧-A 回测参数（全量底稿）」改为「⑧-A 回测参数」，卡头 / 保存提示 / v1083 重置按钮 tooltip 三处同名文案同步（纯可见文案，零逻辑改动；代码注释与历史注释里的旧名保留）。 --><!-- fw2_v1094_dd_allidx（用户 2026-11-24「全指数回撤监测名字保留。要不要真做成全指数？需要」）：回撤档位由 13 只自选扩成 45 只 A 股指数（宽基 18 / 行业 16 / 主题 11），数据源改为新浪日K（6000 根到当日）为主；中证官网 index-perf 当日整段 403、腾讯 fqkline 501，故 931775/931637/000811 沿用存量（前两只 stale 2025-12-31）。①监测卡恢复「全指数回撤监测」+ 类别筛选（全部/宽基/行业/主题）+ 分档筛选（均可点，可叠加）；②跨档提醒默认只列「跨档 + 距下档 ≤2pp」，可展开全部 45 只；③估值卡只列公开源有 PE/PB 的 8 只，明确写「另 37 只无源不列」；④组合参与指数默认勾选 18 只宽基，存量 13 只 pick 自动迁移（失效代码剔除）。 --><!-- fw2_v1095_dd_overseas（用户 2026-11-24「三个继续」）：①池 45→63 只：补境外 4 只（恒生指数/恒生科技/纳指100/标普500，雪球日K 6000 根，恒指回溯到 2002-10、纳指 2003-01）；②补此前断尾或无源的 14 只 A 股指数（中证官网 index-perf 深历史 + 雪球日K 近段合并，重叠日逐日校验后才拼）；③估值卡从「只列有源 13 只」放开到全 63 只（PE 有源 56 / PB 有源 24，其余只给价格分位并标「无源」）；④新增「境外」类别 chip；⑤境外不进组合池（港元/美元点数与 A 股不同币种，混算会把汇率当涨跌）。 --><span id="verBadge" class="ver-badge">v1100</span><!-- fw2_v1096_dd_search（用户「继续」）：①全指数监测卡加「搜索」（代码/名称，只过滤本表显示，分档 chips 计数与已选组合不受影响；输入时保存 ST.q 并重画、回填焦点与滚动位置）②组合池加「全选境内 59」「恢复默认（宽基）」（境外永远不进池）③脚注的境外名单由数据现算（原来写死 4 个名字，加池就会过期）④gen_index_dd 去掉冗余 count.night，gen_index_val 的蛋卷 asof 不再写死 2026 年 --><!-- fw2_v1097_dd_sort_valref（用户「继续」，承接 v1096 挂账）：①全指数监测卡加「排序」开关——回撤深→浅（默认）/ 名称 A→Z，只换本表顺序，分档计数与已选组合不变；②估值卡加「同类别对照」小表——全部 / 宽基 / 行业 / 主题 / 境外五行的 PE 分位中位、PB 分位中位、价格分位中位，并列出该类别里 PE 分位最低的一只；③两处都只用既有 index-dd / index-val 数据，不引入新源（v1096 已证伪的三条补源路仍挂账）。 --><!-- fw2_v1098_dd_n2_sort（用户「继续完成」，收口 v1097「下一步候选」三件）：①估值「同类别对照」由 6 列扩到 8 列——补「股息率中位」与「PB 分位最低的一只」（与 PE 最低同口径：只统计有该分位的只数，空组回 —）；②监测卡加「快捷」行——「距下档 ≤2pp」一键筛选（ST.n2 与类别 / 分档 / 搜索四者可叠加，chips 计数仍按类别全集，不受搜索与快捷键影响）；③方案卡「进入买入区」表跟随 ST.sort（默认回撤深→浅，切名称后同监测卡拼音序）；④仍不引入新源。 --><!-- fw2_v1099_dd_pickcat_relcat（用户「继续」，收口 v1098「下一步候选」三件）：①组合池加按类别批量勾选——宽基 / 行业 / 主题三个按钮各显示「已选/总数」，全选后再点即取消该类（不碰境外）；②估值主表加「相对同类」列——本只 PE 分位 − 同类别 PE 分位中位（pp，负＝比同类便宜），只在双方都有分位时显示；③跨档卡跟随监测卡类别筛选（ST.fcat），计数、「展开全部 N 只」与空态都按当前类别；④仍不引入新源。 --><!-- fw2_v1100_dd_bksum_cheap_vsort（用户「继续」，收口 v1099「下一步候选」三件）：①监测卡加「按回撤分档汇总」表——6 档的只数 / 平均回撤 / 该档最深一只 / 距下档 ≤2pp 只数 / 已进买入区只数，按当前类别统计、不受搜索与快捷影响；②组合池加「只选便宜一半」——按同类别 PE 分位中位分界，只选低于中位的（无分位不入选，口径写进按钮 title）；③估值主表「相对同类」表头可点击排序，三态循环：默认（回撤深→浅）→ 便宜在前 → 贵在前，无分位的行恒排最后；④ddTbl 扩一个可选 th 属性位（backward compatible），中位数抽成模块级 medOf 单一实现；⑤仍不引入新源。 --><!-- fw2_v1076_conflicts（用户 2026-11-23「按照你顺序修」——修掉体检出的 5 处纲领冲突）：
+<!-- fw2_v1084_bt_a_label（用户 2026-11-24「同意」）：⑧-A 子页签由「⑧-A 回测参数（全量底稿）」改为「⑧-A 回测参数」，卡头 / 保存提示 / v1083 重置按钮 tooltip 三处同名文案同步（纯可见文案，零逻辑改动；代码注释与历史注释里的旧名保留）。 --><!-- fw2_v1094_dd_allidx（用户 2026-11-24「全指数回撤监测名字保留。要不要真做成全指数？需要」）：回撤档位由 13 只自选扩成 45 只 A 股指数（宽基 18 / 行业 16 / 主题 11），数据源改为新浪日K（6000 根到当日）为主；中证官网 index-perf 当日整段 403、腾讯 fqkline 501，故 931775/931637/000811 沿用存量（前两只 stale 2025-12-31）。①监测卡恢复「全指数回撤监测」+ 类别筛选（全部/宽基/行业/主题）+ 分档筛选（均可点，可叠加）；②跨档提醒默认只列「跨档 + 距下档 ≤2pp」，可展开全部 45 只；③估值卡只列公开源有 PE/PB 的 8 只，明确写「另 37 只无源不列」；④组合参与指数默认勾选 18 只宽基，存量 13 只 pick 自动迁移（失效代码剔除）。 --><!-- fw2_v1095_dd_overseas（用户 2026-11-24「三个继续」）：①池 45→63 只：补境外 4 只（恒生指数/恒生科技/纳指100/标普500，雪球日K 6000 根，恒指回溯到 2002-10、纳指 2003-01）；②补此前断尾或无源的 14 只 A 股指数（中证官网 index-perf 深历史 + 雪球日K 近段合并，重叠日逐日校验后才拼）；③估值卡从「只列有源 13 只」放开到全 63 只（PE 有源 56 / PB 有源 24，其余只给价格分位并标「无源」）；④新增「境外」类别 chip；⑤境外不进组合池（港元/美元点数与 A 股不同币种，混算会把汇率当涨跌）。 --><!-- fw2_v1101_dd_pe_pickdeep_sortdd（用户「继续」，收口 v1100「下一步候选」三件）：①监测卡「按回撤分档汇总」加第 5 列「PE 分位最低的一只」——该档内 PE 分位最低者 + 分位值，无分位标灰「该档无 PE 分位源」（分位来自 index-val，未加载时显示「估值数据未加载」）；②组合池加「只选回撤最深 10」——按当前回撤由深到浅取前 10 只（只算境内，境外不进池），选完按 indices 顺序归一；③监测主表「回撤」表头可点击反转排序（深→浅 ⇄ 浅→深，表头带 ↓/↑ 指示），排序行补第三颗「回撤浅→深」，方案卡「进入买入区」表跟随三态；④仍不引入新源。 --><span id="verBadge" class="ver-badge">v1101</span><!-- fw2_v1096_dd_search（用户「继续」）：①全指数监测卡加「搜索」（代码/名称，只过滤本表显示，分档 chips 计数与已选组合不受影响；输入时保存 ST.q 并重画、回填焦点与滚动位置）②组合池加「全选境内 59」「恢复默认（宽基）」（境外永远不进池）③脚注的境外名单由数据现算（原来写死 4 个名字，加池就会过期）④gen_index_dd 去掉冗余 count.night，gen_index_val 的蛋卷 asof 不再写死 2026 年 --><!-- fw2_v1097_dd_sort_valref（用户「继续」，承接 v1096 挂账）：①全指数监测卡加「排序」开关——回撤深→浅（默认）/ 名称 A→Z，只换本表顺序，分档计数与已选组合不变；②估值卡加「同类别对照」小表——全部 / 宽基 / 行业 / 主题 / 境外五行的 PE 分位中位、PB 分位中位、价格分位中位，并列出该类别里 PE 分位最低的一只；③两处都只用既有 index-dd / index-val 数据，不引入新源（v1096 已证伪的三条补源路仍挂账）。 --><!-- fw2_v1098_dd_n2_sort（用户「继续完成」，收口 v1097「下一步候选」三件）：①估值「同类别对照」由 6 列扩到 8 列——补「股息率中位」与「PB 分位最低的一只」（与 PE 最低同口径：只统计有该分位的只数，空组回 —）；②监测卡加「快捷」行——「距下档 ≤2pp」一键筛选（ST.n2 与类别 / 分档 / 搜索四者可叠加，chips 计数仍按类别全集，不受搜索与快捷键影响）；③方案卡「进入买入区」表跟随 ST.sort（默认回撤深→浅，切名称后同监测卡拼音序）；④仍不引入新源。 --><!-- fw2_v1099_dd_pickcat_relcat（用户「继续」，收口 v1098「下一步候选」三件）：①组合池加按类别批量勾选——宽基 / 行业 / 主题三个按钮各显示「已选/总数」，全选后再点即取消该类（不碰境外）；②估值主表加「相对同类」列——本只 PE 分位 − 同类别 PE 分位中位（pp，负＝比同类便宜），只在双方都有分位时显示；③跨档卡跟随监测卡类别筛选（ST.fcat），计数、「展开全部 N 只」与空态都按当前类别；④仍不引入新源。 --><!-- fw2_v1100_dd_bksum_cheap_vsort（用户「继续」，收口 v1099「下一步候选」三件）：①监测卡加「按回撤分档汇总」表——6 档的只数 / 平均回撤 / 该档最深一只 / 距下档 ≤2pp 只数 / 已进买入区只数，按当前类别统计、不受搜索与快捷影响；②组合池加「只选便宜一半」——按同类别 PE 分位中位分界，只选低于中位的（无分位不入选，口径写进按钮 title）；③估值主表「相对同类」表头可点击排序，三态循环：默认（回撤深→浅）→ 便宜在前 → 贵在前，无分位的行恒排最后；④ddTbl 扩一个可选 th 属性位（backward compatible），中位数抽成模块级 medOf 单一实现；⑤仍不引入新源。 --><!-- fw2_v1076_conflicts（用户 2026-11-23「按照你顺序修」——修掉体检出的 5 处纲领冲突）：
 ①R7 带宽：撤销 v1067 的 `o.band = o.slotBand` 强镜像；band 只喂 R7（单只超配 25% 减配，SIG_THR_DEF 5→25、与回测 cfg.band 同值），slotBand 只喂 T10 四档；sigThrApply 分别写 C.barbell.band / C.barbell.slotBand，T10 文案改读 slotBand，R7 行 threshold 由硬编码「band 25%」改为动态读纲领值。
 ②R2 假开关：`_planCfg()` 读 `window.logicStateEff('R2')`——生效按 investMode，观察/关一律 lump（月投 0）；建仓步文案在一次性时追加「R2 定投＝关/观察」。
 ③T4 与 R6 双份：T4 行 modeled 改「与 R6 止损同一执行（同一 slHard）」，def 标「= R6 止损，同一动作」，阈值表 slHard 口径写「T4 / R6 · 同一执行」。
@@ -30945,6 +30945,9 @@ function brakeCardHtml(opts) {
 #stp-dd .dd-tbl--tg tr.on{background:#FFFDF5}
 #stp-dd .dd-tbl--tg tr[data-dd-code]{cursor:pointer}
 #stp-dd .dd-tbl--tg tr[data-dd-code]:hover{background:#FAFAF8}
+/* v1101：可点击排序的表头（回撤列） */
+#stp-dd .dd-tbl--tg th.dd-thsort{cursor:pointer;user-select:none}
+#stp-dd .dd-tbl--tg th.dd-thsort:hover{color:#18181B;background:#EDEDEA}
 #stp-dd .dd-tbl--fit{min-width:0!important}
 #stp-dd .dd-tbl--fit td,#stp-dd .dd-tbl--fit th{white-space:normal}
 @media(max-width:560px){#stp-dd .dd-tbl--fit{font-size:10.5px}#stp-dd .dd-tbl--fit td,#stp-dd .dd-tbl--fit th{padding:4px 4px}}
@@ -31282,6 +31285,7 @@ function brakeCardHtml(opts) {
     var hit = arr.filter(function (x) { return -x.dd >= 70; });
     /* v1098：方案卡跟随监测卡排序（默认回撤深→浅；切「名称 A→Z」后同拼音序） */
     if (ST.sort === 'name') hit.sort(function (a, b) { return String(a.name).localeCompare(String(b.name), 'zh-Hans-CN'); });
+    else if (ST.sort === 'ddasc') hit.sort(function (a, b) { return b.dd - a.dd; });
     else hit.sort(function (a, b) { return a.dd - b.dd; });
     var near = arr.filter(function (x) { return -x.dd >= 60 && -x.dd < 70; }).length;
     var gap = +ST.gap || 5, start = start0();
@@ -31326,9 +31330,10 @@ function brakeCardHtml(opts) {
 
   function listCardHtml() {
     /* v1097：排序开关——默认「回撤深→浅」，可切「名称 A→Z」；只改本表顺序，分档计数 / 已选组合 / 回测口径都不受影响 */
-    var srt = ST.sort === 'name' ? 'name' : 'dd';
+    var srt = ST.sort === 'name' ? 'name' : (ST.sort === 'ddasc' ? 'ddasc' : 'dd');
     var all = ((D && D.indices) || []).slice();
     if (srt === 'name') all.sort(function (a, b) { return String(a.name).localeCompare(String(b.name), 'zh-Hans-CN'); });
+    else if (srt === 'ddasc') all.sort(function (a, b) { return b.dd - a.dd; });
     else all.sort(function (a, b) { return a.dd - b.dd; });
     var gap = +ST.gap || 5, start = start0();
     var fcat = ST.fcat || '', fbk = ST.fbk || '';
@@ -31380,24 +31385,32 @@ function brakeCardHtml(opts) {
         + '<td><span class="dd-st ' + stCls + '" style="display:inline-block">' + stTxt + '</span></td></tr>';
     }).join('');
     /* v1100：按回撤分档汇总（只跟类别 ST.fcat，不跟搜索 / 快捷 / 分档筛选） */
+    /* v1101：分档汇总加「该档 PE 分位最低的一只」（分位来自估值卡 index-val，无分位的标「无 PE 分位源」） */
     var bkSum = ['≥70%', '60–70%', '50–60%', '40–50%', '30–40%', '<30%'].map(function (b2) {
       var g2 = catArr.filter(function (x2) { return bucketOf(x2.dd) === b2; });
       if (!g2.length) {
         return '<tr><td><b>' + b2 + '</b></td><td class="r">0</td><td class="r">—</td>'
-          + '<td><span style="color:#A1A1AA">该档无指数</span></td><td class="r">—</td><td class="r">0</td></tr>';
+          + '<td><span style="color:#A1A1AA">该档无指数</span></td>'
+          + '<td><span style="color:#A1A1AA">—</span></td>'
+          + '<td class="r">—</td><td class="r">0</td></tr>';
       }
-      var avg = 0, deep = g2[0], n2c = 0, nBuy = 0;
+      var avg = 0, deep = g2[0], n2c = 0, nBuy = 0, peMin = null, peWho = '';
       g2.forEach(function (x2) {
         var a2 = -x2.dd;
         avg += a2;
         if (x2.dd < deep.dd) deep = x2;
         if (toNextOf(x2, gap) <= 2) n2c++;
         if (a2 >= start) nBuy++;
+        var v2 = (VAL && VAL.indices && VAL.indices[x2.code]) || {};
+        if (v2.pePct != null && (peMin == null || v2.pePct < peMin)) { peMin = v2.pePct; peWho = x2.name; }
       });
       avg = avg / g2.length;
       return '<tr><td><b>' + b2 + '</b></td><td class="r">' + g2.length + '</td>'
         + '<td class="r">' + avg.toFixed(1) + '%</td>'
         + '<td>' + deep.name + '<div class="dd-vsub">' + (-deep.dd).toFixed(2) + '%</div></td>'
+        + (peMin == null
+            ? '<td><span style="color:#A1A1AA">' + (VAL ? '该档无 PE 分位源' : '估值数据未加载') + '</span></td>'
+            : '<td>' + peWho + '<div class="dd-vsub">PE 分位 ' + (peMin * 100).toFixed(1) + '%</div></td>')
         + '<td class="r">' + (n2c ? '<b style="color:#A16207">' + n2c + '</b>' : '0') + '</td>'
         + '<td class="r">' + nBuy + '</td></tr>';
     }).join('');
@@ -31415,6 +31428,7 @@ function brakeCardHtml(opts) {
       + '<div class="dd-flts"><span class="dd-flthd">类别</span>' + catLine + '</div>'
       + '<div class="dd-flts"><span class="dd-flthd">排序</span>'
       + '<button type="button" class="dd-bk' + (srt === 'dd' ? ' act' : '') + '" data-dd-sort="dd">回撤深→浅（默认）</button>'
+      + '<button type="button" class="dd-bk' + (srt === 'ddasc' ? ' act' : '') + '" data-dd-sort="ddasc">回撤浅→深</button>'
       + '<button type="button" class="dd-bk' + (srt === 'name' ? ' act' : '') + '" data-dd-sort="name">名称 A→Z</button>'
       + '</div>'
       + '<div class="dd-flts"><span class="dd-flthd">回撤分档</span>' + bucketLine + '</div>'
@@ -31423,15 +31437,20 @@ function brakeCardHtml(opts) {
       + catArr.filter(function (x) { return toNextOf(x, gap) <= 2; }).length + '</b></button>'
       + '<span style="font-size:10.5px;color:#71717A">再跌 ≤2pp 就进入下一档（可再买一档）</span>'
       + '</div>'
-      + ddTbl([['指数', 176], ['代码 · 类别', 192], ['现价', 110], ['回撤', 94], ['档位', 72],
+      + ddTbl([['指数', 176], ['代码 · 类别', 192], ['现价', 110],
+                ['回撤 ' + (srt === 'ddasc' ? '↑' : '↓'), 94, false, 'data-dd-sortdd="1" class="dd-thsort" title="点表头反转排序：回撤 深→浅 ⇄ 浅→深"'],
+                ['档位', 72],
                 ['下一档 · 点位', 168], ['距下档', 84], ['历史最高收盘', 160], ['数据日', 92], ['状态', 132]], 1282,
               rows || empty)
       + '<div style="margin-top:10px;font-size:11px;color:#71717A">按回撤分档汇总（当前类别 '
-      + (fcat || '全部') + ' 共 ' + catArr.length + ' 只；平均回撤＝该档只数算术平均，明细不随搜索 / 快捷变化）</div>'
-      + ddTbl([['分档', 130], ['只数', 88], ['平均回撤', 108], ['最深的一只', 220], ['距下档 ≤2pp', 132], ['已进买入区', 130]], 828, bkSum)
+      + (fcat || '全部') + ' 共 ' + catArr.length + ' 只；平均回撤＝该档只数算术平均；PE 分位取该档最低的一只，'
+      + '分位来自下方估值卡、无源标灰；本明细不随搜索 / 快捷 / 分档筛选变化）</div>'
+      + ddTbl([['分档', 116], ['只数', 72], ['平均回撤', 96], ['最深的一只', 190],
+                ['PE 分位最低的一只', 196], ['距下档 ≤2pp', 118], ['已进买入区', 112]], 900, bkSum)
       + '<div class="strat-note" style="margin:8px 0 0">显示 <b>' + arr.length + '</b> / ' + all.length + ' 只'
       + (q0 ? '（搜索：' + q0 + '）' : '') + (fcat ? '（类别：' + fcat + '）' : '') + (fbk ? '（分档：' + fbk + '）' : '') + '；'
-      + '排序：' + (srt === 'name' ? '名称 A→Z（回撤列仍按数值显示，不受排序影响）' : '回撤深→浅（默认）') + '；'
+      + '排序：' + (srt === 'name' ? '名称 A→Z（回撤列仍按数值显示，不受排序影响）'
+        : (srt === 'ddasc' ? '回撤浅→深（点「回撤」表头或上方按钮可切回深→浅）' : '回撤深→浅（默认，点「回撤」表头可反转）')) + '；'
       + (n2On ? '快捷：距下档 ≤2pp（与类别 / 分档 / 搜索叠加）；' : '')
       + '档位＝floor(回撤 / 间距)，对所有行都算（未进买入区的行灰色显示，仅表示再跌多少就进区）；'
       + '标 <b>粗体</b> 的才是已进入 ' + start + '% 买入区的行。'
@@ -31506,10 +31525,27 @@ function brakeCardHtml(opts) {
       + '<button type="button" class="dd-bk" data-dd-pickcheap="1" style="margin-left:6px"'
       + ' title="按同类别 PE 分位中位分界，只选低于中位的；无 PE 分位的不入选">只选便宜一半 <b>'
       + (cheapOK ? cheapCodes.length : '…') + '</b></button>'
+      + '<button type="button" class="dd-bk" data-dd-pickdeep="1" style="margin-left:6px"'
+      + ' title="按当前回撤由深到浅取前 10 只（只算境内指数，境外不进池）">只选回撤最深 <b>'
+      + Math.min(10, arr.length) + '</b></button>'
       + '</div><div class="dd-picks">' + chips + '</div></div>';
   }
 
   /* ---------- 估值参考（v1089：PE/PB 双分位；来源分层见卡下注） ---------- */
+  /* v1101：估值数据异步到达后软刷新——分档汇总的「PE 分位最低」列与组合池「只选便宜一半」计数都依赖 VAL，
+     到达前会显示未加载 / …，必须重画；用户在搜索框输入时不打断焦点 */
+  function ddRefreshSoft() {
+    var h = document.getElementById('ddValHost');
+    if (h) h.innerHTML = valCardHtml();
+    var host = document.getElementById('stp-dd');
+    if (!host) return;
+    var ae = document.activeElement;
+    if (ae && ae.getAttribute && ae.getAttribute('data-dd-q') !== null) return;
+    var sy = window.scrollY || 0;
+    try { window.renderDdModule(); } catch (e) { console.error('DD_REFRESH_ERR', e && e.message); }
+    window.scrollTo(0, sy);
+  }
+
   function valHostHtml() {
     return '<div id="ddValHost">' + (VAL ? valCardHtml() : '') + '</div>';
   }
@@ -31693,11 +31729,11 @@ function brakeCardHtml(opts) {
     if (VAL || valP) return;
     valP = fetch('data/index-val.json', { cache: 'no-store' })
       .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
-      .then(function (j) { VAL = window.__DD_VAL = j; var h = document.getElementById('ddValHost'); if (h) h.innerHTML = valCardHtml(); })
+      .then(function (j) { VAL = window.__DD_VAL = j; ddRefreshSoft(); })
       .catch(function () {
         fetch('https://raw.githubusercontent.com/andylauxiaoyang/investment-workbench/master/caifu/data/index-val.json', { cache: 'no-store' })
           .then(function (r) { return r.json(); })
-          .then(function (j) { VAL = window.__DD_VAL = j; var h = document.getElementById('ddValHost'); if (h) h.innerHTML = valCardHtml(); })
+          .then(function (j) { VAL = window.__DD_VAL = j; ddRefreshSoft(); })
           .catch(function () {});
       });
   }
@@ -32066,14 +32102,29 @@ function brakeCardHtml(opts) {
         ST.pick = chc;
         window.renderDdModule(); return;
       }
+      var pdk = t.closest && t.closest('[data-dd-pickdeep]');
+      if (pdk) {   /* v1101：只选回撤最深的 10 只（境内，按当前回撤由深到浅取前 N，再按 indices 顺序归一） */
+        var dsel = ((D && D.indices) || []).filter(function (x5) { return x5.cat !== '境外'; })
+          .slice().sort(function (a5, b5) { return a5.dd - b5.dd; }).slice(0, 10)
+          .map(function (x5) { return x5.code; });
+        var dm5 = {}; dsel.forEach(function (c5) { dm5[c5] = 1; });
+        ST.pick = ((D && D.indices) || []).filter(function (x5) { return dm5[x5.code]; }).map(function (x5) { return x5.code; });
+        window.renderDdModule(); return;
+      }
       var n2b = t.closest && t.closest('[data-dd-n2]');
       if (n2b) {   /* v1098：距下档 ≤2pp 快捷筛选（再点一次取消） */
         ST.n2 = !ST.n2;
         window.renderDdModule(); return;
       }
       var so = t.closest && t.closest('[data-dd-sort]');
-      if (so) {   /* v1097：排序开关（默认回撤深→浅） */
-        ST.sort = (so.getAttribute('data-dd-sort') === 'name') ? 'name' : 'dd';
+      if (so) {   /* v1097：排序开关（默认回撤深→浅）；v1101 增「回撤浅→深」 */
+        var sv = so.getAttribute('data-dd-sort');
+        ST.sort = (sv === 'name') ? 'name' : (sv === 'ddasc' ? 'ddasc' : 'dd');
+        window.renderDdModule(); return;
+      }
+      var sd = t.closest && t.closest('[data-dd-sortdd]');
+      if (sd) {   /* v1101：点「回撤」表头反转 深→浅 ⇄ 浅→深 */
+        ST.sort = (ST.sort === 'ddasc') ? 'dd' : 'ddasc';
         window.renderDdModule(); return;
       }
       var ca = t.closest && t.closest('[data-dd-crossall]');
