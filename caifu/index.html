@@ -1563,7 +1563,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 ③ 阈值表 T9 CAP（已下线 · 仅存档）输入框文字 #9A968C 压退役灰底 #F1F0EC 只有 2.59 → 加深到 #6E6A60 = 4.73，
    仍靠灰底 + disabled + cursor:not-allowed 表达「不可改」。
 全部只改颜色字面量，结构 / 文案 / 判定逻辑零改动；徽标 v1076 → v1077。 -->
-<!-- fw2_v1079_dca_row_unify（用户 2026-11-24「这个表的数据有问题，你排查下逻辑」）：资产配置表「定投金额（月）/累计应投」由「逐只基金 _dcaFirst/_dcaMonthly 相加」改为「按本行目标金额 + 本行实际市值（mvMap 份额×净值）现算」（_rowMonthlyT / _rowProgT / _mColTxt）。修掉两个实测错值：① 同指数多只基金只有主基金带目标、其余 target=0，逐只相加漏掉同族其它基金持仓（A500 ×2 累计应投 4,548、真实缺口 4,160；纳指100 ×12 4,946、真实 4,768）；② _dcaFirst 缺口走 gapOf() 的昨收(preclose)估值，与本表「实际市值」结算净值不同源，单只行也差几十元（沪深300 2,903 vs 2,893、黄金 4,649 vs 4,642）。一次性(lump，R2 定投＝关)口径下 累计应投＝max(0, 目标−市值)＝调仓金额同缺口，合计首笔 33,115→37,342；日限额标的(020712)不再被抹成「—」；月投列改为灰「0」明示「一次性口径非缺数据」；口径说明同步重写。未动：mvMap 取数、offOf、调仓金额、目标偏移、列结构、合计行累加方式。徽标 v1078 → v1079。 --><span id="verBadge" class="ver-badge">v1079</span><!-- fw2_v1076_conflicts（用户 2026-11-23「按照你顺序修」——修掉体检出的 5 处纲领冲突）：
+<!-- fw2_v1079_dca_row_unify（用户 2026-11-24「这个表的数据有问题，你排查下逻辑」）：资产配置表「定投金额（月）/累计应投」由「逐只基金 _dcaFirst/_dcaMonthly 相加」改为「按本行目标金额 + 本行实际市值（mvMap 份额×净值）现算」（_rowMonthlyT / _rowProgT / _mColTxt）。修掉两个实测错值：① 同指数多只基金只有主基金带目标、其余 target=0，逐只相加漏掉同族其它基金持仓（A500 ×2 累计应投 4,548、真实缺口 4,160；纳指100 ×12 4,946、真实 4,768）；② _dcaFirst 缺口走 gapOf() 的昨收(preclose)估值，与本表「实际市值」结算净值不同源，单只行也差几十元（沪深300 2,903 vs 2,893、黄金 4,649 vs 4,642）。一次性(lump，R2 定投＝关)口径下 累计应投＝max(0, 目标−市值)＝调仓金额同缺口，合计首笔 33,115→37,342；日限额标的(020712)不再被抹成「—」；月投列改为灰「0」明示「一次性口径非缺数据」；口径说明同步重写。未动：mvMap 取数、offOf、调仓金额、目标偏移、列结构、合计行累加方式。徽标 v1078 → v1079。 --><!-- fw2_v1080_dca_plan_basis（用户 2026-11-24 两条口径「1、月定投金额不是为零 2、累计应投是开始定投日到现在累计应该投资的金额」）：资产配置表「定投金额（月）/累计应投」改回**计划口径**，与持仓缺口、已达标、日限额、R2 三态全部解耦：月投＝目标(已 scale)×(1−底仓比例)÷总期数（纲领 investMode=base）／目标÷总期数（drip）／0（lump）；累计应投＝首笔(目标×底仓比例, 仅 base)＋月投×已过期数。根因是 v1076 的 `_planCfg()` 遇 R2＝关会把 mode 折成 lump，v1079 又用它算这两列，于是「计划月投」被实盘开关抹成 0。做法：`_planCfg()` 增加 `d.plan`（折叠前原值），新增 `_planCfgPlan()`，`_rowMonthlyT/_rowProgT` 去掉 mv 参数、只吃目标金额；表尾口径行改按计划口径出「首笔合计/月投合计」，R2＝关时追加「实盘暂不按月投（计划口径不受影响）」。未动：mvMap、offOf、调仓金额、目标偏移、列结构。徽标 v1079 → v1080。 --><span id="verBadge" class="ver-badge">v1080</span><!-- fw2_v1076_conflicts（用户 2026-11-23「按照你顺序修」——修掉体检出的 5 处纲领冲突）：
 ①R7 带宽：撤销 v1067 的 `o.band = o.slotBand` 强镜像；band 只喂 R7（单只超配 25% 减配，SIG_THR_DEF 5→25、与回测 cfg.band 同值），slotBand 只喂 T10 四档；sigThrApply 分别写 C.barbell.band / C.barbell.slotBand，T10 文案改读 slotBand，R7 行 threshold 由硬编码「band 25%」改为动态读纲领值。
 ②R2 假开关：`_planCfg()` 读 `window.logicStateEff('R2')`——生效按 investMode，观察/关一律 lump（月投 0）；建仓步文案在一次性时追加「R2 定投＝关/观察」。
 ③T4 与 R6 双份：T4 行 modeled 改「与 R6 止损同一执行（同一 slHard）」，def 标「= R6 止损，同一动作」，阈值表 slHard 口径写「T4 / R6 · 同一执行」。
@@ -21584,6 +21584,7 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
        R2「生效」/「观察」→ 按 investMode（drip / base / lump，与回测下发口径一致：只有「关」才改值）；
        R2「关」→ 本轮按一次性（lump），月投 0——这才是「关」的真语义。
        三态来源 fw2_logic_v1（本机草稿优先于 logic-state.json 基线）；函数缺失时按 on，行为与 v1075 一致。 */
+    d.plan = d.mode; /* v1080 fw2_v1080_dca_plan_basis：折叠前的计划投入方式（不受 R2 三态影响） */
     try {
       d.r2 = (typeof window.logicStateEff === 'function') ? (window.logicStateEff('R2') || 'on') : 'on';
       if (d.r2 === 'off') d.mode = 'lump';
@@ -28997,32 +28998,37 @@ function brakeCardHtml(opts) {
       var mv = q * nv;
       if (mv > 0) mvMap[c6] = (mvMap[c6] || 0) + mv;
     });
-    /* v1079 fw2_v1079_dca_row_unify：本表「定投金额（月）/累计应投」改为按【本行目标金额 + 本行实际市值（mvMap 份额×净值口径）】现算，
-       不再对成员基金逐个调 _dcaFirst/_dcaMonthly 相加。两个实测坑：
-       ① 同指数多只基金只有主基金带目标、其余 target=0，逐只相加会漏掉同族其它基金持仓（A500 ×2 行累计应投 4,548、真实缺口 4,160）；
-       ② _dcaFirst 的缺口走 gapOf()（昨收 preclose 估值），与本表「实际市值」的结算净值口径不同源，单只行也会差几十元（沪深300 2,903 vs 2,893）。
-       口径：lump（一次性，R2 定投＝关）→ 累计应投 = max(0, 目标−市值)，与「调仓金额」同缺口；base → 首笔(目标×底仓%，≤缺口) + 月投×已过期数；drip → 月投×已过期数。 */
-    function _rowMonthlyT(tgtS, mv) {
-      if (!(tgtS > 0) || !(tgtS - (mv || 0) > 0)) return 0;
-      var c = (typeof _planCfg === 'function') ? _planCfg() : { mode: 'drip', base: 30 };
-      if (c.mode === 'lump') return 0;
-      var base = (c.mode === 'base') ? (c.base || 0) : 0;
+    /* v1080 fw2_v1080_dca_plan_basis（用户 2026-11-24 两条口径：①「月定投金额不是为零」②「累计应投是开始定投日到现在累计应该投资的金额」）：
+       「定投金额（月）」「累计应投」回到**计划口径**，与「持仓缺口 / 已达标」和 R2 三态**解耦**：
+         月投   = 目标金额(已 scale) × (1 − 底仓比例%) ÷ 总期数        （纲领 investMode='base'）
+                = 目标金额(已 scale) ÷ 总期数                          （纲领 investMode='drip'）
+                = 0                                                   （纲领明确设为 lump 一次性）
+         累计   = 首笔（目标×底仓比例，仅 base）＋ 月投 × 已过期数
+       为什么用 c.plan 而不用 c.mode：v1076 起 `_planCfg()` 遇 R2 定投＝关会把 c.mode 折叠成 lump（实盘一次性），
+       但计划口径没变；用折叠后的值就会把「月投」和「累计应投」一起抹成 0（v1079 遗留症状）。
+       缺口/仓位只影响「实际市值 → 进度滞后 / 目标偏移 / 调仓金额」，不再倒灌这两列。 */
+    function _planCfgPlan() {
+      var c = (typeof _planCfg === 'function') ? _planCfg() : { mode: 'drip', base: 30, plan: 'drip' };
+      c.plan = c.plan || c.mode;
+      return c;
+    }
+    function _rowMonthlyT(tgtS) {
+      if (!(tgtS > 0)) return 0;
+      var c = _planCfgPlan();
+      if (c.plan === 'lump') return 0;
+      var base = (c.plan === 'base') ? (c.base || 0) : 0;
       return Math.round(tgtS * (1 - base / 100) / (_BP_TOTAL || 1));
     }
-    function _rowProgT(tgtS, mv) {
+    function _rowProgT(tgtS) {
       if (!(tgtS > 0)) return 0;
-      var gap = Math.max(0, tgtS - (mv || 0));
-      var c = (typeof _planCfg === 'function') ? _planCfg() : { mode: 'drip', base: 30 };
-      if (c.mode === 'lump') return Math.round(gap);
-      var first = (c.mode === 'base') ? Math.round(Math.min(tgtS * (c.base || 0) / 100, gap)) : 0;
-      return first + _rowMonthlyT(tgtS, mv) * _ME;
+      var c = _planCfgPlan();
+      var first = (c.plan === 'base') ? Math.round(tgtS * (c.base || 0) / 100) : 0;
+      return first + _rowMonthlyT(tgtS) * _ME;
     }
-    /* v1079：定投列占位——有目标但一次性口径为 0 时显示灰「0」（不是缺数据），无目标计划外仍「—」 */
+    /* 计划口径下无目标的计划外行显示「—」；有目标就出数（0 也照实显示，不伪装成缺数据） */
     function _mColTxt(v, tgtS) {
       if (!(tgtS > 0)) return '—';
-      if (v > 0) return amt(v);
-      var c = (typeof _planCfg === 'function') ? _planCfg() : { mode: 'drip', base: 30 };
-      return (c.mode === 'lump') ? '<span style="color:var(--slate-400,#94a3b8)">0</span>' : '—';
+      return v > 0 ? amt(v) : '<span style="color:var(--slate-400,#5B6675)">0</span>';
     }
     /* v239 fw2_v239_extra_holdings：计划外持仓并入表格（存量未纳入配置目标，含现金） */
     var planCodes = {};
@@ -29074,7 +29080,7 @@ function brakeCardHtml(opts) {
       + ' title="可投资金：改写后按该金额重新分配各标的目标（占比口径不变）；输入停顿或回车后表格重算"'
       + ' style="width:84px;padding:1px 5px;border:1px solid #cbd5e1;border-radius:5px;font-size:13px;font-weight:600;color:#334155;background:#fff;vertical-align:middle;text-align:right"'
       + ' value="' + (liveBudget > 0 ? Math.round(liveBudget) : '') + '">';
-    html += '<div class="st-card"><h4>资产配置（计划 ¥' + _budInp + ' · 目标 11 只' + (_extraPlanCount ? ' · 计划外 ' + _extraPlanCount + ' 只' : '') + '）<span style="font-weight:400;font-size:11px;color:var(--slate-400)"> · 策略配置截至 ' + esc(S.updatedAt || '') + ' · 实际市值截至 ' + ((state.snapshot && state.snapshot.at) ? fmtClock(state.snapshot.at) : '未更新') + '（净值随 fund-daily）</span></h4><div class="strat-note">目标 = 计划配置；实际市值 = 当前持仓市值（份额 × 最新净值，含浮动盈亏；非台账累计净投入本金，不用于计算投入产出）；调仓金额 = 目标 − 实际市值；未建仓标的按「差额 ÷ 剩余月」逐月推进；计划外持仓 = 存量未纳入目标（相对目标 0 超配）。口径详见行内分组（其余折叠，需要时展开）。<details style="margin-top:4px"><summary style="cursor:pointer;color:var(--slate-500,var(----slate-500));font-size:11px">展开：定投 / 累计应投 / 进度滞后 / 目标偏移 / 颜色口径</summary><div style="margin-top:4px"><b style="color:var(--slate-700,var(----slate-700))">定投金额（月）</b> = 计划每月定投额（每月定投＝目标÷总月数，底仓+定投＝目标×(1−底仓比例)÷总月数；一次性建仓口径下恒为 0、显示灰色「0」（不是缺数据），已达标或日限额标的也为 0），不含台账实际投入；<b style="color:var(--slate-700,var(----slate-700))">累计应投</b> = 按「本行目标 − 本行实际市值」的分期口径现算：一次性＝max(0, 缺口)（与「调仓金额」同一缺口、同一价源）；底仓+定投＝首笔（目标×底仓比例，且不超过缺口）＋月投×已过定投期数（自 ' + esc((S.start || '2026-09').slice(0, 7)) + ' 首投起、固定 12 期，当前已过 ' + _ME + ' 期，约 ' + (_BP_FRAC * 100).toFixed(0) + '%）；每月定投＝月投×已过定投期数。同指数多只基金合并行按整族目标与整族市值算，不漏同族其它基金持仓（v1079 修正：此前逐只相加只认主基金缺口，A500 ×2 曾显示 4,548、真实缺口 4,160）；已达标(缺口≤0)→0 显示「—」（如易方达全球市值已超目标）。<b style="color:var(--slate-700,var(----slate-700))">进度滞后</b> = 实际市值 − 累计应投（金额，红=滞后于定投计划，蓝=进度超前）；无定投计划的计划外存量显示「—」。<b style="color:var(--slate-700,var(----slate-700))">目标偏移</b> = (目标 − 实际) ÷ 目标；目标为 0 时除零无定义显示「—」，调仓金额仍按 −市值 提示「计划外超配、需卖出」。<b style="color:var(--slate-700,var(----slate-700))">颜色口径</b>：红＝需补仓（「进度滞后」为负＝落后定投计划；「调仓金额」「目标偏移」为正＝欠配），蓝＝进度超前（仅「进度滞后」为正，此列不用绿色），绿＝需减仓（「调仓金额」「目标偏移」为负＝已超配）；故同一行「进度滞后」为正显蓝、「调仓金额」为正显红并不矛盾，二者分别是「相对定投计划」与「相对最终目标」两个基准；「—」＝无定义或无定投计划的占位。</div></details></div>' +
+    html += '<div class="st-card"><h4>资产配置（计划 ¥' + _budInp + ' · 目标 11 只' + (_extraPlanCount ? ' · 计划外 ' + _extraPlanCount + ' 只' : '') + '）<span style="font-weight:400;font-size:11px;color:var(--slate-400)"> · 策略配置截至 ' + esc(S.updatedAt || '') + ' · 实际市值截至 ' + ((state.snapshot && state.snapshot.at) ? fmtClock(state.snapshot.at) : '未更新') + '（净值随 fund-daily）</span></h4><div class="strat-note">目标 = 计划配置；实际市值 = 当前持仓市值（份额 × 最新净值，含浮动盈亏；非台账累计净投入本金，不用于计算投入产出）；调仓金额 = 目标 − 实际市值；未建仓标的按「差额 ÷ 剩余月」逐月推进；计划外持仓 = 存量未纳入目标（相对目标 0 超配）。口径详见行内分组（其余折叠，需要时展开）。<details style="margin-top:4px"><summary style="cursor:pointer;color:var(--slate-500,var(----slate-500));font-size:11px">展开：定投 / 累计应投 / 进度滞后 / 目标偏移 / 颜色口径</summary><div style="margin-top:4px"><b style="color:var(--slate-700,var(----slate-700))">定投金额（月）</b> = 计划每月定投额（计划口径，按纲领「投入方式」算：底仓+定投＝目标×(1−底仓比例)÷总期数，每月定投＝目标÷总期数；纲领设为「一次性」时恒为 0 并显示灰色「0」）。**与当前持仓、是否已达标、日限额都无关**——计划里每月该投多少就是多少，不含台账实际投入；<b style="color:var(--slate-700,var(----slate-700))">累计应投</b> = **自开始定投日到现在的累计应投金额**：首笔（底仓+定投＝目标×底仓比例）＋ 月投 × 已过定投期数（自 ' + esc((S.start || '2026-09').slice(0, 7)) + ' 首投起、固定 12 期，当前已过 ' + _ME + ' 期，约 ' + (_BP_FRAC * 100).toFixed(0) + '%）；每月定投＝月投×已过定投期数，一次性＝0。同样**与持仓无关**，所以「进度滞后 = 实际市值 − 累计应投」才是「比计划超前/落后多少」；同指数多只基金合并行按整族目标算，不漏同族其它基金（v1079 修正）。<b style="color:var(--slate-700,var(----slate-700))">进度滞后</b> = 实际市值 − 累计应投（金额，红=滞后于定投计划，蓝=进度超前）；无定投计划的计划外存量显示「—」。<b style="color:var(--slate-700,var(----slate-700))">目标偏移</b> = (目标 − 实际) ÷ 目标；目标为 0 时除零无定义显示「—」，调仓金额仍按 −市值 提示「计划外超配、需卖出」。<b style="color:var(--slate-700,var(----slate-700))">颜色口径</b>：红＝需补仓（「进度滞后」为负＝落后定投计划；「调仓金额」「目标偏移」为正＝欠配），蓝＝进度超前（仅「进度滞后」为正，此列不用绿色），绿＝需减仓（「调仓金额」「目标偏移」为负＝已超配）；故同一行「进度滞后」为正显蓝、「调仓金额」为正显红并不矛盾，二者分别是「相对定投计划」与「相对最终目标」两个基准；「—」＝无定义或无定投计划的占位。</div></details></div>' +
       /* fw2_v1019_alloc_slim：表头右侧列显隐开关——默认精简 7 列（档位 / 代码 / 资产名称 / 目标金额 / 目标占比 / 实际市值 / 调仓金额）；
          档位目标、主题、定投金额（月）、累计应投、进度滞后、标的占比、目标偏移这 7 列进完整态：
          窄屏（实测内容区 490px）下前两版 8/9 列会把「10,575」截成「10,57」、主题 chip 截成「A50」，故按「数字列优先给足宽度」重排——
@@ -29167,8 +29173,8 @@ function brakeCardHtml(opts) {
             var ft = (fa.target || 0) * _sc;
             var fm = it.m ? (mvMap[fcode] || 0) : it.x.mv;
             /* v1079 fw2_v1079_dca_row_unify：月投/累计应投按本行目标与本行市值现算（同族不漏持仓、价源与「实际市值」同源） */
-            var fdm = it.m ? _rowMonthlyT(ft, fm) : 0;
-            var fp = it.m ? _rowProgT(ft, fm) : 0;
+            var fdm = it.m ? _rowMonthlyT(ft) : 0;
+            var fp = it.m ? _rowProgT(ft) : 0;
             var fdiff = ft - fm;
             var foff = offOf(ft, fm, fm > 0);
             var rowCls = (first && gi > 0 ? ' grp-start' : '');
@@ -29204,8 +29210,8 @@ function brakeCardHtml(opts) {
           }
         });
         /* v1079：家族行月投/累计应投按整族目标(tt)与整族市值(tm)现算，不再对成员逐只相加 */
-        tdm = _rowMonthlyT(tt, tm);
-        tp = _rowProgT(tt, tm);
+        tdm = _rowMonthlyT(tt);
+        tp = _rowProgT(tt);
         var tdiff = tt - tm;
         var toff = offOf(tt, tm, tm > 0);
         var rowCls = (first && gi > 0 ? ' grp-start' : '');
@@ -29290,11 +29296,15 @@ function brakeCardHtml(opts) {
     html += (function () {
         var c = _planCfg();
         var _firstSum = sumProg - sumMonthly * _ME;
-        var modeTxt = c.mode === 'lump' ? '一次性（入场日全额）' : (c.mode === 'base' ? ('底仓+定投（首笔底仓 ' + c.base + '%）') : '每月定投');
+        /* v1080：尾行讲「计划口径」，另标 R2 实盘状态，避免与两列口径打架 */
+        var _pm = c.plan || c.mode;
+        var modeTxt = _pm === 'lump' ? '一次性（入场日全额）' : (_pm === 'base' ? ('底仓+定投（首笔底仓 ' + c.base + '%）') : '每月定投');
+        var _r2note = (c.r2 === 'off') ? '；R2 定投＝关，实盘暂不按月投（计划口径不受影响）' : '';
         return '<tr class="alloc-plan-note"><td colspan="' + (_colSlim ? 7 : 14) + '" style="padding:8px 6px 2px;font-size:11px;color:#71717A;line-height:1.8;border-top:1px solid #F1F0EC;text-align:left">'
           + '建仓口径：<b>' + modeTxt + '</b> · 首笔合计 ≈ ¥' + amt(_firstSum > 0 ? _firstSum : 0)
           + ' · 月投合计 ¥' + amt(sumMonthly)
-          + (c.mode === 'lump' ? ' · 一次性全额，不设月投' : (' · 共 ' + _BP_TOTAL + ' 期'))
+          + (_pm === 'lump' ? ' · 一次性全额，不设月投' : (' · 共 ' + _BP_TOTAL + ' 期'))
+          + _r2note
           + '；首笔已计入「累计应投」。'
           + '参数取自投资纲领「信号阈值（纲领）」→ 投入方式 / 建仓底仓比例（fw2_sig_thr），改纲领即时生效。'
           + '</td></tr>';
