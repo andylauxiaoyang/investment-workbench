@@ -1564,7 +1564,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
    仍靠灰底 + disabled + cursor:not-allowed 表达「不可改」。
 全部只改颜色字面量，结构 / 文案 / 判定逻辑零改动；徽标 v1076 → v1077。 -->
 <!-- fw2_v1079_dca_row_unify（用户 2026-11-24「这个表的数据有问题，你排查下逻辑」）：资产配置表「定投金额（月）/累计应投」由「逐只基金 _dcaFirst/_dcaMonthly 相加」改为「按本行目标金额 + 本行实际市值（mvMap 份额×净值）现算」（_rowMonthlyT / _rowProgT / _mColTxt）。修掉两个实测错值：① 同指数多只基金只有主基金带目标、其余 target=0，逐只相加漏掉同族其它基金持仓（A500 ×2 累计应投 4,548、真实缺口 4,160；纳指100 ×12 4,946、真实 4,768）；② _dcaFirst 缺口走 gapOf() 的昨收(preclose)估值，与本表「实际市值」结算净值不同源，单只行也差几十元（沪深300 2,903 vs 2,893、黄金 4,649 vs 4,642）。一次性(lump，R2 定投＝关)口径下 累计应投＝max(0, 目标−市值)＝调仓金额同缺口，合计首笔 33,115→37,342；日限额标的(020712)不再被抹成「—」；月投列改为灰「0」明示「一次性口径非缺数据」；口径说明同步重写。未动：mvMap 取数、offOf、调仓金额、目标偏移、列结构、合计行累加方式。徽标 v1078 → v1079。 --><!-- fw2_v1080_dca_plan_basis（用户 2026-11-24 两条口径「1、月定投金额不是为零 2、累计应投是开始定投日到现在累计应该投资的金额」）：资产配置表「定投金额（月）/累计应投」改回**计划口径**，与持仓缺口、已达标、日限额、R2 三态全部解耦：月投＝目标(已 scale)×(1−底仓比例)÷总期数（纲领 investMode=base）／目标÷总期数（drip）／0（lump）；累计应投＝首笔(目标×底仓比例, 仅 base)＋月投×已过期数。根因是 v1076 的 `_planCfg()` 遇 R2＝关会把 mode 折成 lump，v1079 又用它算这两列，于是「计划月投」被实盘开关抹成 0。做法：`_planCfg()` 增加 `d.plan`（折叠前原值），新增 `_planCfgPlan()`，`_rowMonthlyT/_rowProgT` 去掉 mv 参数、只吃目标金额；表尾口径行改按计划口径出「首笔合计/月投合计」，R2＝关时追加「实盘暂不按月投（计划口径不受影响）」。未动：mvMap、offOf、调仓金额、目标偏移、列结构。徽标 v1079 → v1080。 --><!-- fw2_v1081_bt_param_labels（用户 2026-11-24 三张截图）：①「策略执行」tab 条上的「回测参数（全量底稿）」→「回测参数」（图三圈的就是这个 tab）；②配置回测页 / 自选回测页里的「修改参数 → 回测参数（全量底稿）」按口径分别改为「配置回测参数」「自选回测参数」，其后副文案「参数在『策略执行 → 回测参数』」同步补 ⑧-B / ⑧-C 子页签名；③其余指路文案里「策略执行 → 回测参数（全量底稿）」统一改成「策略执行 → 回测参数」（⑧-A 子页签名「⑧-A 回测参数（全量底稿）」保持不变，它是母版底稿的正式名）。零逻辑改动。 -->
-<!-- fw2_v1084_bt_a_label（用户 2026-11-24「同意」）：⑧-A 子页签由「⑧-A 回测参数（全量底稿）」改为「⑧-A 回测参数」，卡头 / 保存提示 / v1083 重置按钮 tooltip 三处同名文案同步（纯可见文案，零逻辑改动；代码注释与历史注释里的旧名保留）。 --><span id="verBadge" class="ver-badge">v1085</span><!-- fw2_v1076_conflicts（用户 2026-11-23「按照你顺序修」——修掉体检出的 5 处纲领冲突）：
+<!-- fw2_v1084_bt_a_label（用户 2026-11-24「同意」）：⑧-A 子页签由「⑧-A 回测参数（全量底稿）」改为「⑧-A 回测参数」，卡头 / 保存提示 / v1083 重置按钮 tooltip 三处同名文案同步（纯可见文案，零逻辑改动；代码注释与历史注释里的旧名保留）。 --><span id="verBadge" class="ver-badge">v1086</span><!-- fw2_v1076_conflicts（用户 2026-11-23「按照你顺序修」——修掉体检出的 5 处纲领冲突）：
 ①R7 带宽：撤销 v1067 的 `o.band = o.slotBand` 强镜像；band 只喂 R7（单只超配 25% 减配，SIG_THR_DEF 5→25、与回测 cfg.band 同值），slotBand 只喂 T10 四档；sigThrApply 分别写 C.barbell.band / C.barbell.slotBand，T10 文案改读 slotBand，R7 行 threshold 由硬编码「band 25%」改为动态读纲领值。
 ②R2 假开关：`_planCfg()` 读 `window.logicStateEff('R2')`——生效按 investMode，观察/关一律 lump（月投 0）；建仓步文案在一次性时追加「R2 定投＝关/观察」。
 ③T4 与 R6 双份：T4 行 modeled 改「与 R6 止损同一执行（同一 slHard）」，def 标「= R6 止损，同一动作」，阈值表 slHard 口径写「T4 / R6 · 同一执行」。
@@ -1764,7 +1764,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 
 
       
-      <section class="view" id="view-tg"><!-- fw2_v1056_invest_master：投资总纲升为独立一级模块（原「策略执行 → 投资逻辑」）；渲染函数仍是 renderLogicView()，host 从 #stp-logic 改为 #tg-logic；⑧ 层的参数页已迁到「策略执行 → 回测参数（实验）」 --><div id="tg-logic"></div></section><section class="view" id="view-strategy"><!-- fw2_v120_strategy --><!-- fw2_v663_hero_retire：建仓 hero 整块退役（当前市值/完成度→资产配置表、定投月数/下次定投→定投执行 tab 同源重复；可投资金输入框经用户拍板一并删，rulesBudget 引擎按 localStorage fw2_capital_budget_v1 现值继续） --><!-- fw2_v944_budget_inline：可投资金输入框从 section 顶部并入资产配置表标题（用户 2026-11-16 「可以删除，因为资产配置标题有括号里写了」；同一数字原在顶部输入框/表标题/合计行三处重复，且它夹在指数行情条与 tab 按钮之间像页面筛选器） --><div class="strat-tabs v-tabs" id="stratTabs"><!-- fw2_v988f_logic_brain：新增「投资逻辑」一级子模块，并设为进入「策略执行」的默认页（用户 2026-11-18 拍板：tab 名「投资逻辑」／副标题「本工作台唯一的大脑 · 规则唯一写入口」；①–⑦ 59 条可执行规则 + ⑧ 6 条回测验证·逻辑准入；八层「点哪层看哪层」，不在一页平铺） --><button class="st-tab v-tab active" data-st="alloc">资产配置</button><!-- fw2_v945_bt_submodules：原「组合回测」一个 tab 拆成两个一级子模块（用户 2026-11-16「这两个子模块放到策略执行下面作为一级子模块展示。名字分别改成持仓回测，自选回测」）——data-st 同为 bt、靠 data-pool 区分，面板仍是同一个 stp-bt，pool 落在 fw2_bt_cfg_v1 里持久化 --><!-- fw2_v1013_strategy_pool：第一个 bt tab 由「持仓回测」改为「配置回测」，池改为 strategy＝内建目标配置 11 只（用户 2026-11-20「持仓回测改成配置回测，内容就是刚刚你按照回测的标的」） --><button class="st-tab v-tab" data-st="bt" data-pool="strategy">配置回测</button><button class="st-tab v-tab" data-st="bt" data-pool="custom">自选回测</button><!-- fw2_v895_plan_merge：定投执行 tab 退役；当月待办与静态参数并入资产配置 tab --><button class="st-tab v-tab" data-st="param">回测参数</button><!--fw2_v1056_invest_master：回测参数（原 ⑧-A/B/C）从投资逻辑 ⑧ 层迁到这里，参数唯一写入口 --><button class="st-tab v-tab" data-st="review">月度复盘</button></div><div class="st-pane" id="stp-alloc"></div><div class="st-pane" id="stp-bt" style="display:none"></div><div class="st-pane" id="stp-param" style="display:none"></div><div class="st-pane" id="stp-review" style="display:none"></div><!-- v167：场内外对照已下移至 #stp-cards 之后（原共享层位置摘除）--></section>
+      <section class="view" id="view-tg"><!-- fw2_v1056_invest_master：投资总纲升为独立一级模块（原「策略执行 → 投资逻辑」）；渲染函数仍是 renderLogicView()，host 从 #stp-logic 改为 #tg-logic；⑧ 层的参数页已迁到「策略执行 → 回测参数（实验）」 --><div id="tg-logic"></div></section><section class="view" id="view-strategy"><!-- fw2_v120_strategy --><!-- fw2_v663_hero_retire：建仓 hero 整块退役（当前市值/完成度→资产配置表、定投月数/下次定投→定投执行 tab 同源重复；可投资金输入框经用户拍板一并删，rulesBudget 引擎按 localStorage fw2_capital_budget_v1 现值继续） --><!-- fw2_v944_budget_inline：可投资金输入框从 section 顶部并入资产配置表标题（用户 2026-11-16 「可以删除，因为资产配置标题有括号里写了」；同一数字原在顶部输入框/表标题/合计行三处重复，且它夹在指数行情条与 tab 按钮之间像页面筛选器） --><div class="strat-tabs v-tabs" id="stratTabs"><!-- fw2_v988f_logic_brain：新增「投资逻辑」一级子模块，并设为进入「策略执行」的默认页（用户 2026-11-18 拍板：tab 名「投资逻辑」／副标题「本工作台唯一的大脑 · 规则唯一写入口」；①–⑦ 59 条可执行规则 + ⑧ 6 条回测验证·逻辑准入；八层「点哪层看哪层」，不在一页平铺） --><button class="st-tab v-tab active" data-st="alloc">资产配置</button><!-- fw2_v945_bt_submodules：原「组合回测」一个 tab 拆成两个一级子模块（用户 2026-11-16「这两个子模块放到策略执行下面作为一级子模块展示。名字分别改成持仓回测，自选回测」）——data-st 同为 bt、靠 data-pool 区分，面板仍是同一个 stp-bt，pool 落在 fw2_bt_cfg_v1 里持久化 --><!-- fw2_v1013_strategy_pool：第一个 bt tab 由「持仓回测」改为「配置回测」，池改为 strategy＝内建目标配置 11 只（用户 2026-11-20「持仓回测改成配置回测，内容就是刚刚你按照回测的标的」） --><button class="st-tab v-tab" data-st="bt" data-pool="strategy">配置回测</button><button class="st-tab v-tab" data-st="bt" data-pool="custom">自选回测</button><!-- fw2_v895_plan_merge：定投执行 tab 退役；当月待办与静态参数并入资产配置 tab --><button class="st-tab v-tab" data-st="param">回测参数</button><!--fw2_v1056_invest_master：回测参数（原 ⑧-A/B/C）从投资逻辑 ⑧ 层迁到这里，参数唯一写入口 --><button class="st-tab v-tab" data-st="dd">回撤档位</button><button class="st-tab v-tab" data-st="review">月度复盘</button></div><div class="st-pane" id="stp-alloc"></div><div class="st-pane" id="stp-bt" style="display:none"></div><div class="st-pane" id="stp-param" style="display:none"></div><div class="st-pane" id="stp-dd" style="display:none"></div><div class="st-pane" id="stp-review" style="display:none"></div><!-- v167：场内外对照已下移至 #stp-cards 之后（原共享层位置摘除）--></section>
       <!-- v91 fw2_v91_macro_merge：宏观·情绪 独立页曾并入 数据中心 → 宏观数据 分块（v135 已反向拆分，见下） -->
       <!-- fw2_v135_macro_view：宏观数据由「数据中心」分块迁出为独立模块（用户 2026-09-18「宏观数据单独作为一个模块放在数据中心上面」）；#view-data 改名「基金数据」并删除 dcBlocks 切换行（基金数据直接进入内容区，默认总览 Tab） -->
       <section class="view" id="view-macro">
@@ -23098,7 +23098,7 @@ function logicRowHtml(r, d) {
   function __stratActiveTab() {
     var b = document.querySelector('#view-strategy .st-tab.active');
     var st = b && b.dataset && b.dataset.st;
-    return (st === 'bt' || st === 'alloc' || st === 'review' || st === 'param') ? st : 'alloc'; /* v1056：逻辑面板已迁出 */
+    return (st === 'bt' || st === 'alloc' || st === 'review' || st === 'param' || st === 'dd') ? st : 'alloc'; /* v1056：逻辑面板已迁出 */
   }
   function __stratPaneRender(name) {
     if (name === 'bt') {
@@ -23109,6 +23109,8 @@ function logicRowHtml(r, d) {
       try { renderStratReview(); } catch (e) { console.error('REVIEW_RENDER_ERR', e && e.message); }
     } else if (name === 'param') {
       try { if (typeof window.renderBtParamPane === 'function') window.renderBtParamPane(); } catch (e) { console.error('PARAM_RENDER_ERR', e && e.message); }
+    } else if (name === 'dd') {
+      try { if (typeof window.renderDdModule === 'function') window.renderDdModule(); } catch (e) { console.error('DD_RENDER_ERR', e && e.message); }
     }
     __stratPaneDone[name] = 1;
   }
@@ -30838,7 +30840,7 @@ function brakeCardHtml(opts) {
     /* fw2_v1017_lazy_panes：切到资产配置 / 月度复盘时重画该面板（进入页时它们没被画，这里是首次；
        之后再切回来也重画一次，保证看到的是当前数据而不是进页那一刻的旧值，实测 12–14ms）。
        回测由下方 v997 的骨架重建负责，投资逻辑由 v1004 的逻辑分支负责，两边都不在这里重复。 */
-    if (name === 'alloc' || name === 'review' || name === 'param') __stratPaneRender(name);
+    if (name === 'alloc' || name === 'review' || name === 'param' || name === 'dd') __stratPaneRender(name);
     if (name === 'bt' && pool) {
       try {
         window.__btCfgScope = null;   /* v988j：回测页不属于 ⑧ 层编辑态 */
@@ -30884,6 +30886,524 @@ function brakeCardHtml(opts) {
   window.renderStrategyView = renderStrategyView;
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bindStratTabs);
   else bindStratTabs();
+})();
+
+</script>
+<style>
+/* fw2_v1086_dd：策略执行「回撤档位」子模块样式（独立命名空间 .dd-*，不碰既有卡片） */
+#stp-dd .dd-form{display:grid;grid-template-columns:repeat(auto-fill,minmax(148px,1fr));gap:8px;margin:4px 0 6px}
+#stp-dd .dd-form label{display:flex;flex-direction:column;gap:3px;font-size:11px;color:#71717A}
+#stp-dd .dd-form input,#stp-dd .dd-form select{font-size:12px;padding:5px 6px;border:1px solid #E4E4E7;border-radius:6px;background:#fff;color:#111}
+#stp-dd .dd-run{background:#1f4fd8;color:#fff;border:0;border-radius:7px;padding:7px 14px;font-size:12.5px;cursor:pointer}
+#stp-dd .dd-bks{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 6px}
+#stp-dd .dd-bk{font-size:10.5px;padding:1px 6px;border:1px solid #E4E4E7;border-radius:8px;color:#71717A}
+#stp-dd .dd-bk.hot{border-color:#EFC5C5;background:#FDECEC;color:#b91c1c}
+#stp-dd .dd-list{border-top:1px solid #F1F0EC}
+#stp-dd .dd-row{display:flex;gap:8px;align-items:center;padding:7px 8px;border-bottom:1px solid #F4F4F5;cursor:pointer;flex-wrap:wrap}
+#stp-dd .dd-row.on{background:#F6F8FF;box-shadow:inset 2px 0 0 #1f4fd8}
+#stp-dd .dd-nm{flex:1 1 118px;min-width:104px}
+#stp-dd .dd-nm b{font-size:12.5px}
+#stp-dd .dd-nm span{display:block;font-size:10px;color:#71717A;margin-top:1px}
+#stp-dd .dd-dd{text-align:right;min-width:104px;width:104px}
+#stp-dd .dd-dd b{font-family:var(--mono);font-size:14px}
+#stp-dd .dd-dd span{display:block;font-size:10px;color:#71717A}
+#stp-dd .dd-ti{text-align:right;min-width:142px;width:142px}
+#stp-dd .dd-ti b{font-family:var(--mono);font-size:12px;color:#3F3F46}
+#stp-dd .dd-ti span{display:block;font-size:10px;color:#71717A}
+#stp-dd .dd-st{font-size:10.5px;padding:2px 6px;border-radius:8px;white-space:nowrap}
+#stp-dd .dd-st.buy{background:#FDECEC;color:#b91c1c}
+#stp-dd .dd-st.near{background:#FEF6E7;color:#8A4A02}
+#stp-dd .dd-st.obs{background:#F4F4F5;color:#5C5C64}
+#stp-dd .dd-stale{color:#A32D2D;margin-left:4px}
+#stp-dd .dd-kpis{display:grid;grid-template-columns:repeat(auto-fill,minmax(112px,1fr));gap:8px;margin:6px 0 4px}
+#stp-dd .dd-kpi{border:1px solid #F1F0EC;border-radius:8px;padding:6px 8px;background:#FAFAF9}
+#stp-dd .dd-kpi .k{font-size:10.5px;color:#71717A}
+#stp-dd .dd-kpi .v{font-family:var(--mono);font-size:15px;font-weight:600;margin-top:2px}
+#stp-dd .dd-kpi .s{font-size:10px;color:#A1A1AA;margin-top:1px}
+#stp-dd .dd-tblwrap{overflow-x:auto}
+#stp-dd .dd-tbl{min-width:640px;width:100%;border-collapse:collapse;font-size:11.5px}
+#stp-dd .dd-tbl th{background:#FAFAF9;color:#63636B;font-weight:500;text-align:left;padding:5px 6px;border-bottom:1px solid #E4E4E7;white-space:nowrap}
+#stp-dd .dd-tbl td{padding:4px 6px;border-bottom:1px solid #F4F4F5;white-space:nowrap}
+#stp-dd .dd-tbl .num{text-align:right;font-family:var(--mono)}
+@media (max-width:560px){
+  #stp-dd .dd-plan-head{flex-direction:column}
+  #stp-dd .dd-plan-head>div{flex:0 0 auto !important;width:100%}
+  #stp-dd .dd-plan-n{min-width:0;text-align:left;display:flex;gap:6px;align-items:baseline}
+  #stp-dd .dd-row{gap:2px 8px}
+  #stp-dd .dd-nm{flex:1 1 100%}
+  #stp-dd .dd-dd{width:auto;min-width:0;flex:0 0 auto;text-align:left}
+  #stp-dd .dd-ti{width:auto;min-width:0;flex:1 1 auto;text-align:left}
+  #stp-dd .dd-st{margin-left:auto}
+  #stp-dd .dd-form{grid-template-columns:repeat(auto-fill,minmax(140px,1fr))}
+  #stp-dd .dd-form input,#stp-dd .dd-form select{font-size:11px}
+}
+</style>
+<!-- fw2_v1086_dd：策略执行新增「回撤档位」子页签（用户 2026-11-24 三张截图「指数跟踪 + 高点回撤 70% 起分批买入」）。
+     落点：①#stratTabs 第 5 颗按钮 data-st=dd；②#stp-dd 面板；③__stratActiveTab/__stratPaneRender/switchStratTab 三处分支；
+     ④模块本体（下方独立脚本块，window.renderDdModule / __ddRun / __ddSet / __ddReset / __ddMount / __ddChartInst）。
+     数据：data/index-dd.json（gen_index_dd.py 产，13 只指数日收盘 + 逐日回撤）。不写 localStorage，不接实盘下单。 -->
+<script>
+/* fw2_v1086_dd（2026-11-24 用户「这是一个指数跟踪和回撤的模型，大概意思是跟踪指数，指数回撤70%以上就跟进买入。这个能否复刻一个。作为投资方案的一种。可以放在策略执行中」）
+   独立模块：策略执行 →「回撤档位」子页签。
+   规则（照用户截图「档位回测」口径）：
+     ① 回撤＝收盘/历史最高收盘-1，档位按回撤百分点等距切（默认 70% 起、间距 5pp：70/75/80…）
+     ② 每触及一个新档位买入固定金额（每档独立，不受后续档位影响）
+     ③ 卖出＝反弹 N 档后进入观察，再从观察位回落 M 档 → 卖出该笔全部（默认 反弹2档观察 / 回落1档卖出）
+   数据：data/index-dd.json（gen_index_dd.py 产），懒加载；不写 localStorage（纯视图态 + 参数在页面内）。 */
+(function () {
+  var ST = window.__DD_STATE = window.__DD_STATE || {
+    code: '', capital: 10000, perBuy: 500, startDD: 70, gap: 5,
+    mode: 'rebound', obs: 2, back: 1, from: '', to: ''
+  };
+  var D = window.__DD_DATA = window.__DD_DATA || null;
+  var loadP = null;
+
+  function nf(v, d) {
+    var x = +v;
+    if (!isFinite(x)) return '—';
+    var s = x.toFixed(d == null ? 2 : d);
+    var p = s.split('.');
+    p[0] = p[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    return p.join('.');
+  }
+  function money(v) { return '¥' + nf(v, 2); }
+  function pct(v, d) { var x = +v; if (!isFinite(x)) return '—'; return (x > 0 ? '+' : '') + x.toFixed(d == null ? 2 : d) + '%'; }
+  function ymd(s) { return (s && s.length === 8) ? (s.slice(0, 4) + '-' + s.slice(4, 6) + '-' + s.slice(6, 8)) : (s || '—'); }
+  function dnum(s) { return +String(s).replace(/-/g, ''); }
+  function today() { if (D && D.updatedAt) return D.updatedAt; var t = new Date(); return t.toISOString().slice(0, 10); }
+  function isoAddYears(s, y) { var d = new Date(s + 'T00:00:00'); d.setFullYear(d.getFullYear() + y); return d.toISOString().slice(0, 10); }
+
+  function idxOf(code) {
+    if (!D) return null;
+    var arr = D.indices || [];
+    for (var i = 0; i < arr.length; i++) if (arr[i].code === code) return arr[i];
+    return null;
+  }
+  function deepest() {
+    var arr = (D && D.indices) || [], best = null, best2 = null;
+    for (var i = 0; i < arr.length; i++) {
+      if (!best || arr[i].dd < best.dd) best = arr[i];
+      if (!arr[i].stale && (!best2 || arr[i].dd < best2.dd)) best2 = arr[i];
+    }
+    return best2 || best;
+  }
+  function bucketOf(dd) {
+    var a = -dd;
+    if (a >= 70) return '≥70%';
+    if (a >= 60) return '60–70%';
+    if (a >= 50) return '50–60%';
+    if (a >= 40) return '40–50%';
+    if (a >= 30) return '30–40%';
+    return '<30%';
+  }
+
+  /* ---------- 回测引擎（单指数、单档位网格、逐笔独立） ---------- */
+  function runBT(ix, p) {
+    var dates = ix.d, closes = ix.c, n = closes.length;
+    var f0 = dnum(p.from), t0 = dnum(p.to);
+    var gap = Math.max(0.5, +p.gap || 5);
+    var startDD = Math.max(1, +p.startDD || 70);
+    var live = [];
+    for (var i = 0; i < n; i++) if (dates[i] >= f0 && dates[i] <= t0) live.push(i);
+    if (live.length < 30) return { err: '区间内交易日不足（' + live.length + ' 天），请放宽区间' };
+
+    var capital = Math.max(0, +p.capital || 0);
+    var perBuy = Math.max(0, +p.perBuy || 0);
+    if (perBuy <= 0) return { err: '每档买入金额必须大于 0' };
+    var cash = capital, nextTier = null, lots = [], trades = [], curve = [], posArr = [];
+    var tierOf = function (ddAbs) { return Math.floor((ddAbs + 1e-9) / gap) * gap; };
+
+    for (var k = 0; k < live.length; k++) {
+      var i2 = live[k], c = closes[i2], ddAbs = -(ix.ddArr[i2] || 0);
+      if (ddAbs >= startDD + 1e-9) {
+        if (nextTier === null) nextTier = Math.max(startDD, tierOf(ddAbs));
+        while (ddAbs + 1e-9 >= nextTier && cash + 1e-9 >= perBuy) {
+          var qty = perBuy / c;
+          cash -= perBuy;
+          var lot = { d: i2, tier: nextTier, px: c, amt: perBuy, qty: qty, peakDD: nextTier, armed: false, armDD: null, sold: false };
+          lots.push(lot);
+          trades.push({ bd: dates[i2], tier: nextTier, bpx: c, amt: perBuy, sd: '', spx: 0, pnl: null, days: 0 });
+          nextTier = nextTier + gap;
+        }
+      }
+      /* 卖出：每笔独立观察 */
+      if (p.mode === 'rebound') {
+        for (var li = 0; li < lots.length; li++) {
+          var lo = lots[li];
+          if (lo.sold) continue;
+          if (ddAbs >= lo.peakDD) lo.peakDD = ddAbs;
+          if (!lo.armed) {
+            if (ddAbs <= lo.peakDD - (+p.obs || 0) * gap) { lo.armed = true; lo.armDD = ddAbs; }
+          } else {
+            if (ddAbs < lo.armDD) lo.armDD = ddAbs;
+            if (ddAbs >= lo.armDD + (+p.back || 0) * gap) {
+              cash += lo.qty * c;
+              lo.sold = true;
+              var tr = trades[li];
+              tr.sd = dates[i2]; tr.spx = c; tr.pnl = lo.qty * c - lo.amt; tr.days = i2 - lo.d;
+            }
+          }
+        }
+      }
+      var pos = 0;
+      for (var lj = 0; lj < lots.length; lj++) if (!lots[lj].sold) pos += lots[lj].qty * c;
+      posArr.push(pos);
+      curve.push({ d: dates[i2], eq: cash + pos, pos: pos });
+    }
+    var sold = trades.filter(function (t2) { return t2.sd; });
+    var wins = sold.filter(function (t2) { return t2.pnl > 0; }).length;
+    var final = curve.length ? curve[curve.length - 1].eq : capital;
+    var pnlTotal = final - capital;
+    var years = (dates[live[live.length - 1]] && dates[live[0]]) ? ((live[live.length - 1] - live[0]) / 244) : 1;
+    var cagr = (final > 0 && capital > 0 && years > 0) ? (Math.pow(final / capital, 1 / years) - 1) * 100 : 0;
+    var peak = -1e18, mdd = 0;
+    for (var ci = 0; ci < curve.length; ci++) {
+      if (curve[ci].eq > peak) peak = curve[ci].eq;
+      if (peak > 0) mdd = Math.max(mdd, (peak - curve[ci].eq) / peak * 100);
+    }
+    var avgPos = 0, maxPos = 0;
+    for (var pi = 0; pi < curve.length; pi++) {
+      var r = curve[pi].eq > 0 ? curve[pi].pos / curve[pi].eq : 0;
+      avgPos += r; if (r > maxPos) maxPos = r;
+    }
+    avgPos = curve.length ? avgPos / curve.length : 0;
+    return {
+      ok: 1, curve: curve, trades: trades, capital: capital, final: final, pnl: pnlTotal,
+      ret: capital > 0 ? pnlTotal / capital * 100 : 0, cagr: cagr, mdd: mdd,
+      win: sold.length ? wins / sold.length * 100 : 0, soldN: sold.length, buyN: trades.length,
+      avgPos: avgPos * 100, maxPos: maxPos * 100, years: years, from: dates[live[0]], to: dates[live[live.length - 1]],
+      openLots: lots.filter(function (x) { return !x.sold; }).length
+    };
+  }
+
+  /* ---------- 视图 ---------- */
+  function planCardHtml() {
+    var arr = (D && D.indices) || [];
+    var hit = arr.filter(function (x) { return -x.dd >= 70; }).sort(function (a, b) { return a.dd - b.dd; });
+    var near = arr.filter(function (x) { return -x.dd >= 60 && -x.dd < 70; }).length;
+    var line = hit.length
+      ? hit.map(function (x) {
+          var gap = +ST.gap || 5, ddAbs = -x.dd;
+          var cur = Math.floor(ddAbs / gap) * gap;
+          var next = cur + gap;
+          var px = x.high * (1 - next / 100);
+          return '<b style="color:#b91c1c">' + x.name + '</b> 回撤 ' + ddAbs.toFixed(2) + '%（档位 ' + cur + '%）'
+            + '<span style="color:#71717A"> · 下一档 ' + next + '% 对应点位 ' + nf(px, 0) + '</span>';
+        }).join('<br>')
+      : '暂无指数进入 70% 买入区（最深 ' + (arr.length ? (-arr[0].dd).toFixed(2) : '—') + '%）';
+    return '<div class="st-card" style="background:#FFF9F5;border-color:#F3D6C4">'
+      + '<div class="dd-plan-head" style="display:flex;align-items:flex-start;gap:8px;flex-wrap:wrap">'
+      + '<div style="flex:1 1 240px"><div style="font-size:15px;font-weight:600;color:#8A3A16">回撤档位投资 · 指数深跌分批买</div>'
+      + '<div style="font-size:12px;color:#8A5A3C;margin-top:4px;line-height:1.7">跟踪指数从<b>历史最高收盘</b>的回撤：跌到 70% 买第一档，之后每多跌 ' + (+ST.gap || 5) + ' 个百分点再买一档（每档固定金额、逐笔独立）；反弹 ' + (+ST.obs || 2) + ' 档后转入观察，从观察位回落 ' + (+ST.back || 1) + ' 档就卖出该笔。</div></div>'
+      + '<div class="dd-plan-n" style="flex:0 0 auto;min-width:88px;white-space:nowrap;text-align:right"><div style="font-size:11px;color:#8A5A3C">当前进入 70% 买入区</div><div style="font-family:var(--mono);font-size:22px;font-weight:600;color:#b91c1c;white-space:nowrap;line-height:1.2">' + hit.length + '<span style="font-size:12px;font-weight:400;margin-left:2px;vertical-align:baseline;line-height:1">只</span></div>'
+      + '<div style="font-size:11px;color:#71717A">60–70% 接近 ' + near + ' 只</div></div></div>'
+      + '<div style="margin-top:8px;padding-top:8px;border-top:1px dashed #EFD8C8;font-size:12px;line-height:1.8">' + line + '</div>'
+      + '</div>';
+  }
+
+  function listCardHtml() {
+    var arr = ((D && D.indices) || []).slice().sort(function (a, b) { return a.dd - b.dd; });
+    var gap = +ST.gap || 5;
+    var buckets = {};
+    arr.forEach(function (x) { var b = bucketOf(x.dd); buckets[b] = (buckets[b] || 0) + 1; });
+    var bucketLine = ['≥70%', '60–70%', '50–60%', '40–50%', '30–40%', '<30%'].map(function (b) {
+      return '<span class="dd-bk' + (b === '≥70%' ? ' hot' : '') + '">' + b + ' <b>' + (buckets[b] || 0) + '</b></span>';
+    }).join('');
+    var rows = arr.map(function (x) {
+      var ddAbs = -x.dd;
+      var cur = ddAbs >= start0() ? Math.floor(ddAbs / gap) * gap : null;
+      var next = cur != null ? cur + gap : null;
+      var npx = next != null ? x.high * (1 - next / 100) : 0;
+      var stTxt, stCls;
+      if (ddAbs >= 70) { stTxt = '已进入买入区'; stCls = 'buy'; }
+      else if (ddAbs >= 60) { stTxt = '距 70% 还差 ' + (70 - ddAbs).toFixed(1) + 'pp'; stCls = 'near'; }
+      else { stTxt = '观察'; stCls = 'obs'; }
+      var stale = x.stale ? '<span class="dd-stale" title="数据只到 ' + ymd(x.stale) + '">⚠ 数据至 ' + ymd(x.stale) + '</span>' : '';
+      return '<div class="dd-row' + (ST.code === x.code ? ' on' : '') + '" data-dd-code="' + x.code + '">'
+        + '<div class="dd-nm"><b>' + x.name + '</b><span>' + x.code + ' · ' + x.market + stale + '</span></div>'
+        + '<div class="dd-dd"><b style="color:' + (ddAbs >= 70 ? '#b91c1c' : (ddAbs >= 50 ? '#A9630B' : '#6B6B74')) + '">' + ddAbs.toFixed(2) + '%</b>'
+        + '<span>现价 ' + nf(x.last, 2) + ' · ' + ymd(x.end).slice(5) + '</span></div>'
+        + '<div class="dd-ti"><b>' + (cur == null ? '—' : cur + '%') + '</b>'
+        + '<span>' + (next == null ? '高点 ' + nf(x.high, 0) + '（' + ymd(x.highDate) + '）' : '下一档 ' + next + '% ≈ ' + nf(npx, 0)) + '</span></div>'
+        + '<div class="dd-st ' + stCls + '">' + stTxt + '</div></div>';
+    }).join('');
+    return '<div class="st-card"><h4 style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">全指数回撤监测'
+      + '<span style="font-weight:400;font-size:11px;color:#71717A">共 ' + arr.length + ' 只 · 回撤＝距历史最高收盘 · 点一行选它做回测</span></h4>'
+      + '<div class="dd-bks">' + bucketLine + '</div><div class="dd-list">' + rows + '</div>'
+      + '<div class="strat-note" style="margin:8px 0 0">数据 ' + (D ? D.updatedAt : '—') + ' · ' + (D ? D.src : '') + '</div></div>';
+  }
+
+  function start0() { return +ST.startDD || 70; }
+  function cur() {
+    var arr = (D && D.indices) || [], pick = null;
+    for (var i = 0; i < arr.length; i++) if (String(arr[i].code) === String(ST.code)) pick = arr[i];
+    return pick || arr[0] || { start: 0, end: 0 };
+  }
+  function isoOf(d) {
+    var t = String(d || '');
+    if (t.length !== 8) return '';
+    return t.slice(0, 4) + '-' + t.slice(4, 6) + '-' + t.slice(6, 8);
+  }
+
+  function paramHtml() {
+    var sel = ((D && D.indices) || []).map(function (x) {
+      return '<option value="' + x.code + '"' + (String(ST.code) === String(x.code) ? ' selected' : '') + '>' + x.name + '（' + x.code + '）</option>';
+    }).join('');
+    return '<div class="st-card"><h4>档位回测 <span style="font-weight:400;font-size:11px;color:#71717A">单指数 · 档位网格买入 · 逐笔独立卖出</span></h4>'
+      + '<div class="dd-form">'
+      + '<label>指数<select data-dd="code">' + sel + '</select></label>'
+      + '<label>总资金（元）<input data-dd="capital" type="number" min="0" step="100" value="' + (+ST.capital) + '"></label>'
+      + '<label>每档买入金额（元）<input data-dd="perBuy" type="number" min="0" step="50" value="' + (+ST.perBuy) + '"></label>'
+      + '<label>开始买入的回撤（%）<input data-dd="startDD" type="number" min="1" max="95" step="1" value="' + (+ST.startDD) + '"></label>'
+      + '<label>档位间距（百分点）<input data-dd="gap" type="number" min="1" max="20" step="1" value="' + (+ST.gap) + '"></label>'
+      + '<label>卖出方式<select data-dd="mode">'
+      + '<option value="rebound"' + (ST.mode === 'rebound' ? ' selected' : '') + '>反弹后回落卖出</option>'
+      + '<option value="hold"' + (ST.mode === 'hold' ? ' selected' : '') + '>持有不卖（只看买入）</option>'
+      + '</select></label>'
+      + '<label>反弹几档后观察<input data-dd="obs" type="number" min="0" max="20" step="1" value="' + (+ST.obs) + '"></label>'
+      + '<label>回落几档卖出<input data-dd="back" type="number" min="0" max="20" step="1" value="' + (+ST.back) + '"></label>'
+      + '<label>开始日期<input data-dd="from" type="date" value="' + (ST.from || isoOf(cur().start)) + '"></label>'
+      + '<label>结束日期<input data-dd="to" type="date" value="' + (ST.to || isoOf(cur().end)) + '"></label>'
+      + '</div>'
+      + '<div class="strat-note" style="margin:6px 0 8px">档位以<b>历史高点回撤</b>计：70% → 65% 是「反弹一档」（间距 ' + (+ST.gap || 5) + ' 个百分点），不是产品上涨 ' + (+ST.gap || 5) + '%。每笔独立观察，触发后卖出该笔全部持仓；不含手续费与分红。</div>'
+      + '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><button class="dd-run" data-dd-run="1">▷ 运行回测</button>'
+      + '<span id="ddRunMsg" style="font-size:12px;color:#71717A">区间 ' + (ST.from || '—') + ' → ' + (ST.to || '—') + '</span></div></div>';
+  }
+
+  function kpi(label, val, sub, color) {
+    return '<div class="dd-kpi"><div class="k">' + label + '</div><div class="v" style="' + (color ? 'color:' + color : '') + '">' + val + '</div><div class="s">' + sub + '</div></div>';
+  }
+
+  function resultHtml(R) {
+    if (!R) return '<div class="st-card" id="ddResultCard"><h4>回测结果</h4><div class="strat-note" style="margin:0">点「▷ 运行回测」出结果；默认 70% 起买、每档 ¥500、反弹 2 档观察后回落 1 档卖出。</div></div>';
+    if (R.err) return '<div class="st-card" id="ddResultCard"><h4>回测结果</h4><div style="color:#A32D2D;font-size:12px">' + R.err + '</div></div>';
+    var cagrTxt = (R.years || 0) < 1 ? '<span style="font-size:11px;color:#71717A">不足一年，不折算年化</span>' : pct(R.cagr, 2);
+    var trades = R.trades.map(function (t) {
+      var pnlCls = t.pnl == null ? '' : (t.pnl >= 0 ? 'color:#b91c1c' : 'color:#047857');
+      return '<tr><td>' + ymd(t.bd) + '</td><td class="num">' + t.tier + '%</td><td class="num">' + nf(t.bpx, 2) + '</td>'
+        + '<td class="num">' + money(t.amt) + '</td><td>' + (t.sd ? ymd(t.sd) : '持有中') + '</td>'
+        + '<td class="num">' + (t.spx ? nf(t.spx, 2) : '—') + '</td>'
+        + '<td class="num" style="' + pnlCls + '">' + (t.pnl == null ? '—' : (t.pnl >= 0 ? '+' : '') + nf(t.pnl, 2)) + '</td>'
+        + '<td class="num">' + (t.sd ? t.days : '—') + '</td></tr>';
+    }).join('');
+    return '<div class="st-card" id="ddResultCard"><h4 style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">回测结果'
+      + '<span style="font-weight:400;font-size:11px;color:#71717A">' + dstr(R.from) + ' → ' + dstr(R.to) + ' · 每档 ' + money(+ST.perBuy) + ' · 起始 ' + (+ST.startDD) + '%</span></h4>'
+      + '<div class="dd-kpis">'
+      + kpi('期末总资产', money(R.final), '本金 ' + money(R.capital) + ' · 期末在仓 ' + R.openLots + ' 笔', '#b91c1c')
+      + kpi('累计盈亏', (R.pnl >= 0 ? '+' : '') + money(R.pnl), '账户收益率 ' + pct(R.ret), R.pnl >= 0 ? '#b91c1c' : '#047857')
+      + kpi('年化收益率', cagrTxt, '按区间折算', R.cagr >= 0 ? '#b91c1c' : '#047857')
+      + kpi('最大回撤', '-' + R.mdd.toFixed(2) + '%', '账户净值从最高点回落', '#047857')
+      + kpi('已结束交易胜率', R.soldN ? R.win.toFixed(1) + '%' : '—', R.soldN + ' 笔已卖出', '')
+      + kpi('平均仓位', R.avgPos.toFixed(2) + '%', '最高 ' + R.maxPos.toFixed(2) + '%', '')
+      + kpi('买入 / 卖出', R.buyN + ' / ' + R.soldN, '在仓 ' + R.openLots + ' 笔', '')
+      + kpi('手续费', '¥0.00', '指数点位回测，不计费用', '')
+      + '</div>'
+      + '<div id="ddChart" style="height:230px;margin:8px 0 4px"></div>'
+      + '<div class="strat-note" style="margin:0 0 6px">账户总资产（蓝）与持仓市值（浅蓝面积）；仓位＝持仓市值/总资产。</div>'
+      + '<div class="dd-tblwrap"><table class="dd-tbl"><thead><tr><th>买入日</th><th class="num">档位</th><th class="num">买入点位</th><th class="num">金额</th><th>卖出日</th><th class="num">卖出点位</th><th class="num">盈亏</th><th class="num">天数</th></tr></thead><tbody>'
+      + trades + '</tbody></table></div>'
+      + '<div class="strat-note" style="margin:6px 0 0">独立历史实验：不读取、不合并任何真实买卖记录，也不代表实盘收益。指数回撤深并不等于会回归（结构性衰退的板块可能长期不反弹），回测只给规则一个参照。</div></div>';
+  }
+
+  function shellHtml() {
+    if (!D) return '<div class="st-card" id="ddLoading"><h4>回撤档位 · 指数深跌分批买</h4><div class="strat-note" style="margin:0">正在加载指数回撤数据（data/index-dd.json）…</div></div>';
+    return planCardHtml() + listCardHtml() + paramHtml() + resultHtml(window.__DD_RES);
+  }
+
+  function dstr(d) {
+    var t = String(d || '');
+    return t.length === 8 ? t.slice(0, 4) + '-' + t.slice(4, 6) + '-' + t.slice(6, 8) : t;
+  }
+  function moneyShort(v) {
+    return Math.round(v).toLocaleString('en-US');
+  }
+  function drawChart(R) {
+    var el = document.getElementById('ddChart');
+    if (!el || !R || !R.curve || !R.curve.length) return;
+    try { if (window.__ddChartInst && window.__ddChartInst.dispose) window.__ddChartInst.dispose(); } catch (e) {}
+    window.__ddChartInst = null;
+    var W = Math.max(el.clientWidth || 0, 320), H = 230;
+    var padL = 54, padR = 10, padT = 16, padB = 24;
+    var pts = R.curve;
+    var eqMin = Infinity, eqMax = -Infinity;
+    pts.forEach(function (p) { if (p.eq < eqMin) eqMin = p.eq; if (p.eq > eqMax) eqMax = p.eq; });
+    var span = (eqMax - eqMin) || Math.max(1, eqMax * 0.01);
+    eqMin -= span * 0.12; eqMax += span * 0.10;
+    var iw = W - padL - padR, ih = H - padT - padB;
+    function X(i) { return padL + (pts.length === 1 ? iw / 2 : iw * i / (pts.length - 1)); }
+    function Y(v) { return padT + ih * (1 - (v - eqMin) / (eqMax - eqMin)); }
+    var parts = [];
+    var rawStep = (eqMax - eqMin) / 4;
+    var mag = Math.pow(10, Math.floor(Math.log10(Math.max(rawStep, 1))));
+    var mm = rawStep / mag;
+    var step = (mm <= 1 ? 1 : mm <= 2 ? 2 : mm <= 5 ? 5 : 10) * mag;
+    eqMin = Math.floor(eqMin / step) * step;
+    eqMax = Math.ceil(eqMax / step) * step;
+    var ticks = [];
+    for (var tv = eqMin; tv <= eqMax + 1e-6; tv += step) ticks.push(tv);
+    ticks.forEach(function (v) {
+      var gy = Y(v);
+      parts.push('<line x1="' + padL + '" y1="' + gy.toFixed(1) + '" x2="' + (W - padR) + '" y2="' + gy.toFixed(1) + '" stroke="#F1F0EC" stroke-width="1"/>');
+      parts.push('<text x="' + (padL - 6) + '" y="' + (gy + 3.2).toFixed(1) + '" text-anchor="end" font-size="9" fill="#71717A">' + moneyShort(v) + '</text>');
+    });
+    var baseY = Y(eqMin);
+    var area = 'M' + X(0).toFixed(1) + ' ' + baseY.toFixed(1);
+    pts.forEach(function (p, i) { area += ' L' + X(i).toFixed(1) + ' ' + Y(p.pos).toFixed(1); });
+    area += ' L' + X(pts.length - 1).toFixed(1) + ' ' + baseY.toFixed(1) + ' Z';
+    var line = '';
+    pts.forEach(function (p, i) { line += (i ? ' L' : 'M') + X(i).toFixed(1) + ' ' + Y(p.eq).toFixed(1); });
+    parts.push('<path d="' + area + '" fill="rgba(59,130,246,.10)" stroke="none"/>');
+    parts.push('<path d="' + line + '" fill="none" stroke="#1f4fd8" stroke-width="1.6" stroke-linejoin="round"/>');
+    var yr = [];
+    for (var k = 1; k < pts.length; k++) {
+      if (String(pts[k - 1].d).slice(0, 4) !== String(pts[k].d).slice(0, 4)) yr.push(k);
+    }
+    var yStep = Math.max(1, Math.ceil(yr.length / 8));
+    for (var y = 0; y < yr.length; y += yStep) {
+      var idx = yr[y], dd0 = String(pts[idx].d);
+      parts.push('<text x="' + X(idx).toFixed(1) + '" y="' + (H - 7) + '" text-anchor="middle" font-size="9" fill="#71717A">' + dd0.slice(2, 4) + '</text>');
+    }
+    var lastD = String(pts[pts.length - 1].d);
+    if (yr.length && String(pts[yr[yr.length - 1]].d).slice(2, 4) !== lastD.slice(2, 4) && X(pts.length - 1) - X(yr[yr.length - 1]) > 26) {
+      parts.push('<text x="' + X(pts.length - 1).toFixed(1) + '" y="' + (H - 7) + '" text-anchor="end" font-size="9" fill="#71717A">' + lastD.slice(2, 4) + '</text>');
+    }
+    var lastY = Y(pts[pts.length - 1].eq);
+    parts.push('<circle cx="' + X(pts.length - 1).toFixed(1) + '" cy="' + lastY.toFixed(1) + '" r="2.6" fill="#1f4fd8"/>');
+    var svg = '<svg width="' + W + '" height="' + H + '" viewBox="0 0 ' + W + ' ' + H + '" style="display:block;max-width:100%">' + parts.join('') + '</svg>';
+    el.innerHTML = svg;
+  }
+
+  function mount() {
+    var host = document.getElementById('stp-dd');
+    if (!host) return;
+    var run = function () {
+      ensureDefaults();
+      host.innerHTML = shellHtml();
+      if (window.__DD_RES && !window.__DD_RES.err) drawChart(window.__DD_RES);
+      var msg = document.getElementById('ddRunMsg');
+      if (msg && ST.code) { var ix = idxOf(ST.code); if (ix) msg.textContent = (ix.name || '') + ' · ' + ymd(ST.from) + ' → ' + ymd(ST.to); }
+    };
+    if (!D) { load(run); return; }
+    run();
+  }
+
+  function load(cb) {
+    if (!loadP) {
+      loadP = new Promise(function (res, rej) {
+        fetch('data/index-dd.json', { cache: 'no-store' }).then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+          .then(function (j) { D = window.__DD_DATA = j; res(j); })
+          .catch(function () {
+            fetch('https://raw.githubusercontent.com/andylauxiaoyang/investment-workbench/master/caifu/data/index-dd.json', { cache: 'no-store' })
+              .then(function (r) { return r.json(); }).then(function (j) { D = window.__DD_DATA = j; res(j); }).catch(rej);
+          });
+      });
+    }
+    loadP.then(function () { if (cb) cb(); }).catch(function (e) {
+      var host = document.getElementById('stp-dd');
+      if (host) host.innerHTML = '<div class="st-card"><h4>回撤档位</h4><div style="color:#A32D2D;font-size:12px">指数回撤数据加载失败（' + (e && e.message) + '）。先跑 <code>python gen_index_dd.py</code> 生成 data/index-dd.json 再刷新。</div></div>';
+    });
+  }
+
+  function ensureDefaults() {
+    if (!D) return;
+    var arr = D.indices || [];
+    if (!ST.code || !idxOf(ST.code)) {
+      var d = deepest() || arr[0];
+      if (d) ST.code = d.code;
+      var last = d ? ymd(d.end) : today();
+      ST.to = last;
+      ST.from = isoAddYears(last, -10);
+      if (d && d.start && ymd(d.start) > ST.from) ST.from = ymd(d.start);
+      if (ST.from > ST.to) ST.from = ymd(d.start || last);
+    }
+    if (!ST.to) ST.to = today();
+    if (!ST.from) ST.from = isoAddYears(ST.to, -10);
+  }
+
+  /* 回撤序列：由收盘 + 序列内历史最高收盘现算（与数据文件同口径） */
+  function ddArrOf(ix) {
+    if (ix.ddArr) return ix.ddArr;
+    var c = ix.c, hi = -1e18, out = [];
+    for (var i = 0; i < c.length; i++) {
+      if (c[i] > hi) hi = c[i];
+      out.push(hi > 0 ? (c[i] / hi - 1) * 100 : 0);
+    }
+    ix.ddArr = out;
+    return out;
+  }
+
+  function doRun() {
+    if (!D) { load(function () { doRun(); }); return; }
+    ensureDefaults();
+    var ix = idxOf(ST.code);
+    if (!ix) { return; }
+    ddArrOf(ix);
+    var msg = document.getElementById('ddRunMsg');
+    if (msg) msg.textContent = '正在回测 ' + ix.name + ' …';
+    var R = runBT(ix, ST);
+    window.__DD_RES = R;
+    var card = document.getElementById('ddResultCard');
+    if (card) {
+      var wrap = document.createElement('div');
+      wrap.innerHTML = resultHtml(R);
+      card.parentNode.replaceChild(wrap.firstChild, card);
+      drawChart(R);
+    }
+    if (msg) msg.textContent = ix.name + ' · ' + ymd(ST.from) + ' → ' + ymd(ST.to) + (R.err ? ' · 参数有误' : ' · 已出结果');
+  }
+
+  /* ---------- window 出口 ---------- */
+  window.renderDdModule = function () { ensureDefaults(); mount(); };
+  window.__ddLoad = load;
+  window.__ddRun = doRun;
+  window.__ddSet = function (k, v) {
+    if (k === 'mode') ST[k] = v;
+    else if (k === 'code') ST[k] = v;
+    else if (k === 'from' || k === 'to') ST[k] = v;
+    else { var x = +v; if (isFinite(x)) ST[k] = x; }
+    if (k === 'code') {
+      var ix = idxOf(v);
+      if (ix) {
+        ST.to = ymd(ix.end);
+        ST.from = isoAddYears(ST.to, -10);
+        if (ix.start && ymd(ix.start) > ST.from) ST.from = ymd(ix.start);
+      }
+    }
+  };
+  window.__ddReset = function () {
+    var d = deepest();
+    ST.capital = 10000; ST.perBuy = 500; ST.startDD = 70; ST.gap = 5; ST.mode = 'rebound'; ST.obs = 2; ST.back = 1;
+    if (d) { ST.code = d.code; ST.to = ymd(d.end); ST.from = isoAddYears(ST.to, -10); }
+    window.__DD_RES = null;
+    window.renderDdModule();
+  };
+  window.__ddMount = mount;
+
+  /* 事件：委托到 #stp-dd（每次重绘都重建元素，故一次性绑定在宿主上） */
+  function bindHost() {
+    var host = document.getElementById('stp-dd');
+    if (!host || host.__ddBound) return;
+    host.__ddBound = 1;
+    host.addEventListener('change', function (e) {
+      var t = e.target; if (!t || !t.getAttribute) return;
+      var k = t.getAttribute('data-dd');
+      if (k) { window.__ddSet(k, t.value); }
+    });
+    host.addEventListener('click', function (e) {
+      var t = e.target; if (!t) return;
+      if (t.getAttribute && t.getAttribute('data-dd-run')) { doRun(); return; }
+      var row = t.closest && t.closest('[data-dd-code]');
+      if (row) {
+        var code = row.getAttribute('data-dd-code');
+        if (code && code !== ST.code) {
+          window.__ddSet('code', code);
+          window.renderDdModule();
+        }
+      }
+    });
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bindHost);
+  else bindHost();
 })();
 
 </script>
