@@ -1564,7 +1564,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
    仍靠灰底 + disabled + cursor:not-allowed 表达「不可改」。
 全部只改颜色字面量，结构 / 文案 / 判定逻辑零改动；徽标 v1076 → v1077。 -->
 <!-- fw2_v1079_dca_row_unify（用户 2026-11-24「这个表的数据有问题，你排查下逻辑」）：资产配置表「定投金额（月）/累计应投」由「逐只基金 _dcaFirst/_dcaMonthly 相加」改为「按本行目标金额 + 本行实际市值（mvMap 份额×净值）现算」（_rowMonthlyT / _rowProgT / _mColTxt）。修掉两个实测错值：① 同指数多只基金只有主基金带目标、其余 target=0，逐只相加漏掉同族其它基金持仓（A500 ×2 累计应投 4,548、真实缺口 4,160；纳指100 ×12 4,946、真实 4,768）；② _dcaFirst 缺口走 gapOf() 的昨收(preclose)估值，与本表「实际市值」结算净值不同源，单只行也差几十元（沪深300 2,903 vs 2,893、黄金 4,649 vs 4,642）。一次性(lump，R2 定投＝关)口径下 累计应投＝max(0, 目标−市值)＝调仓金额同缺口，合计首笔 33,115→37,342；日限额标的(020712)不再被抹成「—」；月投列改为灰「0」明示「一次性口径非缺数据」；口径说明同步重写。未动：mvMap 取数、offOf、调仓金额、目标偏移、列结构、合计行累加方式。徽标 v1078 → v1079。 --><!-- fw2_v1080_dca_plan_basis（用户 2026-11-24 两条口径「1、月定投金额不是为零 2、累计应投是开始定投日到现在累计应该投资的金额」）：资产配置表「定投金额（月）/累计应投」改回**计划口径**，与持仓缺口、已达标、日限额、R2 三态全部解耦：月投＝目标(已 scale)×(1−底仓比例)÷总期数（纲领 investMode=base）／目标÷总期数（drip）／0（lump）；累计应投＝首笔(目标×底仓比例, 仅 base)＋月投×已过期数。根因是 v1076 的 `_planCfg()` 遇 R2＝关会把 mode 折成 lump，v1079 又用它算这两列，于是「计划月投」被实盘开关抹成 0。做法：`_planCfg()` 增加 `d.plan`（折叠前原值），新增 `_planCfgPlan()`，`_rowMonthlyT/_rowProgT` 去掉 mv 参数、只吃目标金额；表尾口径行改按计划口径出「首笔合计/月投合计」，R2＝关时追加「实盘暂不按月投（计划口径不受影响）」。未动：mvMap、offOf、调仓金额、目标偏移、列结构。徽标 v1079 → v1080。 --><!-- fw2_v1081_bt_param_labels（用户 2026-11-24 三张截图）：①「策略执行」tab 条上的「回测参数（全量底稿）」→「回测参数」（图三圈的就是这个 tab）；②配置回测页 / 自选回测页里的「修改参数 → 回测参数（全量底稿）」按口径分别改为「配置回测参数」「自选回测参数」，其后副文案「参数在『策略执行 → 回测参数』」同步补 ⑧-B / ⑧-C 子页签名；③其余指路文案里「策略执行 → 回测参数（全量底稿）」统一改成「策略执行 → 回测参数」（⑧-A 子页签名「⑧-A 回测参数（全量底稿）」保持不变，它是母版底稿的正式名）。零逻辑改动。 -->
-<span id="verBadge" class="ver-badge">v1082</span><!-- fw2_v1076_conflicts（用户 2026-11-23「按照你顺序修」——修掉体检出的 5 处纲领冲突）：
+<span id="verBadge" class="ver-badge">v1083</span><!-- fw2_v1076_conflicts（用户 2026-11-23「按照你顺序修」——修掉体检出的 5 处纲领冲突）：
 ①R7 带宽：撤销 v1067 的 `o.band = o.slotBand` 强镜像；band 只喂 R7（单只超配 25% 减配，SIG_THR_DEF 5→25、与回测 cfg.band 同值），slotBand 只喂 T10 四档；sigThrApply 分别写 C.barbell.band / C.barbell.slotBand，T10 文案改读 slotBand，R7 行 threshold 由硬编码「band 25%」改为动态读纲领值。
 ②R2 假开关：`_planCfg()` 读 `window.logicStateEff('R2')`——生效按 investMode，观察/关一律 lump（月投 0）；建仓步文案在一次性时追加「R2 定投＝关/观察」。
 ③T4 与 R6 双份：T4 行 modeled 改「与 R6 止损同一执行（同一 slHard）」，def 标「= R6 止损，同一动作」，阈值表 slHard 口径写「T4 / R6 · 同一执行」。
@@ -26462,6 +26462,7 @@ function logicRowHtml(r, d) {
      回测页（持仓回测 / 自选回测）不再自己画参数表单；参数表单只由本函数产出，
      由「策略执行 → 回测参数（实验）」调用。改参数口径只改这里一处。 */
   function btParamsHtml(cfg) {
+    var _bsc = window.__btCfgScope || 'plan';   /* v1083：重置按钮文案按当前子页签现算 */
     var _lcpBar = (typeof window.logicCfgBarHtml === 'function') ? window.logicCfgBarHtml(cfg, 'param') : '';
 var btMax = (BT_CACHE && BT_CACHE.meta && BT_CACHE.meta.asOf) ? String(BT_CACHE.meta.asOf) : '2026-12-31';
     /* fw2_v899_bt_calmar_strict：口径行要显示严格达标线，但 fmtN 是 btRun 的局部函数，这里自算文本避免 ReferenceError */
@@ -26520,7 +26521,7 @@ return _lcpBar + '<div id="btRunBar" style="background:#FAFAF9;border:1px solid 
       + inp('start', '起始日', cfg.start, 60, 'date') + inp('end', '截止日', cfg.end, 60, 'date') + inp('budget', '可投资金(¥)', (cfg.budget > 0 ? cfg.budget : ''))
       /* v1003：参数页不放「运行回测」——① 它属于跑数，不属于参数；② 它的 id 与回测页那个重名，
          getElementById 只认第一个，会把回测页按钮的点击绑到 ⑧ 层这个上（点了没反应）。 */
-      + '<span style="font-size:11px;color:#71717A;margin-left:4px">改完即存；要出数字去「配置回测 / 自选回测」点运行</span>' + '<button id="btResetStd" onclick="window.__btStd(null)" title="把所有参数与区间写回标准口径（一次性买入·¥62,000·「T16 卖出后破位减半」关·「T7 回撤补仓」开·「V11 狙击」池 5%／赔率 2.5／单注 25%／最多 4 仓·「W3／S4 趋势闸门（净值对 MA20/MA60）」与熊市三开关全关）并立即重跑" style="padding:6px 12px;background:#fff;color:#3F3F46;border:1px solid var(--line-mid,#D4D4D8);border-radius:8px;font-size:13px;cursor:pointer;margin-left:6px">重置为标准口径</button>'
+      + '<span style="font-size:11px;color:#71717A;margin-left:4px">改完即存；要出数字去「配置回测 / 自选回测」点运行</span>' + '<button id="btResetStd" onclick="window.__btStd(null)" title="' + (_bsc === 'plan'  ? '把所有参数与区间写回标准口径（一次性买入·¥62,000·「T16 卖出后破位减半」关·「T7 回撤补仓」开·「V11 狙击」池 5%／赔率 2.5／单注 25%／最多 4 仓·「W3／S4 趋势闸门（净值对 MA20/MA60）」与熊市三开关全关）并立即重跑'  : '清空本档（' + (_bsc === 'custom' ? '⑧-C 自选回测参数' : '⑧-B 配置回测参数') + '）的全部覆盖项，100% 继承母版（⑧-A 回测参数（全量底稿））并立即重跑') + '" style="padding:6px 12px;background:#fff;color:#3F3F46;border:1px solid var(--line-mid,#D4D4D8);border-radius:8px;font-size:13px;cursor:pointer;margin-left:6px">' + (_bsc === 'plan' ? '重置为标准口径' : '清空覆盖 · 继承母版') + '</button>'
       + '<div id="btWinRow" style="margin-top:8px;font-size:11px;color:#71717A;display:flex;align-items:center;gap:6px;flex-wrap:wrap">'
       + '<span style="margin-right:2px">口径预设</span>' + btWinBtn(BT_WIN[0], cfg) + btWinBtn(BT_WIN[1], cfg) + btWinBtn(BT_WIN[2], cfg)
       + '<span style="margin-left:2px">点一下＝回标准口径＋切区间＋自动重跑（3 年即默认窗）</span></div>'
@@ -26996,6 +26997,31 @@ return _lcpBar + '<div id="btRunBar" style="background:#FAFAF9;border:1px solid 
   /* v988k fw2_v988k_bt_std_global：标准口径还原提到模块级。
      原先只定义在 renderBacktest 内 → ⑧ 层参数区重新渲染出的「3/5/10 年」「重置为标准口径」按钮没有 onclick，点了没反应。 */
   function btApplyStd(win) {
+    /* v1083 fw2_v1083_reset_inherit（用户 2026-11-24「需要」）：⑧-B / ⑧-C 上这颗按钮＝「清空本档覆盖，100% 继承母版」。
+       v1082 及以前是把标准值写成一份覆盖项；用户要求改成清空 diff。
+       带区间预设（win，如 3/5/10 年按钮）时只写「起止日」这一条覆盖，其余仍继承母版。 */
+    var _sc0 = window.__btCfgScope || 'plan';
+    if (_sc0 !== 'plan') {
+      var _old = {};
+      try { _old = JSON.parse(localStorage.getItem(BT_SCOPE_KEY[_sc0]) || '{}') || {}; } catch (e1) {}
+      var _nOld = Object.keys(_old).length;
+      var _nd = {};
+      if (win && win.s && win.e) { _nd.start = win.s; _nd.end = win.e; }
+      try { localStorage.setItem(BT_SCOPE_KEY[_sc0], JSON.stringify(_nd)); } catch (e2) {}
+      try { if (typeof renderBtCfgHost === 'function') renderBtCfgHost(); } catch (eH) {}
+      var _pc = btCfg(_sc0) || {};
+      var _mc = (_pc.investMode === 'lump' ? '一次性' : (_pc.investMode === 'base' ? '底仓+定投' : '每月定投'));
+      var _desc = _mc + ' · ¥' + (+_pc.budget || 0) + ' · ' + (_pc.start || '—') + ' → ' + (_pc.end || '—');
+      if (win && win.s && win.e) {
+        btToast('已切到区间 ' + win.s + ' → ' + win.e + '（只写起止日 1 条覆盖）；其余参数 100% 继承母版：' + _desc + '｜参数区已重画，正在重跑');
+      } else {
+        btToast('已清空 ' + (_sc0 === 'custom' ? '⑧-C 自选回测参数' : '⑧-B 配置回测参数') + ' 的全部覆盖（清掉 ' + _nOld + ' 条），现在 100% 继承母版：' + _desc + '｜参数区已按母版重画，正在重跑');
+      }
+      try { renderBacktest(); } catch (eR) {}
+      setTimeout(function () { try { window.__btGo(); } catch (e0) {} }, 80);
+      try { if (typeof renderLogicView === 'function') renderLogicView(); } catch (eL) {}
+      return;
+    }
     var cur = btCfg();
     var cc = BT_DEFAULTS ? JSON.parse(JSON.stringify(BT_DEFAULTS)) : {};
     cc.pool = cur.pool || 'barbell';
