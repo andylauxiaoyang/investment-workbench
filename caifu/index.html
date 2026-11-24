@@ -1564,7 +1564,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
    仍靠灰底 + disabled + cursor:not-allowed 表达「不可改」。
 全部只改颜色字面量，结构 / 文案 / 判定逻辑零改动；徽标 v1076 → v1077。 -->
 <!-- fw2_v1079_dca_row_unify（用户 2026-11-24「这个表的数据有问题，你排查下逻辑」）：资产配置表「定投金额（月）/累计应投」由「逐只基金 _dcaFirst/_dcaMonthly 相加」改为「按本行目标金额 + 本行实际市值（mvMap 份额×净值）现算」（_rowMonthlyT / _rowProgT / _mColTxt）。修掉两个实测错值：① 同指数多只基金只有主基金带目标、其余 target=0，逐只相加漏掉同族其它基金持仓（A500 ×2 累计应投 4,548、真实缺口 4,160；纳指100 ×12 4,946、真实 4,768）；② _dcaFirst 缺口走 gapOf() 的昨收(preclose)估值，与本表「实际市值」结算净值不同源，单只行也差几十元（沪深300 2,903 vs 2,893、黄金 4,649 vs 4,642）。一次性(lump，R2 定投＝关)口径下 累计应投＝max(0, 目标−市值)＝调仓金额同缺口，合计首笔 33,115→37,342；日限额标的(020712)不再被抹成「—」；月投列改为灰「0」明示「一次性口径非缺数据」；口径说明同步重写。未动：mvMap 取数、offOf、调仓金额、目标偏移、列结构、合计行累加方式。徽标 v1078 → v1079。 --><!-- fw2_v1080_dca_plan_basis（用户 2026-11-24 两条口径「1、月定投金额不是为零 2、累计应投是开始定投日到现在累计应该投资的金额」）：资产配置表「定投金额（月）/累计应投」改回**计划口径**，与持仓缺口、已达标、日限额、R2 三态全部解耦：月投＝目标(已 scale)×(1−底仓比例)÷总期数（纲领 investMode=base）／目标÷总期数（drip）／0（lump）；累计应投＝首笔(目标×底仓比例, 仅 base)＋月投×已过期数。根因是 v1076 的 `_planCfg()` 遇 R2＝关会把 mode 折成 lump，v1079 又用它算这两列，于是「计划月投」被实盘开关抹成 0。做法：`_planCfg()` 增加 `d.plan`（折叠前原值），新增 `_planCfgPlan()`，`_rowMonthlyT/_rowProgT` 去掉 mv 参数、只吃目标金额；表尾口径行改按计划口径出「首笔合计/月投合计」，R2＝关时追加「实盘暂不按月投（计划口径不受影响）」。未动：mvMap、offOf、调仓金额、目标偏移、列结构。徽标 v1079 → v1080。 --><!-- fw2_v1081_bt_param_labels（用户 2026-11-24 三张截图）：①「策略执行」tab 条上的「回测参数（全量底稿）」→「回测参数」（图三圈的就是这个 tab）；②配置回测页 / 自选回测页里的「修改参数 → 回测参数（全量底稿）」按口径分别改为「配置回测参数」「自选回测参数」，其后副文案「参数在『策略执行 → 回测参数』」同步补 ⑧-B / ⑧-C 子页签名；③其余指路文案里「策略执行 → 回测参数（全量底稿）」统一改成「策略执行 → 回测参数」（⑧-A 子页签名「⑧-A 回测参数（全量底稿）」保持不变，它是母版底稿的正式名）。零逻辑改动。 -->
-<!-- fw2_v1084_bt_a_label（用户 2026-11-24「同意」）：⑧-A 子页签由「⑧-A 回测参数（全量底稿）」改为「⑧-A 回测参数」，卡头 / 保存提示 / v1083 重置按钮 tooltip 三处同名文案同步（纯可见文案，零逻辑改动；代码注释与历史注释里的旧名保留）。 --><span id="verBadge" class="ver-badge">v1084</span><!-- fw2_v1076_conflicts（用户 2026-11-23「按照你顺序修」——修掉体检出的 5 处纲领冲突）：
+<!-- fw2_v1084_bt_a_label（用户 2026-11-24「同意」）：⑧-A 子页签由「⑧-A 回测参数（全量底稿）」改为「⑧-A 回测参数」，卡头 / 保存提示 / v1083 重置按钮 tooltip 三处同名文案同步（纯可见文案，零逻辑改动；代码注释与历史注释里的旧名保留）。 --><span id="verBadge" class="ver-badge">v1085</span><!-- fw2_v1076_conflicts（用户 2026-11-23「按照你顺序修」——修掉体检出的 5 处纲领冲突）：
 ①R7 带宽：撤销 v1067 的 `o.band = o.slotBand` 强镜像；band 只喂 R7（单只超配 25% 减配，SIG_THR_DEF 5→25、与回测 cfg.band 同值），slotBand 只喂 T10 四档；sigThrApply 分别写 C.barbell.band / C.barbell.slotBand，T10 文案改读 slotBand，R7 行 threshold 由硬编码「band 25%」改为动态读纲领值。
 ②R2 假开关：`_planCfg()` 读 `window.logicStateEff('R2')`——生效按 investMode，观察/关一律 lump（月投 0）；建仓步文案在一次性时追加「R2 定投＝关/观察」。
 ③T4 与 R6 双份：T4 行 modeled 改「与 R6 止损同一执行（同一 slHard）」，def 标「= R6 止损，同一动作」，阈值表 slHard 口径写「T4 / R6 · 同一执行」。
@@ -12751,6 +12751,288 @@ function attachMacroNotes(root) {
   }
 }
 
+/* =============================================================================
+   fw2_v1085_chan（2026-11-24 用户「你能复刻这个页面吗？在宏观环境里增加一个子模块」）
+   宏观环境 → 「缠论结构 · 沪深300」：复刻缠论研究版页面骨架
+     · 头部：名称/代码 + 行情截至 + 最新价/涨跌幅 + PE(TTM)·PB 与其分位（窗口可选）
+     · 周期：日线/周线/月线（无分钟级数据，故不提供 5/15/30/60 分钟）
+     · 图层：K线 / 笔 / 线段 / 中枢 / 买卖点（可各自开关）
+     · 图表：ECharts candlestick + 笔/线段折线（connectNulls）+ 中枢 markArea + 买卖点 markPoint
+   数据：data/chan-hs300.json（edit_work/gen_chan_hs300.py 生成，东财日K + 乐咕 PE/PB 月频）
+   口径：笔/线段/中枢/买卖点均为本项目自算（规则见页面「研究版 · 试验规则」），
+        与原产品私有实现不保证逐点一致；PE/PB 为乐咕口径，与截图里的第三方口径可能差几分位。
+   ============================================================================= */
+(function () {
+  var ST = window.__CHAN_STATE = window.__CHAN_STATE || {
+    level: 'D', zoom: 2, win: '10y', rules: false,
+    show: { k: 1, bi: 1, seg: 1, piv: 1, tag: 1 }
+  };
+  var DATA = window.__CHAN_DATA || null;
+  var LOADING = false;
+
+  function fmt(v, d) { if (v == null || isNaN(v)) return '—'; return Number(v).toFixed(d == null ? 2 : d).replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
+  function pctTxt(v) { return v == null ? '—' : (v >= 0 ? '+' : '') + v.toFixed(2) + '%'; }
+  function dsub(days) { var t = new Date(Date.now() - days * 864e5); return t.toISOString().slice(0, 10); }
+
+  function curLevelBars(d) {
+    if (ST.level === 'W') return d.wbars;
+    if (ST.level === 'M') return d.mbars;
+    return d.bars;
+  }
+
+  function valPct(series, cur, win) {
+    if (!series || !series.length || cur == null) return null;
+    var cut = '';
+    if (win === '10y') cut = dsub(3650); else if (win === '5y') cut = dsub(1825); else if (win === '3y') cut = dsub(1095);
+    var arr = series.filter(function (p) { return !cut || p[0] >= cut; }).map(function (p) { return p[1]; });
+    if (!arr.length) return null;
+    var below = arr.filter(function (v) { return v < cur; }).length;
+    return below / arr.length * 100;
+  }
+
+  function winTxt() { return ST.win === '10y' ? '近 10 年' : (ST.win === '5y' ? '近 5 年' : (ST.win === '3y' ? '近 3 年' : '全部历史')); }
+  function zoomTxt() { return ST.zoom === 0 ? '全部' : ('近 ' + ST.zoom + ' 年'); }
+
+  function headHtml(d) {
+    var bars = d.bars, last = bars[bars.length - 1], prev = bars[bars.length - 2];
+    var chg = prev ? (last[4] / prev[4] - 1) * 100 : null;
+    var peL = d.pe.length ? d.pe[d.pe.length - 1] : null, pbL = d.pb.length ? d.pb[d.pb.length - 1] : null;
+    var peP = peL ? valPct(d.pe, peL[1], ST.win) : null, pbP = pbL ? valPct(d.pb, pbL[1], ST.win) : null;
+    var col = chg == null ? 'var(--muted)' : (chg >= 0 ? 'var(--up,#d92f2f)' : 'var(--down,#14926a)');
+    var s = '<div class="card" style="padding:18px 20px 14px">';
+    s += '<div style="display:flex;align-items:flex-start;gap:14px;flex-wrap:wrap">';
+    s += '<div style="min-width:240px">';
+    s += '<div style="display:flex;align-items:baseline;gap:10px"><span style="font-size:24px;font-weight:800;letter-spacing:-.4px;color:#18181B">' + d.name + '</span><span style="font-size:13px;color:#71717A;font-family:ui-monospace,Menlo,Consolas,monospace">' + d.code + '.SH</span>';
+    s += '<button type="button" onclick="window.__chanToggleRules()" style="margin-left:6px;padding:3px 10px;font-size:12px;border-radius:7px;border:1px solid #D4D4D8;background:#fff;color:#3F3F46;cursor:pointer">研究版 · 试验规则</button></div>';
+    s += '<div style="font-size:12px;color:#71717A;margin-top:8px">日K 起于 ' + d.bars[0][0] + ' · 共 ' + d.bars.length + ' 根 · 数据 ' + d.updatedAt + '</div>';
+    s += '</div>';
+    s += '<div style="margin-left:auto;text-align:right">';
+    s += '<div style="font-size:12px;color:#71717A">行情截至 ' + last[0] + ' 15:00</div>';
+    s += '<div style="display:flex;align-items:baseline;gap:10px;justify-content:flex-end"><span style="font-size:30px;font-weight:800;color:' + col + ';letter-spacing:-.6px">' + fmt(last[4], 2) + '</span><span style="font-size:15px;font-weight:700;color:' + col + '">' + pctTxt(chg) + '</span></div>';
+    s += '</div></div>';
+    s += '<div style="display:flex;align-items:center;gap:18px;flex-wrap:wrap;margin-top:14px;padding-top:12px;border-top:1px solid #EFEFEF;font-size:13px;color:#3F3F46">';
+    s += '<span>PE（TTM）<b style="font-size:15px;color:#18181B;margin-left:4px">' + (peL ? fmt(peL[1], 2) : '—') + '</b><span style="color:#71717A;margin-left:8px">分位 ' + (peP == null ? '—' : peP.toFixed(1) + '%') + '</span></span>';
+    s += '<span>PB<b style="font-size:15px;color:#18181B;margin-left:4px">' + (pbL ? fmt(pbL[1], 2) : '—') + '</b><span style="color:#71717A;margin-left:8px">分位 ' + (pbP == null ? '—' : pbP.toFixed(1) + '%') + '</span></span>';
+    s += '<span style="margin-left:auto;display:flex;align-items:center;gap:8px">';
+    s += '<select id="chanWin" onchange="window.__chanSet(\'win\', this.value)" style="padding:5px 9px;border-radius:7px;border:1px solid #D4D4D8;background:#fff;font-size:12px;color:#3F3F46">';
+    [['10y', '近 10 年'], ['5y', '近 5 年'], ['3y', '近 3 年'], ['all', '全部历史']].forEach(function (o) {
+      s += '<option value="' + o[0] + '"' + (ST.win === o[0] ? ' selected' : '') + '>' + o[1] + '</option>';
+    });
+    s += '</select><span style="font-size:12px;color:#71717A">估值 ' + (peL ? peL[0] : '—') + '</span></span>';
+    s += '</div></div>';
+    if (ST.rules) {
+      var A = d.algo || {};
+      s += '<div class="card" style="padding:14px 18px;margin-top:12px;border-left:3px solid #0B6B5C;background:#F7FBF9">';
+      s += '<div style="font-size:13px;font-weight:700;color:#0B6B5C;margin-bottom:8px">研究版 · 试验规则（本项目自算，可复算）</div>';
+      s += '<div style="font-size:12px;line-height:1.9;color:#3F3F46">';
+      s += '①<b>包含关系</b>：' + (A.merge || '') + '<br>';
+      s += '②<b>分型</b>：' + (A.frac || '') + '；③<b>笔</b>：' + (A.stroke || '') + '<br>';
+      s += '④<b>线段</b>：' + (A.seg || '') + '<br>';
+      s += '⑤<b>中枢</b>：' + (A.piv || '') + '<br>';
+      s += '⑥<b>买卖点</b>：' + (A.tag || '') + '<br>';
+      s += '<span style="color:#71717A">数据：日K＝' + d.src.kline + '；PE＝' + d.src.pe + '；PB＝' + d.src.pb + '。估值分位＝所选窗口内「低于当前值的样本占比」。本页标注与原产品私有实现不会逐点一致，仅作结构参考，不构成交易建议。</span>';
+      s += '</div></div>';
+    }
+    return s;
+  }
+
+  function ctrlHtml() {
+    var s = '<div class="card" style="padding:10px 16px;margin-top:12px;display:flex;align-items:center;gap:18px;flex-wrap:wrap">';
+    s += '<div id="chanPeriod" style="display:flex;gap:2px;background:#F4F4F5;border-radius:8px;padding:3px">';
+    [['D', '日线'], ['W', '周线'], ['M', '月线']].forEach(function (o) {
+      var act = (ST.level === o[0]);
+      s += '<button type="button" onclick="window.__chanSet(\'level\',\'' + o[0] + '\')" style="padding:6px 14px;border:0;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;' + (act ? 'background:#18181B;color:#fff' : 'background:transparent;color:#3F3F46') + '">' + o[1] + '</button>';
+    });
+    s += '</div>';
+    var tg = [['k', 'K线'], ['bi', '笔'], ['seg', '线段'], ['piv', '中枢'], ['tag', '买卖点']];
+    tg.forEach(function (o) {
+      s += '<label style="display:inline-flex;align-items:center;gap:5px;font-size:13px;color:#3F3F46;cursor:pointer"><input type="checkbox" ' + (ST.show[o[0]] ? 'checked' : '') + ' onchange="window.__chanSet(\'show\',\'' + o[0] + '\')">' + o[1] + '</label>';
+    });
+    s += '<span style="margin-left:auto;display:flex;align-items:center;gap:8px">';
+    s += '<select id="chanZoom" onchange="window.__chanSet(\'zoom\', Number(this.value))" style="padding:5px 9px;border-radius:7px;border:1px solid #D4D4D8;background:#fff;font-size:12px;color:#3F3F46">';
+    [[0, '全部'], [10, '近 10 年'], [5, '近 5 年'], [3, '近 3 年'], [2, '近 2 年'], [1, '近 1 年']].forEach(function (o) {
+      s += '<option value="' + o[0] + '"' + (ST.zoom === o[0] ? ' selected' : '') + '>' + o[1] + '</option>';
+    });
+    s += '</select><button type="button" onclick="window.__chanReset()" style="padding:5px 10px;border-radius:7px;border:1px solid #D4D4D8;background:#fff;font-size:12px;color:#3F3F46;cursor:pointer">重置视图</button></span>';
+    s += '</div>';
+    return s;
+  }
+
+  function infoHtml(d) {
+    var bars = curLevelBars(d), lv = d.levels[ST.level];
+    var last = bars[bars.length - 1], prev = bars[bars.length - 2];
+    var chg = prev ? (last[4] / prev[4] - 1) * 100 : null;
+    var col = chg == null ? '#71717A' : (chg >= 0 ? 'var(--up,#d92f2f)' : 'var(--down,#14926a)');
+    var s = '<div class="card" style="padding:10px 16px;margin-top:10px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;font-size:13px;color:#3F3F46">';
+    s += '<span><b style="color:#18181B">' + last[0] + '</b></span>';
+    s += '<span>开 <b>' + fmt(last[1], 2) + '</b>　高 <b>' + fmt(last[2], 2) + '</b>　低 <b>' + fmt(last[3], 2) + '</b>　收 <b>' + fmt(last[4], 2) + '</b></span>';
+    s += '<span style="color:' + col + ';font-weight:700">涨跌幅 ' + pctTxt(chg) + '</span>';
+    s += '<span style="margin-left:auto;color:#71717A">' + ['日线', '周线', '月线'][['D', 'W', 'M'].indexOf(ST.level)] + ' · 笔 ' + lv.stroke.length + ' · 线段 ' + lv.seg.length + ' · 中枢 ' + lv.piv.length + ' · 买卖点 ' + lv.tag.length + ' · 视图 ' + zoomTxt() + '</span>';
+    s += '</div>';
+    return s;
+  }
+
+  function moduleHtml(d) {
+    return headHtml(d) + ctrlHtml() + infoHtml(d)
+      + '<div class="card" style="padding:8px 10px 6px;margin-top:10px"><div id="chanChart" style="width:100%;height:520px"></div>'
+      + '<div style="font-size:11px;color:#71717A;padding:4px 6px 8px;line-height:1.8">图例：蜡烛＝' + (ST.show.k ? 'K线' : '已隐藏') + '；深色折线＝笔（顶底分型连线）；蓝色折线＝线段（简化版 3 笔成段）；淡蓝框＝笔中枢（[ZD, ZG] 重叠区间）；圆点＝买卖点（一买/一卖＝MACD 面积背驰近似，三买/三卖＝离开中枢后回抽不回中枢）。滚动/拖拽可缩放区间。</div></div>';
+  }
+
+  function renderChanModule() {
+    if (!DATA) {
+      setTimeout(function () { window.__chanLoad(); }, 0);
+      return '<div class="card" id="chanLoading" style="padding:40px;text-align:center;color:#71717A">正在加载缠论结构数据（data/chan-hs300.json）…</div>';
+    }
+    return moduleHtml(DATA);
+  }
+  window.renderChanModule = renderChanModule;
+
+  window.__chanLoad = function () {
+    if (DATA || LOADING) return;
+    LOADING = true;
+    var urls = ['data/chan-hs300.json', 'https://raw.githubusercontent.com/andylauxiaoyang/investment-workbench/master/caifu/data/chan-hs300.json'];
+    var tryOne = function (i) {
+      if (i >= urls.length) { LOADING = false; return; }
+      fetch(urls[i], { cache: 'no-cache' }).then(function (r) { if (!r.ok) throw 0; return r.json(); })
+        .then(function (j) { DATA = window.__CHAN_DATA = j; LOADING = false; if (document.getElementById('chanChart') || document.getElementById('chanLoading')) window.__chanMount(); })
+        .catch(function () { tryOne(i + 1); });
+    };
+    tryOne(0);
+  };
+
+  window.__chanToggleRules = function () { ST.rules = !ST.rules; window.__chanMount(); };
+  window.__chanSet = function (k, v) {
+    if (k === 'show') { ST.show[v] = ST.show[v] ? 0 : 1; }
+    else { ST[k] = v; }
+    window.__chanMount();
+  };
+  window.__chanReset = function () { ST.level = 'D'; ST.zoom = 2; ST.show = { k: 1, bi: 1, seg: 1, piv: 1, tag: 1 }; window.__chanMount(); };
+
+  window.__chanMount = function () {
+    var body = document.getElementById('macroBody'); if (!body) return;
+    if (!DATA) { window.__chanLoad(); return; }
+    /* 只在仍停留在缠论页时重绘（避免用户已切走还被覆盖）：有 chanChart（已渲染）或 chanLoading（加载中占位）即判定在缠论页 */
+    if (!document.getElementById('chanChart') && !document.getElementById('chanLoading')) return;
+    var scrollY = window.scrollY;
+    body.innerHTML = moduleHtml(DATA);
+    renderChart(DATA);
+    try { window.scrollTo(0, scrollY); } catch (e) {}
+  };
+
+  function renderChart(d) {
+    var el = document.getElementById('chanChart'); if (!el || !window.echarts) return;
+    var bars = curLevelBars(d), lv = d.levels[ST.level];
+    var dates = bars.map(function (b) { return b[0]; });
+    var ohlc = bars.map(function (b) { return [b[1], b[4], b[3], b[2]]; });
+    var closes = bars.map(function (b) { return b[4]; });
+    var idxOf = {}; dates.forEach(function (dt, i) { idxOf[dt] = i; });
+
+    /* 视图起点：按「近 N 年」算 start 百分比 */
+    var startPct = 0;
+    if (ST.zoom > 0) {
+      var cut = dsub(ST.zoom * 365), st = dates.findIndex(function (dt) { return dt >= cut; });
+      if (st > 0) startPct = Math.max(0, (st / dates.length) * 100);
+    }
+
+    /* 笔/线段：稀疏折线（connectNulls 连成折线） */
+    var biArr = new Array(dates.length).fill(null);
+    (ST.show.bi ? lv.stroke : []).forEach(function (p) { biArr[p[0]] = p[1]; });
+    var segArr = new Array(dates.length).fill(null);
+    if (ST.show.seg) lv.seg.forEach(function (g) { segArr[g[0]] = g[1]; segArr[g[2]] = g[3]; });
+
+    /* 中枢 markArea */
+    var areas = [];
+    if (ST.show.piv) {
+      lv.piv.forEach(function (p) {
+        areas.push([{ xAxis: dates[p[0]], yAxis: p[2], name: '笔中枢' }, { xAxis: dates[p[1]], yAxis: p[3] }]);
+      });
+    }
+
+    /* 买卖点 markPoint + 区间极值 */
+    var pts = [];
+    if (ST.show.tag) {
+      lv.tag.forEach(function (t) {
+        pts.push({
+          coord: [dates[t[0]], t[1]], value: t[2], name: t[2],
+          symbol: 'circle', symbolSize: 7,
+          itemStyle: { color: t[3] === 'buy' ? '#d92f2f' : '#14926a' },
+          label: { show: true, formatter: t[2], position: t[3] === 'buy' ? 'bottom' : 'top', fontSize: 11, color: t[3] === 'buy' ? '#b91c1c' : '#0f766e', backgroundColor: 'rgba(255,255,255,.85)', padding: [2, 4], borderRadius: 3 }
+        });
+      });
+    }
+    /* 视图区间高低点（与截图 5,064.27 / 3,894.47 同位） */
+    var from = Math.max(0, Math.floor(dates.length * startPct / 100));
+    var hiI = from, loI = from;
+    for (var i = from; i < bars.length; i++) { if (bars[i][2] > bars[hiI][2]) hiI = i; if (bars[i][3] < bars[loI][3]) loI = i; }
+    pts.push({ coord: [dates[hiI], bars[hiI][2]], value: fmt(bars[hiI][2], 2), symbol: 'circle', symbolSize: 4, itemStyle: { color: '#71717A' }, label: { show: true, position: 'top', fontSize: 11, color: '#3F3F46' } });
+    pts.push({ coord: [dates[loI], bars[loI][3]], value: fmt(bars[loI][3], 2), symbol: 'circle', symbolSize: 4, itemStyle: { color: '#71717A' }, label: { show: true, position: 'bottom', fontSize: 11, color: '#3F3F46' } });
+
+    var inst = echarts.getInstanceByDom(el); if (inst) inst.dispose();
+    var c = echarts.init(el);
+    c.setOption({
+      animation: false,
+      backgroundColor: 'transparent',
+      grid: { left: 10, right: 58, top: 22, bottom: 56 },
+      tooltip: {
+        trigger: 'axis',
+        axisPointer: { type: 'cross' },
+        backgroundColor: 'rgba(255,255,255,.96)',
+        borderColor: '#E4E4E7',
+        textStyle: { color: '#3F3F46', fontSize: 12 },
+        formatter: function (ps) {
+          if (!ps || !ps.length) return '';
+          var i = ps[0].dataIndex, b = bars[i];
+          var s = '<b>' + b[0] + '</b><br>开 ' + fmt(b[1]) + '　高 ' + fmt(b[2]) + '<br>低 ' + fmt(b[3]) + '　收 ' + fmt(b[4]);
+          pts.forEach(function (p) { if (p.coord[0] === b[0] && p.name && p.name !== '') s += '<br>' + p.name; });
+          return s;
+        }
+      },
+      xAxis: {
+        type: 'category', data: dates, boundaryGap: true,
+        axisLine: { lineStyle: { color: '#E4E4E7' } },
+        axisTick: { show: false },
+        axisLabel: { color: '#71717A', fontSize: 11, formatter: function (v) { return v.slice(2, 7); } },
+        splitLine: { show: false }
+      },
+      yAxis: {
+        scale: true, position: 'right', splitNumber: 5,
+        axisLine: { show: false }, axisTick: { show: false },
+        axisLabel: { color: '#71717A', fontSize: 11, formatter: function (v) { return fmt(v, 0); } },
+        splitLine: { lineStyle: { color: '#F2F2F4' } }
+      },
+      dataZoom: [
+        { type: 'inside', start: startPct, end: 100 },
+        { type: 'slider', height: 16, bottom: 10, start: startPct, end: 100, borderColor: '#E4E4E7', fillerColor: 'rgba(59,130,246,.08)', handleSize: 14 }
+      ],
+      series: [
+        {
+          name: 'K线', type: 'candlestick', data: ohlc,
+          itemStyle: { color: '#d92f2f', color0: '#14926a', borderColor: '#d92f2f', borderColor0: '#14926a' },
+          markArea: {
+            silent: true,
+            itemStyle: { color: 'rgba(59,130,246,.08)', borderColor: 'rgba(59,130,246,.45)', borderWidth: 1 },
+            label: { show: true, position: 'insideTop', color: '#1d4ed8', fontSize: 9, formatter: '中枢' },
+            data: areas
+          },
+          markPoint: { data: pts, symbolKeepAspect: true }
+        },
+        {
+          name: '笔', type: 'line', data: biArr, connectNulls: true, symbol: 'circle', symbolSize: 4, z: 3,
+          lineStyle: { width: 1.2, color: '#1f2937' }, itemStyle: { color: '#1f2937' }, showSymbol: true
+        },
+        {
+          name: '线段', type: 'line', data: segArr, connectNulls: true, symbol: 'none', z: 2,
+          lineStyle: { width: 2.0, color: 'rgba(59,130,246,.55)' }
+        }
+      ]
+    });
+    c.resize();
+    window.__chanChartInst = c;
+  }
+
+  window.addEventListener('resize', function () { if (window.__chanChartInst && !window.__chanChartInst.isDisposed()) window.__chanChartInst.resize(); });
+})();
+
 function renderMacro() {
   const body = $('#macroBody'); if (!body) return;
   const d = state.macro;
@@ -12778,6 +13060,8 @@ function renderMacro() {
   if (_navEl) _navEl.style.display = 'none';
   fillMacroTabs();   /* 高亮比较原始 _region（v-*），tab 按钮 data-r 即 v-* */
   state.macroRegion = reg;   /* 模板过滤 / __mcApply 用翻译后的 reg（cn/val/mood/ovs/px） */
+  /* fw2_v1085_chan：缠论结构子模块（复刻缠论研究版页面）——整屏独立渲染，不参与 .mc-mod 显示控制 */
+  if (_region === 'v-chan') { body.innerHTML = (window.renderChanModule ? window.renderChanModule() : '<div class="card"><div class="empty st">缠论模块未加载</div></div>'); if (window.__chanMount) window.__chanMount(); return; }
   if (_region === 'us') { mcRegisterEvidence(mcCalcCommon(d)); body.innerHTML = renderMacroUS(d); renderMacroUSCharts(); attachMacroNotes(body); return; }   /* fw2_v549_region_align：美国周期页＝康波+FSI+非农+⑤组9项硬指标全集（实体卡从 mi ⑤组迁入，mi 页⑤组改引用卡）；证据注册先于渲染（磁铁需 __MC_EV） */
   if (_region === 'gbl') { mcRegisterEvidence(mcCalcCommon(d)); body.innerHTML = renderMacroGbl(d); renderMacroGblCharts(); attachMacroNotes(body); return; }  /* fw2_v549_region_align：海外景气页＝⑥全球景气非美实体卡（韩国出口/OECD/BDI日银/PMI合成，mi 页⑥组改引用卡） */
   if (_region === 'sm') { body.innerHTML = renderMacroSentiment(d); if (window.__smDrawCharts) window.__smDrawCharts(); attachMacroNotes(body); return; }   /* fw2_v806_sm_gbl_notes：兜底分支补挂四段解读（幂等） */   /* fw2_v701_mood_dedup：pxDrawFundCharts 调用随 v566 迁入卡删除移除（该分支 v697p 后不可达，保留兜底）；fw2_v702_mood_bigcard：__smDrawCharts 大卡图表任务 */
@@ -13854,6 +14138,7 @@ function fillMacroTabs() {
     ['v-mood', '资金与杠杆情绪'],      /* fw2_v831_tab_rename3：原「市场情绪」（fw2_v703c 曾由「流动情绪」改来）；内容=资金面/杠杆/广度/风险偏好 */
     ['v-global', '海外景气与约束'],    /* fw2_v831_tab_rename3：原「海外宏观」（fw2_v700d_tab_rename 曾由「海外周期」改来）；内容=美国利率周期+海外景气+美元黄金大宗 */
     ['v-px', '大类资产监控'],          /* fw2_v831_tab_rename3：原「资产价格」（fw2_v432 资产价格监控）；17 项资产全景+相关性 */
+    ['v-chan', '缠论结构 · 沪深300'],   /* fw2_v1085_chan：用户 2026-11-24「你能复刻这个页面吗？在宏观环境里增加一个子模块」——按缠论研究版页面复刻：K线/笔/线段/中枢/买卖点 + PE·PB 分位头。数据 data/chan-hs300.json（gen_chan_hs300.py 生成） */
   ];
   host.innerHTML = items.map((it) => '<button data-r="' + it[0] + '" type="button" style="' + (reg === it[0] ? tAct : tBase) + '">' + it[1] + '</button>').join('');
 }
