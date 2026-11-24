@@ -32054,7 +32054,9 @@ function brakeCardHtml(opts) {
   function readJsonProgress(url, approx) {
     return fetch(url, { cache: 'no-store' }).then(function (r) {
       if (!r.ok) throw new Error('HTTP ' + r.status);
-      var total = +(r.headers.get('content-length') || 0) || (+approx || 0);
+      /* 不用 Content-Length：GitHub Pages 对 JSON 走 gzip，头部是压缩后字节（实测 1.44MB），
+         而 reader 拿到的是解压后的字节（4.3MB），两者相除会把进度算成 3 倍多；一律用未压缩基准 */
+      var total = +approx || 4330804;
       if (!r.body || !r.body.getReader) return r.json();
       var rd = r.body.getReader(), chunks = [], got = 0;
       var dec = (typeof TextDecoder === 'function') ? new TextDecoder('utf-8') : null;
@@ -32072,10 +32074,9 @@ function brakeCardHtml(opts) {
             chunks.push(dec ? dec.decode(g.value, { stream: true }) : '');
             var el = document.getElementById('ddSkelPct');
             if (el) {
-              var base = total || approx || 4330804;
-              var pct = Math.min(99, Math.round(got * 100 / base));
-              el.textContent = '已下载 ' + (got / 1048576).toFixed(2) + 'MB'
-                + (total ? ' / ' + (total / 1048576).toFixed(2) + 'MB' : ' / 约 4.13MB') + '（' + pct + '%）';
+              var pct = Math.min(99, Math.round(got * 100 / total));
+              el.textContent = '已下载 ' + (got / 1048576).toFixed(2) + 'MB / 约 '
+                + (total / 1048576).toFixed(2) + 'MB（' + pct + '%）';
             }
             pump();
           }).catch(rej2);
