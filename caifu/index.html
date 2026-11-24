@@ -1564,7 +1564,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
    仍靠灰底 + disabled + cursor:not-allowed 表达「不可改」。
 全部只改颜色字面量，结构 / 文案 / 判定逻辑零改动；徽标 v1076 → v1077。 -->
 <!-- fw2_v1079_dca_row_unify（用户 2026-11-24「这个表的数据有问题，你排查下逻辑」）：资产配置表「定投金额（月）/累计应投」由「逐只基金 _dcaFirst/_dcaMonthly 相加」改为「按本行目标金额 + 本行实际市值（mvMap 份额×净值）现算」（_rowMonthlyT / _rowProgT / _mColTxt）。修掉两个实测错值：① 同指数多只基金只有主基金带目标、其余 target=0，逐只相加漏掉同族其它基金持仓（A500 ×2 累计应投 4,548、真实缺口 4,160；纳指100 ×12 4,946、真实 4,768）；② _dcaFirst 缺口走 gapOf() 的昨收(preclose)估值，与本表「实际市值」结算净值不同源，单只行也差几十元（沪深300 2,903 vs 2,893、黄金 4,649 vs 4,642）。一次性(lump，R2 定投＝关)口径下 累计应投＝max(0, 目标−市值)＝调仓金额同缺口，合计首笔 33,115→37,342；日限额标的(020712)不再被抹成「—」；月投列改为灰「0」明示「一次性口径非缺数据」；口径说明同步重写。未动：mvMap 取数、offOf、调仓金额、目标偏移、列结构、合计行累加方式。徽标 v1078 → v1079。 --><!-- fw2_v1080_dca_plan_basis（用户 2026-11-24 两条口径「1、月定投金额不是为零 2、累计应投是开始定投日到现在累计应该投资的金额」）：资产配置表「定投金额（月）/累计应投」改回**计划口径**，与持仓缺口、已达标、日限额、R2 三态全部解耦：月投＝目标(已 scale)×(1−底仓比例)÷总期数（纲领 investMode=base）／目标÷总期数（drip）／0（lump）；累计应投＝首笔(目标×底仓比例, 仅 base)＋月投×已过期数。根因是 v1076 的 `_planCfg()` 遇 R2＝关会把 mode 折成 lump，v1079 又用它算这两列，于是「计划月投」被实盘开关抹成 0。做法：`_planCfg()` 增加 `d.plan`（折叠前原值），新增 `_planCfgPlan()`，`_rowMonthlyT/_rowProgT` 去掉 mv 参数、只吃目标金额；表尾口径行改按计划口径出「首笔合计/月投合计」，R2＝关时追加「实盘暂不按月投（计划口径不受影响）」。未动：mvMap、offOf、调仓金额、目标偏移、列结构。徽标 v1079 → v1080。 --><!-- fw2_v1081_bt_param_labels（用户 2026-11-24 三张截图）：①「策略执行」tab 条上的「回测参数（全量底稿）」→「回测参数」（图三圈的就是这个 tab）；②配置回测页 / 自选回测页里的「修改参数 → 回测参数（全量底稿）」按口径分别改为「配置回测参数」「自选回测参数」，其后副文案「参数在『策略执行 → 回测参数』」同步补 ⑧-B / ⑧-C 子页签名；③其余指路文案里「策略执行 → 回测参数（全量底稿）」统一改成「策略执行 → 回测参数」（⑧-A 子页签名「⑧-A 回测参数（全量底稿）」保持不变，它是母版底稿的正式名）。零逻辑改动。 -->
-<!-- fw2_v1084_bt_a_label（用户 2026-11-24「同意」）：⑧-A 子页签由「⑧-A 回测参数（全量底稿）」改为「⑧-A 回测参数」，卡头 / 保存提示 / v1083 重置按钮 tooltip 三处同名文案同步（纯可见文案，零逻辑改动；代码注释与历史注释里的旧名保留）。 --><span id="verBadge" class="ver-badge">v1087</span><!-- fw2_v1076_conflicts（用户 2026-11-23「按照你顺序修」——修掉体检出的 5 处纲领冲突）：
+<!-- fw2_v1084_bt_a_label（用户 2026-11-24「同意」）：⑧-A 子页签由「⑧-A 回测参数（全量底稿）」改为「⑧-A 回测参数」，卡头 / 保存提示 / v1083 重置按钮 tooltip 三处同名文案同步（纯可见文案，零逻辑改动；代码注释与历史注释里的旧名保留）。 --><span id="verBadge" class="ver-badge">v1088</span><!-- fw2_v1076_conflicts（用户 2026-11-23「按照你顺序修」——修掉体检出的 5 处纲领冲突）：
 ①R7 带宽：撤销 v1067 的 `o.band = o.slotBand` 强镜像；band 只喂 R7（单只超配 25% 减配，SIG_THR_DEF 5→25、与回测 cfg.band 同值），slotBand 只喂 T10 四档；sigThrApply 分别写 C.barbell.band / C.barbell.slotBand，T10 文案改读 slotBand，R7 行 threshold 由硬编码「band 25%」改为动态读纲领值。
 ②R2 假开关：`_planCfg()` 读 `window.logicStateEff('R2')`——生效按 investMode，观察/关一律 lump（月投 0）；建仓步文案在一次性时追加「R2 定投＝关/观察」。
 ③T4 与 R6 双份：T4 行 modeled 改「与 R6 止损同一执行（同一 slHard）」，def 标「= R6 止损，同一动作」，阈值表 slHard 口径写「T4 / R6 · 同一执行」。
@@ -30958,7 +30958,8 @@ function brakeCardHtml(opts) {
      ② 每触及一个新档位买入固定金额（每档独立，不受后续档位影响）
      ③ 卖出＝反弹 N 档后进入观察，再从观察位回落 M 档 → 卖出该笔全部（默认 反弹2档观察 / 回落1档卖出）
    数据：data/index-dd.json（gen_index_dd.py 产），懒加载；不写 localStorage（纯视图态 + 参数在页面内）。
-   v1087（2026-11-24 用户「继续往下做」）：新增「多指数组合（共享资金池）」回测方式（ST.scope/pick + runPoolBT），单指数口径不变。 */
+   v1087（2026-11-24 用户「继续往下做」）：新增「多指数组合（共享资金池）」回测方式（ST.scope/pick + runPoolBT），单指数口径不变。
+   v1088（2026-11-24 继续）：监测列表下新增「估值参考」卡（数据 data/index-val.json / gen_index_val.py；PE 取中证官网 20 日快照，价格分位自算，PE 10 年分位仅 3 只有月频源）。 */
 (function () {
   var ST = window.__DD_STATE = window.__DD_STATE || {
     code: '', capital: 10000, perBuy: 500, startDD: 70, gap: 5,
@@ -30966,7 +30967,8 @@ function brakeCardHtml(opts) {
     scope: 'one', pick: null
   };
   var D = window.__DD_DATA = window.__DD_DATA || null;
-  var loadP = null;
+  var VAL = window.__DD_VAL = window.__DD_VAL || null;
+  var loadP = null, valP = null;
 
   function nf(v, d) {
     var x = +v;
@@ -31302,6 +31304,47 @@ function brakeCardHtml(opts) {
       + '<span style="color:#63636B"> · 已选 <b>' + pk.length + '</b> 只</span></div><div class="dd-picks">' + chips + '</div></div>';
   }
 
+  /* ---------- 估值参考（v1088：中证官网 20 日快照 PE + 自算价格分位 + 已有月频 PE 分位） ---------- */
+  function valHostHtml() {
+    return VAL ? valCardHtml() : '<div id="ddValHost"></div>';
+  }
+  function valCardHtml() {
+    if (!VAL || !VAL.indices) return '';
+    var arr = ((D && D.indices) || []).slice().sort(function (a, b) { return a.dd - b.dd; });
+    var rows = arr.map(function (x) {
+      var v = VAL.indices[x.code] || {};
+      var pe = v.pe2 != null ? nf(v.pe2, 2) : '<span style="color:#71717A">—</span>';
+      var rng = (v.pe2_lo != null && v.pe2_hi != null) ? (nf(v.pe2_lo, 2) + '–' + nf(v.pe2_hi, 2)) : '—';
+      var dv = v.div2 != null ? v.div2.toFixed(2) + '%' : '—';
+      var pp = v.pricePct != null ? (v.pricePct * 100).toFixed(1) + '%' : '—';
+      var peP = v.pePct != null ? (v.pePct * 100).toFixed(1) + '%'
+        : '<span style="color:#A1A1AA" title="中证官网只有近 20 个交易日快照，无 10 年 PE 历史；该指数也不在乐咕月频覆盖内">—</span>';
+      return '<tr><td>' + x.name + '</td><td class="num">' + pe + '</td><td class="num">' + rng + '</td>'
+        + '<td class="num">' + dv + '</td><td class="num">' + pp + '</td><td class="num">' + peP + '</td></tr>';
+    }).join('');
+    return '<div class="st-card"><h4 style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">估值参考'
+      + '<span style="font-weight:400;font-size:11px;color:#71717A">当前 PE 来自中证指数官网 · 分位口径见下注</span></h4>'
+      + '<div class="dd-tblwrap"><table class="dd-tbl"><thead><tr><th>指数</th><th class="num">当前 PE</th>'
+      + '<th class="num">近 20 日区间</th><th class="num">股息率</th><th class="num">价格 10 年分位</th><th class="num">PE 10 年分位（月频）</th>'
+      + '</tr></thead><tbody>' + rows + '</tbody></table></div>'
+      + '<div class="strat-note" style="margin:6px 0 0">PE＝<b>市盈率2（计算用股本口径）</b>；「近 20 日区间」是中证官网快照里 PE 的 20 交易日高低。'
+      + '「价格 10 年分位」＝当前点位在近 10 年区间的位置，<b>不是 PE 分位</b>；「PE 10 年分位」只有沪深300 / 中证500 / 中证1000 有乐咕月频长序列，'
+      + '其余为「—」——中证官网只给最近 20 个交易日，没有 10 年 PE 历史可算分位。创业板指是深交所指数，中证估值库无该代码。'
+      + '数据 ' + (VAL.updatedAt || '—') + ' · 生成器 gen_index_val.py</div></div>';
+  }
+  function loadVal() {
+    if (VAL || valP) return;
+    valP = fetch('data/index-val.json', { cache: 'no-store' })
+      .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+      .then(function (j) { VAL = window.__DD_VAL = j; var h = document.getElementById('ddValHost'); if (h) h.innerHTML = valCardHtml(); })
+      .catch(function () {
+        fetch('https://raw.githubusercontent.com/andylauxiaoyang/investment-workbench/master/caifu/data/index-val.json', { cache: 'no-store' })
+          .then(function (r) { return r.json(); })
+          .then(function (j) { VAL = window.__DD_VAL = j; var h = document.getElementById('ddValHost'); if (h) h.innerHTML = valCardHtml(); })
+          .catch(function () {});
+      });
+  }
+
   function paramHtml() {
     var pool = ST.scope === 'pool';
     var sel = ((D && D.indices) || []).map(function (x) {
@@ -31395,7 +31438,7 @@ function brakeCardHtml(opts) {
 
   function shellHtml() {
     if (!D) return '<div class="st-card" id="ddLoading"><h4>回撤档位 · 指数深跌分批买</h4><div class="strat-note" style="margin:0">正在加载指数回撤数据（data/index-dd.json）…</div></div>';
-    return planCardHtml() + listCardHtml() + paramHtml() + resultHtml(window.__DD_RES);
+    return planCardHtml() + listCardHtml() + valHostHtml() + paramHtml() + resultHtml(window.__DD_RES);
   }
 
   function dstr(d) {
@@ -31466,6 +31509,7 @@ function brakeCardHtml(opts) {
     if (!host) return;
     var run = function () {
       ensureDefaults();
+      loadVal();
       host.innerHTML = shellHtml();
       if (window.__DD_RES && !window.__DD_RES.err) drawChart(window.__DD_RES);
       var msg = document.getElementById('ddRunMsg');
