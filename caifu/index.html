@@ -1571,7 +1571,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 <!-- fw2_v1112_dd_hist_allpool（用户 2026-11-25「按照你建议继续」，落地 A 展示补全 + B 全池逐日对照，默认仍保留当前最深 10）：
       A「区间曾深」：监测卡头部加切换，按 [from,to] 逐日维护此前最高收盘（峰值可早于区间起点，与 ddArrOf 同口径）算区间最深；列出曾≥起始档位、但当前已修复而被焦点视图隐藏的指数（本次 63 只中 16 只曾≥70%，当前仅 4 只仍≥70%，5 只已修复到 <60%）。
       B「全池59（逐日机会）」：回测方式第三档；境内 59 只全部进入逐日机会集，不按今天回撤预选；每只只在自己回撤≥起始档位时买；同日先卖后买，再按当日回撤深→浅分配资金，现金不足跳过并计数；仍不含 4 只境外。默认仍为「当前最深 10」，且加 look-ahead 提示；换口径即清空旧结果，全池点行改为切单指数。 -->
-<span id="verBadge" class="ver-badge">v1118</span><!-- fw2_v1096_dd_search（用户「继续」）：①全指数监测卡加「搜索」（代码/名称，只过滤本表显示，分档 chips 计数与已选组合不受影响；输入时保存 ST.q 并重画、回填焦点与滚动位置）②组合池加「全选境内 59」「恢复默认（宽基）」（境外永远不进池）③脚注的境外名单由数据现算（原来写死 4 个名字，加池就会过期）④gen_index_dd 去掉冗余 count.night，gen_index_val 的蛋卷 asof 不再写死 2026 年 --><!-- fw2_v1097_dd_sort_valref（用户「继续」，承接 v1096 挂账）：①全指数监测卡加「排序」开关——回撤深→浅（默认）/ 名称 A→Z，只换本表顺序，分档计数与已选组合不变；②估值卡加「同类别对照」小表——全部 / 宽基 / 行业 / 主题 / 境外五行的 PE 分位中位、PB 分位中位、价格分位中位，并列出该类别里 PE 分位最低的一只；③两处都只用既有 index-dd / index-val 数据，不引入新源（v1096 已证伪的三条补源路仍挂账）。 --><!-- fw2_v1098_dd_n2_sort（用户「继续完成」，收口 v1097「下一步候选」三件）：①估值「同类别对照」由 6 列扩到 8 列——补「股息率中位」与「PB 分位最低的一只」（与 PE 最低同口径：只统计有该分位的只数，空组回 —）；②监测卡加「快捷」行——「距下档 ≤2pp」一键筛选（ST.n2 与类别 / 分档 / 搜索四者可叠加，chips 计数仍按类别全集，不受搜索与快捷键影响）；③方案卡「进入买入区」表跟随 ST.sort（默认回撤深→浅，切名称后同监测卡拼音序）；④仍不引入新源。 --><!-- fw2_v1099_dd_pickcat_relcat（用户「继续」，收口 v1098「下一步候选」三件）：①组合池加按类别批量勾选——宽基 / 行业 / 主题三个按钮各显示「已选/总数」，全选后再点即取消该类（不碰境外）；②估值主表加「相对同类」列——本只 PE 分位 − 同类别 PE 分位中位（pp，负＝比同类便宜），只在双方都有分位时显示；③跨档卡跟随监测卡类别筛选（ST.fcat），计数、「展开全部 N 只」与空态都按当前类别；④仍不引入新源。 --><!-- fw2_v1100_dd_bksum_cheap_vsort（用户「继续」，收口 v1099「下一步候选」三件）：①监测卡加「按回撤分档汇总」表——6 档的只数 / 平均回撤 / 该档最深一只 / 距下档 ≤2pp 只数 / 已进买入区只数，按当前类别统计、不受搜索与快捷影响；②组合池加「只选便宜一半」——按同类别 PE 分位中位分界，只选低于中位的（无分位不入选，口径写进按钮 title）；③估值主表「相对同类」表头可点击排序，三态循环：默认（回撤深→浅）→ 便宜在前 → 贵在前，无分位的行恒排最后；④ddTbl 扩一个可选 th 属性位（backward compatible），中位数抽成模块级 medOf 单一实现；⑤仍不引入新源。 --><!-- fw2_v1076_conflicts（用户 2026-11-23「按照你顺序修」——修掉体检出的 5 处纲领冲突）：
+<span id="verBadge" class="ver-badge">v1119</span><!-- fw2_v1096_dd_search（用户「继续」）：①全指数监测卡加「搜索」（代码/名称，只过滤本表显示，分档 chips 计数与已选组合不受影响；输入时保存 ST.q 并重画、回填焦点与滚动位置）②组合池加「全选境内 59」「恢复默认（宽基）」（境外永远不进池）③脚注的境外名单由数据现算（原来写死 4 个名字，加池就会过期）④gen_index_dd 去掉冗余 count.night，gen_index_val 的蛋卷 asof 不再写死 2026 年 --><!-- fw2_v1097_dd_sort_valref（用户「继续」，承接 v1096 挂账）：①全指数监测卡加「排序」开关——回撤深→浅（默认）/ 名称 A→Z，只换本表顺序，分档计数与已选组合不变；②估值卡加「同类别对照」小表——全部 / 宽基 / 行业 / 主题 / 境外五行的 PE 分位中位、PB 分位中位、价格分位中位，并列出该类别里 PE 分位最低的一只；③两处都只用既有 index-dd / index-val 数据，不引入新源（v1096 已证伪的三条补源路仍挂账）。 --><!-- fw2_v1098_dd_n2_sort（用户「继续完成」，收口 v1097「下一步候选」三件）：①估值「同类别对照」由 6 列扩到 8 列——补「股息率中位」与「PB 分位最低的一只」（与 PE 最低同口径：只统计有该分位的只数，空组回 —）；②监测卡加「快捷」行——「距下档 ≤2pp」一键筛选（ST.n2 与类别 / 分档 / 搜索四者可叠加，chips 计数仍按类别全集，不受搜索与快捷键影响）；③方案卡「进入买入区」表跟随 ST.sort（默认回撤深→浅，切名称后同监测卡拼音序）；④仍不引入新源。 --><!-- fw2_v1099_dd_pickcat_relcat（用户「继续」，收口 v1098「下一步候选」三件）：①组合池加按类别批量勾选——宽基 / 行业 / 主题三个按钮各显示「已选/总数」，全选后再点即取消该类（不碰境外）；②估值主表加「相对同类」列——本只 PE 分位 − 同类别 PE 分位中位（pp，负＝比同类便宜），只在双方都有分位时显示；③跨档卡跟随监测卡类别筛选（ST.fcat），计数、「展开全部 N 只」与空态都按当前类别；④仍不引入新源。 --><!-- fw2_v1100_dd_bksum_cheap_vsort（用户「继续」，收口 v1099「下一步候选」三件）：①监测卡加「按回撤分档汇总」表——6 档的只数 / 平均回撤 / 该档最深一只 / 距下档 ≤2pp 只数 / 已进买入区只数，按当前类别统计、不受搜索与快捷影响；②组合池加「只选便宜一半」——按同类别 PE 分位中位分界，只选低于中位的（无分位不入选，口径写进按钮 title）；③估值主表「相对同类」表头可点击排序，三态循环：默认（回撤深→浅）→ 便宜在前 → 贵在前，无分位的行恒排最后；④ddTbl 扩一个可选 th 属性位（backward compatible），中位数抽成模块级 medOf 单一实现；⑤仍不引入新源。 --><!-- fw2_v1076_conflicts（用户 2026-11-23「按照你顺序修」——修掉体检出的 5 处纲领冲突）：
 ①R7 带宽：撤销 v1067 的 `o.band = o.slotBand` 强镜像；band 只喂 R7（单只超配 25% 减配，SIG_THR_DEF 5→25、与回测 cfg.band 同值），slotBand 只喂 T10 四档；sigThrApply 分别写 C.barbell.band / C.barbell.slotBand，T10 文案改读 slotBand，R7 行 threshold 由硬编码「band 25%」改为动态读纲领值。
 ②R2 假开关：`_planCfg()` 读 `window.logicStateEff('R2')`——生效按 investMode，观察/关一律 lump（月投 0）；建仓步文案在一次性时追加「R2 定投＝关/观察」。
 ③T4 与 R6 双份：T4 行 modeled 改「与 R6 止损同一执行（同一 slHard）」，def 标「= R6 止损，同一动作」，阈值表 slHard 口径写「T4 / R6 · 同一执行」。
@@ -1771,7 +1771,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 
 
       
-      <section class="view" id="view-tg"><!-- fw2_v1056_invest_master：投资总纲升为独立一级模块（原「策略执行 → 投资逻辑」）；渲染函数仍是 renderLogicView()，host 从 #stp-logic 改为 #tg-logic；⑧ 层的参数页已迁到「策略执行 → 回测参数（实验）」 --><div id="tg-logic"></div></section><section class="view" id="view-strategy"><!-- fw2_v120_strategy --><!-- fw2_v663_hero_retire：建仓 hero 整块退役（当前市值/完成度→资产配置表、定投月数/下次定投→定投执行 tab 同源重复；可投资金输入框经用户拍板一并删，rulesBudget 引擎按 localStorage fw2_capital_budget_v1 现值继续） --><!-- fw2_v944_budget_inline：可投资金输入框从 section 顶部并入资产配置表标题（用户 2026-11-16 「可以删除，因为资产配置标题有括号里写了」；同一数字原在顶部输入框/表标题/合计行三处重复，且它夹在指数行情条与 tab 按钮之间像页面筛选器） --><div class="strat-tabs v-tabs" id="stratTabs"><!-- fw2_v988f_logic_brain：新增「投资逻辑」一级子模块，并设为进入「策略执行」的默认页（用户 2026-11-18 拍板：tab 名「投资逻辑」／副标题「本工作台唯一的大脑 · 规则唯一写入口」；①–⑦ 59 条可执行规则 + ⑧ 6 条回测验证·逻辑准入；八层「点哪层看哪层」，不在一页平铺） --><button class="st-tab v-tab active" data-st="alloc">资产配置</button><!-- fw2_v945_bt_submodules：原「组合回测」一个 tab 拆成两个一级子模块（用户 2026-11-16「这两个子模块放到策略执行下面作为一级子模块展示。名字分别改成持仓回测，自选回测」）——data-st 同为 bt、靠 data-pool 区分，面板仍是同一个 stp-bt，pool 落在 fw2_bt_cfg_v1 里持久化 --><!-- fw2_v1013_strategy_pool：第一个 bt tab 由「持仓回测」改为「配置回测」，池改为 strategy＝内建目标配置 11 只（用户 2026-11-20「持仓回测改成配置回测，内容就是刚刚你按照回测的标的」） --><button class="st-tab v-tab" data-st="bt" data-pool="strategy">配置回测</button><button class="st-tab v-tab" data-st="bt" data-pool="custom">自选回测</button><!-- fw2_v895_plan_merge：定投执行 tab 退役；当月待办与静态参数并入资产配置 tab --><button class="st-tab v-tab" data-st="param">回测参数</button><!--fw2_v1056_invest_master：回测参数（原 ⑧-A/B/C）从投资逻辑 ⑧ 层迁到这里，参数唯一写入口 --><!-- fw2_v1103_dd_rename（用户 2026-11-24 拍板「深跌买入」）：子页签由「回撤档位」（像参数面板）改为策略名「深跌买入」，纯展示文本，data-st="dd" / __DD_STATE 等内部标识不动 --><button class="st-tab v-tab" data-st="dd">深跌买入</button><button class="st-tab v-tab" data-st="review">月度复盘</button></div><div class="st-pane" id="stp-alloc"></div><div class="st-pane" id="stp-bt" style="display:none"></div><div class="st-pane" id="stp-param" style="display:none"></div><div class="st-pane" id="stp-dd" style="display:none"></div><div class="st-pane" id="stp-review" style="display:none"></div><!-- v167：场内外对照已下移至 #stp-cards 之后（原共享层位置摘除）--></section>
+      <section class="view" id="view-tg"><!-- fw2_v1056_invest_master：投资总纲升为独立一级模块（原「策略执行 → 投资逻辑」）；渲染函数仍是 renderLogicView()，host 从 #stp-logic 改为 #tg-logic；⑧ 层的参数页已迁到「策略执行 → 回测参数（实验）」 --><div id="tg-logic"></div></section><section class="view" id="view-strategy"><!-- fw2_v120_strategy --><!-- fw2_v663_hero_retire：建仓 hero 整块退役（当前市值/完成度→资产配置表、定投月数/下次定投→定投执行 tab 同源重复；可投资金输入框经用户拍板一并删，rulesBudget 引擎按 localStorage fw2_capital_budget_v1 现值继续） --><!-- fw2_v944_budget_inline：可投资金输入框从 section 顶部并入资产配置表标题（用户 2026-11-16 「可以删除，因为资产配置标题有括号里写了」；同一数字原在顶部输入框/表标题/合计行三处重复，且它夹在指数行情条与 tab 按钮之间像页面筛选器） --><div class="strat-tabs v-tabs" id="stratTabs"><!-- fw2_v988f_logic_brain：新增「投资逻辑」一级子模块，并设为进入「策略执行」的默认页（用户 2026-11-18 拍板：tab 名「投资逻辑」／副标题「本工作台唯一的大脑 · 规则唯一写入口」；①–⑦ 59 条可执行规则 + ⑧ 6 条回测验证·逻辑准入；八层「点哪层看哪层」，不在一页平铺） --><button class="st-tab v-tab active" data-st="alloc">资产配置</button><!-- fw2_v945_bt_submodules：原「组合回测」一个 tab 拆成两个一级子模块（用户 2026-11-16「这两个子模块放到策略执行下面作为一级子模块展示。名字分别改成持仓回测，自选回测」）——data-st 同为 bt、靠 data-pool 区分，面板仍是同一个 stp-bt，pool 落在 fw2_bt_cfg_v1 里持久化 --><!-- fw2_v1013_strategy_pool：第一个 bt tab 由「持仓回测」改为「配置回测」，池改为 strategy＝内建目标配置 11 只（用户 2026-11-20「持仓回测改成配置回测，内容就是刚刚你按照回测的标的」） --><button class="st-tab v-tab" data-st="bt" data-pool="strategy">配置回测</button><button class="st-tab v-tab" data-st="bt" data-pool="custom">自选回测</button><!-- fw2_v895_plan_merge：定投执行 tab 退役；当月待办与静态参数并入资产配置 tab --><button class="st-tab v-tab" data-st="param">回测参数</button><!--fw2_v1056_invest_master：回测参数（原 ⑧-A/B/C）从投资逻辑 ⑧ 层迁到这里，参数唯一写入口 --><!-- fw2_v1103_dd_rename（用户 2026-11-24 拍板「深跌买入」）：子页签由「回撤档位」（像参数面板）改为策略名「深跌买入」，纯展示文本，data-st="dd" / __DD_STATE 等内部标识不动 --><button class="st-tab v-tab" data-st="dd">深跌买入</button><!-- fw2_v1119_v11_strategy_tab（用户 2026-11-25「V11 狙击不是单纯的信号，是单独的一种投资策略」）：V11 从「交易信号」的第七个内层 tab 迁到「策略执行」独立子模块，顺序放在深跌买入之后（同为策略本体，月度复盘仍收尾）；原信号页保留逐只执行行与一个指路条，不再保留独立 tab。资金池 / 单注 / 止损 / 吊灯口径集中在本页策略卡，交易信号页只做候选扫描。 --><button class="st-tab v-tab" data-st="v11">V11 狙击</button><button class="st-tab v-tab" data-st="review">月度复盘</button></div><div class="st-pane" id="stp-alloc"></div><div class="st-pane" id="stp-bt" style="display:none"></div><div class="st-pane" id="stp-param" style="display:none"></div><div class="st-pane" id="stp-dd" style="display:none"></div><div class="st-pane" id="stp-v11" style="display:none"></div><div class="st-pane" id="stp-review" style="display:none"></div><!-- v167：场内外对照已下移至 #stp-cards 之后（原共享层位置摘除）--></section>
       <!-- v91 fw2_v91_macro_merge：宏观·情绪 独立页曾并入 数据中心 → 宏观数据 分块（v135 已反向拆分，见下） -->
       <!-- fw2_v135_macro_view：宏观数据由「数据中心」分块迁出为独立模块（用户 2026-09-18「宏观数据单独作为一个模块放在数据中心上面」）；#view-data 改名「基金数据」并删除 dcBlocks 切换行（基金数据直接进入内容区，默认总览 Tab） -->
       <section class="view" id="view-macro">
@@ -17300,7 +17300,7 @@ function loadBacktest() {
 }
 function v11SignalHtml() {
   const d = window.__V11_SIG__;
-  const _ld = '<div class="card dc-card"><div class="dc-hd"><b style="font-size:14px">V11 狙击信号（宽基 ETF）</b><span class="dc-dir t-neu">加载中</span></div><div class="dc-src">V11 狙击信号数据加载中…（每晚 21:30 日频管线自动刷新）</div></div>';
+  const _ld = '<div class="card dc-card"><div class="dc-hd"><b style="font-size:14px">V11 狙击 · 全池扫描（宽基 / 跨境 ETF）</b><span class="dc-dir t-neu">加载中</span></div><div class="dc-src">V11 策略扫描数据加载中…（每晚 21:30 日频管线自动刷新）</div></div>';
   if (!d || !d.meta) return _ld;
   const m = d.meta;
   const sigs = (d.signals || []).filter((s) => !s.error);
@@ -17308,11 +17308,18 @@ function v11SignalHtml() {
   const readyN = sigs.filter((s) => s.state === '狙击就绪').length;
   const watchN = sigs.filter((s) => s.state === '持枪观望').length;
   const lvlC = { '狙击就绪': CHART.bad, '持枪观望': '#854F0B', '数据不足': CHART.gray4 };
-  const head = '<div class="card dc-card"><div class="dc-hd"><b style="font-size:14px">V11 狙击信号（宽基 ETF · 独立于网格信号）</b>'
+  /* fw2_v1119_v11_strategy_tab：赔率是「倍数」不是「百分比」——原按 pct() 乘 100，1.02 被写成 102.10%，与 2.00 门限不同量纲；本版改回 2 位小数纯倍数，只改显示。 */
+  const num2 = (v) => (v == null ? '<span style="color:var(--muted)">—</span>' : (v === Infinity ? '∞' : v.toFixed(2)));
+  const scanThr = sigs.length ? sigs[0].odds_thr : null;
+  const stratThr = (window.SIGNALS_CFG && +window.SIGNALS_CFG.v11Odd) || 2.5;
+  const thrNote = (scanThr != null && Math.abs(scanThr - stratThr) > 0.01)
+    ? ' · <span style="color:#B45309">⚠ 扫描门限 ' + scanThr.toFixed(2) + ' 与策略/回测门限 ' + stratThr.toFixed(2) + ' 不一致，当前扫描结果偏' + (scanThr < stratThr ? '宽' : '严') + '</span>'
+    : '';
+  const head = '<div class="card dc-card"><div class="dc-hd"><b style="font-size:14px">V11 狙击 · 全池扫描（宽基 / 跨境 ETF）</b>'
     + '<span class="dc-dir ' + (readyN ? 't-pos' : 't-neu') + '">' + readyN + ' 只就绪 · ' + watchN + ' 只观望</span></div>'
-    + '<div class="dc-src">' + esc(m.note || '') + ' · 数据源 ' + esc(m.source || '—') + ' · 数据日 ' + esc(m.asOf || '—') + ' · 更新 ' + esc(m.generatedAt || '—') + '</div>';
+    + '<div class="dc-src">' + esc(m.note || '') + ' · 数据源 ' + esc(m.source || '—') + ' · 数据日 ' + esc(m.asOf || '—') + ' · 更新 ' + esc(m.generatedAt || '—') + ' · 表中「门限」为数据文件自带值' + thrNote + '</div>';
   if (!sigs.length) {
-    return head + '<div class="dc-body"><div class="empty st st-empty">V11 狙击信号暂无数据（管线未刷新或全部取数失败）。</div></div></div>';
+    return head + '<div class="dc-body"><div class="empty st st-empty">V11 策略扫描暂无数据（管线未刷新或全部取数失败）。</div></div></div>';
   }
   const rows = sigs.map((s) => {
     const st = lvlC[s.state] ? s.state : '数据不足';
@@ -17322,7 +17329,7 @@ function v11SignalHtml() {
     return '<tr>'
       + '<td><b>' + esc(s.code) + '</b> <span style="color:var(--muted)">' + esc(s.name || '') + '</span></td>'
       + '<td><span style="display:inline-block;padding:1px 7px;border-radius:9px;background:' + col + '22;color:' + col + ';font-weight:600">' + esc(st) + '</span></td>'
-      + '<td style="text-align:right;font-family:var(--mono);' + (s.odds >= s.odds_thr ? 'color:var(--up,#b91c1c)' : 'color:var(--muted)') + '">' + pct(s.odds) + '</td>'
+      + '<td style="text-align:right;font-family:var(--mono);' + (s.odds >= s.odds_thr ? 'color:var(--up,#b91c1c)' : 'color:var(--muted)') + '">' + num2(s.odds) + '</td>'
       + '<td style="text-align:right;font-family:var(--mono);color:var(--muted)">≥' + (s.odds_thr != null ? s.odds_thr.toFixed(2) : '—') + '</td>'
       + '<td style="text-align:right;font-family:var(--mono)">' + pct(s.atr_pct) + '</td>'
       + '<td style="text-align:right;font-family:var(--mono)">' + pct(s.up_space) + '</td>'
@@ -17334,13 +17341,13 @@ function v11SignalHtml() {
       + '</tr>';
   }).join('');
   return head
-    + '<div class="dc-body"><table class="sig-dense v11-tbl" style="width:100%;border-collapse:collapse;min-width:1080px"><tr style="color:var(--muted)">'
+    + '<div class="dc-body"><div class="table-wrap" style="overflow-x:auto"><table class="sig-dense v11-tbl" style="width:100%;border-collapse:collapse;min-width:1080px"><tr style="color:var(--muted)">'
     + '<th style="text-align:left">标的</th><th style="text-align:left">状态</th>'
-    + '<th style="text-align:right">赔率 odds</th><th style="text-align:right">门限</th>'
+    + '<th style="text-align:right">赔率 odds</th><th style="text-align:right">扫描门限</th>'
     + '<th style="text-align:right">ATR%</th><th style="text-align:right">前高空间</th>'
     + '<th style="text-align:right">回撤腿</th><th style="text-align:right">3×ATR止损</th>'
     + '<th style="text-align:right">吊灯线</th><th style="text-align:right">现价</th><th style="text-align:right">数据日</th></tr>'
-    + rows + '</table>'
+    + rows + '</table></div>'
     + (errs.length ? '<div class="dc-src" style="margin-top:8px">⚠ ' + errs.length + ' 只取数失败：' + errs.map((e) => esc(e.code) + ' ' + esc(e.name) + '（' + esc(e.error || '') + '）').join('；') + '</div>' : '')
     + '</div></div>';
 }
@@ -17361,10 +17368,10 @@ function loadV11Signal() {
 /* fw2_v607_v11_bt：V11 信号样本外回测统计卡（data/v11-backtest.json；V11-R 狙击就绪语义触发 / V11-W 持枪观望对照组；样本积累满 holdDays 数据日后自动出统计，pending 诚实显示） */
 function v11BtHtml() {
   const bt = window.__V11_BT__;
-  if (!bt || !bt.meta) return '<div class="card dc-card"><div class="dc-hd"><b style="font-size:14px">V11 信号回测统计（样本外）</b><span class="dc-dir t-neu">加载中</span></div><div class="dc-src">V11 样本外回测数据加载中…（每晚 21:30 日频管线自动积累）</div></div>';
+  if (!bt || !bt.meta) return '<div class="card dc-card"><div class="dc-hd"><b style="font-size:14px">V11 狙击 · 样本外检验</b><span class="dc-dir t-neu">加载中</span></div><div class="dc-src">V11 样本外检验数据加载中…（每晚 21:30 日频管线自动积累）</div></div>';
   const m = bt.meta;
   const groups = (bt.groups || []).filter((g) => g.n > 0);
-  const head = '<div class="card dc-card"><div class="dc-hd"><b style="font-size:14px">V11 信号回测统计（样本外）</b>'
+  const head = '<div class="card dc-card"><div class="dc-hd"><b style="font-size:14px">V11 狙击 · 样本外检验</b>'
     + '<span class="dc-dir ' + (m.doneCount ? 't-pos' : 't-neu') + '">' + (m.doneCount || 0) + ' 笔完成 · ' + (m.pendingCount || 0) + ' 笔积累中</span></div>'
     + '<div class="dc-src">' + esc(m.note || '') + ' · 信号历史 ' + esc(m.histFirst || '—') + ' ~ ' + esc(m.histLast || '—') + '（' + (m.histCount || 0) + ' 快照日）· 基准沪深300 · 更新 ' + esc(m.generatedAt || '—') + ' · 完成 ' + (m.doneCount || 0) + '/待持有期 ' + (m.pendingCount || 0) + '/无净值 ' + (m.noNavCount || 0) + '</div>';
   if (!groups.length) {
@@ -17406,6 +17413,42 @@ function loadV11Backtest() {
     }).catch(() => { _n(i + 1); });
   })(0);
 }
+/* fw2_v1119_v11_strategy_tab：V11 从「交易信号」迁入「策略执行」后的策略本体卡。
+   只搬位置与口径展示，不改 v11-signal.json / v11-backtest.json / 回测引擎 / 信号阈值。
+   资金口径：策略预算 = STRATEGY_SNAP.totalTarget（5 万）；池 = 预算 × C.v11Pct（默认 5%）；单注 = 池 × C.v11Bet（默认 25%）。 */
+function v11StrategyHtml() {
+  var C = window.SIGNALS_CFG || {};
+  var total = (window.STRATEGY_SNAP && +window.STRATEGY_SNAP.totalTarget) || 50000;
+  var pct = +C.v11Pct || 5;
+  var betPct = +C.v11Bet || 25;
+  var maxN = +C.v11Max || 4;
+  var odd = +C.v11Odd || 2.5;
+  var pool = Math.round(total * pct / 100);
+  var bet = Math.round(pool * betPct / 100);
+  var money = function (n) { return '¥' + Math.round(n).toLocaleString('en-US'); };
+  return '<div class="card dc-card">'
+    + '<div class="dc-hd"><b style="font-size:14px">V11 狙击 · 策略本体</b><span class="dc-dir t-neu">独立仓位池 · 不占 11 只目标权重</span></div>'
+    + '<div class="dc-src">这不是一条筛选提示：它有独立的资金池、单注上限、止损与吊灯退出；交易信号页只保留逐只执行行，策略口径与样本外验证集中在本页。</div>'
+    + '<div class="sh-grid" style="margin-top:8px;grid-template-columns:repeat(auto-fit,minmax(118px,1fr));gap:8px">'
+    + '<div class="sh-cell"><div class="k">策略预算</div><div class="v">' + money(total) + '</div></div>'
+    + '<div class="sh-cell"><div class="k">狙击池 · ' + pct + '%</div><div class="v">' + money(pool) + '</div></div>'
+    + '<div class="sh-cell"><div class="k">单注 · 池 ' + betPct + '%</div><div class="v">' + money(bet) + '</div></div>'
+    + '<div class="sh-cell"><div class="k">最多同时持仓</div><div class="v">' + maxN + ' 仓</div></div>'
+    + '<div class="sh-cell"><div class="k">赔率门限</div><div class="v">≥' + odd.toFixed(2) + '</div></div>'
+    + '</div>'
+    + '<div class="dc-src" style="margin-top:8px">执行规则：赔率＝前高空间 ÷ 3×ATR14，≥' + odd.toFixed(2) + ' 才买一注；单注＝池 ' + betPct + '%、最多 ' + maxN + ' 仓；止损 3×ATR，浮盈 20% 后吊灯＝持仓峰值×0.85。全池扫描表里的「门限」取 v11-signal.json 自带值，扫描结果以逐行门限为准。</div>'
+    + '<div class="dc-src" style="margin-top:4px">执行开关与历史组合回测在「配置回测」的「V11 狙击」项；下方样本外统计只验证信号是否兑现，不替代组合回测，也不等同于已成交。</div>'
+    + '</div>';
+}
+function renderStratV11() {
+  var host = document.getElementById('stp-v11');
+  if (!host) return;
+  host.innerHTML = v11StrategyHtml()
+    + '<div id="v11Wrap">' + v11SignalHtml() + '</div>'
+    + '<div id="v11BtWrap">' + v11BtHtml() + '</div>';
+  try { loadV11Signal(); } catch (e1) { if (window.console) console.error('[v11sig]', e1); }
+  try { loadV11Backtest(); } catch (e2) { if (window.console) console.error('[v11bt]', e2); }
+}
 function renderSignalDash() {
   const sec = document.getElementById('view-signal'); /* v36：信号独立成一级导航 */
   if (!sec) return;
@@ -17414,8 +17457,7 @@ function renderSignalDash() {
   let wtState = {};
   try { wtState = JSON.parse(localStorage.getItem(WT_KEY) || '{}'); } catch (e) { wtState = {}; }
   loadBacktest();
-  loadV11Signal(); /* v606 fw2_v606_v11_signal：V11 狙击信号面板（gen_v11_signal.py 随日频管线产出）——fetch data/v11-signal.json（幂等），独立于网格信号（隔离铁律） */
-  loadV11Backtest(); /* v607 fw2_v607_v11_bt：V11 样本外回测统计卡——fetch data/v11-backtest.json（幂等），V11-R 就绪/V11-W 观望对照组 */
+  loadV11Signal(); /* v606 fw2_v606_v11_signal：V11 逐只执行行仍在「筛选信号」，这里保留数据加载（幂等）；策略本体页由 renderStratV11 负责加载扫描与样本外两张卡 */
   /* A 组优化 fw2_v722_fresh：净值数据日新鲜度——业务日口径（跳过周末），过期≥4交易日红标⛔、≥2黄标⚠，解决「过期净值照常亮信号」 */
   function sigBizDaysAgo(dd) {
     if (!dd) return null;
@@ -17962,7 +18004,6 @@ function renderSignalDash() {
       {k:'hold', label:'持仓信号'},
       {k:'screen', label:'筛选信号'},
       {k:'market', label:'市场信号'},
-      {k:'v11', label:'V11狙击'},
       {k:'trend', label:'趋势策略'},
       {k:'sm', label:'聪明的钱'},
       {k:'through', label:'持仓穿透'}
@@ -17979,8 +18020,11 @@ function renderSignalDash() {
     var _stLine = '<div class="dc-src" style="opacity:.92;margin:0 0 8px;line-height:1.75">阈值来源：<b>投资纲领 →「信号阈值（纲领）」</b>'
       + ' （共 26 项：3 项目标（年化 / 回撤预算 / 无风险）+ 9 项直接驱动本页信号判断 + 1 项已下线（T9 单标的 CAP）+ 13 项执行口径——网格/补仓/狙击/刹车/建仓 v1067 起全部实盘生效）'
       + ' <button type="button" onclick="try{document.querySelector(&quot;#nav [data-view=tg]&quot;).click();setTimeout(function(){try{window.logicGo(&quot;sigthr&quot;)}catch(e){}},60)}catch(e){};return false" style="cursor:pointer;font-size:11px;padding:2px 8px;border-radius:6px;border:1px solid #D4D4D8;background:#fff;color:#3F3F46;margin-left:4px">去投资总纲改阈值 →</button></div>';
+    var _v11MoveLine = '<div class="dc-note" style="margin:0 0 8px;padding:7px 10px;border:1px solid #E8E6DF;border-left:3px solid #B45309;border-radius:8px;background:#FDFCF8;font-size:11px;line-height:1.7;color:#52525B">'
+      + '<b style="color:#18181B">V11 狙击已移至「策略执行 → V11 狙击」</b>——它有自己的资金池、单注上限、3×ATR 止损与吊灯退出，属策略本体，不是一条筛选提示；本页只在「筛选信号」保留逐只执行行。</div>';
     body.innerHTML = ''
       + _stLine
+      + _v11MoveLine
       + '<div class="v-tabs" style="margin:10px 0">' + _sigTabBtns + '</div>'
       + '<div id="sigLvlBar" class="v-tabs" style="margin:-2px 0 10px;gap:6px;flex-wrap:wrap">'
       + [['all', '全部', actTot + nearTot + watchTot], ['act', '只看有动作', actTot], ['near', '只看接近', nearTot]].map(function(x){
@@ -18014,11 +18058,8 @@ function renderSignalDash() {
       + grp('筛选信号（候选池 · 买入评估）', _sigF(rows.screen), [],
         '筛选池 ' + ((window.SCREEN_POOL && window.SCREEN_POOL.funds) ? Object.keys(window.SCREEN_POOL.funds).length : 0) + ' 只候选 · 仅展示估值/回撤/波动/低点/趋势/风险触发的标的 · 数据=筛池画像+日频净值', null, true)
       + '</div></div>'
-      /* tab: V11狙击 */
-      + '<div' + _sigP('v11') + '>'
-      + '<div id="v11Wrap">' + v11SignalHtml() + '</div>'
-      + '<div id="v11BtWrap">' + v11BtHtml() + '</div></div>'
-      /* tab: 趋势策略（fw2_v766_trend_inline：与持仓/筛选/市场/V11 并列；renderTrendPanel 异步填充） */
+      /* tab: V11 已迁「策略执行 → V11 狙击」；本页只保留筛选信号里的逐只执行行 */
+      /* tab: 趋势策略（fw2_v766_trend_inline：与持仓/筛选/市场 并列；renderTrendPanel 异步填充） */
       + '<div' + _sigP('trend') + ' id="sigTrendPane"></div>'
       /* fw2_v781_hold_through：持仓穿透子模块（交易信号第7个页签）——持仓基金底层股票穿透聚合 Top20 */
       + '<div' + _sigP('through') + ' id="sigThroughPane"></div>'
@@ -21259,7 +21300,7 @@ setTimeout(() => { renderResearchChips(); if (!state.news.items.length) loadNews
 })();
 
 </script>
-<style>/* ===== v120 策略执行视图 ===== */ /* v124 fw2_v124_strat_cal_fix：.cal-grid/.cal-cell 撞热力图类名，策略日历改名 .sc-grid/.sc-cell */#view-strategy .strat-hero{display:flex;flex-wrap:wrap;align-items:center;gap:18px;margin-bottom:var(--sp-10)}#view-strategy .sh-main{min-width:240px;flex:1 1 260px}#view-strategy .sh-k{font-size:var(--fs-xs);letter-spacing:.6px;color:var(--muted);font-weight:500}#view-strategy .sh-v{font-family:var(--mono);font-size:var(--fs-4xl);font-weight:600;letter-spacing:-.02em;margin-top:var(--sp-4);color:var(--text);font-variant-numeric:tabular-nums}#view-strategy .sh-bar{height:8px;border-radius:var(--r-5);background:var(--panel-3);margin:var(--sp-10) 0 var(--sp-6);overflow:hidden}#view-strategy .sh-bar i{display:block;height:100%;background:linear-gradient(90deg,var(--brand),var(--amber-2));border-radius:var(--r-5)}#view-strategy .sh-sub{font-size:var(--fs-sm);color:var(--text-2)}#view-strategy .sh-sub b{color:var(--brand-ink);font-family:var(--mono)}#view-strategy .sh-grid{display:grid;grid-template-columns:repeat(4,minmax(96px,1fr));gap:var(--sp-8);flex:1 1 320px}#view-strategy .sh-cell,#view-capbal .sh-cell{background:var(--panel-2);border:1px solid var(--line);border-radius:var(--radius);padding:var(--sp-8) var(--sp-10)}#view-strategy .sh-cell .k,#view-capbal .sh-cell .k{font-size:var(--fs-xs);color:var(--muted)}#view-strategy .sh-cell .v,#view-capbal .sh-cell .v{font-size:var(--fs-lg);font-weight:600;font-family:var(--mono);margin-top:3px;color:var(--text)}/* fw2_v170_ds_norm：策略 Tab 归一到全站 .v-tabs/.v-tab（style 块1），此处只保留上边距 */#view-strategy .strat-tabs{margin:0 0 var(--sp-10)}#stratTabs .st-tab{padding:7px 12px;font-size:12px;white-space:nowrap}/* fw2_v1056_invest_master：策略执行 5 个子 tab（含回测参数（实验））在 538px 窄屏一行放下，不再右侧截断 */#view-strategy .st-pane{margin-bottom:var(--sp-12)}#view-strategy .strat-note,#view-capbal .strat-note{font-size:var(--fs-xs);color:var(--muted);margin:0 0 var(--sp-8);line-height:1.6}#view-strategy .st-card,#view-capbal .st-card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:var(--sp-12) var(--sp-14);margin-bottom:var(--sp-10)}#view-strategy .st-card h4,#view-capbal .st-card h4{margin:0 0 var(--sp-8);font-size:var(--fs-md);font-weight:600;color:var(--text)}#view-strategy .sc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:var(--sp-8)}#view-strategy .sc-cell{border:1px solid var(--line);border-radius:var(--radius);padding:var(--sp-9) 11px;background: var(--panel);position:relative}#view-strategy .sc-cell.past{opacity:.55}#view-strategy .sc-cell.cur{border-color:var(--brand-ink);box-shadow:0 0 0 1px var(--brand-line)}
+<style>/* ===== v120 策略执行视图 ===== */ /* v124 fw2_v124_strat_cal_fix：.cal-grid/.cal-cell 撞热力图类名，策略日历改名 .sc-grid/.sc-cell */#view-strategy .strat-hero{display:flex;flex-wrap:wrap;align-items:center;gap:18px;margin-bottom:var(--sp-10)}#view-strategy .sh-main{min-width:240px;flex:1 1 260px}#view-strategy .sh-k{font-size:var(--fs-xs);letter-spacing:.6px;color:var(--muted);font-weight:500}#view-strategy .sh-v{font-family:var(--mono);font-size:var(--fs-4xl);font-weight:600;letter-spacing:-.02em;margin-top:var(--sp-4);color:var(--text);font-variant-numeric:tabular-nums}#view-strategy .sh-bar{height:8px;border-radius:var(--r-5);background:var(--panel-3);margin:var(--sp-10) 0 var(--sp-6);overflow:hidden}#view-strategy .sh-bar i{display:block;height:100%;background:linear-gradient(90deg,var(--brand),var(--amber-2));border-radius:var(--r-5)}#view-strategy .sh-sub{font-size:var(--fs-sm);color:var(--text-2)}#view-strategy .sh-sub b{color:var(--brand-ink);font-family:var(--mono)}#view-strategy .sh-grid{display:grid;grid-template-columns:repeat(4,minmax(96px,1fr));gap:var(--sp-8);flex:1 1 320px}#view-strategy .sh-cell,#view-capbal .sh-cell{background:var(--panel-2);border:1px solid var(--line);border-radius:var(--radius);padding:var(--sp-8) var(--sp-10)}#view-strategy .sh-cell .k,#view-capbal .sh-cell .k{font-size:var(--fs-xs);color:var(--muted)}#view-strategy .sh-cell .v,#view-capbal .sh-cell .v{font-size:var(--fs-lg);font-weight:600;font-family:var(--mono);margin-top:3px;color:var(--text)}/* fw2_v170_ds_norm：策略 Tab 归一到全站 .v-tabs/.v-tab（style 块1），此处只保留上边距 */#view-strategy .strat-tabs{margin:0 0 var(--sp-10)}#stratTabs .st-tab{padding:7px 12px;font-size:12px;white-space:nowrap}@media (max-width:600px){#stratTabs{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}#stratTabs .st-tab{width:100%;padding:7px 2px;font-size:11px;text-align:center}}/* fw2_v1119_v11_strategy_tab：7 个子 tab 在 538px 窄屏放一行（原 6 个刚好、加第 7 个会把「月度复盘」挤到第二行） *//* fw2_v1056_invest_master：策略执行 5 个子 tab（含回测参数（实验））在 538px 窄屏一行放下，不再右侧截断 */#view-strategy .st-pane{margin-bottom:var(--sp-12)}#view-strategy .strat-note,#view-capbal .strat-note{font-size:var(--fs-xs);color:var(--muted);margin:0 0 var(--sp-8);line-height:1.6}#view-strategy .st-card,#view-capbal .st-card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:var(--sp-12) var(--sp-14);margin-bottom:var(--sp-10)}#view-strategy .st-card h4,#view-capbal .st-card h4{margin:0 0 var(--sp-8);font-size:var(--fs-md);font-weight:600;color:var(--text)}#view-strategy .sc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:var(--sp-8)}#view-strategy .sc-cell{border:1px solid var(--line);border-radius:var(--radius);padding:var(--sp-9) 11px;background: var(--panel);position:relative}#view-strategy .sc-cell.past{opacity:.55}#view-strategy .sc-cell.cur{border-color:var(--brand-ink);box-shadow:0 0 0 1px var(--brand-line)}
 .sc-cell.sel{border-color:var(--brand-ink);box-shadow:0 0 0 2px var(--brand-line);opacity:1;background:var(--brand-tint,var(----brand-tint))}#view-strategy .sc-cell .m{font-size:var(--fs-md);font-weight:600;color:var(--text)}#view-strategy .sc-cell .d{font-size:var(--fs-xs);color:var(--brand-ink);font-family:var(--mono);margin-top:3px}#view-strategy .sc-cell .x{font-size:var(--fs-xs);color:var(--muted);margin-top:3px;line-height:1.5}#view-strategy .sc-cell .bdg{display:inline-block;font-size:var(--fs-2xs);font-weight:600;padding:1px var(--sp-7);border-radius:var(--r-10);margin:var(--sp-4) var(--sp-4) 0 0;background:var(--warn-soft);color:var(--warn)}#view-strategy .sc-cell .bdg.done{background:var(--down-soft);color:var(--down)}#view-strategy .sc-cell .bdg.c07{background:var(--brand-soft);color:var(--brand-ink)}#view-strategy .st-tbl,#view-capbal .st-tbl{width:100%;border-collapse:collapse;font-size:var(--fs-sm);table-layout:fixed}#view-strategy .st-tbl th,#view-capbal .st-tbl th{text-align:left;padding:var(--sp-8) var(--sp-10);background:var(--panel-3);color:var(--text-2);border-bottom:1px solid var(--line);font-weight:600;font-size:var(--fs-xs);white-space:nowrap;text-transform:uppercase;letter-spacing:.3px}#view-strategy .st-tbl td,#view-capbal .st-tbl td{padding:var(--sp-9) var(--sp-10);border-bottom:1px solid var(--line-2);vertical-align:top;overflow:hidden;font-variant-numeric:tabular-nums}#view-strategy .st-tbl tr:last-child td,#view-capbal .st-tbl tr:last-child td{border-bottom:0}#view-strategy .st-tbl .nm,#view-capbal .st-tbl .nm{font-weight:700;font-size:var(--fs-md);color:var(--text)}#view-strategy .st-tbl .cd,#view-capbal .st-tbl .cd{font-family:var(--mono);font-size:var(--fs-2xs);color:var(--muted);margin-top:1px}#view-strategy .st-tbl .tg,#view-capbal .st-tbl .tg{font-size:var(--fs-xs);color:var(--muted);margin-top:3px}#view-strategy .st-tbl .grp{text-align:center;vertical-align:middle}#view-strategy .st-tbl .pct{text-align:center;vertical-align:middle}#view-strategy .alloc-tbl{box-shadow:0 0 0 1px var(--line);border-radius:10px}#view-strategy .alloc-tbl th{padding:var(--sp-7) var(--sp-10);font-size:var(--fs-xs);background:var(--panel-3);color:var(--text-2);font-weight:700;border-bottom:2px solid var(--line);white-space:nowrap}#view-strategy .alloc-tbl td{padding:var(--sp-8) var(--sp-10);border-bottom:1px solid var(--line-2);vertical-align:middle}#view-strategy .alloc-tbl tr.row-mute td{opacity:.5}#view-strategy .alloc-tbl tr.grp-start td{border-top:2px solid var(--line)}#view-strategy .alloc-tbl tbody tr:hover td{background:var(--panel-3)}#view-strategy .alloc-tbl tr.total-row td{background:var(--panel-3);border-top:2px solid var(--line);font-weight:600}#view-strategy .alloc-tbl tr.subtotal-row td{border-top:1px dashed var(--brand-line);border-bottom:1px dashed var(--brand-line);font-weight:600;color:var(--text)}
 /* v873 fw2_v873_alloc_color：小计行基础规则带 #view-strategy ID（特异性 1,2,2），其 color:var(--text)
    压过 .up/.down（0,1,0）→ 同一列出现「+39 黑 / +1,328 绿」「-573 黑 / -632 红」。
@@ -22252,7 +22293,7 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
     W3: '不进信号表逐行：计入仪表盘计数；回测侧在配置回测 / 自选回测的 trendGate 趋势确认参数',
     S2: '筛选信号 S2 行（逐只）+ 配置回测 addDD 参数',
     S4: '筛选信号 S4 行（逐只）+ 配置回测 trendGate 参数',
-    V11: '筛选信号「V11 狙击·就绪/观望」行 + 「V11狙击」tab 全池 + 配置回测 v11Gate 参数',
+    V11: '策略执行「V11 狙击」策略卡 + 全池扫描 + 样本外检验；交易信号「筛选信号」逐只执行行；配置回测 v11Gate 参数',
     T1: '持仓信号 T1 行（逐只）+ 配置回测 tp1/tp2 参数（v1075 起已接线）',
     T2: '持仓信号 T2 行（逐只）+ 配置回测 tpPeak 参数',
     T3: '持仓信号「T3 估值止盈 / T8 估值加仓」同一行',
@@ -23111,7 +23152,7 @@ function logicRowHtml(r, d) {
   function __stratActiveTab() {
     var b = document.querySelector('#view-strategy .st-tab.active');
     var st = b && b.dataset && b.dataset.st;
-    return (st === 'bt' || st === 'alloc' || st === 'review' || st === 'param' || st === 'dd') ? st : 'alloc'; /* v1056：逻辑面板已迁出 */
+    return (st === 'bt' || st === 'alloc' || st === 'review' || st === 'param' || st === 'dd' || st === 'v11') ? st : 'alloc'; /* v1056：逻辑面板已迁出；v1119：V11 策略面板 */
   }
   function __stratPaneRender(name) {
     if (name === 'bt') {
@@ -23130,6 +23171,13 @@ function logicRowHtml(r, d) {
         return;
       }
       try { window.renderDdModule(); } catch (e) { console.error('DD_RENDER_ERR', e && e.message); }
+    } else if (name === 'v11') {
+      /* v1119：V11 策略面板在早期信号块里定义；脚本尚未解析完就点 tab 时同样短延迟重试，未就绪不标记完成。 */
+      if (typeof window.renderStratV11 !== 'function') {
+        setTimeout(function () { __stratPaneDone[name] = 0; __stratPaneRender(name); }, 400);
+        return;
+      }
+      try { window.renderStratV11(); } catch (e) { console.error('V11_RENDER_ERR', e && e.message); }
     }
     __stratPaneDone[name] = 1;
   }
@@ -30859,7 +30907,7 @@ function brakeCardHtml(opts) {
     /* fw2_v1017_lazy_panes：切到资产配置 / 月度复盘时重画该面板（进入页时它们没被画，这里是首次；
        之后再切回来也重画一次，保证看到的是当前数据而不是进页那一刻的旧值，实测 12–14ms）。
        回测由下方 v997 的骨架重建负责，投资逻辑由 v1004 的逻辑分支负责，两边都不在这里重复。 */
-    if (name === 'alloc' || name === 'review' || name === 'param' || name === 'dd') __stratPaneRender(name);
+    if (name === 'alloc' || name === 'review' || name === 'param' || name === 'dd' || name === 'v11') __stratPaneRender(name);
     if (name === 'bt' && pool) {
       try {
         window.__btCfgScope = null;   /* v988j：回测页不属于 ⑧ 层编辑态 */
