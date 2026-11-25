@@ -17459,7 +17459,8 @@ function v11RunCardHtml() {
     return '<option value="' + x[0] + '"' + (c.code === x[0] ? ' selected' : '') + '>' + x[0] + ' ' + x[1] + '</option>';
   }).join('');
   var fld = function (k, label, attrs) {
-    return '<label>' + label + '<input data-v11bt="' + k + '" ' + (attrs || '') + ' value="' + (c[k] == null ? '' : c[k]) + '"></label>';
+    var val = c[k] == null ? '' : (k === 'odds' ? Number(c[k]).toFixed(2) : c[k]);
+    return '<label>' + label + '<input data-v11bt="' + k + '" ' + (attrs || '') + ' value="' + val + '"></label>';
   };
   return '<div class="card dc-card" id="v11RunCard">'
     + '<div class="dc-hd"><b style="font-size:14px">V11 狙击 · 运行回测</b><span class="dc-dir t-neu">只回测狙击仓 · 不含底仓/定投</span></div>'
