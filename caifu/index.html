@@ -1568,7 +1568,10 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 <!-- fw2_v1110_calc_fold_cross_date（用户 2026-11-25 两条）：①「指标核算过程」改原生 details，默认折叠、点标题展开（summary 带项数与 ▸/▾，CSS 去掉默认 marker）；②「今日跨档提醒」原来把每只指数自身最新点称「今日」、并把单列「对比日」写成上一交易日，导致美股（数据止 11-23）与 A 股（11-24）混读：纳指 14.34% vs 19.84% 看似单日差 5.5pp，实为 11-23 vs 11-20 跨周末一根。改为列头「最新回撤/最新档位」、「数据日 / 对比日」双日期（如 11-23 / 11-20），标题注明各行按自身最新交易日对比；档位/回撤算法未动。 -->
 <!-- fw2_v1111_dd_focus_reorder（用户 2026-11-25「只关心接近 70% 及以上；离得远暂时隐藏；进入买入区放更前；档位回测指数也只展示接近 70%+；多指数组合默认最深 10」）：①新增焦点口径 `focusMinDD()`＝起始回撤−10pp（70% 起点即 ≥60%，与既有「60–70% 接近档」同一口径）；`ST.focus` 默认 true，监测/分档/跨档/回测下拉全部按它过滤，另给「显示全部 63 只」恢复。②买入区卡前移到参数区之前（口径 → 买入区 → 档位回测 → 结果 → 跨档 → 监测 → 估值），左侧红边强调；只列 ≥70% 已进区，60–70% 只计数不占行。③单指数下拉只列 ≥60% 的 17 只（当前已选若落在区外则保留并标注）；「多指数组合」默认 pick 从宽基 20 改成回撤最深 10（境内）。④跨档卡只算 ≥60%，远档跨档不再提示。 -->
 <!-- fw2_v1111b_pool_focus（同版收口，承接 v1111）：⑤组合池候选 chips 同样只列焦点内 16 只境内指数（焦点外境外 4 只仍只做单指数），另给「显示全部 59 只」恢复；「全选」按焦点 16；已选但落在焦外的只数显式提示，且本次回测不参与（effectivePick 过滤），避免界面隐藏了却偷偷计入结果；⑥估值主表与「无 PE/PB/股息」提示同步缩到焦点 17 只，全池只用于同类别中位与相对同类；⑦组合默认最深 10 加 look-ahead 选择偏差提示，收益不能当未来预期。 -->
-<span id="verBadge" class="ver-badge">v1111</span><!-- fw2_v1096_dd_search（用户「继续」）：①全指数监测卡加「搜索」（代码/名称，只过滤本表显示，分档 chips 计数与已选组合不受影响；输入时保存 ST.q 并重画、回填焦点与滚动位置）②组合池加「全选境内 59」「恢复默认（宽基）」（境外永远不进池）③脚注的境外名单由数据现算（原来写死 4 个名字，加池就会过期）④gen_index_dd 去掉冗余 count.night，gen_index_val 的蛋卷 asof 不再写死 2026 年 --><!-- fw2_v1097_dd_sort_valref（用户「继续」，承接 v1096 挂账）：①全指数监测卡加「排序」开关——回撤深→浅（默认）/ 名称 A→Z，只换本表顺序，分档计数与已选组合不变；②估值卡加「同类别对照」小表——全部 / 宽基 / 行业 / 主题 / 境外五行的 PE 分位中位、PB 分位中位、价格分位中位，并列出该类别里 PE 分位最低的一只；③两处都只用既有 index-dd / index-val 数据，不引入新源（v1096 已证伪的三条补源路仍挂账）。 --><!-- fw2_v1098_dd_n2_sort（用户「继续完成」，收口 v1097「下一步候选」三件）：①估值「同类别对照」由 6 列扩到 8 列——补「股息率中位」与「PB 分位最低的一只」（与 PE 最低同口径：只统计有该分位的只数，空组回 —）；②监测卡加「快捷」行——「距下档 ≤2pp」一键筛选（ST.n2 与类别 / 分档 / 搜索四者可叠加，chips 计数仍按类别全集，不受搜索与快捷键影响）；③方案卡「进入买入区」表跟随 ST.sort（默认回撤深→浅，切名称后同监测卡拼音序）；④仍不引入新源。 --><!-- fw2_v1099_dd_pickcat_relcat（用户「继续」，收口 v1098「下一步候选」三件）：①组合池加按类别批量勾选——宽基 / 行业 / 主题三个按钮各显示「已选/总数」，全选后再点即取消该类（不碰境外）；②估值主表加「相对同类」列——本只 PE 分位 − 同类别 PE 分位中位（pp，负＝比同类便宜），只在双方都有分位时显示；③跨档卡跟随监测卡类别筛选（ST.fcat），计数、「展开全部 N 只」与空态都按当前类别；④仍不引入新源。 --><!-- fw2_v1100_dd_bksum_cheap_vsort（用户「继续」，收口 v1099「下一步候选」三件）：①监测卡加「按回撤分档汇总」表——6 档的只数 / 平均回撤 / 该档最深一只 / 距下档 ≤2pp 只数 / 已进买入区只数，按当前类别统计、不受搜索与快捷影响；②组合池加「只选便宜一半」——按同类别 PE 分位中位分界，只选低于中位的（无分位不入选，口径写进按钮 title）；③估值主表「相对同类」表头可点击排序，三态循环：默认（回撤深→浅）→ 便宜在前 → 贵在前，无分位的行恒排最后；④ddTbl 扩一个可选 th 属性位（backward compatible），中位数抽成模块级 medOf 单一实现；⑤仍不引入新源。 --><!-- fw2_v1076_conflicts（用户 2026-11-23「按照你顺序修」——修掉体检出的 5 处纲领冲突）：
+<!-- fw2_v1112_dd_hist_allpool（用户 2026-11-25「按照你建议继续」，落地 A 展示补全 + B 全池逐日对照，默认仍保留当前最深 10）：
+      A「区间曾深」：监测卡头部加切换，按 [from,to] 逐日维护此前最高收盘（峰值可早于区间起点，与 ddArrOf 同口径）算区间最深；列出曾≥起始档位、但当前已修复而被焦点视图隐藏的指数（本次 63 只中 16 只曾≥70%，当前仅 4 只仍≥70%，5 只已修复到 <60%）。
+      B「全池59（逐日机会）」：回测方式第三档；境内 59 只全部进入逐日机会集，不按今天回撤预选；每只只在自己回撤≥起始档位时买；同日先卖后买，再按当日回撤深→浅分配资金，现金不足跳过并计数；仍不含 4 只境外。默认仍为「当前最深 10」，且加 look-ahead 提示；换口径即清空旧结果，全池点行改为切单指数。 -->
+<span id="verBadge" class="ver-badge">v1112</span><!-- fw2_v1096_dd_search（用户「继续」）：①全指数监测卡加「搜索」（代码/名称，只过滤本表显示，分档 chips 计数与已选组合不受影响；输入时保存 ST.q 并重画、回填焦点与滚动位置）②组合池加「全选境内 59」「恢复默认（宽基）」（境外永远不进池）③脚注的境外名单由数据现算（原来写死 4 个名字，加池就会过期）④gen_index_dd 去掉冗余 count.night，gen_index_val 的蛋卷 asof 不再写死 2026 年 --><!-- fw2_v1097_dd_sort_valref（用户「继续」，承接 v1096 挂账）：①全指数监测卡加「排序」开关——回撤深→浅（默认）/ 名称 A→Z，只换本表顺序，分档计数与已选组合不变；②估值卡加「同类别对照」小表——全部 / 宽基 / 行业 / 主题 / 境外五行的 PE 分位中位、PB 分位中位、价格分位中位，并列出该类别里 PE 分位最低的一只；③两处都只用既有 index-dd / index-val 数据，不引入新源（v1096 已证伪的三条补源路仍挂账）。 --><!-- fw2_v1098_dd_n2_sort（用户「继续完成」，收口 v1097「下一步候选」三件）：①估值「同类别对照」由 6 列扩到 8 列——补「股息率中位」与「PB 分位最低的一只」（与 PE 最低同口径：只统计有该分位的只数，空组回 —）；②监测卡加「快捷」行——「距下档 ≤2pp」一键筛选（ST.n2 与类别 / 分档 / 搜索四者可叠加，chips 计数仍按类别全集，不受搜索与快捷键影响）；③方案卡「进入买入区」表跟随 ST.sort（默认回撤深→浅，切名称后同监测卡拼音序）；④仍不引入新源。 --><!-- fw2_v1099_dd_pickcat_relcat（用户「继续」，收口 v1098「下一步候选」三件）：①组合池加按类别批量勾选——宽基 / 行业 / 主题三个按钮各显示「已选/总数」，全选后再点即取消该类（不碰境外）；②估值主表加「相对同类」列——本只 PE 分位 − 同类别 PE 分位中位（pp，负＝比同类便宜），只在双方都有分位时显示；③跨档卡跟随监测卡类别筛选（ST.fcat），计数、「展开全部 N 只」与空态都按当前类别；④仍不引入新源。 --><!-- fw2_v1100_dd_bksum_cheap_vsort（用户「继续」，收口 v1099「下一步候选」三件）：①监测卡加「按回撤分档汇总」表——6 档的只数 / 平均回撤 / 该档最深一只 / 距下档 ≤2pp 只数 / 已进买入区只数，按当前类别统计、不受搜索与快捷影响；②组合池加「只选便宜一半」——按同类别 PE 分位中位分界，只选低于中位的（无分位不入选，口径写进按钮 title）；③估值主表「相对同类」表头可点击排序，三态循环：默认（回撤深→浅）→ 便宜在前 → 贵在前，无分位的行恒排最后；④ddTbl 扩一个可选 th 属性位（backward compatible），中位数抽成模块级 medOf 单一实现；⑤仍不引入新源。 --><!-- fw2_v1076_conflicts（用户 2026-11-23「按照你顺序修」——修掉体检出的 5 处纲领冲突）：
 ①R7 带宽：撤销 v1067 的 `o.band = o.slotBand` 强镜像；band 只喂 R7（单只超配 25% 减配，SIG_THR_DEF 5→25、与回测 cfg.band 同值），slotBand 只喂 T10 四档；sigThrApply 分别写 C.barbell.band / C.barbell.slotBand，T10 文案改读 slotBand，R7 行 threshold 由硬编码「band 25%」改为动态读纲领值。
 ②R2 假开关：`_planCfg()` 读 `window.logicStateEff('R2')`——生效按 investMode，观察/关一律 lump（月投 0）；建仓步文案在一次性时追加「R2 定投＝关/观察」。
 ③T4 与 R6 双份：T4 行 modeled 改「与 R6 止损同一执行（同一 slHard）」，def 标「= R6 止损，同一动作」，阈值表 slHard 口径写「T4 / R6 · 同一执行」。
@@ -31038,7 +31041,7 @@ function brakeCardHtml(opts) {
   var ST = window.__DD_STATE = window.__DD_STATE || {
     code: '', capital: 10000, perBuy: 500, startDD: 70, gap: 5,
     mode: 'rebound', obs: 2, back: 1, from: '', to: '',
-    scope: 'one', pick: null, q: '', sort: 'dd', n2: false, vsort: '', deepN: 10, focus: true
+    scope: 'one', pick: null, q: '', sort: 'dd', n2: false, vsort: '', deepN: 10, focus: true, hist: false
   };
   var D = window.__DD_DATA = window.__DD_DATA || null;
   var VAL = window.__DD_VAL = window.__DD_VAL || null;
@@ -31210,43 +31213,61 @@ function brakeCardHtml(opts) {
     var lastPx = [], nextTier = [], trig = {}, skipN = 0, s;
     for (s = 0; s < sel.length; s++) { lastPx.push(null); nextTier.push(null); }
 
+    function buyTiers(s2, ddAbs, c2, d2) {
+      var ix2 = sel[s2];
+      if (ddAbs < startDD + 1e-9) return;
+      if (nextTier[s2] === null) nextTier[s2] = Math.max(startDD, Math.floor((ddAbs + 1e-9) / gap) * gap);
+      while (ddAbs + 1e-9 >= nextTier[s2]) {
+        if (cash + 1e-9 < perBuy) { skipN++; break; }
+        var amt = perBuy, qty = amt / c2;
+        cash -= amt;
+        lotsAll.push({ s: s2, code: ix2.code, name: ix2.name, d: d2, tier: nextTier[s2], px: c2, amt: amt, qty: qty, peakDD: nextTier[s2], armed: false, armDD: null, sold: false, li: trades.length });
+        trades.push({ code: ix2.code, name: ix2.name, bd: d2, tier: nextTier[s2], bpx: c2, amt: amt, sd: '', spx: 0, pnl: null, days: 0 });
+        trig[ix2.code] = 1;
+        nextTier[s2] = nextTier[s2] + gap;
+      }
+    }
+    function sellOne(s2, ddAbs, c2, d2) {
+      if (p.mode !== 'rebound') return;
+      for (var li = 0; li < lotsAll.length; li++) {
+        var lo = lotsAll[li];
+        if (lo.s !== s2 || lo.sold) continue;
+        if (ddAbs >= lo.peakDD) lo.peakDD = ddAbs;
+        if (!lo.armed) {
+          if (ddAbs <= lo.peakDD - (+p.obs || 0) * gap) { lo.armed = true; lo.armDD = ddAbs; }
+        } else {
+          if (ddAbs < lo.armDD) lo.armDD = ddAbs;
+          if (ddAbs >= lo.armDD + (+p.back || 0) * gap) {
+            cash += lo.qty * c2;
+            lo.sold = true;
+            var tr = trades[lo.li];
+            tr.sd = d2; tr.spx = c2; tr.pnl = lo.qty * c2 - lo.amt; tr.days = dgap(lo.d, d2);
+          }
+        }
+      }
+    }
+
     for (var k = 0; k < axis.length; k++) {
       var d = axis[k];
+      /* 先把当日所有指数的最新收盘与回撤取出来。全池模式同日按「当日回撤深→浅」排序，
+         先处理卖出释放现金，再用现金按深度依次买；这是仅用当日已知信息的规则。 */
+      var day = [];
       for (s = 0; s < sel.length; s++) {
         var ix = sel[s], at = maps[s][d];
         if (at === undefined) continue;              /* 该指数当日无交易：沿用上一次收盘估值 */
         var c = ix.c[at];
         lastPx[s] = c;
-        var ddAbs = -(ix.ddArr[at] || 0);
-        if (ddAbs >= startDD + 1e-9) {
-          if (nextTier[s] === null) nextTier[s] = Math.max(startDD, Math.floor((ddAbs + 1e-9) / gap) * gap);
-          while (ddAbs + 1e-9 >= nextTier[s]) {
-            if (cash + 1e-9 < perBuy) { skipN++; break; }
-            var amt = perBuy, qty = amt / c;
-            cash -= amt;
-            lotsAll.push({ s: s, code: ix.code, name: ix.name, d: d, tier: nextTier[s], px: c, amt: amt, qty: qty, peakDD: nextTier[s], armed: false, armDD: null, sold: false, li: trades.length });
-            trades.push({ code: ix.code, name: ix.name, bd: d, tier: nextTier[s], bpx: c, amt: amt, sd: '', spx: 0, pnl: null, days: 0 });
-            trig[ix.code] = 1;
-            nextTier[s] = nextTier[s] + gap;
-          }
-        }
-        if (p.mode === 'rebound') {
-          for (var li = 0; li < lotsAll.length; li++) {
-            var lo = lotsAll[li];
-            if (lo.s !== s || lo.sold) continue;
-            if (ddAbs >= lo.peakDD) lo.peakDD = ddAbs;
-            if (!lo.armed) {
-              if (ddAbs <= lo.peakDD - (+p.obs || 0) * gap) { lo.armed = true; lo.armDD = ddAbs; }
-            } else {
-              if (ddAbs < lo.armDD) lo.armDD = ddAbs;
-              if (ddAbs >= lo.armDD + (+p.back || 0) * gap) {
-                cash += lo.qty * c;
-                lo.sold = true;
-                var tr = trades[lo.li];
-                tr.sd = d; tr.spx = c; tr.pnl = lo.qty * c - lo.amt; tr.days = dgap(lo.d, d);
-              }
-            }
-          }
+        day.push({ s: s, dd: -(ix.ddArr[at] || 0), c: c });
+      }
+      if (p.scope === 'all') {
+        var di;
+        for (di = 0; di < day.length; di++) sellOne(day[di].s, day[di].dd, day[di].c, d);
+        day.sort(function (a, b) { return (b.dd - a.dd) || (a.s - b.s); });
+        for (di = 0; di < day.length; di++) buyTiers(day[di].s, day[di].dd, day[di].c, d);
+      } else {
+        for (var dj = 0; dj < day.length; dj++) {
+          buyTiers(day[dj].s, day[dj].dd, day[dj].c, d);
+          sellOne(day[dj].s, day[dj].dd, day[dj].c, d);
         }
       }
       var mv = 0;
@@ -31291,7 +31312,7 @@ function brakeCardHtml(opts) {
     });
 
     return {
-      ok: 1, scope: 'pool', curve: curve, trades: trades, capital: capital, final: final, pnl: pnl,
+      ok: 1, scope: (p.scope === 'all' ? 'all' : 'pool'), allPool: p.scope === 'all', curve: curve, trades: trades, capital: capital, final: final, pnl: pnl,
       ret: capital > 0 ? pnl / capital * 100 : 0, cagr: cagr, mdd: mdd,
       win: sold.length ? wins / sold.length * 100 : 0, soldN: sold.length, buyN: trades.length,
       avgPos: avgPos * 100, maxPos: maxPos * 100, years: years,
@@ -31402,6 +31423,7 @@ function brakeCardHtml(opts) {
   }
 
   function listCardHtml() {
+    if (ST.hist) return histCardHtml();
     /* v1097：排序开关——默认「回撤深→浅」，可切「名称 A→Z」；只改本表顺序，分档计数 / 已选组合 / 回测口径都不受影响 */
     /* v1102：排序加第四态「距下档 少→多」（点「距下档」表头切换）；窄屏（面板宽 <700）改紧凑列 */
     var srt = (ST.sort === 'name' || ST.sort === 'ddasc' || ST.sort === 'n2' || ST.sort === 'tier') ? ST.sort : 'dd';
@@ -31546,7 +31568,8 @@ function brakeCardHtml(opts) {
       + ' · 港股 ' + (cnt['港股'] || 0) + ' · 美股 ' + (cnt['美股'] || 0) + '）· 宽基 ' + (cnt['宽基'] || 0)
       + ' · 行业 ' + (cnt['行业'] || 0) + ' · 主题 ' + (cnt['主题'] || 0) + ' · 境外 ' + (cnt['境外'] || 0)
       + ' · 回撤＝距历史最高收盘（境外为当地收盘）· 点一行选它做回测'
-      + (focus ? ' · <b>当前只看 ≥' + fmin + '%（' + focusAll.length + ' 只）</b>' : ' · 已展开全部') + '</span></h4>'
+      + (focus ? ' · <b>当前只看 ≥' + fmin + '%（' + focusAll.length + ' 只）</b>' : ' · 已展开全部') + '</span>'
+      + '<button type="button" class="dd-lnk" data-dd-hist="1">看区间曾深 ' + histRows().length + ' 只</button></h4>'
       + '<div class="dd-flts"><span class="dd-flthd">搜索</span>'
       + '<input type="search" class="dd-q" data-dd-q placeholder="代码或名称，如 931775 / 红利"'
       + ' value="' + q0.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;') + '"'
@@ -31668,6 +31691,69 @@ function brakeCardHtml(opts) {
     if (b === '≥70%') return 70;
     if (b === '<30%') return 0;
     return parseFloat(b) || 0;
+  }
+  /* v1112：全池逐日机会——境内全部指数参与，不做「按当前回撤选池」；
+     入口仍由每只指数自身的逐日回撤决定，所以历史上曾深、现在修复的指数也会被捕捉。 */
+  function allPoolCodes() {
+    return ((D && D.indices) || []).filter(function (x) { return x.cat !== '境外'; }).map(function (x) { return x.code; });
+  }
+  /* 区间历史最深：逐日维护此前最高收盘（峰值可早于区间起点），只统计 [from,to] 内的回撤。
+     这是与回测引擎 ddArrOf 完全同口径的「如果当时在场，能看到多深」。 */
+  function histStatOf(x) {
+    var key = String(ST.from || '') + '|' + String(ST.to || '');
+    if (x && x._ddHistKey === key) return x._ddHist;
+    var f0 = ST.from ? dnum(ST.from) : 0, t0 = ST.to ? dnum(ST.to) : 99999999;
+    var c = (x && x.c) || [], d = (x && x.d) || [], hi = -1e18, mn = 0, mnd = '';
+    for (var i = 0; i < c.length; i++) {
+      if (c[i] > hi) hi = c[i];
+      if (d[i] >= f0 && d[i] <= t0 && hi > 0) {
+        var dd = (c[i] / hi - 1) * 100;
+        if (dd < mn) { mn = dd; mnd = d[i]; }
+      }
+    }
+    x._ddHistKey = key;
+    x._ddHist = { min: mn, date: mnd };
+    return x._ddHist;
+  }
+  function histRows() {
+    var th = start0();
+    return ((D && D.indices) || []).filter(function (x) { return histStatOf(x).min <= -th + 1e-9; })
+      .slice().sort(function (a, b) { return histStatOf(a).min - histStatOf(b).min; });
+  }
+  function histCardHtml() {
+    var all = ((D && D.indices) || []), start = start0(), fmin = focusMinDD();
+    var hr = histRows(), narrow = paneNarrow();
+    var nowBuy = all.filter(function (x) { return -(+x.dd) >= start - 1e-9; }).length;
+    var nowFocus = all.filter(inFocusDD).length;
+    var fixed = hr.filter(function (x) { return -(+x.dd) < fmin - 1e-9; }).length;
+    var rows = hr.map(function (x) {
+      var g = histStatOf(x), cur = -(+x.dd);
+      var stTxt, stColor, sub = '';
+      if (cur >= start - 1e-9) { stTxt = '仍进买入区'; stColor = '#b91c1c'; }
+      else if (cur >= fmin - 1e-9) { stTxt = '焦点内'; stColor = '#A9630B'; sub = '距买入区 ' + (start - cur).toFixed(1) + 'pp'; }
+      else { stTxt = '已修复'; stColor = '#15803D'; sub = '当前已低于 ' + fmin + '%'; }
+      return '<tr><td><b>' + x.name + '</b><div class="dd-vsub">' + x.code + ' · ' + (x.cat || x.market || '') + '</div></td>'
+        + '<td class="r"><b style="color:#b91c1c">' + (-g.min).toFixed(2) + '%</b></td>'
+        + '<td class="r">' + dstr(g.date) + '</td>'
+        + '<td class="r">' + cur.toFixed(2) + '%</td>'
+        + '<td><span style="color:' + stColor + ';font-weight:600">' + stTxt + '</span>'
+        + (sub ? '<div class="dd-vsub">' + sub + '</div>' : '') + '</td></tr>';
+    }).join('');
+    var empty = '<tr><td colspan="' + (narrow ? 5 : 5) + '" style="color:#71717A">当前区间内没有指数曾达到 ≥' + start + '% 回撤；可放宽区间或调低起始回撤。</td></tr>';
+    return '<div class="st-card"><h4 style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">全指数回撤监测'
+      + '<span style="font-weight:400;font-size:11px;color:#71717A">区间曾深 · ' + (ST.from || '—') + ' → ' + (ST.to || '—')
+      + ' · ' + all.length + ' 只中 <b>' + hr.length + ' 只曾≥' + start + '%</b> · 当前仅 ' + nowBuy + ' 只仍≥' + start + '% · ' + fixed + ' 只已修复到 &lt;' + fmin + '%</span>'
+      + '<button type="button" class="dd-lnk" data-dd-hist="0">回到当前回撤 ' + (focusOn() ? nowFocus : all.length) + ' 只</button></h4>'
+      + '<div class="strat-note" style="margin:0 0 8px">这里按<b>区间内曾达到的最深回撤</b>列，不要求现在仍深；'
+      + '「已修复」表示它曾在区间内跌破 ' + start + '%，但当前回撤已小于 ' + fmin + '%，所以在当前视图里被隐藏。'
+      + '回撤基准仍是<b>此前历史最高收盘</b>，峰值可能早于区间起点，与回测引擎同口径。'
+      + ' 本表按今天收录的 ' + all.length + ' 只指数回算，未覆盖已退市 / 改名指数，仍有幸存者偏差；它补的是「展示被隐藏」，不是完整历史成分池。</div>'
+      + (narrow
+          ? ddTbl([['指数', 140], ['区间最深', 82], ['最深日', 92], ['当前', 70], ['状态', 92]], 478, (rows || empty), 'dd-tbl--nar')
+          : ddTbl([['指数', 190], ['区间最深', 96], ['最深日', 110], ['当前回撤', 92], ['状态', 140]], 640, (rows || empty)))
+      + '<div class="strat-note" style="margin:8px 0 0">共 ' + hr.length + ' 只曾在 ' + (ST.from || '—') + ' → ' + (ST.to || '—') + ' 区间内达到 ≥' + start + '% 回撤；'
+      + '其中 ' + nowBuy + ' 只现在仍在买入区、' + (hr.length - nowBuy - fixed) + ' 只在焦点内、' + fixed + ' 只已修复到 ' + fmin + '% 以内。'
+      + '这张表是<b>历史机会清单</b>，不是今天的买入清单；点「回到当前回撤」返回当前视图。</div></div>';
   }
   function cur() {
     var arr = (D && D.indices) || [], pick = null;
@@ -31969,7 +32055,7 @@ function brakeCardHtml(opts) {
   }
 
   function paramHtml() {
-    var pool = ST.scope === 'pool';
+    var pool = ST.scope === 'pool', all = ST.scope === 'all', multi = pool || all;
     /* v1111：单指数下拉只列贴近买入区的指数（回撤 ≥ 起始-10pp），离得远的不进选项；
        若当前已选指数恰好不在区间（例如刚调高起始回撤），保留它并标注，避免下拉空掉/悄悄换标的。 */
     var allIx = (D && D.indices) || [], start = start0(), fmin = focusMinDD();
@@ -31980,14 +32066,26 @@ function brakeCardHtml(opts) {
       return '<option value="' + x.code + '"' + (String(ST.code) === String(x.code) ? ' selected' : '') + '>' + x.name + '（' + x.code + '）'
         + (curOut && String(ST.code) === String(x.code) ? ' · 当前已选（距买入区较远）' : '') + '</option>';
     }).join('');
+    var noteTxt;
+    if (all) {
+      noteTxt = '全池口径：境内 <b>' + allPoolCodes().length + ' 只全部进入逐日机会集</b>，不按当前回撤预选；每只只在自己回撤达到 ' + start + '% 后才买，所以「今天浅、过去曾深」的指数会在过去被捕捉，「今天深、十年从未到 ' + start + '%」的不会被强行买。共用同一笔总资金；<b>同一天多个信号按当日回撤深→浅分配</b>，现金不足的档位跳过并计数。仍不含 4 只境外指数（币种不同，只做单指数）。<b>注意：全池仍是今天存续的 59 只，未覆盖已退市 / 改名指数，存在幸存者偏差；它是「不按今天回撤预选」的改进，不是完整历史成分池。</b>';
+    } else if (pool) {
+      noteTxt = '组合口径：所有参与指数<b>共用同一笔总资金</b>，谁先触及档位谁先买（每档固定金额）；现金不足时该档跳过并计数。卖出规则与单指数相同：每笔独立观察、反弹 ' + (+ST.obs || 2) + ' 档转入观察、从观察位回落 ' + (+ST.back || 1) + ' 档卖出该笔。回撤仍按<b>各指数自身历史最高收盘</b>计。'
+        + '<span style="color:#A32D2D"> <b>默认池＝按当前回撤最深 10 只选取，属事后选池（look-ahead）；回测收益含选择偏差，不能当未来预期。</b></span>';
+    } else {
+      noteTxt = '档位以<b>历史高点回撤</b>计：' + (+ST.startDD) + '% → ' + (+ST.startDD - (+ST.gap || 5)) + '% 是「反弹一档」（间距 ' + (+ST.gap || 5) + ' 个百分点），不是产品上涨 ' + (+ST.gap || 5) + '%。每笔独立观察，触发后卖出该笔全部持仓；不含手续费与分红。'
+        + ' <b>指数下拉只列 ≥' + fmin + '%（距买入区 ' + (start - fmin) + 'pp 内）的 ' + (deepIx.length - (curOut ? 1 : 0)) + ' 只</b>；切到「多指数组合」时默认勾选回撤最深的 10 只；要看无预选的历史机会集，切「全池59（逐日机会）」。'
+        + (cur().cat === '境外' ? ' <b>境外指数</b>按当地点位（' + ((cur().market === '美股') ? '美元' : '港元') + '）计价、未折汇率：这里的「金额」是按点数折算的名义金额，只用于验证规则。' : '');
+    }
     return '<div class="st-card"><h4>档位回测 <span style="font-weight:400;font-size:11px;color:#71717A">'
-      + (pool ? '多指数组合 · 共享资金池 · 逐笔独立卖出' : '单指数 · 档位网格买入 · 逐笔独立卖出') + '</span></h4>'
+      + (all ? '全池境内 · 逐日机会 · 共享资金池' : (pool ? '多指数组合 · 共享资金池 · 逐笔独立卖出' : '单指数 · 档位网格买入 · 逐笔独立卖出')) + '</span></h4>'
       + '<div class="dd-form">'
       + '<label>回测方式<select data-dd="scope">'
-      + '<option value="one"' + (pool ? '' : ' selected') + '>单指数</option>'
+      + '<option value="one"' + (!multi ? ' selected' : '') + '>单指数</option>'
       + '<option value="pool"' + (pool ? ' selected' : '') + '>多指数组合（共用资金）</option>'
+      + '<option value="all"' + (all ? ' selected' : '') + '>全池59（逐日机会）</option>'
       + '</select></label>'
-      + (pool ? '' : '<label>指数（≥' + fmin + '%）<select data-dd="code">' + sel + '</select>'
+      + (multi ? '' : '<label>指数（≥' + fmin + '%）<select data-dd="code">' + sel + '</select>'
           + '<span class="dd-vsub">只列回撤距 ' + start + '% 买入区 ' + (start - fmin) + 'pp 内的 ' + (deepIx.length - (curOut ? 1 : 0)) + ' 只'
           + (curOut ? '（另保留当前已选 1 只）' : '') + '</span></label>')
       + '<label>总资金（元）<input data-dd="capital" type="number" min="0" step="1000" value="' + (+ST.capital) + '"></label>'
@@ -32005,11 +32103,7 @@ function brakeCardHtml(opts) {
       + '</div>'
       + (pool ? pickHtml() : '')
       + '<div class="strat-note" style="margin:6px 0 8px">'
-      + (pool ? '组合口径：所有参与指数<b>共用同一笔总资金</b>，谁先触及档位谁先买（每档固定金额）；现金不足时该档跳过并计数。卖出规则与单指数相同：每笔独立观察、反弹 ' + (+ST.obs || 2) + ' 档转入观察、从观察位回落 ' + (+ST.back || 1) + ' 档卖出该笔。回撤仍按<b>各指数自身历史最高收盘</b>计。'
-              + '<span style="color:#A32D2D"> <b>默认池＝按当前回撤最深 10 只选取，属事后选池（look-ahead）；回测收益含选择偏差，不能当未来预期。</b></span>'
-              : ('档位以<b>历史高点回撤</b>计：' + (+ST.startDD) + '% → ' + (+ST.startDD - (+ST.gap || 5)) + '% 是「反弹一档」（间距 ' + (+ST.gap || 5) + ' 个百分点），不是产品上涨 ' + (+ST.gap || 5) + '%。每笔独立观察，触发后卖出该笔全部持仓；不含手续费与分红。'
-                 + ' <b>指数下拉只列 ≥' + fmin + '%（距买入区 ' + (start - fmin) + 'pp 内）的 ' + (deepIx.length - (curOut ? 1 : 0)) + ' 只</b>；切到「多指数组合」时默认勾选回撤最深的 10 只。'
-                 + (cur().cat === '境外' ? ' <b>境外指数</b>按当地点位（' + ((cur().market === '美股') ? '美元' : '港元') + '）计价、未折汇率：这里的「金额」是按点数折算的名义金额，只用于验证规则。' : '')))
+      + noteTxt
       + '</div>'
       + '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><button class="dd-run" data-dd-run="1">▷ 运行回测</button>'
       + '<span id="ddRunMsg" style="font-size:12px;color:#71717A">区间 ' + (ST.from || '—') + ' → ' + (ST.to || '—') + '</span></div></div>';
@@ -32078,7 +32172,7 @@ function brakeCardHtml(opts) {
   }
 
   function calcHtml(R) {
-    var pool = R.scope === 'pool';
+    var pool = R.scope === 'pool' || R.scope === 'all';
     var curve = R.curve || [];
     var last = curve.length ? curve[curve.length - 1] : { eq: R.capital || 0, pos: 0 };
     var cash = Math.max(0, (last.eq || 0) - (last.pos || 0));
@@ -32130,9 +32224,10 @@ function brakeCardHtml(opts) {
   }
 
   function resultHtml(R) {
-    if (!R) return '<div class="st-card" id="ddResultCard"><h4>回测结果</h4><div class="strat-note" style="margin:0">点「▷ 运行回测」出结果；默认 70% 起买、每档 ¥500、反弹 2 档观察后回落 1 档卖出。切到「多指数组合」则所有选中指数共用同一笔资金。</div></div>';
+    if (!R) return '<div class="st-card" id="ddResultCard"><h4>回测结果</h4><div class="strat-note" style="margin:0">点「▷ 运行回测」出结果；默认 70% 起买、每档 ¥500、反弹 2 档观察后回落 1 档卖出。切到「多指数组合」则所有选中指数共用同一笔资金；切「全池59（逐日机会）」则境内全部指数按各自逐日回撤决定是否买入，不再按今天深度选池。</div></div>';
     if (R.err) return '<div class="st-card" id="ddResultCard"><h4>回测结果</h4><div style="color:#A32D2D;font-size:12px">' + R.err + '</div></div>';
-    var pool = R.scope === 'pool';
+    var pool = R.scope === 'pool' || R.scope === 'all';
+    var allPool = R.scope === 'all';
     var eff = effOf(R);
     var cagrTxt = (R.years || 0) < 1 ? '<span style="font-size:11px;color:#71717A">不足一年，不折算年化</span>' : pct(R.cagr, 2);
     var tds = R.trades.map(function (t) {
@@ -32147,6 +32242,7 @@ function brakeCardHtml(opts) {
     var byTbl = '';
     if (pool && R.byCode) {
       var rows = Object.keys(R.byCode).map(function (k) { return R.byCode[k]; })
+        .filter(function (b) { return !allPool || b.buy > 0; })
         .sort(function (a, b) { return b.amt - a.amt; })
         .map(function (b) {
           var pnlTxt = b.soldN ? ((b.soldPn >= 0 ? '+' : '') + nf(b.soldPn, 2)) : '—';
@@ -32155,13 +32251,15 @@ function brakeCardHtml(opts) {
             + '<td class="num">' + money(b.amt) + '</td><td class="num" style="' + cls + '">' + pnlTxt + '</td>'
             + '<td class="num">' + b.openN + '</td><td class="num">' + money(b.openMv) + '</td></tr>';
         }).join('');
-      byTbl = '<div class="dd-tblwrap" style="margin-top:2px"><table class="dd-tbl"><thead><tr><th>指数</th><th class="num">当前回撤</th><th class="num">买入笔数</th><th class="num">投入金额</th><th class="num">已实现盈亏</th><th class="num">在仓笔数</th><th class="num">在仓市值</th></tr></thead><tbody>'
+      var shownN = (rows.match(/<tr>/g) || []).length;
+      byTbl = (allPool ? '<div style="font-size:11px;color:#71717A;margin:4px 0 0">只列有交易的 ' + shownN + ' 只；其余 ' + (R.pickN - shownN) + ' 只无触发。</div>' : '')
+        + '<div class="dd-tblwrap" style="margin-top:2px"><table class="dd-tbl"><thead><tr><th>指数</th><th class="num">当前回撤</th><th class="num">买入笔数</th><th class="num">投入金额</th><th class="num">已实现盈亏</th><th class="num">在仓笔数</th><th class="num">在仓市值</th></tr></thead><tbody>'
         + rows + '</tbody></table></div>';
     }
     var po = payoffOf(R);
     return '<div class="st-card" id="ddResultCard"><h4 style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">回测结果'
       + '<span style="font-weight:400;font-size:11px;color:#71717A">' + dstr(R.from) + ' → ' + dstr(R.to) + ' · '
-      + (pool ? '组合 ' + R.pickN + ' 只 · 触发 ' + R.trigN + ' 只' : '单指数') + ' · 每档 ' + money(+ST.perBuy) + ' · 起始 ' + (+ST.startDD) + '%</span></h4>'
+      + (allPool ? '全池 ' + R.pickN + ' 只 · 触发 ' + R.trigN + ' 只 · 逐日机会' : (pool ? '组合 ' + R.pickN + ' 只 · 触发 ' + R.trigN + ' 只' : '单指数')) + ' · 每档 ' + money(+ST.perBuy) + ' · 起始 ' + (+ST.startDD) + '%</span></h4>'
       + '<div class="dd-kpis">'
       + kpi('期末总资产', money(R.final), '本金 ' + money(R.capital) + ' · 期末在仓 ' + R.openLots + ' 笔', '#b91c1c')
       + kpi('累计盈亏', (R.pnl >= 0 ? '+' : '') + money(R.pnl), '账户口径 ' + pct(R.ret), R.pnl >= 0 ? '#b91c1c' : '#047857')
@@ -32184,7 +32282,7 @@ function brakeCardHtml(opts) {
       + '<th>买入日</th><th class="num">档位</th><th class="num">买入点位</th><th class="num">金额</th><th>卖出日</th><th class="num">卖出点位</th><th class="num">盈亏</th><th class="num">天数</th></tr></thead><tbody>'
       + tds + '</tbody></table></div>'
       + '<div class="strat-note" style="margin:6px 0 0">独立历史实验：不读取、不合并任何真实买卖记录，也不代表实盘收益。指数回撤深并不等于会回归（结构性衰退的板块可能长期不反弹），回测只给规则一个参照。'
-      + (pool ? ' 组合口径下各指数共用资金，结果对「谁先跌到档位」这一时序很敏感，换区间或换成分会明显变化。' : '')
+      + (allPool ? ' 全池口径：59 只境内全部进入逐日机会集，不按今天回撤预选；每只只在自己回撤达到起始档位时买，同日按当日回撤深→浅分配资金，现金不足的档位跳过。仍不含 4 只境外指数；且仍是今天存续的 59 只，未覆盖退市 / 改名指数，存在幸存者偏差。' : (pool ? ' 组合口径下各指数共用资金，结果对「谁先跌到档位」这一时序很敏感，换区间或换成分会明显变化。' : ''))
       + (pool && R.fxN ? ' 已剔除境外 ' + R.fxN + ' 只：港元/美元点数与 A 股不同币种，混算会把汇率当涨跌。' : '')
       + '</div></div>';
   }
@@ -32388,10 +32486,12 @@ function brakeCardHtml(opts) {
     ensureDefaults();
     var msg = document.getElementById('ddRunMsg');
     var R;
-    if (ST.scope === 'pool') {
-      var pks = effectivePick();
-      if (msg) msg.textContent = '正在回测组合（' + pks.length + ' 只' + (pks.length !== (ST.pick || []).length ? '，焦点外 ' + ((ST.pick || []).length - pks.length) + ' 只不参与' : '') + '）…';
-      R = runPoolBT(Object.assign({}, ST, { pick: pks }));
+    if (ST.scope === 'pool' || ST.scope === 'all') {
+      var pks = ST.scope === 'all' ? allPoolCodes() : effectivePick();
+      if (msg) msg.textContent = ST.scope === 'all'
+        ? ('正在回测全池 ' + pks.length + ' 只（逐日机会，不按当前回撤预选）…')
+        : ('正在回测组合（' + pks.length + ' 只' + (pks.length !== (ST.pick || []).length ? '，焦点外 ' + ((ST.pick || []).length - pks.length) + ' 只不参与' : '') + '）…');
+      R = runPoolBT(Object.assign({}, ST, { pick: pks, scope: ST.scope }));
     } else {
       var ix = idxOf(ST.code);
       if (!ix) return;
@@ -32411,7 +32511,9 @@ function brakeCardHtml(opts) {
       drawChart(R);
     }
     if (msg) {
-      var nm = (ST.scope === 'pool') ? ('组合 ' + effectivePick().length + ' 只') : ((idxOf(ST.code) || {}).name || '');
+      var nm = (ST.scope === 'pool' || ST.scope === 'all')
+        ? ((ST.scope === 'all' ? '全池 ' : '组合 ') + (R && R.pickN != null ? R.pickN : effectivePick().length) + ' 只')
+        : ((idxOf(ST.code) || {}).name || '');
       msg.textContent = nm + ' · ' + ymd(ST.from) + ' → ' + ymd(ST.to) + (R.err ? ' · 参数有误' : ' · 已出结果');
     }
   }
@@ -32439,13 +32541,19 @@ function brakeCardHtml(opts) {
         if (ix.start && ymd(ix.start) > ST.from) ST.from = ymd(ix.start);
       }
     }
-    if (k === 'scope' && v === 'pool') {
-      var arr = (D && D.indices) || [], latest = '';
-      (ST.pick || []).forEach(function (cd) {
-        var x2 = idxOf(cd);
-        if (x2 && ymd(x2.end) > latest) latest = ymd(x2.end);
-      });
-      if (latest) ST.to = latest;
+    if (k === 'scope') {
+      window.__DD_RES = null;   /* v1112：换口径即清空旧结果，避免把「组合 10 只」的旧数字看成「全池」的成绩 */
+      if (v === 'pool' || v === 'all') {
+        var arr = (D && D.indices) || [], latest = '';
+        (v === 'all' ? arr.filter(function (x) { return x.cat !== '境外'; }) : (ST.pick || []).map(idxOf).filter(Boolean)).forEach(function (x2) {
+          if (x2 && ymd(x2.end) > latest) latest = ymd(x2.end);
+        });
+        (ST.pick || []).forEach(function (cd) {
+          var x2 = idxOf(cd);
+          if (x2 && ymd(x2.end) > latest) latest = ymd(x2.end);
+        });
+        if (latest) ST.to = latest;
+      }
     }
   };
   window.__ddReset = function () {
@@ -32503,6 +32611,14 @@ function brakeCardHtml(opts) {
         var c2 = fc.getAttribute('data-dd-fcat');
         ST.fcat = (!c2 || c2 === '全部' || ST.fcat === c2) ? '' : c2;
         window.renderDdModule(); return;
+      }
+      var hgb = t.closest && t.closest('[data-dd-hist]');
+      if (hgb) {   /* v1112：当前回撤 / 区间曾深 视图切换 */
+        ST.hist = hgb.getAttribute('data-dd-hist') === '1';
+        var hy = window.scrollY || 0;
+        window.renderDdModule();
+        window.scrollTo(0, hy);
+        return;
       }
       var fgb = t.closest && t.closest('[data-dd-focus]');
       if (fgb) {   /* v1111：切换焦点模式；打开焦点时清掉低于下界的分档筛选，避免空表 */
@@ -32623,6 +32739,7 @@ function brakeCardHtml(opts) {
         var code = row.getAttribute('data-dd-code');
         if (!code) return;
         if (ST.scope === 'pool') { togglePick(code); return; }
+        if (ST.scope === 'all') { ST.scope = 'one'; window.__DD_RES = null; window.__ddSet('code', code); window.renderDdModule(); return; }
         if (code !== ST.code) {
           window.__ddSet('code', code);
           window.renderDdModule();
