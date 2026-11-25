@@ -1571,7 +1571,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 <!-- fw2_v1112_dd_hist_allpool（用户 2026-11-25「按照你建议继续」，落地 A 展示补全 + B 全池逐日对照，默认仍保留当前最深 10）：
       A「区间曾深」：监测卡头部加切换，按 [from,to] 逐日维护此前最高收盘（峰值可早于区间起点，与 ddArrOf 同口径）算区间最深；列出曾≥起始档位、但当前已修复而被焦点视图隐藏的指数（本次 63 只中 16 只曾≥70%，当前仅 4 只仍≥70%，5 只已修复到 <60%）。
       B「全池59（逐日机会）」：回测方式第三档；境内 59 只全部进入逐日机会集，不按今天回撤预选；每只只在自己回撤≥起始档位时买；同日先卖后买，再按当日回撤深→浅分配资金，现金不足跳过并计数；仍不含 4 只境外。默认仍为「当前最深 10」，且加 look-ahead 提示；换口径即清空旧结果，全池点行改为切单指数。 -->
-<span id="verBadge" class="ver-badge">v1119</span><!-- fw2_v1096_dd_search（用户「继续」）：①全指数监测卡加「搜索」（代码/名称，只过滤本表显示，分档 chips 计数与已选组合不受影响；输入时保存 ST.q 并重画、回填焦点与滚动位置）②组合池加「全选境内 59」「恢复默认（宽基）」（境外永远不进池）③脚注的境外名单由数据现算（原来写死 4 个名字，加池就会过期）④gen_index_dd 去掉冗余 count.night，gen_index_val 的蛋卷 asof 不再写死 2026 年 --><!-- fw2_v1097_dd_sort_valref（用户「继续」，承接 v1096 挂账）：①全指数监测卡加「排序」开关——回撤深→浅（默认）/ 名称 A→Z，只换本表顺序，分档计数与已选组合不变；②估值卡加「同类别对照」小表——全部 / 宽基 / 行业 / 主题 / 境外五行的 PE 分位中位、PB 分位中位、价格分位中位，并列出该类别里 PE 分位最低的一只；③两处都只用既有 index-dd / index-val 数据，不引入新源（v1096 已证伪的三条补源路仍挂账）。 --><!-- fw2_v1098_dd_n2_sort（用户「继续完成」，收口 v1097「下一步候选」三件）：①估值「同类别对照」由 6 列扩到 8 列——补「股息率中位」与「PB 分位最低的一只」（与 PE 最低同口径：只统计有该分位的只数，空组回 —）；②监测卡加「快捷」行——「距下档 ≤2pp」一键筛选（ST.n2 与类别 / 分档 / 搜索四者可叠加，chips 计数仍按类别全集，不受搜索与快捷键影响）；③方案卡「进入买入区」表跟随 ST.sort（默认回撤深→浅，切名称后同监测卡拼音序）；④仍不引入新源。 --><!-- fw2_v1099_dd_pickcat_relcat（用户「继续」，收口 v1098「下一步候选」三件）：①组合池加按类别批量勾选——宽基 / 行业 / 主题三个按钮各显示「已选/总数」，全选后再点即取消该类（不碰境外）；②估值主表加「相对同类」列——本只 PE 分位 − 同类别 PE 分位中位（pp，负＝比同类便宜），只在双方都有分位时显示；③跨档卡跟随监测卡类别筛选（ST.fcat），计数、「展开全部 N 只」与空态都按当前类别；④仍不引入新源。 --><!-- fw2_v1100_dd_bksum_cheap_vsort（用户「继续」，收口 v1099「下一步候选」三件）：①监测卡加「按回撤分档汇总」表——6 档的只数 / 平均回撤 / 该档最深一只 / 距下档 ≤2pp 只数 / 已进买入区只数，按当前类别统计、不受搜索与快捷影响；②组合池加「只选便宜一半」——按同类别 PE 分位中位分界，只选低于中位的（无分位不入选，口径写进按钮 title）；③估值主表「相对同类」表头可点击排序，三态循环：默认（回撤深→浅）→ 便宜在前 → 贵在前，无分位的行恒排最后；④ddTbl 扩一个可选 th 属性位（backward compatible），中位数抽成模块级 medOf 单一实现；⑤仍不引入新源。 --><!-- fw2_v1076_conflicts（用户 2026-11-23「按照你顺序修」——修掉体检出的 5 处纲领冲突）：
+<span id="verBadge" class="ver-badge">v1120</span><!-- fw2_v1120_v11_rows_removed：V11 狙击逐只执行行从交易信号页删除，V11 只保留策略执行入口 --><!-- fw2_v1096_dd_search（用户「继续」）：①全指数监测卡加「搜索」（代码/名称，只过滤本表显示，分档 chips 计数与已选组合不受影响；输入时保存 ST.q 并重画、回填焦点与滚动位置）②组合池加「全选境内 59」「恢复默认（宽基）」（境外永远不进池）③脚注的境外名单由数据现算（原来写死 4 个名字，加池就会过期）④gen_index_dd 去掉冗余 count.night，gen_index_val 的蛋卷 asof 不再写死 2026 年 --><!-- fw2_v1097_dd_sort_valref（用户「继续」，承接 v1096 挂账）：①全指数监测卡加「排序」开关——回撤深→浅（默认）/ 名称 A→Z，只换本表顺序，分档计数与已选组合不变；②估值卡加「同类别对照」小表——全部 / 宽基 / 行业 / 主题 / 境外五行的 PE 分位中位、PB 分位中位、价格分位中位，并列出该类别里 PE 分位最低的一只；③两处都只用既有 index-dd / index-val 数据，不引入新源（v1096 已证伪的三条补源路仍挂账）。 --><!-- fw2_v1098_dd_n2_sort（用户「继续完成」，收口 v1097「下一步候选」三件）：①估值「同类别对照」由 6 列扩到 8 列——补「股息率中位」与「PB 分位最低的一只」（与 PE 最低同口径：只统计有该分位的只数，空组回 —）；②监测卡加「快捷」行——「距下档 ≤2pp」一键筛选（ST.n2 与类别 / 分档 / 搜索四者可叠加，chips 计数仍按类别全集，不受搜索与快捷键影响）；③方案卡「进入买入区」表跟随 ST.sort（默认回撤深→浅，切名称后同监测卡拼音序）；④仍不引入新源。 --><!-- fw2_v1099_dd_pickcat_relcat（用户「继续」，收口 v1098「下一步候选」三件）：①组合池加按类别批量勾选——宽基 / 行业 / 主题三个按钮各显示「已选/总数」，全选后再点即取消该类（不碰境外）；②估值主表加「相对同类」列——本只 PE 分位 − 同类别 PE 分位中位（pp，负＝比同类便宜），只在双方都有分位时显示；③跨档卡跟随监测卡类别筛选（ST.fcat），计数、「展开全部 N 只」与空态都按当前类别；④仍不引入新源。 --><!-- fw2_v1100_dd_bksum_cheap_vsort（用户「继续」，收口 v1099「下一步候选」三件）：①监测卡加「按回撤分档汇总」表——6 档的只数 / 平均回撤 / 该档最深一只 / 距下档 ≤2pp 只数 / 已进买入区只数，按当前类别统计、不受搜索与快捷影响；②组合池加「只选便宜一半」——按同类别 PE 分位中位分界，只选低于中位的（无分位不入选，口径写进按钮 title）；③估值主表「相对同类」表头可点击排序，三态循环：默认（回撤深→浅）→ 便宜在前 → 贵在前，无分位的行恒排最后；④ddTbl 扩一个可选 th 属性位（backward compatible），中位数抽成模块级 medOf 单一实现；⑤仍不引入新源。 --><!-- fw2_v1076_conflicts（用户 2026-11-23「按照你顺序修」——修掉体检出的 5 处纲领冲突）：
 ①R7 带宽：撤销 v1067 的 `o.band = o.slotBand` 强镜像；band 只喂 R7（单只超配 25% 减配，SIG_THR_DEF 5→25、与回测 cfg.band 同值），slotBand 只喂 T10 四档；sigThrApply 分别写 C.barbell.band / C.barbell.slotBand，T10 文案改读 slotBand，R7 行 threshold 由硬编码「band 25%」改为动态读纲领值。
 ②R2 假开关：`_planCfg()` 读 `window.logicStateEff('R2')`——生效按 investMode，观察/关一律 lump（月投 0）；建仓步文案在一次性时追加「R2 定投＝关/观察」。
 ③T4 与 R6 双份：T4 行 modeled 改「与 R6 止损同一执行（同一 slHard）」，def 标「= R6 止损，同一动作」，阈值表 slHard 口径写「T4 / R6 · 同一执行」。
@@ -1771,7 +1771,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 
 
       
-      <section class="view" id="view-tg"><!-- fw2_v1056_invest_master：投资总纲升为独立一级模块（原「策略执行 → 投资逻辑」）；渲染函数仍是 renderLogicView()，host 从 #stp-logic 改为 #tg-logic；⑧ 层的参数页已迁到「策略执行 → 回测参数（实验）」 --><div id="tg-logic"></div></section><section class="view" id="view-strategy"><!-- fw2_v120_strategy --><!-- fw2_v663_hero_retire：建仓 hero 整块退役（当前市值/完成度→资产配置表、定投月数/下次定投→定投执行 tab 同源重复；可投资金输入框经用户拍板一并删，rulesBudget 引擎按 localStorage fw2_capital_budget_v1 现值继续） --><!-- fw2_v944_budget_inline：可投资金输入框从 section 顶部并入资产配置表标题（用户 2026-11-16 「可以删除，因为资产配置标题有括号里写了」；同一数字原在顶部输入框/表标题/合计行三处重复，且它夹在指数行情条与 tab 按钮之间像页面筛选器） --><div class="strat-tabs v-tabs" id="stratTabs"><!-- fw2_v988f_logic_brain：新增「投资逻辑」一级子模块，并设为进入「策略执行」的默认页（用户 2026-11-18 拍板：tab 名「投资逻辑」／副标题「本工作台唯一的大脑 · 规则唯一写入口」；①–⑦ 59 条可执行规则 + ⑧ 6 条回测验证·逻辑准入；八层「点哪层看哪层」，不在一页平铺） --><button class="st-tab v-tab active" data-st="alloc">资产配置</button><!-- fw2_v945_bt_submodules：原「组合回测」一个 tab 拆成两个一级子模块（用户 2026-11-16「这两个子模块放到策略执行下面作为一级子模块展示。名字分别改成持仓回测，自选回测」）——data-st 同为 bt、靠 data-pool 区分，面板仍是同一个 stp-bt，pool 落在 fw2_bt_cfg_v1 里持久化 --><!-- fw2_v1013_strategy_pool：第一个 bt tab 由「持仓回测」改为「配置回测」，池改为 strategy＝内建目标配置 11 只（用户 2026-11-20「持仓回测改成配置回测，内容就是刚刚你按照回测的标的」） --><button class="st-tab v-tab" data-st="bt" data-pool="strategy">配置回测</button><button class="st-tab v-tab" data-st="bt" data-pool="custom">自选回测</button><!-- fw2_v895_plan_merge：定投执行 tab 退役；当月待办与静态参数并入资产配置 tab --><button class="st-tab v-tab" data-st="param">回测参数</button><!--fw2_v1056_invest_master：回测参数（原 ⑧-A/B/C）从投资逻辑 ⑧ 层迁到这里，参数唯一写入口 --><!-- fw2_v1103_dd_rename（用户 2026-11-24 拍板「深跌买入」）：子页签由「回撤档位」（像参数面板）改为策略名「深跌买入」，纯展示文本，data-st="dd" / __DD_STATE 等内部标识不动 --><button class="st-tab v-tab" data-st="dd">深跌买入</button><!-- fw2_v1119_v11_strategy_tab（用户 2026-11-25「V11 狙击不是单纯的信号，是单独的一种投资策略」）：V11 从「交易信号」的第七个内层 tab 迁到「策略执行」独立子模块，顺序放在深跌买入之后（同为策略本体，月度复盘仍收尾）；原信号页保留逐只执行行与一个指路条，不再保留独立 tab。资金池 / 单注 / 止损 / 吊灯口径集中在本页策略卡，交易信号页只做候选扫描。 --><button class="st-tab v-tab" data-st="v11">V11 狙击</button><button class="st-tab v-tab" data-st="review">月度复盘</button></div><div class="st-pane" id="stp-alloc"></div><div class="st-pane" id="stp-bt" style="display:none"></div><div class="st-pane" id="stp-param" style="display:none"></div><div class="st-pane" id="stp-dd" style="display:none"></div><div class="st-pane" id="stp-v11" style="display:none"></div><div class="st-pane" id="stp-review" style="display:none"></div><!-- v167：场内外对照已下移至 #stp-cards 之后（原共享层位置摘除）--></section>
+      <section class="view" id="view-tg"><!-- fw2_v1056_invest_master：投资总纲升为独立一级模块（原「策略执行 → 投资逻辑」）；渲染函数仍是 renderLogicView()，host 从 #stp-logic 改为 #tg-logic；⑧ 层的参数页已迁到「策略执行 → 回测参数（实验）」 --><div id="tg-logic"></div></section><section class="view" id="view-strategy"><!-- fw2_v120_strategy --><!-- fw2_v663_hero_retire：建仓 hero 整块退役（当前市值/完成度→资产配置表、定投月数/下次定投→定投执行 tab 同源重复；可投资金输入框经用户拍板一并删，rulesBudget 引擎按 localStorage fw2_capital_budget_v1 现值继续） --><!-- fw2_v944_budget_inline：可投资金输入框从 section 顶部并入资产配置表标题（用户 2026-11-16 「可以删除，因为资产配置标题有括号里写了」；同一数字原在顶部输入框/表标题/合计行三处重复，且它夹在指数行情条与 tab 按钮之间像页面筛选器） --><div class="strat-tabs v-tabs" id="stratTabs"><!-- fw2_v988f_logic_brain：新增「投资逻辑」一级子模块，并设为进入「策略执行」的默认页（用户 2026-11-18 拍板：tab 名「投资逻辑」／副标题「本工作台唯一的大脑 · 规则唯一写入口」；①–⑦ 59 条可执行规则 + ⑧ 6 条回测验证·逻辑准入；八层「点哪层看哪层」，不在一页平铺） --><button class="st-tab v-tab active" data-st="alloc">资产配置</button><!-- fw2_v945_bt_submodules：原「组合回测」一个 tab 拆成两个一级子模块（用户 2026-11-16「这两个子模块放到策略执行下面作为一级子模块展示。名字分别改成持仓回测，自选回测」）——data-st 同为 bt、靠 data-pool 区分，面板仍是同一个 stp-bt，pool 落在 fw2_bt_cfg_v1 里持久化 --><!-- fw2_v1013_strategy_pool：第一个 bt tab 由「持仓回测」改为「配置回测」，池改为 strategy＝内建目标配置 11 只（用户 2026-11-20「持仓回测改成配置回测，内容就是刚刚你按照回测的标的」） --><button class="st-tab v-tab" data-st="bt" data-pool="strategy">配置回测</button><button class="st-tab v-tab" data-st="bt" data-pool="custom">自选回测</button><!-- fw2_v895_plan_merge：定投执行 tab 退役；当月待办与静态参数并入资产配置 tab --><button class="st-tab v-tab" data-st="param">回测参数</button><!--fw2_v1056_invest_master：回测参数（原 ⑧-A/B/C）从投资逻辑 ⑧ 层迁到这里，参数唯一写入口 --><!-- fw2_v1103_dd_rename（用户 2026-11-24 拍板「深跌买入」）：子页签由「回撤档位」（像参数面板）改为策略名「深跌买入」，纯展示文本，data-st="dd" / __DD_STATE 等内部标识不动 --><button class="st-tab v-tab" data-st="dd">深跌买入</button><!-- fw2_v1119_v11_strategy_tab（用户 2026-11-25「V11 狙击不是单纯的信号，是单独的一种投资策略」）：V11 从「交易信号」的第七个内层 tab 迁到「策略执行」独立子模块，顺序放在深跌买入之后（同为策略本体，月度复盘仍收尾）；原信号页保留一个指路条（v1120 起连逐只执行行也删除），不再保留独立 tab。资金池 / 单注 / 止损 / 吊灯口径集中在本页策略卡，交易信号页只留指路。 --><button class="st-tab v-tab" data-st="v11">V11 狙击</button><button class="st-tab v-tab" data-st="review">月度复盘</button></div><div class="st-pane" id="stp-alloc"></div><div class="st-pane" id="stp-bt" style="display:none"></div><div class="st-pane" id="stp-param" style="display:none"></div><div class="st-pane" id="stp-dd" style="display:none"></div><div class="st-pane" id="stp-v11" style="display:none"></div><div class="st-pane" id="stp-review" style="display:none"></div><!-- v167：场内外对照已下移至 #stp-cards 之后（原共享层位置摘除）--></section>
       <!-- v91 fw2_v91_macro_merge：宏观·情绪 独立页曾并入 数据中心 → 宏观数据 分块（v135 已反向拆分，见下） -->
       <!-- fw2_v135_macro_view：宏观数据由「数据中心」分块迁出为独立模块（用户 2026-09-18「宏观数据单独作为一个模块放在数据中心上面」）；#view-data 改名「基金数据」并删除 dcBlocks 切换行（基金数据直接进入内容区，默认总览 Tab） -->
       <section class="view" id="view-macro">
@@ -5109,36 +5109,8 @@ window.SIGNAL_REGISTRY = (function () {
         } catch (eF) { /* 单基金失败不影响其余 */ }
       });
     } catch (eU) { /* XOV 数据缺失跳过（聪明的钱页签仍独立可用） */ }
-    /* ② V11 狙击 → rows.screen（买入候选；独立体系不并档——档位含义＝狙击体系自身赔率阈值）。
-       互斥提示：市场环境过热 / T9 CAP 超限时在行内标注 ⚠互斥，不自动降档。 */
-    try {
-      var _v11 = window.__V11_SIG__;
-      if ((!_v11 || !_v11.meta) && typeof loadV11Signal === 'function') { try { loadV11Signal(); } catch (eV) {} }
-      if (_v11 && _v11.meta && (_v11.signals || []).length) {
-        var _capAct = rows.hold.some(function (r0) { return r0.sig === 'T9 CAP 超限' && r0.lvl === 'act'; });
-        (_v11.signals || []).forEach(function (s) {
-          try {
-            if (s.error || (s.state !== '狙击就绪' && s.state !== '持枪观望')) return;
-            var _odds = (s.odds != null && isFinite(s.odds)) ? s.odds.toFixed(2) : '—';
-            var _mtx = [];
-            if (envHot) _mtx.push('市场环境过热');
-            if (_capAct) _mtx.push('T9 CAP 超限·禁补');
-            rows.screen.push({
-              code: 'V11', name: (s.code || '') + ' ' + (s.name || ''), pool: 'screen', noLink: true,
-              sig: 'V11 狙击·' + (s.state === '狙击就绪' ? '就绪' : '观望'),
-              cur: '赔率 ' + _odds + (s.odds_thr != null ? ' / 阈 ' + s.odds_thr.toFixed(2) : ''),
-              curMain: '赔率 ' + _odds,
-              curSub: 'ATR ' + (s.atr_pct != null ? (s.atr_pct * 100).toFixed(2) + '%' : '—') + ' · 上行 ' + (s.up_space != null ? (s.up_space * 100).toFixed(1) + '%' : '—'),
-              thrCond: '赔率 ≥ ' + (s.odds_thr != null ? s.odds_thr.toFixed(2) : '—') + ' → 狙击就绪',
-              thrAct: s.state === '狙击就绪' ? '狙击买入（V11 独立体系·仓位纪律自管）' : '持枪观望·待赔率达标',
-              thr: '赔率≥阈值 → 狙击买入（独立于网格信号，不并档）' + (_mtx.length ? '；⚠互斥：' + _mtx.join('、') + '（先风控后行动）' : ''),
-              lvl: s.state === '狙击就绪' ? 'act' : 'near',
-              dd: (_v11.meta.asOf || ''), src: 'V11·日频·独立体系'
-            });
-          } catch (eS) { /* 单标的失败不影响其余 */ }
-        });
-      }
-    } catch (eV2) { /* V11 数据缺失跳过（V11 页签仍独立可用） */ }
+    /* fw2_v1120_v11_rows_removed（用户 2026-11-25「1、删除」）：V11 狙击的逐只执行行已从「交易信号 → 筛选信号」整段移除。
+       V11 是独立策略本体，信号页不再读 v11-signal.json、也不再生成 V11 行；扫描 / 执行 / 样本外验证全部归「策略执行 → V11 狙击」。 */
     /* ③ 持仓穿透 P 系 → rows.hold（组合结构风险，阈值与穿透页签同源 v784c/v784d 口径）；
        P6 共振急跌需盘中实时行情，不并入（仍留穿透页签）。fund-jjcc.json 双源加载＋1h 内存缓存。 */
     try {
@@ -17429,7 +17401,7 @@ function v11StrategyHtml() {
   var money = function (n) { return '¥' + Math.round(n).toLocaleString('en-US'); };
   return '<div class="card dc-card">'
     + '<div class="dc-hd"><b style="font-size:14px">V11 狙击 · 策略本体</b><span class="dc-dir t-neu">独立仓位池 · 不占 11 只目标权重</span></div>'
-    + '<div class="dc-src">这不是一条筛选提示：它有独立的资金池、单注上限、止损与吊灯退出；交易信号页只保留逐只执行行，策略口径与样本外验证集中在本页。</div>'
+    + '<div class="dc-src">这不是一条筛选提示：它有独立的资金池、单注上限、止损与吊灯退出；交易信号页不再列 V11 逐只执行行，策略口径与样本外验证集中在本页。</div>'
     + '<div class="sh-grid" style="margin-top:8px;grid-template-columns:repeat(auto-fit,minmax(118px,1fr));gap:8px">'
     + '<div class="sh-cell"><div class="k">策略预算</div><div class="v">' + money(total) + '</div></div>'
     + '<div class="sh-cell"><div class="k">狙击池 · ' + pct + '%</div><div class="v">' + money(pool) + '</div></div>'
@@ -17458,7 +17430,7 @@ function renderSignalDash() {
   let wtState = {};
   try { wtState = JSON.parse(localStorage.getItem(WT_KEY) || '{}'); } catch (e) { wtState = {}; }
   loadBacktest();
-  loadV11Signal(); /* v606 fw2_v606_v11_signal：V11 逐只执行行仍在「筛选信号」，这里保留数据加载（幂等）；策略本体页由 renderStratV11 负责加载扫描与样本外两张卡 */
+  /* fw2_v1120_v11_rows_removed：交易信号页不再加载 V11 数据；V11 策略本体与扫描统一在 renderStratV11() 拉起。 */
   /* A 组优化 fw2_v722_fresh：净值数据日新鲜度——业务日口径（跳过周末），过期≥4交易日红标⛔、≥2黄标⚠，解决「过期净值照常亮信号」 */
   function sigBizDaysAgo(dd) {
     if (!dd) return null;
@@ -18022,7 +17994,7 @@ function renderSignalDash() {
       + ' （共 26 项：3 项目标（年化 / 回撤预算 / 无风险）+ 9 项直接驱动本页信号判断 + 1 项已下线（T9 单标的 CAP）+ 13 项执行口径——网格/补仓/狙击/刹车/建仓 v1067 起全部实盘生效）'
       + ' <button type="button" onclick="try{document.querySelector(&quot;#nav [data-view=tg]&quot;).click();setTimeout(function(){try{window.logicGo(&quot;sigthr&quot;)}catch(e){}},60)}catch(e){};return false" style="cursor:pointer;font-size:11px;padding:2px 8px;border-radius:6px;border:1px solid #D4D4D8;background:#fff;color:#3F3F46;margin-left:4px">去投资总纲改阈值 →</button></div>';
     var _v11MoveLine = '<div class="dc-note" style="margin:0 0 8px;padding:7px 10px;border:1px solid #E8E6DF;border-left:3px solid #B45309;border-radius:8px;background:#FDFCF8;font-size:11px;line-height:1.7;color:#52525B">'
-      + '<b style="color:#18181B">V11 狙击已移至「策略执行 → V11 狙击」</b>——它有自己的资金池、单注上限、3×ATR 止损与吊灯退出，属策略本体，不是一条筛选提示；本页只在「筛选信号」保留逐只执行行。</div>';
+      + '<b style="color:#18181B">V11 狙击已移至「策略执行 → V11 狙击」</b>——它有自己的资金池、单注上限、3×ATR 止损与吊灯退出，属策略本体，不是一条筛选提示；本页不再列 V11 逐只执行行，扫描与执行都在策略页。</div>';
     body.innerHTML = ''
       + _stLine
       + _v11MoveLine
@@ -18059,7 +18031,7 @@ function renderSignalDash() {
       + grp('筛选信号（候选池 · 买入评估）', _sigF(rows.screen), [],
         '筛选池 ' + ((window.SCREEN_POOL && window.SCREEN_POOL.funds) ? Object.keys(window.SCREEN_POOL.funds).length : 0) + ' 只候选 · 仅展示估值/回撤/波动/低点/趋势/风险触发的标的 · 数据=筛池画像+日频净值', null, true)
       + '</div></div>'
-      /* tab: V11 已迁「策略执行 → V11 狙击」；本页只保留筛选信号里的逐只执行行 */
+      /* tab: V11 已全部迁出本页（不再保留逐只执行行）；策略本体、扫描与样本外见「策略执行 → V11 狙击」 */
       /* tab: 趋势策略（fw2_v766_trend_inline：与持仓/筛选/市场 并列；renderTrendPanel 异步填充） */
       + '<div' + _sigP('trend') + ' id="sigTrendPane"></div>'
       /* fw2_v781_hold_through：持仓穿透子模块（交易信号第7个页签）——持仓基金底层股票穿透聚合 Top20 */
@@ -22294,7 +22266,7 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
     W3: '不进信号表逐行：计入仪表盘计数；回测侧在配置回测 / 自选回测的 trendGate 趋势确认参数',
     S2: '筛选信号 S2 行（逐只）+ 配置回测 addDD 参数',
     S4: '筛选信号 S4 行（逐只）+ 配置回测 trendGate 参数',
-    V11: '策略执行「V11 狙击」策略卡 + 全池扫描 + 样本外检验；交易信号「筛选信号」逐只执行行；配置回测 v11Gate 参数',
+    V11: '策略执行「V11 狙击」策略卡 + 全池扫描 + 样本外检验；交易信号不含 V11 行；配置回测 v11Gate 参数',
     T1: '持仓信号 T1 行（逐只）+ 配置回测 tp1/tp2 参数（v1075 起已接线）',
     T2: '持仓信号 T2 行（逐只）+ 配置回测 tpPeak 参数',
     T3: '持仓信号「T3 估值止盈 / T8 估值加仓」同一行',
