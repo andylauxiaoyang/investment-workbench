@@ -1571,7 +1571,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 <!-- fw2_v1112_dd_hist_allpool（用户 2026-11-25「按照你建议继续」，落地 A 展示补全 + B 全池逐日对照，默认仍保留当前最深 10）：
       A「区间曾深」：监测卡头部加切换，按 [from,to] 逐日维护此前最高收盘（峰值可早于区间起点，与 ddArrOf 同口径）算区间最深；列出曾≥起始档位、但当前已修复而被焦点视图隐藏的指数（本次 63 只中 16 只曾≥70%，当前仅 4 只仍≥70%，5 只已修复到 <60%）。
       B「全池59（逐日机会）」：回测方式第三档；境内 59 只全部进入逐日机会集，不按今天回撤预选；每只只在自己回撤≥起始档位时买；同日先卖后买，再按当日回撤深→浅分配资金，现金不足跳过并计数；仍不含 4 只境外。默认仍为「当前最深 10」，且加 look-ahead 提示；换口径即清空旧结果，全池点行改为切单指数。 -->
-<span id="verBadge" class="ver-badge">v1120</span><!-- fw2_v1120_v11_rows_removed：V11 狙击逐只执行行从交易信号页删除，V11 只保留策略执行入口 --><!-- fw2_v1096_dd_search（用户「继续」）：①全指数监测卡加「搜索」（代码/名称，只过滤本表显示，分档 chips 计数与已选组合不受影响；输入时保存 ST.q 并重画、回填焦点与滚动位置）②组合池加「全选境内 59」「恢复默认（宽基）」（境外永远不进池）③脚注的境外名单由数据现算（原来写死 4 个名字，加池就会过期）④gen_index_dd 去掉冗余 count.night，gen_index_val 的蛋卷 asof 不再写死 2026 年 --><!-- fw2_v1097_dd_sort_valref（用户「继续」，承接 v1096 挂账）：①全指数监测卡加「排序」开关——回撤深→浅（默认）/ 名称 A→Z，只换本表顺序，分档计数与已选组合不变；②估值卡加「同类别对照」小表——全部 / 宽基 / 行业 / 主题 / 境外五行的 PE 分位中位、PB 分位中位、价格分位中位，并列出该类别里 PE 分位最低的一只；③两处都只用既有 index-dd / index-val 数据，不引入新源（v1096 已证伪的三条补源路仍挂账）。 --><!-- fw2_v1098_dd_n2_sort（用户「继续完成」，收口 v1097「下一步候选」三件）：①估值「同类别对照」由 6 列扩到 8 列——补「股息率中位」与「PB 分位最低的一只」（与 PE 最低同口径：只统计有该分位的只数，空组回 —）；②监测卡加「快捷」行——「距下档 ≤2pp」一键筛选（ST.n2 与类别 / 分档 / 搜索四者可叠加，chips 计数仍按类别全集，不受搜索与快捷键影响）；③方案卡「进入买入区」表跟随 ST.sort（默认回撤深→浅，切名称后同监测卡拼音序）；④仍不引入新源。 --><!-- fw2_v1099_dd_pickcat_relcat（用户「继续」，收口 v1098「下一步候选」三件）：①组合池加按类别批量勾选——宽基 / 行业 / 主题三个按钮各显示「已选/总数」，全选后再点即取消该类（不碰境外）；②估值主表加「相对同类」列——本只 PE 分位 − 同类别 PE 分位中位（pp，负＝比同类便宜），只在双方都有分位时显示；③跨档卡跟随监测卡类别筛选（ST.fcat），计数、「展开全部 N 只」与空态都按当前类别；④仍不引入新源。 --><!-- fw2_v1100_dd_bksum_cheap_vsort（用户「继续」，收口 v1099「下一步候选」三件）：①监测卡加「按回撤分档汇总」表——6 档的只数 / 平均回撤 / 该档最深一只 / 距下档 ≤2pp 只数 / 已进买入区只数，按当前类别统计、不受搜索与快捷影响；②组合池加「只选便宜一半」——按同类别 PE 分位中位分界，只选低于中位的（无分位不入选，口径写进按钮 title）；③估值主表「相对同类」表头可点击排序，三态循环：默认（回撤深→浅）→ 便宜在前 → 贵在前，无分位的行恒排最后；④ddTbl 扩一个可选 th 属性位（backward compatible），中位数抽成模块级 medOf 单一实现；⑤仍不引入新源。 --><!-- fw2_v1076_conflicts（用户 2026-11-23「按照你顺序修」——修掉体检出的 5 处纲领冲突）：
+<span id="verBadge" class="ver-badge">v1121</span><!-- fw2_v1121_v11_run_kpi（用户 2026-11-25「V11狙击加入深跌买入一样的运行回测模块。这个面积太大了。改成 2.50还是2，根据你的建议改」）：①V11 策略页顶部 5 格 KPI 改用专用 .v11-kpi（5 列等宽、单元格 min-height:0），消除 .sh-grid flex:1 1 320px 造成的 320px 空白；②新增运行回测卡（范围/ETF/起止/本金/单注/仓位/门限/止损/吊灯），懒加载 data/v11-bt-data.json，出 KPI+SVG 净值/持仓曲线+分标的+逐笔；③赔率门限全链路统一 2.50；④v11FmtMoney 负数改 -¥；⑤曲线用原生 SVG，避免 canvas 在截图/部分环境不显示。 --><!-- fw2_v1120_v11_rows_removed：V11 狙击逐只执行行从交易信号页删除，V11 只保留策略执行入口 --><!-- fw2_v1096_dd_search（用户「继续」）：①全指数监测卡加「搜索」（代码/名称，只过滤本表显示，分档 chips 计数与已选组合不受影响；输入时保存 ST.q 并重画、回填焦点与滚动位置）②组合池加「全选境内 59」「恢复默认（宽基）」（境外永远不进池）③脚注的境外名单由数据现算（原来写死 4 个名字，加池就会过期）④gen_index_dd 去掉冗余 count.night，gen_index_val 的蛋卷 asof 不再写死 2026 年 --><!-- fw2_v1097_dd_sort_valref（用户「继续」，承接 v1096 挂账）：①全指数监测卡加「排序」开关——回撤深→浅（默认）/ 名称 A→Z，只换本表顺序，分档计数与已选组合不变；②估值卡加「同类别对照」小表——全部 / 宽基 / 行业 / 主题 / 境外五行的 PE 分位中位、PB 分位中位、价格分位中位，并列出该类别里 PE 分位最低的一只；③两处都只用既有 index-dd / index-val 数据，不引入新源（v1096 已证伪的三条补源路仍挂账）。 --><!-- fw2_v1098_dd_n2_sort（用户「继续完成」，收口 v1097「下一步候选」三件）：①估值「同类别对照」由 6 列扩到 8 列——补「股息率中位」与「PB 分位最低的一只」（与 PE 最低同口径：只统计有该分位的只数，空组回 —）；②监测卡加「快捷」行——「距下档 ≤2pp」一键筛选（ST.n2 与类别 / 分档 / 搜索四者可叠加，chips 计数仍按类别全集，不受搜索与快捷键影响）；③方案卡「进入买入区」表跟随 ST.sort（默认回撤深→浅，切名称后同监测卡拼音序）；④仍不引入新源。 --><!-- fw2_v1099_dd_pickcat_relcat（用户「继续」，收口 v1098「下一步候选」三件）：①组合池加按类别批量勾选——宽基 / 行业 / 主题三个按钮各显示「已选/总数」，全选后再点即取消该类（不碰境外）；②估值主表加「相对同类」列——本只 PE 分位 − 同类别 PE 分位中位（pp，负＝比同类便宜），只在双方都有分位时显示；③跨档卡跟随监测卡类别筛选（ST.fcat），计数、「展开全部 N 只」与空态都按当前类别；④仍不引入新源。 --><!-- fw2_v1100_dd_bksum_cheap_vsort（用户「继续」，收口 v1099「下一步候选」三件）：①监测卡加「按回撤分档汇总」表——6 档的只数 / 平均回撤 / 该档最深一只 / 距下档 ≤2pp 只数 / 已进买入区只数，按当前类别统计、不受搜索与快捷影响；②组合池加「只选便宜一半」——按同类别 PE 分位中位分界，只选低于中位的（无分位不入选，口径写进按钮 title）；③估值主表「相对同类」表头可点击排序，三态循环：默认（回撤深→浅）→ 便宜在前 → 贵在前，无分位的行恒排最后；④ddTbl 扩一个可选 th 属性位（backward compatible），中位数抽成模块级 medOf 单一实现；⑤仍不引入新源。 --><!-- fw2_v1076_conflicts（用户 2026-11-23「按照你顺序修」——修掉体检出的 5 处纲领冲突）：
 ①R7 带宽：撤销 v1067 的 `o.band = o.slotBand` 强镜像；band 只喂 R7（单只超配 25% 减配，SIG_THR_DEF 5→25、与回测 cfg.band 同值），slotBand 只喂 T10 四档；sigThrApply 分别写 C.barbell.band / C.barbell.slotBand，T10 文案改读 slotBand，R7 行 threshold 由硬编码「band 25%」改为动态读纲领值。
 ②R2 假开关：`_planCfg()` 读 `window.logicStateEff('R2')`——生效按 investMode，观察/关一律 lump（月投 0）；建仓步文案在一次性时追加「R2 定投＝关/观察」。
 ③T4 与 R6 双份：T4 行 modeled 改「与 R6 止损同一执行（同一 slHard）」，def 标「= R6 止损，同一动作」，阈值表 slHard 口径写「T4 / R6 · 同一执行」。
@@ -17289,7 +17289,7 @@ function v11SignalHtml() {
     : '';
   const head = '<div class="card dc-card"><div class="dc-hd"><b style="font-size:14px">V11 狙击 · 全池扫描（宽基 / 跨境 ETF）</b>'
     + '<span class="dc-dir ' + (readyN ? 't-pos' : 't-neu') + '">' + readyN + ' 只就绪 · ' + watchN + ' 只观望</span></div>'
-    + '<div class="dc-src">' + esc(m.note || '') + ' · 数据源 ' + esc(m.source || '—') + ' · 数据日 ' + esc(m.asOf || '—') + ' · 更新 ' + esc(m.generatedAt || '—') + ' · 表中「门限」为数据文件自带值' + thrNote + '</div>';
+    + '<div class="dc-src">' + esc(m.note || '') + ' · 数据源 ' + esc(m.source || '—') + ' · 数据日 ' + esc(m.asOf || '—') + ' · 更新 ' + esc(m.generatedAt || '—') + ' · 扫描/策略/回测统一按 ≥' + (scanThr != null ? scanThr.toFixed(2) : '2.50') + thrNote + '</div>';
   if (!sigs.length) {
     return head + '<div class="dc-body"><div class="empty st st-empty">V11 策略扫描暂无数据（管线未刷新或全部取数失败）。</div></div></div>';
   }
@@ -17402,21 +17402,424 @@ function v11StrategyHtml() {
   return '<div class="card dc-card">'
     + '<div class="dc-hd"><b style="font-size:14px">V11 狙击 · 策略本体</b><span class="dc-dir t-neu">独立仓位池 · 不占 11 只目标权重</span></div>'
     + '<div class="dc-src">这不是一条筛选提示：它有独立的资金池、单注上限、止损与吊灯退出；交易信号页不再列 V11 逐只执行行，策略口径与样本外验证集中在本页。</div>'
-    + '<div class="sh-grid" style="margin-top:8px;grid-template-columns:repeat(auto-fit,minmax(118px,1fr));gap:8px">'
+    + '<div class="v11-kpi">'
     + '<div class="sh-cell"><div class="k">策略预算</div><div class="v">' + money(total) + '</div></div>'
     + '<div class="sh-cell"><div class="k">狙击池 · ' + pct + '%</div><div class="v">' + money(pool) + '</div></div>'
     + '<div class="sh-cell"><div class="k">单注 · 池 ' + betPct + '%</div><div class="v">' + money(bet) + '</div></div>'
     + '<div class="sh-cell"><div class="k">最多同时持仓</div><div class="v">' + maxN + ' 仓</div></div>'
     + '<div class="sh-cell"><div class="k">赔率门限</div><div class="v">≥' + odd.toFixed(2) + '</div></div>'
     + '</div>'
-    + '<div class="dc-src" style="margin-top:8px">执行规则：赔率＝前高空间 ÷ 3×ATR14，≥' + odd.toFixed(2) + ' 才买一注；单注＝池 ' + betPct + '%、最多 ' + maxN + ' 仓；止损 3×ATR，浮盈 20% 后吊灯＝持仓峰值×0.85。全池扫描表里的「门限」取 v11-signal.json 自带值，扫描结果以逐行门限为准。</div>'
-    + '<div class="dc-src" style="margin-top:4px">执行开关与历史组合回测在「配置回测」的「V11 狙击」项；下方样本外统计只验证信号是否兑现，不替代组合回测，也不等同于已成交。</div>'
+    + '<div class="dc-src" style="margin-top:8px">执行规则：赔率＝前高空间 ÷ 熊市回撤腿（回看窗口内最低收盘相对现价），≥' + odd.toFixed(2) + ' 才买一注；单注＝池 ' + betPct + '%、最多 ' + maxN + ' 仓；止损 3×ATR，浮盈 20% 后吊灯＝持仓峰值×0.85。全池扫描、策略卡与配置回测统一按 ≥' + odd.toFixed(2) + '；2026-11-25 前的历史快照可能保留旧门限 2.00。</div>'
+    + '<div class="dc-src" style="margin-top:4px">执行开关与历史组合回测在「配置回测」的「V11 狙击」项；下方「运行回测」只验证本策略的狙击仓规则（不含底仓/定投），样本外统计只验证信号是否兑现，都不等同于已成交。</div>'
     + '</div>';
 }
+/* fw2_v1121_v11_run：V11 狙击「运行回测」模块（2026-11-25 用户「V11 狙击加入深跌买入一样的运行回测模块」）。
+   口径：只回测 V11 狙击仓，不含 30% 底仓 / 月度定投；默认按策略页 5 万预算 × 5%=2,500 狙击池、单注 625、最多 4 仓。
+   信号：与 v11-signal.json 同源——前高空间 / 熊市回撤腿（回看 1260 根 K 的窗口最低收盘），≥门限才买；
+   止损 3×ATR（20 日），浮盈 20% 后吊灯=持仓峰值×0.85；申购 0.15%、赎回 0.5%、空仓现金按 2.25% 年化计息。
+   数据：data/v11-bt-data.json（gen_v11_bt_data.py 产，15 只 ETF OHLC）；首次点运行才懒加载。 */
+var V11_POOL15 = [
+  ['510300', '沪深300ETF'], ['510500', '中证500ETF'], ['159949', '创业板50ETF'],
+  ['510050', '上证50ETF'], ['588000', '科创50ETF'], ['510880', '红利ETF'],
+  ['513100', '纳指ETF'], ['513520', '日经ETF'], ['563360', 'A500ETF'],
+  ['518880', '黄金ETF'], ['159201', '自由现金流ETF'], ['513500', '标普500ETF'],
+  ['513050', '中概互联ETF'], ['513180', '恒生科技ETF'], ['512100', '中证1000ETF']
+];
+var V11BT_DEF = {
+  scope: 'pool', code: '510300', from: '2021-01-01', to: '',
+  capital: 2500, perBet: 625, maxN: 4, odds: 2.5,
+  lookback: 1260, atrW: 20, stopMult: 3, trailGain: 0.20, trailExit: 0.85,
+  subFee: 0.0015, redFee: 0.005, cashYield: 0.0225
+};
+function v11BtCfg() {
+  if (!window.__V11BT_CFG__) {
+    var c = {};
+    Object.keys(V11BT_DEF).forEach(function (k) { c[k] = V11BT_DEF[k]; });
+    window.__V11BT_CFG__ = c;
+  }
+  return window.__V11BT_CFG__;
+}
+function v11Set(k, v) {
+  var c = v11BtCfg();
+  if (k === 'scope' || k === 'code' || k === 'from' || k === 'to') c[k] = v;
+  else { var x = +v; if (isFinite(x)) c[k] = x; }
+}
+function v11FmtMoney(n) {
+  if (n == null || !isFinite(n)) return '—';
+  var a = Math.abs(Math.round(n)).toLocaleString('en-US');
+  return (n < 0 ? '-¥' : '¥') + a;
+}
+function v11FmtPct(n, d) {
+  if (n == null || !isFinite(n)) return '—';
+  return (n >= 0 ? '+' : '') + n.toFixed(d == null ? 2 : d) + '%';
+}
+function v11RunCardHtml() {
+  var c = v11BtCfg();
+  var opts = V11_POOL15.map(function (x) {
+    return '<option value="' + x[0] + '"' + (c.code === x[0] ? ' selected' : '') + '>' + x[0] + ' ' + x[1] + '</option>';
+  }).join('');
+  var fld = function (k, label, attrs) {
+    return '<label>' + label + '<input data-v11bt="' + k + '" ' + (attrs || '') + ' value="' + (c[k] == null ? '' : c[k]) + '"></label>';
+  };
+  return '<div class="card dc-card" id="v11RunCard">'
+    + '<div class="dc-hd"><b style="font-size:14px">V11 狙击 · 运行回测</b><span class="dc-dir t-neu">只回测狙击仓 · 不含底仓/定投</span></div>'
+    + '<div class="dc-src">默认按策略页口径：狙击池 ' + v11FmtMoney(c.capital) + '（5 万 × 5%）、单注 ' + v11FmtMoney(c.perBet) + '、最多 ' + c.maxN + ' 仓；只回测赔率触发后的狙击仓，不含 30% 底仓与月度定投。首次运行才载入 15 只 ETF 日线包（约 1MB），不预载。</div>'
+    + '<div class="v11-form">'
+    + '<label>回测范围<select data-v11bt="scope"><option value="pool"' + (c.scope === 'pool' ? ' selected' : '') + '>全池 15 只（共用资金）</option><option value="single"' + (c.scope === 'single' ? ' selected' : '') + '>单只 ETF</option></select></label>'
+    + '<label id="v11CodeField">ETF（单只时生效）<select data-v11bt="code"' + (c.scope === 'pool' ? ' disabled' : '') + '>' + opts + '</select></label>'
+    + fld('from', '开始日期', 'type="date"')
+    + fld('to', '结束日期（留空=最新）', 'type="date"')
+    + fld('capital', '狙击池本金（元）', 'type="number" min="100" step="100"')
+    + fld('perBet', '单注金额（元）', 'type="number" min="100" step="50"')
+    + fld('maxN', '最多同时持仓', 'type="number" min="1" max="10" step="1"')
+    + fld('odds', '赔率门限', 'type="number" min="0.5" max="10" step="0.05"')
+    + fld('stopMult', '止损 × ATR', 'type="number" min="1" max="8" step="0.5"')
+    + fld('trailGain', '吊灯激活浮盈', 'type="number" min="0" max="2" step="0.05" title="浮盈达到 20% 后启动吊灯"')
+    + fld('trailExit', '吊灯回撤', 'type="number" min="0.5" max="0.99" step="0.01" title="0.85 = 峰值×85%"')
+    + '</div>'
+    + '<div class="v11-actions"><button class="v11-run" type="button" data-v11bt-run>▷ 运行回测</button><span class="v11-msg" id="v11RunMsg">回看 ' + c.lookback + ' 根 K · ATR ' + c.atrW + ' 日 · 申购 0.15% / 赎回 0.5% / 现金 2.25%</span></div>'
+    + '<div id="v11BtResult">' + v11BtPlaceholder() + '</div>'
+    + '</div>';
+}
+function v11BtPlaceholder() {
+  return '<div class="v11-note">点「▷ 运行回测」出结果。默认区间 2021-01-01 至最新数据日；全池 15 只共用资金，单只时最多 1 仓。结果含 KPI、净值曲线、分标的与逐笔。'
+    + '回测是历史实验，不读取真实买卖记录，也不代表实盘收益。</div>';
+}
+function v11DayNum(s, base) {
+  var m = /^(\d{4})-(\d{2})-(\d{2})/.exec(s || '');
+  if (!m) return null;
+  var t = Date.UTC(+m[1], +m[2] - 1, +m[3]) - Date.UTC(base[0], base[1] - 1, base[2]);
+  return Math.round(t / 86400000);
+}
+function v11DateStr(day, base) {
+  var t = Date.UTC(base[0], base[1] - 1, base[2]) + day * 86400000;
+  var d = new Date(t);
+  var mm = String(d.getUTCMonth() + 1).padStart(2, '0');
+  var dd = String(d.getUTCDate()).padStart(2, '0');
+  return d.getUTCFullYear() + '-' + mm + '-' + dd;
+}
+function v11Prep(D, cfg) {
+  var base = (D.meta.base || '2015-01-01').split('-').map(Number);
+  var out = { base: base, codes: [], p: {}, allDays: [], seen: {} };
+  var lb = Math.max(20, Math.round(+cfg.lookback || 1260));
+  var aw = Math.max(2, Math.round(+cfg.atrW || 20));
+  Object.keys(D.series || {}).forEach(function (code) {
+    var s = D.series[code], rows = s.rows || [], m = rows.length;
+    var days = [], o = [], h = [], l = [], c = [];
+    for (var i = 0; i < m; i++) {
+      var r = rows[i];
+      days.push(r[0]); o.push(r[1]); h.push(r[2]); l.push(r[3]); c.push(r[4]);
+      if (!out.seen[r[0]]) { out.seen[r[0]] = 1; out.allDays.push(r[0]); }
+    }
+    var byDay = {};
+    for (var j = 0; j < m; j++) byDay[days[j]] = j;
+    var tr = new Array(m);
+    for (var k = 0; k < m; k++) {
+      tr[k] = k === 0 ? (h[k] - l[k]) : Math.max(h[k] - l[k], Math.abs(h[k] - c[k - 1]), Math.abs(l[k] - c[k - 1]));
+    }
+    var ps = new Array(m + 1); ps[0] = 0;
+    for (var q = 0; q < m; q++) ps[q + 1] = ps[q] + tr[q];
+    var atr = new Array(m).fill(NaN);
+    for (var a = aw - 1; a < m; a++) atr[a] = (ps[a + 1] - ps[a - aw + 1]) / aw;
+    var peak = new Array(m).fill(NaN), trough = new Array(m).fill(NaN);
+    var maxQ = [], minQ = [], hmx = 0, hmn = 0;
+    for (var b = 1; b < m; b++) {
+      while (maxQ.length > hmx && c[maxQ[maxQ.length - 1]] <= c[b - 1]) maxQ.pop();
+      maxQ.push(b - 1);
+      while (maxQ[hmx] < b - lb) hmx++;
+      while (minQ.length > hmn && c[minQ[minQ.length - 1]] >= c[b - 1]) minQ.pop();
+      minQ.push(b - 1);
+      while (minQ[hmn] < b - lb) hmn++;
+      if (b >= lb) { peak[b] = c[maxQ[hmx]]; trough[b] = c[minQ[hmn]]; }
+    }
+    var odds = new Array(m).fill(NaN), sig = new Array(m).fill(false);
+    for (var z = lb; z < m; z++) {
+      var now = c[z], up = (peak[z] - now) / now;
+      var leg = (now - trough[z]) / now;
+      odds[z] = leg > 0 ? up / leg : (up > 0 ? 1e9 : 0);
+      sig[z] = isFinite(odds[z]) && odds[z] >= (+cfg.odds || 2.5) && atr[z] > 0;
+    }
+    out.codes.push(code);
+    out.p[code] = { name: s.name || code, days: days, o: o, h: h, l: l, c: c, atr: atr, odds: odds, sig: sig, byDay: byDay, lastK: -1, lastClose: null, m: m };
+  });
+  out.allDays.sort(function (a, b) { return a - b; });
+  return out;
+}
+function v11Calc(D, cfg, scope, oneCode) {
+  var P = v11Prep(D, cfg);
+  var base = P.base;
+  var capital = +cfg.capital, perBet = +cfg.perBet;
+  if (!(capital > 0)) return { err: '狙击池本金必须大于 0' };
+  if (!(perBet > 0)) return { err: '单注金额必须大于 0' };
+  if (perBet > capital) return { err: '单注金额不能大于狙击池本金（否则一笔都买不进）' };
+  var codes = scope === 'single' ? [oneCode] : P.codes.slice();
+  codes = codes.filter(function (c) { return P.p[c]; });
+  if (!codes.length) return { err: '所选 ETF 不在日线包内' };
+  var fromDay = v11DayNum(cfg.from, base);
+  var toDay = v11DayNum(cfg.to, base);
+  var minDay = Infinity, maxDay = -Infinity;
+  codes.forEach(function (c) {
+    var s = P.p[c]; minDay = Math.min(minDay, s.days[0]); maxDay = Math.max(maxDay, s.days[s.m - 1]);
+  });
+  if (fromDay == null || fromDay < minDay) fromDay = minDay;
+  if (toDay == null || toDay > maxDay) toDay = maxDay;
+  if (fromDay > toDay) return { err: '开始日期晚于结束日期（或区间内无数据）' };
+  var maxN = scope === 'single' ? 1 : Math.max(1, Math.round(+cfg.maxN || 4));
+  var stopMult = +cfg.stopMult || 3, tg = +cfg.trailGain || 0.20, te = +cfg.trailExit || 0.85;
+  var subFee = +cfg.subFee || 0, redFee = +cfg.redFee || 0, cy = +cfg.cashYield || 0;
+  var cash = capital, positions = {}, trades = [], curve = [];
+  var stats = { sig: 0, buys: 0, closed: 0, invested: 0, winN: 0, sumWin: 0, sumLoss: 0, trig: {}, by: {} };
+  codes.forEach(function (c) {
+    stats.by[c] = { code: c, name: P.p[c].name, sig: 0, buys: 0, closed: 0, pnl: 0, openN: 0, openMv: 0, last: null };
+  });
+  function stat(code) { return stats.by[code]; }
+  function exitPos(code, px, reason, day) {
+    var pos = positions[code]; if (!pos) return;
+    var proceeds = pos.shares * px * (1 - redFee);
+    cash += proceeds;
+    var pnl = proceeds - pos.bet;
+    trades.push({ code: code, name: P.p[code].name, entryDay: pos.entryDay, exitDay: day, entryPx: pos.entryPx, exitPx: px, odds: pos.entryOdds, bet: pos.bet, pnl: pnl, pct: (px / pos.entryPx - 1) * 100, days: day - pos.entryDay, reason: reason, open: false });
+    stats.closed++; stat(code).closed++; stat(code).pnl += pnl;
+    if (pnl > 0) { stats.winN++; stats.sumWin += pnl; } else { stats.sumLoss += Math.abs(pnl); }
+    delete positions[code];
+  }
+  for (var di = 0; di < P.allDays.length; di++) {
+    var day = P.allDays[di];
+    if (day < fromDay || day > toDay) continue;
+    var today = {};
+    codes.forEach(function (c) {
+      var s = P.p[c], k = s.byDay[day];
+      if (k != null) { s.lastK = k; s.lastClose = s.c[k]; today[c] = k; }
+    });
+    Object.keys(positions).forEach(function (c) {
+      var s = P.p[c], px = s.lastClose; if (px == null) return;
+      var pos = positions[c];
+      if (px > pos.peak) pos.peak = px;
+      if (px <= pos.stop) { exitPos(c, px, '止损 ' + stopMult + '×ATR', day); return; }
+      if (pos.peak >= pos.entryPx * (1 + tg)) pos.trailActive = true;
+      if (pos.trailActive && px <= pos.peak * te) { exitPos(c, px, '吊灯 峰值×' + te.toFixed(2), day); return; }
+    });
+    var cand = [];
+    codes.forEach(function (c) {
+      var s = P.p[c], k = today[c];
+      if (k == null) return;
+      if (s.sig[k]) { stats.sig++; stat(c).sig++; }
+      if (!positions[c] && s.sig[k]) cand.push({ code: c, k: k, odds: s.odds[k] });
+    });
+    var slots = maxN - Object.keys(positions).length;
+    if (slots > 0 && cand.length) {
+      cand.sort(function (a, b) { return b.odds - a.odds; });
+      for (var ci = 0; ci < cand.length && slots > 0; ci++) {
+        if (cash < perBet) break;
+        var cc = cand[ci].code, kk = cand[ci].k, s2 = P.p[cc], px2 = s2.c[kk];
+        var bet = perBet, shares = bet / (px2 * (1 + subFee));
+        cash -= bet;
+        positions[cc] = { shares: shares, bet: bet, entryPx: px2, entryDay: day, entryOdds: s2.odds[kk], entryAtr: s2.atr[kk], stop: px2 - stopMult * s2.atr[kk], peak: px2, trailActive: false };
+        stats.buys++; stats.invested += bet; stats.trig[cc] = 1; stat(cc).buys++;
+        slots--;
+      }
+    }
+    if (cy) cash *= (1 + cy / 252);
+    var pv = 0;
+    Object.keys(positions).forEach(function (c) { var s = P.p[c]; if (s.lastClose != null) pv += positions[c].shares * s.lastClose; });
+    curve.push({ d: v11DateStr(day, base), eq: cash + pv, pos: pv });
+  }
+  Object.keys(positions).forEach(function (c) {
+    var s = P.p[c], pos = positions[c], px = s.lastClose;
+    if (px == null) return;
+    var mv = pos.shares * px;
+    trades.push({ code: c, name: s.name, entryDay: pos.entryDay, exitDay: null, entryPx: pos.entryPx, exitPx: px, odds: pos.entryOdds, bet: pos.bet, pnl: mv - pos.bet, pct: (px / pos.entryPx - 1) * 100, days: (toDay - pos.entryDay), reason: '期末在仓', open: true });
+    stat(c).openN++; stat(c).openMv += mv;
+    stat(c).last = px;
+  });
+  var final = curve.length ? curve[curve.length - 1].eq : capital;
+  var pnl = final - capital;
+  var peakEq = -Infinity, mdd = 0, sumPos = 0, maxPos = 0;
+  curve.forEach(function (p) {
+    if (p.eq > peakEq) peakEq = p.eq;
+    var dd = peakEq > 0 ? (peakEq - p.eq) / peakEq * 100 : 0;
+    if (dd > mdd) mdd = dd;
+    var r = p.eq > 0 ? p.pos / p.eq * 100 : 0;
+    sumPos += r; if (r > maxPos) maxPos = r;
+  });
+  var years = (toDay - fromDay) / 365.25;
+  var cagr = years >= 1 && final > 0 ? (Math.pow(final / capital, 1 / years) - 1) * 100 : null;
+  var win = stats.closed ? stats.winN / stats.closed * 100 : null;
+  var payoff = (stats.winN && (stats.closed - stats.winN) && stats.sumLoss > 0) ? (stats.sumWin / stats.winN) / (stats.sumLoss / (stats.closed - stats.winN)) : null;
+  var avgPos = curve.length ? sumPos / curve.length : 0;
+  var eligible = codes.filter(function (c) { var s = P.p[c]; return s.lastK >= (+cfg.lookback || 1260); }).length;
+  return {
+    scope: scope, oneCode: oneCode, from: v11DateStr(fromDay, base), to: v11DateStr(toDay, base),
+    capital: capital, perBet: perBet, maxN: maxN, odds: +cfg.odds, stopMult: stopMult, tg: tg, te: te,
+    final: final, pnl: pnl, ret: final / capital * 100 - 100, cagr: cagr, years: years, mdd: mdd, win: win, payoff: payoff,
+    avgPos: avgPos, maxPos: maxPos, buys: stats.buys, closed: stats.closed, sigN: stats.sig,
+    openN: Object.keys(positions).length, trigN: Object.keys(stats.trig).length,
+    poolN: codes.length, eligible: eligible, trades: trades, curve: curve,
+    byCode: stats.by, codes: codes, base: base
+  };
+}
+function v11DrawChart(R) {
+  var el = document.getElementById('v11BtChart');
+  if (!el) return;
+  try {
+    window.__V11BT_CHART__ = null;
+    var pts = (R && R.curve) ? R.curve : [];
+    if (!pts.length) { el.innerHTML = '<div class="v11-note">暂无净值曲线</div>'; return; }
+    var W = Math.max(320, Math.round(el.clientWidth || 1114)), H = 230;
+    var L = 46, RT = 14, T = 24, B = 28;
+    var iw = W - L - RT, ih = H - T - B;
+    var vals = [];
+    pts.forEach(function (p) { vals.push(+p.eq || 0); vals.push(+p.pos || 0); });
+    var mn = Math.min.apply(null, vals), mx = Math.max.apply(null, vals);
+    if (!isFinite(mn) || !isFinite(mx) || mx <= mn) { mn = 0; mx = 1; }
+    var pad = (mx - mn) * 0.06 || 1;
+    mn -= pad; mx += pad;
+    var X = function (i) { return L + (pts.length <= 1 ? iw / 2 : iw * i / (pts.length - 1)); };
+    var Y = function (v) { return T + ih - (ih * ((+v || 0) - mn) / (mx - mn)); };
+    var fmt = function (v) { v = +v || 0; return v >= 10000 ? (v / 10000).toFixed(1) + '万' : Math.round(v).toLocaleString('en-US'); };
+    var svg = [];
+    svg.push('<svg xmlns="http://www.w3.org/2000/svg" width="' + W + '" height="' + H + '" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="V11 狙击回测账户净值与持仓市值">');
+    svg.push('<rect x="0" y="0" width="' + W + '" height="' + H + '" fill="#FFFFFF"/>');
+    for (var g = 0; g <= 4; g++) {
+      var gy = T + ih * g / 4, gv = mx - (mx - mn) * g / 4;
+      svg.push('<line x1="' + L + '" y1="' + gy.toFixed(1) + '" x2="' + (W - RT) + '" y2="' + gy.toFixed(1) + '" stroke="#F1F0EC" stroke-width="1"/>');
+      svg.push('<text x="' + (L - 6) + '" y="' + (gy + 3).toFixed(1) + '" text-anchor="end" font-size="9" fill="#71717A">' + fmt(gv) + '</text>');
+    }
+    var eqP = pts.map(function (p, i) { return X(i).toFixed(1) + ',' + Y(p.eq).toFixed(1); }).join(' ');
+    var pvP = pts.map(function (p, i) { return X(i).toFixed(1) + ',' + Y(p.pos).toFixed(1); }).join(' ');
+    var areaP = X(0).toFixed(1) + ',' + (T + ih).toFixed(1) + ' ' + eqP + ' ' + X(pts.length - 1).toFixed(1) + ',' + (T + ih).toFixed(1);
+    svg.push('<polygon points="' + areaP + '" fill="#1f4fd8" fill-opacity="0.06" stroke="none"/>');
+    svg.push('<polyline points="' + eqP + '" fill="none" stroke="#1f4fd8" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>');
+    svg.push('<polyline points="' + pvP + '" fill="none" stroke="#D97706" stroke-width="1.2" stroke-dasharray="5 3" stroke-linejoin="round" stroke-linecap="round"/>');
+    var step = Math.max(1, Math.ceil(pts.length / 6));
+    for (var i = 0; i < pts.length; i += step) {
+      var lab = String(pts[i].d || ''); lab = lab.length >= 7 ? lab.slice(2, 7) : lab;
+      svg.push('<text x="' + X(i).toFixed(1) + '" y="' + (H - 9) + '" text-anchor="middle" font-size="9" fill="#71717A">' + esc(lab) + '</text>');
+    }
+    svg.push('<line x1="' + L + '" y1="' + T + '" x2="' + (W - RT) + '" y2="' + T + '" stroke="#E4E4E7" stroke-width="1"/>');
+    svg.push('<line x1="' + L + '" y1="' + (T + ih) + '" x2="' + (W - RT) + '" y2="' + (T + ih) + '" stroke="#E4E4E7" stroke-width="1"/>');
+    var lx = Math.max(L, W - RT - 210);
+    svg.push('<line x1="' + lx + '" y1="7" x2="' + (lx + 16) + '" y2="7" stroke="#1f4fd8" stroke-width="1.6"/><text x="' + (lx + 22) + '" y="10" font-size="10" fill="#52525B">账户总资产</text>');
+    svg.push('<line x1="' + (lx + 82) + '" y1="7" x2="' + (lx + 98) + '" y2="7" stroke="#D97706" stroke-width="1.2" stroke-dasharray="5 3"/><text x="' + (lx + 104) + '" y="10" font-size="10" fill="#52525B">持仓市值</text>');
+    svg.push('</svg>');
+    el.innerHTML = svg.join('');
+  } catch (e) { if (window.console) console.error('[v11btchart]', e); }
+}
+function v11BtResultHtml(R) {
+  if (!R) return v11BtPlaceholder();
+  if (R.err) return '<div class="v11-note" style="color:#A32D2D">' + esc(R.err) + '</div>';
+  var money = v11FmtMoney;
+  var kpi = function (k, v, s, col) {
+    return '<div class="v11-rkc"><div class="k">' + k + '</div><div class="v" style="color:' + (col || 'var(--text)') + '">' + v + '</div><div class="s">' + (s || '') + '</div></div>';
+  };
+  var cagr = R.cagr == null ? '<span style="font-size:11px;color:#71717A">不足1年</span>' : v11FmtPct(R.cagr, 2);
+  var byRows = Object.keys(R.byCode).filter(function (c) { return R.byCode[c].buys || R.byCode[c].sig; }).map(function (c) {
+    var b = R.byCode[c], cls = b.pnl >= 0 ? 'color:#b91c1c' : 'color:#047857';
+    return '<tr><td>' + esc(b.code) + ' <span style="color:#71717A">' + esc(b.name) + '</span></td>'
+      + '<td class="num">' + b.sig + '</td><td class="num">' + b.buys + '</td><td class="num">' + b.closed + '</td>'
+      + '<td class="num" style="' + cls + '">' + (b.pnl ? (b.pnl >= 0 ? '+' : '') + money(b.pnl) : '—') + '</td>'
+      + '<td class="num">' + b.openN + '</td><td class="num">' + (b.openMv ? money(b.openMv) : '—') + '</td></tr>';
+  }).join('');
+  var maxTrades = 160;
+  var shown = R.trades.slice().sort(function (a, b) { return (b.entryDay || 0) - (a.entryDay || 0); }).slice(0, maxTrades);
+  var trs = shown.map(function (t) {
+    var cls = t.pnl >= 0 ? 'color:#b91c1c' : 'color:#047857';
+    var dt = function (n) { return n == null ? '在仓' : v11DateStr(n, R.base); };
+    return '<tr><td>' + esc(t.code) + ' <span style="color:#71717A">' + esc(t.name) + '</span></td>'
+      + '<td>' + dt(t.entryDay) + '</td><td class="num">' + (t.odds >= 1e9 ? '∞' : t.odds.toFixed(2)) + '</td>'
+      + '<td class="num">' + t.entryPx.toFixed(3) + '</td><td class="num">' + money(t.bet || R.perBet) + '</td>'
+      + '<td>' + dt(t.exitDay) + '</td><td class="num">' + t.exitPx.toFixed(3) + '</td>'
+      + '<td class="num" style="' + cls + '">' + (t.pnl >= 0 ? '+' : '') + money(t.pnl) + '</td>'
+      + '<td class="num">' + t.days + '</td><td>' + esc(t.reason) + '</td></tr>';
+  }).join('');
+  return '<div style="margin-top:6px"><div style="display:flex;align-items:baseline;gap:8px;flex-wrap:wrap"><b style="font-size:13px">回测结果</b><span style="font-size:10.5px;color:#71717A">' + R.from + ' → ' + R.to + ' · ' + (R.scope === 'single' ? '单只 ' + esc(R.oneCode) : '全池 ' + R.poolN + ' 只') + ' · 每注 ' + money(R.perBet) + ' · 门限 ≥' + (+R.odds).toFixed(2) + '</span></div>'
+    + '<div class="v11-rk">'
+    + kpi('期末总资产', money(R.final), '本金 ' + money(R.capital) + ' · 在仓 ' + R.openN + ' 笔')
+    + kpi('累计盈亏', (R.pnl >= 0 ? '+' : '') + money(R.pnl), '账户口径 ' + v11FmtPct(R.ret, 2), R.pnl >= 0 ? '#b91c1c' : '#047857')
+    + kpi('账户年化', cagr, '总资金口径 · ' + R.years.toFixed(2) + ' 年', R.cagr != null && R.cagr >= 0 ? '#b91c1c' : '#047857')
+    + kpi('最大回撤', '-' + R.mdd.toFixed(2) + '%', '账户净值从峰值回落', '#047857')
+    + kpi('已结束胜率', R.win == null ? '—' : R.win.toFixed(1) + '%', R.closed + ' 笔已平仓', '')
+    + kpi('已结束赔率', R.payoff == null ? '—' : R.payoff.toFixed(2), '均盈 / 均亏', R.payoff != null && R.payoff >= 1 ? '#b91c1c' : '#047857')
+    + kpi('买入 / 平仓', R.buys + ' / ' + R.closed, '在仓 ' + R.openN + ' 笔', '')
+    + kpi('信号 / 触发', R.sigN + ' / ' + R.trigN + ' 只', '有效标的 ' + R.eligible + '/' + R.poolN, '')
+    + kpi('平均仓位', R.avgPos.toFixed(2) + '%', '最高 ' + R.maxPos.toFixed(2) + '%', '')
+    + '</div>'
+    + '<div id="v11BtChart"></div>'
+    + '<div class="v11-note">蓝线＝账户总资产，橙色虚线＝持仓市值。默认口径只回测狙击仓：不含 30% 底仓、不含月度定投；现金按 2.25% 年化计息，申购 0.15%、赎回 0.5%。信号日按收盘价成交，存在收盘执行假设。</div>'
+    + (R.scope === 'pool' && byRows ? '<div style="font-size:11.5px;color:#52525B;margin:7px 0 2px">分标的信号与盈亏</div><div class="v11-tblwrap"><table class="v11-tbl"><thead><tr><th>标的</th><th class="num">信号</th><th class="num">买入</th><th class="num">平仓</th><th class="num">已实现盈亏</th><th class="num">在仓</th><th class="num">在仓市值</th></tr></thead><tbody>' + byRows + '</tbody></table></div>' : '')
+    + '<div style="font-size:11.5px;color:#52525B;margin:7px 0 2px">逐笔交易（最近 ' + shown.length + ' 笔' + (R.trades.length > shown.length ? ' / 共 ' + R.trades.length + ' 笔' : '') + '）</div>'
+    + '<div class="v11-tblwrap"><table class="v11-tbl"><thead><tr><th>标的</th><th>买入日</th><th class="num">进场赔率</th><th class="num">买入价</th><th class="num">金额</th><th>卖出日</th><th class="num">卖出价</th><th class="num">盈亏</th><th class="num">天数</th><th>原因</th></tr></thead><tbody>' + trs + '</tbody></table></div>'
+    + '<div class="v11-note">回测是独立历史实验：不读取、不合并真实买卖记录，也不代表实盘收益。赔率门限 2.50 是「前高空间 / 熊市回撤腿」的倍数门限，不是胜率保证；空仓等待是 V11 常态。</div>'
+    + '</div>';
+}
+function v11LoadBtData(cb) {
+  var msg = document.getElementById('v11RunMsg');
+  if (msg) msg.textContent = '载入 15 只 ETF 日线包（约 1MB）…';
+  var btn = document.querySelector('#stp-v11 [data-v11bt-run]');
+  if (btn) btn.disabled = true;
+  var done = function (j) {
+    if (!j || !j.series) throw new Error('日线包格式不符');
+    window.__V11BT_DATA__ = j;
+    if (msg) msg.textContent = '日线包已载入：' + (j.meta && j.meta.count ? j.meta.count : Object.keys(j.series).length) + ' 只 · 截至 ' + ((j.meta && j.meta.asOf) || '—');
+    if (btn) btn.disabled = false;
+    if (cb) cb();
+  };
+  fetch('./data/v11-bt-data.json', { cache: 'no-store' })
+    .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+    .then(done)
+    .catch(function () {
+      fetch('https://raw.githubusercontent.com/andylauxiaoyang/investment-workbench/master/caifu/data/v11-bt-data.json', { cache: 'no-store' })
+        .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+        .then(done)
+        .catch(function (e) {
+          if (btn) btn.disabled = false;
+          if (msg) msg.textContent = '日线包加载失败：' + (e && e.message);
+          var host = document.getElementById('v11BtResult');
+          if (host) host.innerHTML = '<div class="v11-note" style="color:#A32D2D">日线包加载失败（' + esc(e && e.message) + '）。先跑 <code>python gen_v11_bt_data.py</code> 生成 data/v11-bt-data.json 再刷新。</div>';
+        });
+    });
+}
+function v11Run() {
+  if (!window.__V11BT_DATA__) { v11LoadBtData(function () { v11Run(); }); return; }
+  var c = v11BtCfg(), q = function (k) { var el = document.querySelector('#stp-v11 [data-v11bt="' + k + '"]'); return el ? el.value : c[k]; };
+  ['scope', 'code', 'from', 'to', 'capital', 'perBet', 'maxN', 'odds', 'stopMult', 'trailGain', 'trailExit'].forEach(function (k) { v11Set(k, q(k)); });
+  var msg = document.getElementById('v11RunMsg');
+  var R = v11Calc(window.__V11BT_DATA__, c, c.scope, c.code);
+  window.__V11BT_RES__ = R;
+  var host = document.getElementById('v11BtResult');
+  if (host) host.innerHTML = v11BtResultHtml(R);
+  if (R.err) { if (msg) msg.textContent = '参数有误：' + R.err; return; }
+  v11DrawChart(R);
+  if (msg) msg.textContent = (R.scope === 'single' ? R.oneCode : '全池 ' + R.poolN + ' 只') + ' · ' + R.from + ' → ' + R.to + ' · 已出结果';
+}
+function v11RunBtnState(scope) {
+  var sel = document.querySelector('#stp-v11 [data-v11bt="code"]');
+  if (sel) sel.disabled = scope === 'pool';
+  var f = document.getElementById('v11CodeField');
+  if (f) f.style.opacity = scope === 'pool' ? '0.42' : '1';
+}
+document.addEventListener('change', function (e) {
+  var t = e.target && e.target.closest && e.target.closest('[data-v11bt]');
+  if (!t) return;
+  var k = t.getAttribute('data-v11bt');
+  v11Set(k, t.value);
+  if (k === 'scope') v11RunBtnState(t.value);
+});
+document.addEventListener('click', function (e) {
+  var b = e.target && e.target.closest && e.target.closest('[data-v11bt-run]');
+  if (!b) return;
+  e.preventDefault();
+  try { v11Run(); } catch (err) {
+    var host = document.getElementById('v11BtResult');
+    if (host) host.innerHTML = '<div class="v11-note" style="color:#A32D2D">回测失败：' + esc(err && err.message) + '</div>';
+    if (window.console) console.error('[v11bt]', err);
+  }
+});
 function renderStratV11() {
   var host = document.getElementById('stp-v11');
   if (!host) return;
   host.innerHTML = v11StrategyHtml()
+    + '<div id="v11RunWrap">' + v11RunCardHtml() + '</div>'
     + '<div id="v11Wrap">' + v11SignalHtml() + '</div>'
     + '<div id="v11BtWrap">' + v11BtHtml() + '</div>';
   try { loadV11Signal(); } catch (e1) { if (window.console) console.error('[v11sig]', e1); }
@@ -31044,6 +31447,31 @@ function brakeCardHtml(opts) {
 .dd-pick.on{border-color:#E0A88A;background:#FFF3EC;color:#8A3A16;font-weight:600}
 .dd-pick.on > span{color:#8A3A16}
 @media (max-width:560px){.dd-picks{gap:5px}.dd-pick{padding:4px 8px;font-size:11px}}
+/* fw2_v1121_v11_run：V11 策略页 KPI 压扁 + 运行回测模块（独立命名空间 .v11-*，不碰深跌 .dd-*） */
+#stp-v11 .v11-kpi{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;margin-top:8px}
+#stp-v11 .v11-kpi .sh-cell{min-height:0;padding:8px 10px}
+#stp-v11 .v11-kpi .k{font-size:10.5px}
+#stp-v11 .v11-kpi .v{font-size:15px;margin-top:2px}
+#stp-v11 .v11-form{display:grid;grid-template-columns:repeat(auto-fill,minmax(132px,1fr));gap:7px;margin:6px 0}
+#stp-v11 .v11-form label{display:flex;flex-direction:column;gap:3px;font-size:11px;color:#71717A}
+#stp-v11 .v11-form input,#stp-v11 .v11-form select{font-size:12px;padding:5px 6px;border:1px solid #E4E4E7;border-radius:6px;background:#fff;color:#111;min-width:0}
+#stp-v11 .v11-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:4px 0 2px}
+#stp-v11 .v11-run{background:#1f4fd8;color:#fff;border:0;border-radius:7px;padding:7px 14px;font-size:12.5px;cursor:pointer}
+#stp-v11 .v11-run:disabled{opacity:.55;cursor:default}
+#stp-v11 .v11-msg{font-size:11px;color:#71717A;line-height:1.5}
+#stp-v11 .v11-rk{display:grid;grid-template-columns:repeat(auto-fill,minmax(108px,1fr));gap:8px;margin:8px 0 4px}
+#stp-v11 .v11-rkc{border:1px solid #F1F0EC;border-radius:8px;padding:6px 8px;background:#FAFAF9;min-width:0}
+#stp-v11 .v11-rkc .k{font-size:10.5px;color:#71717A}
+#stp-v11 .v11-rkc .v{font-family:var(--mono);font-size:15px;font-weight:600;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#stp-v11 .v11-rkc .s{font-size:10px;color:#A1A1AA;margin-top:1px;line-height:1.35}
+#stp-v11 .v11-tblwrap{overflow-x:auto;margin-top:4px}
+#stp-v11 .v11-tbl{width:100%;border-collapse:collapse;font-size:11px;min-width:760px}
+#stp-v11 .v11-tbl th{padding:5px 7px;background:#F4F4F2;color:#52525B;font-weight:600;text-align:left;white-space:nowrap;border-bottom:1px solid #E4E4E7}
+#stp-v11 .v11-tbl td{padding:5px 7px;border-bottom:1px solid #F1EFE9;white-space:nowrap;font-variant-numeric:tabular-nums}
+#stp-v11 .v11-tbl .num{text-align:right;font-family:var(--mono)}
+#stp-v11 .v11-note{font-size:10.5px;color:#71717A;line-height:1.55;margin-top:5px}
+#stp-v11 #v11BtChart{height:230px;margin:8px 0 2px}
+@media (max-width:767px){#stp-v11 .v11-kpi{grid-template-columns:repeat(2,minmax(0,1fr))}#stp-v11 .v11-kpi .sh-cell:last-child{grid-column:1/-1}#stp-v11 .v11-form{grid-template-columns:repeat(auto-fill,minmax(126px,1fr))}}
 </style>
 <!-- fw2_v1086_dd：策略执行新增「回撤档位」子页签（用户 2026-11-24 三张截图「指数跟踪 + 高点回撤 70% 起分批买入」）。
      落点：①#stratTabs 第 5 颗按钮 data-st=dd；②#stp-dd 面板；③__stratActiveTab/__stratPaneRender/switchStratTab 三处分支；
