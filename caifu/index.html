@@ -1730,7 +1730,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 <!-- fw2_v1112_dd_hist_allpool（用户 2026-11-25「按照你建议继续」，落地 A 展示补全 + B 全池逐日对照，默认仍保留当前最深 10）：
       A「区间曾深」：监测卡头部加切换，按 [from,to] 逐日维护此前最高收盘（峰值可早于区间起点，与 ddArrOf 同口径）算区间最深；列出曾≥起始档位、但当前已修复而被焦点视图隐藏的指数（本次 63 只中 16 只曾≥70%，当前仅 4 只仍≥70%，5 只已修复到 <60%）。
       B「全池59（逐日机会）」：回测方式第三档；境内 59 只全部进入逐日机会集，不按今天回撤预选；每只只在自己回撤≥起始档位时买；同日先卖后买，再按当日回撤深→浅分配资金，现金不足跳过并计数；仍不含 4 只境外。默认仍为「当前最深 10」，且加 look-ahead 提示；换口径即清空旧结果，全池点行改为切单指数。 -->
-<span id="verBadge" class="ver-badge">v1140</span><!-- fw2_v1140_erp_fix3（用户 2026-11-26「ERP 股债性价比（沪深300）10年国债利率按照3%固定」）：只对 ERP 卡与 M9 口径把 10Y 国债固定为 3.00%，用「E/P−3.00%」重算全历史 ERP 与 10 年分位；M16 格雷厄姆股债比、M11 中美利差、股息率比较仍保留真实 10Y。固定值不是当前市场利率，卡内显式标注，避免把 4.70% 误读成实时 ERP。 --><!-- fw2_v1139_today_top5（用户 2026-11-26「按照你建议继续」→ 阶段 2.4）：首屏今日待办 Top5。①三池（持仓/自选/筛选）act 行合并、按 code+sig 去重，排除已执行/已过期；②排序＝ACT_PRIO 优先级 → SLA 超时/到期 → 日龄 → 执行中优先；③卡片显示代码+中文信号名、池、待执行/执行中、SLA、同日冲突，点击切到交易信号对应 tab 并尽量高亮目标行；④市场月频、P1/P2 组合/穿透不进本卡；⑤只读渲染，不改 signalEvalAll 判定、阈值、状态或交易。 --><!-- fw2_v1138_act_sla（用户 2026-11-26「继续」→ 阶段 2.3）：按信号类型给 act 行设执行时限。风控/卖出（T4/R6/T2/R7/T1/T3/T16）T+1；拦截复核（TREND-DN/S-TREND）T+1；网格/补仓/加仓（T13/R3/T7/W2/S2/T8/V11）T+2；观察（S1/T15）T+5；季频 XOV/P2 不设；组合级 T10 不设。行内在执行列显示「SLA T+1 · 今日到期/超 N 日」，筛选条加 SLA 汇总，表下加超时清单（只影响提示，不改 signalEvalAll 判定、状态、阈值或交易）。 --><!-- fw2_v1137_act_priority（用户 2026-11-26「继续」→ 阶段 2.2）：同标的同日冲突优先级。①按同一标的分组给 act 行排序：T4/R6 硬止损（清仓）＞T2 峰值回撤止盈（减半）＞R7 再平衡（卖回目标）＞T1 阶梯止盈（减1/4）＞T3 估值止盈＞T16 卖出后破位减半＞TREND-DN/S-TREND/P2 拦截＞T7/W2/S2 回撤补仓＞T8 估值加仓＞T13/R3 网格买入＞V11 狙击；T15/S1 观察项与「T3/T8」混合行不排序。②行内信号格加「同日 1/N」徽标；卖/拦截项未完成时，同标的买入行显示「先 T4 硬止损」并暂时不出现「开始」按钮，完成或撤销高优先项后自动恢复。③筛选条的执行状态改为可点按钮「同日冲突 N 组 · 查看顺序」，表格下方新增折叠清单，逐组列出顺序、同日多卖/多买提示。只改渲染层排序与按钮可见性，不改 signalEvalAll 判定、lvl、阈值、actState 状态写入或任何交易。 --><!-- fw2_v1136_act_state（用户 2026-11-26「按照顺序继续」→ 阶段 2.1）：act 信号执行四态落地——待执行 / 执行中 / 已执行 / 已过期。①交易信号表在「状态」后新增「执行」列，仅行动档给状态徽章与推进按钮（开始→完成→撤销），接近/观察显示「—」；②状态存 localStorage `fw2_act_state_v1`（键 pool:code:sig），同一信号条件不再触发时自动转「已过期」并保留 14 天，再次触发回到「待执行」；③表头筛选条加执行状态计数，表格下方给近 14 日已过期清单（默认折叠）；④首屏今日待办只把待执行/执行中的行动计入「行动信号」，已执行不再占待办。未改 signalEvalAll 判定、lvl、阈值、排序、三态逻辑与任何交易动作。⑤窄屏可用性：9 列 min-width 1180 时给 .dc-card/.dc-body/.sig-wt-area 补 min-width:0、.table-wrap max-width:100%，让表格在卡内横向滚动（修前卡宽被撑到 1212px、538 视口只能看到左侧 3 列，执行/行动/操作列不可达）。 --><!-- fw2_v1135_budget_migrate_once（用户 2026-11-26「表标题 62,000 改成 50000」收口）：v1134 只按值迁移，用户以后主动把预算设回 62000 会在下次刷新被再次改掉；v1135 加 `fw2_budget_migrated_50000_v1` 一次性守卫，标记存在即不再迁移。 --><!-- fw2_v1134_budget_50000（用户 2026-11-26「下方资产配置表标题当前是 ¥62,000 预算，改成50000」）：把历史预算 fw2_capital_budget_v1=62000 一次性迁移到 50000；只改恰好 62000 的旧值，不动其它自填金额，也不写死 5 万。 --><!-- fw2_v1133_caliber_split_note（用户 2026-11-26 阶段1收口）：四桶卡/新钱路线显式标注「5 万策略主基准」；v1134 用户拍板后，表标题预算已迁移到 50000，两卡与表标题同基准。若以后改表标题预算，则重新分口径、禁止对拍。 --><!-- fw2_v1132_new_money_route（用户 2026-11-26「按顺序开始执行」清单 1.4）：策略执行-资产配置新增「新钱分配路线」卡；按四桶缺口比例给不卖出补足路线，不执行交易。 --><!-- fw2_v1131_bucket_target_vs_actual（用户 2026-11-26「按顺序开始执行」清单 1.3）：策略执行-资产配置新增「四桶目标 vs 实际」卡；占比偏离与 5 万到位率分开呈现，不改计算与再平衡。 --><!-- fw2_v1130_capital_labels（用户 2026-11-26「按顺序开始执行」清单 1.2）：全站顶部常驻「资金口径」条，分账户/策略/实验/回测四套基数，只做标注，不改任何金额计算。 --><!-- fw2_v1129_hold_recon（用户 2026-11-26「按照你的建议列个执行清单 / 按顺序开始执行」）：我的持仓 KPI 下新增「账户口径对账」卡——同屏展示 账户总资产 20,565.55 / 确认份额×净值 18,067.10 / 在途买入 2,498.46 / 账户明细市值合计 15,688.38；明确 15,688.38 与总资产差 4,877.17 的主因是 012920 卖出后份额未重建（账户市值 5,412.79 vs 份额×净值 10,283.50，差 -4,870.71），其余 6.46 为逐只四舍五入；权重继续用「确认份额×净值」，账户总值用 holding_total，不自动改账户数据。 --><!-- fw2_v1128_hide_cash_sig（用户 2026-11-26「活期宝不显示在信号中」）：交易信号→持仓信号不再为现金/货币基金生成「暂无信号·持仓兜底」标卡与占位行；按 state.portfolio 的 assetType=cash 或名称含货币/活期宝/现金宝，以及 drawdown 行的 kind=money 识别；只改展示，不改信号判定、阈值、其它组与表内行序。 --><!-- fw2_v1127_hold_sig_mv_sort（用户 2026-11-26「交易信号-持仓信号里面的标的按照持仓金额大小排列」）：仅「持仓信号」组内标目按持仓市值（state.portfolio 的 mvCny，人民币口径）降序；T10 杠铃档位（四档）为组合汇总、保持置顶；同额回退原等级/信号数/指数族/代码排序。未改信号判定、同指数合并选择、表内行序与自选/筛选/市场组排序。 --><!-- fw2_v1126_macro_nky_refresh：2026-11-26 15:02 只刷宏观组（`refresh_all.py --only macro --no-publish`）后，`macro-data.json` 的 nky 实时价由盘中 57,812.38 更新为收盘 57,498.94，amt/amtD/fsi/sentiment/wave 同步刷新；`index.html` 内嵌 MACRO_SNAP 由数据链同步更新，未改任何计算/信号逻辑。nky 闸门已转 PASS（实时独立源本次不可达，按本地底线降级，详见 verify_nky 备注）；`gen_macro_extra.py` 因缺 akshare 仍失败，数据管理保留 3 项失败标记。 --><!-- fw2_v1125_sp_wait：配置回测开启 V11 狙击时，若筛选池（SCREEN_POOL）未就绪，先加载 screen-pool.json 并自动续跑；加载失败则明确拦下，避免空池跑出 0 笔假结果。 --><!-- fw2_v1123_sm_insert_anchor（用户 2026-11-25 截图「点聪明的钱后模块组被压到后面」）：交易信号页把 #view-smartmoney 搬入 sigBody 时，原锚点 `body.querySelector('.dc-note')` 实际命中的是「V11 狙击已移至…」提示（同样带 .dc-note），导致聪明的钱整节被插到阈值来源之后、标签组之前。改为末脚注 #sigFootNote 作锚点（兜底取最后一个 .dc-note），标签组/筛选条回到顶部，聪明的钱内容落在其余 pane 之后、脚注之前。 --><!-- fw2_v1122_v11_formula_unified（用户 2026-11-25「统一」）：V11 赔率公式从「p250 前高 / 3×ATR14」统一到「1260 日前高 / 1260 日窗口最低收盘」——配置回测 v11Gate 新增 p1260/lo1260 单调队列，与扫描 bt_signal.entry_signal、运行回测 v11Prep 同算式；旧 v11Den atr/leg20/leg60 三档退役；注册表/参数说明/逻辑清单同步改口径，旧口径收益数字标为历史、不冒充新结果。 --><!-- fw2_v1121_v11_run_kpi（用户 2026-11-25「V11狙击加入深跌买入一样的运行回测模块。这个面积太大了。改成 2.50还是2，根据你的建议改」）：①V11 策略页顶部 5 格 KPI 改用专用 .v11-kpi（5 列等宽、单元格 min-height:0），消除 .sh-grid flex:1 1 320px 造成的 320px 空白；②新增运行回测卡（范围/ETF/起止/本金/单注/仓位/门限/止损/吊灯），懒加载 data/v11-bt-data.json，出 KPI+SVG 净值/持仓曲线+分标的+逐笔；③赔率门限全链路统一 2.50；④v11FmtMoney 负数改 -¥；⑤曲线用原生 SVG，避免 canvas 在截图/部分环境不显示。 --><!-- fw2_v1120_v11_rows_removed：V11 狙击逐只执行行从交易信号页删除，V11 只保留策略执行入口 --><!-- fw2_v1096_dd_search（用户「继续」）：①全指数监测卡加「搜索」（代码/名称，只过滤本表显示，分档 chips 计数与已选组合不受影响；输入时保存 ST.q 并重画、回填焦点与滚动位置）②组合池加「全选境内 59」「恢复默认（宽基）」（境外永远不进池）③脚注的境外名单由数据现算（原来写死 4 个名字，加池就会过期）④gen_index_dd 去掉冗余 count.night，gen_index_val 的蛋卷 asof 不再写死 2026 年 --><!-- fw2_v1097_dd_sort_valref（用户「继续」，承接 v1096 挂账）：①全指数监测卡加「排序」开关——回撤深→浅（默认）/ 名称 A→Z，只换本表顺序，分档计数与已选组合不变；②估值卡加「同类别对照」小表——全部 / 宽基 / 行业 / 主题 / 境外五行的 PE 分位中位、PB 分位中位、价格分位中位，并列出该类别里 PE 分位最低的一只；③两处都只用既有 index-dd / index-val 数据，不引入新源（v1096 已证伪的三条补源路仍挂账）。 --><!-- fw2_v1098_dd_n2_sort（用户「继续完成」，收口 v1097「下一步候选」三件）：①估值「同类别对照」由 6 列扩到 8 列——补「股息率中位」与「PB 分位最低的一只」（与 PE 最低同口径：只统计有该分位的只数，空组回 —）；②监测卡加「快捷」行——「距下档 ≤2pp」一键筛选（ST.n2 与类别 / 分档 / 搜索四者可叠加，chips 计数仍按类别全集，不受搜索与快捷键影响）；③方案卡「进入买入区」表跟随 ST.sort（默认回撤深→浅，切名称后同监测卡拼音序）；④仍不引入新源。 --><!-- fw2_v1099_dd_pickcat_relcat（用户「继续」，收口 v1098「下一步候选」三件）：①组合池加按类别批量勾选——宽基 / 行业 / 主题三个按钮各显示「已选/总数」，全选后再点即取消该类（不碰境外）；②估值主表加「相对同类」列——本只 PE 分位 − 同类别 PE 分位中位（pp，负＝比同类便宜），只在双方都有分位时显示；③跨档卡跟随监测卡类别筛选（ST.fcat），计数、「展开全部 N 只」与空态都按当前类别；④仍不引入新源。 --><!-- fw2_v1100_dd_bksum_cheap_vsort（用户「继续」，收口 v1099「下一步候选」三件）：①监测卡加「按回撤分档汇总」表——6 档的只数 / 平均回撤 / 该档最深一只 / 距下档 ≤2pp 只数 / 已进买入区只数，按当前类别统计、不受搜索与快捷影响；②组合池加「只选便宜一半」——按同类别 PE 分位中位分界，只选低于中位的（无分位不入选，口径写进按钮 title）；③估值主表「相对同类」表头可点击排序，三态循环：默认（回撤深→浅）→ 便宜在前 → 贵在前，无分位的行恒排最后；④ddTbl 扩一个可选 th 属性位（backward compatible），中位数抽成模块级 medOf 单一实现；⑤仍不引入新源。 --><!-- fw2_v1076_conflicts（用户 2026-11-23「按照你顺序修」——修掉体检出的 5 处纲领冲突）：
+<span id="verBadge" class="ver-badge">v1141</span><!-- fw2_v1141_ev_tier（用户 2026-11-26「然后做接下来没完成的事情」→ 审计 P1）：①T15 跟踪指数 PE 分位缺数据不再静默消失，显式占位 watch（不适用/数据缺失），与 T3/T8 同口径，不出 act；②P4 覆盖率改为「数据闸门」行，只提示穿透结论不可全信，不产生买卖动作；③投资总纲新增证据列 A+/A−/A?/A·/C 与 59 条机制归并，A 不再单用表示「测过＝可信」，负边际 9 条明写只作实验/观察；不改 signalEvalAll 判定、阈值、三态与任何交易。 --><!-- fw2_v1140_erp_fix3（用户 2026-11-26「ERP 股债性价比（沪深300）10年国债利率按照3%固定」）：只对 ERP 卡与 M9 口径把 10Y 国债固定为 3.00%，用「E/P−3.00%」重算全历史 ERP 与 10 年分位；M16 格雷厄姆股债比、M11 中美利差、股息率比较仍保留真实 10Y。固定值不是当前市场利率，卡内显式标注，避免把 4.70% 误读成实时 ERP。 --><!-- fw2_v1139_today_top5（用户 2026-11-26「按照你建议继续」→ 阶段 2.4）：首屏今日待办 Top5。①三池（持仓/自选/筛选）act 行合并、按 code+sig 去重，排除已执行/已过期；②排序＝ACT_PRIO 优先级 → SLA 超时/到期 → 日龄 → 执行中优先；③卡片显示代码+中文信号名、池、待执行/执行中、SLA、同日冲突，点击切到交易信号对应 tab 并尽量高亮目标行；④市场月频、P1/P2 组合/穿透不进本卡；⑤只读渲染，不改 signalEvalAll 判定、阈值、状态或交易。 --><!-- fw2_v1138_act_sla（用户 2026-11-26「继续」→ 阶段 2.3）：按信号类型给 act 行设执行时限。风控/卖出（T4/R6/T2/R7/T1/T3/T16）T+1；拦截复核（TREND-DN/S-TREND）T+1；网格/补仓/加仓（T13/R3/T7/W2/S2/T8/V11）T+2；观察（S1/T15）T+5；季频 XOV/P2 不设；组合级 T10 不设。行内在执行列显示「SLA T+1 · 今日到期/超 N 日」，筛选条加 SLA 汇总，表下加超时清单（只影响提示，不改 signalEvalAll 判定、状态、阈值或交易）。 --><!-- fw2_v1137_act_priority（用户 2026-11-26「继续」→ 阶段 2.2）：同标的同日冲突优先级。①按同一标的分组给 act 行排序：T4/R6 硬止损（清仓）＞T2 峰值回撤止盈（减半）＞R7 再平衡（卖回目标）＞T1 阶梯止盈（减1/4）＞T3 估值止盈＞T16 卖出后破位减半＞TREND-DN/S-TREND/P2 拦截＞T7/W2/S2 回撤补仓＞T8 估值加仓＞T13/R3 网格买入＞V11 狙击；T15/S1 观察项与「T3/T8」混合行不排序。②行内信号格加「同日 1/N」徽标；卖/拦截项未完成时，同标的买入行显示「先 T4 硬止损」并暂时不出现「开始」按钮，完成或撤销高优先项后自动恢复。③筛选条的执行状态改为可点按钮「同日冲突 N 组 · 查看顺序」，表格下方新增折叠清单，逐组列出顺序、同日多卖/多买提示。只改渲染层排序与按钮可见性，不改 signalEvalAll 判定、lvl、阈值、actState 状态写入或任何交易。 --><!-- fw2_v1136_act_state（用户 2026-11-26「按照顺序继续」→ 阶段 2.1）：act 信号执行四态落地——待执行 / 执行中 / 已执行 / 已过期。①交易信号表在「状态」后新增「执行」列，仅行动档给状态徽章与推进按钮（开始→完成→撤销），接近/观察显示「—」；②状态存 localStorage `fw2_act_state_v1`（键 pool:code:sig），同一信号条件不再触发时自动转「已过期」并保留 14 天，再次触发回到「待执行」；③表头筛选条加执行状态计数，表格下方给近 14 日已过期清单（默认折叠）；④首屏今日待办只把待执行/执行中的行动计入「行动信号」，已执行不再占待办。未改 signalEvalAll 判定、lvl、阈值、排序、三态逻辑与任何交易动作。⑤窄屏可用性：9 列 min-width 1180 时给 .dc-card/.dc-body/.sig-wt-area 补 min-width:0、.table-wrap max-width:100%，让表格在卡内横向滚动（修前卡宽被撑到 1212px、538 视口只能看到左侧 3 列，执行/行动/操作列不可达）。 --><!-- fw2_v1135_budget_migrate_once（用户 2026-11-26「表标题 62,000 改成 50000」收口）：v1134 只按值迁移，用户以后主动把预算设回 62000 会在下次刷新被再次改掉；v1135 加 `fw2_budget_migrated_50000_v1` 一次性守卫，标记存在即不再迁移。 --><!-- fw2_v1134_budget_50000（用户 2026-11-26「下方资产配置表标题当前是 ¥62,000 预算，改成50000」）：把历史预算 fw2_capital_budget_v1=62000 一次性迁移到 50000；只改恰好 62000 的旧值，不动其它自填金额，也不写死 5 万。 --><!-- fw2_v1133_caliber_split_note（用户 2026-11-26 阶段1收口）：四桶卡/新钱路线显式标注「5 万策略主基准」；v1134 用户拍板后，表标题预算已迁移到 50000，两卡与表标题同基准。若以后改表标题预算，则重新分口径、禁止对拍。 --><!-- fw2_v1132_new_money_route（用户 2026-11-26「按顺序开始执行」清单 1.4）：策略执行-资产配置新增「新钱分配路线」卡；按四桶缺口比例给不卖出补足路线，不执行交易。 --><!-- fw2_v1131_bucket_target_vs_actual（用户 2026-11-26「按顺序开始执行」清单 1.3）：策略执行-资产配置新增「四桶目标 vs 实际」卡；占比偏离与 5 万到位率分开呈现，不改计算与再平衡。 --><!-- fw2_v1130_capital_labels（用户 2026-11-26「按顺序开始执行」清单 1.2）：全站顶部常驻「资金口径」条，分账户/策略/实验/回测四套基数，只做标注，不改任何金额计算。 --><!-- fw2_v1129_hold_recon（用户 2026-11-26「按照你的建议列个执行清单 / 按顺序开始执行」）：我的持仓 KPI 下新增「账户口径对账」卡——同屏展示 账户总资产 20,565.55 / 确认份额×净值 18,067.10 / 在途买入 2,498.46 / 账户明细市值合计 15,688.38；明确 15,688.38 与总资产差 4,877.17 的主因是 012920 卖出后份额未重建（账户市值 5,412.79 vs 份额×净值 10,283.50，差 -4,870.71），其余 6.46 为逐只四舍五入；权重继续用「确认份额×净值」，账户总值用 holding_total，不自动改账户数据。 --><!-- fw2_v1128_hide_cash_sig（用户 2026-11-26「活期宝不显示在信号中」）：交易信号→持仓信号不再为现金/货币基金生成「暂无信号·持仓兜底」标卡与占位行；按 state.portfolio 的 assetType=cash 或名称含货币/活期宝/现金宝，以及 drawdown 行的 kind=money 识别；只改展示，不改信号判定、阈值、其它组与表内行序。 --><!-- fw2_v1127_hold_sig_mv_sort（用户 2026-11-26「交易信号-持仓信号里面的标的按照持仓金额大小排列」）：仅「持仓信号」组内标目按持仓市值（state.portfolio 的 mvCny，人民币口径）降序；T10 杠铃档位（四档）为组合汇总、保持置顶；同额回退原等级/信号数/指数族/代码排序。未改信号判定、同指数合并选择、表内行序与自选/筛选/市场组排序。 --><!-- fw2_v1126_macro_nky_refresh：2026-11-26 15:02 只刷宏观组（`refresh_all.py --only macro --no-publish`）后，`macro-data.json` 的 nky 实时价由盘中 57,812.38 更新为收盘 57,498.94，amt/amtD/fsi/sentiment/wave 同步刷新；`index.html` 内嵌 MACRO_SNAP 由数据链同步更新，未改任何计算/信号逻辑。nky 闸门已转 PASS（实时独立源本次不可达，按本地底线降级，详见 verify_nky 备注）；`gen_macro_extra.py` 因缺 akshare 仍失败，数据管理保留 3 项失败标记。 --><!-- fw2_v1125_sp_wait：配置回测开启 V11 狙击时，若筛选池（SCREEN_POOL）未就绪，先加载 screen-pool.json 并自动续跑；加载失败则明确拦下，避免空池跑出 0 笔假结果。 --><!-- fw2_v1123_sm_insert_anchor（用户 2026-11-25 截图「点聪明的钱后模块组被压到后面」）：交易信号页把 #view-smartmoney 搬入 sigBody 时，原锚点 `body.querySelector('.dc-note')` 实际命中的是「V11 狙击已移至…」提示（同样带 .dc-note），导致聪明的钱整节被插到阈值来源之后、标签组之前。改为末脚注 #sigFootNote 作锚点（兜底取最后一个 .dc-note），标签组/筛选条回到顶部，聪明的钱内容落在其余 pane 之后、脚注之前。 --><!-- fw2_v1122_v11_formula_unified（用户 2026-11-25「统一」）：V11 赔率公式从「p250 前高 / 3×ATR14」统一到「1260 日前高 / 1260 日窗口最低收盘」——配置回测 v11Gate 新增 p1260/lo1260 单调队列，与扫描 bt_signal.entry_signal、运行回测 v11Prep 同算式；旧 v11Den atr/leg20/leg60 三档退役；注册表/参数说明/逻辑清单同步改口径，旧口径收益数字标为历史、不冒充新结果。 --><!-- fw2_v1121_v11_run_kpi（用户 2026-11-25「V11狙击加入深跌买入一样的运行回测模块。这个面积太大了。改成 2.50还是2，根据你的建议改」）：①V11 策略页顶部 5 格 KPI 改用专用 .v11-kpi（5 列等宽、单元格 min-height:0），消除 .sh-grid flex:1 1 320px 造成的 320px 空白；②新增运行回测卡（范围/ETF/起止/本金/单注/仓位/门限/止损/吊灯），懒加载 data/v11-bt-data.json，出 KPI+SVG 净值/持仓曲线+分标的+逐笔；③赔率门限全链路统一 2.50；④v11FmtMoney 负数改 -¥；⑤曲线用原生 SVG，避免 canvas 在截图/部分环境不显示。 --><!-- fw2_v1120_v11_rows_removed：V11 狙击逐只执行行从交易信号页删除，V11 只保留策略执行入口 --><!-- fw2_v1096_dd_search（用户「继续」）：①全指数监测卡加「搜索」（代码/名称，只过滤本表显示，分档 chips 计数与已选组合不受影响；输入时保存 ST.q 并重画、回填焦点与滚动位置）②组合池加「全选境内 59」「恢复默认（宽基）」（境外永远不进池）③脚注的境外名单由数据现算（原来写死 4 个名字，加池就会过期）④gen_index_dd 去掉冗余 count.night，gen_index_val 的蛋卷 asof 不再写死 2026 年 --><!-- fw2_v1097_dd_sort_valref（用户「继续」，承接 v1096 挂账）：①全指数监测卡加「排序」开关——回撤深→浅（默认）/ 名称 A→Z，只换本表顺序，分档计数与已选组合不变；②估值卡加「同类别对照」小表——全部 / 宽基 / 行业 / 主题 / 境外五行的 PE 分位中位、PB 分位中位、价格分位中位，并列出该类别里 PE 分位最低的一只；③两处都只用既有 index-dd / index-val 数据，不引入新源（v1096 已证伪的三条补源路仍挂账）。 --><!-- fw2_v1098_dd_n2_sort（用户「继续完成」，收口 v1097「下一步候选」三件）：①估值「同类别对照」由 6 列扩到 8 列——补「股息率中位」与「PB 分位最低的一只」（与 PE 最低同口径：只统计有该分位的只数，空组回 —）；②监测卡加「快捷」行——「距下档 ≤2pp」一键筛选（ST.n2 与类别 / 分档 / 搜索四者可叠加，chips 计数仍按类别全集，不受搜索与快捷键影响）；③方案卡「进入买入区」表跟随 ST.sort（默认回撤深→浅，切名称后同监测卡拼音序）；④仍不引入新源。 --><!-- fw2_v1099_dd_pickcat_relcat（用户「继续」，收口 v1098「下一步候选」三件）：①组合池加按类别批量勾选——宽基 / 行业 / 主题三个按钮各显示「已选/总数」，全选后再点即取消该类（不碰境外）；②估值主表加「相对同类」列——本只 PE 分位 − 同类别 PE 分位中位（pp，负＝比同类便宜），只在双方都有分位时显示；③跨档卡跟随监测卡类别筛选（ST.fcat），计数、「展开全部 N 只」与空态都按当前类别；④仍不引入新源。 --><!-- fw2_v1100_dd_bksum_cheap_vsort（用户「继续」，收口 v1099「下一步候选」三件）：①监测卡加「按回撤分档汇总」表——6 档的只数 / 平均回撤 / 该档最深一只 / 距下档 ≤2pp 只数 / 已进买入区只数，按当前类别统计、不受搜索与快捷影响；②组合池加「只选便宜一半」——按同类别 PE 分位中位分界，只选低于中位的（无分位不入选，口径写进按钮 title）；③估值主表「相对同类」表头可点击排序，三态循环：默认（回撤深→浅）→ 便宜在前 → 贵在前，无分位的行恒排最后；④ddTbl 扩一个可选 th 属性位（backward compatible），中位数抽成模块级 medOf 单一实现；⑤仍不引入新源。 --><!-- fw2_v1076_conflicts（用户 2026-11-23「按照你顺序修」——修掉体检出的 5 处纲领冲突）：
 ①R7 带宽：撤销 v1067 的 `o.band = o.slotBand` 强镜像；band 只喂 R7（单只超配 25% 减配，SIG_THR_DEF 5→25、与回测 cfg.band 同值），slotBand 只喂 T10 四档；sigThrApply 分别写 C.barbell.band / C.barbell.slotBand，T10 文案改读 slotBand，R7 行 threshold 由硬编码「band 25%」改为动态读纲领值。
 ②R2 假开关：`_planCfg()` 读 `window.logicStateEff('R2')`——生效按 investMode，观察/关一律 lump（月投 0）；建仓步文案在一次性时追加「R2 定投＝关/观察」。
 ③T4 与 R6 双份：T4 行 modeled 改「与 R6 止损同一执行（同一 slHard）」，def 标「= R6 止损，同一动作」，阈值表 slHard 口径写「T4 / R6 · 同一执行」。
@@ -4549,7 +4549,7 @@ window.SIGNAL_REGISTRY = (function () {
       { id: 'P1', name: '多源拥挤', layer: '交易信号', obj: '组合', dir: '卖', ev: 'C', def: 'off', modeled: '未建模（穿透数据无历史存档）', thr: '独立来源 ≥4（act）/ ≥3（near）', act: '减仓评估', code: '16681' },
       { id: 'P2', name: '单票暴露', layer: '交易信号', obj: '组合', dir: '卖', ev: 'C', def: 'off', modeled: '未建模', thr: '≥5%（act）/ ≥3%（near）', act: '检视减仓 / 调仓勿加', code: '16681' },
       { id: 'P3', name: 'Top5 集中度', layer: '交易信号', obj: '组合', dir: '持有观察', ev: 'C', def: 'off', modeled: '未建模（只提示）', thr: '>40%', act: '关注集中风险', code: '16681' },
-      { id: 'P4', name: '覆盖率', layer: '交易信号', obj: '组合', dir: '持有观察', ev: 'C', def: 'off', modeled: '未建模（只提示）', thr: '<50%', act: '提示结论不可全信', code: '16681' },
+      { id: 'P4', name: '覆盖率（数据闸门）', layer: '交易信号', obj: '组合', dir: '持有观察', ev: 'C', def: 'off', modeled: '数据闸门（非交易信号）', thr: '<50%', act: '穿透结论仅供参考，不产生买卖动作', code: '16681' },
       { id: 'P5', name: '陈旧过滤', layer: '交易信号', obj: '组合', dir: '持有观察', ev: 'C', def: 'on', modeled: '过滤规则（不出行）', thr: '季报 >180 天剔除', act: '不参与聚合', code: '16681' },
       { id: 'P6', name: '行情联动', layer: '交易信号', obj: '组合', dir: '持有观察', ev: 'C', def: 'off', modeled: '未建模（仅穿透页）', thr: '拥挤股单日 ≤−5%', act: '勿恐慌赎回，按回撤纪律', code: '穿透页' },
       /* —— ① 交易信号 · 自选池 —— */
@@ -5027,9 +5027,12 @@ window.SIGNAL_REGISTRY = (function () {
         /* fw2_v625_yline T14 年线趋势（hold 常显：跌破 near / 站上 watch） */
         var _ylT = yearLineRow(ys, name, r.isMoney, false);
         if (_ylT) rows.hold.push(Object.assign({}, base, { sig: 'T14 年线趋势' }, _ylT));
-        /* fw2_v625_pe T15 跟踪指数PE分位（仅白名单；非白名单 h.pePct=null 留白） */
+        /* fw2_v625_pe T15 跟踪指数PE分位（仅白名单；非白名单 h.pePct=null 留白）
+           v1141 fw2_v1141_t15_valmiss：缺 PE 分位时不再静默消失，显式占位 watch（不得出 act）；
+           品类豁免（黄金/债/货基）标「不适用」，其余标「数据缺失」。 */
         var _peT = peRow(h.pePct, h.benchName, h.peDate, false);
         if (_peT) rows.hold.push(Object.assign({}, base, { sig: 'T15 跟踪指数PE分位' }, _peT));
+        else rows.hold.push(valMissRow(base, 'T15 跟踪指数PE分位', valNaKinds(name)));
       } else {
         const held = holdCodes.indexOf(code6) >= 0;
         if (held) base.name = base.name + '（已持仓·按加仓处理）';
@@ -5378,10 +5381,10 @@ window.SIGNAL_REGISTRY = (function () {
             thrCond: 'Top5 集中度 >40%', thrAct: '关注组合结构·评估分散度',
             thr: 'Top5 穿透集中度 >40% 关注；⚠结构风险优先于买入信号', lvl: 'act', dd: _pdStr, src: '持仓穿透·季频' });
           var _coverPct = _covMv / _eqMv * 100;
-          if (_coverPct < 50) rows.hold.push({ code: 'P4', name: '穿透覆盖率', pool: 'hold', noLink: true, sig: 'P4 覆盖率偏低',
+          if (_coverPct < 50) rows.hold.push({ code: 'P4', name: '穿透覆盖率', pool: 'hold', noLink: true, sig: 'P4 数据闸门',
             cur: _coverPct.toFixed(0) + '%', curMain: _coverPct.toFixed(0) + '%', curSub: '有重仓数据的基金市值 ÷ 股票敞口',
-            thrCond: '覆盖率 <50%', thrAct: '穿透结论仅供参考（近似下界）',
-            thr: '覆盖率 <50% → 穿透结论覆盖不足，仅供参考', lvl: 'near', dd: _pdStr, src: '持仓穿透·季频' });
+            thrCond: '覆盖率 <50%', thrAct: '数据闸门：穿透结论仅作参考，不产生买卖动作',
+            thr: '覆盖率 <50% → 数据闸门（非交易信号）', lvl: 'near', dd: _pdStr, src: '穿透覆盖率·数据闸门' });
         }
       }
     } catch (eP) { /* 穿透数据缺失跳过（穿透页签仍独立可用） */ }
@@ -23462,7 +23465,7 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
     W6: '买入前的 D1 五格人工闸门：单只 ≤20% 资产、预计盈利期 ≥3 个月、能接受 8% 止损、只用闲钱、交易成本 ≤3%。五格都过才买。',
     W9: '自选池的同指数比价：≤20% 分批、20–50% 观察、≥50% 不追，用于在同指数候选间挑便宜的那只。',
     P1: '穿透到重仓股后看「拥挤」：同一只股票被 ≥4 个独立来源同时持有时提示减仓评估——说明这个底层已被很多人押注，赔率可能变差。',
-    P4: '穿透覆盖率的诚实提示：季报只覆盖了持仓的一部分（<50%）时，明确写「穿透结论不可全信」，避免拿残缺样本当全貌做集中度判断。',
+    P4: '穿透覆盖率数据闸门：季报只覆盖了持仓的一部分（<50%）时，明确写「穿透结论仅作参考」，并拦住拿残缺样本当全貌的集中度判断；它不是交易信号，不产生买卖动作。',
     P5: '陈旧数据过滤：季报超过 180 天的基金不进穿透聚合与拥挤判定——宁可少算，也不用过期持仓得出「拥挤/不拥挤」的结论。',
     P6: '拥挤股的行情联动：穿透出的拥挤股单日跌 ≤−5% 时提示「勿恐慌赎回」，按既定回撤纪律处理，而不是看一天涨跌改主意。',
     R1: '建仓与投入方式：一次性（lump）、按月定投（drip）、底仓 30% + 定投（base）三种。它决定钱以什么节奏进场，直接改年化与回撤路径。',
@@ -23530,7 +23533,7 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
     W6: '不进信号表逐行：只计入「信号仪表盘」计数，自选雷达显示「闸门 N 条」',
     W9: '不进信号表逐行：只计入「信号仪表盘」计数',
     P1: '交易信号 · 持仓穿透（个股级，故意不在持仓信号表里）',
-    P4: '持仓信号 P4 行（穿透覆盖率 <50% 时）',
+    P4: '持仓信号 P4 数据闸门行（穿透覆盖率 <50% 时；只作数据质量提示，不出买卖动作）',
     P5: '不出行：只影响穿透聚合结果，不产生任何信号行',
     P6: '持仓穿透页（拥挤股当日跌幅提示），不产独立信号行',
     R1: '配置回测 · 参数区「投入方式」+ 规则卡 R1 行',
@@ -23556,7 +23559,7 @@ window.STRATEGY_SNAP = {"version":"v1.9","updatedAt":"2026-09-17","source":"个�
     T7: '持仓信号 T7 行（逐只）+ 配置回测 addDD 参数',
     T8: '持仓信号「T3 估值止盈 / T8 估值加仓」同一行（分位数据缺失时显「数据缺」）',
     T13: '持仓信号 T13 行（逐只）+ 配置回测 gridOn 参数',
-    T15: '持仓信号 T15 行（逐只，PE 分位可用时）',
+    T15: '持仓信号 T15 行（逐只；PE 分位可用时出阈值行，缺失时出「数据缺失/不适用」占位，不出 act）',
     R2: '配置回测 · 参数区「定投」+ 规则卡 R2 行（仅 drip/base 模式生效）',
     R3: '配置回测 · 参数区「网格」+ 规则卡 R3 行',
     W2: '不进信号表逐行：计入仪表盘计数；回测侧在配置回测 / 自选回测的 addDD 回撤补仓参数',
@@ -24010,6 +24013,79 @@ function selParamGoTotal(){
 window.selParamGo = selParamGo;
 window.selParamGoTotal = selParamGoTotal;
 
+/* fw2_v1141_ev_tier：把审计的「A/B/C」拆成「A+ 正边际 / A− 负边际 / A? 仅建模 / A· 已退役 / C 未验证」。
+   A 不再单用：A 只表示「测过」，不等于「可信」；本表直接显示审计结论，避免把 59 条都读成「生效」。
+   SIG_MECH 只服务「按机制归并」展示，不改任何三态、阈值、引擎或交易。 */
+var SIG_EV_TIER = {
+  T7: 'A+', T13: 'A+', T16: 'A+', V11: 'A+',
+  W2: 'A+', S2: 'A+', R3: 'A+',
+  T2: 'A-', T9: 'A-', T10: 'A-', W3: 'A-', S4: 'A-', 'S-TREND': 'A-', V1: 'A-', R8: 'A-', R9: 'A-',
+  T1: 'A?', T4: 'A?', R1: 'A?', R2: 'A?', R6: 'A?', R7: 'A?', R10: 'A?', R11: 'A?',
+  R4: 'A·', R5: 'A·'
+};
+var SIG_EV_NOTE = {
+  W2: '同 T7 回撤补仓（别名）', S2: '同 T7 回撤补仓（别名）', R3: '同 T13 网格跟踪（别名）',
+  T2: '两区间均负边际', T9: 'v959 已下线（取消封顶）', T10: '长周期摧毁风险预算',
+  W3: '牛段负边际、熊段保险', S4: '与 W3 同一趋势闸门', 'S-TREND': '两区间弱负、基本 no-op',
+  V1: '只作 T7 恐慌过滤，实测负', R8: '四档实测均负', R9: '长区间 Calmar 低于全关',
+  T4: '与 R6 止损同一动作', T16: '默认关，牛A 有机会成本',
+  V11: '旧收益口径已失效、未按 1260 日重测', P4: '数据闸门，不作交易信号'
+};
+var SIG_MECH = [
+  { k: '估值', name: '估值族', ids: ['T3', 'T8', 'T15', 'W1', 'W9', 'S1', 'S7'] },
+  { k: 'buy', name: '回撤 / 网格 / 低位', ids: ['T7', 'T13', 'W2', 'S2', 'R3', 'T12', 'W7', 'S3'] },
+  { k: 'snp', name: '狙击', ids: ['V11'] },
+  { k: 'exit', name: '退出 / 风控', ids: ['T1', 'T2', 'T4', 'T5', 'T9', 'T16', 'R4', 'R5', 'R6', 'R7', 'R8', 'R9', 'R10'] },
+  { k: 'trend', name: '趋势', ids: ['T14', 'W3', 'W8', 'S4', 'S6', 'S-TREND'] },
+  { k: 'vol', name: '波动', ids: ['V1', 'V2'] },
+  { k: 'through', name: '穿透 / 聪明钱', ids: ['XOV', 'P1', 'P2', 'P3', 'P4', 'P5', 'P6'] },
+  { k: 'macro', name: '宏观 / 市场', ids: ['M1', 'M2', 'M3', 'M4', 'M5', 'M6', 'RB', 'BW'] },
+  { k: 'mech', name: '组合 / 回测机制', ids: ['R1', 'R2', 'R11', 'T10'] },
+  { k: 'gate', name: '准入 / 门槛', ids: ['W5', 'W6', 'S5'] }
+];
+function sigEvTier(id) { return SIG_EV_TIER[id] || 'C'; }
+function sigEvLabel(t) { return ({ 'A+': 'A+ 正边际', 'A-': 'A− 负边际', 'A?': 'A? 仅建模', 'A·': 'A· 已退役', 'C': 'C 未验证' })[t] || t; }
+function sigEvBadge(r) {
+  var t = sigEvTier(r.id), lab = sigEvLabel(t), note = SIG_EV_NOTE[r.id] || '';
+  var cs = ({ 'A+': ['#E4F4EA', '#0F766E'], 'A-': ['#FDF2F2', '#A32D2D'], 'A?': ['#FDF6E7', '#7A4B07'], 'A·': ['#F4F4F2', '#52525B'], 'C': ['#F4F4F2', '#71717A'] })[t] || ['#F4F4F2', '#71717A'];
+  return '<span title="' + logicEsc('审计证据分级：' + lab + (note ? ' · ' + note : '') + '；A 只表示测过，不等于可信') + '" style="display:inline-block;background:' + cs[0] + ';color:' + cs[1] + ';border-radius:5px;padding:2px 6px;font-size:10.5px;font-weight:700;line-height:1.4">' + logicEsc(lab) + '</span>';
+}
+function logicEvStats() {
+  var s = { 'A+': 0, 'A-': 0, 'A?': 0, 'A·': 0, 'C': 0, total: 0 };
+  SIG_MECH.forEach(function (g) { g.ids.forEach(function (id) { s[sigEvTier(id)]++; s.total++; }); });
+  return s;
+}
+function logicMechHtml() {
+  var st = logicEvStats(), R = window.SIGNAL_REGISTRY || {};
+  var chip = SIG_MECH.map(function (g) {
+    var n = g.ids.length;
+    var tone = (g.k === 'buy' || g.k === 'snp') ? ['#E4F4EA', '#0F766E'] : (g.k === 'trend' || g.k === 'vol' ? ['#FDF2F2', '#A32D2D'] : ['#F4F4F2', '#52525B']);
+    return '<span title="' + logicEsc(g.ids.map(function (id) { var x = R[id] || {}; return id + ' ' + (x.name || ''); }).join(' · ')) + '" style="background:' + tone[0] + ';color:' + tone[1] + ';border-radius:6px;padding:3px 7px;font-size:10.5px;line-height:1.5">' + logicEsc(g.name) + ' <b>' + n + '</b></span>';
+  }).join('');
+  var rows = SIG_MECH.map(function (g) {
+    var mix = { 'A+': 0, 'A-': 0, 'A?': 0, 'A·': 0, 'C': 0 };
+    g.ids.forEach(function (id) { mix[sigEvTier(id)]++; });
+    var ev = Object.keys(mix).filter(function (k) { return mix[k]; }).map(function (k) { return sigEvLabel(k) + ' ' + mix[k]; }).join(' · ');
+    var mem = g.ids.map(function (id) { var x = R[id] || {}; return '<b>' + logicEsc(id) + '</b> ' + logicEsc(x.name || ''); }).join(' · ');
+    return '<tr style="border-top:1px solid #F1F0EC;vertical-align:top"><td style="padding:4px 6px;font-weight:700;color:#3F3F46;white-space:nowrap">' + logicEsc(g.name) + '</td>'
+      + '<td style="padding:4px 6px;color:#71717A;white-space:nowrap">' + g.ids.length + ' 行</td>'
+      + '<td style="padding:4px 6px;color:#52525B;line-height:1.6">' + mem + '</td>'
+      + '<td style="padding:4px 6px;color:#71717A;line-height:1.6">' + ev + '</td></tr>';
+  }).join('');
+  return '<div style="background:#fff;border:1px solid #E8E6DF;border-radius:10px;padding:10px 12px;margin-bottom:10px">'
+    + '<div style="display:flex;gap:8px;align-items:baseline;flex-wrap:wrap"><b style="font-size:13px;color:#18181B">59 条按机制归并</b>'
+    + '<span style="font-size:11px;color:#71717A">10 个机制族 · 不是 59 条都在生效</span>'
+    + '<span style="margin-left:auto;font-size:10.5px;color:#71717A">A+ ' + st['A+'] + ' 行（4 个机制）· A− ' + st['A-'] + ' · A? ' + st['A?'] + ' · A· ' + st['A·'] + ' · C ' + st.C + '</span></div>'
+    + '<div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:6px">' + chip + '</div>'
+    + '<div style="margin-top:6px;font-size:10.5px;color:#52525B;line-height:1.75">真正动钱（默认开）：<b>T7 回撤补仓</b> / <b>T13 网格跟踪</b> / <b>V11 狙击</b>；<b>T16 卖出后破位减半</b>默认关。'
+    + '<b>T1 阶梯止盈 / T4 硬止损 / R6 止损 / R7 再平衡·减配</b>是执行机制，不是已验证 alpha。'
+    + '<br>负边际 9 条只作实验/观察，不进入「当前生效」叙事：T2 峰值回撤止盈 / T9 CAP 超限 / T10 杠铃失衡 / W3 趋势（自选）/ S4 趋势（筛选池）/ S-TREND 趋势破位 / V1 波动赶底 / R8 年线信号 / R9 刹车。</div>'
+    + '<details style="margin-top:6px;border-top:1px dashed #E8E6DF;padding-top:6px"><summary style="cursor:pointer;font-size:10.5px;color:#2563EB">展开 10 个机制族成员（59 条）</summary>'
+    + '<div style="overflow-x:auto;margin-top:5px"><table style="width:100%;min-width:760px;border-collapse:collapse;table-layout:fixed;font-size:10.5px">'
+    + '<colgroup><col style="width:104px"><col style="width:48px"><col style="width:380px"><col style="width:228px"></colgroup>'
+    + '<thead><tr style="border-bottom:1px solid #E4E4E7;color:#71717A;text-align:left"><th style="padding:4px 6px">机制族</th><th style="padding:4px 6px">行数</th><th style="padding:4px 6px">成员（代码 + 中文名）</th><th style="padding:4px 6px">证据口径</th></tr></thead>'
+    + '<tbody>' + rows + '</tbody></table></div></details></div>';
+}
 function logicRowHtml(r, d) {
     if (LOGIC_BT.indexOf(r) >= 0) {
       var cpB = 'padding:6px 7px;vertical-align:top;';
@@ -24069,6 +24145,7 @@ function logicRowHtml(r, d) {
       + logicEffTd(r, knob)
       + '<td style="' + cp + 'font-size:11px;white-space:nowrap" title="' + logicEsc((knob ? ('cfg=' + knob + ' ') : '') + md.slice(0, 110)) + '"><span style="color:' + engCol + ';font-weight:' + (knob ? '700' : '600') + '">' + eng + '</span></td>'
       + '<td style="' + cp + 'font-size:11px;white-space:nowrap" title="' + logicEsc(segTip) + '"><span style="color:' + (r.seg ? '#0F766E' : (LOGIC_BT.indexOf(r) >= 0 ? '#B45309' : '#A1A1AA')) + '">' + measured + '</span></td>'
+      + '<td style="' + cp + 'white-space:nowrap">' + sigEvBadge(r) + '</td>'
       + '<td style="' + cp + 'font-size:11px;line-height:1.6;color:#52525B;word-break:break-word">' + (thr ? logicEsc(thr) : '<span style="color:#B4B4BB">—</span>') + '</td>'
       + '<td style="' + cp + 'font-size:11px;line-height:1.6;color:#3F3F46;word-break:break-word">' + (act ? logicEsc(act) : '<span style="color:#B4B4BB">—</span>') + '</td>'
       + '<td style="' + cp + 'font-size:11px;line-height:1.55;color:#71717A;word-break:break-word">' + (note || '<span style="color:#D4D4D8">—</span>') + '</td>'
@@ -24099,10 +24176,10 @@ function logicRowHtml(r, d) {
         + '<tbody>' + body + '</tbody></table></div>';
     } else {
       tbl = '<div style="overflow-x:auto;-webkit-overflow-scrolling:touch">'
-        + '<table style="width:100%;min-width:1890px;border-collapse:collapse;table-layout:fixed">'
-        + '<colgroup><col style="width:146px"><col style="width:300px"><col style="width:92px"><col style="width:148px"><col style="width:300px"><col style="width:78px"><col style="width:76px"><col style="width:300px"><col style="width:240px"><col style="width:228px"></colgroup>'
+        + '<table style="width:100%;min-width:1988px;border-collapse:collapse;table-layout:fixed">'
+        + '<colgroup><col style="width:146px"><col style="width:300px"><col style="width:92px"><col style="width:148px"><col style="width:300px"><col style="width:78px"><col style="width:76px"><col style="width:86px"><col style="width:300px"><col style="width:240px"><col style="width:228px"></colgroup>'
         + '<thead><tr style="border-bottom:1px solid #E8E6DF;color:#71717A;font-size:11px;text-align:left">'
-        + '<th style="' + th + '">代码 / 中文名</th><th style="' + th + '" title="这条规则在说什么（v1054）">信号含义</th><th style="' + th + '">作用 · 方向</th><th style="' + th + '">三态</th><th style="' + th + '" title="管哪个模块 · 对组合的影响 · 现状是否已接线">生效作用</th><th style="' + th + '">引擎</th><th style="' + th + '">实测</th><th style="' + th + '">口径</th><th style="' + th + '">动作</th><th style="' + th + '">备注</th></tr></thead>'
+        + '<th style="' + th + '">代码 / 中文名</th><th style="' + th + '" title="这条规则在说什么（v1054）">信号含义</th><th style="' + th + '">作用 · 方向</th><th style="' + th + '">三态</th><th style="' + th + '" title="管哪个模块 · 对组合的影响 · 现状是否已接线">生效作用</th><th style="' + th + '">引擎</th><th style="' + th + '">实测</th><th style="' + th + '" title="A+ 正边际 / A− 负边际 / A? 仅建模未独立对照 / A· 已退役 / C 未验证；A 只表示测过，不等于可信">证据</th><th style="' + th + '">口径</th><th style="' + th + '">动作</th><th style="' + th + '">备注</th></tr></thead>'
         + '<tbody>' + body + '</tbody></table></div>';
     }
     return '<div style="background:#fff;border:1px solid #E8E6DF;border-radius:10px;padding:10px 12px;margin-bottom:10px">'
@@ -24127,7 +24204,7 @@ function logicRowHtml(r, d) {
       + '<b style="color:#B45309">回测参数 · 已接线</b>＝引擎已有分支，总开关打开时按三态下发（生效→开 · 关→关 · 观察→不下发），只改这次运算、不改你手存的抽屉值；'
       + '<b style="color:#0F766E">引擎按常量执行</b>＝引擎按固定参数在跑，三态不改它；'
       + '<b style="color:#71717A">不参与成交</b>＝只在信号页 / 规则卡提示，点「生效」仍只改本机档案与计数。'
-      + '<br>组合层结论：真正动钱的只有三处——② 层的目标权重、④ 层的 cfg 开关 + ⑤ 层的 T1（17 条里 16 条可下发，落在 14 个参数键）、③ 层的止损与刹车常量。其余 42 条点「生效」不改任何回测数字。'
+      + '<br>组合层结论：真正会下发的只有三处——② 层的目标权重、④ 层的 cfg 开关 + ⑤ 层的 T1（17 条里 16 条可下发，落在 14 个参数键）、③ 层的止损与刹车常量。其余 42 条点「生效」不改任何回测数字。但「会下发」≠「有 alpha」：审计只给 T7 回撤补仓 / T13 网格跟踪 / T16 卖出后破位减半 / V11 狙击 4 条正边际；A− 9 条只作实验/观察，不当作「当前生效」。'
       + sw + '</div>';
   }
 
@@ -24241,6 +24318,7 @@ function logicRowHtml(r, d) {
     var _gc = tgThesis();
     var _tgt = _gc.tgtAnn, _dd = _gc.ddBudget, _rf = _gc.rf;
     var _cl = (+_dd > 0) ? (((+_tgt - +_rf) / +_dd).toFixed(2)) : '—';
+    var _evst = logicEvStats();
     var a = '<div style="background:#fff;border:1px solid #E8E6DF;border-left:4px solid #0F766E;border-radius:10px;padding:12px 14px;margin-bottom:10px">'
       + '<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">'
       + '<h3 style="margin:0;font-size:15px;font-weight:700;color:#18181B">投资总纲</h3>'
@@ -24260,6 +24338,8 @@ function logicRowHtml(r, d) {
       + (TG_MIG_NOTE ? '<div id="tgMigNote" style="margin-top:6px;font-size:11px;color:#0F766E;background:#E4F4EA;border-radius:6px;padding:6px 9px;line-height:1.7">' + TG_MIG_NOTE + '</div>' : '')
       + '<div id="tgSaveMsg" style="margin-top:6px;font-size:11px;color:#A1A1AA;line-height:1.7">上面三个数是<b>纲领值</b>（fw2_tg_thesis）：经验定稿，只用于评价与纪律，<b>不写回测参数</b>；编辑入口已移到下方「信号阈值（纲领）」表第 1 组（与 23 项阈值同表、分开存）；回测是实验，参数在「策略执行 → 回测参数」里随意改，两套互不影响。</div>'
       + '<div style="margin-top:6px;font-size:11px;color:#A1A1AA">规则合计 ' + all.length + ' 条（①–⑦ 59 条可执行 + ⑧ 6 条准入验证 · 元规则恒启用，不计三态）：<span style="color:#0F766E;font-weight:700">生效 ' + (on - _btOn) + '</span> · <span style="color:#B45309">观察 ' + obs + '</span> · <span style="color:#A1A1AA">关 ' + off + '</span>' + (d.updatedAt ? ' · 最近改动 ' + logicEsc(d.updatedAt) : '') + '</div>'
+      + '<div style="margin-top:6px;font-size:11px;line-height:1.8;color:#52525B">证据分级（59 条交易规则）：<b style="color:#0F766E">A+ 正边际 ' + _evst['A+'] + '</b> · <b style="color:#A32D2D">A− 负边际 ' + _evst['A-'] + '</b> · <b style="color:#7A4B07">A? 仅建模 ' + _evst['A?'] + '</b> · <b style="color:#52525B">A· 已退役 ' + _evst['A·'] + '</b> · <b style="color:#71717A">C 未验证 ' + _evst.C + '</b>'
+      + '<span style="color:#A1A1AA">　A 不再单用：A 只表示「测过」；是否可信看 A+/A−/A?。上方「生效」是档案状态，不等于会动钱，也不等于有 alpha。</span></div>'
       + '</div>';
     /* B 层导航（v1071 表格化）：用户 2026-11-23「这8个模块能参照信号阀值的表格格式做吗」——
        八层从卡片网格改成一表 8 行：层｜模块｜管什么｜规则｜三态（生效/观察/关）｜入口｜操作；
@@ -24362,7 +24442,7 @@ function logicRowHtml(r, d) {
     var _btRuleCard = (_btRuleTab && typeof btRuleCardHtml === 'function') ? btRuleCardHtml(_cnCfg || btCfg('plan'), _cnCfg ? { cn: true } : null) : '';
     /* v1066 fw2_v1066_sigthr_view：阈值卡改成总纲内「独立入口 + 独立子视图」，不再挂在页尾；
        sigthr 模式下只渲染阈值卡（八层导航仍在，随时可切回任一层），普通层不再重复出现这张卡。 */
-    host.innerHTML = a + b + (_sigMode
+    host.innerHTML = a + logicMechHtml() + b + (_sigMode
       ? (typeof window.sigThrCardHtml === 'function' ? window.sigThrCardHtml(true) : '')
       : (c + _btRuleCard + (_showMeta ? dhtml : '') + evi + poolHost + (_showMeta ? note : '')));
     /* v1056：btCfgHost 已随参数页迁到策略执行，总纲不再渲染参数 */
@@ -30418,11 +30498,13 @@ function renderBacktest() {
           ['S-TREND', '趋势破位：净值破 MA60 且 MACD 柱转绿 → 暂不买入（含建仓、T7 回撤补仓、定投、网格），破位解除即补建', '默认关；两区间弱负（短 15.98 vs 16.63、长 7.50 vs 7.63、回撤 −0.04/−0.26pp）；v976 六段实测：熊尾 +0.03、熊B −1.19、牛B −1.51，接近 no-op——一次性建仓下能拦的只有补仓/网格', !!_cv.stGate],
           ['V11', '狙击：筛选池标的 赔率＝(前高1260 − 净值)/(净值 − 1260日窗口最低收盘) ≥ 门限 才买一注（池＝预算 ' + (_cv.v11Pct != null ? _cv.v11Pct : 5) + '%、单注＝池 25%、最多 4 仓），止损 3×ATR、浮盈 20% 后启用吊灯＝持仓峰值×0.85', 'v970 起默认开；v972 起参数改为池 5%·赔率 2.5·单注 25%·最多 4 仓（v971 曾为池 10%）。v1122 起赔率公式统一到 1260 日窗口（前高1260/最低收盘1260），旧 3×ATR14 与 leg20/leg60 实验口径退役；历史 act 中的收益数字为旧 3×ATR14 口径实测，不能与统一后结果直接横比。含 20bps 成本（v976 口径：T16 默认关）：短（2023-07-03→2026-07-03）13.57 vs 基线 12.29、长（2019-01-02→2026-07-03）8.94 vs 8.54 —— 均为旧口径，统一后未重测前不要引用为新结果。', !!_cv.v11Gate]
         ];
-        var _evColor = { A: '#0F766E', B: '#B45309', C: '#A1A1AA', D: '#A1A1AA' };
         var _rRowHtml = _rList.map(function (x) {
           /* v965：A/B 组 ID（W3/S4）注册表里拆成 W3、S4 两条，整串查不到 → 回落斜杠前一段 */
           var g = _reg[x[0]] || _reg[String(x[0]).split('/')[0]] || { name: x[0], ev: '', modeled: '' };
-          return '<div style="display:grid;grid-template-columns:76px 1fr 92px 46px;gap:8px;align-items:baseline;padding:5px 2px;border-top:1px solid #F2F0EB">'
+          /* fw2_v1141_ev_tier：本卡与总纲共用同一套审计分级，不再拿裸 A/B/C 当「证据」——
+             裸 A 只表示「测过」，容易被读成「可信」，与总纲的 A+ 正边际是两回事。 */
+          var _evBadge = sigEvBadge({ id: String(x[0]).split('/')[0] });
+          return '<div style="display:grid;grid-template-columns:76px 1fr 86px 74px;gap:8px;align-items:baseline;padding:5px 2px;border-top:1px solid #F2F0EB">'
             + '<div style="font-variant-numeric:tabular-nums;line-height:1.25"><div style="font-size:10.5px;color:#A1A1AA">' + x[0] + '</div>'
             + (_idCn[x[0]] ? '<div style="font-size:9.5px;color:#3F3F46;margin-top:1px">' + _idCn[x[0]] + '</div>' : '') + '</div>'
             + '<div style="font-size:11.5px;color:#52525B;line-height:1.5"><b style="color:#18181B;font-weight:600">' + g.name + '</b> · ' + x[1] + (x[2] ? '<span style="color:#A1A1AA"> · ' + x[2] + '</span>' : '') + '</div>'
@@ -30430,7 +30512,7 @@ function renderBacktest() {
                无实测的行不编数字、也不留空表头误导——底部统一说明「未测＝尚未分段跑」。 */
             + (g.seg ? '<div style="grid-column:2/3;display:flex;flex-wrap:wrap;gap:4px 10px;margin:2px 0 0;font-size:10px;color:#52525B;font-variant-numeric:tabular-nums"><span style="color:#A1A1AA">分段口径</span><span>牛 ' + g.seg.bull + '</span><span>熊 ' + g.seg.bear + '</span><span>熊段回撤 ' + g.seg.dd + '</span></div>' : '') + (((g.seg && g.seg.roll) || g.roll || (x[0] === 'R3' && _reg['T13'] ? _reg['T13'].roll : '')) ? '<div style="grid-column:2/3;font-size:10px;color:#A32D2D;margin:0 0 2px;font-variant-numeric:tabular-nums">滚动 ' + ((g.seg && g.seg.roll) || g.roll || (x[0] === 'R3' && _reg['T13'] ? _reg['T13'].roll : '')) + '</div>' : '')
             + '<div style="font-size:10.5px;white-space:nowrap">' + _chip(x[0], x[3]) + '</div>'
-            + '<div style="font-size:10.5px;white-space:nowrap;color:' + (_evColor[g.ev] || '#A1A1AA') + '">' + (g.ev ? '证据 ' + g.ev : '—') + '</div>'
+            + '<div style="font-size:10.5px;white-space:nowrap">' + _evBadge + '</div>'
             + '</div>';
         }).join('');
         var _rOnCnt = _rList.filter(function (x) { return x[3]; }).length;
@@ -30445,11 +30527,11 @@ function renderBacktest() {
         var _rTitle = _cn ? '投资纲领生效的规则（实盘口径）' : '本次回测执行的规则';
         var _rHint = _cn
           ? ('共 ' + _rList.length + ' 条 · 生效 ' + _rCn.on + ' / 观察 ' + _rCn.obs + ' / 关 ' + _rCn.off + ' · 口径＝投资纲领（三态＋阈值＋目标）')
-          : ('共 ' + _rList.length + ' 条，开 ' + _rOnCnt + ' 条 / 关 ' + (_rList.length - _rOnCnt) + ' 条（按 ⑧-A 实验参数实时计算）· 证据 A＝已回测有对照数字 / B＝样本外统计中 / C＝未回测');
-        var _rFoot = _cn ? ('<div style="font-size:10px;color:#71717A;margin:0 0 8px;line-height:1.7">全部取自投资纲领：开关＝三态（fw2_logic_v1：生效／观察／关）· 阈值与执行口径＝信号阈值 26 项（3 目标 fw2_tg_thesis + 9 阈值 + 1 已下线 + 13 执行，fw2_sig_thr）· 目标＝纲领三键（fw2_tg_thesis）· 证据 A／B／C＝已回测／统计中／未回测。<br>本卡不含任何 ⑧-A 实验数值；回测实验（「策略执行 → 回测参数」）只用于跑回测，不参与这里的判定。</div>') : '';
+          : ('共 ' + _rList.length + ' 条，开 ' + _rOnCnt + ' 条 / 关 ' + (_rList.length - _rOnCnt) + ' 条（按 ⑧-A 实验参数实时计算）· 证据分级＝A+ 正边际 / A− 负边际 / A? 仅建模 / A· 已退役 / C 未验证');
+        var _rFoot = _cn ? ('<div style="font-size:10px;color:#71717A;margin:0 0 8px;line-height:1.7">全部取自投资纲领：开关＝三态（fw2_logic_v1：生效／观察／关）· 阈值与执行口径＝信号阈值 26 项（3 目标 fw2_tg_thesis + 9 阈值 + 1 已下线 + 13 执行，fw2_sig_thr）· 目标＝纲领三键（fw2_tg_thesis）· 证据分级＝A+ 正边际／A− 负边际／A? 仅建模未独立对照／A· 已退役／C 未验证；裸 A 只表示「测过」，不等于可信。<br>本卡不含任何 ⑧-A 实验数值；回测实验（「策略执行 → 回测参数」）只用于跑回测，不参与这里的判定。</div>') : '';
         return '<div class="card-h" style="margin-top:12px"><h3>' + _rTitle + '</h3><span class="hint">' + _rHint + '</span></div>'
           + '<div style="border:1px solid #E8E6DF;border-radius:8px;padding:4px 10px 8px;background:#fff;margin:6px 0 8px">'
-          + '<div style="display:grid;grid-template-columns:76px 1fr 92px 46px;gap:8px;padding:3px 2px;font-size:10px;color:#A1A1AA;letter-spacing:.02em"><div>代码／中文名</div><div>触发条件与动作</div><div>' + (_cn ? '纲领' : '本次') + '</div><div>等级</div></div>'
+          + '<div style="display:grid;grid-template-columns:76px 1fr 86px 74px;gap:8px;padding:3px 2px;font-size:10px;color:#A1A1AA;letter-spacing:.02em"><div>代码／中文名</div><div>触发条件与动作</div><div>' + (_cn ? '纲领' : '本次') + '</div><div>证据</div></div>'
           + _rRowHtml
           + '</div>'
           + _rFoot
