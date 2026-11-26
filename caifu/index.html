@@ -1083,6 +1083,58 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .today-band .todo-bar { margin:0 0 0 auto; padding:0; background:none; border:0; justify-content:flex-end; gap:6px 8px; }
 .today-band .todo-bar::before { content:none; }
 .today-band .todo-chip { padding:4px 10px; font-size:12px; }
+/* fw2_v1130_capital_labels：全站资金口径条——账户/策略/实验/回测四套基数同屏；
+   单行可横滑，避免每个模块各写一套口径又互相打架。只标注，不改任何金额。 */
+.capital-caliber { display:flex; align-items:center; flex-wrap:wrap; gap:6px 7px; padding:7px 12px; background:var(--panel,#fff);
+  border-bottom:1px solid var(--line,#EAECF0); flex:0 0 auto; }
+.capital-caliber .cc-lead { flex:0 0 auto; font-size:11px; font-weight:700; color:var(--text-2,#475467); letter-spacing:.02em; }
+.capital-caliber .cc-chip { display:inline-flex; align-items:center; gap:5px; flex:0 0 auto; padding:3px 8px;
+  border:1px solid var(--line,#EAECF0); border-radius:999px; font-size:11px; line-height:1.2; background:var(--panel-2,#F8FAFC); }
+.capital-caliber .cc-chip b { font-weight:700; }
+.capital-caliber .cc-acct { color:#1D4ED8; background:#EAF1FF; border-color:#BCD0F7; }
+.capital-caliber .cc-strat { color:#12693A; background:#E7F6EC; border-color:#A7DCBA; }
+.capital-caliber .cc-exp { color:#7F4E07; background:#FAEEDA; border-color:#F0D9A8; }
+.capital-caliber .cc-bt { color:#475467; background:#F2F4F7; border-color:#D0D5DD; }
+@media (max-width:760px) { .capital-caliber { padding:6px 10px; gap:6px; } }
+/* fw2_v1131_bucket_target_vs_actual：四桶目标 40/35/10/15 vs 实际；
+   同一张卡里把「结构占比偏离」与「按 5 万目标的金额到位率」分开，避免两个分母混读。 */
+.bucket-bk { background:#fff; border:1px solid var(--line,#EAECF0); border-radius:12px; padding:12px 14px; margin:0 0 12px; }
+.bucket-bk .bk-hd { display:flex; align-items:center; justify-content:space-between; gap:8px; flex-wrap:wrap; }
+.bucket-bk .bk-hd h4 { margin:0; font-size:14px; font-weight:700; color:var(--text,#101828); }
+.bucket-bk .bk-hd h4::before { content:""; display:inline-block; width:3px; height:12px; background:#1D4ED8; margin-right:7px; vertical-align:-1px; border-radius:2px; }
+.bucket-bk .bk-badge { font-size:11px; font-weight:700; color:#1D4ED8; background:#EAF1FF; border:1px solid #BCD0F7; border-radius:999px; padding:2px 8px; white-space:nowrap; }
+.bucket-bk .bk-sum { margin:7px 0 9px; font-size:12px; line-height:1.65; color:var(--text-2,#475467); }
+.bucket-bk .bk-sum b { color:var(--text,#101828); }
+.bucket-bk .bk-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; }
+.bucket-bk .bkt { border:1px solid var(--line,#EAECF0); border-left:3px solid var(--bc,#1D4ED8); border-radius:9px; background:var(--panel-2,#F8FAFC); padding:8px 10px; min-width:0; }
+.bucket-bk .bkt-h { display:flex; align-items:center; justify-content:space-between; gap:6px; }
+.bucket-bk .bkt-h b { font-size:12.5px; color:var(--text,#101828); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.bucket-bk .bkt-h span { font-size:11px; font-weight:700; white-space:nowrap; }
+.bucket-bk .bkt-h span.warn { color:#A32D2D; }
+.bucket-bk .bkt-h span.ok { color:#12693A; }
+.bucket-bk .bkt-t { font-size:11.5px; color:var(--text-2,#475467); margin-top:4px; line-height:1.5; }
+.bucket-bk .bkt-a { font-size:11.5px; color:var(--text,#101828); margin-top:1px; line-height:1.5; font-weight:600; }
+.bucket-bk .bkt-bar { position:relative; height:5px; background:#E4E7EC; border-radius:3px; margin:6px 0 5px; }
+.bucket-bk .bkt-bar i { display:block; height:100%; border-radius:3px; background:var(--bc,#1D4ED8); max-width:100%; }
+.bucket-bk .bkt-bar em { position:absolute; top:-2px; width:2px; height:9px; background:#101828; border-radius:1px; }
+.bucket-bk .bkt-f { font-size:10.5px; color:var(--muted,#667085); line-height:1.45; }
+.bucket-bk .bk-note { margin:8px 0 0; font-size:11px; color:var(--muted,#667085); line-height:1.55; }
+@media (max-width:640px) { .bucket-bk .bk-grid { grid-template-columns:1fr; } }
+/* fw2_v1132_new_money_route：新钱按四桶缺口比例分配；只给路线，不执行交易。 */
+.bucket-bk .bk-tbl { width:100%; border-collapse:collapse; font-size:11px; margin-top:2px; table-layout:fixed; }
+.bucket-bk .bk-tbl th, .bucket-bk .bk-tbl td { padding:5px 4px; border-bottom:1px solid var(--line,#EAECF0); text-align:right; white-space:nowrap; font-variant-numeric:tabular-nums; }
+.bucket-bk .bk-tbl th:first-child, .bucket-bk .bk-tbl td:first-child { text-align:left; white-space:normal; }
+.bucket-bk .bk-tbl th { color:var(--muted,#667085); font-weight:600; }
+.bucket-bk .bk-tbl tr.total td { font-weight:700; color:var(--text,#101828); border-bottom:0; }
+.bucket-bk .bk-tbl td .dot { display:inline-block; width:7px; height:7px; border-radius:50%; margin-right:5px; vertical-align:0; }
+.bucket-bk .bk-tbl th:nth-child(1) { width:26%; }
+.bucket-bk .bk-tbl th:nth-child(2) { width:17%; }
+.bucket-bk .bk-tbl th:nth-child(3) { width:21%; }
+.bucket-bk .bk-tbl th:nth-child(4) { width:16%; }
+.bucket-bk .bk-tbl th:nth-child(5) { width:20%; }
+
+
+
 /* fw2_v1129_hold_recon：我的持仓「三口径对账卡」——账户总资产 / 确认份额×净值 / 在途买入 / 账户明细市值同屏；
    只做口径解释与异常提示，不改账户数据、不改权重口径。 */
 .hold-recon { margin:0 0 12px; padding:13px 16px; }
@@ -1599,7 +1651,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 <!-- fw2_v1112_dd_hist_allpool（用户 2026-11-25「按照你建议继续」，落地 A 展示补全 + B 全池逐日对照，默认仍保留当前最深 10）：
       A「区间曾深」：监测卡头部加切换，按 [from,to] 逐日维护此前最高收盘（峰值可早于区间起点，与 ddArrOf 同口径）算区间最深；列出曾≥起始档位、但当前已修复而被焦点视图隐藏的指数（本次 63 只中 16 只曾≥70%，当前仅 4 只仍≥70%，5 只已修复到 <60%）。
       B「全池59（逐日机会）」：回测方式第三档；境内 59 只全部进入逐日机会集，不按今天回撤预选；每只只在自己回撤≥起始档位时买；同日先卖后买，再按当日回撤深→浅分配资金，现金不足跳过并计数；仍不含 4 只境外。默认仍为「当前最深 10」，且加 look-ahead 提示；换口径即清空旧结果，全池点行改为切单指数。 -->
-<span id="verBadge" class="ver-badge">v1129</span><!-- fw2_v1129_hold_recon（用户 2026-11-26「按照你的建议列个执行清单 / 按顺序开始执行」）：我的持仓 KPI 下新增「账户口径对账」卡——同屏展示 账户总资产 20,565.55 / 确认份额×净值 18,067.10 / 在途买入 2,498.46 / 账户明细市值合计 15,688.38；明确 15,688.38 与总资产差 4,877.17 的主因是 012920 卖出后份额未重建（账户市值 5,412.79 vs 份额×净值 10,283.50，差 -4,870.71），其余 6.46 为逐只四舍五入；权重继续用「确认份额×净值」，账户总值用 holding_total，不自动改账户数据。 --><!-- fw2_v1128_hide_cash_sig（用户 2026-11-26「活期宝不显示在信号中」）：交易信号→持仓信号不再为现金/货币基金生成「暂无信号·持仓兜底」标卡与占位行；按 state.portfolio 的 assetType=cash 或名称含货币/活期宝/现金宝，以及 drawdown 行的 kind=money 识别；只改展示，不改信号判定、阈值、其它组与表内行序。 --><!-- fw2_v1127_hold_sig_mv_sort（用户 2026-11-26「交易信号-持仓信号里面的标的按照持仓金额大小排列」）：仅「持仓信号」组内标目按持仓市值（state.portfolio 的 mvCny，人民币口径）降序；T10 杠铃档位（四档）为组合汇总、保持置顶；同额回退原等级/信号数/指数族/代码排序。未改信号判定、同指数合并选择、表内行序与自选/筛选/市场组排序。 --><!-- fw2_v1126_macro_nky_refresh：2026-11-26 15:02 只刷宏观组（`refresh_all.py --only macro --no-publish`）后，`macro-data.json` 的 nky 实时价由盘中 57,812.38 更新为收盘 57,498.94，amt/amtD/fsi/sentiment/wave 同步刷新；`index.html` 内嵌 MACRO_SNAP 由数据链同步更新，未改任何计算/信号逻辑。nky 闸门已转 PASS（实时独立源本次不可达，按本地底线降级，详见 verify_nky 备注）；`gen_macro_extra.py` 因缺 akshare 仍失败，数据管理保留 3 项失败标记。 --><!-- fw2_v1125_sp_wait：配置回测开启 V11 狙击时，若筛选池（SCREEN_POOL）未就绪，先加载 screen-pool.json 并自动续跑；加载失败则明确拦下，避免空池跑出 0 笔假结果。 --><!-- fw2_v1123_sm_insert_anchor（用户 2026-11-25 截图「点聪明的钱后模块组被压到后面」）：交易信号页把 #view-smartmoney 搬入 sigBody 时，原锚点 `body.querySelector('.dc-note')` 实际命中的是「V11 狙击已移至…」提示（同样带 .dc-note），导致聪明的钱整节被插到阈值来源之后、标签组之前。改为末脚注 #sigFootNote 作锚点（兜底取最后一个 .dc-note），标签组/筛选条回到顶部，聪明的钱内容落在其余 pane 之后、脚注之前。 --><!-- fw2_v1122_v11_formula_unified（用户 2026-11-25「统一」）：V11 赔率公式从「p250 前高 / 3×ATR14」统一到「1260 日前高 / 1260 日窗口最低收盘」——配置回测 v11Gate 新增 p1260/lo1260 单调队列，与扫描 bt_signal.entry_signal、运行回测 v11Prep 同算式；旧 v11Den atr/leg20/leg60 三档退役；注册表/参数说明/逻辑清单同步改口径，旧口径收益数字标为历史、不冒充新结果。 --><!-- fw2_v1121_v11_run_kpi（用户 2026-11-25「V11狙击加入深跌买入一样的运行回测模块。这个面积太大了。改成 2.50还是2，根据你的建议改」）：①V11 策略页顶部 5 格 KPI 改用专用 .v11-kpi（5 列等宽、单元格 min-height:0），消除 .sh-grid flex:1 1 320px 造成的 320px 空白；②新增运行回测卡（范围/ETF/起止/本金/单注/仓位/门限/止损/吊灯），懒加载 data/v11-bt-data.json，出 KPI+SVG 净值/持仓曲线+分标的+逐笔；③赔率门限全链路统一 2.50；④v11FmtMoney 负数改 -¥；⑤曲线用原生 SVG，避免 canvas 在截图/部分环境不显示。 --><!-- fw2_v1120_v11_rows_removed：V11 狙击逐只执行行从交易信号页删除，V11 只保留策略执行入口 --><!-- fw2_v1096_dd_search（用户「继续」）：①全指数监测卡加「搜索」（代码/名称，只过滤本表显示，分档 chips 计数与已选组合不受影响；输入时保存 ST.q 并重画、回填焦点与滚动位置）②组合池加「全选境内 59」「恢复默认（宽基）」（境外永远不进池）③脚注的境外名单由数据现算（原来写死 4 个名字，加池就会过期）④gen_index_dd 去掉冗余 count.night，gen_index_val 的蛋卷 asof 不再写死 2026 年 --><!-- fw2_v1097_dd_sort_valref（用户「继续」，承接 v1096 挂账）：①全指数监测卡加「排序」开关——回撤深→浅（默认）/ 名称 A→Z，只换本表顺序，分档计数与已选组合不变；②估值卡加「同类别对照」小表——全部 / 宽基 / 行业 / 主题 / 境外五行的 PE 分位中位、PB 分位中位、价格分位中位，并列出该类别里 PE 分位最低的一只；③两处都只用既有 index-dd / index-val 数据，不引入新源（v1096 已证伪的三条补源路仍挂账）。 --><!-- fw2_v1098_dd_n2_sort（用户「继续完成」，收口 v1097「下一步候选」三件）：①估值「同类别对照」由 6 列扩到 8 列——补「股息率中位」与「PB 分位最低的一只」（与 PE 最低同口径：只统计有该分位的只数，空组回 —）；②监测卡加「快捷」行——「距下档 ≤2pp」一键筛选（ST.n2 与类别 / 分档 / 搜索四者可叠加，chips 计数仍按类别全集，不受搜索与快捷键影响）；③方案卡「进入买入区」表跟随 ST.sort（默认回撤深→浅，切名称后同监测卡拼音序）；④仍不引入新源。 --><!-- fw2_v1099_dd_pickcat_relcat（用户「继续」，收口 v1098「下一步候选」三件）：①组合池加按类别批量勾选——宽基 / 行业 / 主题三个按钮各显示「已选/总数」，全选后再点即取消该类（不碰境外）；②估值主表加「相对同类」列——本只 PE 分位 − 同类别 PE 分位中位（pp，负＝比同类便宜），只在双方都有分位时显示；③跨档卡跟随监测卡类别筛选（ST.fcat），计数、「展开全部 N 只」与空态都按当前类别；④仍不引入新源。 --><!-- fw2_v1100_dd_bksum_cheap_vsort（用户「继续」，收口 v1099「下一步候选」三件）：①监测卡加「按回撤分档汇总」表——6 档的只数 / 平均回撤 / 该档最深一只 / 距下档 ≤2pp 只数 / 已进买入区只数，按当前类别统计、不受搜索与快捷影响；②组合池加「只选便宜一半」——按同类别 PE 分位中位分界，只选低于中位的（无分位不入选，口径写进按钮 title）；③估值主表「相对同类」表头可点击排序，三态循环：默认（回撤深→浅）→ 便宜在前 → 贵在前，无分位的行恒排最后；④ddTbl 扩一个可选 th 属性位（backward compatible），中位数抽成模块级 medOf 单一实现；⑤仍不引入新源。 --><!-- fw2_v1076_conflicts（用户 2026-11-23「按照你顺序修」——修掉体检出的 5 处纲领冲突）：
+<span id="verBadge" class="ver-badge">v1132</span><!-- fw2_v1132_new_money_route（用户 2026-11-26「按顺序开始执行」清单 1.4）：策略执行-资产配置新增「新钱分配路线」卡；按四桶缺口比例给不卖出补足路线，不执行交易。 --><!-- fw2_v1131_bucket_target_vs_actual（用户 2026-11-26「按顺序开始执行」清单 1.3）：策略执行-资产配置新增「四桶目标 vs 实际」卡；占比偏离与 5 万到位率分开呈现，不改计算与再平衡。 --><!-- fw2_v1130_capital_labels（用户 2026-11-26「按顺序开始执行」清单 1.2）：全站顶部常驻「资金口径」条，分账户/策略/实验/回测四套基数，只做标注，不改任何金额计算。 --><!-- fw2_v1129_hold_recon（用户 2026-11-26「按照你的建议列个执行清单 / 按顺序开始执行」）：我的持仓 KPI 下新增「账户口径对账」卡——同屏展示 账户总资产 20,565.55 / 确认份额×净值 18,067.10 / 在途买入 2,498.46 / 账户明细市值合计 15,688.38；明确 15,688.38 与总资产差 4,877.17 的主因是 012920 卖出后份额未重建（账户市值 5,412.79 vs 份额×净值 10,283.50，差 -4,870.71），其余 6.46 为逐只四舍五入；权重继续用「确认份额×净值」，账户总值用 holding_total，不自动改账户数据。 --><!-- fw2_v1128_hide_cash_sig（用户 2026-11-26「活期宝不显示在信号中」）：交易信号→持仓信号不再为现金/货币基金生成「暂无信号·持仓兜底」标卡与占位行；按 state.portfolio 的 assetType=cash 或名称含货币/活期宝/现金宝，以及 drawdown 行的 kind=money 识别；只改展示，不改信号判定、阈值、其它组与表内行序。 --><!-- fw2_v1127_hold_sig_mv_sort（用户 2026-11-26「交易信号-持仓信号里面的标的按照持仓金额大小排列」）：仅「持仓信号」组内标目按持仓市值（state.portfolio 的 mvCny，人民币口径）降序；T10 杠铃档位（四档）为组合汇总、保持置顶；同额回退原等级/信号数/指数族/代码排序。未改信号判定、同指数合并选择、表内行序与自选/筛选/市场组排序。 --><!-- fw2_v1126_macro_nky_refresh：2026-11-26 15:02 只刷宏观组（`refresh_all.py --only macro --no-publish`）后，`macro-data.json` 的 nky 实时价由盘中 57,812.38 更新为收盘 57,498.94，amt/amtD/fsi/sentiment/wave 同步刷新；`index.html` 内嵌 MACRO_SNAP 由数据链同步更新，未改任何计算/信号逻辑。nky 闸门已转 PASS（实时独立源本次不可达，按本地底线降级，详见 verify_nky 备注）；`gen_macro_extra.py` 因缺 akshare 仍失败，数据管理保留 3 项失败标记。 --><!-- fw2_v1125_sp_wait：配置回测开启 V11 狙击时，若筛选池（SCREEN_POOL）未就绪，先加载 screen-pool.json 并自动续跑；加载失败则明确拦下，避免空池跑出 0 笔假结果。 --><!-- fw2_v1123_sm_insert_anchor（用户 2026-11-25 截图「点聪明的钱后模块组被压到后面」）：交易信号页把 #view-smartmoney 搬入 sigBody 时，原锚点 `body.querySelector('.dc-note')` 实际命中的是「V11 狙击已移至…」提示（同样带 .dc-note），导致聪明的钱整节被插到阈值来源之后、标签组之前。改为末脚注 #sigFootNote 作锚点（兜底取最后一个 .dc-note），标签组/筛选条回到顶部，聪明的钱内容落在其余 pane 之后、脚注之前。 --><!-- fw2_v1122_v11_formula_unified（用户 2026-11-25「统一」）：V11 赔率公式从「p250 前高 / 3×ATR14」统一到「1260 日前高 / 1260 日窗口最低收盘」——配置回测 v11Gate 新增 p1260/lo1260 单调队列，与扫描 bt_signal.entry_signal、运行回测 v11Prep 同算式；旧 v11Den atr/leg20/leg60 三档退役；注册表/参数说明/逻辑清单同步改口径，旧口径收益数字标为历史、不冒充新结果。 --><!-- fw2_v1121_v11_run_kpi（用户 2026-11-25「V11狙击加入深跌买入一样的运行回测模块。这个面积太大了。改成 2.50还是2，根据你的建议改」）：①V11 策略页顶部 5 格 KPI 改用专用 .v11-kpi（5 列等宽、单元格 min-height:0），消除 .sh-grid flex:1 1 320px 造成的 320px 空白；②新增运行回测卡（范围/ETF/起止/本金/单注/仓位/门限/止损/吊灯），懒加载 data/v11-bt-data.json，出 KPI+SVG 净值/持仓曲线+分标的+逐笔；③赔率门限全链路统一 2.50；④v11FmtMoney 负数改 -¥；⑤曲线用原生 SVG，避免 canvas 在截图/部分环境不显示。 --><!-- fw2_v1120_v11_rows_removed：V11 狙击逐只执行行从交易信号页删除，V11 只保留策略执行入口 --><!-- fw2_v1096_dd_search（用户「继续」）：①全指数监测卡加「搜索」（代码/名称，只过滤本表显示，分档 chips 计数与已选组合不受影响；输入时保存 ST.q 并重画、回填焦点与滚动位置）②组合池加「全选境内 59」「恢复默认（宽基）」（境外永远不进池）③脚注的境外名单由数据现算（原来写死 4 个名字，加池就会过期）④gen_index_dd 去掉冗余 count.night，gen_index_val 的蛋卷 asof 不再写死 2026 年 --><!-- fw2_v1097_dd_sort_valref（用户「继续」，承接 v1096 挂账）：①全指数监测卡加「排序」开关——回撤深→浅（默认）/ 名称 A→Z，只换本表顺序，分档计数与已选组合不变；②估值卡加「同类别对照」小表——全部 / 宽基 / 行业 / 主题 / 境外五行的 PE 分位中位、PB 分位中位、价格分位中位，并列出该类别里 PE 分位最低的一只；③两处都只用既有 index-dd / index-val 数据，不引入新源（v1096 已证伪的三条补源路仍挂账）。 --><!-- fw2_v1098_dd_n2_sort（用户「继续完成」，收口 v1097「下一步候选」三件）：①估值「同类别对照」由 6 列扩到 8 列——补「股息率中位」与「PB 分位最低的一只」（与 PE 最低同口径：只统计有该分位的只数，空组回 —）；②监测卡加「快捷」行——「距下档 ≤2pp」一键筛选（ST.n2 与类别 / 分档 / 搜索四者可叠加，chips 计数仍按类别全集，不受搜索与快捷键影响）；③方案卡「进入买入区」表跟随 ST.sort（默认回撤深→浅，切名称后同监测卡拼音序）；④仍不引入新源。 --><!-- fw2_v1099_dd_pickcat_relcat（用户「继续」，收口 v1098「下一步候选」三件）：①组合池加按类别批量勾选——宽基 / 行业 / 主题三个按钮各显示「已选/总数」，全选后再点即取消该类（不碰境外）；②估值主表加「相对同类」列——本只 PE 分位 − 同类别 PE 分位中位（pp，负＝比同类便宜），只在双方都有分位时显示；③跨档卡跟随监测卡类别筛选（ST.fcat），计数、「展开全部 N 只」与空态都按当前类别；④仍不引入新源。 --><!-- fw2_v1100_dd_bksum_cheap_vsort（用户「继续」，收口 v1099「下一步候选」三件）：①监测卡加「按回撤分档汇总」表——6 档的只数 / 平均回撤 / 该档最深一只 / 距下档 ≤2pp 只数 / 已进买入区只数，按当前类别统计、不受搜索与快捷影响；②组合池加「只选便宜一半」——按同类别 PE 分位中位分界，只选低于中位的（无分位不入选，口径写进按钮 title）；③估值主表「相对同类」表头可点击排序，三态循环：默认（回撤深→浅）→ 便宜在前 → 贵在前，无分位的行恒排最后；④ddTbl 扩一个可选 th 属性位（backward compatible），中位数抽成模块级 medOf 单一实现；⑤仍不引入新源。 --><!-- fw2_v1076_conflicts（用户 2026-11-23「按照你顺序修」——修掉体检出的 5 处纲领冲突）：
 ①R7 带宽：撤销 v1067 的 `o.band = o.slotBand` 强镜像；band 只喂 R7（单只超配 25% 减配，SIG_THR_DEF 5→25、与回测 cfg.band 同值），slotBand 只喂 T10 四档；sigThrApply 分别写 C.barbell.band / C.barbell.slotBand，T10 文案改读 slotBand，R7 行 threshold 由硬编码「band 25%」改为动态读纲领值。
 ②R2 假开关：`_planCfg()` 读 `window.logicStateEff('R2')`——生效按 investMode，观察/关一律 lump（月投 0）；建仓步文案在一次性时追加「R2 定投＝关/观察」。
 ③T4 与 R6 双份：T4 行 modeled 改「与 R6 止损同一执行（同一 slHard）」，def 标「= R6 止损，同一动作」，阈值表 slHard 口径写「T4 / R6 · 同一执行」。
@@ -1686,6 +1738,8 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
     </header>
 
     <div data-page-node-id="7p4vylIC8ywYkYK1GbN50S" class="index-strip" id="indexStrip"></div>
+    <!-- fw2_v1130_capital_labels：全站资金口径条（账户 / 策略 / 实验 / 回测） -->
+    <div class="capital-caliber" id="capCaliber" aria-label="全站资金口径"></div>
 
     <div data-page-node-id="fXLk6Ijr5MqgohZMVFijQs" class="scroll-area">
       <!--pnid:RXbe4srWCV9YnzHWIR5GFK--><!-- ---------- 持仓 ---------- -->
@@ -9859,6 +9913,32 @@ function collectToNote(item) {
 /* ==========================================================
  *  路由与事件
  * ========================================================== */
+/* fw2_v1130_capital_labels：全站资金口径条。
+   账户口径＝holding_total（含在途）+ 确认份额×净值（权重/四桶）；策略口径＝STRATEGY_SNAP.totalTarget（5 万）；
+   实验口径＝深跌买入/终止样本 10 万，不并入 5 万；回测口径＝各页输入本金。只读展示，不写任何金额。 */
+function renderCapitalCaliber() {
+  const el = document.getElementById('capCaliber');
+  if (!el) return;
+  const seed = window.HOLDINGS_SEED || {};
+  const rows = Array.isArray(seed.holdings) ? seed.holdings : [];
+  let confirmMv = 0;
+  rows.forEach(function (h) {
+    if (!h || !/^\d{6}$/.test(String(h.code || ''))) return;
+    const sh = Number(h.shares), nav = Number(h.nav);
+    if (Number.isFinite(sh) && Number.isFinite(nav) && nav > 0) confirmMv += sh * nav;
+  });
+  const total = Number(seed.total);
+  const plan = Number(window.STRATEGY_SNAP && window.STRATEGY_SNAP.totalTarget) || 50000;
+  const planPct = plan > 0 ? confirmMv / plan * 100 : null;
+  const money = function (v) { return (v == null || !Number.isFinite(Number(v))) ? '—' : '¥' + Number(v).toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); };
+  const pctTxt = function (v) { return v == null ? '—' : (v >= 0 ? '' : '-') + Math.abs(v).toFixed(1) + '%'; };
+  el.innerHTML =
+    '<span class="cc-lead">资金口径</span>' +
+    '<span class="cc-chip cc-acct" title="账户总值＝holding_total（含在途）；权重/四桶＝确认份额×净值"><b>账户</b>总值 ' + money(total) + ' · 权重 ' + money(confirmMv) + '</span>' +
+    '<span class="cc-chip cc-strat" title="策略基准＝STRATEGY_SNAP.totalTarget；到位进度只算确认份额×净值，不含在途"><b>策略</b>5 万计划 · 到位 ' + pctTxt(planPct) + '</span>' +
+    '<span class="cc-chip cc-exp" title="深跌买入/终止样本是独立实验，参数与结果都不并入 5 万策略基准"><b>实验</b>10 万 · 不并入 5 万</span>' +
+    '<span class="cc-chip cc-bt" title="回测本金按各页输入，不回写账户或策略基准"><b>回测</b>按各页本金</span>';
+}
 const VIEW_META = {
   holdings: ['我的持仓', '天天基金账户镜像 · 每晚自动同步'], /* fw2_v660_ui_simplify：原「支持新增/修改/删除」与只读镜像现实矛盾 */
   signal: ['交易信号', '信号仪表盘 · 杠铃失衡 · 持仓/自选/市场信号'],
@@ -9905,6 +9985,7 @@ function showView(name) {
   if (!window.__FD_FIRST_NAV_DONE__) { window.__FD_FIRST_NAV_DONE__ = true; }
   else if (name === 'signal' || name === 'data' || name === 'strategy') { if (window.__FD_FLUSH__) window.__FD_FLUSH__(); }
   renderCurrentView();
+  renderCapitalCaliber();
   setTimeout(() => Object.values(charts).forEach((c) => c && !c.isDisposed() && c.resize()), 30);
 }
 function renderCurrentView() {
@@ -29897,6 +29978,88 @@ function brakeCardHtml(opts) {
      市值口径：一律过 holdRows（份额 × 最新净值）；行情缺失按 昨收 → 实时价 → fund-daily 净值 → 成本 四级回退（v261 起的链）。
      已知坑：列宽必须固定、指数家族聚合行的 rowspan 要与主表逐行对齐——v505d / v872 / v778 / v1019 四次列错位事故都源于「列自适应」。
      沿革见文件头 fw2_v* 注释块。 */
+  /* fw2_v1131_bucket_target_vs_actual：四桶目标 vs 实际。
+     结构占比＝桶市值 / 四档内实际合计（看是不是偏配）；金额到位＝桶市值 / 5 万目标金额（看买了多少）。
+     两个分母必须同时写出来，禁止拿「占比超配」说成「金额已到位」。 */
+  function bucketCardHtml() {
+    var plan = Number(window.STRATEGY_SNAP && window.STRATEGY_SNAP.totalTarget) || 50000;
+    var act = (typeof barbellActual === 'function') ? barbellActual() : null;
+    var tot = act && act.tot > 0 ? act.tot : 0;
+    var tg = (act && act.cfg && act.cfg.target) || { base: 40, off: 35, bond: 10, hedge: 15 };
+    var band = Number(act && act.cfg && act.cfg.slotBand) || 5; /* T10 四档偏离带，不是 R7 单只 band（默认 25） */
+    var PILE = [
+      { k: 'base', name: '底仓/缓冲', c: '#2A4FD6' },
+      { k: 'off', name: '进攻/主题', c: '#B45309' },
+      { k: 'bond', name: '安全垫', c: '#047857' },
+      { k: 'hedge', name: '对冲', c: '#7C3AED' }
+    ];
+    var money = function (v) { return '¥' + Math.round(Number(v) || 0).toLocaleString('zh-CN'); };
+    var pp1 = function (v) { return (v == null || !isFinite(v)) ? '—' : (v > 0 ? '+' : '') + v.toFixed(1) + 'pp'; };
+    var tiles = PILE.map(function (p) {
+      var tgt = Number(tg[p.k]) || 0;
+      var tgtAmt = plan * tgt / 100;
+      var mv = act ? (Number(act.pileMv[p.k]) || 0) : 0;
+      var share = tot > 0 ? mv / tot * 100 : null;
+      var prog = tgtAmt > 0 ? mv / tgtAmt * 100 : null;
+      var dev = share == null ? null : share - tgt;
+      var warn = dev != null && Math.abs(dev) >= band;
+      return '<div class="bkt" style="--bc:' + p.c + '">'
+        + '<div class="bkt-h"><b>' + p.name + '</b><span class="' + (warn ? 'warn' : 'ok') + '">' + (dev == null ? '待数据' : pp1(dev)) + '</span></div>'
+        + '<div class="bkt-t">目标 <b>' + tgt + '%</b> · ' + money(tgtAmt) + '</div>'
+        + '<div class="bkt-a">实际 ' + (share == null ? '—' : share.toFixed(1) + '%') + ' · ' + money(mv) + '</div>'
+        + '<div class="bkt-bar"><i style="width:' + (share == null ? 0 : Math.max(0, Math.min(100, share))) + '%"></i><em style="left:' + Math.max(0, Math.min(100, tgt)) + '%"></em></div>'
+        + '<div class="bkt-f">金额到位 ' + (prog == null ? '—' : prog.toFixed(1) + '%') + ' · ' + (warn ? '结构偏离 ≥' + band + 'pp' : '结构在带内') + '</div>'
+        + '</div>';
+    }).join('');
+    return '<div class="bucket-bk">'
+      + '<div class="bk-hd"><h4>四桶目标 vs 实际</h4><span class="bk-badge">目标 40 / 35 / 10 / 15</span></div>'
+      + '<div class="bk-sum">四档内实际合计 <b>' + money(tot) + '</b> · 策略目标 <b>' + money(plan) + '</b> · 金额到位 <b>' + (plan > 0 ? (tot / plan * 100).toFixed(1) + '%' : '—') + '</b>；结构看占比偏离，进度看金额到位，两个分母不能互相替代。</div>'
+      + '<div class="bk-grid">' + tiles + '</div>'
+      + '<p class="bk-note">口径：只算配置档位（barbell.funds）内的持仓，不含计划外标的、在途买入与账户现金；实际占比分母＝四档内合计，金额到位分母＝5 万策略目标。结构偏离带默认 ±' + band + 'pp；不改 T10 杠铃失衡（四档偏离带）判定，也不触发再平衡。</p>'
+      + '</div>';
+  }
+  /* fw2_v1132_new_money_route：新钱分配路线（补足 5 万、不卖出）。
+     每桶缺口＝5 万目标金额 − 当前桶市值；新钱按缺口比例分，全部到位时四桶正好回到 40/35/10/15。
+     只出路线与金额，不执行交易；若要先减仓全球成长，属另一条需要用户拍板的路线。 */
+  function newMoneyRouteHtml() {
+    var plan = Number(window.STRATEGY_SNAP && window.STRATEGY_SNAP.totalTarget) || 50000;
+    var act = (typeof barbellActual === 'function') ? barbellActual() : null;
+    var tg = (act && act.cfg && act.cfg.target) || { base: 40, off: 35, bond: 10, hedge: 15 };
+    var PILE = [
+      { k: 'base', name: '底仓/缓冲', c: '#2A4FD6' },
+      { k: 'off', name: '进攻/主题', c: '#B45309' },
+      { k: 'bond', name: '安全垫', c: '#047857' },
+      { k: 'hedge', name: '对冲', c: '#7C3AED' }
+    ];
+    var money = function (v) { return '¥' + Math.round(Number(v) || 0).toLocaleString('zh-CN'); };
+    var rows = PILE.map(function (p) {
+      var tgt = Number(tg[p.k]) || 0;
+      var tgtAmt = plan * tgt / 100;
+      var mv = act ? (Number(act.pileMv[p.k]) || 0) : 0;
+      var gap = Math.max(0, tgtAmt - mv);
+      return { k: p.k, name: p.name, c: p.c, gap: gap };
+    });
+    var totalGap = rows.reduce(function (a, r) { return a + r.gap; }, 0);
+    if (!(totalGap > 0)) {
+      return '<div class="bucket-bk"><div class="bk-hd"><h4>新钱分配路线</h4><span class="bk-badge">已达标 · 不需补足</span></div>'
+        + '<p class="bk-note">四桶金额已达到 5 万目标，后续新钱按维护比例分配，或按 T10 杠铃失衡（四档偏离带）再平衡。</p></div>';
+    }
+    var body = rows.map(function (r) {
+      var w = r.gap / totalGap;
+      return '<tr><td><span class="dot" style="background:' + r.c + '"></span>' + r.name + '</td>'
+        + '<td>' + money(r.gap) + '</td>'
+        + '<td>' + (w * 100).toFixed(1) + '%</td>'
+        + '<td>' + money(w * 10000) + '</td>'
+        + '<td>' + money(w * 1000) + '</td></tr>';
+    }).join('');
+    return '<div class="bucket-bk"><div class="bk-hd"><h4>新钱分配路线</h4><span class="bk-badge">补足 5 万 · 不卖出</span></div>'
+      + '<div class="bk-sum">四桶缺口合计 <b>' + money(totalGap) + '</b>；按缺口比例分，全部到位时四桶正好回到 <b>40 / 35 / 10 / 15</b>，不触发卖出。</div>'
+      + '<table class="bk-tbl"><thead><tr><th>桶</th><th>距目标缺口</th><th>新钱占比</th><th>每 1 万新钱</th><th>每 1 千新钱</th></tr></thead><tbody>'
+      + body
+      + '<tr class="total"><td>合计</td><td>' + money(totalGap) + '</td><td>100.0%</td><td>¥10,000</td><td>¥1,000</td></tr></tbody></table>'
+      + '<p class="bk-note">路线 A（默认）：按缺口比例补足，不卖出；进攻/主题虽然占比超 35%，但金额仍低于 5 万目标金额，所以仍分到 ' + (rows[1].gap / totalGap * 100).toFixed(1) + '%。路线 B（先减仓全球成长再补）会改变分配，需你拍板。此卡只算路线，不执行交易；T10 杠铃失衡（四档偏离带）真触发时仍按原规则先卖后买。</p>'
+      + '</div>';
+  }
   function renderStratAlloc() {
     /* fw2_v1019_alloc_slim：列显隐开关的唯一实现——默认精简（未存过或存 slim），存 full 才展开 14 列。 */
     var _colSlim = (function () { try { return localStorage.getItem('fw2_alloc_colmode_v1') !== 'full'; } catch (e) { return true; } })();
@@ -30072,7 +30235,7 @@ function brakeCardHtml(opts) {
        原来顺序是「待办条 → 刹车卡 → 分位卡 → 资产配置主表」，《资产》主表（调仓金额/缺口）被两张诊断卡压到第二屏以后；
        改为「待办条（1 行，保留置顶）→ 资产配置主表 → 策略参数存档 → 刹车卡 → 分位卡」。
        刹车卡与分位卡的内容一行未动，只是拼装顺序挪到主表之后（两卡各自的数据/口径/点击行为不变）。 */
-    var html = renderStratTodo();
+    var html = renderStratTodo() + bucketCardHtml() + newMoneyRouteHtml();
     var PILE_COLOR = { '底仓/缓冲': CHART.brand, '进攻/主题': CHART.orange2, '安全垫': '#047857', '对冲': '#b45309' };
     /* fw2_v944_budget_inline：可投资金＝资产配置表标题里的那一格（唯一编辑入口，不再另设顶部输入条）。
        未填时 input 空、placeholder 显基准金额，表格按基准 S.totalTarget 显示（与 v935 口径一致）。 */
