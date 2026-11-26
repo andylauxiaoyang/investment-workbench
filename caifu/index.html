@@ -1083,6 +1083,34 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .today-band .todo-bar { margin:0 0 0 auto; padding:0; background:none; border:0; justify-content:flex-end; gap:6px 8px; }
 .today-band .todo-bar::before { content:none; }
 .today-band .todo-chip { padding:4px 10px; font-size:12px; }
+/* fw2_v1129_hold_recon：我的持仓「三口径对账卡」——账户总资产 / 确认份额×净值 / 在途买入 / 账户明细市值同屏；
+   只做口径解释与异常提示，不改账户数据、不改权重口径。 */
+.hold-recon { margin:0 0 12px; padding:13px 16px; }
+.hold-recon .hr-head { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:10px; }
+.hold-recon .hr-head h3 { font-size:var(--fs-md,#15px); font-weight:600; color:var(--text,#101828); margin:0; }
+.hold-recon .hr-head h3::before { content:""; display:inline-block; width:3px; height:12px; background:var(--amber,#b45309); margin-right:7px; vertical-align:-1px; border-radius:2px; }
+.hold-recon .hr-badge { font-size:11px; font-weight:600; padding:2px 8px; border-radius:999px; color:#7F4E07; background:#FAEEDA; border:1px solid #F0D9A8; white-space:nowrap; }
+.hold-recon .hr-badge.ok { color:#12693A; background:#E7F6EC; border-color:#A7DCBA; }
+.hold-recon .hr-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:9px; }
+.hold-recon .hr-cell { padding:8px 10px; border:1px solid var(--line,#EAECF0); border-radius:9px; background:var(--panel-2,#F8FAFC); min-width:0; }
+.hold-recon .hr-cell .k { font-size:11.5px; color:var(--text-2,#475467); line-height:1.25; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.hold-recon .hr-cell .v { font-size:16px; font-weight:700; color:var(--text,#101828); font-variant-numeric:tabular-nums; margin-top:3px; line-height:1.15; }
+.hold-recon .hr-cell .s { font-size:11px; color:var(--muted,#667085); margin-top:2px; line-height:1.25; }
+.hold-recon .hr-note { margin:9px 0 0; font-size:12px; line-height:1.65; color:var(--text-2,#475467); }
+.hold-recon .hr-note b { color:var(--text,#101828); }
+.hold-recon .hr-note .bad { color:#A32D2D; font-weight:600; }
+.hold-recon .hr-note .good { color:#047857; font-weight:600; }
+.hold-recon details { margin-top:8px; border-top:1px dashed var(--line,#EAECF0); padding-top:7px; }
+.hold-recon summary { cursor:pointer; font-size:12px; font-weight:600; color:var(--text-2,#475467); }
+.hold-recon summary:hover { color:var(--text,#101828); }
+.hold-recon .hr-table { width:100%; border-collapse:collapse; margin-top:8px; font-size:12px; }
+.hold-recon .hr-table th, .hold-recon .hr-table td { padding:5px 6px; border-bottom:1px solid var(--line,#EAECF0); text-align:right; white-space:nowrap; }
+.hold-recon .hr-table th:nth-child(1), .hold-recon .hr-table td:nth-child(1) { text-align:left; white-space:normal; }
+.hold-recon .hr-table th:nth-child(5), .hold-recon .hr-table td:nth-child(5) { text-align:left; white-space:normal; }
+.hold-recon .hr-table thead th { color:var(--muted,#667085); font-weight:600; background:var(--panel-2,#F8FAFC); }
+.hold-recon .hr-table td.num { font-variant-numeric:tabular-nums; }
+.hold-recon .hr-table tr.anomaly td { color:#A32D2D; background:#FCEBEB; }
+@media (max-width:980px) { .hold-recon .hr-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } }
 .dca-gear .gear-concl { color:var(--text,#101828); font-weight:700; }
 .disc-fold { grid-column:1/-1; flex-basis:100%; width:100%; font-size:var(--fs-xs); color:var(--muted,#5a6675); padding:0 2px 2px; line-height:1.5; }
 .gear-normal { color:#1D4ED8; background:#EAF1FF; border:1px solid #BCD0F7; } /* v852：4.56→5.91（与 .todo-chip.sev-near 同源，改必同步） */
@@ -1571,7 +1599,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 <!-- fw2_v1112_dd_hist_allpool（用户 2026-11-25「按照你建议继续」，落地 A 展示补全 + B 全池逐日对照，默认仍保留当前最深 10）：
       A「区间曾深」：监测卡头部加切换，按 [from,to] 逐日维护此前最高收盘（峰值可早于区间起点，与 ddArrOf 同口径）算区间最深；列出曾≥起始档位、但当前已修复而被焦点视图隐藏的指数（本次 63 只中 16 只曾≥70%，当前仅 4 只仍≥70%，5 只已修复到 <60%）。
       B「全池59（逐日机会）」：回测方式第三档；境内 59 只全部进入逐日机会集，不按今天回撤预选；每只只在自己回撤≥起始档位时买；同日先卖后买，再按当日回撤深→浅分配资金，现金不足跳过并计数；仍不含 4 只境外。默认仍为「当前最深 10」，且加 look-ahead 提示；换口径即清空旧结果，全池点行改为切单指数。 -->
-<span id="verBadge" class="ver-badge">v1128</span><!-- fw2_v1128_hide_cash_sig（用户 2026-11-26「活期宝不显示在信号中」）：交易信号→持仓信号不再为现金/货币基金生成「暂无信号·持仓兜底」标卡与占位行；按 state.portfolio 的 assetType=cash 或名称含货币/活期宝/现金宝，以及 drawdown 行的 kind=money 识别；只改展示，不改信号判定、阈值、其它组与表内行序。 --><!-- fw2_v1127_hold_sig_mv_sort（用户 2026-11-26「交易信号-持仓信号里面的标的按照持仓金额大小排列」）：仅「持仓信号」组内标目按持仓市值（state.portfolio 的 mvCny，人民币口径）降序；T10 杠铃档位（四档）为组合汇总、保持置顶；同额回退原等级/信号数/指数族/代码排序。未改信号判定、同指数合并选择、表内行序与自选/筛选/市场组排序。 --><!-- fw2_v1126_macro_nky_refresh：2026-11-26 15:02 只刷宏观组（`refresh_all.py --only macro --no-publish`）后，`macro-data.json` 的 nky 实时价由盘中 57,812.38 更新为收盘 57,498.94，amt/amtD/fsi/sentiment/wave 同步刷新；`index.html` 内嵌 MACRO_SNAP 由数据链同步更新，未改任何计算/信号逻辑。nky 闸门已转 PASS（实时独立源本次不可达，按本地底线降级，详见 verify_nky 备注）；`gen_macro_extra.py` 因缺 akshare 仍失败，数据管理保留 3 项失败标记。 --><!-- fw2_v1125_sp_wait：配置回测开启 V11 狙击时，若筛选池（SCREEN_POOL）未就绪，先加载 screen-pool.json 并自动续跑；加载失败则明确拦下，避免空池跑出 0 笔假结果。 --><!-- fw2_v1123_sm_insert_anchor（用户 2026-11-25 截图「点聪明的钱后模块组被压到后面」）：交易信号页把 #view-smartmoney 搬入 sigBody 时，原锚点 `body.querySelector('.dc-note')` 实际命中的是「V11 狙击已移至…」提示（同样带 .dc-note），导致聪明的钱整节被插到阈值来源之后、标签组之前。改为末脚注 #sigFootNote 作锚点（兜底取最后一个 .dc-note），标签组/筛选条回到顶部，聪明的钱内容落在其余 pane 之后、脚注之前。 --><!-- fw2_v1122_v11_formula_unified（用户 2026-11-25「统一」）：V11 赔率公式从「p250 前高 / 3×ATR14」统一到「1260 日前高 / 1260 日窗口最低收盘」——配置回测 v11Gate 新增 p1260/lo1260 单调队列，与扫描 bt_signal.entry_signal、运行回测 v11Prep 同算式；旧 v11Den atr/leg20/leg60 三档退役；注册表/参数说明/逻辑清单同步改口径，旧口径收益数字标为历史、不冒充新结果。 --><!-- fw2_v1121_v11_run_kpi（用户 2026-11-25「V11狙击加入深跌买入一样的运行回测模块。这个面积太大了。改成 2.50还是2，根据你的建议改」）：①V11 策略页顶部 5 格 KPI 改用专用 .v11-kpi（5 列等宽、单元格 min-height:0），消除 .sh-grid flex:1 1 320px 造成的 320px 空白；②新增运行回测卡（范围/ETF/起止/本金/单注/仓位/门限/止损/吊灯），懒加载 data/v11-bt-data.json，出 KPI+SVG 净值/持仓曲线+分标的+逐笔；③赔率门限全链路统一 2.50；④v11FmtMoney 负数改 -¥；⑤曲线用原生 SVG，避免 canvas 在截图/部分环境不显示。 --><!-- fw2_v1120_v11_rows_removed：V11 狙击逐只执行行从交易信号页删除，V11 只保留策略执行入口 --><!-- fw2_v1096_dd_search（用户「继续」）：①全指数监测卡加「搜索」（代码/名称，只过滤本表显示，分档 chips 计数与已选组合不受影响；输入时保存 ST.q 并重画、回填焦点与滚动位置）②组合池加「全选境内 59」「恢复默认（宽基）」（境外永远不进池）③脚注的境外名单由数据现算（原来写死 4 个名字，加池就会过期）④gen_index_dd 去掉冗余 count.night，gen_index_val 的蛋卷 asof 不再写死 2026 年 --><!-- fw2_v1097_dd_sort_valref（用户「继续」，承接 v1096 挂账）：①全指数监测卡加「排序」开关——回撤深→浅（默认）/ 名称 A→Z，只换本表顺序，分档计数与已选组合不变；②估值卡加「同类别对照」小表——全部 / 宽基 / 行业 / 主题 / 境外五行的 PE 分位中位、PB 分位中位、价格分位中位，并列出该类别里 PE 分位最低的一只；③两处都只用既有 index-dd / index-val 数据，不引入新源（v1096 已证伪的三条补源路仍挂账）。 --><!-- fw2_v1098_dd_n2_sort（用户「继续完成」，收口 v1097「下一步候选」三件）：①估值「同类别对照」由 6 列扩到 8 列——补「股息率中位」与「PB 分位最低的一只」（与 PE 最低同口径：只统计有该分位的只数，空组回 —）；②监测卡加「快捷」行——「距下档 ≤2pp」一键筛选（ST.n2 与类别 / 分档 / 搜索四者可叠加，chips 计数仍按类别全集，不受搜索与快捷键影响）；③方案卡「进入买入区」表跟随 ST.sort（默认回撤深→浅，切名称后同监测卡拼音序）；④仍不引入新源。 --><!-- fw2_v1099_dd_pickcat_relcat（用户「继续」，收口 v1098「下一步候选」三件）：①组合池加按类别批量勾选——宽基 / 行业 / 主题三个按钮各显示「已选/总数」，全选后再点即取消该类（不碰境外）；②估值主表加「相对同类」列——本只 PE 分位 − 同类别 PE 分位中位（pp，负＝比同类便宜），只在双方都有分位时显示；③跨档卡跟随监测卡类别筛选（ST.fcat），计数、「展开全部 N 只」与空态都按当前类别；④仍不引入新源。 --><!-- fw2_v1100_dd_bksum_cheap_vsort（用户「继续」，收口 v1099「下一步候选」三件）：①监测卡加「按回撤分档汇总」表——6 档的只数 / 平均回撤 / 该档最深一只 / 距下档 ≤2pp 只数 / 已进买入区只数，按当前类别统计、不受搜索与快捷影响；②组合池加「只选便宜一半」——按同类别 PE 分位中位分界，只选低于中位的（无分位不入选，口径写进按钮 title）；③估值主表「相对同类」表头可点击排序，三态循环：默认（回撤深→浅）→ 便宜在前 → 贵在前，无分位的行恒排最后；④ddTbl 扩一个可选 th 属性位（backward compatible），中位数抽成模块级 medOf 单一实现；⑤仍不引入新源。 --><!-- fw2_v1076_conflicts（用户 2026-11-23「按照你顺序修」——修掉体检出的 5 处纲领冲突）：
+<span id="verBadge" class="ver-badge">v1129</span><!-- fw2_v1129_hold_recon（用户 2026-11-26「按照你的建议列个执行清单 / 按顺序开始执行」）：我的持仓 KPI 下新增「账户口径对账」卡——同屏展示 账户总资产 20,565.55 / 确认份额×净值 18,067.10 / 在途买入 2,498.46 / 账户明细市值合计 15,688.38；明确 15,688.38 与总资产差 4,877.17 的主因是 012920 卖出后份额未重建（账户市值 5,412.79 vs 份额×净值 10,283.50，差 -4,870.71），其余 6.46 为逐只四舍五入；权重继续用「确认份额×净值」，账户总值用 holding_total，不自动改账户数据。 --><!-- fw2_v1128_hide_cash_sig（用户 2026-11-26「活期宝不显示在信号中」）：交易信号→持仓信号不再为现金/货币基金生成「暂无信号·持仓兜底」标卡与占位行；按 state.portfolio 的 assetType=cash 或名称含货币/活期宝/现金宝，以及 drawdown 行的 kind=money 识别；只改展示，不改信号判定、阈值、其它组与表内行序。 --><!-- fw2_v1127_hold_sig_mv_sort（用户 2026-11-26「交易信号-持仓信号里面的标的按照持仓金额大小排列」）：仅「持仓信号」组内标目按持仓市值（state.portfolio 的 mvCny，人民币口径）降序；T10 杠铃档位（四档）为组合汇总、保持置顶；同额回退原等级/信号数/指数族/代码排序。未改信号判定、同指数合并选择、表内行序与自选/筛选/市场组排序。 --><!-- fw2_v1126_macro_nky_refresh：2026-11-26 15:02 只刷宏观组（`refresh_all.py --only macro --no-publish`）后，`macro-data.json` 的 nky 实时价由盘中 57,812.38 更新为收盘 57,498.94，amt/amtD/fsi/sentiment/wave 同步刷新；`index.html` 内嵌 MACRO_SNAP 由数据链同步更新，未改任何计算/信号逻辑。nky 闸门已转 PASS（实时独立源本次不可达，按本地底线降级，详见 verify_nky 备注）；`gen_macro_extra.py` 因缺 akshare 仍失败，数据管理保留 3 项失败标记。 --><!-- fw2_v1125_sp_wait：配置回测开启 V11 狙击时，若筛选池（SCREEN_POOL）未就绪，先加载 screen-pool.json 并自动续跑；加载失败则明确拦下，避免空池跑出 0 笔假结果。 --><!-- fw2_v1123_sm_insert_anchor（用户 2026-11-25 截图「点聪明的钱后模块组被压到后面」）：交易信号页把 #view-smartmoney 搬入 sigBody 时，原锚点 `body.querySelector('.dc-note')` 实际命中的是「V11 狙击已移至…」提示（同样带 .dc-note），导致聪明的钱整节被插到阈值来源之后、标签组之前。改为末脚注 #sigFootNote 作锚点（兜底取最后一个 .dc-note），标签组/筛选条回到顶部，聪明的钱内容落在其余 pane 之后、脚注之前。 --><!-- fw2_v1122_v11_formula_unified（用户 2026-11-25「统一」）：V11 赔率公式从「p250 前高 / 3×ATR14」统一到「1260 日前高 / 1260 日窗口最低收盘」——配置回测 v11Gate 新增 p1260/lo1260 单调队列，与扫描 bt_signal.entry_signal、运行回测 v11Prep 同算式；旧 v11Den atr/leg20/leg60 三档退役；注册表/参数说明/逻辑清单同步改口径，旧口径收益数字标为历史、不冒充新结果。 --><!-- fw2_v1121_v11_run_kpi（用户 2026-11-25「V11狙击加入深跌买入一样的运行回测模块。这个面积太大了。改成 2.50还是2，根据你的建议改」）：①V11 策略页顶部 5 格 KPI 改用专用 .v11-kpi（5 列等宽、单元格 min-height:0），消除 .sh-grid flex:1 1 320px 造成的 320px 空白；②新增运行回测卡（范围/ETF/起止/本金/单注/仓位/门限/止损/吊灯），懒加载 data/v11-bt-data.json，出 KPI+SVG 净值/持仓曲线+分标的+逐笔；③赔率门限全链路统一 2.50；④v11FmtMoney 负数改 -¥；⑤曲线用原生 SVG，避免 canvas 在截图/部分环境不显示。 --><!-- fw2_v1120_v11_rows_removed：V11 狙击逐只执行行从交易信号页删除，V11 只保留策略执行入口 --><!-- fw2_v1096_dd_search（用户「继续」）：①全指数监测卡加「搜索」（代码/名称，只过滤本表显示，分档 chips 计数与已选组合不受影响；输入时保存 ST.q 并重画、回填焦点与滚动位置）②组合池加「全选境内 59」「恢复默认（宽基）」（境外永远不进池）③脚注的境外名单由数据现算（原来写死 4 个名字，加池就会过期）④gen_index_dd 去掉冗余 count.night，gen_index_val 的蛋卷 asof 不再写死 2026 年 --><!-- fw2_v1097_dd_sort_valref（用户「继续」，承接 v1096 挂账）：①全指数监测卡加「排序」开关——回撤深→浅（默认）/ 名称 A→Z，只换本表顺序，分档计数与已选组合不变；②估值卡加「同类别对照」小表——全部 / 宽基 / 行业 / 主题 / 境外五行的 PE 分位中位、PB 分位中位、价格分位中位，并列出该类别里 PE 分位最低的一只；③两处都只用既有 index-dd / index-val 数据，不引入新源（v1096 已证伪的三条补源路仍挂账）。 --><!-- fw2_v1098_dd_n2_sort（用户「继续完成」，收口 v1097「下一步候选」三件）：①估值「同类别对照」由 6 列扩到 8 列——补「股息率中位」与「PB 分位最低的一只」（与 PE 最低同口径：只统计有该分位的只数，空组回 —）；②监测卡加「快捷」行——「距下档 ≤2pp」一键筛选（ST.n2 与类别 / 分档 / 搜索四者可叠加，chips 计数仍按类别全集，不受搜索与快捷键影响）；③方案卡「进入买入区」表跟随 ST.sort（默认回撤深→浅，切名称后同监测卡拼音序）；④仍不引入新源。 --><!-- fw2_v1099_dd_pickcat_relcat（用户「继续」，收口 v1098「下一步候选」三件）：①组合池加按类别批量勾选——宽基 / 行业 / 主题三个按钮各显示「已选/总数」，全选后再点即取消该类（不碰境外）；②估值主表加「相对同类」列——本只 PE 分位 − 同类别 PE 分位中位（pp，负＝比同类便宜），只在双方都有分位时显示；③跨档卡跟随监测卡类别筛选（ST.fcat），计数、「展开全部 N 只」与空态都按当前类别；④仍不引入新源。 --><!-- fw2_v1100_dd_bksum_cheap_vsort（用户「继续」，收口 v1099「下一步候选」三件）：①监测卡加「按回撤分档汇总」表——6 档的只数 / 平均回撤 / 该档最深一只 / 距下档 ≤2pp 只数 / 已进买入区只数，按当前类别统计、不受搜索与快捷影响；②组合池加「只选便宜一半」——按同类别 PE 分位中位分界，只选低于中位的（无分位不入选，口径写进按钮 title）；③估值主表「相对同类」表头可点击排序，三态循环：默认（回撤深→浅）→ 便宜在前 → 贵在前，无分位的行恒排最后；④ddTbl 扩一个可选 th 属性位（backward compatible），中位数抽成模块级 medOf 单一实现；⑤仍不引入新源。 --><!-- fw2_v1076_conflicts（用户 2026-11-23「按照你顺序修」——修掉体检出的 5 处纲领冲突）：
 ①R7 带宽：撤销 v1067 的 `o.band = o.slotBand` 强镜像；band 只喂 R7（单只超配 25% 减配，SIG_THR_DEF 5→25、与回测 cfg.band 同值），slotBand 只喂 T10 四档；sigThrApply 分别写 C.barbell.band / C.barbell.slotBand，T10 文案改读 slotBand，R7 行 threshold 由硬编码「band 25%」改为动态读纲领值。
 ②R2 假开关：`_planCfg()` 读 `window.logicStateEff('R2')`——生效按 investMode，观察/关一律 lump（月投 0）；建仓步文案在一次性时追加「R2 定投＝关/观察」。
 ③T4 与 R6 双份：T4 行 modeled 改「与 R6 止损同一执行（同一 slHard）」，def 标「= R6 止损，同一动作」，阈值表 slHard 口径写「T4 / R6 · 同一执行」。
@@ -1669,6 +1697,8 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 
         <div id="pfSrcNote" style="margin:0 0 8px;font-size:var(--fs-sm);color:var(--warn,var(----amber));font-weight:600"></div>
         <div data-page-node-id="CDSquaA0NXeISipWM3MeA9" class="kpi-grid kpi-4" id="hdSummary"></div>
+        <!-- fw2_v1129_hold_recon：三口径对账卡（账户总资产 / 确认份额×净值 / 在途 / 账户明细市值） -->
+        <div class="card hold-recon" id="hdRecon"></div>
         <!-- fw2_v1036_disc_after_table：纪律卡由「KPI 之下、持仓表之上」下移到持仓表之后（用户 2026-11-20「需要」＝采纳持仓模块体检第 4 条）。
              实测原因：纪律卡 435px 高、排在表格前，持仓表卡顶边落在 y=1145px（视口 643px），第一行持仓要滚 1.8 屏才出现。
              本版只搬 DOM 次序 + 收缩绿项（见 renderDiscipline），卡内磁贴、阈值、判定口径一字未改。 -->
@@ -6591,6 +6621,100 @@ function buildRows() {
   return { rows, totals, perCur, byMarket, bySector };
 }
 
+/* fw2_v1129_hold_recon：三口径对账。
+   账户总资产 total（ttskill holding_total，含在途买入）
+   ＝ 确认份额×净值（state.portfolio 逐只 shares×nav）
+   ＋ 在途买入（HOLDINGS_SEED.pendingBuy / 逐只 pendingBuy 汇总）。
+   账户明细 marketValue 合计是第四个数：多数行 marketValue=份额×净值+在途，
+   但 012920 卖出后份额未重建时会出现负差额，故它不能直接当组合市值。
+   本函数只读 state.portfolio/HOLDINGS_SEED，不改任何账户数据。 */
+function holdReconData() {
+  const seed = window.HOLDINGS_SEED || {};
+  const pf = (window.state && Array.isArray(state.portfolio)) ? state.portfolio : [];
+  /* 对账卡优先读内嵌种子原始行（shares/pendingBuy 完整）；state.portfolio 经 normalize 后
+     份额字段改名 qty 且不保留逐只 pendingBuy，只在种子缺失时兜底。 */
+  const src = (Array.isArray(seed.holdings) && seed.holdings.length) ? seed.holdings : pf;
+  const rows = src.map(function (h) {
+    const q = Number(h.shares != null ? h.shares : h.qty) || 0;
+    const n = Number(h.nav) || 0;
+    const calc = q * n;
+    const mv = Number(h.marketValue) || 0;
+    const pending = Number(h.pendingBuy) || 0;
+    const diff = mv - calc;
+    let flag = '已对平';
+    if (pending > 1) flag = '在途买入';
+    else if (diff < -1) flag = '份额/市值待重建';
+    else if (diff > 1) flag = '账户市值高于份额×净值';
+    return {
+      code: h.code || '',
+      name: h.name || '',
+      shares: q,
+      nav: n,
+      calc: calc,
+      mv: mv,
+      pending: pending,
+      diff: diff,
+      assetType: h.assetType || '',
+      flag: flag,
+    };
+  });
+  const calcSum = rows.reduce(function (s, r) { return s + r.calc; }, 0);
+  const mvSum = rows.reduce(function (s, r) { return s + r.mv; }, 0);
+  const pendingSum = rows.reduce(function (s, r) { return s + (r.pending > 0 ? r.pending : 0); }, 0);
+  const total = Number(seed.total) || 0;
+  const pending = (seed.pendingBuy != null && isFinite(Number(seed.pendingBuy))) ? Number(seed.pendingBuy) : pendingSum;
+  const gap = total - calcSum - pending;
+  const mvGap = total - mvSum;
+  const anomalies = rows.filter(function (r) { return Math.abs(r.diff) > 1; })
+    .sort(function (a, b) { return Math.abs(b.diff) - Math.abs(a.diff); });
+  return {
+    total: total, calc: calcSum, mv: mvSum, pending: pending,
+    pendingSum: pendingSum, gap: gap, mvGap: mvGap,
+    rows: rows, anomalies: anomalies,
+    count: rows.length, okCount: rows.filter(function (r) { return Math.abs(r.diff) <= 1 && !(r.pending > 1); }).length,
+    syncedAt: seed.syncedAt || '',
+  };
+}
+
+function renderHoldRecon() {
+  const el = $('#hdRecon');
+  if (!el) return;
+  const r = holdReconData();
+  if (!r.count || !r.total) { el.innerHTML = '<div class="hint">三口径对账待账户同步后生成。</div>'; return; }
+  const gapTxt = Math.abs(r.gap) < 0.05 ? '0.00' : fmtMoney(r.gap, true);
+  const gapCls = Math.abs(r.gap) < 0.05 ? 'good' : 'bad';
+  const anom = r.anomalies.length ? r.anomalies[0] : null;
+  const mainAnom = (r.anomalies || []).filter(function (x) { return x.diff < -1; })[0] || anom;
+  const roundingGap = mainAnom ? Math.abs(r.mvGap - Math.abs(mainAnom.diff)) : 0;
+  const pendingGap = Math.abs(r.pending - r.pendingSum);
+  const rowsHtml = r.anomalies.map(function (x) {
+    const flag = x.diff < -1 ? '份额待重建' : (x.pending > 1 ? '在途 +¥' + fmtNum(x.pending, 2) : '待核');
+    return '<tr class="' + (x.diff < -1 ? 'anomaly' : '') + '"><td>' + esc(x.code) + ' ' + esc(x.name) + '</td>' +
+      '<td class="num">¥' + fmtNum(x.mv, 2) + '</td>' +
+      '<td class="num">¥' + fmtNum(x.calc, 2) + '</td>' +
+      '<td class="num">' + fmtMoney(x.diff, true) + '</td>' +
+      '<td>' + esc(flag) + '</td></tr>';
+  }).join('');
+  el.innerHTML =
+    '<div class="hr-head"><h3>账户口径对账</h3><span class="hr-badge ' + (Math.abs(r.gap) < 0.05 ? 'ok' : '') + '">' +
+      (Math.abs(r.gap) < 0.05 ? '已闭合' : '待核对') + ' · ' + (r.syncedAt ? esc(r.syncedAt.slice(0, 16).replace('T', ' ')) : '未同步') +
+    '</span></div>' +
+    '<div class="hr-grid">' +
+      '<div class="hr-cell"><div class="k">账户总资产</div><div class="v">¥' + fmtNum(r.total, 2) + '</div><div class="s">holding_total · 含在途</div></div>' +
+      '<div class="hr-cell"><div class="k">确认份额×净值</div><div class="v">¥' + fmtNum(r.calc, 2) + '</div><div class="s">决策权重口径</div></div>' +
+      '<div class="hr-cell"><div class="k">在途买入</div><div class="v">¥' + fmtNum(r.pending, 2) + '</div><div class="s">待份额确认</div></div>' +
+      '<div class="hr-cell"><div class="k">账户明细市值合计</div><div class="v">¥' + fmtNum(r.mv, 2) + '</div><div class="s">不可直接当组合市值</div></div>' +
+    '</div>' +
+    '<div class="hr-note">' +
+      '闭合校验：<b>¥' + fmtNum(r.total, 2) + '</b> = 确认市值 <b>¥' + fmtNum(r.calc, 2) + '</b> + 在途 <b>¥' + fmtNum(r.pending, 2) + '</b>，差 <span class="' + gapCls + '">' + gapTxt + '</span>。' +
+      (mainAnom ? ' 账户明细市值合计与总资产差 <b>¥' + fmtNum(r.mvGap, 2) + '</b>，主因 <span class="bad">' + esc(mainAnom.code) + '</span> 账户市值 ¥' + fmtNum(mainAnom.mv, 2) + '、份额×净值 ¥' + fmtNum(mainAnom.calc, 2) + '，差 <span class="bad">' + fmtMoney(mainAnom.diff, true) + '</span>（卖出后份额未重建，不能按该行算集中度）；其余 <b>¥' + fmtNum(roundingGap, 2) + '</b> 为逐只四舍五入。' : '') +
+      ' <b>权重与四桶用「确认份额×净值」；账户总值用「账户总资产」；账户明细市值合计只作诊断。</b>' +
+    '</div>' +
+    (r.anomalies.length ? '<details><summary>逐只口径差异 · ' + r.anomalies.length + ' 只（按差额绝对值降序）</summary>' +
+      '<table class="hr-table"><thead><tr><th>标的</th><th>账户市值</th><th>份额×净值</th><th>差额</th><th>标记</th></tr></thead><tbody>' + rowsHtml + '</tbody></table></details>' : '') +
+    '<div class="s" style="margin-top:7px;color:var(--muted,#667085);font-size:11px">共 ' + r.count + ' 只，已对平 ' + r.okCount + ' 只；逐只在途合计 ¥' + fmtNum(r.pendingSum, 2) + (pendingGap > 0.01 ? '（顶层 ¥' + fmtNum(r.pending, 2) + '，差 ¥' + fmtNum(pendingGap, 2) + ' 为逐只四舍五入）' : '') + '</div>';
+}
+
 /* ==========================================================
  *  顶部指数条
  * ========================================================== */
@@ -7762,6 +7886,7 @@ function renderHoldings() {
     `;
 
 
+  renderHoldRecon();
   renderDiscipline(all);
   const tbody = $('#hdTable tbody');
   if (!sorted.length) {
