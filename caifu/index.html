@@ -11057,11 +11057,11 @@ function renderTodayTodo() {
         return !it || it.st === 'pending' || it.st === 'doing';
       });
       var add = _openAct.filter(function (r) { return /补仓|网格|加仓/.test(r.sig || ''); });
-      if (_openAct.length) items.push({ sev: 'bad', icon: '▶', label: '行动信号 ' + _openAct.length + ' 条', view: 'signal',
-        hint: '待执行 ' + _as.pending + ' · 执行中 ' + _as.doing + ' · 已执行 ' + _as.done + '；' + _openAct.slice(0, 3).map(function (r) { return (r.name || '') + '·' + (r.sig || ''); }).join(' · ') + (_openAct.length > 3 ? ' …' : '') });
-      if (add.length) items.push({ sev: 'actadd', icon: '＋', label: '补仓点 ' + add.length + ' 个', view: 'signal',
-        hint: add.map(function (r) { return (r.name || '') + '·' + (r.sig || ''); }).join(' · ') });
-      if (near.length) items.push({ sev: 'near', icon: '◐', label: '接近信号 ' + near.length + ' 条', view: 'signal', hint: '接近触发阈值' });
+      if (_openAct.length) items.push({ sev: 'bad', icon: '▶', label: '持仓行动 ' + _openAct.length + ' 条', view: 'signal',
+        hint: '仅持仓池（自选/筛选另计，三池去重见下方今日 Top5）；待执行 ' + _as.pending + ' · 执行中 ' + _as.doing + ' · 已执行 ' + _as.done + '；' + _openAct.slice(0, 3).map(function (r) { return (r.name || '') + '·' + (r.sig || ''); }).join(' · ') + (_openAct.length > 3 ? ' …' : '') });
+      if (add.length) items.push({ sev: 'actadd', icon: '＋', label: '持仓补仓点 ' + add.length + ' 个', view: 'signal',
+        hint: '仅持仓池；' + add.map(function (r) { return (r.name || '') + '·' + (r.sig || ''); }).join(' · ') });
+      if (near.length) items.push({ sev: 'near', icon: '◐', label: '持仓接近 ' + near.length + ' 条', view: 'signal', hint: '仅持仓池，接近触发阈值' });
     } else if (window.__sigFailed) {
       items.push({ sev: 'loading', icon: '—', label: '信号暂不可用', view: null, hint: '净值序列拉取失败' });
     } else if (state.portfolio && state.portfolio.length) {
