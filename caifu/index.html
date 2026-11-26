@@ -1247,7 +1247,28 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .sig-tbl .sig-exe-btn { margin-top: 3px; padding: 1px 7px; font-size: var(--fs-2xs, 12px); line-height: 16px; }
 .sig-tbl .sig-exe-empty { color: var(--muted, #5a6675); font-size: var(--fs-2xs, 12px); }
 .sig-act-sum { font-size: 11px; align-self: center; color: #475467; background: #F8FAFC; border: 1px solid var(--line, #e5e7eb); border-radius: 6px; padding: 2px 8px; line-height: 1.6; }
+.sig-act-sum.is-conf { cursor: pointer; color: #92400E; background: #FFFBEB; border-color: #FDE68A; }
 .sig-scroll-hint { display: none; font-size: 11px; color: var(--muted, #5a6675); margin: -4px 0 6px 2px; line-height: 1.5; }
+/* fw2_v1137_act_priority：同标的同日冲突优先级（T4 硬止损 > T2 > R7 > T1 > T3 > T16 > 拦截 > 买入）。
+   只做排序、徽标和买入按钮门禁，不改 signalEvalAll 判定/阈值/交易。 */
+.sig-tbl .sig-prio { display: inline-block; margin-left: 4px; padding: 0 5px; border-radius: 7px; font-size: 11px; line-height: 16px; font-weight: 500; color: #92400E; background: #FFFBEB; border: 1px solid #FDE68A; vertical-align: 1px; }
+.sig-tbl .sig-exe-wait { display: inline-block; margin-top: 3px; padding: 1px 6px; border-radius: 8px; font-size: 11px; line-height: 16px; color: #B45309; background: #FFF7E6; border: 1px solid #FED7AA; white-space: normal; }
+.sig-conf { margin: 6px 0 10px; padding: 8px 10px; border: 1px solid #FDE68A; border-left: 3px solid #D97706; border-radius: 8px; background: #FFFBEB; font-size: 12px; color: #52525B; }
+.sig-conf summary { cursor: pointer; font-weight: 600; color: #92400E; line-height: 1.6; }
+.sig-conf-scroll { max-height: 360px; overflow: auto; margin-top: 6px; padding-right: 2px; }
+.sig-conf li { margin: 0 0 9px; line-height: 1.75; }
+.sig-conf .sc-name { color: #18181B; font-weight: 600; }
+.sig-conf .sc-code { color: #71717A; font-size: 11px; }
+.sig-conf .sc-item { white-space: normal; }
+.sig-conf .sc-risk { color: #B42318; font-weight: 600; }
+.sig-conf .sc-block { color: #B45309; font-weight: 600; }
+.sig-conf .sc-buy { color: #047857; }
+.sig-conf .sc-note { color: #71717A; }
+.sig-conf .sc-item em { font-style: normal; font-size: 11px; opacity: .82; }
+.sig-conf .sc-note-line { display: block; margin-top: 2px; color: #7A4B07; font-size: 11px; line-height: 1.6; }
+.sig-conf-legend { margin-top: 8px; }
+.sig-conf-legend summary { cursor: pointer; font-weight: 600; color: #92400E; line-height: 1.6; }
+.sig-conf .sig-conf-note { margin-top: 4px; padding-top: 6px; border-top: 1px dashed #FDE68A; line-height: 1.65; }
 @media (max-width: 720px) { .sig-scroll-hint { display: block; } }
 .sig-expired { margin: 4px 0 8px; font-size: 11px; color: #667085; }
 .sig-expired summary { cursor: pointer; }
@@ -1664,7 +1685,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 <!-- fw2_v1112_dd_hist_allpool（用户 2026-11-25「按照你建议继续」，落地 A 展示补全 + B 全池逐日对照，默认仍保留当前最深 10）：
       A「区间曾深」：监测卡头部加切换，按 [from,to] 逐日维护此前最高收盘（峰值可早于区间起点，与 ddArrOf 同口径）算区间最深；列出曾≥起始档位、但当前已修复而被焦点视图隐藏的指数（本次 63 只中 16 只曾≥70%，当前仅 4 只仍≥70%，5 只已修复到 <60%）。
       B「全池59（逐日机会）」：回测方式第三档；境内 59 只全部进入逐日机会集，不按今天回撤预选；每只只在自己回撤≥起始档位时买；同日先卖后买，再按当日回撤深→浅分配资金，现金不足跳过并计数；仍不含 4 只境外。默认仍为「当前最深 10」，且加 look-ahead 提示；换口径即清空旧结果，全池点行改为切单指数。 -->
-<span id="verBadge" class="ver-badge">v1136</span><!-- fw2_v1136_act_state（用户 2026-11-26「按照顺序继续」→ 阶段 2.1）：act 信号执行四态落地——待执行 / 执行中 / 已执行 / 已过期。①交易信号表在「状态」后新增「执行」列，仅行动档给状态徽章与推进按钮（开始→完成→撤销），接近/观察显示「—」；②状态存 localStorage `fw2_act_state_v1`（键 pool:code:sig），同一信号条件不再触发时自动转「已过期」并保留 14 天，再次触发回到「待执行」；③表头筛选条加执行状态计数，表格下方给近 14 日已过期清单（默认折叠）；④首屏今日待办只把待执行/执行中的行动计入「行动信号」，已执行不再占待办。未改 signalEvalAll 判定、lvl、阈值、排序、三态逻辑与任何交易动作。⑤窄屏可用性：9 列 min-width 1180 时给 .dc-card/.dc-body/.sig-wt-area 补 min-width:0、.table-wrap max-width:100%，让表格在卡内横向滚动（修前卡宽被撑到 1212px、538 视口只能看到左侧 3 列，执行/行动/操作列不可达）。 --><!-- fw2_v1135_budget_migrate_once（用户 2026-11-26「表标题 62,000 改成 50000」收口）：v1134 只按值迁移，用户以后主动把预算设回 62000 会在下次刷新被再次改掉；v1135 加 `fw2_budget_migrated_50000_v1` 一次性守卫，标记存在即不再迁移。 --><!-- fw2_v1134_budget_50000（用户 2026-11-26「下方资产配置表标题当前是 ¥62,000 预算，改成50000」）：把历史预算 fw2_capital_budget_v1=62000 一次性迁移到 50000；只改恰好 62000 的旧值，不动其它自填金额，也不写死 5 万。 --><!-- fw2_v1133_caliber_split_note（用户 2026-11-26 阶段1收口）：四桶卡/新钱路线显式标注「5 万策略主基准」；v1134 用户拍板后，表标题预算已迁移到 50000，两卡与表标题同基准。若以后改表标题预算，则重新分口径、禁止对拍。 --><!-- fw2_v1132_new_money_route（用户 2026-11-26「按顺序开始执行」清单 1.4）：策略执行-资产配置新增「新钱分配路线」卡；按四桶缺口比例给不卖出补足路线，不执行交易。 --><!-- fw2_v1131_bucket_target_vs_actual（用户 2026-11-26「按顺序开始执行」清单 1.3）：策略执行-资产配置新增「四桶目标 vs 实际」卡；占比偏离与 5 万到位率分开呈现，不改计算与再平衡。 --><!-- fw2_v1130_capital_labels（用户 2026-11-26「按顺序开始执行」清单 1.2）：全站顶部常驻「资金口径」条，分账户/策略/实验/回测四套基数，只做标注，不改任何金额计算。 --><!-- fw2_v1129_hold_recon（用户 2026-11-26「按照你的建议列个执行清单 / 按顺序开始执行」）：我的持仓 KPI 下新增「账户口径对账」卡——同屏展示 账户总资产 20,565.55 / 确认份额×净值 18,067.10 / 在途买入 2,498.46 / 账户明细市值合计 15,688.38；明确 15,688.38 与总资产差 4,877.17 的主因是 012920 卖出后份额未重建（账户市值 5,412.79 vs 份额×净值 10,283.50，差 -4,870.71），其余 6.46 为逐只四舍五入；权重继续用「确认份额×净值」，账户总值用 holding_total，不自动改账户数据。 --><!-- fw2_v1128_hide_cash_sig（用户 2026-11-26「活期宝不显示在信号中」）：交易信号→持仓信号不再为现金/货币基金生成「暂无信号·持仓兜底」标卡与占位行；按 state.portfolio 的 assetType=cash 或名称含货币/活期宝/现金宝，以及 drawdown 行的 kind=money 识别；只改展示，不改信号判定、阈值、其它组与表内行序。 --><!-- fw2_v1127_hold_sig_mv_sort（用户 2026-11-26「交易信号-持仓信号里面的标的按照持仓金额大小排列」）：仅「持仓信号」组内标目按持仓市值（state.portfolio 的 mvCny，人民币口径）降序；T10 杠铃档位（四档）为组合汇总、保持置顶；同额回退原等级/信号数/指数族/代码排序。未改信号判定、同指数合并选择、表内行序与自选/筛选/市场组排序。 --><!-- fw2_v1126_macro_nky_refresh：2026-11-26 15:02 只刷宏观组（`refresh_all.py --only macro --no-publish`）后，`macro-data.json` 的 nky 实时价由盘中 57,812.38 更新为收盘 57,498.94，amt/amtD/fsi/sentiment/wave 同步刷新；`index.html` 内嵌 MACRO_SNAP 由数据链同步更新，未改任何计算/信号逻辑。nky 闸门已转 PASS（实时独立源本次不可达，按本地底线降级，详见 verify_nky 备注）；`gen_macro_extra.py` 因缺 akshare 仍失败，数据管理保留 3 项失败标记。 --><!-- fw2_v1125_sp_wait：配置回测开启 V11 狙击时，若筛选池（SCREEN_POOL）未就绪，先加载 screen-pool.json 并自动续跑；加载失败则明确拦下，避免空池跑出 0 笔假结果。 --><!-- fw2_v1123_sm_insert_anchor（用户 2026-11-25 截图「点聪明的钱后模块组被压到后面」）：交易信号页把 #view-smartmoney 搬入 sigBody 时，原锚点 `body.querySelector('.dc-note')` 实际命中的是「V11 狙击已移至…」提示（同样带 .dc-note），导致聪明的钱整节被插到阈值来源之后、标签组之前。改为末脚注 #sigFootNote 作锚点（兜底取最后一个 .dc-note），标签组/筛选条回到顶部，聪明的钱内容落在其余 pane 之后、脚注之前。 --><!-- fw2_v1122_v11_formula_unified（用户 2026-11-25「统一」）：V11 赔率公式从「p250 前高 / 3×ATR14」统一到「1260 日前高 / 1260 日窗口最低收盘」——配置回测 v11Gate 新增 p1260/lo1260 单调队列，与扫描 bt_signal.entry_signal、运行回测 v11Prep 同算式；旧 v11Den atr/leg20/leg60 三档退役；注册表/参数说明/逻辑清单同步改口径，旧口径收益数字标为历史、不冒充新结果。 --><!-- fw2_v1121_v11_run_kpi（用户 2026-11-25「V11狙击加入深跌买入一样的运行回测模块。这个面积太大了。改成 2.50还是2，根据你的建议改」）：①V11 策略页顶部 5 格 KPI 改用专用 .v11-kpi（5 列等宽、单元格 min-height:0），消除 .sh-grid flex:1 1 320px 造成的 320px 空白；②新增运行回测卡（范围/ETF/起止/本金/单注/仓位/门限/止损/吊灯），懒加载 data/v11-bt-data.json，出 KPI+SVG 净值/持仓曲线+分标的+逐笔；③赔率门限全链路统一 2.50；④v11FmtMoney 负数改 -¥；⑤曲线用原生 SVG，避免 canvas 在截图/部分环境不显示。 --><!-- fw2_v1120_v11_rows_removed：V11 狙击逐只执行行从交易信号页删除，V11 只保留策略执行入口 --><!-- fw2_v1096_dd_search（用户「继续」）：①全指数监测卡加「搜索」（代码/名称，只过滤本表显示，分档 chips 计数与已选组合不受影响；输入时保存 ST.q 并重画、回填焦点与滚动位置）②组合池加「全选境内 59」「恢复默认（宽基）」（境外永远不进池）③脚注的境外名单由数据现算（原来写死 4 个名字，加池就会过期）④gen_index_dd 去掉冗余 count.night，gen_index_val 的蛋卷 asof 不再写死 2026 年 --><!-- fw2_v1097_dd_sort_valref（用户「继续」，承接 v1096 挂账）：①全指数监测卡加「排序」开关——回撤深→浅（默认）/ 名称 A→Z，只换本表顺序，分档计数与已选组合不变；②估值卡加「同类别对照」小表——全部 / 宽基 / 行业 / 主题 / 境外五行的 PE 分位中位、PB 分位中位、价格分位中位，并列出该类别里 PE 分位最低的一只；③两处都只用既有 index-dd / index-val 数据，不引入新源（v1096 已证伪的三条补源路仍挂账）。 --><!-- fw2_v1098_dd_n2_sort（用户「继续完成」，收口 v1097「下一步候选」三件）：①估值「同类别对照」由 6 列扩到 8 列——补「股息率中位」与「PB 分位最低的一只」（与 PE 最低同口径：只统计有该分位的只数，空组回 —）；②监测卡加「快捷」行——「距下档 ≤2pp」一键筛选（ST.n2 与类别 / 分档 / 搜索四者可叠加，chips 计数仍按类别全集，不受搜索与快捷键影响）；③方案卡「进入买入区」表跟随 ST.sort（默认回撤深→浅，切名称后同监测卡拼音序）；④仍不引入新源。 --><!-- fw2_v1099_dd_pickcat_relcat（用户「继续」，收口 v1098「下一步候选」三件）：①组合池加按类别批量勾选——宽基 / 行业 / 主题三个按钮各显示「已选/总数」，全选后再点即取消该类（不碰境外）；②估值主表加「相对同类」列——本只 PE 分位 − 同类别 PE 分位中位（pp，负＝比同类便宜），只在双方都有分位时显示；③跨档卡跟随监测卡类别筛选（ST.fcat），计数、「展开全部 N 只」与空态都按当前类别；④仍不引入新源。 --><!-- fw2_v1100_dd_bksum_cheap_vsort（用户「继续」，收口 v1099「下一步候选」三件）：①监测卡加「按回撤分档汇总」表——6 档的只数 / 平均回撤 / 该档最深一只 / 距下档 ≤2pp 只数 / 已进买入区只数，按当前类别统计、不受搜索与快捷影响；②组合池加「只选便宜一半」——按同类别 PE 分位中位分界，只选低于中位的（无分位不入选，口径写进按钮 title）；③估值主表「相对同类」表头可点击排序，三态循环：默认（回撤深→浅）→ 便宜在前 → 贵在前，无分位的行恒排最后；④ddTbl 扩一个可选 th 属性位（backward compatible），中位数抽成模块级 medOf 单一实现；⑤仍不引入新源。 --><!-- fw2_v1076_conflicts（用户 2026-11-23「按照你顺序修」——修掉体检出的 5 处纲领冲突）：
+<span id="verBadge" class="ver-badge">v1137</span><!-- fw2_v1137_act_priority（用户 2026-11-26「继续」→ 阶段 2.2）：同标的同日冲突优先级。①按同一标的分组给 act 行排序：T4/R6 硬止损（清仓）＞T2 峰值回撤止盈（减半）＞R7 再平衡（卖回目标）＞T1 阶梯止盈（减1/4）＞T3 估值止盈＞T16 卖出后破位减半＞TREND-DN/S-TREND/P2 拦截＞T7/W2/S2 回撤补仓＞T8 估值加仓＞T13/R3 网格买入＞V11 狙击；T15/S1 观察项与「T3/T8」混合行不排序。②行内信号格加「同日 1/N」徽标；卖/拦截项未完成时，同标的买入行显示「先 T4 硬止损」并暂时不出现「开始」按钮，完成或撤销高优先项后自动恢复。③筛选条的执行状态改为可点按钮「同日冲突 N 组 · 查看顺序」，表格下方新增折叠清单，逐组列出顺序、同日多卖/多买提示。只改渲染层排序与按钮可见性，不改 signalEvalAll 判定、lvl、阈值、actState 状态写入或任何交易。 --><!-- fw2_v1136_act_state（用户 2026-11-26「按照顺序继续」→ 阶段 2.1）：act 信号执行四态落地——待执行 / 执行中 / 已执行 / 已过期。①交易信号表在「状态」后新增「执行」列，仅行动档给状态徽章与推进按钮（开始→完成→撤销），接近/观察显示「—」；②状态存 localStorage `fw2_act_state_v1`（键 pool:code:sig），同一信号条件不再触发时自动转「已过期」并保留 14 天，再次触发回到「待执行」；③表头筛选条加执行状态计数，表格下方给近 14 日已过期清单（默认折叠）；④首屏今日待办只把待执行/执行中的行动计入「行动信号」，已执行不再占待办。未改 signalEvalAll 判定、lvl、阈值、排序、三态逻辑与任何交易动作。⑤窄屏可用性：9 列 min-width 1180 时给 .dc-card/.dc-body/.sig-wt-area 补 min-width:0、.table-wrap max-width:100%，让表格在卡内横向滚动（修前卡宽被撑到 1212px、538 视口只能看到左侧 3 列，执行/行动/操作列不可达）。 --><!-- fw2_v1135_budget_migrate_once（用户 2026-11-26「表标题 62,000 改成 50000」收口）：v1134 只按值迁移，用户以后主动把预算设回 62000 会在下次刷新被再次改掉；v1135 加 `fw2_budget_migrated_50000_v1` 一次性守卫，标记存在即不再迁移。 --><!-- fw2_v1134_budget_50000（用户 2026-11-26「下方资产配置表标题当前是 ¥62,000 预算，改成50000」）：把历史预算 fw2_capital_budget_v1=62000 一次性迁移到 50000；只改恰好 62000 的旧值，不动其它自填金额，也不写死 5 万。 --><!-- fw2_v1133_caliber_split_note（用户 2026-11-26 阶段1收口）：四桶卡/新钱路线显式标注「5 万策略主基准」；v1134 用户拍板后，表标题预算已迁移到 50000，两卡与表标题同基准。若以后改表标题预算，则重新分口径、禁止对拍。 --><!-- fw2_v1132_new_money_route（用户 2026-11-26「按顺序开始执行」清单 1.4）：策略执行-资产配置新增「新钱分配路线」卡；按四桶缺口比例给不卖出补足路线，不执行交易。 --><!-- fw2_v1131_bucket_target_vs_actual（用户 2026-11-26「按顺序开始执行」清单 1.3）：策略执行-资产配置新增「四桶目标 vs 实际」卡；占比偏离与 5 万到位率分开呈现，不改计算与再平衡。 --><!-- fw2_v1130_capital_labels（用户 2026-11-26「按顺序开始执行」清单 1.2）：全站顶部常驻「资金口径」条，分账户/策略/实验/回测四套基数，只做标注，不改任何金额计算。 --><!-- fw2_v1129_hold_recon（用户 2026-11-26「按照你的建议列个执行清单 / 按顺序开始执行」）：我的持仓 KPI 下新增「账户口径对账」卡——同屏展示 账户总资产 20,565.55 / 确认份额×净值 18,067.10 / 在途买入 2,498.46 / 账户明细市值合计 15,688.38；明确 15,688.38 与总资产差 4,877.17 的主因是 012920 卖出后份额未重建（账户市值 5,412.79 vs 份额×净值 10,283.50，差 -4,870.71），其余 6.46 为逐只四舍五入；权重继续用「确认份额×净值」，账户总值用 holding_total，不自动改账户数据。 --><!-- fw2_v1128_hide_cash_sig（用户 2026-11-26「活期宝不显示在信号中」）：交易信号→持仓信号不再为现金/货币基金生成「暂无信号·持仓兜底」标卡与占位行；按 state.portfolio 的 assetType=cash 或名称含货币/活期宝/现金宝，以及 drawdown 行的 kind=money 识别；只改展示，不改信号判定、阈值、其它组与表内行序。 --><!-- fw2_v1127_hold_sig_mv_sort（用户 2026-11-26「交易信号-持仓信号里面的标的按照持仓金额大小排列」）：仅「持仓信号」组内标目按持仓市值（state.portfolio 的 mvCny，人民币口径）降序；T10 杠铃档位（四档）为组合汇总、保持置顶；同额回退原等级/信号数/指数族/代码排序。未改信号判定、同指数合并选择、表内行序与自选/筛选/市场组排序。 --><!-- fw2_v1126_macro_nky_refresh：2026-11-26 15:02 只刷宏观组（`refresh_all.py --only macro --no-publish`）后，`macro-data.json` 的 nky 实时价由盘中 57,812.38 更新为收盘 57,498.94，amt/amtD/fsi/sentiment/wave 同步刷新；`index.html` 内嵌 MACRO_SNAP 由数据链同步更新，未改任何计算/信号逻辑。nky 闸门已转 PASS（实时独立源本次不可达，按本地底线降级，详见 verify_nky 备注）；`gen_macro_extra.py` 因缺 akshare 仍失败，数据管理保留 3 项失败标记。 --><!-- fw2_v1125_sp_wait：配置回测开启 V11 狙击时，若筛选池（SCREEN_POOL）未就绪，先加载 screen-pool.json 并自动续跑；加载失败则明确拦下，避免空池跑出 0 笔假结果。 --><!-- fw2_v1123_sm_insert_anchor（用户 2026-11-25 截图「点聪明的钱后模块组被压到后面」）：交易信号页把 #view-smartmoney 搬入 sigBody 时，原锚点 `body.querySelector('.dc-note')` 实际命中的是「V11 狙击已移至…」提示（同样带 .dc-note），导致聪明的钱整节被插到阈值来源之后、标签组之前。改为末脚注 #sigFootNote 作锚点（兜底取最后一个 .dc-note），标签组/筛选条回到顶部，聪明的钱内容落在其余 pane 之后、脚注之前。 --><!-- fw2_v1122_v11_formula_unified（用户 2026-11-25「统一」）：V11 赔率公式从「p250 前高 / 3×ATR14」统一到「1260 日前高 / 1260 日窗口最低收盘」——配置回测 v11Gate 新增 p1260/lo1260 单调队列，与扫描 bt_signal.entry_signal、运行回测 v11Prep 同算式；旧 v11Den atr/leg20/leg60 三档退役；注册表/参数说明/逻辑清单同步改口径，旧口径收益数字标为历史、不冒充新结果。 --><!-- fw2_v1121_v11_run_kpi（用户 2026-11-25「V11狙击加入深跌买入一样的运行回测模块。这个面积太大了。改成 2.50还是2，根据你的建议改」）：①V11 策略页顶部 5 格 KPI 改用专用 .v11-kpi（5 列等宽、单元格 min-height:0），消除 .sh-grid flex:1 1 320px 造成的 320px 空白；②新增运行回测卡（范围/ETF/起止/本金/单注/仓位/门限/止损/吊灯），懒加载 data/v11-bt-data.json，出 KPI+SVG 净值/持仓曲线+分标的+逐笔；③赔率门限全链路统一 2.50；④v11FmtMoney 负数改 -¥；⑤曲线用原生 SVG，避免 canvas 在截图/部分环境不显示。 --><!-- fw2_v1120_v11_rows_removed：V11 狙击逐只执行行从交易信号页删除，V11 只保留策略执行入口 --><!-- fw2_v1096_dd_search（用户「继续」）：①全指数监测卡加「搜索」（代码/名称，只过滤本表显示，分档 chips 计数与已选组合不受影响；输入时保存 ST.q 并重画、回填焦点与滚动位置）②组合池加「全选境内 59」「恢复默认（宽基）」（境外永远不进池）③脚注的境外名单由数据现算（原来写死 4 个名字，加池就会过期）④gen_index_dd 去掉冗余 count.night，gen_index_val 的蛋卷 asof 不再写死 2026 年 --><!-- fw2_v1097_dd_sort_valref（用户「继续」，承接 v1096 挂账）：①全指数监测卡加「排序」开关——回撤深→浅（默认）/ 名称 A→Z，只换本表顺序，分档计数与已选组合不变；②估值卡加「同类别对照」小表——全部 / 宽基 / 行业 / 主题 / 境外五行的 PE 分位中位、PB 分位中位、价格分位中位，并列出该类别里 PE 分位最低的一只；③两处都只用既有 index-dd / index-val 数据，不引入新源（v1096 已证伪的三条补源路仍挂账）。 --><!-- fw2_v1098_dd_n2_sort（用户「继续完成」，收口 v1097「下一步候选」三件）：①估值「同类别对照」由 6 列扩到 8 列——补「股息率中位」与「PB 分位最低的一只」（与 PE 最低同口径：只统计有该分位的只数，空组回 —）；②监测卡加「快捷」行——「距下档 ≤2pp」一键筛选（ST.n2 与类别 / 分档 / 搜索四者可叠加，chips 计数仍按类别全集，不受搜索与快捷键影响）；③方案卡「进入买入区」表跟随 ST.sort（默认回撤深→浅，切名称后同监测卡拼音序）；④仍不引入新源。 --><!-- fw2_v1099_dd_pickcat_relcat（用户「继续」，收口 v1098「下一步候选」三件）：①组合池加按类别批量勾选——宽基 / 行业 / 主题三个按钮各显示「已选/总数」，全选后再点即取消该类（不碰境外）；②估值主表加「相对同类」列——本只 PE 分位 − 同类别 PE 分位中位（pp，负＝比同类便宜），只在双方都有分位时显示；③跨档卡跟随监测卡类别筛选（ST.fcat），计数、「展开全部 N 只」与空态都按当前类别；④仍不引入新源。 --><!-- fw2_v1100_dd_bksum_cheap_vsort（用户「继续」，收口 v1099「下一步候选」三件）：①监测卡加「按回撤分档汇总」表——6 档的只数 / 平均回撤 / 该档最深一只 / 距下档 ≤2pp 只数 / 已进买入区只数，按当前类别统计、不受搜索与快捷影响；②组合池加「只选便宜一半」——按同类别 PE 分位中位分界，只选低于中位的（无分位不入选，口径写进按钮 title）；③估值主表「相对同类」表头可点击排序，三态循环：默认（回撤深→浅）→ 便宜在前 → 贵在前，无分位的行恒排最后；④ddTbl 扩一个可选 th 属性位（backward compatible），中位数抽成模块级 medOf 单一实现；⑤仍不引入新源。 --><!-- fw2_v1076_conflicts（用户 2026-11-23「按照你顺序修」——修掉体检出的 5 处纲领冲突）：
 ①R7 带宽：撤销 v1067 的 `o.band = o.slotBand` 强镜像；band 只喂 R7（单只超配 25% 减配，SIG_THR_DEF 5→25、与回测 cfg.band 同值），slotBand 只喂 T10 四档；sigThrApply 分别写 C.barbell.band / C.barbell.slotBand，T10 文案改读 slotBand，R7 行 threshold 由硬编码「band 25%」改为动态读纲领值。
 ②R2 假开关：`_planCfg()` 读 `window.logicStateEff('R2')`——生效按 investMode，观察/关一律 lump（月投 0）；建仓步文案在一次性时追加「R2 定投＝关/观察」。
 ③T4 与 R6 双份：T4 行 modeled 改「与 R6 止损同一执行（同一 slHard）」，def 标「= R6 止损，同一动作」，阈值表 slHard 口径写「T4 / R6 · 同一执行」。
@@ -18122,6 +18143,7 @@ function renderSignalDash() {
   Promise.all([window.signalEvalAll(hold, wl), mkP, riskP, ddP, ddWarnP]).then(([rows, mk, risk, ddRows, ddWarnRows]) => {
     window.__sigMarketRows = (mk && mk.rows) || []; /* fw2_v703_trend_tab：市场行入全局，定投档位/趋势子面板与信号视图同源 */
     let ACT_MAP = {}; /* fw2_v1136_act_state：本页 act 行执行状态（由 actStateSync 在下方统一装配） */
+    let ACT_CONF = {}; /* fw2_v1137_act_priority：本页同标的同日冲突组（只读渲染层，不写状态） */
     if (state.view !== 'signal') return;
     /* v325 fw2_v325_watch_nodup：自选信号剔除已持仓标的（其信号已由持仓信号 T 系列覆盖，避免跨类重复展示）；
        v333 fw2_v333_watch_nodup_all：剔除基准改用全量持仓（含货币基金等 cash 类），避免货基等 cash 资产仍残留自选区 */
@@ -18166,6 +18188,8 @@ function renderSignalDash() {
       const key = r.pool + ':' + r.code + ':' + r.sig;
       const _ast = (r.lvl === 'act') ? (ACT_MAP[key] || null) : null;
       const _astM = _ast ? ACT_ST_META[_ast.st] : null;
+      const _conf = (r.lvl === 'act') ? (ACT_CONF[r.pool + '|' + r.code + '|' + r.name] || null) : null;
+      const _cp = (_conf && _conf.rows[key]) || null;
       const _done = !!(_ast && _ast.st === 'done');
       const ackDim = sigAcked(key, r.lvl === 'act' ? 7 : 1) ? ' style="opacity:.42"' : '';
       const dim = _done ? ' style="opacity:.55"' : ackDim;
@@ -18190,10 +18214,18 @@ function renderSignalDash() {
       const _st = _ast ? _ast.st : 'pending';
       const _stM = ACT_ST_META[_st] || ACT_ST_META.pending;
       const _stNext = _st === 'pending' ? ['doing', '开始'] : _st === 'doing' ? ['done', '完成'] : _st === 'done' ? ['pending', '撤销'] : null;
+      const _blk = (_cp && _cp.blockedBy) ? _cp.blockedBy : null;
+      const _prio = (_cp && _cp.idx && _cp.n > 1)
+        ? '<span class="sig-prio" title="同标的同日执行顺序，数字小的先做">同日 ' + _cp.idx + '/' + _cp.n + '</span>'
+        : '';
       const exeCell = (r.lvl !== 'act' || !_ast)
         ? '<td class="sig-exe"><span class="sig-exe-empty">—</span></td>'
         : '<td class="sig-exe"><span class="sig-exe-bd" style="background:' + _stM[1] + ';color:' + _stM[2] + '" title="' + (esc(r.sig) + ' · ' + _stM[0]) + '">' + _stM[0] + '</span>'
-          + (_stNext ? '<br><button type="button" class="btn btn-sm sig-exe-btn" data-actst="' + _stNext[0] + '" data-actkey="' + esc(key) + '">' + _stNext[1] + '</button>' : '')
+          + (_stNext
+            ? (_blk && _st === 'pending'
+              ? '<br><button type="button" class="btn btn-sm sig-exe-btn" disabled title="同标的存在更高优先级：' + esc(_blk.r.sig) + '。先完成或撤销它，本按钮自动恢复" style="opacity:.45;cursor:not-allowed">' + _stNext[1] + '</button><br><span class="sig-exe-wait">先 ' + esc(_blk.r.sig) + '</span>'
+              : '<br><button type="button" class="btn btn-sm sig-exe-btn" data-actst="' + _stNext[0] + '" data-actkey="' + esc(key) + '">' + _stNext[1] + '</button>')
+            : '')
           + '</td>';
       const _wt = (opts && opts.watchRow) ? ' class="sig-wt-row"' : '';
       /* fw2_v855_sig_row：**标的列取消**——原 rowspan 合并把 6 条信号的基金名放进一格垂直居中，
@@ -18217,7 +18249,7 @@ function renderSignalDash() {
       const srcFull = r.src ? String(r.src) : '';
       const srcShort = srcFull.split(/[·（(\s]/)[0] || srcFull;
       return '<tr' + dim + _wt + '>'
-        + '<td class="sig-cell">' + _inline + '<div class="sig-name">' + esc(r.sig) + '</div></td>'
+        + '<td class="sig-cell">' + _inline + '<div class="sig-name">' + esc(r.sig) + _prio + '</div></td>'
         + (r.curMain !== undefined
           ? '<td class="num"><div class="sig-cur" style="color:' + curColor + '">' + esc(r.curMain) + '</div>' + (r.curSub ? '<div class="sig-sub">' + esc(r.curSub) + '</div>' : '') + '</td>'
           : '<td class="num"><div class="sig-cur" style="color:' + curColor + '">' + esc(r.cur) + '</div></td>')
@@ -18619,6 +18651,9 @@ function renderSignalDash() {
     var _actRowsAll = _holdSig.concat(watchRows || [], rows.screen || [], (mk && mk.rows) || [], ddWarnRows || []);
     var _actRows = _actRowsAll.filter(function (r) { return _lgLv(r) === 'act'; });
     ACT_MAP = actStateSync(_actRows);
+    ACT_CONF = actConflictMap(_actRows, ACT_MAP);
+    var _confN = Object.keys(ACT_CONF).length;
+    var _confBlocked = Object.keys(ACT_CONF).reduce(function (a, k) { return a + ((ACT_CONF[k] && ACT_CONF[k].blocked) || 0); }, 0);
     var _actSum = actStateCount(ACT_MAP, _actRows);
     var actTot = (_lgN(_holdSig, 'act') + _lgN(watchRows, 'act') + _lgN(rows.screen, 'act') + _lgN((mk && mk.rows), 'act') + _lgN(ddWarnRows, 'act'));
     var nearTot = (_lgN(_holdSig, 'near') + _lgN(watchRows, 'near') + _lgN(rows.screen, 'near') + _lgN((mk && mk.rows), 'near') + _lgN(ddWarnRows, 'near'));
@@ -18689,7 +18724,10 @@ function renderSignalDash() {
       + (_sigLvl === 'all' ? '' : '<span style="font-size:11px;opacity:.65;align-self:center">已筛选：只显示'
           + (_sigLvl === 'act' ? '行动' : '接近') + '档 · 组头计数为筛选后数量 · 判定与阈值未变</span>')
       + ((_lgOffN || _lgObsN) ? '<span style="font-size:11px;align-self:center;color:#7A4B07">已按投资总纲：关 ' + _lgOffN + ' 行（不显示） · 观察 ' + _lgObsN + ' 行（显示但降为「观察」档）</span>' : '')
-      + ((_actSum.total || _actSum.expired) ? '<span class="sig-act-sum" title="执行状态只记录你是否处理，不改变信号判定；条件不再触发时自动转已过期">执行状态：待执行 ' + _actSum.pending + ' · 执行中 ' + _actSum.doing + ' · 已执行 ' + _actSum.done + (_actSum.expired ? ' · 已过期 ' + _actSum.expired : '') + '</span>' : '')
+      + ((_actSum.total || _actSum.expired) ? (_confN
+        ? '<button type="button" class="sig-act-sum is-conf" data-actconf="1" title="点开看同标的同日执行顺序；只排序与置灰按钮，不改信号判定">执行状态：待执行 ' + _actSum.pending + ' · 执行中 ' + _actSum.doing + ' · 已执行 ' + _actSum.done + (_actSum.expired ? ' · 已过期 ' + _actSum.expired : '') + ' · 同日冲突 ' + _confN + ' 组 · 查看顺序</button>'
+        : '<span class="sig-act-sum" title="执行状态只记录你是否处理，不改变信号判定；条件不再触发时自动转已过期">执行状态：待执行 ' + _actSum.pending + ' · 执行中 ' + _actSum.doing + ' · 已执行 ' + _actSum.done + (_actSum.expired ? ' · 已过期 ' + _actSum.expired : '') + '</span>')
+        : '')
       + '</div>'
       + '<div class="sig-scroll-hint">左右滑动表格查看：状态 / 执行 / 行动方案 / 数据日 / 来源 / 操作</div>'
       /* tab: 市场信号（FSI/VIX已在M12，不再单独开L3组） */
@@ -18721,6 +18759,7 @@ function renderSignalDash() {
       + '<div' + _sigP('trend') + ' id="sigTrendPane"></div>'
       /* fw2_v781_hold_through：持仓穿透子模块（交易信号第7个页签）——持仓基金底层股票穿透聚合 Top20 */
       + '<div' + _sigP('through') + ' id="sigThroughPane"></div>'
+      + actConflictHtml(ACT_CONF)
       + actStateExpiredHtml(ACT_MAP)
       + '<div class="dc-note" id="sigFootNote">触发≠自动交易 · 阈值锁季度复盘日（T12/D9）· 市场信号=环境提示非指令 · 标的级明细在此。</div>';
     /* fw2_v769_sm_inline：聪明的钱 pane-bridge——#view-smartmoney 整节搬入本容器（CSS 作用域 #view-smartmoney 不受搬移影响；种子 script 已在首次解析时执行，搬移不会重跑）。
@@ -19113,6 +19152,12 @@ function renderSignalDash() {
         if (ar) ar.textContent = grpFold[k] ? '\u25b8' : '\u25be';
         return;
       }
+      const ac = e.target.closest('[data-actconf]');
+      if (ac) {
+        const cb = body.querySelector('#sigConfBox');
+        if (cb) { cb.open = true; cb.scrollIntoView({ block: 'center' }); }
+        return;
+      }
       const ae = e.target.closest('[data-actst]');
       if (ae) {
         actStateSet(ae.dataset.actkey, ae.dataset.actst);
@@ -19290,6 +19335,110 @@ function actStateLoad() {
 }
 function actStateSave(o) { try { localStorage.setItem(ACT_ST_KEY, JSON.stringify(o)); } catch (e) {} }
 function actStateKey(r) { return String((r && r.pool) || '') + ':' + String((r && r.code) || '') + ':' + String((r && r.sig) || ''); }
+/* fw2_v1137_act_priority：同标的同日冲突优先级。
+   口径来源：审计 §8.2/§8.3 + 现有注册表 v955/v956（同标的同日只卖一笔：止损＞T2＞止盈档＞T16）。
+   这里只给“先做哪条”的排序、行内徽标和买入按钮门禁；不改 signalEvalAll 判定、阈值、状态与交易。 */
+var ACT_PRIO = {
+  'T4': { rank: 10, kind: 'risk', side: '卖', label: '清仓' },
+  'R6': { rank: 10, kind: 'risk', side: '卖', label: '清仓' },
+  'T2': { rank: 20, kind: 'sell', side: '卖', label: '减半' },
+  'R7': { rank: 30, kind: 'sell', side: '卖', label: '卖回目标' },
+  'T1': { rank: 40, kind: 'sell', side: '卖', label: '减 1/4' },
+  'T3': { rank: 45, kind: 'sell', side: '卖', label: '估值止盈' },
+  'T16': { rank: 50, kind: 'sell', side: '卖', label: '再减半' },
+  'P2': { rank: 55, kind: 'block', side: '拦截', label: '勿加仓' },
+  'TREND-DN': { rank: 60, kind: 'block', side: '拦截', label: '暂缓补仓' },
+  'S-TREND': { rank: 60, kind: 'block', side: '拦截', label: '暂不买入' },
+  'T7': { rank: 70, kind: 'buy', side: '买', label: '分档补仓' },
+  'W2': { rank: 70, kind: 'buy', side: '买', label: '回撤买入' },
+  'S2': { rank: 70, kind: 'buy', side: '买', label: '回撤买入' },
+  'T8': { rank: 75, kind: 'buy', side: '买', label: '估值加仓' },
+  'T13': { rank: 80, kind: 'buy', side: '买', label: '网格买入' },
+  'R3': { rank: 80, kind: 'buy', side: '买', label: '网格买入' },
+  'V11': { rank: 85, kind: 'buy', side: '买', label: '狙击买入' },
+  'S1': { rank: 90, kind: 'note', side: '观察', label: '关注买入' },
+  'T15': { rank: 90, kind: 'note', side: '观察', label: '不追高' }
+};
+function actPrioOf(r) {
+  var sig = String((r && r.sig) || '');
+  if (sig.indexOf(' / ') >= 0) return { rank: 99, kind: 'mixed', side: '混合', label: '方向待人工判' };
+  var code = sig.split(' ')[0];
+  var p = ACT_PRIO[code];
+  return p || { rank: 99, kind: 'other', side: '其他', label: '未定义优先级' };
+}
+function actTargetKey(r) { return String((r && r.pool) || '') + '|' + String((r && r.code) || '') + '|' + String((r && r.name) || (r && r.code) || ''); }
+function actConflictMap(rows, items) {
+  var by = {}, out = {};
+  (rows || []).forEach(function (r) {
+    if (!r || r.padRow || r.lvl !== 'act' || !r.code || !r.sig) return;
+    var k = actTargetKey(r);
+    (by[k] = by[k] || []).push(r);
+  });
+  Object.keys(by).forEach(function (k) {
+    var list = by[k];
+    if (list.length < 2) return;
+    var xs = list.map(function (r, ix) {
+      var p = actPrioOf(r), kk = actStateKey(r), it = items && items[kk];
+      return { r: r, p: p, ix: ix, key: kk, st: (it && it.st) || 'pending' };
+    });
+    xs.sort(function (a, b) { return (a.p.rank - b.p.rank) || (a.ix - b.ix); });
+    var ranked = xs.filter(function (x) { return x.p.rank < 90; });
+    var g = { key: k, name: list[0].name || list[0].code || '', pool: list[0].pool || '', items: xs, rows: {}, buyN: 0, sellN: 0, blockN: 0, blocked: 0, topRank: ranked.length ? ranked[0].p.rank : 99 };
+    xs.forEach(function (x) {
+      var ri = ranked.indexOf(x);
+      x._ri = ri;
+      var blockers = [];
+      if (x.p.kind === 'buy') {
+        blockers = xs.filter(function (y) {
+          return y !== x && y.p.rank < x.p.rank && (y.st === 'pending' || y.st === 'doing') && (y.p.kind === 'risk' || y.p.kind === 'block' || y.p.kind === 'sell');
+        });
+      } else if (x.p.kind === 'sell' || x.p.kind === 'risk') {
+        blockers = xs.filter(function (y) {
+          return y !== x && y.p.rank < x.p.rank && (y.st === 'pending' || y.st === 'doing') && (y.p.kind === 'risk' || y.p.kind === 'sell');
+        });
+      }
+      var blockedBy = blockers[0] || null;
+      if (blockedBy) g.blocked++;
+      g.rows[x.key] = { idx: ri >= 0 ? ri + 1 : 0, n: ranked.length, blockedBy: blockedBy, prio: x.p };
+      if (x.p.kind === 'buy') g.buyN++;
+      if (x.p.kind === 'risk' || x.p.kind === 'sell') g.sellN++;
+      if (x.p.kind === 'block') g.blockN++;
+    });
+    g.hard = !!(g.buyN && (g.sellN || g.blockN));
+    g.multiSell = g.sellN >= 2;
+    g.multiBuy = g.buyN >= 2;
+    out[k] = g;
+  });
+  return out;
+}
+function actConflictHtml(conf) {
+  var arr = Object.keys(conf || {}).map(function (k) { return conf[k]; }).filter(function (g) { return g && g.items && g.items.length > 1; });
+  if (!arr.length) return '';
+  arr.sort(function (a, b) { return (b.hard - a.hard) || (a.topRank - b.topRank) || (b.multiSell - a.multiSell) || String(a.name).localeCompare(String(b.name)); });
+  var hardN = arr.filter(function (g) { return g.hard; }).length;
+  var msN = arr.filter(function (g) { return g.multiSell; }).length;
+  var mbN = arr.filter(function (g) { return g.multiBuy; }).length;
+  var blockedN = arr.reduce(function (a, g) { return a + (g.blocked || 0); }, 0);
+  var poolTxt = { hold: '持仓', watch: '自选', screen: '筛选', market: '市场' };
+  var rows = arr.map(function (g) {
+    var items = g.items.map(function (x) {
+      var cls = 'sc-item ' + (x.p.kind === 'buy' ? 'sc-buy' : (x.p.kind === 'risk' || x.p.kind === 'sell') ? 'sc-risk' : x.p.kind === 'block' ? 'sc-block' : 'sc-note');
+      var pre = (x.p.rank < 90 && x._ri >= 0) ? (x._ri + 1) + '. ' : '— ';
+      return '<span class="' + cls + '">' + pre + esc(x.r.sig) + ' <em>（' + esc(x.p.side) + ' · ' + esc(x.p.label) + '）</em></span>';
+    }).join(' → ');
+    var notes = [];
+    if (g.hard) notes.push('先风控后买入：卖/拦截项未完成时，买入按钮置灰；完成或撤销后自动恢复。');
+    if (g.multiSell) notes.push('同日多卖只做一笔：先执行排在前面的那条卖单，后面的留到次日再评估。');
+    if (g.multiBuy) notes.push('同日多买先算合计金额，超过单日加仓上限只做一笔。');
+    if (!notes.length) notes.push('仅做顺序标记，不涉及买卖门禁。');
+    return '<li><span class="sc-name">' + esc(g.name) + '</span> <span class="sc-code">' + esc(g.items[0].r.code) + ' · ' + esc(poolTxt[g.pool] || g.pool) + '</span><br>' + items
+      + '<span class="sc-note-line">' + notes.join(' ') + '</span></li>';
+  }).join('');
+  return '<details class="sig-conf" id="sigConfBox"><summary>同日冲突 ' + arr.length + ' 组 · 风控压买入 ' + hardN + ' 组' + (blockedN ? ' · 当前待让位 ' + blockedN + ' 条（含折叠组）' : '') + (msN ? ' · 同日多卖 ' + msN + ' 组' : '') + (mbN ? ' · 同日多买 ' + mbN + ' 组' : '') + '</summary>'
+    + '<div class="sig-conf-scroll"><ol>' + rows + '</ol></div>'
+    + '<details class="sig-conf-legend"><summary>优先级口径：T4 硬止损 ＞ T2 峰值回撤止盈 ＞ R7 再平衡 ＞ T1 阶梯止盈 ＞ T3 估值止盈 ＞ T16 卖出后破位减半 ＞ 拦截 ＞ 买入</summary><div class="sig-conf-note">T4 硬止损（清仓止损）＞T2 峰值回撤止盈（减半）＞R7 再平衡（卖回目标）＞T1 阶梯止盈（减1/4）＞T3 估值止盈＞T16 卖出后破位减半＞拦截（TREND-DN 空头破位 / S-TREND 趋势破位 / P2 单票暴露高）＞T7 回撤补仓＝W2/S2 回撤买入＞T8 估值加仓＞T13 网格跟踪（网格买入）＝R3 网格买入＞V11 狙击（狙击买入）。本层只排序与置灰按钮，不改信号判定、阈值与交易。</div></details>'
+    + '</details>';
+}
 function actStateSet(key, st) {
   if (!key || !ACT_ST_META[st]) return;
   var o = actStateLoad(), now = Date.now();
