@@ -38912,9 +38912,13 @@ return {
       var ic = idx["000300"] ? idx["000300"].ser : null;
       if (!ic) return;
       var ir = dailyReturns(Object.keys(ic).sort().map(function (d) { return [d, ic[d]]; }));
-      /* 覆盖度=有净值序列（≥2 点可算收益）标的的市值占比（无序列的持仓如股票剔除并如实披露） */
-      var inc = 0;
-      W.rows.forEach(function (o) { if ((ser[o.code] || []).length > 1) inc += o.mv; });
+      /* 覆盖度=有净值序列（≥2 点可算收益）的非现金市值 / 非现金总市值；现金按 0 波动单独计入，不混进覆盖率 */
+      var inc = 0, ncTotal = 0, cashW = 0;
+      W.rows.forEach(function (o) {
+        if (o.isCash) { cashW += o.mv; return; }
+        ncTotal += o.mv;
+        if ((ser[o.code] || []).length > 1) inc += o.mv;
+      });
       /* 两序列对齐共同日期（避免 QDII T+1 断点错位） */
       var common = Object.keys(pr).filter(function (d) { return ir[d] != null; }).sort();
       var pa = {}, ia = {};
@@ -38924,9 +38928,7 @@ return {
       CACHE.vol = {};
       WINS.forEach(function (w) { CACHE.vol[w] = annVolOf(pr, w); });
       CACHE.rc = riskContribs(W.rows.filter(function (o) { return !o.isCash; }), ser, prNC);
-      var cashW = 0;
-      W.rows.forEach(function (o) { if (o.isCash) cashW += o.mv; });
-      CACHE.meta = { w: W, cov: W.total > 0 ? Math.round(inc / W.total * 100) : 0, cashW: W.total > 0 ? cashW / W.total * 100 : 0, navAsOf: fdAsOf(ser), idxLast: common.length ? common[common.length - 1] : "", nPts: CACHE.port.length };
+      CACHE.meta = { w: W, cov: ncTotal > 0 ? Math.round(inc / ncTotal * 100) : 0, cashW: W.total > 0 ? cashW / W.total * 100 : 0, navAsOf: fdAsOf(ser), idxLast: common.length ? common[common.length - 1] : "", nPts: CACHE.port.length };
       CACHE.ready = true;
       cb(null);
     };
@@ -39025,8 +39027,8 @@ return {
     }
     var foot = gid("volFoot");
     if (foot) {
-      foot.innerHTML = "口径：日收益率样本 std × √252 年化，20 日滚动窗口；60/120/250 日＝最后 N 个日收益的当前年化波动（含现金按 0 波动，按总资产归一）；风险贡献＝120 日协方差近似（占非现金方差），只做排序提示。"
-        + "；非现金覆盖度 " + CACHE.meta.cov + "%（按当前市值，无净值序列的非现金未计入）；现金 " + (CACHE.meta.cashW == null ? "—" : CACHE.meta.cashW.toFixed(1) + "%") + " 按 0 波动计入"
+      foot.innerHTML = "口径：日收益率样本 std × √252 年化，20 日滚动窗口；60/120/250 日＝最后 N 个日收益的当前年化波动（含现金按 0 波动，按总资产归一）；风险贡献＝120 日协方差近似（占非现金方差），只做排序提示"
+        + "；非现金净值覆盖 " + CACHE.meta.cov + "%（按当前市值，无净值序列的非现金未计入）；现金 " + (CACHE.meta.cashW == null ? "—" : CACHE.meta.cashW.toFixed(1) + "%") + " 按 0 波动计入"
         + "；净值截至 " + CACHE.meta.navAsOf + " · 沪深300（腾讯日K）截至 " + CACHE.meta.idxLast + " · 曲线 " + CACHE.meta.nPts + " 点"
         + "；权重快照 " + (CACHE.meta.w.asOf || "—").slice(0, 16).replace("T", " ") + "；参考带不是交易闸门 · 定性参考 · 不构成投资建议";
     }
