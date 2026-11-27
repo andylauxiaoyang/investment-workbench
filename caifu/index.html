@@ -1205,7 +1205,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
    三格：单只集中度 / 压力拖累 / 实际回撤。单只 20% 已接交易信号页买入冻结；
    压力与实际回撤仍只读，不用绿色“通过”暗示已生效。DOM 复用 hold-recon 基础样式，hold-p2 覆盖 3 列。 */
 .hold-p2 { margin:0 0 12px; padding:13px 16px; }
-.hold-p2 .hr-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:9px; }
+.hold-p2 .hr-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:9px; }
 .hold-p2 .hr-badge.bad { color:#A32D2D; background:#FCEBEB; border-color:#F5B5B5; }
 .hold-p2 .hr-badge.wait { color:#7F4E07; background:#FAEEDA; border-color:#F0D9A8; }
 .hold-p2 .hr-cell .v.bad { color:#A32D2D; }
@@ -1214,9 +1214,23 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .hold-p2 .hr-cell .s { white-space:normal; overflow:visible; text-overflow:clip; overflow-wrap:anywhere; }
 @media (max-width:980px) {
   .hold-p2 .hr-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
-  .hold-p2 .hr-cell:nth-child(3) { grid-column:1 / -1; }
 }
-@media (max-width:520px) { .hold-p2 .hr-grid { grid-template-columns:1fr; } .hold-p2 .hr-cell:nth-child(3) { grid-column:auto; } }
+@media (max-width:520px) { .hold-p2 .hr-grid { grid-template-columns:1fr; } }
+.hold-p2 .hr-cell .v.warn { color:#B45309; }
+.hold-p2 .p2-flow { margin-top:9px; border-top:1px dashed var(--line,#EAECF0); padding-top:7px; }
+.hold-p2 .p2-flow-form { display:flex; flex-wrap:wrap; gap:6px; align-items:center; margin:7px 0; }
+.hold-p2 .p2-flow-form input { font-size:12px; padding:4px 7px; border:1px solid var(--line,#EAECF0); border-radius:6px; background:var(--panel,#fff); color:var(--text,#101828); min-width:0; }
+.hold-p2 .p2-flow-form input[type="date"] { width:124px; }
+.hold-p2 .p2-flow-form input[type="number"] { width:112px; }
+.hold-p2 .p2-flow-form input[type="text"] { flex:1 1 130px; }
+.hold-p2 .p2-flow-row { display:flex; gap:8px; align-items:center; font-size:11.5px; padding:4px 0; border-bottom:1px dotted #EAECF0; line-height:1.35; }
+.hold-p2 .p2-flow-row b { font-variant-numeric:tabular-nums; white-space:nowrap; }
+.hold-p2 .p2-flow-row .good { color:#047857; font-weight:600; white-space:nowrap; }
+.hold-p2 .p2-flow-row .bad { color:#A32D2D; font-weight:600; white-space:nowrap; }
+.hold-p2 .p2-flow-row .note { flex:1 1 auto; min-width:0; color:var(--muted,#667085); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.hold-p2 .p2-flow-row .del { border:0; background:none; color:#A32D2D; cursor:pointer; font-size:11px; padding:0 3px; }
+.hold-p2 .p2-flow-tip { font-size:11px; color:var(--muted,#667085); line-height:1.45; margin-top:4px; }
+.hold-p2 .p2-flow-tools { display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-top:5px; }
 /* fw2_v1147_term_gate_exec：P2-11 终止风险闸门接执行。三格：终止样本 / 买入类信号已接过滤 / 当前持仓检查。
    复用 hold-recon 基础样式，hold-term 覆盖 3 列；命中只冻结买入，不自动卖。 */
 .hold-term { margin:0 0 12px; padding:13px 16px; }
@@ -1771,7 +1785,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 <!-- fw2_v1112_dd_hist_allpool（用户 2026-11-25「按照你建议继续」，落地 A 展示补全 + B 全池逐日对照，默认仍保留当前最深 10）：
       A「区间曾深」：监测卡头部加切换，按 [from,to] 逐日维护此前最高收盘（峰值可早于区间起点，与 ddArrOf 同口径）算区间最深；列出曾≥起始档位、但当前已修复而被焦点视图隐藏的指数（本次 63 只中 16 只曾≥70%，当前仅 4 只仍≥70%，5 只已修复到 <60%）。
       B「全池59（逐日机会）」：回测方式第三档；境内 59 只全部进入逐日机会集，不按今天回撤预选；每只只在自己回撤≥起始档位时买；同日先卖后买，再按当日回撤深→浅分配资金，现金不足跳过并计数；仍不含 4 只境外。默认仍为「当前最深 10」，且加 look-ahead 提示；换口径即清空旧结果，全池点行改为切单指数。 -->
-<span id="verBadge" class="ver-badge">v1149</span><!-- fw2_v1149_p2_stress_exec（用户 2026-11-27「接」）：P2-9 压力 20pp 接执行层，只在压力拖累 >20pp 时冻结最大单只买入，其他标的/补其他桶不冻；实际回撤仍缺可审计历史高水位，不接执行、不伪造 0%。 --><!-- fw2_v1148_term_soft_prompt（用户 2026-11-27「V1/深跌买入接门禁、软命中只提示、P2-9/P2-11 双原因同屏」）：①V1 波动赶底与深跌买入（研究页）接入 P2-11 终止风险门禁；②软命中改为只提示、不冻结，只有硬命中冻结买入；③P2-9 单只集中度与 P2-11 终止风险同时命中时，执行列/标题/行动方案同屏两条原因。历史注释与 v1147 保持不变。--><!-- fw2_v1147_term_gate_exec（用户 2026-11-27「从只读提示接成真正买入过滤」）：P2-11 终止风险闸门接执行层。在 v1146 只读卡基础上，对 T7 回撤补仓 / T13 网格跟踪（网格买入）/ T12 距历史低点 / T8 估值加仓 增加：终止样本同名同码、净值断档 >45 天、规模 <0.5 亿、暂停/终止申购（硬/软）、3 年落后近似基准 ≥30pp、前十集中度 ≥70% 且落后 ≥20pp 检查；命中时交易信号页买入按钮置灰并标「终止风险冻结」。历史不足 3 年只记「数据不足」，不冻结、不伪装通过；不自动卖、不写交易状态、不改 signalEvalAll 阈值判定。 -->
+<span id="verBadge" class="ver-badge">v1150</span><!-- fw2_v1150_p2_dd_exec（用户 2026-11-27「按照你的建议做」）：P2-9 实际回撤 A+ 接执行——今日总资产为初始高水位，逐数据日记总资产/净出入金，HWM 按出入金调整；前 20 个数据日只读，满 20 后 ≤−15% 冻结全组合新增买入、≤−20% 只做减仓评估；不自动卖、不写交易状态、不伪造历史。 --><!-- fw2_v1149_p2_stress_exec（用户 2026-11-27「接」）：P2-9 压力 20pp 接执行层，只在压力拖累 >20pp 时冻结最大单只买入，其他标的/补其他桶不冻；实际回撤仍缺可审计历史高水位，不接执行、不伪造 0%。 --><!-- fw2_v1148_term_soft_prompt（用户 2026-11-27「V1/深跌买入接门禁、软命中只提示、P2-9/P2-11 双原因同屏」）：①V1 波动赶底与深跌买入（研究页）接入 P2-11 终止风险门禁；②软命中改为只提示、不冻结，只有硬命中冻结买入；③P2-9 单只集中度与 P2-11 终止风险同时命中时，执行列/标题/行动方案同屏两条原因。历史注释与 v1147 保持不变。--><!-- fw2_v1147_term_gate_exec（用户 2026-11-27「从只读提示接成真正买入过滤」）：P2-11 终止风险闸门接执行层。在 v1146 只读卡基础上，对 T7 回撤补仓 / T13 网格跟踪（网格买入）/ T12 距历史低点 / T8 估值加仓 增加：终止样本同名同码、净值断档 >45 天、规模 <0.5 亿、暂停/终止申购（硬/软）、3 年落后近似基准 ≥30pp、前十集中度 ≥70% 且落后 ≥20pp 检查；命中时交易信号页买入按钮置灰并标「终止风险冻结」。历史不足 3 年只记「数据不足」，不冻结、不伪装通过；不自动卖、不写交易状态、不改 signalEvalAll 阈值判定。 -->
 <!-- fw2_v1145_p2_gate_exec（用户 2026-11-27「按照你建议继续」）：P2-9 单只集中度上限 20% 接执行层。只在交易信号页把最大非现金持仓（当前 012920）的买入类信号——T7 回撤补仓 / W2 回撤买入 / S2 回撤买入 / T8 估值加仓 / T13 网格跟踪（网格买入）/ R3 网格买 / V11 狙击——的「开始」按钮置灰并标「买入冻结」；压力 20pp 与实际回撤 15/20% 仍只读。不拦其他标的、不自动卖、不写交易状态；判断复用 holdP2GateData()，未改 signalEvalAll 判定、阈值、三态或任何下单动作。 --><!-- fw2_v1144_p2_gate_readonly（2026-11-26 用户「按照你的建议继续」）：在我的持仓对账卡后新增 P2-9 组合风险闸门只读卡。①单只集中度＝最大非现金持仓 / 确认份额×净值（上限 20%）；②压力拖累＝最大单只按 P2-10 的 −44.6% 峰回撤情景（上限 20pp）；③实际回撤＝15% 冻结 / 20% 评估，但组合高水位未建立，显示「待建立」不伪造判定。只读，不拦买入、不自动卖、不写状态；阈值与动作待拍板后才接执行层。 --><!-- fw2_v1143_012920_share_fix（2026-11-26 P2-9 前置对账）：012920 份额由 3,423.61 修正为 1,802.04。依据：对账单 2026-10-29 持有 5,045.18 份；ttskill TRADE_QUERY 两笔卖出各 1,621.57 份（11-05 确认 5,120.84 元 / 净值 3.1699；11-25 确认 4,877.17 元 / 净值 3.0228），均 confirmStatus=confirmed；剩余 1,802.04 × 2.9747 = 5,360.53（11-25 净值），与账户市值一致。只改持仓镜像份额与成本等比结转，不改 total、不改其他持仓、不改信号判定、不下单。 --><!-- fw2_v1142_r2_manual（用户 2026-11-26「明确 RB/BW/L1/TREND 只是手动参考」→ 审计 P1 第 5 项拍板）：R2 定投保持「关」，实盘按一次性、不按月投；RB REGIME-BEAR 熊市环境降档 / BW BREADTH-W 广度恶化 / L1 回撤预警 / TREND-UP·DN 趋势叠加四条统一标为「手动参考」，页面逐行加徽标、趋势卡与投资总纲加口径条。只改展示与文案，不改 signalEvalAll 判定、阈值、三态、回测参数或任何交易。 --><!-- fw2_v1141_ev_tier（用户 2026-11-26「然后做接下来没完成的事情」→ 审计 P1）：①T15 跟踪指数 PE 分位缺数据不再静默消失，显式占位 watch（不适用/数据缺失），与 T3/T8 同口径，不出 act；②P4 覆盖率改为「数据闸门」行，只提示穿透结论不可全信，不产生买卖动作；③投资总纲新增证据列 A+/A−/A?/A·/C 与 59 条机制归并，A 不再单用表示「测过＝可信」，负边际 9 条明写只作实验/观察；不改 signalEvalAll 判定、阈值、三态与任何交易。 --><!-- fw2_v1140_erp_fix3（用户 2026-11-26「ERP 股债性价比（沪深300）10年国债利率按照3%固定」）：只对 ERP 卡与 M9 口径把 10Y 国债固定为 3.00%，用「E/P−3.00%」重算全历史 ERP 与 10 年分位；M16 格雷厄姆股债比、M11 中美利差、股息率比较仍保留真实 10Y。固定值不是当前市场利率，卡内显式标注，避免把 4.70% 误读成实时 ERP。 --><!-- fw2_v1139_today_top5（用户 2026-11-26「按照你建议继续」→ 阶段 2.4）：首屏今日待办 Top5。①三池（持仓/自选/筛选）act 行合并、按 code+sig 去重，排除已执行/已过期；②排序＝ACT_PRIO 优先级 → SLA 超时/到期 → 日龄 → 执行中优先；③卡片显示代码+中文信号名、池、待执行/执行中、SLA、同日冲突，点击切到交易信号对应 tab 并尽量高亮目标行；④市场月频、P1/P2 组合/穿透不进本卡；⑤只读渲染，不改 signalEvalAll 判定、阈值、状态或交易。 --><!-- fw2_v1138_act_sla（用户 2026-11-26「继续」→ 阶段 2.3）：按信号类型给 act 行设执行时限。风控/卖出（T4/R6/T2/R7/T1/T3/T16）T+1；拦截复核（TREND-DN/S-TREND）T+1；网格/补仓/加仓（T13/R3/T7/W2/S2/T8/V11）T+2；观察（S1/T15）T+5；季频 XOV/P2 不设；组合级 T10 不设。行内在执行列显示「SLA T+1 · 今日到期/超 N 日」，筛选条加 SLA 汇总，表下加超时清单（只影响提示，不改 signalEvalAll 判定、状态、阈值或交易）。 --><!-- fw2_v1137_act_priority（用户 2026-11-26「继续」→ 阶段 2.2）：同标的同日冲突优先级。①按同一标的分组给 act 行排序：T4/R6 硬止损（清仓）＞T2 峰值回撤止盈（减半）＞R7 再平衡（卖回目标）＞T1 阶梯止盈（减1/4）＞T3 估值止盈＞T16 卖出后破位减半＞TREND-DN/S-TREND/P2 拦截＞T7/W2/S2 回撤补仓＞T8 估值加仓＞T13/R3 网格买入＞V11 狙击；T15/S1 观察项与「T3/T8」混合行不排序。②行内信号格加「同日 1/N」徽标；卖/拦截项未完成时，同标的买入行显示「先 T4 硬止损」并暂时不出现「开始」按钮，完成或撤销高优先项后自动恢复。③筛选条的执行状态改为可点按钮「同日冲突 N 组 · 查看顺序」，表格下方新增折叠清单，逐组列出顺序、同日多卖/多买提示。只改渲染层排序与按钮可见性，不改 signalEvalAll 判定、lvl、阈值、actState 状态写入或任何交易。 --><!-- fw2_v1136_act_state（用户 2026-11-26「按照顺序继续」→ 阶段 2.1）：act 信号执行四态落地——待执行 / 执行中 / 已执行 / 已过期。①交易信号表在「状态」后新增「执行」列，仅行动档给状态徽章与推进按钮（开始→完成→撤销），接近/观察显示「—」；②状态存 localStorage `fw2_act_state_v1`（键 pool:code:sig），同一信号条件不再触发时自动转「已过期」并保留 14 天，再次触发回到「待执行」；③表头筛选条加执行状态计数，表格下方给近 14 日已过期清单（默认折叠）；④首屏今日待办只把待执行/执行中的行动计入「行动信号」，已执行不再占待办。未改 signalEvalAll 判定、lvl、阈值、排序、三态逻辑与任何交易动作。⑤窄屏可用性：9 列 min-width 1180 时给 .dc-card/.dc-body/.sig-wt-area 补 min-width:0、.table-wrap max-width:100%，让表格在卡内横向滚动（修前卡宽被撑到 1212px、538 视口只能看到左侧 3 列，执行/行动/操作列不可达）。 --><!-- fw2_v1135_budget_migrate_once（用户 2026-11-26「表标题 62,000 改成 50000」收口）：v1134 只按值迁移，用户以后主动把预算设回 62000 会在下次刷新被再次改掉；v1135 加 `fw2_budget_migrated_50000_v1` 一次性守卫，标记存在即不再迁移。 --><!-- fw2_v1134_budget_50000（用户 2026-11-26「下方资产配置表标题当前是 ¥62,000 预算，改成50000」）：把历史预算 fw2_capital_budget_v1=62000 一次性迁移到 50000；只改恰好 62000 的旧值，不动其它自填金额，也不写死 5 万。 --><!-- fw2_v1133_caliber_split_note（用户 2026-11-26 阶段1收口）：四桶卡/新钱路线显式标注「5 万策略主基准」；v1134 用户拍板后，表标题预算已迁移到 50000，两卡与表标题同基准。若以后改表标题预算，则重新分口径、禁止对拍。 --><!-- fw2_v1132_new_money_route（用户 2026-11-26「按顺序开始执行」清单 1.4）：策略执行-资产配置新增「新钱分配路线」卡；按四桶缺口比例给不卖出补足路线，不执行交易。 --><!-- fw2_v1131_bucket_target_vs_actual（用户 2026-11-26「按顺序开始执行」清单 1.3）：策略执行-资产配置新增「四桶目标 vs 实际」卡；占比偏离与 5 万到位率分开呈现，不改计算与再平衡。 --><!-- fw2_v1130_capital_labels（用户 2026-11-26「按顺序开始执行」清单 1.2）：全站顶部常驻「资金口径」条，分账户/策略/实验/回测四套基数，只做标注，不改任何金额计算。 --><!-- fw2_v1129_hold_recon（用户 2026-11-26「按照你的建议列个执行清单 / 按顺序开始执行」）：我的持仓 KPI 下新增「账户口径对账」卡——同屏展示 账户总资产 20,565.55 / 确认份额×净值 18,067.10 / 在途买入 2,498.46 / 账户明细市值合计 15,688.38；明确 15,688.38 与总资产差 4,877.17 的主因是 012920 卖出后份额未重建（账户市值 5,412.79 vs 份额×净值 10,283.50，差 -4,870.71），其余 6.46 为逐只四舍五入；权重继续用「确认份额×净值」，账户总值用 holding_total，不自动改账户数据。 --><!-- fw2_v1128_hide_cash_sig（用户 2026-11-26「活期宝不显示在信号中」）：交易信号→持仓信号不再为现金/货币基金生成「暂无信号·持仓兜底」标卡与占位行；按 state.portfolio 的 assetType=cash 或名称含货币/活期宝/现金宝，以及 drawdown 行的 kind=money 识别；只改展示，不改信号判定、阈值、其它组与表内行序。 --><!-- fw2_v1127_hold_sig_mv_sort（用户 2026-11-26「交易信号-持仓信号里面的标的按照持仓金额大小排列」）：仅「持仓信号」组内标目按持仓市值（state.portfolio 的 mvCny，人民币口径）降序；T10 杠铃档位（四档）为组合汇总、保持置顶；同额回退原等级/信号数/指数族/代码排序。未改信号判定、同指数合并选择、表内行序与自选/筛选/市场组排序。 --><!-- fw2_v1126_macro_nky_refresh：2026-11-26 15:02 只刷宏观组（`refresh_all.py --only macro --no-publish`）后，`macro-data.json` 的 nky 实时价由盘中 57,812.38 更新为收盘 57,498.94，amt/amtD/fsi/sentiment/wave 同步刷新；`index.html` 内嵌 MACRO_SNAP 由数据链同步更新，未改任何计算/信号逻辑。nky 闸门已转 PASS（实时独立源本次不可达，按本地底线降级，详见 verify_nky 备注）；`gen_macro_extra.py` 因缺 akshare 仍失败，数据管理保留 3 项失败标记。 --><!-- fw2_v1125_sp_wait：配置回测开启 V11 狙击时，若筛选池（SCREEN_POOL）未就绪，先加载 screen-pool.json 并自动续跑；加载失败则明确拦下，避免空池跑出 0 笔假结果。 --><!-- fw2_v1123_sm_insert_anchor（用户 2026-11-25 截图「点聪明的钱后模块组被压到后面」）：交易信号页把 #view-smartmoney 搬入 sigBody 时，原锚点 `body.querySelector('.dc-note')` 实际命中的是「V11 狙击已移至…」提示（同样带 .dc-note），导致聪明的钱整节被插到阈值来源之后、标签组之前。改为末脚注 #sigFootNote 作锚点（兜底取最后一个 .dc-note），标签组/筛选条回到顶部，聪明的钱内容落在其余 pane 之后、脚注之前。 --><!-- fw2_v1122_v11_formula_unified（用户 2026-11-25「统一」）：V11 赔率公式从「p250 前高 / 3×ATR14」统一到「1260 日前高 / 1260 日窗口最低收盘」——配置回测 v11Gate 新增 p1260/lo1260 单调队列，与扫描 bt_signal.entry_signal、运行回测 v11Prep 同算式；旧 v11Den atr/leg20/leg60 三档退役；注册表/参数说明/逻辑清单同步改口径，旧口径收益数字标为历史、不冒充新结果。 --><!-- fw2_v1121_v11_run_kpi（用户 2026-11-25「V11狙击加入深跌买入一样的运行回测模块。这个面积太大了。改成 2.50还是2，根据你的建议改」）：①V11 策略页顶部 5 格 KPI 改用专用 .v11-kpi（5 列等宽、单元格 min-height:0），消除 .sh-grid flex:1 1 320px 造成的 320px 空白；②新增运行回测卡（范围/ETF/起止/本金/单注/仓位/门限/止损/吊灯），懒加载 data/v11-bt-data.json，出 KPI+SVG 净值/持仓曲线+分标的+逐笔；③赔率门限全链路统一 2.50；④v11FmtMoney 负数改 -¥；⑤曲线用原生 SVG，避免 canvas 在截图/部分环境不显示。 --><!-- fw2_v1120_v11_rows_removed：V11 狙击逐只执行行从交易信号页删除，V11 只保留策略执行入口 --><!-- fw2_v1096_dd_search（用户「继续」）：①全指数监测卡加「搜索」（代码/名称，只过滤本表显示，分档 chips 计数与已选组合不受影响；输入时保存 ST.q 并重画、回填焦点与滚动位置）②组合池加「全选境内 59」「恢复默认（宽基）」（境外永远不进池）③脚注的境外名单由数据现算（原来写死 4 个名字，加池就会过期）④gen_index_dd 去掉冗余 count.night，gen_index_val 的蛋卷 asof 不再写死 2026 年 --><!-- fw2_v1097_dd_sort_valref（用户「继续」，承接 v1096 挂账）：①全指数监测卡加「排序」开关——回撤深→浅（默认）/ 名称 A→Z，只换本表顺序，分档计数与已选组合不变；②估值卡加「同类别对照」小表——全部 / 宽基 / 行业 / 主题 / 境外五行的 PE 分位中位、PB 分位中位、价格分位中位，并列出该类别里 PE 分位最低的一只；③两处都只用既有 index-dd / index-val 数据，不引入新源（v1096 已证伪的三条补源路仍挂账）。 --><!-- fw2_v1098_dd_n2_sort（用户「继续完成」，收口 v1097「下一步候选」三件）：①估值「同类别对照」由 6 列扩到 8 列——补「股息率中位」与「PB 分位最低的一只」（与 PE 最低同口径：只统计有该分位的只数，空组回 —）；②监测卡加「快捷」行——「距下档 ≤2pp」一键筛选（ST.n2 与类别 / 分档 / 搜索四者可叠加，chips 计数仍按类别全集，不受搜索与快捷键影响）；③方案卡「进入买入区」表跟随 ST.sort（默认回撤深→浅，切名称后同监测卡拼音序）；④仍不引入新源。 --><!-- fw2_v1099_dd_pickcat_relcat（用户「继续」，收口 v1098「下一步候选」三件）：①组合池加按类别批量勾选——宽基 / 行业 / 主题三个按钮各显示「已选/总数」，全选后再点即取消该类（不碰境外）；②估值主表加「相对同类」列——本只 PE 分位 − 同类别 PE 分位中位（pp，负＝比同类便宜），只在双方都有分位时显示；③跨档卡跟随监测卡类别筛选（ST.fcat），计数、「展开全部 N 只」与空态都按当前类别；④仍不引入新源。 --><!-- fw2_v1100_dd_bksum_cheap_vsort（用户「继续」，收口 v1099「下一步候选」三件）：①监测卡加「按回撤分档汇总」表——6 档的只数 / 平均回撤 / 该档最深一只 / 距下档 ≤2pp 只数 / 已进买入区只数，按当前类别统计、不受搜索与快捷影响；②组合池加「只选便宜一半」——按同类别 PE 分位中位分界，只选低于中位的（无分位不入选，口径写进按钮 title）；③估值主表「相对同类」表头可点击排序，三态循环：默认（回撤深→浅）→ 便宜在前 → 贵在前，无分位的行恒排最后；④ddTbl 扩一个可选 th 属性位（backward compatible），中位数抽成模块级 medOf 单一实现；⑤仍不引入新源。 --><!-- fw2_v1076_conflicts（用户 2026-11-23「按照你顺序修」——修掉体检出的 5 处纲领冲突）：
 ①R7 带宽：撤销 v1067 的 `o.band = o.slotBand` 强镜像；band 只喂 R7（单只超配 25% 减配，SIG_THR_DEF 5→25、与回测 cfg.band 同值），slotBand 只喂 T10 四档；sigThrApply 分别写 C.barbell.band / C.barbell.slotBand，T10 文案改读 slotBand，R7 行 threshold 由硬编码「band 25%」改为动态读纲领值。
 ②R2 假开关：`_planCfg()` 读 `window.logicStateEff('R2')`——生效按 investMode，观察/关一律 lump（月投 0）；建仓步文案在一次性时追加「R2 定投＝关/观察」。
@@ -6935,6 +6949,137 @@ function renderHoldRecon() {
     '<div class="s" style="margin-top:7px;color:var(--muted,#667085);font-size:11px">共 ' + r.count + ' 只，已对平 ' + r.okCount + ' 只；逐只在途合计 ¥' + fmtNum(r.pendingSum, 2) + (pendingGap > 0.01 ? '（顶层 ¥' + fmtNum(r.pending, 2) + '，差 ¥' + fmtNum(pendingGap, 2) + ' 为逐只四舍五入）' : '') + '</div>';
 }
 
+/* fw2_v1150_p2_dd_exec（2026-11-27 用户「按照你的建议做」→ 实际回撤 A+ 接执行）：
+   ① 以今日账户总资产为初始高水位（基准日），每次持仓同步后按数据日追加一条快照；
+   ② 只登记银行卡↔账户的净出入金（基金申赎/转换不算外部现金流），
+      HWM_t = max(HWM_{t-1} + 净出入金_t, 总资产_t)，回撤 = 总资产_t / HWM_t - 1；
+   ③ 前 20 个数据日只记录、只读；满 20 后回撤 ≤ -15% 冻结全组合新增买入，
+      ≤ -20% 只给“减仓评估”，不自动卖、不写交易状态；
+   ④ 账本存本机 localStorage（换设备不自动带走），可导出 JSON 留档。
+   不伪造历史：基准日之前没有可审计高水位，不从旧快照倒推。 */
+const P2_DD_CFG = { minDays: 20, key: 'fw2_p2_dd_v1', flowKey: 'fw2_p2_dd_flows_v1' };
+function _p2Round2(v) { return Math.round((Number(v) || 0) * 100) / 100; }
+function _p2Today() {
+  const d = new Date(Date.now() - new Date().getTimezoneOffset() * 60000);
+  return d.toISOString().slice(0, 10);
+}
+function _p2AsOfDate() {
+  const s = (typeof state !== 'undefined' && state && state._pfAt) ? String(state._pfAt) : '';
+  if (/^\d{4}-\d{2}-\d{2}/.test(s)) return s.slice(0, 10);
+  return _p2Today();
+}
+function _p2PctTxt(v) {
+  const n = Number(v);
+  if (!isFinite(n)) return '—';
+  return (n < -0.005 ? '−' : (n > 0.005 ? '+' : '')) + fmtNum(Math.abs(n), 2) + '%';
+}
+function _p2FlowLoad() {
+  let arr = [];
+  try { arr = JSON.parse(localStorage.getItem(P2_DD_CFG.flowKey) || '[]'); } catch (e) { arr = []; }
+  if (!Array.isArray(arr)) return [];
+  return arr.filter(function (x) {
+    return x && /^\d{4}-\d{2}-\d{2}$/.test(String(x.date || '')) && isFinite(Number(x.amount)) && Number(x.amount) !== 0;
+  }).map(function (x) {
+    return { id: String(x.id || ('f' + x.date + '_' + x.amount)), date: String(x.date).slice(0, 10), amount: _p2Round2(x.amount), note: String(x.note || '').slice(0, 60) };
+  });
+}
+function _p2FlowSave(arr) {
+  try { localStorage.setItem(P2_DD_CFG.flowKey, JSON.stringify(arr)); return true; } catch (e) { return false; }
+}
+function _p2FlowOn(arr, date) {
+  return _p2Round2(arr.reduce(function (a, x) { return a + (String(x.date) === String(date) ? Number(x.amount) || 0 : 0); }, 0));
+}
+function _p2DdRecalc(st) {
+  const flows = _p2FlowLoad();
+  let hwm = 0;
+  st.snaps.forEach(function (x, i) {
+    const flow = i === 0 ? 0 : _p2FlowOn(flows, x.date);
+    hwm = i === 0 ? x.total : Math.max(hwm + flow, x.total);
+    x.flow = _p2Round2(flow);
+    x.hwm = _p2Round2(hwm);
+    x.ddPct = hwm > 0 ? _p2Round2((x.total / hwm - 1) * 100) : 0;
+  });
+  return st;
+}
+function _p2DdState(total, date) {
+  const t = Number(total);
+  const d = /^\d{4}-\d{2}-\d{2}$/.test(String(date || '')) ? String(date).slice(0, 10) : _p2Today();
+  let st = null;
+  try { st = JSON.parse(localStorage.getItem(P2_DD_CFG.key) || 'null'); } catch (e) { st = null; }
+  const map = {};
+  if (st && Array.isArray(st.snaps)) {
+    st.snaps.forEach(function (x) {
+      const sd = String((x && x.date) || '').slice(0, 10);
+      const sv = Number(x && x.total);
+      if (/^\d{4}-\d{2}-\d{2}$/.test(sd) && isFinite(sv) && sv > 0) map[sd] = { date: sd, total: _p2Round2(sv) };
+    });
+  }
+  if (isFinite(t) && t > 0) map[d] = { date: d, total: _p2Round2(t) };
+  const rows = Object.keys(map).sort().map(function (k) { return map[k]; });
+  if (!rows.length) return null;
+  st = { version: 1, baseDate: rows[0].date, snaps: rows };
+  _p2DdRecalc(st);
+  st.storageOk = true;
+  try { localStorage.setItem(P2_DD_CFG.key, JSON.stringify(st)); } catch (e) { st.storageOk = false; }
+  return st;
+}
+function p2DrawdownData(total, date) {
+  const st = _p2DdState(total, date);
+  if (!st || !st.snaps.length) return null;
+  const last = st.snaps[st.snaps.length - 1];
+  const n = st.snaps.length;
+  const active = n >= P2_DD_CFG.minDays;
+  const ddPct = Number(last.ddPct) || 0;
+  return {
+    date: last.date, total: last.total, hwm: last.hwm, ddPct: ddPct, n: n,
+    minDays: P2_DD_CFG.minDays, active: active,
+    bad: active && ddPct <= -P2_GATE_CFG.ddFreeze,
+    review: active && ddPct <= -P2_GATE_CFG.ddReview,
+    lineFreeze: _p2Round2(last.hwm * (1 - P2_GATE_CFG.ddFreeze / 100)),
+    lineReview: _p2Round2(last.hwm * (1 - P2_GATE_CFG.ddReview / 100)),
+    flowN: _p2FlowLoad().length, storageOk: st.storageOk
+  };
+}
+function _p2DdAddFlow(date, amount, note) {
+  const d = /^\d{4}-\d{2}-\d{2}$/.test(String(date || '')) ? String(date).slice(0, 10) : '';
+  const a = _p2Round2(amount);
+  if (!d) return { ok: false, msg: '请选择出入金日期' };
+  if (!isFinite(Number(amount)) || a === 0) return { ok: false, msg: '金额不能为 0（转入填正、转出填负）' };
+  const arr = _p2FlowLoad();
+  arr.push({ id: 'f' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5), date: d, amount: a, note: String(note || '').slice(0, 60) });
+  if (!_p2FlowSave(arr)) return { ok: false, msg: '本机账本不可写（浏览器存储被禁用或已满），未保存' };
+  return { ok: true, msg: '已记入 ' + d + ' ' + (a > 0 ? '+' : '−') + '¥' + fmtNum(Math.abs(a), 2) };
+}
+function _p2DdDelFlow(id) {
+  const arr = _p2FlowLoad();
+  const next = arr.filter(function (x) { return String(x.id) !== String(id); });
+  if (next.length === arr.length) return false;
+  return _p2FlowSave(next);
+}
+function _p2FlowRowsHtml(arr) {
+  if (!arr.length) return '<div class="p2-flow-tip">暂无出入金记录；只登记银行卡转入/转出，基金内部申赎、转换不算。</div>';
+  return arr.slice().sort(function (a, b) { return a.date < b.date ? 1 : (a.date > b.date ? -1 : 0); }).map(function (x) {
+    const pos = x.amount > 0;
+    return '<div class="p2-flow-row"><b>' + esc(x.date) + '</b>'
+      + '<span class="' + (pos ? 'good' : 'bad') + '">' + (pos ? '+' : '−') + '¥' + fmtNum(Math.abs(x.amount), 2) + '</span>'
+      + '<span class="note">' + esc(x.note || '—') + '</span>'
+      + '<button type="button" class="del" data-p2flowdel="' + esc(x.id) + '" title="删除这笔记录">删</button></div>';
+  }).join('');
+}
+function _p2DdExport(total, date) {
+  const st = _p2DdState(total, date);
+  if (!st) return false;
+  const pack = { schema: 'fw2_p2_portfolio_risk_v1', exportedAt: new Date().toISOString(), baseDate: st.baseDate, snapshots: st.snaps, flows: _p2FlowLoad() };
+  try {
+    const blob = new Blob([JSON.stringify(pack, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = 'P2组合回撤账本_' + st.snaps[st.snaps.length - 1].date + '.json';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(function () { URL.revokeObjectURL(url); }, 1200);
+    return true;
+  } catch (e) { return false; }
+}
 /* fw2_v1144_p2_gate_readonly（2026-11-26 用户「按照你的建议继续」→ P2-9 只读闸门）
    + fw2_v1145_p2_gate_exec（2026-11-27 用户「按照你建议继续」→ 只接单只 20%）
    + fw2_v1149_p2_stress_exec（2026-11-27 用户「接」→ 压力 20pp 也接执行）：
@@ -6956,7 +7101,8 @@ function holdP2GateData() {
   const acctW = (total > 0 && top) ? top.calc / total * 100 : null;
   const stressPp = (base > 0 && top) ? top.calc * P2_GATE_CFG.stressPct / 100 / base * 100 : null;
   const stressBad = (stressPp != null && stressPp > P2_GATE_CFG.stressCap);
-  return { r: r, base: base, total: total, top: top, conc: conc, acctW: acctW, stressPp: stressPp, stressBad: stressBad };
+  const dd = (total > 0) ? p2DrawdownData(total, _p2AsOfDate()) : null;
+  return { r: r, base: base, total: total, top: top, conc: conc, acctW: acctW, stressPp: stressPp, stressBad: stressBad, dd: dd };
 }
 
 /* fw2_v1145_p2_gate_exec / fw2_v1149_p2_stress_exec：判断“这个代码的买入是否被 P2-9 冻结”。
@@ -6966,13 +7112,19 @@ function p2BuyBlockOf(d, code) {
   if (!d || !d.top || !d.base || d.conc == null) return null;
   const concBad = d.conc > P2_GATE_CFG.singleCap;
   const stressBad = !!d.stressBad;
-  if (!concBad && !stressBad) return null;
-  if (String(d.top.code) !== String(code)) return null;
+  const ddBad = !!(d.dd && d.dd.active && d.dd.bad);
+  if (!ddBad && !concBad && !stressBad) return null;
+  const isTop = String(d.top.code) === String(code);
+  if (!ddBad && !isTop) return null;
   const flags = [];
-  if (concBad) flags.push('conc');
-  if (stressBad) flags.push('stress');
-  return { code: String(d.top.code), name: d.top.name || '', conc: d.conc, cap: P2_GATE_CFG.singleCap,
-    stressPp: d.stressPp, stressCap: P2_GATE_CFG.stressCap, flags: flags };
+  if (ddBad) flags.push('dd');
+  if (isTop && concBad) flags.push('conc');
+  if (isTop && stressBad) flags.push('stress');
+  return { code: isTop ? String(d.top.code) : String(code), name: isTop ? (d.top.name || '') : '',
+    conc: d.conc, cap: P2_GATE_CFG.singleCap,
+    stressPp: d.stressPp, stressCap: P2_GATE_CFG.stressCap,
+    ddPct: d.dd ? d.dd.ddPct : null, ddFreeze: P2_GATE_CFG.ddFreeze,
+    allBuys: ddBad, flags: flags };
 }
 /* fw2_v1145_p2_gate_exec：持仓脚本与交易信号脚本分处两个 IIFE，不能直接互读函数。
    挂到已有全局 SIGNALS_CFG（不新增 window 顶层键，避免污染 282 键基线）。 */
@@ -7263,13 +7415,35 @@ function renderHoldP2Gate() {
   if (!d.top || !d.base) { el.innerHTML = '<div class="hint">组合风险闸门待持仓同步后生成。</div>'; return; }
   const concBad = d.conc > P2_GATE_CFG.singleCap;
   const stressBad = !!d.stressBad;
-  const anyBad = concBad || stressBad;
+  const dd = d.dd || {};
+  const ddN = Number(dd.n) || 0;
+  const ddActive = !!dd.active;
+  const ddBad = !!dd.bad;
+  const ddReview = !!dd.review;
+  const ddPct = Number(dd.ddPct) || 0;
+  const anyBad = concBad || stressBad || ddBad;
   const concCls = concBad ? 'bad' : 'good';
   const stressCls = stressBad ? 'bad' : 'good';
+  const ddCls = ddActive ? (ddBad ? 'bad' : (ddReview ? 'warn' : 'good')) : 'wait';
   const topName = d.top.name || '';
+  const ddVal = ddActive ? _p2PctTxt(ddPct) : ('样本 ' + ddN + '/' + P2_DD_CFG.minDays);
+  const ddSub = ddActive
+    ? ('高水位 ¥' + fmtNum(dd.hwm, 2) + ' · 15% 线 ¥' + fmtNum(dd.lineFreeze, 2))
+    : ('只读积累 · 高水位 ¥' + fmtNum(dd.hwm, 2) + ' · 15% 线 ¥' + fmtNum(dd.lineFreeze, 2));
+  const badgeTxt = ddBad
+    ? ('P2-9 已生效 · 实际回撤 ' + _p2PctTxt(ddPct) + (ddReview ? ' · 减仓评估' : ''))
+    : (anyBad ? ('P2-9 已生效 · 回撤样本 ' + ddN + '/' + P2_DD_CFG.minDays)
+      : (ddActive ? ('回撤 ' + _p2PctTxt(ddPct) + ' · 未超') : ('未超 · 回撤样本 ' + ddN + '/' + P2_DD_CFG.minDays)));
+  const badgeCls = (anyBad || ddBad) ? 'bad' : (ddActive ? 'ok' : 'wait');
+  const flows = _p2FlowLoad();
+  const ddNote = ddBad
+    ? '<b>P2-9 实际回撤已接执行</b>：当前 ' + _p2PctTxt(ddPct) + ' ≤ −' + P2_GATE_CFG.ddFreeze + '%，全组合新增买入冻结；卖出、拦截、观察不冻；−' + P2_GATE_CFG.ddReview + '% 线只做减仓评估，不自动卖。'
+    : (ddActive
+      ? '<b>P2-9 实际回撤已接执行</b>：当前 ' + _p2PctTxt(ddPct) + '，未到 −' + P2_GATE_CFG.ddFreeze + '%，新增买入不冻；到 −' + P2_GATE_CFG.ddReview + '% 只提示减仓评估，不自动卖。'
+      : '<b>P2-9 实际回撤只读积累</b>：已记 ' + ddN + '/' + P2_DD_CFG.minDays + ' 个数据日；满 ' + P2_DD_CFG.minDays + ' 个数据日后才接 −' + P2_GATE_CFG.ddFreeze + '% 全组合新增买入冻结 / −' + P2_GATE_CFG.ddReview + '% 减仓评估。');
   el.innerHTML =
-    '<div class="hr-head"><h3>组合风险闸门 · 单只 + 压力</h3>' +
-      '<span class="hr-badge ' + (anyBad ? 'bad' : 'ok') + '">' + (anyBad ? 'P2-9 已生效 · 实际回撤待建' : '未超 · 实际回撤待建') + '</span></div>' +
+    '<div class="hr-head"><h3>组合风险闸门 · 单只 + 压力 + 回撤</h3>' +
+      '<span class="hr-badge ' + badgeCls + '">' + badgeTxt + '</span></div>' +
     '<div class="hr-grid">' +
       '<div class="hr-cell"><div class="k">单只集中度 · 上限 ' + P2_GATE_CFG.singleCap + '%</div>' +
         '<div class="v ' + concCls + '">' + fmtNum(d.conc, 2) + '%</div>' +
@@ -7280,19 +7454,60 @@ function renderHoldP2Gate() {
         '<div class="v ' + stressCls + '">−' + fmtNum(d.stressPp, 2) + 'pp</div>' +
         '<div class="s">' + esc(d.top.code) + ' −' + fmtNum(P2_GATE_CFG.stressPct, 1) + '% 情景 · ' +
           (stressBad ? '超限 · 最大单只买入冻结' : '未超 · 买入不冻结') + ' · 已接执行</div></div>' +
-      '<div class="hr-cell"><div class="k">实际回撤 · ' + P2_GATE_CFG.ddFreeze + '% 冻结 / ' + P2_GATE_CFG.ddReview + '% 评估</div>' +
-        '<div class="v wait">待建立</div><div class="s">无可审计的历史组合高水位 · 不接执行</div></div>' +
+      '<div class="hr-cell"><div class="k">实际回撤 · 15% 冻结 / 20% 评估</div>' +
+        '<div class="v ' + ddCls + '">' + ddVal + '</div>' +
+        '<div class="s">' + ddSub + '</div></div>' +
+      '<div class="hr-cell"><div class="k">回撤账本 · 出入金调整</div>' +
+        '<div class="v ' + (dd.storageOk === false ? 'warn' : 'good') + '">' + (dd.storageOk === false ? '不可写' : (dd.flowN || 0) + ' 笔') + '</div>' +
+        '<div class="s">' + (dd.storageOk === false ? '本机存储不可用 · 刷新即丢' : ('已记 ' + ddN + ' 天 · 本机账本 · 可导出')) + '</div></div>' +
     '</div>' +
     '<div class="hr-note">' +
       (anyBad
-        ? '<b>P2-9 已接执行层</b>：' + esc(d.top.code) + ' 的买入类信号（T7 回撤补仓 / W2 回撤买入 / S2 回撤买入 / T8 估值加仓 / T13 网格跟踪（网格买入）/ R3 网格买 / V11 狙击）在交易信号页的「开始」按钮已置灰并标「买入冻结」；' +
-          (concBad ? '单只 ' + fmtNum(d.conc, 2) + '% > 20%' : '') +
-          (concBad && stressBad ? '；' : '') +
-          (stressBad ? '压力拖累 −' + fmtNum(d.stressPp, 2) + 'pp > 20pp' : '') +
-          '。完成减仓或指标回落后自动恢复。只冻最大单只，其他标的与补其他桶不冻，不自动卖。'
-        : '单只 20% 与压力 20pp 均未超，买入类信号不冻结。') +
-      '实际回撤仍缺可审计高水位：历史快照里 012920 成本基数有过重算跳变，不能拿来回算真实回撤；本灯继续只读，不伪造 0%。' +
-    '</div>';
+        ? (function () {
+            const who = ddBad ? '全组合新增买入类信号' : (esc(d.top.code) + ' 的买入类信号');
+            const rs = [];
+            if (concBad) rs.push('单只 ' + fmtNum(d.conc, 2) + '% > 20%');
+            if (stressBad) rs.push('压力拖累 −' + fmtNum(d.stressPp, 2) + 'pp > 20pp');
+            if (ddBad) rs.push('实际回撤 ' + _p2PctTxt(ddPct) + ' ≤ −15%（全组合）');
+            return '<b>P2-9 已接执行层</b>：' + who + '（T7 回撤补仓 / W2 回撤买入 / S2 回撤买入 / T8 估值加仓 / T13 网格跟踪（网格买入）/ R3 网格买 / V11 狙击）在交易信号页的「开始」按钮已置灰并标「买入冻结」；' + rs.join('；') + '。条件恢复后自动解除。只冻买入，不自动卖。';
+          })()
+        : '单只 20%、压力 20pp 与实际回撤均未触发冻结。') +
+    '</div>' +
+    '<div class="hr-note" style="margin-top:4px">' + ddNote + '</div>' +
+    '<details class="p2-flow"><summary>出入金登记 · ' + flows.length + ' 笔 · 本机账本</summary>' +
+      '<div class="p2-flow-form">' +
+        '<input type="date" id="p2FlowDate" value="' + esc(_p2Today()) + '">' +
+        '<input type="number" step="0.01" id="p2FlowAmt" placeholder="转入正 / 转出负">' +
+        '<input type="text" id="p2FlowNote" maxlength="60" placeholder="备注（可选）">' +
+        '<button type="button" class="btn btn-sm" id="p2FlowAdd">记一笔</button>' +
+      '</div>' +
+      '<div class="p2-flow-list">' + _p2FlowRowsHtml(flows) + '</div>' +
+      '<div class="p2-flow-tools"><button type="button" class="btn btn-sm" id="p2DdExport">导出账本 JSON</button>' +
+        '<span class="p2-flow-tip" style="margin:0">只记银行卡↔账户；基金申赎/转换不算。登记日总资产需已包含该笔资金，否则会暂时高估回撤；只存本机浏览器，换设备不自动带走。</span></div>' +
+    '</details>';
+  const add = el.querySelector('#p2FlowAdd');
+  if (add) add.onclick = function () {
+    const dt = (el.querySelector('#p2FlowDate') || {}).value || '';
+    const am = (el.querySelector('#p2FlowAmt') || {}).value || '';
+    const nt = (el.querySelector('#p2FlowNote') || {}).value || '';
+    const rs = _p2DdAddFlow(dt, am, nt);
+    if (!rs.ok) { if (typeof toast === 'function') toast(rs.msg); else alert(rs.msg); return; }
+    if (typeof toast === 'function') toast(rs.msg);
+    renderHoldP2Gate();
+  };
+  const ex = el.querySelector('#p2DdExport');
+  if (ex) ex.onclick = function () {
+    if (!_p2DdExport(d.total, d.dd ? d.dd.date : _p2AsOfDate())) { if (typeof toast === 'function') toast('导出失败：浏览器不允许下载'); }
+  };
+  Array.prototype.forEach.call(el.querySelectorAll('[data-p2flowdel]'), function (btn) {
+    btn.onclick = function () {
+      const id = btn.getAttribute('data-p2flowdel');
+      if (typeof confirm === 'function' && !confirm('删除这笔出入金记录？')) return;
+      if (!_p2DdDelFlow(id)) { if (typeof toast === 'function') toast('删除失败：本机账本不可写'); return; }
+      if (typeof toast === 'function') toast('已删除该笔出入金，回撤高水位已重算');
+      renderHoldP2Gate();
+    };
+  });
 }
 
 /* fw2_v1147_term_gate_exec：P2-11 终止风险闸门（已接执行）。命中终止样本 / 净值断档 / 规模过小 /
@@ -18980,6 +19195,7 @@ function renderSignalDash() {
       const _p2Flags = (_p2blk && _p2blk.flags) ? _p2blk.flags : [];
       const _p2Conc = _p2Flags.indexOf('conc') >= 0;
       const _p2Stress = _p2Flags.indexOf('stress') >= 0;
+      const _p2Dd = _p2Flags.indexOf('dd') >= 0;
       /* P2-11 终止风险：T7/T13/T8（买入档）、T12 与 V1（关注买入）都过一遍。
          硬命中才冻结；软命中只提示，按钮仍可点。T12/V1 没有执行按钮，冻结/提示都落在行动方案。 */
       const _termApplies = !!(_p2Buy || /^T12 |^V1 /.test(String(r.sig || '')));
@@ -18988,10 +19204,12 @@ function renderSignalDash() {
       const _termSoft = (_termRisk && _termRisk.soft && !_termRisk.hard) ? _termRisk : null;
       const _blkTxt = _blk ? ('同标的存在更高优先级：' + _blk.r.sig + '。先完成或撤销它，本按钮自动恢复') : '';
       const _p2WaitParts = [];
+      if (_p2Dd) _p2WaitParts.push('P2-9 实际回撤 −' + fmtNum(Math.abs(_p2blk.ddPct), 2) + '% ≤ −' + _p2blk.ddFreeze + '%（全组合）');
       if (_p2Conc) _p2WaitParts.push('P2-9 单只集中度 ' + fmtNum(_p2blk.conc, 2) + '% > 上限 ' + _p2blk.cap + '%');
       if (_p2Stress) _p2WaitParts.push('P2-9 压力拖累 −' + fmtNum(_p2blk.stressPp, 2) + 'pp > 上限 ' + _p2blk.stressCap + 'pp');
+      const _p2Scope = _p2blk ? (_p2blk.allBuys ? '全组合新增买入冻结' : (_p2blk.code + ' 买入冻结')) : '';
       const _p2WaitTxt = _p2blk
-        ? (_p2WaitParts.join('；') + '：' + _p2blk.code + ' 买入冻结；减仓或指标回落后自动恢复')
+        ? (_p2WaitParts.join('；') + '：' + _p2Scope + '；条件恢复后自动解除')
         : '';
       const _termWaitTxt = _termblk
         ? ('P2-11 终止风险：' + (_termblk.short || _termblk.reason) + '；该标的买入冻结，卖出/拦截不拦')
@@ -18999,13 +19217,11 @@ function renderSignalDash() {
       const _waitTxt = [_p2WaitTxt, _termWaitTxt, _blkTxt].filter(Boolean).join('；');
       const _waitLbl = (_p2blk && _termblk) ? '买入冻结 · 2 条闸门'
         : (_termblk ? '终止风险冻结' : (_p2blk ? '买入冻结' : (_blk ? '先 ' + _blk.r.sig : '')));
-      const _p2BadgeTxt = _p2blk
-        ? (_p2Conc && _p2Stress
-          ? '买入冻结 · 单只 ' + fmtNum(_p2blk.conc, 2) + '% + 压力 ' + fmtNum(_p2blk.stressPp, 2) + 'pp'
-          : (_p2Conc
-            ? '买入冻结 · 单只 ' + fmtNum(_p2blk.conc, 2) + '% > ' + _p2blk.cap + '%'
-            : '买入冻结 · 压力 −' + fmtNum(_p2blk.stressPp, 2) + 'pp > ' + _p2blk.stressCap + 'pp'))
-        : '';
+      const _p2Bits = [];
+      if (_p2Dd) _p2Bits.push('回撤 −' + fmtNum(Math.abs(_p2blk.ddPct), 2) + '% ≤ −' + _p2blk.ddFreeze + '%');
+      if (_p2Conc) _p2Bits.push('单只 ' + fmtNum(_p2blk.conc, 2) + '%');
+      if (_p2Stress) _p2Bits.push('压力 −' + fmtNum(_p2blk.stressPp, 2) + 'pp');
+      const _p2BadgeTxt = _p2blk ? ('买入冻结 · ' + _p2Bits.join(' + ')) : '';
       /* fw2_v1148_term_double_reason：P2-9 与 P2-11 同时命中时，两条原因都显示，不再只留终止风险。 */
       const _capFreeze = (_st === 'pending' && r.lvl === 'act')
         ? ((_p2blk ? '<div class="sig-cap-freeze" title="' + esc(_p2WaitTxt) + '">' + esc(_p2BadgeTxt) + '</div>' : '')
@@ -19019,6 +19235,7 @@ function renderSignalDash() {
          原因用分号并列，避免同格既写“补仓”又标“买入冻结”。 */
       if (_p2blk || _termblk) {
         const _hardRs = [];
+        if (_p2Dd) _hardRs.push('实际回撤 −' + fmtNum(Math.abs(_p2blk.ddPct), 2) + '% ≤ −' + _p2blk.ddFreeze + '%（全组合）');
         if (_p2Conc) _hardRs.push('单只 ' + fmtNum(_p2blk.conc, 2) + '% > ' + _p2blk.cap + '%');
         if (_p2Stress) _hardRs.push('压力 −' + fmtNum(_p2blk.stressPp, 2) + 'pp > ' + _p2blk.stressCap + 'pp');
         if (_termblk) _hardRs.push(_termblk.short || _termblk.reason);
