@@ -1794,7 +1794,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 <!-- fw2_v1112_dd_hist_allpool（用户 2026-11-25「按照你建议继续」，落地 A 展示补全 + B 全池逐日对照，默认仍保留当前最深 10）：
       A「区间曾深」：监测卡头部加切换，按 [from,to] 逐日维护此前最高收盘（峰值可早于区间起点，与 ddArrOf 同口径）算区间最深；列出曾≥起始档位、但当前已修复而被焦点视图隐藏的指数（本次 63 只中 16 只曾≥70%，当前仅 4 只仍≥70%，5 只已修复到 <60%）。
       B「全池59（逐日机会）」：回测方式第三档；境内 59 只全部进入逐日机会集，不按今天回撤预选；每只只在自己回撤≥起始档位时买；同日先卖后买，再按当日回撤深→浅分配资金，现金不足跳过并计数；仍不含 4 只境外。默认仍为「当前最深 10」，且加 look-ahead 提示；换口径即清空旧结果，全池点行改为切单指数。 -->
-<!-- fw2_v1157_grid_disc_sf（2026-11-27 用户六条回复「按照你建议顺序继续做」）：①网格「已用金额」接 ttskill TRADE_QUERY 买入成交流水——新增 gen_grid_usage.py 写 holdings-data.json 顶层 gridUsage（2024-01-01 起、statu=2、23 只、169 笔），并挂进 refresh_all 串行链；前端 gdUsage 优先读内嵌 gridUsage，卡片显示已用/上限/剩余/笔数/最近买入日；②网格关闭后 T13 网格跟踪仍保留一行「已关闭 · 不生成网格买入」，不再整行消失；③确认「网格预算独立、网格买入份额市值仍计入所在桶」口径，不做份额级拆分；④发现层扩到六源——新增持仓 24 条与策略工厂候选 15 条，共 160 条/去重 137 只，gen_discovery 挂进 refresh_all；⑤策略工厂 v2 补四项：动量轮动（全池 Top N）、等权组合（全池月度再平衡）、3×3 参数敏感性、localStorage 落盘 + 导出 JSON；⑥T2b 定稿：分母统一单只决策权重、T17 先于 T2b、−15% 直接清剩余（不再留 1/4），SIGNAL_REGISTRY 同步。未动回测引擎逐位结果、信号阈值判定、P2-9/P2-11 买入冻结。 --><!-- fw2_v1158_grid_since_sf_lookahead（2026-11-27 用户「继续」）：①网格「已用」改为逐只起算日口径——`gen_grid_usage.py` 增逐笔 `buys` 日期/金额，`holdings-data.json.gridUsage.funds[code].buys` 落盘；前端 `GD_PLAN_START=2026-11-27`、`gdUsage(code,since)` 只统计起算日后的成功买入，历史买入仍作成本参考、不占网格预算；逐只卡脚注显示「自 YYYY-MM-DD」，新增「从今天重算」按钮（只改配置 since，不动持仓/流水），暂停再开不重置已有起算日；无逐笔日期的旧数据回退全窗并标「近似」。②策略工厂修同日收盘前视——动量打分改用 `ii-1` 前一交易日为 p1、`ii-1-look` 为 p0，当日收盘成交；月份键改 `year*12+month` 防跨年同月误判；新增「组合池」下拉 `pit 当时可用 / fixed 固定起点池`，结果头显示「池 N 只 · 口径」，敏感性继承该口径，页脚按所选池说明。③修 v1156 遗留：网格页签未加入 `switchStratTab` 的懒渲染名单，点「网格计划」只切显示不调 `gdRender` → 空白；已补 `name === 'gd'`。④修首屏竞态：`?view=strategy` 早于策略脚本执行时 `renderStrategyView` 未导出即被调用，现 guard + `load` 后补渲染，避免控制台 ReferenceError。未动：回测成交规则与统计口径、信号阈值、T13 判定、发现层。 --><!-- fw2_v1159_sf_default_fixed（2026-11-27 用户「②可以」）：策略工厂「组合池」默认改为 fixed 固定起点池（起点已有），pit 仍可手动切换；只改默认值与文案，不动 sfPortBacktest 的 t−1 信号/当日收盘成交、费率、现金、基准与敏感性继承。 --><!-- fw2_v1160_grid_budget_6000（2026-11-27 用户「按照你建议」＝A 保守）：网格计划默认只开 7 只并按持仓分档——012920 ¥1,500 / 001015 ¥1,000 / 160422 ¥1,000 / 000307 ¥1,000 / 022438 ¥500 / 012761 ¥500 / 023917 ¥500，合计上限 ¥6,000；其余持仓默认关闭，避免给 ¥37 碎片配 ¥10,000 上限。一次全触发 7×¥500＝¥3,500，现金约 ¥7,721。只改逐只默认配置与 T13 读取路径，不改全局 gridFund=10,000、回测引擎、持仓/交易流水。同时修网格卡过滤：旧 `/货币|活期宝|现金/` 把 023917 的「自由现金流」误判成现金，且 `status=off` 的 012761/023917 被整卡隐藏；现金改只认 assetType/cat（名称只认活期宝/货币基金/现金宝），台账 off 但账户仍有份额的照常显示，卡片 22→24、7 只默认全部可见。 --><span id="verBadge" class="ver-badge">v1163</span><!-- fw2_v1163_vol_cap20（2026-11-27 用户定「年化收益目标 10%、波动率 20% 以内」）：波动率卡由 v1161 的 10/15 参考带改为 20% 监控上限（≥20% 超上限），10% 明确标注为投资总纲年化收益目标、不是波动率线；只读监控，不冻结买入、不改任何交易闸门。 --><!-- fw2_v1162_vol_whatif（2026-11-27 用户「继续」）：在 v1161 只读波动率卡下方新增 012920 减仓 what-if——按总资产权重（含现金）假设降到 20%/15%/0，释放市值全部转现金、不买入、不改其他仓位，复用 portReturns 重算 60/120/250 日年化波动；只做风险测算，不构成卖出建议，不冻结买入、不改 P2-9/P2-11、不改任何交易闸门或 signalEvalAll 判定。当前读数：26.1%→20.0% 约卖 ¥1,252，60/120/250=10.52/15.33/13.10；→15.0% 约卖 ¥2,279，9.34/13.19/11.32；清仓约 ¥5,361，6.15/7.20/6.51。 --><!-- fw2_v1161_vol_monitor（2026-11-27 用户「波动率对我的投资特别重要，需要控制波动率」→ 选「先只监控预警」）：持仓页底部波动率卡由单一 20 日组合 vs 沪深300，扩成只读监控：①60/120/250 日组合年化波动（最后 N 个日收益样本 std×√252），参考带 <10% 正常 / 10–15% 预警 / ≥15% 高位；②120 日协方差近似的风险贡献 Top5（权重、单只波动、占非现金方差），只做排序提示；③不冻结买入、不改 P2-9/P2-11、不改任何交易闸门或 signalEvalAll 判定；④20 日曲线仍保留。 --><!-- fw2_v1156_grid_indep（2026-11-27 用户「按照你建议逐个做」第 4 项「网格升级独立；核心-卫星不重复，杠铃已经是」）：①策略执行新增第 9 个子页签「网格计划」（data-st=gd / #stp-gd），逐只配置步进/单笔/累计上限/资金来源；②T13 网格跟踪优先读 C.grid.pf[code]，未配置回落全局纲领，关闭该只则不出 T13 行；③逐只配置存 localStorage fw2_grid_plan_v1，只存配置、不写交易流水/持仓/交易状态、不下单；④边界卡明确「四档杠铃已是核心-卫星，不另建卫星仓」「网格预算独立，但网格份额市值仍计入所在桶实际占比」；⑤顺带修投资总纲「变更记录」旧格式条目显示 `undefined undefined→` 的问题。 --><!-- fw2_v1155_discovery_layer（2026-11-27 用户「按照你建议逐个做」第 3 项「标的池统一为发现层」）：①新增手工轨生成器 gen_discovery.py，把四源候选统一登记为 data/discovery-registry.json——V11 狙击 15（就绪 3）/ 深跌买入 55（自峰回撤≥30%，≥70% 4 只，8 只未到 30% 不登记）/ 自选池 11 / 筛选池 40，共 121 只、跨源同码 0；②投资总纲（投资逻辑）页尾新增「发现层 · 统一候选登记」只读卡，按「就绪/深跌→观察→筛选池→自选」列前 12 条，给来源/状态/强度/数据日/说明与「去 V11 狙击 / 去深跌买入」跳转；③边界：只登记候选，不接预算、不生成买卖指令、不写持仓/交易台账，预算与执行仍在策略执行与各层规则；④发布清单新增 caifu/data/discovery-registry.json，docs/data-ledger.json 登记为手工轨（43 datasets）。未动 signalEvalAll、阈值、三态、回测引擎、T2b/T17 与策略工厂。--><!-- fw2_v1153_t2b_t17（2026-11-27 用户「按照你建议逐个做」第 1 项）：①T2b 条件化峰值回撤止盈——只对峰涨 ≥50% 且单只决策权重 ≤20% 的持仓，自峰回撤 10% 卖半、15% 再卖半、破 MA200 清剩余；T2 全局版仍默认关，避免震荡市反复卖半。②T17 单只超配削峰——复用 P2-9 holdP2GateData 的决策权重口径，单只 >20% 建议卖超配部分、降回 20%；只建议不自动卖，账户总资产口径同时显示但不混用。③两条均登记 SIGNAL_REGISTRY、ACT_PRIO（T17 rank22、T2b rank25，T2 之后 R7 之前）、ACT_SLA T+1、_SELL 互斥与投资总纲 LOGIC_EFF/MEAN/WHERE。**未动**：T2 全局默认关、T1/T4/T16 判定、回测引擎、P2-9 买入冻结逻辑。 --><!-- fw2_v1152_data_debt_src（2026-11-27 数据债第1项：仅数据管理页四行源描述同步，无判定/布局改动；数据文件见 data/） --><!-- fw2_v1151_p2_dd_backfill（2026-11-27 用户「按照你建议继续做」）：回撤账本支持基准日后总资产补记 + JSON 导入；基准日前仍不可判。 --><!-- fw2_v1150_p2_dd_exec（用户 2026-11-27「按照你的建议做」）：P2-9 实际回撤 A+ 接执行——今日总资产为初始高水位，逐数据日记总资产/净出入金，HWM 按出入金调整；前 20 个数据日只读，满 20 后 ≤−15% 冻结全组合新增买入、≤−20% 只做减仓评估；不自动卖、不写交易状态、不伪造历史。 --><!-- fw2_v1149_p2_stress_exec（用户 2026-11-27「接」）：P2-9 压力 20pp 接执行层，只在压力拖累 >20pp 时冻结最大单只买入，其他标的/补其他桶不冻；实际回撤仍缺可审计历史高水位，不接执行、不伪造 0%。 --><!-- fw2_v1148_term_soft_prompt（用户 2026-11-27「V1/深跌买入接门禁、软命中只提示、P2-9/P2-11 双原因同屏」）：①V1 波动赶底与深跌买入（研究页）接入 P2-11 终止风险门禁；②软命中改为只提示、不冻结，只有硬命中冻结买入；③P2-9 单只集中度与 P2-11 终止风险同时命中时，执行列/标题/行动方案同屏两条原因。历史注释与 v1147 保持不变。--><!-- fw2_v1147_term_gate_exec（用户 2026-11-27「从只读提示接成真正买入过滤」）：P2-11 终止风险闸门接执行层。在 v1146 只读卡基础上，对 T7 回撤补仓 / T13 网格跟踪（网格买入）/ T12 距历史低点 / T8 估值加仓 增加：终止样本同名同码、净值断档 >45 天、规模 <0.5 亿、暂停/终止申购（硬/软）、3 年落后近似基准 ≥30pp、前十集中度 ≥70% 且落后 ≥20pp 检查；命中时交易信号页买入按钮置灰并标「终止风险冻结」。历史不足 3 年只记「数据不足」，不冻结、不伪装通过；不自动卖、不写交易状态、不改 signalEvalAll 阈值判定。 -->
+<!-- fw2_v1157_grid_disc_sf（2026-11-27 用户六条回复「按照你建议顺序继续做」）：①网格「已用金额」接 ttskill TRADE_QUERY 买入成交流水——新增 gen_grid_usage.py 写 holdings-data.json 顶层 gridUsage（2024-01-01 起、statu=2、23 只、169 笔），并挂进 refresh_all 串行链；前端 gdUsage 优先读内嵌 gridUsage，卡片显示已用/上限/剩余/笔数/最近买入日；②网格关闭后 T13 网格跟踪仍保留一行「已关闭 · 不生成网格买入」，不再整行消失；③确认「网格预算独立、网格买入份额市值仍计入所在桶」口径，不做份额级拆分；④发现层扩到六源——新增持仓 24 条与策略工厂候选 15 条，共 160 条/去重 137 只，gen_discovery 挂进 refresh_all；⑤策略工厂 v2 补四项：动量轮动（全池 Top N）、等权组合（全池月度再平衡）、3×3 参数敏感性、localStorage 落盘 + 导出 JSON；⑥T2b 定稿：分母统一单只决策权重、T17 先于 T2b、−15% 直接清剩余（不再留 1/4），SIGNAL_REGISTRY 同步。未动回测引擎逐位结果、信号阈值判定、P2-9/P2-11 买入冻结。 --><!-- fw2_v1158_grid_since_sf_lookahead（2026-11-27 用户「继续」）：①网格「已用」改为逐只起算日口径——`gen_grid_usage.py` 增逐笔 `buys` 日期/金额，`holdings-data.json.gridUsage.funds[code].buys` 落盘；前端 `GD_PLAN_START=2026-11-27`、`gdUsage(code,since)` 只统计起算日后的成功买入，历史买入仍作成本参考、不占网格预算；逐只卡脚注显示「自 YYYY-MM-DD」，新增「从今天重算」按钮（只改配置 since，不动持仓/流水），暂停再开不重置已有起算日；无逐笔日期的旧数据回退全窗并标「近似」。②策略工厂修同日收盘前视——动量打分改用 `ii-1` 前一交易日为 p1、`ii-1-look` 为 p0，当日收盘成交；月份键改 `year*12+month` 防跨年同月误判；新增「组合池」下拉 `pit 当时可用 / fixed 固定起点池`，结果头显示「池 N 只 · 口径」，敏感性继承该口径，页脚按所选池说明。③修 v1156 遗留：网格页签未加入 `switchStratTab` 的懒渲染名单，点「网格计划」只切显示不调 `gdRender` → 空白；已补 `name === 'gd'`。④修首屏竞态：`?view=strategy` 早于策略脚本执行时 `renderStrategyView` 未导出即被调用，现 guard + `load` 后补渲染，避免控制台 ReferenceError。未动：回测成交规则与统计口径、信号阈值、T13 判定、发现层。 --><!-- fw2_v1159_sf_default_fixed（2026-11-27 用户「②可以」）：策略工厂「组合池」默认改为 fixed 固定起点池（起点已有），pit 仍可手动切换；只改默认值与文案，不动 sfPortBacktest 的 t−1 信号/当日收盘成交、费率、现金、基准与敏感性继承。 --><!-- fw2_v1160_grid_budget_6000（2026-11-27 用户「按照你建议」＝A 保守）：网格计划默认只开 7 只并按持仓分档——012920 ¥1,500 / 001015 ¥1,000 / 160422 ¥1,000 / 000307 ¥1,000 / 022438 ¥500 / 012761 ¥500 / 023917 ¥500，合计上限 ¥6,000；其余持仓默认关闭，避免给 ¥37 碎片配 ¥10,000 上限。一次全触发 7×¥500＝¥3,500，现金约 ¥7,721。只改逐只默认配置与 T13 读取路径，不改全局 gridFund=10,000、回测引擎、持仓/交易流水。同时修网格卡过滤：旧 `/货币|活期宝|现金/` 把 023917 的「自由现金流」误判成现金，且 `status=off` 的 012761/023917 被整卡隐藏；现金改只认 assetType/cat（名称只认活期宝/货币基金/现金宝），台账 off 但账户仍有份额的照常显示，卡片 22→24、7 只默认全部可见。 --><span id="verBadge" class="ver-badge">v1164</span><!-- fw2_v1164_tgt_volcap_return（2026-11-27 用户三项选择「暂时只监控 / 放入总纲 / 展示组合实际年化收益」）：①20% 波动率上限仍只监控，不冻结买入；②VOL_CAP 从硬编码改为投资总纲 fw2_tg_thesis.volCap（4 键 schema），总纲阈值表第 1 组加「波动率上限」行，改完波动率卡即时重绘；③波动率卡新增「组合实际年化收益」读数（账户累计持有收益/累计成本，首笔买入至最新净值，含已实现与现金 0 收益；成本口径简单年化，不是资金加权 IRR——外部现金流台账 0 笔），并保留「当前配置回溯」作为参考（历史权重按当时可用净值归一，非账户实际持仓）。 --><!-- fw2_v1163_vol_cap20（2026-11-27 用户定「年化收益目标 10%、波动率 20% 以内」）：波动率卡由 v1161 的 10/15 参考带改为 20% 监控上限（≥20% 超上限），10% 明确标注为投资总纲年化收益目标、不是波动率线；只读监控，不冻结买入、不改任何交易闸门。 --><!-- fw2_v1162_vol_whatif（2026-11-27 用户「继续」）：在 v1161 只读波动率卡下方新增 012920 减仓 what-if——按总资产权重（含现金）假设降到 20%/15%/0，释放市值全部转现金、不买入、不改其他仓位，复用 portReturns 重算 60/120/250 日年化波动；只做风险测算，不构成卖出建议，不冻结买入、不改 P2-9/P2-11、不改任何交易闸门或 signalEvalAll 判定。当前读数：26.1%→20.0% 约卖 ¥1,252，60/120/250=10.52/15.33/13.10；→15.0% 约卖 ¥2,279，9.34/13.19/11.32；清仓约 ¥5,361，6.15/7.20/6.51。 --><!-- fw2_v1161_vol_monitor（2026-11-27 用户「波动率对我的投资特别重要，需要控制波动率」→ 选「先只监控预警」）：持仓页底部波动率卡由单一 20 日组合 vs 沪深300，扩成只读监控：①60/120/250 日组合年化波动（最后 N 个日收益样本 std×√252），参考带 <10% 正常 / 10–15% 预警 / ≥15% 高位；②120 日协方差近似的风险贡献 Top5（权重、单只波动、占非现金方差），只做排序提示；③不冻结买入、不改 P2-9/P2-11、不改任何交易闸门或 signalEvalAll 判定；④20 日曲线仍保留。 --><!-- fw2_v1156_grid_indep（2026-11-27 用户「按照你建议逐个做」第 4 项「网格升级独立；核心-卫星不重复，杠铃已经是」）：①策略执行新增第 9 个子页签「网格计划」（data-st=gd / #stp-gd），逐只配置步进/单笔/累计上限/资金来源；②T13 网格跟踪优先读 C.grid.pf[code]，未配置回落全局纲领，关闭该只则不出 T13 行；③逐只配置存 localStorage fw2_grid_plan_v1，只存配置、不写交易流水/持仓/交易状态、不下单；④边界卡明确「四档杠铃已是核心-卫星，不另建卫星仓」「网格预算独立，但网格份额市值仍计入所在桶实际占比」；⑤顺带修投资总纲「变更记录」旧格式条目显示 `undefined undefined→` 的问题。 --><!-- fw2_v1155_discovery_layer（2026-11-27 用户「按照你建议逐个做」第 3 项「标的池统一为发现层」）：①新增手工轨生成器 gen_discovery.py，把四源候选统一登记为 data/discovery-registry.json——V11 狙击 15（就绪 3）/ 深跌买入 55（自峰回撤≥30%，≥70% 4 只，8 只未到 30% 不登记）/ 自选池 11 / 筛选池 40，共 121 只、跨源同码 0；②投资总纲（投资逻辑）页尾新增「发现层 · 统一候选登记」只读卡，按「就绪/深跌→观察→筛选池→自选」列前 12 条，给来源/状态/强度/数据日/说明与「去 V11 狙击 / 去深跌买入」跳转；③边界：只登记候选，不接预算、不生成买卖指令、不写持仓/交易台账，预算与执行仍在策略执行与各层规则；④发布清单新增 caifu/data/discovery-registry.json，docs/data-ledger.json 登记为手工轨（43 datasets）。未动 signalEvalAll、阈值、三态、回测引擎、T2b/T17 与策略工厂。--><!-- fw2_v1153_t2b_t17（2026-11-27 用户「按照你建议逐个做」第 1 项）：①T2b 条件化峰值回撤止盈——只对峰涨 ≥50% 且单只决策权重 ≤20% 的持仓，自峰回撤 10% 卖半、15% 再卖半、破 MA200 清剩余；T2 全局版仍默认关，避免震荡市反复卖半。②T17 单只超配削峰——复用 P2-9 holdP2GateData 的决策权重口径，单只 >20% 建议卖超配部分、降回 20%；只建议不自动卖，账户总资产口径同时显示但不混用。③两条均登记 SIGNAL_REGISTRY、ACT_PRIO（T17 rank22、T2b rank25，T2 之后 R7 之前）、ACT_SLA T+1、_SELL 互斥与投资总纲 LOGIC_EFF/MEAN/WHERE。**未动**：T2 全局默认关、T1/T4/T16 判定、回测引擎、P2-9 买入冻结逻辑。 --><!-- fw2_v1152_data_debt_src（2026-11-27 数据债第1项：仅数据管理页四行源描述同步，无判定/布局改动；数据文件见 data/） --><!-- fw2_v1151_p2_dd_backfill（2026-11-27 用户「按照你建议继续做」）：回撤账本支持基准日后总资产补记 + JSON 导入；基准日前仍不可判。 --><!-- fw2_v1150_p2_dd_exec（用户 2026-11-27「按照你的建议做」）：P2-9 实际回撤 A+ 接执行——今日总资产为初始高水位，逐数据日记总资产/净出入金，HWM 按出入金调整；前 20 个数据日只读，满 20 后 ≤−15% 冻结全组合新增买入、≤−20% 只做减仓评估；不自动卖、不写交易状态、不伪造历史。 --><!-- fw2_v1149_p2_stress_exec（用户 2026-11-27「接」）：P2-9 压力 20pp 接执行层，只在压力拖累 >20pp 时冻结最大单只买入，其他标的/补其他桶不冻；实际回撤仍缺可审计历史高水位，不接执行、不伪造 0%。 --><!-- fw2_v1148_term_soft_prompt（用户 2026-11-27「V1/深跌买入接门禁、软命中只提示、P2-9/P2-11 双原因同屏」）：①V1 波动赶底与深跌买入（研究页）接入 P2-11 终止风险门禁；②软命中改为只提示、不冻结，只有硬命中冻结买入；③P2-9 单只集中度与 P2-11 终止风险同时命中时，执行列/标题/行动方案同屏两条原因。历史注释与 v1147 保持不变。--><!-- fw2_v1147_term_gate_exec（用户 2026-11-27「从只读提示接成真正买入过滤」）：P2-11 终止风险闸门接执行层。在 v1146 只读卡基础上，对 T7 回撤补仓 / T13 网格跟踪（网格买入）/ T12 距历史低点 / T8 估值加仓 增加：终止样本同名同码、净值断档 >45 天、规模 <0.5 亿、暂停/终止申购（硬/软）、3 年落后近似基准 ≥30pp、前十集中度 ≥70% 且落后 ≥20pp 检查；命中时交易信号页买入按钮置灰并标「终止风险冻结」。历史不足 3 年只记「数据不足」，不冻结、不伪装通过；不自动卖、不写交易状态、不改 signalEvalAll 阈值判定。 -->
 <!-- fw2_v1145_p2_gate_exec（用户 2026-11-27「按照你建议继续」）：P2-9 单只集中度上限 20% 接执行层。只在交易信号页把最大非现金持仓（当前 012920）的买入类信号——T7 回撤补仓 / W2 回撤买入 / S2 回撤买入 / T8 估值加仓 / T13 网格跟踪（网格买入）/ R3 网格买 / V11 狙击——的「开始」按钮置灰并标「买入冻结」；压力 20pp 与实际回撤 15/20% 仍只读。不拦其他标的、不自动卖、不写交易状态；判断复用 holdP2GateData()，未改 signalEvalAll 判定、阈值、三态或任何下单动作。 --><!-- fw2_v1144_p2_gate_readonly（2026-11-26 用户「按照你的建议继续」）：在我的持仓对账卡后新增 P2-9 组合风险闸门只读卡。①单只集中度＝最大非现金持仓 / 确认份额×净值（上限 20%）；②压力拖累＝最大单只按 P2-10 的 −44.6% 峰回撤情景（上限 20pp）；③实际回撤＝15% 冻结 / 20% 评估，但组合高水位未建立，显示「待建立」不伪造判定。只读，不拦买入、不自动卖、不写状态；阈值与动作待拍板后才接执行层。 --><!-- fw2_v1143_012920_share_fix（2026-11-26 P2-9 前置对账）：012920 份额由 3,423.61 修正为 1,802.04。依据：对账单 2026-10-29 持有 5,045.18 份；ttskill TRADE_QUERY 两笔卖出各 1,621.57 份（11-05 确认 5,120.84 元 / 净值 3.1699；11-25 确认 4,877.17 元 / 净值 3.0228），均 confirmStatus=confirmed；剩余 1,802.04 × 2.9747 = 5,360.53（11-25 净值），与账户市值一致。只改持仓镜像份额与成本等比结转，不改 total、不改其他持仓、不改信号判定、不下单。 --><!-- fw2_v1142_r2_manual（用户 2026-11-26「明确 RB/BW/L1/TREND 只是手动参考」→ 审计 P1 第 5 项拍板）：R2 定投保持「关」，实盘按一次性、不按月投；RB REGIME-BEAR 熊市环境降档 / BW BREADTH-W 广度恶化 / L1 回撤预警 / TREND-UP·DN 趋势叠加四条统一标为「手动参考」，页面逐行加徽标、趋势卡与投资总纲加口径条。只改展示与文案，不改 signalEvalAll 判定、阈值、三态、回测参数或任何交易。 --><!-- fw2_v1141_ev_tier（用户 2026-11-26「然后做接下来没完成的事情」→ 审计 P1）：①T15 跟踪指数 PE 分位缺数据不再静默消失，显式占位 watch（不适用/数据缺失），与 T3/T8 同口径，不出 act；②P4 覆盖率改为「数据闸门」行，只提示穿透结论不可全信，不产生买卖动作；③投资总纲新增证据列 A+/A−/A?/A·/C 与 59 条机制归并，A 不再单用表示「测过＝可信」，负边际 9 条明写只作实验/观察；不改 signalEvalAll 判定、阈值、三态与任何交易。 --><!-- fw2_v1140_erp_fix3（用户 2026-11-26「ERP 股债性价比（沪深300）10年国债利率按照3%固定」）：只对 ERP 卡与 M9 口径把 10Y 国债固定为 3.00%，用「E/P−3.00%」重算全历史 ERP 与 10 年分位；M16 格雷厄姆股债比、M11 中美利差、股息率比较仍保留真实 10Y。固定值不是当前市场利率，卡内显式标注，避免把 4.70% 误读成实时 ERP。 --><!-- fw2_v1139_today_top5（用户 2026-11-26「按照你建议继续」→ 阶段 2.4）：首屏今日待办 Top5。①三池（持仓/自选/筛选）act 行合并、按 code+sig 去重，排除已执行/已过期；②排序＝ACT_PRIO 优先级 → SLA 超时/到期 → 日龄 → 执行中优先；③卡片显示代码+中文信号名、池、待执行/执行中、SLA、同日冲突，点击切到交易信号对应 tab 并尽量高亮目标行；④市场月频、P1/P2 组合/穿透不进本卡；⑤只读渲染，不改 signalEvalAll 判定、阈值、状态或交易。 --><!-- fw2_v1138_act_sla（用户 2026-11-26「继续」→ 阶段 2.3）：按信号类型给 act 行设执行时限。风控/卖出（T4/R6/T2/R7/T1/T3/T16）T+1；拦截复核（TREND-DN/S-TREND）T+1；网格/补仓/加仓（T13/R3/T7/W2/S2/T8/V11）T+2；观察（S1/T15）T+5；季频 XOV/P2 不设；组合级 T10 不设。行内在执行列显示「SLA T+1 · 今日到期/超 N 日」，筛选条加 SLA 汇总，表下加超时清单（只影响提示，不改 signalEvalAll 判定、状态、阈值或交易）。 --><!-- fw2_v1137_act_priority（用户 2026-11-26「继续」→ 阶段 2.2）：同标的同日冲突优先级。①按同一标的分组给 act 行排序：T4/R6 硬止损（清仓）＞T2 峰值回撤止盈（减半）＞R7 再平衡（卖回目标）＞T1 阶梯止盈（减1/4）＞T3 估值止盈＞T16 卖出后破位减半＞TREND-DN/S-TREND/P2 拦截＞T7/W2/S2 回撤补仓＞T8 估值加仓＞T13/R3 网格买入＞V11 狙击；T15/S1 观察项与「T3/T8」混合行不排序。②行内信号格加「同日 1/N」徽标；卖/拦截项未完成时，同标的买入行显示「先 T4 硬止损」并暂时不出现「开始」按钮，完成或撤销高优先项后自动恢复。③筛选条的执行状态改为可点按钮「同日冲突 N 组 · 查看顺序」，表格下方新增折叠清单，逐组列出顺序、同日多卖/多买提示。只改渲染层排序与按钮可见性，不改 signalEvalAll 判定、lvl、阈值、actState 状态写入或任何交易。 --><!-- fw2_v1136_act_state（用户 2026-11-26「按照顺序继续」→ 阶段 2.1）：act 信号执行四态落地——待执行 / 执行中 / 已执行 / 已过期。①交易信号表在「状态」后新增「执行」列，仅行动档给状态徽章与推进按钮（开始→完成→撤销），接近/观察显示「—」；②状态存 localStorage `fw2_act_state_v1`（键 pool:code:sig），同一信号条件不再触发时自动转「已过期」并保留 14 天，再次触发回到「待执行」；③表头筛选条加执行状态计数，表格下方给近 14 日已过期清单（默认折叠）；④首屏今日待办只把待执行/执行中的行动计入「行动信号」，已执行不再占待办。未改 signalEvalAll 判定、lvl、阈值、排序、三态逻辑与任何交易动作。⑤窄屏可用性：9 列 min-width 1180 时给 .dc-card/.dc-body/.sig-wt-area 补 min-width:0、.table-wrap max-width:100%，让表格在卡内横向滚动（修前卡宽被撑到 1212px、538 视口只能看到左侧 3 列，执行/行动/操作列不可达）。 --><!-- fw2_v1135_budget_migrate_once（用户 2026-11-26「表标题 62,000 改成 50000」收口）：v1134 只按值迁移，用户以后主动把预算设回 62000 会在下次刷新被再次改掉；v1135 加 `fw2_budget_migrated_50000_v1` 一次性守卫，标记存在即不再迁移。 --><!-- fw2_v1134_budget_50000（用户 2026-11-26「下方资产配置表标题当前是 ¥62,000 预算，改成50000」）：把历史预算 fw2_capital_budget_v1=62000 一次性迁移到 50000；只改恰好 62000 的旧值，不动其它自填金额，也不写死 5 万。 --><!-- fw2_v1133_caliber_split_note（用户 2026-11-26 阶段1收口）：四桶卡/新钱路线显式标注「5 万策略主基准」；v1134 用户拍板后，表标题预算已迁移到 50000，两卡与表标题同基准。若以后改表标题预算，则重新分口径、禁止对拍。 --><!-- fw2_v1132_new_money_route（用户 2026-11-26「按顺序开始执行」清单 1.4）：策略执行-资产配置新增「新钱分配路线」卡；按四桶缺口比例给不卖出补足路线，不执行交易。 --><!-- fw2_v1131_bucket_target_vs_actual（用户 2026-11-26「按顺序开始执行」清单 1.3）：策略执行-资产配置新增「四桶目标 vs 实际」卡；占比偏离与 5 万到位率分开呈现，不改计算与再平衡。 --><!-- fw2_v1130_capital_labels（用户 2026-11-26「按顺序开始执行」清单 1.2）：全站顶部常驻「资金口径」条，分账户/策略/实验/回测四套基数，只做标注，不改任何金额计算。 --><!-- fw2_v1129_hold_recon（用户 2026-11-26「按照你的建议列个执行清单 / 按顺序开始执行」）：我的持仓 KPI 下新增「账户口径对账」卡——同屏展示 账户总资产 20,565.55 / 确认份额×净值 18,067.10 / 在途买入 2,498.46 / 账户明细市值合计 15,688.38；明确 15,688.38 与总资产差 4,877.17 的主因是 012920 卖出后份额未重建（账户市值 5,412.79 vs 份额×净值 10,283.50，差 -4,870.71），其余 6.46 为逐只四舍五入；权重继续用「确认份额×净值」，账户总值用 holding_total，不自动改账户数据。 --><!-- fw2_v1128_hide_cash_sig（用户 2026-11-26「活期宝不显示在信号中」）：交易信号→持仓信号不再为现金/货币基金生成「暂无信号·持仓兜底」标卡与占位行；按 state.portfolio 的 assetType=cash 或名称含货币/活期宝/现金宝，以及 drawdown 行的 kind=money 识别；只改展示，不改信号判定、阈值、其它组与表内行序。 --><!-- fw2_v1127_hold_sig_mv_sort（用户 2026-11-26「交易信号-持仓信号里面的标的按照持仓金额大小排列」）：仅「持仓信号」组内标目按持仓市值（state.portfolio 的 mvCny，人民币口径）降序；T10 杠铃档位（四档）为组合汇总、保持置顶；同额回退原等级/信号数/指数族/代码排序。未改信号判定、同指数合并选择、表内行序与自选/筛选/市场组排序。 --><!-- fw2_v1126_macro_nky_refresh：2026-11-26 15:02 只刷宏观组（`refresh_all.py --only macro --no-publish`）后，`macro-data.json` 的 nky 实时价由盘中 57,812.38 更新为收盘 57,498.94，amt/amtD/fsi/sentiment/wave 同步刷新；`index.html` 内嵌 MACRO_SNAP 由数据链同步更新，未改任何计算/信号逻辑。nky 闸门已转 PASS（实时独立源本次不可达，按本地底线降级，详见 verify_nky 备注）；`gen_macro_extra.py` 因缺 akshare 仍失败，数据管理保留 3 项失败标记。 --><!-- fw2_v1125_sp_wait：配置回测开启 V11 狙击时，若筛选池（SCREEN_POOL）未就绪，先加载 screen-pool.json 并自动续跑；加载失败则明确拦下，避免空池跑出 0 笔假结果。 --><!-- fw2_v1123_sm_insert_anchor（用户 2026-11-25 截图「点聪明的钱后模块组被压到后面」）：交易信号页把 #view-smartmoney 搬入 sigBody 时，原锚点 `body.querySelector('.dc-note')` 实际命中的是「V11 狙击已移至…」提示（同样带 .dc-note），导致聪明的钱整节被插到阈值来源之后、标签组之前。改为末脚注 #sigFootNote 作锚点（兜底取最后一个 .dc-note），标签组/筛选条回到顶部，聪明的钱内容落在其余 pane 之后、脚注之前。 --><!-- fw2_v1122_v11_formula_unified（用户 2026-11-25「统一」）：V11 赔率公式从「p250 前高 / 3×ATR14」统一到「1260 日前高 / 1260 日窗口最低收盘」——配置回测 v11Gate 新增 p1260/lo1260 单调队列，与扫描 bt_signal.entry_signal、运行回测 v11Prep 同算式；旧 v11Den atr/leg20/leg60 三档退役；注册表/参数说明/逻辑清单同步改口径，旧口径收益数字标为历史、不冒充新结果。 --><!-- fw2_v1121_v11_run_kpi（用户 2026-11-25「V11狙击加入深跌买入一样的运行回测模块。这个面积太大了。改成 2.50还是2，根据你的建议改」）：①V11 策略页顶部 5 格 KPI 改用专用 .v11-kpi（5 列等宽、单元格 min-height:0），消除 .sh-grid flex:1 1 320px 造成的 320px 空白；②新增运行回测卡（范围/ETF/起止/本金/单注/仓位/门限/止损/吊灯），懒加载 data/v11-bt-data.json，出 KPI+SVG 净值/持仓曲线+分标的+逐笔；③赔率门限全链路统一 2.50；④v11FmtMoney 负数改 -¥；⑤曲线用原生 SVG，避免 canvas 在截图/部分环境不显示。 --><!-- fw2_v1120_v11_rows_removed：V11 狙击逐只执行行从交易信号页删除，V11 只保留策略执行入口 --><!-- fw2_v1096_dd_search（用户「继续」）：①全指数监测卡加「搜索」（代码/名称，只过滤本表显示，分档 chips 计数与已选组合不受影响；输入时保存 ST.q 并重画、回填焦点与滚动位置）②组合池加「全选境内 59」「恢复默认（宽基）」（境外永远不进池）③脚注的境外名单由数据现算（原来写死 4 个名字，加池就会过期）④gen_index_dd 去掉冗余 count.night，gen_index_val 的蛋卷 asof 不再写死 2026 年 --><!-- fw2_v1097_dd_sort_valref（用户「继续」，承接 v1096 挂账）：①全指数监测卡加「排序」开关——回撤深→浅（默认）/ 名称 A→Z，只换本表顺序，分档计数与已选组合不变；②估值卡加「同类别对照」小表——全部 / 宽基 / 行业 / 主题 / 境外五行的 PE 分位中位、PB 分位中位、价格分位中位，并列出该类别里 PE 分位最低的一只；③两处都只用既有 index-dd / index-val 数据，不引入新源（v1096 已证伪的三条补源路仍挂账）。 --><!-- fw2_v1098_dd_n2_sort（用户「继续完成」，收口 v1097「下一步候选」三件）：①估值「同类别对照」由 6 列扩到 8 列——补「股息率中位」与「PB 分位最低的一只」（与 PE 最低同口径：只统计有该分位的只数，空组回 —）；②监测卡加「快捷」行——「距下档 ≤2pp」一键筛选（ST.n2 与类别 / 分档 / 搜索四者可叠加，chips 计数仍按类别全集，不受搜索与快捷键影响）；③方案卡「进入买入区」表跟随 ST.sort（默认回撤深→浅，切名称后同监测卡拼音序）；④仍不引入新源。 --><!-- fw2_v1099_dd_pickcat_relcat（用户「继续」，收口 v1098「下一步候选」三件）：①组合池加按类别批量勾选——宽基 / 行业 / 主题三个按钮各显示「已选/总数」，全选后再点即取消该类（不碰境外）；②估值主表加「相对同类」列——本只 PE 分位 − 同类别 PE 分位中位（pp，负＝比同类便宜），只在双方都有分位时显示；③跨档卡跟随监测卡类别筛选（ST.fcat），计数、「展开全部 N 只」与空态都按当前类别；④仍不引入新源。 --><!-- fw2_v1100_dd_bksum_cheap_vsort（用户「继续」，收口 v1099「下一步候选」三件）：①监测卡加「按回撤分档汇总」表——6 档的只数 / 平均回撤 / 该档最深一只 / 距下档 ≤2pp 只数 / 已进买入区只数，按当前类别统计、不受搜索与快捷影响；②组合池加「只选便宜一半」——按同类别 PE 分位中位分界，只选低于中位的（无分位不入选，口径写进按钮 title）；③估值主表「相对同类」表头可点击排序，三态循环：默认（回撤深→浅）→ 便宜在前 → 贵在前，无分位的行恒排最后；④ddTbl 扩一个可选 th 属性位（backward compatible），中位数抽成模块级 medOf 单一实现；⑤仍不引入新源。 --><!-- fw2_v1076_conflicts（用户 2026-11-23「按照你顺序修」——修掉体检出的 5 处纲领冲突）：
 ①R7 带宽：撤销 v1067 的 `o.band = o.slotBand` 强镜像；band 只喂 R7（单只超配 25% 减配，SIG_THR_DEF 5→25、与回测 cfg.band 同值），slotBand 只喂 T10 四档；sigThrApply 分别写 C.barbell.band / C.barbell.slotBand，T10 文案改读 slotBand，R7 行 threshold 由硬编码「band 25%」改为动态读纲领值。
 ②R2 假开关：`_planCfg()` 读 `window.logicStateEff('R2')`——生效按 investMode，观察/关一律 lump（月投 0）；建仓步文案在一次性时追加「R2 定投＝关/观察」。
@@ -1975,6 +1975,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 
         <!-- v699 波动率对比卡（我的持仓最下面）：组合 vs 沪深300 20日滚动年化波动率；数据就绪后由尾部脚本填充，未就绪保持隐藏 -->
         <!-- fw2_v1161_vol_monitor：同一张卡扩成「短/中/长 + 风险贡献」只读监控；参考带 <10% 正常 / 10–15% 预警 / ≥15% 高位，不冻结买入、不改任何交易闸门。 -->
+        <!-- fw2_v1164_tgt_volcap_return：波动率上限改读投资总纲 volCap（默认 20，可改）；本卡新增「组合实际年化收益」（账户累计持有收益/累计成本年化），并保留「当前配置回溯」作参考；账户资金加权 IRR 因现金流台账缺失暂不可算。 -->
         <!-- fw2_v1163_vol_cap20：用户 2026-11-27 定「年化收益目标 10%、波动率 20% 以内」——本卡改为 20% 监控上限（≥20% 超上限），10% 只作投资总纲收益目标，不再当波动率线。 -->
         <div class="card" id="volCard" style="display:none">
           <div class="card-h"><h3>波动率监控 · 组合 vs 沪深300</h3><span class="hint" id="volHint"></span></div>
@@ -4397,7 +4398,7 @@ window.HS_name = function (code) {
       ['MECH', 'R1/R2', '投入方式', 'investMode', '一次性／每月定投／底仓+定投，决定首笔与月投。', '策略执行 · 建仓/定投计划']
     ];
     var _grp = {
-      TGT: { n: 4, title: '纲领目标', sub: '3 项可改 + 1 项派生', note: 'fw2_tg_thesis 单独存' },
+      TGT: { n: 5, title: '纲领目标', sub: '4 项可改 + 1 项派生', note: 'fw2_tg_thesis 单独存' },
       SIG: { n: 10, title: '交易信号阈值', sub: 'T1–T10 · 10 项', note: '改完直接改信号判断' },
       MECH: { n: 13, title: '执行机制口径', sub: '13 项', note: '网格／补仓／狙击／刹车／建仓' }
     };
@@ -4430,9 +4431,10 @@ window.HS_name = function (code) {
       return '<span style="color:#71717A;white-space:nowrap">' + SIG_THR_LIM[k][0] + '–' + SIG_THR_LIM[k][1] + '</span>';
     };
     /* v1072 fw2_v1072_tgt_in_table：用户 2026-11-23「这几个阀值也放到信号阀值里吧」——
-       总纲卡头部那三个可改数（目标年化 / 回撤预算 / 无风险利率）搬进本表第 1 组，与 23 项阈值同表；
-       仍写 fw2_tg_thesis（不混进 fw2_sig_thr），第 4 行 Calmar 达标线是派生值、只读。 */
-    var _tgv = (window.tgThesis ? window.tgThesis() : { tgtAnn: 10, ddBudget: 20, rf: 1.59 });
+       总纲卡头部那四个可改数（目标年化 / 回撤预算 / 波动率上限 / 无风险利率）搬进本表第 1 组，与 23 项阈值同表；
+       仍写 fw2_tg_thesis（不混进 fw2_sig_thr），第 5 行 Calmar 达标线是派生值、只读。
+       v1164：新增 volCap（波动率监控上限），只影响波动率卡与首屏超限提示，不进 BT3/Calmar、不冻结买入。 */
+    var _tgv = (window.tgThesis ? window.tgThesis() : { tgtAnn: 10, ddBudget: 20, volCap: 20, rf: 1.59 });
     var _calmarV = ((+_tgv.ddBudget > 0) ? (((+_tgv.tgtAnn - +_tgv.rf) / +_tgv.ddBudget).toFixed(2)) : '—');
     /* v1073 修：v1070 已把列序改成 范围｜出厂值｜当前值，这里当初仍按旧序（输入框在前）输出，
        导致目标 4 行整体左移一格（输入框落在「范围」列、范围落「出厂值」、出厂值落「当前值」）。
@@ -4456,6 +4458,7 @@ window.HS_name = function (code) {
     var _tgtRows = [
       ['目标', '目标年化', 'tgtAnn', 10, '组合长期年化目标；BT3 三项门槛第 ① 项与 Calmar 达标线都用它。', '总纲卡「N% 年化」· BT3 ① · 结论条达标判定', '0–60'],
       ['目标', '回撤预算', 'ddBudget', 20, '允许的最深回撤上限；BT3 第 ② 项按此判，Calmar 分母也用它。', '总纲卡「≤N% 回撤」· BT3 ② · Calmar 分母', '1–80'],
+      ['目标', '波动率上限', 'volCap', 20, '组合年化波动率的监控上限；≥上限首屏提示、波动率卡标「超上限」。只监控，不冻结买入，不参与 BT3/Calmar。', '波动率卡上限 · 首屏超限条 · what-if 着色', '1–80'],
       ['目标', '无风险利率', 'rf', 1.59, 'Calmar 超额收益的基准利率，也用于备用金 / 货基机会成本。', 'Calmar 达标线分子 · BT3 ③', '0–10']
     ];
     var _tbl = '<table style="width:100%;min-width:1010px;border-collapse:collapse;table-layout:fixed;font-size:11.5px;color:#18181B">'
@@ -4476,7 +4479,7 @@ window.HS_name = function (code) {
       _tbl += '</tr>';
     });
     _tbl += '<tr style="background:#F7FAFC;border-bottom:1px solid #F1EFE9">'
-      + _tgtTd('派生', 'Calmar 达标线', '＝（目标年化 − 无风险利率）/ 回撤预算；改上面三个数它自动变，这里只读。',
+      + _tgtTd('派生', 'Calmar 达标线', '＝（目标年化 − 无风险利率）/ 回撤预算；改上面四个数它自动变，这里只读。',
         '<span style="color:#71717A">—</span>', '<span style="color:#A1A1AA">—</span>',
         '<span style="font-weight:700;color:#0F766E">' + _calmarV + '</span>', 'BT3 三项门槛 ③ · 回测结论条')
       + '</tr>';
@@ -4510,10 +4513,10 @@ window.HS_name = function (code) {
       + '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">'
       + '<h3 style="margin:0;font-size:14px;font-weight:700;color:#18181B">信号阈值（纲领）</h3>'
       + '<span style="background:#FDF6E7;color:#7A4B07;font-weight:700;padding:2px 8px;border-radius:6px;font-size:11px">实盘生效（1 项已下线）</span>'
-      + '<span style="font-size:11px;color:#71717A">25 项可改 + 1 项已下线 · 27 行（Calmar 派生）</span>'
+      + '<span style="font-size:11px;color:#71717A">26 项可改 + 1 项已下线 · 28 行（Calmar 派生）</span>'
       + '<button type="button" onclick="window.sigThrReset();return false" style="margin-left:auto;cursor:pointer;font-size:11px;padding:3px 10px;border-radius:6px;border:1px solid #E4E4E7;background:#F4F4F2;color:#3F3F46">恢复出厂阈值</button>'
       + '</div>'
-      + '<div style="margin-top:6px;font-size:11px;color:#71717A;line-height:1.7">这里是<b>整套投资的纪律阈值（纲领：经验定稿）</b>：第 1 组 3 项是<b>纲领目标</b>（年化目标、回撤预算、无风险利率，存 fw2_tg_thesis），决定 Calmar 达标线与 BT3 三项门槛；第 2 组 10 项改完全站信号判断、交易信号页「阈值」列、待办一起变；第 3 组 13 项是执行机制口径（网格、补仓、狙击、刹车、建仓），<b>v1067 起 13 项全部接进实盘</b>。与「策略执行 → 回测参数」独立，回测按实验参数跑、不受这里影响。</div>'
+      + '<div style="margin-top:6px;font-size:11px;color:#71717A;line-height:1.7">这里是<b>整套投资的纪律阈值（纲领：经验定稿）</b>：第 1 组 4 项是<b>纲领目标</b>（年化目标、回撤预算、波动率上限、无风险利率，存 fw2_tg_thesis），其中波动率上限只做监控、不冻结买入；年化目标、回撤预算与无风险利率决定 Calmar 达标线与 BT3 三项门槛；第 2 组 10 项改完全站信号判断、交易信号页「阈值」列、待办一起变；第 3 组 13 项是执行机制口径（网格、补仓、狙击、刹车、建仓），<b>v1067 起 13 项全部接进实盘</b>。与「策略执行 → 回测参数」独立，回测按实验参数跑、不受这里影响。</div>'
       + '<div style="margin-top:9px;overflow-x:auto;border:1px solid #E4E4E7;border-radius:8px">' + _tbl + '</div>'
       + '<div id="stMsg" style="margin-top:7px;font-size:11px;color:#A1A1AA;line-height:1.7">改任意一格即时写入纲领（fw2_sig_thr）；「出厂值」列灰字是对照，凡与「当前值」不同的项，出厂值后打红色「已改」。生效点列说明这次改动会动到哪一块。</div>'
       + '</div></div>';
@@ -4573,7 +4576,7 @@ window.HS_name = function (code) {
     try { if (window.__SIG_EVAL_CACHE__) window.__SIG_EVAL_CACHE__.at = 0; } catch (e1) {}
     try { if (typeof state !== 'undefined' && state.view === 'tg' && typeof renderLogicView === 'function') renderLogicView(); } catch (e2) {}
     var msg = document.getElementById('stMsg');
-    if (msg) { msg.style.color = '#0F766E'; msg.innerHTML = '已恢复出厂阈值（23 项：信号 10 项 + 机制 13 项，各输入框已回到出厂值）；第 1 组 3 项目标不在此列（存 fw2_tg_thesis，要回出厂得手改）。'; }
+    if (msg) { msg.style.color = '#0F766E'; msg.innerHTML = '已恢复出厂阈值（23 项：信号 10 项 + 机制 13 项，各输入框已回到出厂值）；第 1 组 4 项目标不在此列（存 fw2_tg_thesis，要回出厂得手改）。'; }
   };
   window.sigThr = sigThr;                 /* v1067：刹车卡 / 建仓定投计划读纲领参数的唯一入口 */
   window.sigThrCardHtml = sigThrCardHtml;
@@ -11409,16 +11412,16 @@ async function renderDataMgmt() {
           return { st: a.length + ' 条 · 最新 ' + (a[0].at || '—') + ' · 指纹 ' + (a[0].hash || '—'), cls: 'lag-ok' };
         },
         risk: '清掉＝⑧ 准入页的证据表清空，已发布的规则不受影响' },
-      { store: 'localStorage · fw2_tg_thesis', name: '投资纲领三键（目标年化 / 回撤预算 / 无风险利率）',
+      { store: 'localStorage · fw2_tg_thesis', name: '投资纲领四键（目标年化 / 回撤预算 / 波动率上限 / 无风险利率）',
         get: function () {
           try {
             var raw = localStorage.getItem('fw2_tg_thesis');
-            if (!raw) return { st: '默认 10% / ≤20% / 1.59%（纲领）', cls: 'lag-ok' };
+            if (!raw) return { st: '默认 10% / ≤20% / ≤20% / 1.59%（纲领）', cls: 'lag-ok' };
             var c = JSON.parse(raw) || {};
-            return { st: (c.tgtAnn != null ? c.tgtAnn : 10) + '% / ≤' + (c.ddBudget != null ? c.ddBudget : 20) + '% / ' + (c.rf != null ? c.rf : 1.59) + '%（纲领）', cls: 'lag-ok' };
+            return { st: (c.tgtAnn != null ? c.tgtAnn : 10) + '% / ≤' + (c.ddBudget != null ? c.ddBudget : 20) + '% / ≤' + (c.volCap != null ? c.volCap : 20) + '% / ' + (c.rf != null ? c.rf : 1.59) + '%（纲领）', cls: 'lag-ok' };
           } catch (e) { return { st: '读取失败', cls: 'lag-bad' }; }
         },
-        risk: '清掉＝纲领回到 10% / ≤20% / 1.59%，不影响任何回测参数（实验设置另存）' },
+        risk: '清掉＝纲领回到 10% / ≤20% / ≤20% / 1.59%，不影响任何回测参数（实验设置另存）' },
       { store: 'localStorage · fw2_sig_thr', name: '投资纲领 · 信号阈值＋执行机制（23 项 · 13/13 接实盘）',
         get: function () {
           try {
@@ -20036,7 +20039,7 @@ function renderSignalDash() {
     var _stc = window.SIGNALS_CFG || {};
     /* v1065 fw2_v1065_sig_src_path：用户 2026-11-23「不用，甚至7项也不用列，直接提示路径即可」——来源行只留路径，不再列任何数值 */
     var _stLine = '<div class="dc-src" style="opacity:.92;margin:0 0 8px;line-height:1.75">阈值来源：<b>投资纲领 →「信号阈值（纲领）」</b>'
-      + ' （共 26 项：3 项目标（年化 / 回撤预算 / 无风险）+ 9 项直接驱动本页信号判断 + 1 项已下线（T9 单标的 CAP）+ 13 项执行口径——网格/补仓/狙击/刹车/建仓 v1067 起全部实盘生效）'
+      + ' （共 27 项：4 项目标（年化 / 回撤预算 / 波动率上限 / 无风险）+ 9 项直接驱动本页信号判断 + 1 项已下线（T9 单标的 CAP）+ 13 项执行口径——网格/补仓/狙击/刹车/建仓 v1067 起全部实盘生效）'
       + ' <button type="button" onclick="try{document.querySelector(&quot;#nav [data-view=tg]&quot;).click();setTimeout(function(){try{window.logicGo(&quot;sigthr&quot;)}catch(e){}},60)}catch(e){};return false" style="cursor:pointer;font-size:11px;padding:2px 8px;border-radius:6px;border:1px solid #D4D4D8;background:#fff;color:#3F3F46;margin-left:4px">去投资总纲改阈值 →</button></div>';
     var _v11MoveLine = '<div class="dc-note" style="margin:0 0 8px;padding:7px 10px;border:1px solid #E8E6DF;border-left:3px solid #B45309;border-radius:8px;background:#FDFCF8;font-size:11px;line-height:1.7;color:#52525B">'
       + '<b style="color:#18181B">V11 狙击已移至「策略执行 → V11 狙击」</b>——它有自己的资金池、单注上限、3×ATR 止损与吊灯退出，属策略本体，不是一条筛选提示；本页不再列 V11 逐只执行行，扫描与执行都在策略页。</div>';
@@ -25326,19 +25329,19 @@ function logicRowHtml(r, d) {
      已知坑：三态默认值同时被信号引擎与回测规则（R1–R11，即回测规则集）读取，改默认等于改两处口径；草稿不点采纳不升 ver（v1012 起才有采纳按钮）。
      沿革：逐条改动原因见文件头 fw2_v* 注释块；动口径前先读 docs/DATA_LEDGER.md 与 docs/FRONTEND.md。 */
   /* v1059 fw2_v1059_thesis_split：总纲与回测彻底分开（用户 2026-11-23：总纲是经验定稿的纲领，
-     回测是实验、参数可随意改）。总纲这三个数是「投资纲领」fw2_tg_thesis，只用于评价与纪律；
+     回测是实验、参数可随意改）。总纲这四个数是「投资纲领」fw2_tg_thesis，只用于评价与纪律；
      回测参数 fw2_bt_plan / hold / custom 是「实验设置」，两边各自存储、互不写入——
      v1058 曾让纲领写回测母版，v1059 撤销该耦合，并把参数页三行恢复为可改（实验值）。
-     字段：tgtAnn 目标年化 / ddBudget 回撤预算 / rf 无风险利率。 */
+     字段：tgtAnn 目标年化 / ddBudget 回撤预算 / volCap 波动率监控上限 / rf 无风险利率。 */
   var TG_THESIS_KEY = 'fw2_tg_thesis';
-  var TG_THESIS_DEF = { tgtAnn: 10, ddBudget: 20, rf: 1.59 };
+  var TG_THESIS_DEF = { tgtAnn: 10, ddBudget: 20, volCap: 20, rf: 1.59 };
   function tgThesis() {
-    var o = { tgtAnn: TG_THESIS_DEF.tgtAnn, ddBudget: TG_THESIS_DEF.ddBudget, rf: TG_THESIS_DEF.rf };
+    var o = { tgtAnn: TG_THESIS_DEF.tgtAnn, ddBudget: TG_THESIS_DEF.ddBudget, volCap: TG_THESIS_DEF.volCap, rf: TG_THESIS_DEF.rf };
     try {
       var raw = localStorage.getItem(TG_THESIS_KEY);
       if (raw) {
         var c = JSON.parse(raw) || {};
-        ['tgtAnn', 'ddBudget', 'rf'].forEach(function (k) { if (c[k] != null && !isNaN(+c[k])) o[k] = +c[k]; });
+        ['tgtAnn', 'ddBudget', 'volCap', 'rf'].forEach(function (k) { if (c[k] != null && !isNaN(+c[k])) o[k] = +c[k]; });
       }
     } catch (e) {}
     return o;
@@ -25348,20 +25351,32 @@ function logicRowHtml(r, d) {
      v1059 起已无任何按钮引用它（两处指路按钮走 btCfgGo('plan')、回测页「修改参数 →」走 btCfgGo(scope)），
      留着是死路径，还是唯一一个「从参数页跳回总纲」的入口，与「纲领 / 实验独立」口径相冲，故清掉。
      同时新增一次性迁移 tgMigrateOnce()：v1058 曾把纲领三键写进实验键 fw2_bt_plan，
-     若迁移前 fw2_tg_thesis 还不存在，就把这三个数搬进纲领键并置标记 fw2_tg_thesis_mig=1；只跑一次，之后各自独立。 */
+     若迁移前 fw2_tg_thesis 还不存在，就把这三个数搬进纲领键并置标记 fw2_tg_thesis_mig=1；只跑一次，之后各自独立。
+     v1164 起旧纲领键缺 volCap 的，加载时幂等回填默认 20%（不覆盖用户已存值）。 */
   var TG_MIG_FLAG = 'fw2_tg_thesis_mig';
   var TG_MIG_NOTE = '';
   function tgMigrateOnce() {
     try {
+      /* v1164 回填：已有 fw2_tg_thesis 但没有 volCap（v1163 及更早）→ 补默认 20，保证四键 schema 完整 */
+      try {
+        var curRaw = localStorage.getItem(TG_THESIS_KEY);
+        if (curRaw) {
+          var cur = JSON.parse(curRaw) || {};
+          if (cur.volCap == null || isNaN(+cur.volCap)) {
+            cur.volCap = TG_THESIS_DEF.volCap;
+            localStorage.setItem(TG_THESIS_KEY, JSON.stringify(cur));
+          }
+        }
+      } catch (eBack) {}
       if (localStorage.getItem(TG_MIG_FLAG) === '1') return;
       if (!localStorage.getItem(TG_THESIS_KEY)) {
         var raw = localStorage.getItem('fw2_bt_plan');
         var src = raw ? (JSON.parse(raw) || {}) : null;
         if (src && src.tgtAnn != null && src.ddBudget != null && src.rf != null
             && isFinite(+src.tgtAnn) && isFinite(+src.ddBudget) && isFinite(+src.rf)) {
-          var got = { tgtAnn: +src.tgtAnn, ddBudget: +src.ddBudget, rf: +src.rf };
+          var got = { tgtAnn: +src.tgtAnn, ddBudget: +src.ddBudget, volCap: TG_THESIS_DEF.volCap, rf: +src.rf };
           localStorage.setItem(TG_THESIS_KEY, JSON.stringify(got));
-          TG_MIG_NOTE = '已从旧回测参数（fw2_bt_plan）一次性迁移纲领值：目标 ' + got.tgtAnn + '% / 回撤 ≤' + got.ddBudget + '% / 无风险 ' + got.rf + '%。此后两套独立，迁移不再重复。';
+          TG_MIG_NOTE = '已从旧回测参数（fw2_bt_plan）一次性迁移纲领值：目标 ' + got.tgtAnn + '% / 回撤 ≤' + got.ddBudget + '% / 波动 ≤' + got.volCap + '% / 无风险 ' + got.rf + '%。此后两套独立，迁移不再重复。';
         }
       }
       localStorage.setItem(TG_MIG_FLAG, '1');
@@ -25370,26 +25385,30 @@ function logicRowHtml(r, d) {
   tgMigrateOnce();
   window.tgPlanEdit = function (id, raw) {
     var k = String(id || '').replace('tgIn_', '');
-    if (k !== 'tgtAnn' && k !== 'ddBudget' && k !== 'rf') return;
-    var LIM = { tgtAnn: [0, 60], ddBudget: [1, 80], rf: [0, 10] };
+    if (k !== 'tgtAnn' && k !== 'ddBudget' && k !== 'volCap' && k !== 'rf') return;
+    var LIM = { tgtAnn: [0, 60], ddBudget: [1, 80], volCap: [1, 80], rf: [0, 10] };
     var v = parseFloat(raw), bad = (isNaN(v) || v < LIM[k][0] || v > LIM[k][1]);
     if (!bad) {
       var cur = tgThesis(); cur[k] = v;
       try { localStorage.setItem(TG_THESIS_KEY, JSON.stringify(cur)); } catch (eS) {}
     }
     var _th = tgThesis();
-    var tgt = _th.tgtAnn, dd = _th.ddBudget, rf = _th.rf;
-    [['tgtAnn', tgt], ['ddBudget', dd], ['rf', rf]].forEach(function (x) {
+    var tgt = _th.tgtAnn, dd = _th.ddBudget, vol = _th.volCap, rf = _th.rf;
+    [['tgtAnn', tgt], ['ddBudget', dd], ['volCap', vol], ['rf', rf]].forEach(function (x) {
       var el = document.getElementById('tgIn_' + x[0]); if (el) el.value = x[1];
     });
-    var gt = document.getElementById('tgGoalTxt'); if (gt) gt.textContent = tgt + '% 年化 / ≤' + dd + '% 回撤';
+    var gt = document.getElementById('tgGoalTxt'); if (gt) gt.textContent = tgt + '% 年化 / ≤' + dd + '% 回撤 / ≤' + vol + '% 波动';
     var cl = document.getElementById('tgCalmar'); if (cl) cl.textContent = (+dd > 0) ? (((+tgt - +rf) / +dd).toFixed(2)) : '—';
     var msg = document.getElementById('tgSaveMsg');
-    var kTxt = { tgtAnn: '目标年化', ddBudget: '回撤预算', rf: '无风险利率' };
-    var base = '这三个数是<b>纲领</b>（经验定稿）：只用于评价与纪律，<b>不写回测参数</b>；回测是实验，参数在「策略执行 → 回测参数」里随意改，两套互不影响。';
+    var kTxt = { tgtAnn: '目标年化', ddBudget: '回撤预算', volCap: '波动率上限', rf: '无风险利率' };
+    var base = '这四个数是<b>纲领</b>（经验定稿）：只用于评价与纪律，<b>不写回测参数</b>；回测是实验，参数在「策略执行 → 回测参数」里随意改，两套互不影响。';
     if (msg) {
-      if (bad) { msg.innerHTML = '<span style="color:#A32D2D">' + logicEsc(kTxt[k] || k) + ' 超出允许范围（目标 0–60 / 回撤 1–80 / 无风险 0–10），已回退为纲领值。</span>　' + base; }
+      if (bad) { msg.innerHTML = '<span style="color:#A32D2D">' + logicEsc(kTxt[k] || k) + ' 超出允许范围（目标 0–60 / 回撤 1–80 / 波动 1–80 / 无风险 0–10），已回退为纲领值。</span>　' + base; }
       else { msg.innerHTML = '<span style="color:#1F7A4A">已写入投资纲领（fw2_tg_thesis）</span> · 回测参数不受影响。　' + base; }
+    }
+    /* v1164：波动率上限在总纲改完后，持仓页波动率卡立即按新上限重绘（只监控，不冻结买入） */
+    if (!bad && k === 'volCap' && typeof window.__vol699Render === 'function') {
+      setTimeout(function () { try { window.__vol699Render(); } catch (eR) {} }, 0);
     }
   };
   /* fw2_v1155_discovery_layer：发现层 · 四源候选统一登记（只读）。
@@ -25488,7 +25507,7 @@ function logicRowHtml(r, d) {
     var _btOn = LOGIC_BT.filter(function (b) { return (d.rules[b.id] || 'off') === 'on'; }).length;
     /* A 核心思想条（v1056 独立一级模块；v1059：读「投资纲领」fw2_tg_thesis，不再读回测参数） */
     var _gc = tgThesis();
-    var _tgt = _gc.tgtAnn, _dd = _gc.ddBudget, _rf = _gc.rf;
+    var _tgt = _gc.tgtAnn, _dd = _gc.ddBudget, _vol = _gc.volCap, _rf = _gc.rf;
     var _cl = (+_dd > 0) ? (((+_tgt - +_rf) / +_dd).toFixed(2)) : '—';
     var _evst = logicEvStats();
     var a = '<div style="background:#fff;border:1px solid #E8E6DF;border-left:4px solid #0F766E;border-radius:10px;padding:12px 14px;margin-bottom:10px">'
@@ -25498,17 +25517,18 @@ function logicRowHtml(r, d) {
       + '<button type="button" onclick="logicAdopt()" ' + (dirty ? '' : 'disabled ') + 'title="' + (dirty ? '把当前草稿固化为新版本号' : '当前就是基准，没有待采纳的草稿') + '" style="margin-left:auto;cursor:' + (dirty ? 'pointer' : 'not-allowed') + ';font-size:11px;padding:3px 10px;border-radius:6px;border:1px solid ' + (dirty ? '#0F766E' : '#E4E4E7') + ';background:' + (dirty ? '#0F766E' : '#F4F4F2') + ';color:' + (dirty ? '#fff' : '#A1A1AA') + '">采纳草稿 → ' + logicNextVer(d.ver) + '</button>'
       + '<span style="background:' + (dirty ? '#FDF6E7' : '#E4F4EA') + ';color:' + (dirty ? '#7A4B07' : '#1F7A4A') + ';font-weight:700;padding:2px 8px;border-radius:6px;font-size:12px">' + logicEsc(d.ver) + (dirty ? ' · 草稿未采纳' : ' · 基准（未改动）') + '</span>'
       + '</div>'
-      + '<div style="margin-top:8px;font-size:13px;color:#3F3F46;line-height:1.9">用规则化的杠铃仓位换 <b id="tgGoalTxt">' + _tgt + '% 年化 / ≤' + _dd + '% 回撤</b>：<b>不预测市场，只按纪律应对</b>——先选池、再分钱、过闸才进、按节奏加、按纪律出，只看得见的不猜。</div>'
+      + '<div style="margin-top:8px;font-size:13px;color:#3F3F46;line-height:1.9">用规则化的杠铃仓位换 <b id="tgGoalTxt">' + _tgt + '% 年化 / ≤' + _dd + '% 回撤 / ≤' + _vol + '% 波动</b>：<b>不预测市场，只按纪律应对</b>——先选池、再分钱、过闸才进、按节奏加、按纪律出，只看得见的不猜。</div>'
       + '<div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;align-items:center;font-size:11px;color:#52525B">'
       + '<span style="background:#F4F4F2;border-radius:6px;padding:3px 8px">目标年化 <b style="color:#0F766E">' + _tgt + '%</b></span>'
       + '<span style="background:#F4F4F2;border-radius:6px;padding:3px 8px">回撤预算 ≤ <b style="color:#0F766E">' + _dd + '%</b></span>'
+      + '<span style="background:#F4F4F2;border-radius:6px;padding:3px 8px">波动率上限 ≤ <b style="color:#0F766E">' + _vol + '%</b></span>'
       + '<span style="background:#F4F4F2;border-radius:6px;padding:3px 8px">无风险利率 <b style="color:#0F766E">' + _rf + '%</b></span>'
       + '<span style="background:#E4F4EA;color:#0F766E;border-radius:6px;padding:3px 8px">Calmar 达标线 <b id="tgCalmar">' + _cl + '</b></span>'
-      + '<button type="button" onclick="logicGo(\'sigthr\');return false" style="cursor:pointer;font-size:11px;padding:3px 10px;border-radius:6px;border:1px solid #B45309;background:#FDF6E7;color:#7A4B07">这三个数在「信号阈值（纲领）」表第 1 组改 →</button>'
+      + '<button type="button" onclick="logicGo(\'sigthr\');return false" style="cursor:pointer;font-size:11px;padding:3px 10px;border-radius:6px;border:1px solid #B45309;background:#FDF6E7;color:#7A4B07">这四个数在「信号阈值（纲领）」表第 1 组改 →</button>'
       + '<button type="button" onclick="window.btCfgGo(\'plan\');return false" style="cursor:pointer;font-size:11px;padding:3px 10px;border-radius:6px;border:1px solid #D4D4D8;background:#fff;color:#3F3F46">回测参数在「策略执行 → 回测参数」改 →</button>'
       + '</div>'
       + (TG_MIG_NOTE ? '<div id="tgMigNote" style="margin-top:6px;font-size:11px;color:#0F766E;background:#E4F4EA;border-radius:6px;padding:6px 9px;line-height:1.7">' + TG_MIG_NOTE + '</div>' : '')
-      + '<div id="tgSaveMsg" style="margin-top:6px;font-size:11px;color:#A1A1AA;line-height:1.7">上面三个数是<b>纲领值</b>（fw2_tg_thesis）：经验定稿，只用于评价与纪律，<b>不写回测参数</b>；编辑入口已移到下方「信号阈值（纲领）」表第 1 组（与 23 项阈值同表、分开存）；回测是实验，参数在「策略执行 → 回测参数」里随意改，两套互不影响。</div>'
+      + '<div id="tgSaveMsg" style="margin-top:6px;font-size:11px;color:#A1A1AA;line-height:1.7">上面四个数是<b>纲领值</b>（fw2_tg_thesis）：经验定稿，只用于评价与纪律，<b>不写回测参数</b>；编辑入口已移到下方「信号阈值（纲领）」表第 1 组（与 23 项阈值同表、分开存）；回测是实验，参数在「策略执行 → 回测参数」里随意改，两套互不影响。</div>'
       + '<div style="margin-top:6px;font-size:11px;color:#A1A1AA">规则合计 ' + all.length + ' 条（①–⑦ 61 条可执行 + ⑧ 6 条准入验证 · 元规则恒启用，不计三态）：<span style="color:#0F766E;font-weight:700">生效 ' + (on - _btOn) + '</span> · <span style="color:#B45309">观察 ' + obs + '</span> · <span style="color:#A1A1AA">关 ' + off + '</span>' + (d.updatedAt ? ' · 最近改动 ' + logicEsc(d.updatedAt) : '') + '</div>'
       + '<div style="margin-top:6px;font-size:11px;line-height:1.8;color:#52525B">证据分级（61 条交易规则）：<b style="color:#0F766E">A+ 正边际 ' + _evst['A+'] + '</b> · <b style="color:#A32D2D">A− 负边际 ' + _evst['A-'] + '</b> · <b style="color:#7A4B07">A? 仅建模 ' + _evst['A?'] + '</b> · <b style="color:#52525B">A· 已退役 ' + _evst['A·'] + '</b> · <b style="color:#71717A">C 未验证 ' + _evst.C + '</b>'
       + '<span style="color:#A1A1AA">　A 不再单用：A 只表示「测过」；是否可信看 A+/A−/A?。上方「生效」是档案状态，不等于会动钱，也不等于有 alpha。</span></div>'
@@ -25544,12 +25564,12 @@ function logicRowHtml(r, d) {
           : '<span style="font-size:11px;color:#3F3F46;border:1px solid #E4E4E7;border-radius:5px;padding:1px 6px">进入 →</span>') + '</td>'
         + '</tr>';
     });
-    b += '<tr onclick="logicGo(\'sigthr\')" title="独立模块：26 项执行数值（3 项目标 + 9 项信号阈值 + 1 项已下线 CAP + 13 项执行机制），不属于 ①–⑧ 任一层" style="cursor:pointer;border-top:2px solid #F0E0BE;background:' + (_sigMode ? '#FDF6E7' : '#FFFDF7') + '">'
+    b += '<tr onclick="logicGo(\'sigthr\')" title="独立模块：27 项执行数值（4 项目标 + 9 项信号阈值 + 1 项已下线 CAP + 13 项执行机制），不属于 ①–⑧ 任一层" style="cursor:pointer;border-top:2px solid #F0E0BE;background:' + (_sigMode ? '#FDF6E7' : '#FFFDF7') + '">'
       + '<td style="padding:7px 8px;white-space:nowrap"><span style="background:#FDF6E7;border:1px solid #F0E0BE;border-radius:4px;padding:1px 4px;font-size:10.5px;font-weight:700;color:#7A4B07">独立</span></td>'
       + '<td style="padding:7px 8px;font-weight:700;color:#7A4B07">信号阈值（纲领）</td>'
-      + '<td style="padding:7px 8px;color:#7A4B07;line-height:1.55">26 项执行数值：3 项目标（年化 / 回撤预算 / 无风险利率）+ 9 项信号阈值 + 1 项已下线（T9 CAP）+ 13 项执行口径；不属于 ①–⑧ 任一层</td>'
-      + '<td style="padding:7px 8px;white-space:nowrap;color:#7A4B07">25 项可用</td>'
-      + '<td style="padding:7px 8px;white-space:nowrap;color:#7A4B07">25 项生效 · 1 项已下线</td>'
+      + '<td style="padding:7px 8px;color:#7A4B07;line-height:1.55">27 项执行数值：4 项目标（年化 / 回撤预算 / 波动率上限 / 无风险利率）+ 9 项信号阈值 + 1 项已下线（T9 CAP）+ 13 项执行口径；不属于 ①–⑧ 任一层</td>'
+      + '<td style="padding:7px 8px;white-space:nowrap;color:#7A4B07">26 项可用</td>'
+      + '<td style="padding:7px 8px;white-space:nowrap;color:#7A4B07">26 项生效 · 1 项已下线</td>'
       + '<td style="padding:7px 8px;color:#7A4B07;line-height:1.55">投资总纲 · 独立视图；交易信号页「阈值」列</td>'
       + '<td style="padding:7px 8px;white-space:nowrap">' + (_sigMode
         ? '<span style="font-size:11px;font-weight:700;color:#B45309">当前视图</span>'
@@ -27231,7 +27251,7 @@ function logicRowHtml(r, d) {
   window.btScopeDiff = btScopeDiff;
   window.btCfg = function (scope) { return btCfg(scope); };
   /* v1059 fw2_v1059_thesis_split：撤销 v1058 的「纲领写回测母版」耦合。
-     总纲三键只存 fw2_tg_thesis（总纲侧 tgThesis / tgPlanEdit 负责）；回测三键回到 ⑧-A 表里由用户按实验需要改。
+     总纲四键只存 fw2_tg_thesis（总纲侧 tgThesis / tgPlanEdit 负责）；回测三键回到 ⑧-A 表里由用户按实验需要改。
      两套独立：改总纲不动任何回测参数，改回测不动总纲纲领。 */
   /* v997 fw2_v997_idb_cache：把两份大东西落到本机 IndexedDB——
      ①fund-daily 13MB：原来每次刷新都 fetch('no-cache') + JSON.parse，等于每次点进回测页都要等网络；
@@ -32480,7 +32500,7 @@ function renderBacktest() {
         var _rHint = _cn
           ? ('共 ' + _rList.length + ' 条 · 生效 ' + _rCn.on + ' / 观察 ' + _rCn.obs + ' / 关 ' + _rCn.off + ' · 口径＝投资纲领（三态＋阈值＋目标）')
           : ('共 ' + _rList.length + ' 条，开 ' + _rOnCnt + ' 条 / 关 ' + (_rList.length - _rOnCnt) + ' 条（按 ⑧-A 实验参数实时计算）· 证据分级＝A+ 正边际 / A− 负边际 / A? 仅建模 / A· 已退役 / C 未验证');
-        var _rFoot = _cn ? ('<div style="font-size:10px;color:#71717A;margin:0 0 8px;line-height:1.7">全部取自投资纲领：开关＝三态（fw2_logic_v1：生效／观察／关）· 阈值与执行口径＝信号阈值 26 项（3 目标 fw2_tg_thesis + 9 阈值 + 1 已下线 + 13 执行，fw2_sig_thr）· 目标＝纲领三键（fw2_tg_thesis）· 证据分级＝A+ 正边际／A− 负边际／A? 仅建模未独立对照／A· 已退役／C 未验证；裸 A 只表示「测过」，不等于可信。<br>本卡不含任何 ⑧-A 实验数值；回测实验（「策略执行 → 回测参数」）只用于跑回测，不参与这里的判定。</div>') : '';
+        var _rFoot = _cn ? ('<div style="font-size:10px;color:#71717A;margin:0 0 8px;line-height:1.7">全部取自投资纲领：开关＝三态（fw2_logic_v1：生效／观察／关）· 阈值与执行口径＝信号阈值 27 项（4 目标 fw2_tg_thesis + 9 阈值 + 1 已下线 + 13 执行，fw2_sig_thr）· 目标＝纲领四键（fw2_tg_thesis）· 证据分级＝A+ 正边际／A− 负边际／A? 仅建模未独立对照／A· 已退役／C 未验证；裸 A 只表示「测过」，不等于可信。<br>本卡不含任何 ⑧-A 实验数值；回测实验（「策略执行 → 回测参数」）只用于跑回测，不参与这里的判定。</div>') : '';
         return '<div class="card-h" style="margin-top:12px"><h3>' + _rTitle + '</h3><span class="hint">' + _rHint + '</span></div>'
           + '<div style="border:1px solid #E8E6DF;border-radius:8px;padding:4px 10px 8px;background:#fff;margin:6px 0 8px">'
           + '<div style="display:grid;grid-template-columns:76px 1fr 86px 74px;gap:8px;padding:3px 2px;font-size:10px;color:#A1A1AA;letter-spacing:.02em"><div>代码／中文名</div><div>触发条件与动作</div><div>' + (_cn ? '纲领' : '本次') + '</div><div>证据</div></div>'
@@ -38753,8 +38773,8 @@ return {
 (function () {
   "use strict";
   var WIN = 20, SQ252 = Math.sqrt(252);
-  /* v1163：用户 2026-11-27 定「年化收益目标 10%、波动率 20% 以内」——波动率上限 20%，10% 不再当波动率线；20% 仍只监控，不冻结买入。 */
-    var WINS = [60, 120, 250], VOL_CAP = 20, RC_WIN = 120;
+  /* v1163/v1164：年化收益目标 10%（总纲）、波动率上限读 fw2_tg_thesis.volCap（默认 20，可改）；只监控，不冻结买入。 */
+    var WINS = [60, 120, 250], VOL_CAP_DEF = 20, RC_WIN = 120;
   var CACHE = { ready: false, busy: false, port: null, idx: null, meta: null, vol: null, rc: [], wi: [] };
 
   function gid(id) { return document.getElementById(id); }
@@ -38788,16 +38808,19 @@ return {
   /* 权重：HOLDINGS_SEED.holdings（账户权威镜像）mv>0 → w=mv/Σmv */
   function portWeights() {
     var seed = window.HOLDINGS_SEED || {};
-    var out = [], total = 0;
+    var out = [], total = 0, cost = 0, profit = 0, first = '';
     (seed.holdings || []).forEach(function (h) {
       var mv = Number(h.marketValue);
       if (!isFinite(mv) || mv <= 0) mv = (Number(h.shares) || 0) * (Number(h.nav) || 0);
       if (!c6(h.code) || !isFinite(mv) || mv <= 0) return;
       out.push({ code: c6(h.code), name: h.name || c6(h.code), mv: mv, isCash: h.assetType === 'cash' });
       total += mv;
+      if (isFinite(Number(h.cost))) cost += Number(h.cost);
+      if (isFinite(Number(h.holdProfit))) profit += Number(h.holdProfit);
+      if (h.firstBuyDate && (!first || h.firstBuyDate < first)) first = h.firstBuyDate;
     });
     out.forEach(function (o) { o.w = total > 0 ? o.mv / total : 0; });
-    return { rows: out, total: total, asOf: seed.syncedAt || "" };
+    return { rows: out, total: total, asOf: seed.syncedAt || "", cost: cost, profit: profit, firstBuyDate: first };
   }
 
   function dailyReturns(ser) { /* [[d,v]] → {d: r} */
@@ -38862,6 +38885,38 @@ return {
     m /= arr.length;
     for (i = 0; i < arr.length; i++) { var d = rmap[arr[i]] - m; v += d * d; }
     return Math.sqrt(v / (arr.length - 1)) * SQ252 * 100;
+  }
+
+  /* v1164 账户实际年化收益：用账户权威累计持有收益 / 累计成本，按首笔买入到最新净值的日历天折算。
+     口径边界：这是账户成本口径的简单年化（含已实现盈亏、含现金 0 收益），不是资金加权 IRR。
+     资金加权 IRR 需要完整外部现金流台账；capital-balance.json 当前 tx=0，暂不可算。 */
+  function actualRetOf(W, asOf) {
+    if (!W || !(W.cost > 0) || !W.firstBuyDate || !asOf) return null;
+    var days = (Date.parse(asOf) - Date.parse(W.firstBuyDate)) / 86400000;
+    if (!(days > 0)) return null;
+    var cum = W.profit / W.cost;
+    return {
+      pct: (Math.pow(1 + cum, 365.25 / days) - 1) * 100,
+      cum: cum * 100,
+      from: W.firstBuyDate, to: asOf, days: days,
+      profit: W.profit, cost: W.cost
+    };
+  }
+
+  /* v1164 组合历史回溯年化：把当前权重按各基金真实净值逐日重算的组合收益链，几何链接后按日历天折算。
+     口径边界：当前权重回溯（不是账户真实历史持仓），含现金按 0 收益；不是账户资金加权 IRR。 */
+  function annRetOf(rmap) {
+    var ds = Object.keys(rmap).sort();
+    if (ds.length < 30) return null;
+    var cum = 1, i;
+    for (i = 0; i < ds.length; i++) cum *= (1 + rmap[ds[i]]);
+    var years = (Date.parse(ds[ds.length - 1]) - Date.parse(ds[0])) / 86400000 / 365.25;
+    if (!(years > 0) || !(cum > 0)) return null;
+    return {
+      pct: (Math.pow(cum, 1 / years) - 1) * 100,
+      cum: (cum - 1) * 100,
+      from: ds[0], to: ds[ds.length - 1], years: years, n: ds.length
+    };
   }
 
   /* v1161 风险贡献（近似）：120 日协方差，贡献_i = w_i·cov(r_i,r_p)/(var_p·Σw)，占非现金方差；
@@ -38946,6 +39001,9 @@ return {
       if (!ser || !idx) return;
       var pr = portReturns(W.rows, ser);
       var prNC = portReturns(W.rows.filter(function (o) { return !o.isCash; }), ser);
+      var navAsOf = fdAsOf(ser);
+      var ar = actualRetOf(W, navAsOf);
+      var bt = annRetOf(pr);
       var ic = idx["000300"] ? idx["000300"].ser : null;
       if (!ic) return;
       var ir = dailyReturns(Object.keys(ic).sort().map(function (d) { return [d, ic[d]]; }));
@@ -38966,7 +39024,7 @@ return {
       WINS.forEach(function (w) { CACHE.vol[w] = annVolOf(pr, w); });
       CACHE.rc = riskContribs(W.rows.filter(function (o) { return !o.isCash; }), ser, prNC);
       CACHE.wi = volWhatIf(W, ser);
-      CACHE.meta = { w: W, cov: ncTotal > 0 ? Math.round(inc / ncTotal * 100) : 0, cashW: W.total > 0 ? cashW / W.total * 100 : 0, navAsOf: fdAsOf(ser), idxLast: common.length ? common[common.length - 1] : "", nPts: CACHE.port.length };
+      CACHE.meta = { w: W, cov: ncTotal > 0 ? Math.round(inc / ncTotal * 100) : 0, cashW: W.total > 0 ? cashW / W.total * 100 : 0, navAsOf: navAsOf, idxLast: common.length ? common[common.length - 1] : "", nPts: CACHE.port.length, act: ar, ann: bt };
       CACHE.ready = true;
       cb(null);
     };
@@ -39011,6 +39069,18 @@ return {
     var card = gid("volCard"); if (!card || !CACHE.ready) return;
     var el = gid("volChart"); if (!el || typeof echarts === "undefined") return;
     card.style.display = "";
+    /* v1164：波动率上限改读投资总纲 fw2_tg_thesis.volCap（默认 20）；在首屏超限条与三格 chip 之前取值。
+       这里直接读 localStorage，不依赖 window.tgThesis——总纲模块在持仓视图下未渲染时不会挂全局。 */
+    var tg = (function () {
+      var d = { tgtAnn: 10, volCap: VOL_CAP_DEF };
+      try {
+        var c = JSON.parse(localStorage.getItem('fw2_tg_thesis') || '{}') || {};
+        if (c.tgtAnn != null && isFinite(+c.tgtAnn)) d.tgtAnn = +c.tgtAnn;
+        if (c.volCap != null && isFinite(+c.volCap)) d.volCap = +c.volCap;
+      } catch (eT) {}
+      return d;
+    })();
+    var volCap = (tg.volCap != null && isFinite(+tg.volCap)) ? +tg.volCap : VOL_CAP_DEF;
     var dates = CACHE.port.map(function (x) { return x[0]; });
     var pv = CACHE.port.map(function (x) { return x[1]; });
     var ivm = {}; CACHE.idx.forEach(function (x) { ivm[x[0]] = x[1]; });
@@ -39020,13 +39090,13 @@ return {
     if (hint) hint.innerHTML = "20日滚动：组合 <b>" + (lp == null ? "—" : lp.toFixed(2) + "%") + "</b> · 沪深300 <b>" + (li == null ? "—" : li.toFixed(2) + "%") + "</b>";
     var va = gid("volTopAlert");
     if (va) {
-      var overs = WINS.filter(function (w) { return CACHE.vol[w] != null && CACHE.vol[w] >= VOL_CAP; });
+      var overs = WINS.filter(function (w) { return CACHE.vol[w] != null && CACHE.vol[w] >= volCap; });
       if (overs.length) {
         va.style.display = "flex";
         va.style.flexWrap = "wrap";
         va.style.gap = "2px 10px";
         va.style.alignItems = "baseline";
-        va.innerHTML = "<span style=\"white-space:nowrap\"><b>组合波动率超 20% 上限</b></span>" + WINS.map(function (w) {
+        va.innerHTML = "<span style=\"white-space:nowrap\"><b>组合波动率超 " + volCap + "% 上限</b></span>" + WINS.map(function (w) {
           var v = CACHE.vol[w];
           return "<span style=\"white-space:nowrap\">" + w + "日 <b style=\"color:" + bandColor(v) + "\">" + (v == null ? "—" : v.toFixed(2) + "%") + "</b>" + (v == null ? "" : "（" + band(v) + "）") + "</span>";
         }).join("") + "<span style=\"color:#667085;white-space:nowrap\">只读监控，不冻结买入 · 查看风险贡献 →</span>";
@@ -39034,26 +39104,38 @@ return {
         va.style.display = "none";
       }
     }
-    /* v1163 只读监控：60/120/250 日，波动率硬上限 20%；10% 是投资总纲年化收益目标，不是波动率线 */
-    function band(v) { return v == null ? "—" : (v >= VOL_CAP ? "超上限" : "正常"); }
-    function bandColor(v) { return v == null ? "#8a94a6" : (v >= VOL_CAP ? "#b91c1c" : "#047857"); }
+    /* v1163 只读监控：60/120/250 日，波动率上限读总纲 volCap（默认 20）；10% 是投资总纲年化收益目标，不是波动率线 */
+    function band(v) { return v == null ? "—" : (v >= volCap ? "超上限" : "正常"); }
+    function bandColor(v) { return v == null ? "#8a94a6" : (v >= volCap ? "#b91c1c" : "#047857"); }
     function chip(label, v) {
-      var c = bandColor(v), bg = v == null ? "#f8fafc" : (v >= VOL_CAP ? "#fef2f2" : "#f0fdf4");
+      var c = bandColor(v), bg = v == null ? "#f8fafc" : (v >= volCap ? "#fef2f2" : "#f0fdf4");
       return '<span style="display:inline-flex;align-items:baseline;gap:5px;padding:3px 8px;border:1px solid ' + c + '33;border-radius:6px;background:' + bg + ';font-size:11px;color:#475467">'
         + '<span>' + label + '</span><b style="font-size:14px;color:' + c + '">' + (v == null ? "—" : v.toFixed(2) + "%") + '</b><span style="color:' + c + ';font-size:10px">' + band(v) + '</span></span>';
     }
     var kp = gid("volKpi");
-    var tg = { tgtAnn: 10 };
-    try { if (typeof window.tgThesis === "function") tg = window.tgThesis() || tg; } catch (e0) {}
     if (kp) {
       var maxV = null, maxW = null;
       WINS.forEach(function (w) { if (CACHE.vol[w] != null && (maxV == null || CACHE.vol[w] > maxV)) { maxV = CACHE.vol[w]; maxW = w; } });
-      var capTxt = maxV == null ? "波动率上限 20%" : (maxV >= VOL_CAP
-        ? "已超 20% 上限 " + (maxV - VOL_CAP).toFixed(2) + "pct"
-        : "20% 上限内，最高 " + maxW + "日 " + maxV.toFixed(2) + "%（距上限 " + (VOL_CAP - maxV).toFixed(2) + "pct）");
-      kp.innerHTML = chip("60日", CACHE.vol[60]) + chip("120日", CACHE.vol[120]) + chip("250日", CACHE.vol[250])
+      var capTxt = maxV == null ? "波动率上限 " + volCap + "%" : (maxV >= volCap
+        ? "已超 " + volCap + "% 上限 " + (maxV - volCap).toFixed(2) + "pct"
+        : volCap + "% 上限内，最高 " + maxW + "日 " + maxV.toFixed(2) + "%（距上限 " + (volCap - maxV).toFixed(2) + "pct）");
+      var tgtAnn = (tg.tgtAnn != null && isFinite(+tg.tgtAnn)) ? +tg.tgtAnn : 10;
+      var ar = CACHE.meta && (CACHE.meta.act || CACHE.meta.ann);
+      var isAct = !!(CACHE.meta && CACHE.meta.act);
+      var retLine;
+      if (ar) {
+        var gap = ar.pct - tgtAnn;
+        retLine = '<span style="flex:1 1 100%;font-size:11px;color:#475467;line-height:1.6;white-space:normal;padding:1px 0 2px">'
+          + (isAct ? '组合实际年化收益 ' : '组合年化收益 ')
+          + '<b style="font-size:13px;color:' + (ar.pct >= 0 ? '#0F766E' : '#B42318') + '">' + (ar.pct >= 0 ? '+' : '') + ar.pct.toFixed(2) + '%</b>'
+          + '<span style="color:#8a94a6">（' + (isAct ? '账户持有收益/成本 ' : '当前权重·真实净值回溯 ') + ar.from + '→' + ar.to + '）</span>'
+          + ' · 目标 ' + tgtAnn + '% · ' + (gap >= 0 ? '高于' : '低于') + '目标 ' + Math.abs(gap).toFixed(2) + 'pct</span>';
+      } else {
+        retLine = '<span style="flex:1 1 100%;font-size:11px;color:#8a94a6;line-height:1.6;white-space:normal;padding:1px 0 2px">组合实际年化收益 —（账户收益字段不足） · 目标 ' + tgtAnn + '%</span>';
+      }
+      kp.innerHTML = retLine + chip("60日", CACHE.vol[60]) + chip("120日", CACHE.vol[120]) + chip("250日", CACHE.vol[250])
         + '<span style="flex:1 1 100%;font-size:10.5px;color:#667085;line-height:1.5;white-space:normal;padding-top:2px">' + capTxt
-        + ' · 年化收益目标 ' + (tg.tgtAnn != null ? tg.tgtAnn : 10) + '%（投资总纲，非本卡指标） · 只监控，不冻结买入</span>';
+        + ' · 年化收益目标 ' + tgtAnn + '%（投资总纲，非本卡指标） · 只监控，不冻结买入</span>';
     }
     var rk = gid("volRisk");
     if (rk) {
@@ -39095,10 +39177,18 @@ return {
     }
     var foot = gid("volFoot");
     if (foot) {
-      foot.innerHTML = "口径：日收益率样本 std × √252 年化，20 日滚动窗口；60/120/250 日＝最后 N 个日收益的当前年化波动（含现金按 0 波动，按总资产归一）；波动率上限 20%（用户 2026-11-27 设定，只读监控，不冻结买入）；年化收益目标 " + (tg.tgtAnn != null ? tg.tgtAnn : 10) + "%（投资总纲，非本卡指标）；风险贡献＝120 日协方差近似（占非现金方差），只做排序提示"
+      var act = CACHE.meta && CACHE.meta.act;
+      var bt = CACHE.meta && CACHE.meta.ann;
+      var arTxt = act
+        ? ('组合实际年化收益 ' + (act.pct >= 0 ? '+' : '') + act.pct.toFixed(2) + '%（账户持有收益 ¥' + Math.round(act.profit).toLocaleString("zh-CN") + ' / 累计成本 ¥' + Math.round(act.cost).toLocaleString("zh-CN") + '，首笔 ' + act.from + '→' + act.to + '，含已实现盈亏与现金 0 收益；是成本口径简单年化，不是资金加权 IRR——外部现金流台账 0 笔，暂不可算）')
+        : '组合实际年化收益 —（账户持有收益/成本字段不足）';
+      var btTxt = bt
+        ? ('；当前配置回溯 ' + (bt.pct >= 0 ? '+' : '') + bt.pct.toFixed(2) + '%（' + bt.from + '→' + bt.to + '，历史权重按当时可用净值归一，不是账户实际持仓）')
+        : '';
+      foot.innerHTML = "口径：日收益率样本 std × √252 年化，20 日滚动窗口；60/120/250 日＝最后 N 个日收益的当前年化波动（含现金按 0 波动，按总资产归一）；波动率上限 " + volCap + "%（投资总纲 volCap，用户 2026-11-27 设定，只读监控，不冻结买入）；年化收益目标 " + ((tg.tgtAnn != null && isFinite(+tg.tgtAnn)) ? +tg.tgtAnn : 10) + "%（投资总纲，非本卡指标）；" + arTxt + btTxt + "；风险贡献＝120 日协方差近似（占非现金方差），只做排序提示"
         + "；非现金净值覆盖 " + CACHE.meta.cov + "%（按当前市值，无净值序列的非现金未计入）；现金 " + (CACHE.meta.cashW == null ? "—" : CACHE.meta.cashW.toFixed(1) + "%") + " 按 0 波动计入"
         + "；净值截至 " + CACHE.meta.navAsOf + " · 沪深300（腾讯日K）截至 " + CACHE.meta.idxLast + " · 曲线 " + CACHE.meta.nPts + " 点"
-        + "；权重快照 " + (CACHE.meta.w.asOf || "—").slice(0, 16).replace("T", " ") + "；20% 是监控上限，未接买入冻结/交易闸门 · 定性参考 · 不构成投资建议";
+        + "；权重快照 " + (CACHE.meta.w.asOf || "—").slice(0, 16).replace("T", " ") + "；" + volCap + "% 是监控上限，未接买入冻结/交易闸门 · 定性参考 · 不构成投资建议";
     }
     try { if (CH) CH.dispose(); } catch (e) {}
     CH = echarts.init(el);
