@@ -38808,10 +38808,13 @@ return {
   }
 
   /* 组合日收益：各标的按自身净值日历算日收益，当日按可得权重归一；权重和 <50% 的日期剔除。
-     v1161b：现金/货币按 0 波动计入全部净值日，避免把 37.6% 现金漏掉、把「非现金部分」当成总资产组合。 */
+     v1161b：现金/货币按 0 波动计入全部净值日，避免把 37.6% 现金漏掉、把「非现金部分」当成总资产组合。
+     v1162b：估值日只取非现金净值日；现金只在这些日期按 0 波动计入——货币基金自身日历含周末，
+     若并入会把零收益日混进年化波动，导致同一份数据在本地/线上读数不一致。 */
   function portReturns(wrows, serMap) {
     var allDs = {};
     wrows.forEach(function (o) {
+      if (o.isCash) return;
       (serMap[o.code] || []).forEach(function (x) { allDs[x[0]] = 1; });
     });
     var allDates = Object.keys(allDs).sort();
